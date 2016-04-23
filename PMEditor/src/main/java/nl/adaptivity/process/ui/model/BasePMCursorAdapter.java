@@ -54,8 +54,8 @@ public abstract class BasePMCursorAdapter<VH extends BasePMViewHolder> extends S
   }
 
   private static final String TAG = "BasePMCursorAdapter";
-  protected LayoutInflater mInflater;
-  protected int mNameColumn;
+  protected final LayoutInflater mInflater;
+  protected       int            mNameColumn;
 
   public BasePMCursorAdapter(final Context context, final Cursor cursor, final boolean allowUnselection) {
     super(context, cursor, allowUnselection);

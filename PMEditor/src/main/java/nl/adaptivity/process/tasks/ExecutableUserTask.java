@@ -177,10 +177,10 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   };
   protected TaskState mState;
 
-  private String mSummary;
-  private long mHandle;
-  private String mOwner;
-  private ObservableList<TaskItem> mItems;
+  private       String                   mSummary;
+  private       long                     mHandle;
+  private       String                   mOwner;
+  private final ObservableList<TaskItem> mItems;
   private boolean mDirty = false;
   private long mRemoteHandle;
   private long mInstanceHandle;

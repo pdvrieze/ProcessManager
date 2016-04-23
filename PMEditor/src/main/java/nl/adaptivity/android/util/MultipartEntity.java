@@ -32,7 +32,7 @@ public class MultipartEntity extends AbstractHttpEntity {
   private static final String CRLF="\r\n";
   private static final String CONTENT_DISPOSITION = "Content-Disposition: form-data; name=";
 
-  private List<Pair<String, HttpEntity>> mContent = new ArrayList<>();
+  private final List<Pair<String, HttpEntity>> mContent = new ArrayList<>();
 
   private String mBoundary;
 

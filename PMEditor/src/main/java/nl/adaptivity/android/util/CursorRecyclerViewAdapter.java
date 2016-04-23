@@ -61,11 +61,11 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
       //There is no notifyDataSetInvalidated() method in RecyclerView.Adapter
     }
   }
-  private Context mContext;
-  private Cursor mCursor;
-  private boolean mDataValid;
-  private int mRowIdColumn;
-  private DataSetObserver mDataSetObserver;
+  private final Context         mContext;
+  private       Cursor          mCursor;
+  private       boolean         mDataValid;
+  private       int             mRowIdColumn;
+  private final DataSetObserver mDataSetObserver;
 
 // Object Initialization
   public CursorRecyclerViewAdapter(final Context context, final Cursor cursor) {

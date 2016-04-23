@@ -93,12 +93,12 @@ public class EditableUserTask extends UserTaskBase {
     }
   };
 
-  private CharSequence mSummary;
-  private CharSequence mHandle;
-  private CharSequence mOwner;
-  private ObservableList<TaskItem> mItems;
-  private CharSequence mInstanceHandle;
-  private CharSequence mRemoteHandle;
+  private       CharSequence             mSummary;
+  private       CharSequence             mHandle;
+  private       CharSequence             mOwner;
+  private final ObservableList<TaskItem> mItems;
+  private       CharSequence             mInstanceHandle;
+  private       CharSequence             mRemoteHandle;
 
   private EditableUserTask() {
     mItems = new ObservableArrayList<>();

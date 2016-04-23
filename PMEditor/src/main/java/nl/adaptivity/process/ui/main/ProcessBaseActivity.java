@@ -62,8 +62,8 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
 
   private class FileStoreListener {
 
-    private String mMimeType;
-    private int mRequestCode;
+    private final String mMimeType;
+    private final int    mRequestCode;
 
     public FileStoreListener(final String mimeType, final int requestCode) {
       mMimeType = mimeType;
@@ -81,9 +81,9 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   }
 
   public class FileStoreTask extends AsyncTask<ClientProcessModel<?, ?>, Object, File> {
-    private File mFile;
-    private FileStoreListener mPostSave;
-    private int mType;
+    private       File              mFile;
+    private final FileStoreListener mPostSave;
+    private final int               mType;
 
     public FileStoreTask(final int type, final FileStoreListener postSave) {
       this(type, postSave, null);

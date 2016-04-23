@@ -28,8 +28,8 @@ import java.util.List;
 
 public class TextItem extends TextLabeledItem {
 
-  private List<CharSequence> mSuggestions;
-  private ArrayAdapter<CharSequence> mSuggestionAdapter;
+  private final List<CharSequence>         mSuggestions;
+  private       ArrayAdapter<CharSequence> mSuggestionAdapter;
 
   public TextItem(final CharSequence name, final CharSequence label, final CharSequence value, final List<? extends CharSequence> suggestions) {
     super(name, label, value);

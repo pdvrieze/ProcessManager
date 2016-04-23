@@ -41,8 +41,8 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   protected static class ConnectorView extends AbstractLightView {
 
     private Paint mPen;
-    private RectF mBounds = new RectF();
-    private DrawableProcessModel mDiagram;
+    private final RectF mBounds = new RectF();
+    private final DrawableProcessModel mDiagram;
 
     public ConnectorView(final BaseProcessAdapter parent) {
       parent.getBounds(mBounds);
@@ -83,11 +83,11 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   }
 
-  private DrawableProcessModel mDiagram;
-  protected Map<DrawableProcessNode, LWDrawableView> mViewCache = new HashMap<>();
+  private final DrawableProcessModel mDiagram;
+  protected final Map<DrawableProcessNode, LWDrawableView> mViewCache = new HashMap<>();
   private LightView mBackground;
-  private RectF mBounds = new RectF();
-  private boolean mInvalid = true;
+  private final RectF   mBounds  = new RectF();
+  private       boolean mInvalid = true;
   private AndroidTheme mTheme;
 
   public BaseProcessAdapter(final DrawableProcessModel diagram) {

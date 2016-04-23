@@ -52,7 +52,7 @@ public class MasterListFragment extends RecyclerFragment {
    * A dummy implementation of the {@link ProcessModelListCallbacks} interface that does
    * nothing. Used only when this fragment is not attached to an activity.
    */
-  public static ProcessModelListCallbacks sDummyCallbacks = new ProcessModelListCallbacks() {
+  public static final ProcessModelListCallbacks sDummyCallbacks = new ProcessModelListCallbacks() {
     @Override public boolean onItemClicked(final int row, final long id) {/*dummy, not processed*/ return false; }
     @Override
     public void onItemSelected(final int row, final long id) {/*dummy*/}

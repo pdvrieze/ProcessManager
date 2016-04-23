@@ -84,8 +84,8 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     }
 
     ;
-    private String mStr;
-    @LayoutRes public final int layoutId;
+    private final           String mStr;
+    @LayoutRes public final int    layoutId;
 
     Type(final String str, @LayoutRes final int layoutId) {
       mStr = str;

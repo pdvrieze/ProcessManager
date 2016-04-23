@@ -45,7 +45,7 @@ public class BetterXmlSerializer implements XmlSerializer{
   private boolean[] indent = new boolean[4];
   private boolean unicode;
   private String encoding;
-  private boolean escapeAggressive = false;
+  private final boolean escapeAggressive = false;
 
   private void check(final boolean close) throws IOException {
     if (!pending)

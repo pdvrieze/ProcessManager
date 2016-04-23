@@ -30,10 +30,10 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
  */
 public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> extends SelectableCursorAdapter<VH> {
 
-  protected LayoutInflater mInflater;
-  protected int mSummaryColIdx;
-  protected int mStateColIdx;
-  protected int mInstNameColIdx;
+  protected final LayoutInflater mInflater;
+  protected       int            mSummaryColIdx;
+  protected       int            mStateColIdx;
+  protected       int            mInstNameColIdx;
 
   public BaseTaskCursorAdapter(final Context context, final Cursor cursor, final boolean allowUnselection) {
     super(context, cursor, allowUnselection);

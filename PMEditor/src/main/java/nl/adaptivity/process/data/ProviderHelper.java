@@ -71,10 +71,10 @@ public final class ProviderHelper {
 
   public static final class SyncCallable implements Callable<Account> {
 
-    private final URI mAuthbase;
-    private boolean mExpedited;
-    private Activity mContext;
-    private String mAuthority;
+    private final URI      mAuthbase;
+    private final boolean  mExpedited;
+    private final Activity mContext;
+    private final String   mAuthority;
 
     /**
      * Create a new callable for synching and getting the required account.

@@ -36,8 +36,8 @@ import java.util.List;
 public class SyncManager {
 
   public class SyncStatusObserverData {
-    SyncStatusObserver observer;
-    String authority;
+    final SyncStatusObserver observer;
+    final String             authority;
 
     public SyncStatusObserverData(final String authority, final SyncStatusObserver syncObserver) {
       this.authority = authority;
@@ -48,7 +48,7 @@ public class SyncManager {
   private static final boolean DISABLEONDEBUG = true;
   private static final String[] AUTHORITIES = new String[]{ProcessModelProvider.AUTHORITY, TaskProvider.AUTHORITY};
   private final Account mAccount;
-  private List<SyncStatusObserverData> mSyncObservers = new ArrayList<>(2);
+  private final List<SyncStatusObserverData> mSyncObservers = new ArrayList<>(2);
 
   private final SyncStatusObserver mSyncObserver = new SyncStatusObserver() {
     @Override

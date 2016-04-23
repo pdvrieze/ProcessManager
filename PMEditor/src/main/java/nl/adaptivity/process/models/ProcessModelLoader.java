@@ -31,7 +31,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
 
   private Uri mUri=null;
   private long mHandle=-1L;
-  private ForceLoadContentObserver mObserver;
+  private final ForceLoadContentObserver mObserver;
 
   public ProcessModelLoader(final Context context, final long handle) {
     super(context);

@@ -25,9 +25,9 @@ import android.graphics.RectF;
 
 public class LWDrawableView implements LightView{
 
-  private Drawable mItem;
+  private final Drawable      mItem;
   /** Cached canvas */
-  private AndroidCanvas mAndroidCanvas;
+  private       AndroidCanvas mAndroidCanvas;
 
   public LWDrawableView(final Drawable item) {
     mItem = item;

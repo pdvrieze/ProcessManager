@@ -33,7 +33,7 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
 
   private transient ListChangeRegistry mListeners = new ListChangeRegistry();
 
-  private OnPropertyChangedCallback mChangeCallback = new OnPropertyChangedCallback() {
+  private final OnPropertyChangedCallback mChangeCallback = new OnPropertyChangedCallback() {
     @Override
     public void onPropertyChanged(final Observable sender, final int propertyId) {
       ContentObservableArrayList.this.onPropertyChanged(sender, propertyId);

@@ -68,10 +68,10 @@ public class DiagramView extends View implements OnZoomListener{
     @SuppressWarnings({ "unused", "hiding" })
     public static final Parcelable.Creator<DiagramViewState> CREATOR = new DiagramViewStateCreator();
 
-    private double mOffsetX;
-    private double mOffsetY;
-    private double mScale;
-    private int mGridSize;
+    private final double mOffsetX;
+    private final double mOffsetY;
+    private final double mScale;
+    private final int    mGridSize;
 
     public DiagramViewState(final DiagramView diagramView, final Parcelable viewState) {
       super(viewState);
@@ -237,14 +237,14 @@ public class DiagramView extends View implements OnZoomListener{
   private ZoomButtonsController mZoomController;
   private final boolean mMultitouch;
   private double mScale =DENSITY*160/96; // Use density of 96dpi for drawables
-  private GestureDetector mGestureDetector;
-  private ScaleGestureDetector mScaleGestureDetector;
+  private final GestureDetector      mGestureDetector;
+  private final ScaleGestureDetector mScaleGestureDetector;
 
   private OnNodeClickListener mOnNodeClickListener = null;
 
-  private MyGestureListener mGestureListener = new MyGestureListener();
+  private final MyGestureListener mGestureListener = new MyGestureListener();
 
-  private OnScaleGestureListener mScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+  private final OnScaleGestureListener mScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
 
     // These points are relative to the diagram. They should end up at the focal
     // point in canvas coordinates.
@@ -289,12 +289,12 @@ public class DiagramView extends View implements OnZoomListener{
 
   private final Rect mBuildTimeBounds = new Rect();
   private String mBuildTimeText;
-  private Rectangle mTmpRectangle = new Rectangle(0d, 0d, 0d, 0d);
-  private final RectF mTmpRectF = new RectF();
-  private final Rect mTmpRect = new Rect();
+  private final Rectangle mTmpRectangle = new Rectangle(0d, 0d, 0d, 0d);
+  private final RectF     mTmpRectF     = new RectF();
+  private final Rect      mTmpRect      = new Rect();
   private int mGridSize;
-  private List<Tupple<Integer, RelativeLightView>> mDecorations = new ArrayList<>();
-  private Tupple<Integer,RelativeLightView> mTouchedDecoration = null;
+  private final List<Tupple<Integer, RelativeLightView>> mDecorations       = new ArrayList<>();
+  private       Tupple<Integer,RelativeLightView>        mTouchedDecoration = null;
 
   private boolean mEditable = true;
 

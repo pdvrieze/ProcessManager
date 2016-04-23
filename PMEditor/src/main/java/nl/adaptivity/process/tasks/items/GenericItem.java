@@ -36,8 +36,8 @@ import java.util.List;
 public class GenericItem extends LabeledItem implements TextWatcher, OnClickListener {
 
 
-  private CharSequence mType;
-  private ObservableList<CharSequence> mOptions;
+  private final CharSequence                 mType;
+  private       ObservableList<CharSequence> mOptions;
 
 
   public GenericItem(final CharSequence name, final CharSequence label, final CharSequence type, final CharSequence value, final List<? extends CharSequence> options) {

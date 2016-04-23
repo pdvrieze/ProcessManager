@@ -37,7 +37,7 @@ public class RadioButtonHelper extends FrameLayout {
     void onCheckedChanged(RadioButtonHelper source, int oldCheckedId, int newCheckedId);
   }
 
-  private OnClickListener mClickListener = new OnClickListener() {
+  private final OnClickListener mClickListener = new OnClickListener() {
     @Override
     public void onClick(final View v) {
       radioButtonClicked(v);

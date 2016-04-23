@@ -147,9 +147,9 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   private static class MoveDrawable extends DiagramDrawable{
 
     private int mAlpha = 255;
-    private List<float[]> mArrows;
-    private Paint mPaint;
-    private Drawable mMinMaxOverlay;
+    private final List<float[]> mArrows;
+    private       Paint         mPaint;
+    private final Drawable      mMinMaxOverlay;
 
     public MoveDrawable(@Nullable final Drawable minMaxOverlay, @NotNull final List<float[]> arrows) {
       mMinMaxOverlay = minMaxOverlay;
@@ -211,7 +211,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
     private final boolean mImmediate;
 
-    private Drawable mOverlay;
+    private final Drawable mOverlay;
 
     public WaitTask(final boolean immediate, final Drawable overlay) {
       super(NULLCALLABLE);
@@ -655,8 +655,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   private class ItemShadowBuilder extends DragShadowBuilder {
 
-    private DrawableDrawable mDrawable;
-    private double mScale;
+    private final DrawableDrawable mDrawable;
+    private       double           mScale;
 
     public ItemShadowBuilder(final DrawableDrawable d) {
       super(elementsView);
@@ -689,7 +689,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   boolean mStep = true;
 
-  private ItemDragListener mItemDragListener = new ItemDragListener();
+  private final ItemDragListener mItemDragListener = new ItemDragListener();
 
   private DiagramView diagramView1;
 

@@ -25,7 +25,7 @@ import nl.adaptivity.diagram.Rectangle;
 
 public final class AndroidPath implements DiagramPath<AndroidPath> {
 
-  private Path mPath = new Path();
+  private final Path mPath = new Path();
 
   @Override
   public AndroidPath moveTo(final double x, final double y) {

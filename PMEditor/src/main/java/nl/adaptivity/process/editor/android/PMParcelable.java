@@ -44,7 +44,7 @@ public class PMParcelable implements Parcelable {
       return new PMParcelable(source);
     }
   };
-  private ClientProcessModel<?, ?> mProcessModel;
+  private final ClientProcessModel<?, ?> mProcessModel;
 
   public PMParcelable(final Parcel source) {
     this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));

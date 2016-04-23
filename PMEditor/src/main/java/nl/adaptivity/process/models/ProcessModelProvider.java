@@ -176,7 +176,7 @@ public class ProcessModelProvider extends ContentProvider {
 
   private static class UriHelper {
 
-    private static UriMatcher _uriMatcher;
+    private static final UriMatcher _uriMatcher;
 
     static {
       _uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -190,9 +190,9 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     final QueryTarget mTarget;
-    final long mId;
-    final String mTable;
-    boolean mNetNotify;
+    final long        mId;
+    final String      mTable;
+    final boolean     mNetNotify;
 
     private UriHelper(final QueryTarget u, final boolean netNotify) {
       this(u, -1, netNotify);

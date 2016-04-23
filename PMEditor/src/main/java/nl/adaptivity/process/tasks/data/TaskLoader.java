@@ -32,7 +32,7 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
 
   private Uri mUri=null;
   private long mHandle=-1L;
-  private Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
+  private final Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
 
   public TaskLoader(final Context context, final long handle) {
     super(context);

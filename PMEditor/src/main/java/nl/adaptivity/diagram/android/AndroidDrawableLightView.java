@@ -24,8 +24,8 @@ import android.graphics.drawable.Drawable;
 
 public class AndroidDrawableLightView implements LightView {
 
-  private Drawable mDrawable;
-  private double mScale;
+  private final Drawable mDrawable;
+  private       double   mScale;
   private float mLeft = 0;
   private float mTop = 0;
 

@@ -40,11 +40,11 @@ public final class ContentProviderHelper {
 
   private static class ProcessModelThread extends Thread {
 
-    protected SQLiteOpenHelper mDbHelper;
-    protected String mTable;
-    protected String mColumn;
-    protected long mId;
-    protected ParcelFileDescriptor mFileDescriptor;
+    protected final SQLiteOpenHelper     mDbHelper;
+    protected final String               mTable;
+    protected final String               mColumn;
+    protected final long                 mId;
+    protected final ParcelFileDescriptor mFileDescriptor;
 
     public ProcessModelThread(final SQLiteOpenHelper dbHelper, final String table, final String column, final long id, final ParcelFileDescriptor parcelFileDescriptor) {
       mDbHelper = dbHelper;
@@ -98,9 +98,9 @@ public final class ContentProviderHelper {
 
   private static class ProcessModelReadThread extends ProcessModelThread {
 
-    private Context mContext;
-    private final String mSyncStateColumn;
-    private boolean mNotifyNet;
+    private final Context mContext;
+    private final String  mSyncStateColumn;
+    private final boolean mNotifyNet;
 
     public ProcessModelReadThread(final Context context, final SQLiteOpenHelper dbHelper, final String table, final String column, final long id, final String syncStateColumn, final ParcelFileDescriptor parcelFileDescriptor, final boolean notifyNet) {
       super(dbHelper, table, column, id, parcelFileDescriptor);

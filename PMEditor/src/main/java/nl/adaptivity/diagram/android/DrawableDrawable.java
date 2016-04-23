@@ -28,10 +28,10 @@ import android.graphics.drawable.Drawable;
 public class DrawableDrawable extends Drawable implements Cloneable {
 
   public static final float DEFAULT_SCALE = Resources.getSystem().getDisplayMetrics().density * 160 / 96;
-  private nl.adaptivity.diagram.Drawable mImage;
-  private Theme<AndroidStrategy, AndroidPen, AndroidPath> mTheme;
-  private double mScale;
-  private boolean mAutoscale;
+  private final nl.adaptivity.diagram.Drawable                  mImage;
+  private final Theme<AndroidStrategy, AndroidPen, AndroidPath> mTheme;
+  private       double                                          mScale;
+  private       boolean                                         mAutoscale;
 
   public DrawableDrawable(final nl.adaptivity.diagram.Drawable image, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final boolean autoScale) {
     mTheme = theme;

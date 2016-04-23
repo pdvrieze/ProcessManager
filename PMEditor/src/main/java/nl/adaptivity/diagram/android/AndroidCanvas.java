@@ -26,9 +26,9 @@ public class AndroidCanvas implements IAndroidCanvas {
 
   private class OffsetCanvas implements IAndroidCanvas {
     /** The offset of the canvas. This is in scaled coordinates. */
-    private double mXOffset;
-    private double mYOffset;
-    private double mScale;
+    private final double mXOffset;
+    private final double mYOffset;
+    private final double mScale;
 
 
     public OffsetCanvas(final OffsetCanvas base, final double offsetX, final double offsetY, final double scale) {

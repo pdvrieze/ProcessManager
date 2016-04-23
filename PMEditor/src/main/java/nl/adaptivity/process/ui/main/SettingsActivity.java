@@ -134,7 +134,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
    * A preference value change listener that updates the preference's summary
    * to reflect its new value.
    */
-  private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+  private static final Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
     @Override
     public boolean onPreferenceChange(final Preference preference, final Object value) {
       final String stringValue = value.toString();

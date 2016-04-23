@@ -121,7 +121,7 @@ public class DataOpenHelper extends SQLiteOpenHelper {
                                                            ";";
   private static final boolean CREATE_DEFAULT_MODEL = false;
 
-  private Context mContext;
+  private final Context mContext;
 
   public DataOpenHelper(final Context context) {
     super(context, DB_NAME, null, DB_VERSION);

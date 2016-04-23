@@ -35,11 +35,11 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
 
   private static final String TAG = "MasterDetailOutFrag";
   public static final String ARG_ITEM_ID = "item_id";
-  private @LayoutRes int mLayoutId;
-  private @IdRes int mListContainerId;
-  private @IdRes int mDetailContainerId;
-  private boolean mTwoPane;
-  private MasterListFragment mListFragment;
+  private @LayoutRes final int                mLayoutId;
+  private @IdRes final     int                mListContainerId;
+  private @IdRes final     int                mDetailContainerId;
+  private                  boolean            mTwoPane;
+  private                  MasterListFragment mListFragment;
 
   public MasterDetailOuterFragment(@LayoutRes final int layoutId, @IdRes final int listContainerId, @IdRes final int detailContainerId) {
     mLayoutId = layoutId;

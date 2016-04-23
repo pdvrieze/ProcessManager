@@ -52,7 +52,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   public static final String TASKPARAM_LOCALNAME = "taskParam";
   public static final QName TASKPARAM_NAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
 
-  public static Factory FACTORY = new Factory();
+  public static final Factory FACTORY = new Factory();
 
   private CompactFragment mReplies;
   private EditableUserTask mTask;

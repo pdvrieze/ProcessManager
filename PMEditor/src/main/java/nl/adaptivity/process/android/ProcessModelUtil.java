@@ -33,7 +33,7 @@ public final class ProcessModelUtil {
 
     return Util.suggestNewName(previousName, new NameChecker() {
 
-      ContentResolver resolver = context.getContentResolver();
+      final ContentResolver resolver = context.getContentResolver();
 
       @Override
       public boolean isAvailable(final String string) {

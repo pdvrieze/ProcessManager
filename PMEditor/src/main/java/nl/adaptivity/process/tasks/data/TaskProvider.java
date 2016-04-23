@@ -145,7 +145,7 @@ public class TaskProvider extends ContentProvider {
 
   private static class UriHelper {
 
-    private static UriMatcher _uriMatcher;
+    private static final UriMatcher _uriMatcher;
 
     static {
       _uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -156,10 +156,10 @@ public class TaskProvider extends ContentProvider {
       }
     }
 
-    final QueryTarget mTarget;
-    final long mId;
-    final public String mTable;
-    private boolean mNetNotify;
+    final         QueryTarget mTarget;
+    final         long        mId;
+    final public  String      mTable;
+    private final boolean     mNetNotify;
 
     private UriHelper(final QueryTarget u, final boolean netNotify, final boolean ext) {
       this(u, -1, netNotify, ext);

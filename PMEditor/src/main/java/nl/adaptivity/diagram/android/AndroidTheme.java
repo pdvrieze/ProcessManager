@@ -32,8 +32,8 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
   public static final int SELECTED_SHADE_COLOR=Color.argb(0xb0, 23, 166, 255);
 
 
-  private final AndroidStrategy mStrategy;
-  private SparseArray<SparseArray<AndroidPen>> mPens;
+  private final AndroidStrategy                      mStrategy;
+  private final SparseArray<SparseArray<AndroidPen>> mPens;
 
   public AndroidTheme(final AndroidStrategy strategy){
     mStrategy = strategy;

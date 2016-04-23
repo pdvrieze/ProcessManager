@@ -31,8 +31,8 @@ import nl.adaptivity.diagram.Rectangle;
 public class AndroidPen implements Pen<AndroidPen> {
 
   private static final float FONT_MEASURE_FACTOR = 3f;
-  private Paint mPaint;
-  private double mStrokeWidth;
+  private final Paint  mPaint;
+  private       double mStrokeWidth;
   private float mShadowRadius=-1f;
   private int mShadowColor;
   private float mShadowDx;
