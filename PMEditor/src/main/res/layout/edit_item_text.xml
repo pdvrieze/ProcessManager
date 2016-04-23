@@ -21,7 +21,9 @@
         >
 
     <data>
+
         <import type="nl.adaptivity.process.util.CharSequenceDecorator" />
+
         <variable name="decorator"
                   type="CharSequenceDecorator" />
 
@@ -36,6 +38,7 @@
 
         <ImageView
                 style="@style/DragHandle"
+                android:contentDescription="@string/cdesc_drag"
                 android:id="@+id/drag_handle"
                 />
 
@@ -55,7 +58,7 @@
                     />
 
             <include android:id="@+id/includedCommon"
-                    bind:taskitem="@{taskitem}"
+                     bind:taskitem="@{taskitem}"
                      layout="@layout/edit_item_common"
                     />
 

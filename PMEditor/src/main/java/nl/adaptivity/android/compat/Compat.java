@@ -32,10 +32,10 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class Compat {
+public final class Compat {
 
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  private static class Compat14 {
+  private static final class Compat14 {
 
     public static AccountManagerFuture<Bundle> getAuthToken(AccountManager accountManager, Account account, String accountTokenType, Bundle options,
                                     boolean notifyAuthFailure, AccountManagerCallback<Bundle> callback, Handler handler) {
@@ -45,7 +45,7 @@ public class Compat {
   }
 
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-  private static class Compat17 {
+  private static final class Compat17 {
 
     public static Fragment getParentFragment(Fragment fragment) {
       return fragment.getParentFragment();
@@ -54,7 +54,7 @@ public class Compat {
   }
 
   @TargetApi(Build.VERSION_CODES.KITKAT)
-  private static class Compat19 {
+  private static final class Compat19 {
 
     public static void closeWithError(ParcelFileDescriptor pfd, String error) {
       try {

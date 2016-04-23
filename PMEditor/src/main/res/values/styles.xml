@@ -28,7 +28,7 @@
 
     </style>
 
-    <style name="OverviewCard">
+    <style name="OverviewCard" tools:ignore="UnusedResources">
 
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
@@ -41,7 +41,7 @@
         <item name="android:orientation">vertical</item>
     </style>
 
-    <style name="OverviewCard.Ellipsis">
+    <style name="OverviewCard.Ellipsis" tools:ignore="UnusedResources">
         <item name="android:paddingBottom">@dimen/half_margin</item>
         <item name="android:paddingTop">@dimen/half_margin</item>
     </style>
@@ -101,7 +101,7 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="FabMenuItem" >
+    <style name="FabMenuItem">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:minHeight">48dp</item>
@@ -110,7 +110,8 @@
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
         <item name="android:textStyle">normal</item>
     </style>
-    <style name="FabMenuItem.Title" >
+
+    <style name="FabMenuItem.Title">
         <item name="android:background">?attr/colorAccent</item>
         <item name="android:textStyle">italic</item>
     </style>
@@ -121,8 +122,6 @@
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:padding">12dp</item>
         <item name="android:src">@drawable/ic_drag_handle_black_24dp</item>
-        <item name="android:contentDescription">@string/cdesc_drag</item>
-
     </style>
 
 </resources>

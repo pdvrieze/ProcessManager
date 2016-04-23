@@ -38,7 +38,7 @@ import java.util.*;
 
 import static nl.adaptivity.xml.XmlStreaming.*;
 
-public class PMParser {
+public final class PMParser {
 
   public static final String MIME_TYPE="application/x-processmodel";
 

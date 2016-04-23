@@ -47,7 +47,7 @@ public class BetterXmlSerializer implements XmlSerializer{
   private String encoding;
   private boolean escapeAggressive = false;
 
-  private final void check(boolean close) throws IOException {
+  private void check(boolean close) throws IOException {
     if (!pending)
       return;
 
@@ -73,7 +73,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     writer.write(close ? " />" : ">");
   }
 
-  private final void writeEscaped(String s, int quot)
+  private void writeEscaped(String s, int quot)
           throws IOException {
 
     for (int i = 0; i < s.length(); i++) {
@@ -164,7 +164,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     }
   }
 
-  private final String getPrefix(String namespace, boolean includeDefault, boolean create)
+  private String getPrefix(String namespace, boolean includeDefault, boolean create)
           throws IOException {
 
     for (int i = nspCounts[depth + 1] * 2 - 2;

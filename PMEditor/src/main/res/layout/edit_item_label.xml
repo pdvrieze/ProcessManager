@@ -37,6 +37,7 @@
         <ImageView
                 android:id="@+id/drag_handle"
                 style="@style/DragHandle"
+                android:contentDescription="@string/cdesc_drag"
                 android:layout_gravity="center_vertical" />
 
         <LinearLayout

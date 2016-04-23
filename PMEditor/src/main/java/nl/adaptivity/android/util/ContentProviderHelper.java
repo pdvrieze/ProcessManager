@@ -34,7 +34,7 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import java.io.*;
 
 
-public class ContentProviderHelper {
+public final class ContentProviderHelper {
 
   private static final String TAG = ContentProviderHelper.class.getSimpleName();
 

@@ -27,7 +27,7 @@ import java.io.InputStreamReader;
 /**
  * Created by pdvrieze on 12/08/15.
  */
-public class LogUtil {
+public final class LogUtil {
   private LogUtil() {}
 
   public static void logResponse(final String tag, final int debugLevel, final String url, final String statusLine, final InputStream content) throws

@@ -35,7 +35,7 @@ import nl.adaptivity.process.editor.android.R;
 /**
  * Created by pdvrieze on 17/12/15.
  */
-public class BindingAdapters {
+public final class BindingAdapters {
 
   private static final String TAG = "BindingAdapters";
 
