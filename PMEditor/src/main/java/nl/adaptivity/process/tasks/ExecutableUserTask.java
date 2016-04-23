@@ -88,7 +88,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
     private final int mDecoratorContentDescId;
     private final int mState;
 
-    private TaskState(final String attrValue, @StringRes final int labelId, @DrawableRes final int decoratorId, final int decoratorContentDescId, final int state) {
+    TaskState(final String attrValue, @StringRes final int labelId, @DrawableRes final int decoratorId, final int decoratorContentDescId, final int state) {
       mAttrValue = attrValue;
       mLabelId = labelId;
       mDecoratorId = decoratorId;

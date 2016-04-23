@@ -24,7 +24,7 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
  */
 public interface ClickableAdapter<VH extends ClickableViewHolder> {
 
-  public interface OnItemClickListener<VH extends ClickableViewHolder> {
+  interface OnItemClickListener<VH extends ClickableViewHolder> {
 
     /**
      * Callback to handle item clicks. This method can stop processing of the click by returning true.

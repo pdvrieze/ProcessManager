@@ -74,7 +74,7 @@ public class GetNameDialogFragment extends DialogFragment {
 
   private static final String KEY_EDIT = "text";
 
-  public static interface GetNameDialogFragmentCallbacks {
+  public interface GetNameDialogFragmentCallbacks {
 
     void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string);
 

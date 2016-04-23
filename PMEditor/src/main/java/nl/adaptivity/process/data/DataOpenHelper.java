@@ -105,7 +105,6 @@ public class DataOpenHelper extends SQLiteOpenHelper {
                                                          ProcessInstances.COLUMN_NAME + " AS " + Tasks.COLUMN_INSTANCENAME + " FROM " +
                                                          TABLE_NAME_TASKS + " AS t LEFT JOIN " +
                                                          TABLE_NAME_INSTANCES + " AS i ON ( t." + Tasks.COLUMN_INSTANCEHANDLE + " = i." + ProcessInstances.COLUMN_HANDLE + " )";
-          ;
 
   private static final String SQL_CREATE_VIEW_MODELS_EXT = "CREATE VIEW " + VIEW_NAME_PROCESSMODELEXT + " AS SELECT m." +
                                                            BaseColumns._ID + ", m." +

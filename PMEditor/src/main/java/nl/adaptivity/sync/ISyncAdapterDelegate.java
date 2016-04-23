@@ -33,10 +33,10 @@ import android.os.RemoteException;
 
 public interface ISyncAdapterDelegate {
 
-  public void updateItemDetails(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, IOException,
-      OperationApplicationException;
+  void updateItemDetails(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, IOException,
+                                                                                                                      OperationApplicationException;
 
-  public void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException,
-      IOException, OperationApplicationException;
+  void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException,
+                                                                                                                         IOException, OperationApplicationException;
 
 }

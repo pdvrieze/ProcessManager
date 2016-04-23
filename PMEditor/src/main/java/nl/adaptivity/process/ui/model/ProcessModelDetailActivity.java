@@ -115,7 +115,7 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
     try {
       ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, name);
     } catch (RemoteException e) {
-      Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
+      Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();
     }
   }
 

@@ -155,7 +155,7 @@ public class PMProcessesFragment extends Fragment {
         doExportSVG(pm);
         return true;
       case R.id.ac_share_pm:
-        doShareFile(pm);;
+        doShareFile(pm);
         return true;
       case R.id.ac_share_pm_svg:
         doShareSVG(pm);

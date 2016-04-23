@@ -375,7 +375,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
     try {
       ProcessModelProvider.instantiate(this, mModelIdToInstantiate, name);
     } catch (RemoteException e) {
-      Toast.makeText(this, "Unfortunately the process could not be instantiated: " + e.getMessage(), Toast.LENGTH_SHORT).show();;
+      Toast.makeText(this, "Unfortunately the process could not be instantiated: " + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
   }
 

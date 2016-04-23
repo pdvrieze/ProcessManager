@@ -27,18 +27,18 @@ import android.provider.BaseColumns;
 public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapter implements ISimpleSyncDelegate {
 
   public interface XmlBaseColumns extends BaseColumns {
-    public static final String COLUMN_SYNCSTATE = "syncstate";
+    String COLUMN_SYNCSTATE = "syncstate";
   }
 
   public interface ContentValuesProvider {
     /** The values that need to be stored in the database for the item. */
-    public ContentValues getContentValues();
+    ContentValues getContentValues();
 
     /** Indicate whether the value has further details to parse. This allows different sync state depending on update
      * or new.
      * @return true if details need to be synced.
      */
-    public boolean syncDetails();
+    boolean syncDetails();
   }
 
   public static class SimpleContentValuesProvider implements ContentValuesProvider {

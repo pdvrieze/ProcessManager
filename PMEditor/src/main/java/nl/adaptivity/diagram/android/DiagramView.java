@@ -109,7 +109,7 @@ public class DiagramView extends View implements OnZoomListener{
   private static final int CACHE_PADDING = 30;
 
   public interface OnNodeClickListener {
-    public boolean onNodeClicked(DiagramView view, int touchedElement, MotionEvent event);
+    boolean onNodeClicked(DiagramView view, int touchedElement, MotionEvent event);
   }
 
   private final class MyGestureListener extends SimpleOnGestureListener {

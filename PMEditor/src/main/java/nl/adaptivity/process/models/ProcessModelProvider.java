@@ -146,7 +146,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static enum QueryTarget{
+  private enum QueryTarget{
     PROCESSMODELS(ProcessModels.CONTENT_URI),
     PROCESSMODEL(ProcessModels.CONTENT_ID_URI_PATTERN),
     PROCESSMODELCONTENT(ProcessModels.CONTENT_ID_STREAM_PATTERN),
@@ -158,12 +158,12 @@ public class ProcessModelProvider extends ContentProvider {
     private final String path;
     private final Uri baseUri;
 
-    private QueryTarget() {
+    QueryTarget() {
       baseUri=null;
       path=null;
     }
 
-    private QueryTarget(final Uri uri) {
+    QueryTarget(final Uri uri) {
       baseUri = Uri.fromParts(uri.getScheme(), uri.getAuthority()+'/'+uri.getPath(), null);
       final String frag = uri.getFragment();
       if (frag != null) {
