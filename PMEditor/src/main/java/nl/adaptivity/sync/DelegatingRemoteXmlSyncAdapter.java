@@ -20,9 +20,11 @@ package nl.adaptivity.sync;
 import android.accounts.Account;
 import android.content.*;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.RemoteException;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwinlib.BuildConfig;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParser;
@@ -78,7 +80,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
   public final void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
     URI mBase = getSyncSource();
     if (! mBase.toString().endsWith("/")) {
-      assert false : "Sync sources should be forced to end with / in all cases.";
+      if (BuildConfig.DEBUG) throw new AssertionError("Sync sources should be forced to end with / in all cases.");
       mBase = URI.create(mBase.toString() +'/');
     }
 

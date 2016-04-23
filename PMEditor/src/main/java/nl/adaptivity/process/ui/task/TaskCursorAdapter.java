@@ -52,14 +52,22 @@ public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorVie
     super.onBindViewHolder(viewHolder, cursor);
     viewHolder.binding.setSummary(mSummaryColIdx >= 0 ? cursor.getString(mSummaryColIdx) : null);
     final int drawableId;
+    final int contentDescId;
     if (mStateColIdx >= 0) {
       String s = cursor.getString(mStateColIdx);
       TaskState state = TaskState.fromString(s);
       drawableId = state == null ? 0 : state.getDecoratorId();
+      contentDescId = state==null? 0 : state.getDecoratorContentDescId();
     } else {
       drawableId = 0;
+      contentDescId = 0;
     }
     viewHolder.binding.setTaskStateDrawable(drawableId);
+    if (contentDescId==0) {
+      viewHolder.binding.setTaskStateContentDesc("");
+    } else {
+      viewHolder.binding.setTaskStateContentDesc(viewHolder.binding.getRoot().getContext().getString(contentDescId));
+    }
 //      viewHolder.binding.executePendingBindings();
   }
 

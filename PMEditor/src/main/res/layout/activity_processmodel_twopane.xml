@@ -22,7 +22,7 @@
 	android:divider="?android:attr/dividerHorizontal"
 	android:orientation="horizontal"
 	android:showDividers="middle"
-	tools:context="nl.adaptivity.process.editor.android.ProcessModelListActivity" >
+	tools:context="nl.adaptivity.process.ui.main.OverviewActivity" >
 
 	<!--
         This layout is a two-pane layout for the ProcessModels

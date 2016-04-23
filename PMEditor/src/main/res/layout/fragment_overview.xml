@@ -78,6 +78,7 @@
                             android:layout_gravity="center_vertical"
                             android:padding="8dp"
                             android:src="@drawable/ic_more_horiz_black_24dp"
+                            android:contentDescription="@string/cdesc_show_all"
                             android:onClick="@{fragment.onPendingTasksClicked}" />
                 </LinearLayout>
 
@@ -159,6 +160,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:padding="8dp"
+                            android:contentDescription="@string/cdesc_show_all"
                             android:src="@drawable/ic_more_horiz_black_24dp"
                             android:onClick="@{fragment.onMoreModelsClicked}" />
                 </LinearLayout>

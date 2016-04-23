@@ -227,6 +227,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
         }
 
       } else {
+        //noinspection WrongConstant
         if (Log.isLoggable(TAG, Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), Integer.toString(response.getResponseCode()) + " " + response
                   .getResponseMessage(), response.getErrorStream());

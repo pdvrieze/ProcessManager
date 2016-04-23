@@ -117,5 +117,11 @@
     <string name="dlg_title_edit_taskitem">Edit task item</string>
     <string name="btn_label_var">Var...</string>
     <string name="dlgTitleSelectVar">Select variable</string>
+    <string name="cdesc_go_into">Go</string>
+    <string name="cdesc_drag">Drag</string>
+    <string name="cdesc_show_all">Show all</string>
+    <string name="edit_item_label_name">name:</string>
+    <string name="edit_item_label_type">type:</string>
+    <string name="nav_share">Share</string>
 
 </resources>

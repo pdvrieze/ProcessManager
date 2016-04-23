@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.util;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.*;
@@ -131,6 +132,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         // adding or replacing the detail fragment using a
         // fragment transaction.
         Fragment fragment = createDetailFragment(taskId);
+        @SuppressLint("CommitTransaction")
         final FragmentTransaction transaction = getChildFragmentManager().beginTransaction()
                                                                          .replace(mDetailContainerId, fragment);
         if (addToBackstack) {

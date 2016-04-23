@@ -20,5 +20,4 @@
     android:name="nl.adaptivity.process.ui.task.TaskListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="nl.adaptivity.process.tasks.android.TaskListActivity"
     tools:layout="@android:layout/list_content" />

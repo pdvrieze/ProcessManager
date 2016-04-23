@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.dialogs;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -66,6 +67,7 @@ public class ComboDialogFragment extends DialogFragment implements OnClickListen
     }
   }
 
+  @SuppressLint("InflateParams")
   @NonNull
   @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {

@@ -67,16 +67,19 @@
 
     <style name="TextAppearance.IconButton.Title" parent="TextAppearance.AppCompat.Large">
         <item name="android:textColor">@color/iconbutton_title</item>
+        <item name="android:textAlignment">viewStart</item>
         <item name="android:textSize">24sp</item>
     </style>
 
     <style name="TextAppearance.IconButton.Label" parent="TextAppearance.AppCompat.Medium">
         <item name="android:textColor">@color/iconbutton_title</item>
+        <item name="android:textAlignment">viewStart</item>
         <item name="android:textSize">16sp</item>
     </style>
 
     <style name="TextAppearance.IconButton.Subtitle" parent="TextAppearance.AppCompat.Medium">
         <item name="android:textSize">14sp</item>
+        <item name="android:textAlignment">viewStart</item>
     </style>
 
     <style name="Widget.IconButton.Title" parent="Widget.IconButton">
@@ -118,6 +121,8 @@
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:padding">12dp</item>
         <item name="android:src">@drawable/ic_drag_handle_black_24dp</item>
+        <item name="android:contentDescription">@string/cdesc_drag</item>
+
     </style>
 
 </resources>

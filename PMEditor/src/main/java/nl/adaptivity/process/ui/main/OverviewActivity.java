@@ -335,6 +335,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
       case R.id.nav_tasks: {
         if (!(mActiveFragment instanceof TaskListOuterFragment)) {
           mActiveFragment = TaskListOuterFragment.newInstance(itemId);
+          @SuppressLint("CommitTransaction")
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
                                                                          .replace(R.id.overview_container, mActiveFragment, "tasks");
           if (addToBackstack) { transaction.addToBackStack("tasks"); }
@@ -345,6 +346,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
       case R.id.nav_models: {
         if (!(mActiveFragment instanceof ProcessModelListOuterFragment)) {
           mActiveFragment = ProcessModelListOuterFragment.newInstance(itemId);
+          @SuppressLint("CommitTransaction")
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
                                                                         .replace(R.id.overview_container, mActiveFragment, "models");
           if (addToBackstack) { transaction.addToBackStack("models"); }

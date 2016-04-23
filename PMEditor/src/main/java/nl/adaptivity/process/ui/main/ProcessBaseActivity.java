@@ -58,7 +58,7 @@ import java.io.*;
 /**
  * Created by pdvrieze on 11/01/16.
  */
-public class ProcessBaseActivity extends AuthenticatedActivity implements ProcessesCallback {
+public abstract class ProcessBaseActivity extends AuthenticatedActivity implements ProcessesCallback {
 
   private class FileStoreListener {
 

@@ -156,7 +156,8 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
         }
       } else {
         final String statusline = Integer.toString(urlConnection.getResponseCode()) + urlConnection.getResponseMessage();
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
+        //noinspection WrongConstant
+        if (Log.isLoggable(TAG, android.util.Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), statusline, urlConnection.getErrorStream());
         }
         // Don't throw an exception.

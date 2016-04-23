@@ -38,7 +38,8 @@
         <activity
                 android:name=".PMEditor"
                 android:label="@string/title_editor"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+                tools:ignore="UnusedAttribute">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
@@ -129,7 +130,7 @@
                 android:name="nl.adaptivity.process.ui.task.TaskDetailActivity"
                 android:label="@string/title_task_detail"
                 android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                android:theme="@style/AppTheme.NoActionBar">
+                android:theme="@style/AppTheme.NoActionBar" tools:ignore="UnusedAttribute">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
@@ -137,7 +138,8 @@
         <activity
                 android:name="nl.adaptivity.process.ui.main.SettingsActivity"
                 android:label="@string/title_activity_settings"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+                tools:ignore="UnusedAttribute">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
