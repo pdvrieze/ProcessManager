@@ -16,20 +16,12 @@
 
 package nl.adaptivity.process.ui;
 
-import android.content.Context;
-import android.content.res.Resources;
 import android.databinding.BindingAdapter;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.BoolRes;
+import android.support.annotation.AnyRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.view.ViewCompat;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
-import nl.adaptivity.process.editor.android.R;
 
 
 /**

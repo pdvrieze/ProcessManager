@@ -25,7 +25,6 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AutoCompleteTextView;
-import android.widget.Filter;
 import nl.adaptivity.android.widget.ComboAdapter;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.databinding.TaskitemGenericBinding;

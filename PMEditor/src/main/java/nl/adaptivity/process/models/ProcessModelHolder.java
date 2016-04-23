@@ -17,7 +17,6 @@
 package nl.adaptivity.process.models;
 
 import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.processModel.ProcessModel;
 
 /**
  * Created by pdvrieze on 15/11/15.

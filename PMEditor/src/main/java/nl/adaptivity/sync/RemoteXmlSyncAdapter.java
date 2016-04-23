@@ -17,12 +17,12 @@
 package nl.adaptivity.sync;
 
 
-import java.util.Arrays;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
+
+import java.util.Arrays;
 
 public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapter implements ISimpleSyncDelegate {
 

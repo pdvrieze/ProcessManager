@@ -16,10 +16,10 @@
 
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import nl.adaptivity.diagram.Theme;
 
 
 public class AndroidDrawableLightView implements LightView {

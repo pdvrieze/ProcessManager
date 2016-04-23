@@ -16,16 +16,11 @@
 
 package nl.adaptivity.android.graphics;
 
-import nl.adaptivity.diagram.Theme;
-import nl.adaptivity.diagram.android.AndroidCanvas;
-import nl.adaptivity.diagram.android.AndroidPath;
-import nl.adaptivity.diagram.android.AndroidPen;
-import nl.adaptivity.diagram.android.AndroidStrategy;
-import nl.adaptivity.diagram.android.IAndroidCanvas;
-import nl.adaptivity.diagram.android.LightView;
-import nl.adaptivity.process.diagram.Connectors;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.diagram.android.*;
+import nl.adaptivity.process.diagram.Connectors;
 
 
 public class LineView extends

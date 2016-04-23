@@ -16,19 +16,14 @@
 
 package nl.adaptivity.sync;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-
-import nl.adaptivity.android.darwin.AuthenticatedWebClient.GetRequest;
-import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-
-import nl.adaptivity.xml.XmlException;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.ContentProviderClient;
 import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.os.RemoteException;
+import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
+import nl.adaptivity.xml.XmlException;
+
+import java.io.IOException;
 
 
 public interface ISyncAdapterDelegate {

@@ -27,16 +27,16 @@ import nl.adaptivity.xml.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
-import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlStreaming;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import static nl.adaptivity.xml.XmlStreaming.*;
+import static nl.adaptivity.xml.XmlStreaming.END_ELEMENT;
 
 public final class PMParser {
 

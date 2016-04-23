@@ -16,13 +16,11 @@
 
 package nl.adaptivity.process.tasks.data;
 
-import nl.adaptivity.process.tasks.data.TaskProvider.Items;
-import nl.adaptivity.process.tasks.data.TaskProvider.Options;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 
 @Deprecated
 public class TasksOpenHelper extends SQLiteOpenHelper {

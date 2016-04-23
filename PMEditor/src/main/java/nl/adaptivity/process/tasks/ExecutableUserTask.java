@@ -29,8 +29,7 @@ import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 

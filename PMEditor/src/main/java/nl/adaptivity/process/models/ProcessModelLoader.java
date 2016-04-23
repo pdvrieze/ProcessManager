@@ -17,14 +17,14 @@
 package nl.adaptivity.process.models;
 
 import android.content.ContentResolver;
-import net.devrieze.util.Tupple;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
+import net.devrieze.util.Tupple;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 
 
 public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {

@@ -26,8 +26,6 @@ import nl.adaptivity.diagram.android.AndroidStrategy;
 import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.OverviewModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;

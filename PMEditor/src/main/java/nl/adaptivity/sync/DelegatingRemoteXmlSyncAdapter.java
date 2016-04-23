@@ -20,7 +20,6 @@ package nl.adaptivity.sync;
 import android.accounts.Account;
 import android.content.*;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.RemoteException;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;

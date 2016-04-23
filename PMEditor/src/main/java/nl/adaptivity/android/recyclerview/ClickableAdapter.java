@@ -16,9 +16,6 @@
 
 package nl.adaptivity.android.recyclerview;
 
-import android.support.v7.widget.RecyclerView.ViewHolder;
-
-
 /**
  * Created by pdvrieze on 04/01/16.
  */

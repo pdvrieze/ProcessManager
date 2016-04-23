@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.android;
 
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.util.Util;
-import nl.adaptivity.util.Util.NameChecker;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.util.Util;
+import nl.adaptivity.util.Util.NameChecker;
 
 
 public final class ProcessModelUtil {

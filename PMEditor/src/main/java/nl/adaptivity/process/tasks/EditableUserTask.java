@@ -31,7 +31,8 @@ import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.w3.soapEnvelope.Envelope;
 

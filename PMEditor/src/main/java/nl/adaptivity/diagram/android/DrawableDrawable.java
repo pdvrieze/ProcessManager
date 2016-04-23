@@ -16,13 +16,13 @@
 
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.diagram.Theme;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
 
 
 public class DrawableDrawable extends Drawable implements Cloneable {

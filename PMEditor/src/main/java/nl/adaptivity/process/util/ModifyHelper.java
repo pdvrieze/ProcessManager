@@ -18,9 +18,9 @@ package nl.adaptivity.process.util;
 
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.process.util.ModifySequence.FragmentSequence;
-import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 

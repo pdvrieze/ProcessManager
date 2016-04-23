@@ -16,8 +16,7 @@
   -->
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:showIn="@layout/fragment_overview">
+        xmlns:tools="http://schemas.android.com/tools">
 
     <data>
         <import type="android.view.View"/>
@@ -47,7 +46,7 @@
                        android:paddingLeft="8dp"
                        android:paddingRight="8dp"
                        android:layout_gravity="center_horizontal"
-                       android:src="@{thumbnail==null ? @drawable/ic_launcher : thumbnail}"
+                       android:src="@{thumbnail==null ? @drawable/process_mipmap_default : thumbnail}"
                        tools:src="@mipmap/ic_launcher"
                        tools:ignore="ContentDescription" />
 

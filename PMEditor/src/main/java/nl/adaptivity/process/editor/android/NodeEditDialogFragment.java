@@ -17,7 +17,6 @@
 package nl.adaptivity.process.editor.android;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;

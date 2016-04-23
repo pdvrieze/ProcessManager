@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.tasks.data;
 
-import nl.adaptivity.process.tasks.ExecutableUserTask;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -26,6 +24,8 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import nl.adaptivity.process.tasks.ExecutableUserTask;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 
 
 public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {

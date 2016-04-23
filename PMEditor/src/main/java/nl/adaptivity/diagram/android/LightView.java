@@ -16,9 +16,9 @@
 
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import nl.adaptivity.diagram.Theme;
 
 /** An interface for a lightweight view. */
 public interface LightView {

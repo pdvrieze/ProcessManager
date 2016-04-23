@@ -17,15 +17,13 @@
 package nl.adaptivity.android.preference;
 
 import android.annotation.TargetApi;
-import android.os.Build.VERSION_CODES;
-import android.preference.DialogPreference;
-
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
+import android.os.Build.VERSION_CODES;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.preference.DialogPreference;
 import android.preference.Preference;
 import android.text.TextUtils;
 import android.util.AttributeSet;

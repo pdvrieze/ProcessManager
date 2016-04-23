@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.ui.main;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 
 

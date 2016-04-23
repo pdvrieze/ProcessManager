@@ -16,11 +16,11 @@
 
 package nl.adaptivity.diagram.android;
 
+import android.graphics.Color;
+import android.util.SparseArray;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.ThemeItem;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
-import android.graphics.Color;
-import android.util.SparseArray;
 
 
 public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidPath> {

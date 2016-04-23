@@ -16,8 +16,8 @@
 
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.DrawingStrategy;
 import android.graphics.Paint;
+import nl.adaptivity.diagram.DrawingStrategy;
 
 public enum AndroidStrategy implements DrawingStrategy<AndroidStrategy, AndroidPen, AndroidPath>{
   INSTANCE
