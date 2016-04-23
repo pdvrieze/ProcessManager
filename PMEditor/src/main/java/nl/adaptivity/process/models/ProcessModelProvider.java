@@ -24,7 +24,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.Tupple;
-import nl.adaptivity.android.util.ContentProviderHelper;
+import nl.adaptivity.process.data.ProcessModelPipeProvider;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.data.ProviderHelper;
@@ -370,7 +370,7 @@ public class ProcessModelProvider extends ContentProvider {
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
-    return ContentProviderHelper.createPipe(this, mDbHelper, DataOpenHelper.TABLE_NAME_MODELS, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
+    return ProcessModelPipeProvider.createPipe(this, mDbHelper, DataOpenHelper.TABLE_NAME_MODELS, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
   }
 
   @Override

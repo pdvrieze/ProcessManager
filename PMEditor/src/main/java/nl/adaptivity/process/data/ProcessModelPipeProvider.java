@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.android.util;
+package nl.adaptivity.process.data;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -34,9 +34,9 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import java.io.*;
 
 
-public final class ContentProviderHelper {
+public final class ProcessModelPipeProvider {
 
-  private static final String TAG = ContentProviderHelper.class.getSimpleName();
+  private static final String TAG = ProcessModelPipeProvider.class.getSimpleName();
 
   private static class ProcessModelThread extends Thread {
 
@@ -89,7 +89,7 @@ public final class ContentProviderHelper {
           os.close();
         }
       } catch (IOException e) {
-        Log.e(ContentProviderHelper.class.getSimpleName(), "Failure to excute pipe", e);
+        Log.e(ProcessModelPipeProvider.class.getSimpleName(), "Failure to excute pipe", e);
         Compat.closeWithError(mFileDescriptor, e.getMessage());
       }
     }
