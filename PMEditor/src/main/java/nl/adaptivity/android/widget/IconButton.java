@@ -58,6 +58,7 @@ import java.lang.annotation.RetentionPolicy;
 public class IconButton extends ViewGroup {
 
 
+  @SuppressWarnings("ClassNameSameAsAncestorName")
   public static class LayoutParams extends ViewGroup.LayoutParams {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({ ROLE_ICON, ROLE_TITLE, ROLE_SUBTITLE})
@@ -276,7 +277,11 @@ public class IconButton extends ViewGroup {
       int ct = ((b-t) - iconView.getMeasuredHeight())/2;
       int cb = ct + iconView.getMeasuredHeight();
       iconView.layout(cl, ct, cr, cb);
-      layoutOffsetX +=iconView.getMeasuredWidth()+mIconPadding;
+      if (ltr) {
+        layoutOffsetX += iconView.getMeasuredWidth() + mIconPadding;
+      } else {
+        layoutOffsetX -= iconView.getMeasuredWidth() + mIconPadding;
+      }
     } else {
       if (mIconDrawable!=null) {
         int cl = ltr ? (layoutOffsetX) : layoutOffsetX-mIconWidth;
@@ -285,28 +290,50 @@ public class IconButton extends ViewGroup {
         int cb = ct + mIconHeight;
         mIconDrawable.setBounds(cl, ct, cr, cb);
       }
-      layoutOffsetX +=mIconWidth+mIconPadding;
-    }
-    int cl = ltr ? layoutOffsetX : ((r-l)-layoutOffsetX-titleView.getMeasuredWidth());
-    int cr = cl + titleView.getMeasuredWidth();
-    if (titleView!=null) {
-      int ct;
-      if (subtitleView!=null) {
-        ct = ((b-t)-(titleView.getMeasuredHeight()+subtitleView.getMeasuredHeight()))/2;
+      if (ltr) {
+        layoutOffsetX += mIconWidth + mIconPadding;
       } else {
-        ct = ((b-t)-(titleView.getMeasuredHeight()))/2;
+        layoutOffsetX -= mIconWidth + mIconPadding;
       }
-      int cb = ct+titleView.getMeasuredHeight();
-      titleView.layout(cl, ct, cr, cb);
-      if (subtitleView!=null) {
-        ct=cb;
-        cb=ct+subtitleView.getMeasuredHeight();
+    }
+    if (titleView!=null || subtitleView!=null) {
+      final int cl;
+      final int cr;
+      {
+        final int w;
+        if (titleView != null) {
+          if (subtitleView != null) {
+            w = Math.max(titleView.getMeasuredWidth(), subtitleView.getMeasuredWidth());
+          } else {
+            w = titleView.getMeasuredWidth();
+          }
+        } else {
+          w = subtitleView.getMeasuredWidth();
+        }
+        cl = ltr ? layoutOffsetX : (layoutOffsetX - w);
+        cr = cl + w;
+      }
+
+
+      if (titleView != null) {
+        final int ct;
+        if (subtitleView != null) {
+          ct = ((b - t) - (titleView.getMeasuredHeight() + subtitleView.getMeasuredHeight())) / 2;
+        } else {
+          ct = ((b - t) - (titleView.getMeasuredHeight())) / 2;
+        }
+        final int cb = ct + titleView.getMeasuredHeight();
+        titleView.layout(cl, ct, cr, cb);
+        if (subtitleView != null) {
+          final int st = cb;
+          final int sb = ct + subtitleView.getMeasuredHeight();
+          subtitleView.layout(cl, st, cr, sb);
+        }
+      } else { // subtitleview is always true in this case
+        final int ct = ((b - t) - subtitleView.getMeasuredHeight()) / 2;
+        final int cb = ct + subtitleView.getMeasuredHeight();
         subtitleView.layout(cl, ct, cr, cb);
       }
-    } else if (subtitleView!=null) {
-      int ct = ((b-t)-subtitleView.getMeasuredHeight())/2;
-      int cb = ct+subtitleView.getMeasuredHeight();
-      subtitleView.layout(cl, ct, cr, cb);
     }
   }
 
