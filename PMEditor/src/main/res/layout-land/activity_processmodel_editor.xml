@@ -39,7 +39,7 @@
                 app:gridSize="8" />
 
         <android.support.v7.widget.CardView android:id="@+id/cardview"
-                                            android:layout_width="wrap_content"
+                android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:layout_marginTop="@dimen/dragpanelborder"
                                             android:layout_marginBottom="@dimen/dragpanelborder"

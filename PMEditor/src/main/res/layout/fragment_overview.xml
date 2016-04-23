@@ -67,7 +67,9 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_gravity="center_vertical"
+                            android:layout_gravity="center_vertical|start"
+                            android:gravity="start"
+                            android:textAlignment="viewStart"
                             android:textAppearance="@style/TextAppearance.Overview.Title"
                             android:text="@string/title_overview_pending_tasks"
                             />
@@ -150,8 +152,10 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_gravity="center_vertical"
+                            android:layout_gravity="center_vertical|start"
                             android:textAppearance="@style/TextAppearance.Overview.Title"
+                            android:gravity="start"
+                            android:textAlignment="viewStart"
                             android:text="@string/title_overview_favourite_models"
                             />
 
