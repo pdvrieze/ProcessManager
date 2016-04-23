@@ -38,6 +38,7 @@ public class DynspanGridLayoutManager extends GridLayoutManager {
     super(context, attrs, defStyleAttr, defStyleRes);
     TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DynspanGridLayoutManager, defStyleAttr, defStyleRes);
     mMinSpanWidth = a.getDimensionPixelSize(R.styleable.DynspanGridLayoutManager_minSpanWidth, -1);
+    a.recycle();
   }
 
   public DynspanGridLayoutManager(final Context context, final int minSpanWidth) {
