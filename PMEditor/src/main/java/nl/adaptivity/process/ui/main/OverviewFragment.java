@@ -106,11 +106,6 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
 // Object Initialization end
 
   @Override
-  public void onCreate(final Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-  }
-
-  @Override
   public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
     mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_overview, container, false);
     mBinding.setFragment(this);
@@ -181,11 +176,6 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   public void onDetach() {
     super.onDetach();
     mCallbacks = null;
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
   }
 
   @Override

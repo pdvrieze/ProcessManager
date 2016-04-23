@@ -66,11 +66,6 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public void onAttach(final Activity activity) {
-    super.onAttach(activity);
-  }
-
-  @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {
     mPos = getArguments().getInt(NODE_POS,-1);
     final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

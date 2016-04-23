@@ -865,12 +865,6 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  protected void onAttachedToWindow() {
-    super.onAttachedToWindow();
-//    showZoomController();
-  }
-
-  @Override
   protected void onDetachedFromWindow() {
     dismissZoomController();
     super.onDetachedFromWindow();

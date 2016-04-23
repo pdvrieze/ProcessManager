@@ -852,12 +852,6 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     }
   }
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-  }
-
-
 
   @Override
   protected void onDestroy() {

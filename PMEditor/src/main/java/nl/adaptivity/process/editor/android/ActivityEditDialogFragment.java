@@ -79,11 +79,6 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   }
 
   @Override
-  public void onAttach(final Activity activity) {
-    super.onAttach(activity);
-  }
-
-  @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {
     mPos = getArguments().getInt(UIConstants.KEY_NODE_POS, -1);
     final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

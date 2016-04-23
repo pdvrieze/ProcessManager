@@ -54,6 +54,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     return new ByteArrayInputStream(bos.toByteArray());
   }
 
+  @SuppressWarnings("EmptyMethod")
   private void ensureBoundary() {
     // TODO do nothing for now. Should verify the viability of the boundary
   }

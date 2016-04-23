@@ -78,11 +78,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   }
 
   @Override
-  protected void onPostCreate(final Bundle savedInstanceState) {
-    super.onPostCreate(savedInstanceState);
-  }
-
-  @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     if (requestCode==CHOOSE_ACCOUNT_REQUEST_CODE) {
       final String accountName;
