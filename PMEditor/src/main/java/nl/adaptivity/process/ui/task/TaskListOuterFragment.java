@@ -73,7 +73,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   public static TaskListOuterFragment newInstance(final long taskId) {
-    TaskListOuterFragment result = new TaskListOuterFragment();
+    final TaskListOuterFragment result = new TaskListOuterFragment();
     if (taskId!=0) {
       result.setArguments(addArgs(null, taskId));
     }
@@ -81,24 +81,24 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  protected MasterListFragment createListFragment(Bundle args) {
-    TaskListFragment taskListFragment = new TaskListFragment();
+  protected MasterListFragment createListFragment(final Bundle args) {
+    final TaskListFragment taskListFragment = new TaskListFragment();
     if (args!=null) { taskListFragment.setArguments(args); }
     return taskListFragment;
   }
 
   @Override
-  protected TaskDetailFragment createDetailFragment(long itemId) {
-    TaskDetailFragment fragment = new TaskDetailFragment();
-    Bundle arguments = new Bundle();
+  protected TaskDetailFragment createDetailFragment(final long itemId) {
+    final TaskDetailFragment fragment  = new TaskDetailFragment();
+    final Bundle             arguments = new Bundle();
     arguments.putLong(ARG_ITEM_ID, itemId);
     fragment.setArguments(arguments);
     return fragment;
   }
 
   @Override
-  protected Intent getDetailIntent(long itemId) {
-    Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
+  protected Intent getDetailIntent(final long itemId) {
+    final Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
     intent.putExtra(ARG_ITEM_ID, itemId);
     return intent;
   }
@@ -109,7 +109,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
     if (activity instanceof TaskListCallbacks) {
       mCallbacks = (TaskListCallbacks) activity;
@@ -118,7 +118,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  public CharSequence getTitle(Context context) {
+  public CharSequence getTitle(final Context context) {
     return context.getString(R.string.title_tasklist);
   }
 }

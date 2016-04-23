@@ -41,7 +41,7 @@ public class AndroidPen implements Pen<AndroidPen> {
   private FontMetrics mFontMetrics;
 
 
-  public AndroidPen(Paint paint) {
+  public AndroidPen(final Paint paint) {
     mPaint = paint;
     mPaint.setStyle(Style.STROKE);
   }
@@ -51,19 +51,19 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public AndroidPen setColor(@IntRange(from=0, to=255) int red,@IntRange(from=0, to=255)  int green, @IntRange(from=0, to=255) int blue) {
+  public AndroidPen setColor(@IntRange(from=0, to=255) final int red, @IntRange(from=0, to=255) final int green, @IntRange(from=0, to=255) final int blue) {
     mPaint.setARGB(255, red, green, blue);
     return this;
   }
 
   @Override
-  public AndroidPen setColor(@IntRange(from=0, to=255) int red,@IntRange(from=0, to=255)  int green,@IntRange(from=0, to=255)  int blue, @IntRange(from=0, to=255) int alpha) {
+  public AndroidPen setColor(@IntRange(from=0, to=255) final int red, @IntRange(from=0, to=255) final int green, @IntRange(from=0, to=255) final int blue, @IntRange(from=0, to=255) final int alpha) {
     mPaint.setARGB(alpha, red, green, blue);
     return this;
   }
 
   @Override
-  public AndroidPen setStrokeWidth(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double strokeWidth) {
+  public AndroidPen setStrokeWidth(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final double strokeWidth) {
     mStrokeWidth = strokeWidth;
     mPaint.setStrokeWidth((float) strokeWidth);
     return this;
@@ -74,7 +74,7 @@ public class AndroidPen implements Pen<AndroidPen> {
     return mStrokeWidth;
   }
 
-  public void setShadowLayer(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) float radius, @ColorInt int color) {
+  public void setShadowLayer(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final float radius, @ColorInt final int color) {
     mShadowRadius = radius;
     mShadowColor = color;
     mShadowDx = 0f;
@@ -82,7 +82,7 @@ public class AndroidPen implements Pen<AndroidPen> {
     mPaint.setShadowLayer(radius, mShadowDx, mShadowDy, color);
   }
 
-  public AndroidPen scale(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double scale) {
+  public AndroidPen scale(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final double scale) {
     mPaint.setStrokeWidth((float) (mStrokeWidth*scale));
     if (mShadowRadius>0f) {
       mPaint.setShadowLayer((float) (mShadowRadius*scale), (float) (mShadowDx*scale), (float) (mShadowDy*scale), mShadowColor);
@@ -94,7 +94,7 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public AndroidPen setFontSize(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double fontSize) {
+  public AndroidPen setFontSize(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final double fontSize) {
     mPaint.setTextAlign(Align.LEFT);
     mPaint.setTextSize((float) fontSize);
     mFontSize = fontSize;
@@ -107,8 +107,8 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public double measureTextWidth(String text, @FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double foldWidth) {
-    float ts = mPaint.getTextSize();
+  public double measureTextWidth(final String text, @FloatRange(from=0, to=Float.MAX_VALUE, fromInclusive = false) final double foldWidth) {
+    final float ts = mPaint.getTextSize();
     mPaint.setTextSize(((float) mFontSize)*FONT_MEASURE_FACTOR);
     final float result = mPaint.measureText(text)/FONT_MEASURE_FACTOR;
     mPaint.setTextSize(ts);
@@ -117,20 +117,20 @@ public class AndroidPen implements Pen<AndroidPen> {
 
   @Override
   public Rectangle measureTextSize(final Rectangle dest, final double x, final double y, final String text, final double foldWidth) {
-    float ts = mPaint.getTextSize();
+    final float ts = mPaint.getTextSize();
     mPaint.setTextSize(((float) mFontSize)*FONT_MEASURE_FACTOR);
     ensureFontMetrics();
-    double left=x;
-    double width = mPaint.measureText(text)/FONT_MEASURE_FACTOR;
-    double top=y+mFontMetrics.top-mFontMetrics.leading/2;
-    double height=mFontMetrics.leading+mFontMetrics.top+mFontMetrics.bottom;
+    final double left   =x;
+    final double width  = mPaint.measureText(text) / FONT_MEASURE_FACTOR;
+    final double top    = y + mFontMetrics.top - mFontMetrics.leading / 2;
+    final double height = mFontMetrics.leading + mFontMetrics.top + mFontMetrics.bottom;
     dest.set(left,top, width, height);
     return dest;
   }
 
   public void ensureFontMetrics() {
     if (mFontMetrics==null) {
-      float ts = mPaint.getTextSize();
+      final float ts = mPaint.getTextSize();
       mPaint.setTextSize((float) mFontSize);
       mFontMetrics=mPaint.getFontMetrics();
       mPaint.setTextSize(ts);
@@ -171,7 +171,7 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public void setTextItalics(boolean italics) {
+  public void setTextItalics(final boolean italics) {
     final Typeface oldTypeface = mPaint.getTypeface();
     final int style;
     if (oldTypeface==null) {

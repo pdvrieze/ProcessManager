@@ -38,7 +38,7 @@ public abstract class ListCursorLoaderCallbacks<A extends CursorRecyclerViewAdap
   }
 
   @Override
-  public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+  public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
 
     if (data!=null) {
       mAdapter.changeCursor(data);
@@ -46,7 +46,7 @@ public abstract class ListCursorLoaderCallbacks<A extends CursorRecyclerViewAdap
   }
 
   @Override
-  public void onLoaderReset(Loader<Cursor> loader) {
+  public void onLoaderReset(final Loader<Cursor> loader) {
     mAdapter.changeCursor(null);
   }
 }

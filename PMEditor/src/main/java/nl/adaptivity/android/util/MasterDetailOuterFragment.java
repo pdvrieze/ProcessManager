@@ -41,20 +41,20 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   private boolean mTwoPane;
   private MasterListFragment mListFragment;
 
-  public MasterDetailOuterFragment(@LayoutRes int layoutId, @IdRes int listContainerId, @IdRes int detailContainerId) {
+  public MasterDetailOuterFragment(@LayoutRes final int layoutId, @IdRes final int listContainerId, @IdRes final int detailContainerId) {
     mLayoutId = layoutId;
     mListContainerId = listContainerId;
     mDetailContainerId = detailContainerId;
   }
 
   @Override
-  public final View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View result = inflater.inflate(mLayoutId, container, false);
+  public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    final View result = inflater.inflate(mLayoutId, container, false);
     if (result.findViewById(mDetailContainerId) != null) {
       mTwoPane = true;
     }
     {
-      Fragment existingListFragment = getChildFragmentManager().findFragmentById(mListContainerId);
+      final Fragment existingListFragment = getChildFragmentManager().findFragmentById(mListContainerId);
       if (existingListFragment == null) {
         mListFragment = createListFragment(getListArgumentsIfNeeded());
         getChildFragmentManager().beginTransaction().replace(mListContainerId, mListFragment).commit();
@@ -67,9 +67,9 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   }
 
   private Bundle getListArgumentsIfNeeded() {
-    Bundle args = getArguments();
+    final Bundle args = getArguments();
     if (args!=null && args.containsKey(ARG_ITEM_ID)) {
-      Bundle b = new Bundle(1);
+      final Bundle b = new Bundle(1);
       b.putLong(ARG_ITEM_ID, args.getLong(ARG_ITEM_ID));
       return b;
     }
@@ -81,12 +81,12 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     if (savedInstanceState==null) {
-      Bundle args = getArguments();
+      final Bundle args = getArguments();
       if (args!=null && args.containsKey(ARG_ITEM_ID)) {
-        long itemId = args.getLong(ARG_ITEM_ID);
+        final long itemId = args.getLong(ARG_ITEM_ID);
         Log.d(TAG, "onCreateView: processing itemId arg: " + itemId);
         if (mTwoPane) {
-          Fragment detailFragment = createDetailFragment(itemId);
+          final Fragment detailFragment = createDetailFragment(itemId);
           getChildFragmentManager().beginTransaction().replace(mDetailContainerId, detailFragment).commit();
         } else {
           startActivity(getDetailIntent(itemId));
@@ -108,7 +108,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
    * @param itemId The id of the task that was selected (this is the local database ID, not the server assigned handle).
    */
   @Override
-  public void onItemSelected(int row, long itemId) {
+  public void onItemSelected(final int row, final long itemId) {
     onItemSelected(itemId, false);
   }
 
@@ -131,7 +131,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.
-        Fragment fragment = createDetailFragment(taskId);
+        final Fragment fragment = createDetailFragment(taskId);
         @SuppressLint("CommitTransaction")
         final FragmentTransaction transaction = getChildFragmentManager().beginTransaction()
                                                                          .replace(mDetailContainerId, fragment);
@@ -140,7 +140,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         }
         transaction.commit();
       } else {
-        Fragment frag = getChildFragmentManager().findFragmentById(mDetailContainerId);
+        final Fragment frag = getChildFragmentManager().findFragmentById(mDetailContainerId);
         if (frag!=null) {
           getChildFragmentManager().beginTransaction()
               .remove(frag)
@@ -152,7 +152,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
       if (taskId >= 0) {
         // In single-pane mode, simply start the detail activity
         // for the selected item ID.
-        Intent detailIntent = getDetailIntent(taskId);
+        final Intent detailIntent = getDetailIntent(taskId);
         startActivity(detailIntent);
       }
     }
@@ -164,7 +164,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
 
   protected abstract MasterListFragment createListFragment(@Nullable Bundle args);
 
-  public static @NonNull Bundle addArgs(@Nullable Bundle args, long itemId) {
+  public static @NonNull Bundle addArgs(@Nullable Bundle args, final long itemId) {
     if (args==null) {
       args = new Bundle(1);
     }

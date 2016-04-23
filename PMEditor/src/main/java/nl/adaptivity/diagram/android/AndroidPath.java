@@ -28,19 +28,19 @@ public final class AndroidPath implements DiagramPath<AndroidPath> {
   private Path mPath = new Path();
 
   @Override
-  public AndroidPath moveTo(double x, double y) {
+  public AndroidPath moveTo(final double x, final double y) {
     mPath.moveTo((float)x, (float) y);
     return this;
   }
 
   @Override
-  public AndroidPath lineTo(double x, double y) {
+  public AndroidPath lineTo(final double x, final double y) {
     mPath.lineTo((float)x, (float) y);
     return this;
   }
 
   @Override
-  public AndroidPath cubicTo(double x1, double y1, double x2, double y2, double x3, double y3) {
+  public AndroidPath cubicTo(final double x1, final double y1, final double x2, final double y2, final double x3, final double y3) {
     mPath.cubicTo((float)x1, (float)y1, (float)x2, (float)y2, (float)x3, (float)y3);
     return this;
   }
@@ -57,7 +57,7 @@ public final class AndroidPath implements DiagramPath<AndroidPath> {
 
   @Override
   public Rectangle getBounds(final Rectangle dest, final Pen<?> stroke) {
-    RectF bounds = new RectF();
+    final RectF bounds = new RectF();
     mPath.computeBounds(bounds, false);
     dest.set(bounds.left, bounds.top, bounds.width(), bounds.height());
     return dest;

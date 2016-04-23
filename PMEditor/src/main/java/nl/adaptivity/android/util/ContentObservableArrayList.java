@@ -41,14 +41,14 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   };
 
   private void onPropertyChanged(final Observable sender, final int propertyId) {
-    int i = indexOf(sender);
+    final int i = indexOf(sender);
     if (i>=0) {
       mListeners.notifyChanged(this, i, 1);
     }
   }
 
   @Override
-  public void addOnListChangedCallback(OnListChangedCallback listener) {
+  public void addOnListChangedCallback(final OnListChangedCallback listener) {
     if (mListeners == null) {
       mListeners = new ListChangeRegistry();
     }
@@ -56,14 +56,14 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public void removeOnListChangedCallback(OnListChangedCallback listener) {
+  public void removeOnListChangedCallback(final OnListChangedCallback listener) {
     if (mListeners != null) {
       mListeners.remove(listener);
     }
   }
 
   @Override
-  public boolean add(T object) {
+  public boolean add(final T object) {
     if (super.add(object)) {
       notifyAdd(size() - 1, 1);
       if (object!=null) { object.addOnPropertyChangedCallback(mChangeCallback); }
@@ -73,19 +73,19 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public void add(int index, T object) {
+  public void add(final int index, final T object) {
     super.add(index, object);
     notifyAdd(index, 1);
     if (object!=null) { object.addOnPropertyChangedCallback(mChangeCallback); }
   }
 
   @Override
-  public boolean addAll(Collection<? extends T> collection) {
-    int oldSize = size();
-    boolean added = super.addAll(collection);
+  public boolean addAll(final Collection<? extends T> collection) {
+    final int     oldSize = size();
+    final boolean added   = super.addAll(collection);
     if (added) {
       notifyAdd(oldSize, size() - oldSize);
-      for(Observable o:collection) {
+      for(final Observable o:collection) {
         if (o!=null) { o.addOnPropertyChangedCallback(mChangeCallback); }
       }
     }
@@ -93,11 +93,11 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public boolean addAll(int index, Collection<? extends T> collection) {
-    boolean added = super.addAll(index, collection);
+  public boolean addAll(final int index, final Collection<? extends T> collection) {
+    final boolean added = super.addAll(index, collection);
     if (added) {
       notifyAdd(index, collection.size());
-      for(Observable o:collection) {
+      for(final Observable o:collection) {
         if (o!=null) { o.addOnPropertyChangedCallback(mChangeCallback); }
       }
     }
@@ -106,7 +106,7 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
 
   @Override
   public void clear() {
-    int oldSize = size();
+    final int oldSize = size();
     for (int i = oldSize-1; i >=0 ; i--) {
       get(i).removeOnPropertyChangedCallback(mChangeCallback);
     }
@@ -117,16 +117,16 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public T remove(int index) {
-    T val = super.remove(index);
+  public T remove(final int index) {
+    final T val = super.remove(index);
     if (val!=null) { val.removeOnPropertyChangedCallback(mChangeCallback); }
     notifyRemove(index, 1);
     return val;
   }
 
   @Override
-  public boolean remove(Object object) {
-    int index = indexOf(object);
+  public boolean remove(final Object object) {
+    final int index = indexOf(object);
     if (index >= 0) {
       remove(index);
       return true;
@@ -136,8 +136,8 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public T set(int index, T object) {
-    T val = super.set(index, object);
+  public T set(final int index, final T object) {
+    final T val = super.set(index, object);
     if (val!=null) {
       val.removeOnPropertyChangedCallback(mChangeCallback);
     }
@@ -149,22 +149,22 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  protected void removeRange(int fromIndex, int toIndex) {
+  protected void removeRange(final int fromIndex, final int toIndex) {
     for (int i = fromIndex; i < toIndex; i++) {
-      Observable object = get(i);
+      final Observable object = get(i);
       if (object!=null) { object.removeOnPropertyChangedCallback(mChangeCallback); }
     }
     super.removeRange(fromIndex, toIndex);
     notifyRemove(fromIndex, toIndex - fromIndex);
   }
 
-  private void notifyAdd(int start, int count) {
+  private void notifyAdd(final int start, final int count) {
     if (mListeners != null) {
       mListeners.notifyInserted(this, start, count);
     }
   }
 
-  private void notifyRemove(int start, int count) {
+  private void notifyRemove(final int start, final int count) {
     if (mListeners != null) {
       mListeners.notifyRemoved(this, start, count);
     }

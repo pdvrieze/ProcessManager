@@ -309,8 +309,8 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
    * @return The first matching result, or null, if none found.
    */
   private XmlResultType getResultFor(final String name) {
-    String xpath = "/value/"+name+"/text()";
-    for (XmlResultType candidate : mActivity.getResults()) {
+    final String xpath = "/value/" + name + "/text()";
+    for (final XmlResultType candidate : mActivity.getResults()) {
       if (CollectionUtil.isNullOrEmpty(candidate.getContent()) && xpath.equals(candidate.getPath())) {
         return candidate;
       }

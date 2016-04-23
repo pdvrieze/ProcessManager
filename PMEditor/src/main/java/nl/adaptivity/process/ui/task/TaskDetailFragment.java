@@ -70,7 +70,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
   public TaskDetailFragment() {}
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     if (getArguments().containsKey(MasterDetailOuterFragment.ARG_ITEM_ID)) {
@@ -80,7 +80,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
   }
 
   @Override
-  public void onAttach(Context context) {
+  public void onAttach(final Context context) {
     super.onAttach(context);
     if (context instanceof TaskDetailCallbacks) {
       mCallbacks = (TaskDetailCallbacks) context;
@@ -90,8 +90,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                           final Bundle savedInstanceState) {
     mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_detail, container, false);
     mBinding.setLoading(true);
     mBinding.setHandler(this);
@@ -100,9 +100,9 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
   }
 
   @BindingAdapter("usertask")
-  public static void bindTaskItemAdapter(RecyclerView view, ExecutableUserTask task) {
+  public static void bindTaskItemAdapter(final RecyclerView view, final ExecutableUserTask task) {
     if (view.getAdapter() instanceof TaskItemAdapter) {
-      TaskItemAdapter adapter = (TaskItemAdapter) view.getAdapter();
+      final TaskItemAdapter adapter = (TaskItemAdapter) view.getAdapter();
       adapter.setUserTask(task);
     } else {
       view.setAdapter(new TaskItemAdapter(task));
@@ -126,28 +126,28 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
   }
 
   @Override
-  public Loader<ExecutableUserTask> onCreateLoader(int id, Bundle args) {
+  public Loader<ExecutableUserTask> onCreateLoader(final int id, final Bundle args) {
     mTaskId = args.getLong(MasterDetailOuterFragment.ARG_ITEM_ID);
-    Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE, mTaskId);
+    final Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE, mTaskId);
     return new TaskLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<ExecutableUserTask> loader, ExecutableUserTask data) {
+  public void onLoadFinished(final Loader<ExecutableUserTask> loader, final ExecutableUserTask data) {
     mBinding.setLoading(false);
     if (data==null) { onLoaderReset(loader); return;}
     mBinding.setTask(data);
   }
 
   @Override
-  public void onLoaderReset(Loader<ExecutableUserTask> loader) {
+  public void onLoaderReset(final Loader<ExecutableUserTask> loader) {
     mBinding.setTask(null);
   }
 
   @Override
   public void onAcceptClick(final View v) {
-    final ExecutableUserTask task = mBinding.getTask();
-    boolean initialDirty = task.isDirty();
+    final ExecutableUserTask task         = mBinding.getTask();
+    final boolean            initialDirty = task.isDirty();
     task.setState(TaskState.Taken);
     if (initialDirty) {
       try {

@@ -46,7 +46,7 @@ public abstract class ClickableListAdapter<T, VH extends ClickableViewHolder> ex
 
   private void onClickView(final VH viewHolder) {}
 
-  public boolean addItem(T item) {
+  public boolean addItem(final T item) {
     if (mContent.add(item)) {
       notifyItemInserted(mContent.size() - 1);
       return true;
@@ -69,7 +69,7 @@ public abstract class ClickableListAdapter<T, VH extends ClickableViewHolder> ex
     return mContent==null ? 0 : mContent.size();
   }
 
-  public T getItem(int position) {
+  public T getItem(final int position) {
     return mContent.get(position);
   }
 

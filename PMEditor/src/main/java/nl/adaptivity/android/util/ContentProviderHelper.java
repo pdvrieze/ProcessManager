@@ -46,7 +46,7 @@ public final class ContentProviderHelper {
     protected long mId;
     protected ParcelFileDescriptor mFileDescriptor;
 
-    public ProcessModelThread(SQLiteOpenHelper dbHelper, String table, String column, long id, ParcelFileDescriptor parcelFileDescriptor) {
+    public ProcessModelThread(final SQLiteOpenHelper dbHelper, final String table, final String column, final long id, final ParcelFileDescriptor parcelFileDescriptor) {
       mDbHelper = dbHelper;
       mTable = table;
       mColumn = column;
@@ -58,15 +58,15 @@ public final class ContentProviderHelper {
 
   private static class ProcessModelWriteThread extends ProcessModelThread {
 
-    public ProcessModelWriteThread(SQLiteOpenHelper dbHelper, String table, String column, long id, ParcelFileDescriptor parcelFileDescriptor) {
+    public ProcessModelWriteThread(final SQLiteOpenHelper dbHelper, final String table, final String column, final long id, final ParcelFileDescriptor parcelFileDescriptor) {
       super(dbHelper, table, column, id, parcelFileDescriptor);
     }
 
     @Override
     public void run() {
-      SQLiteDatabase db = mDbHelper.getReadableDatabase();
-      Cursor cursor = db.query(mTable, new String[] {mColumn}, BaseColumns._ID+" = ?", new String[]{Long.toString(mId)}, null, null, null);
-      String data;
+      final SQLiteDatabase db     = mDbHelper.getReadableDatabase();
+      final Cursor         cursor = db.query(mTable, new String[] {mColumn}, BaseColumns._ID + " = ?", new String[]{Long.toString(mId)}, null, null, null);
+      String               data;
       if (! cursor.moveToFirst()) {
         data = "";
       } else {
@@ -76,10 +76,10 @@ public final class ContentProviderHelper {
           cursor.close();
         }
       }
-      OutputStream os = new ParcelFileDescriptor.AutoCloseOutputStream(mFileDescriptor);
+      final OutputStream os = new ParcelFileDescriptor.AutoCloseOutputStream(mFileDescriptor);
       try {
         try {
-          Writer out = new OutputStreamWriter(os, "UTF8");
+          final Writer out = new OutputStreamWriter(os, "UTF8");
           try {
             out.append(data);
           } finally {
@@ -102,7 +102,7 @@ public final class ContentProviderHelper {
     private final String mSyncStateColumn;
     private boolean mNotifyNet;
 
-    public ProcessModelReadThread(final Context context, SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, ParcelFileDescriptor parcelFileDescriptor, final boolean notifyNet) {
+    public ProcessModelReadThread(final Context context, final SQLiteOpenHelper dbHelper, final String table, final String column, final long id, final String syncStateColumn, final ParcelFileDescriptor parcelFileDescriptor, final boolean notifyNet) {
       super(dbHelper, table, column, id, parcelFileDescriptor);
       mContext = context;
       mSyncStateColumn = syncStateColumn;
@@ -111,14 +111,14 @@ public final class ContentProviderHelper {
 
     @Override
     public void run() {
-      StringBuilder data = new StringBuilder();
-      InputStream is = new ParcelFileDescriptor.AutoCloseInputStream(mFileDescriptor);
+      final StringBuilder data = new StringBuilder();
+      final InputStream   is   = new ParcelFileDescriptor.AutoCloseInputStream(mFileDescriptor);
       try {
         try {
-          Reader in = new InputStreamReader(is, "UTF8");
+          final Reader in = new InputStreamReader(is, "UTF8");
           try {
-            char[] buffer = new char[2048];
-            int cnt;
+            final char[] buffer = new char[2048];
+            int          cnt;
             while ((cnt=in.read(buffer))>=0) {
               data.append(buffer,0,cnt);
             }
@@ -129,15 +129,15 @@ public final class ContentProviderHelper {
           is.close();
         }
         if (data.length()>0) {
-          ContentValues values = new ContentValues(mSyncStateColumn == null ? 1 : 2);
+          final ContentValues values = new ContentValues(mSyncStateColumn == null ? 1 : 2);
           values.put(mColumn, data.toString());
-          SQLiteDatabase db = mDbHelper.getWritableDatabase();
+          final SQLiteDatabase db = mDbHelper.getWritableDatabase();
           db.beginTransaction();
           try {
             if (mSyncStateColumn != null) {
               values.put(mSyncStateColumn, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
             }
-            int updateCount = db.update(mTable, values, BaseColumns._ID + " = ?", new String[]{Long.toString(mId)});
+            final int updateCount = db.update(mTable, values, BaseColumns._ID + " = ?", new String[]{Long.toString(mId)});
             if (updateCount != 1) {
               Log.e(TAG, "Failure to update the database");
               Compat.closeWithError(mFileDescriptor, "Database update failure");
@@ -161,7 +161,7 @@ public final class ContentProviderHelper {
 
   }
 
-  public static ParcelFileDescriptor createPipe(ProcessModelProvider processModelProvider, SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, String mode, final boolean notifyNet) {
+  public static ParcelFileDescriptor createPipe(final ProcessModelProvider processModelProvider, final SQLiteOpenHelper dbHelper, final String table, final String column, final long id, final String syncStateColumn, final String mode, final boolean notifyNet) {
     final boolean readMode;
     switch  (mode) {
       case "r":
@@ -171,7 +171,7 @@ public final class ContentProviderHelper {
         readMode=false;
         break;
       default: {
-        ParcelFileDescriptor[] pair;
+        final ParcelFileDescriptor[] pair;
         try {
           pair = ParcelFileDescriptor.createPipe();
           Compat.closeWithError(pair[0], "The given mode is not available");
@@ -182,7 +182,7 @@ public final class ContentProviderHelper {
         }
       }
     }
-    ParcelFileDescriptor[] pair;
+    final ParcelFileDescriptor[] pair;
     try {
       pair = ParcelFileDescriptor.createPipe();
     } catch (IOException e) {
@@ -190,7 +190,7 @@ public final class ContentProviderHelper {
       return null;
     }
 
-    Thread th;
+    final Thread th;
     if (readMode) {
       th = new ProcessModelWriteThread(dbHelper, table, column, id, pair[1]);
       th.run();

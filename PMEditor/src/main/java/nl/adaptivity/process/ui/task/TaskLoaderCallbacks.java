@@ -38,7 +38,7 @@ public class TaskLoaderCallbacks extends ListCursorLoaderCallbacks<BaseTaskCurso
   }
 
   @Override
-  public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+  public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
     return new CursorLoader(mContext, TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY, Tasks.COLUMN_STATE}, Tasks.COLUMN_STATE + "!='Complete' AND " + Tasks.COLUMN_STATE + "!=" + RemoteXmlSyncAdapter.SYNC_NEWDETAILSPENDING, null, null);
   }
 

@@ -43,7 +43,7 @@ public final class OverviewTaskCursorAdapter extends BaseTaskCursorAdapter<Overv
     }
   }
 
-  public OverviewTaskCursorAdapter(Context context, Cursor c) {
+  public OverviewTaskCursorAdapter(final Context context, final Cursor c) {
     super(context, c, false);
   }
 
@@ -54,8 +54,8 @@ public final class OverviewTaskCursorAdapter extends BaseTaskCursorAdapter<Overv
     viewHolder.binding.setInstanceName(mInstNameColIdx>=0 ? cursor.getString(mInstNameColIdx): null);
     final int drawableId;
     if (mStateColIdx >= 0) {
-      String s = cursor.getString(mStateColIdx);
-      TaskState state = TaskState.fromString(s);
+      final String    s     = cursor.getString(mStateColIdx);
+      final TaskState state = TaskState.fromString(s);
       drawableId = state == null ? 0 : state.getDecoratorId();
     } else {
       drawableId = 0;

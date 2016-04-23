@@ -44,7 +44,7 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
   }
 
   @CallSuper
-  protected void updateColIdxs(Cursor c) {
+  protected void updateColIdxs(final Cursor c) {
     if (c == null) {
       mSummaryColIdx = -1;
       mStateColIdx = -1;
@@ -57,7 +57,7 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
   }
 
   @Override
-  public final Cursor swapCursor(Cursor newCursor) {
+  public final Cursor swapCursor(final Cursor newCursor) {
     final Cursor result = super.swapCursor(newCursor);
     updateColIdxs(newCursor);
     return result;

@@ -150,11 +150,11 @@ public class MasterListFragment extends RecyclerFragment {
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
     final Adapter adapter = getListAdapter();
     if (adapter instanceof SelectableAdapter) {
-      SelectableAdapter selectableAdapter = (SelectableAdapter) adapter;
+      final SelectableAdapter selectableAdapter = (SelectableAdapter) adapter;
 
       if (selectableAdapter.getSelectedId() != RecyclerView.NO_ID) {
         // Serialize and persist the activated item position.

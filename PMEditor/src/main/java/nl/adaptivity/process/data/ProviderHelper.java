@@ -48,20 +48,20 @@ public final class ProviderHelper {
   private ProviderHelper() {
   }
 
-  public static String getSyncSource(Context context) {
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
+  public static String getSyncSource(final Context context) {
+    final SharedPreferences prefs  = PreferenceManager.getDefaultSharedPreferences(context);
+    final String            source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
     return source;
   }
 
-  public static URI getAuthBase(Context context) {
+  public static URI getAuthBase(final Context context) {
     final String source = getSyncSource(context);
     return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
   }
 
-  public static void requestSync(Account account, final String authority, boolean expedited) {
+  public static void requestSync(final Account account, final String authority, final boolean expedited) {
     if (account!=null) {
-      Bundle extras = new Bundle(1);
+      final Bundle extras = new Bundle(1);
       extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
       extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, expedited);
       ContentResolver.requestSync(account, authority, extras );
@@ -84,7 +84,7 @@ public final class ProviderHelper {
      * @param authbase The base for authentication to use.
      * @param expedited Whether expedited synchronization should be requested.
      */
-    public SyncCallable(Activity context, String authority, final URI authbase, boolean expedited) {
+    public SyncCallable(final Activity context, final String authority, final URI authbase, final boolean expedited) {
       mContext = context;
       mAuthority = authority;
       mExpedited = expedited;
@@ -93,15 +93,15 @@ public final class ProviderHelper {
 
     @Override
     public Account call() throws Exception {
-      final URI source = mAuthbase;
-      Account account = AuthenticatedWebClient.ensureAccount(mContext, source, ENSURE_ACCOUNT_REQUEST_CODE, AuthenticatedActivity.REQUEST_DOWNLOAD_AUTHENTICATOR);
+      final URI     source  = mAuthbase;
+      final Account account = AuthenticatedWebClient.ensureAccount(mContext, source, ENSURE_ACCOUNT_REQUEST_CODE, AuthenticatedActivity.REQUEST_DOWNLOAD_AUTHENTICATOR);
       if (account!=null) {
         ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
-        AccountManager accountManager = AccountManager.get(mContext);
-        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+        final AccountManager accountManager = AccountManager.get(mContext);
+        final AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
 
           @Override
-          public void run(AccountManagerFuture<Bundle> future) {
+          public void run(final AccountManagerFuture<Bundle> future) {
             try {
               future.getResult();
             } catch (OperationCanceledException | AuthenticatorException | IOException e) {
@@ -132,8 +132,8 @@ public final class ProviderHelper {
     }
   }
 
-  public static void requestSync(Activity context, final String authority, boolean expedited) {
-    URI authbase = getAuthBase(context);
+  public static void requestSync(final Activity context, final String authority, final boolean expedited) {
+    final URI authbase = getAuthBase(context);
     if (authbase!=null) {
       new AsyncCallableTask<Account, SyncCallable>().execute(new SyncCallable(context, authority, authbase, expedited));
     }
@@ -141,7 +141,7 @@ public final class ProviderHelper {
 
   public static boolean isColumnInProjection(final String column, final String[] projection) {
     if (projection==null) { return false; }
-    for (String elem:projection) {
+    for (final String elem:projection) {
       if(column.equalsIgnoreCase(elem)) return true;
     }
     return false;

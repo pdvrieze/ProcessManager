@@ -41,15 +41,15 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   private static String generateBoundary() {
-    Random rnd = new Random();
+    final Random rnd = new Random();
     return "--"+MultipartEntity.class.getSimpleName()+'-'+Long.toHexString(rnd.nextLong());
   }
 
   @Override
   public InputStream getContent() throws IOException, IllegalStateException {
     // TODO do this in a less memory intensive way
-    long cl = getContentLength();
-    ByteArrayOutputStream bos = cl<0 ? new ByteArrayOutputStream() :  new ByteArrayOutputStream((int) cl);
+    final long                  cl  = getContentLength();
+    final ByteArrayOutputStream bos = cl < 0 ? new ByteArrayOutputStream() :  new ByteArrayOutputStream((int) cl);
     writeTo(bos);
     return new ByteArrayInputStream(bos.toByteArray());
   }
@@ -64,21 +64,21 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public void setContentType(String contentType) {
+  public void setContentType(final String contentType) {
     if (contentType.startsWith(MIMETYPE_BASE)) {
       int i = contentType.indexOf(';', MIMETYPE_BASE.length())+1;
       while (i>=0) {
-        int j = contentType.indexOf(';', i);
-        String param;
+        final int    j = contentType.indexOf(';', i);
+        final String param;
         if (j>=0) {
           param = contentType.substring(i).trim();
         } else {
           param = contentType.substring(i, j).trim();
         }
-        int e = param.indexOf('=');
+        final int e = param.indexOf('=');
         if (e>=0) {
-          String parName = param.substring(0, e).trim();
-          String parValue = param.substring(e+1).trim();
+          final String parName  = param.substring(0, e).trim();
+          final String parValue = param.substring(e + 1).trim();
           if ("boundary".equals(parName)) {
             if (parValue.startsWith("--")) {
               mBoundary = parValue;
@@ -98,7 +98,7 @@ public class MultipartEntity extends AbstractHttpEntity {
   public long getContentLength() {
     if (mContent.isEmpty()) { return 0; }
     long result = -2; // First boundary does not include a CRLF
-    for (Pair<String, HttpEntity> content: mContent) {
+    for (final Pair<String, HttpEntity> content: mContent) {
       final long cl = getContentLength(content.first, content.second);
       if (cl<0) { return cl; } // we don't know if a child doesn't know
       result+=cl;
@@ -107,7 +107,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     return result;
   }
 
-  private long getContentLength(String name, HttpEntity entity) {
+  private long getContentLength(final String name, final HttpEntity entity) {
     final long el = entity.getContentLength();
     if (el>=0) {
       return getBoundary(name, entity).length()+el;
@@ -116,23 +116,23 @@ public class MultipartEntity extends AbstractHttpEntity {
     }
   }
 
-  private String getBoundary(String name, HttpEntity entity) {
-    StringBuilder result = new StringBuilder();
+  private String getBoundary(final String name, final HttpEntity entity) {
+    final StringBuilder result = new StringBuilder();
     result.append(CRLF).append(mBoundary).append(CRLF);
     result.append(CONTENT_DISPOSITION).append(name).append(CRLF);
     {
-      String ct = entity.getContentType();
+      final String ct = entity.getContentType();
       if (ct!=null) {
         result.append("Content-Type: ").append(ct).append(CRLF);
       }
     }
     {
-      String ce = entity.getContentEncoding();
+      final String ce = entity.getContentEncoding();
       if (ce!=null) {
         result.append("Content-Transfer-Encoding: ").append(ce).append(CRLF);
       }
     }
-    long cl = entity.getContentLength();
+    final long cl = entity.getContentLength();
     if (cl>=0) {
       result.append("Content-Length: ").append(cl).append(CRLF);
     }
@@ -142,7 +142,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 
   @Override
   public boolean isRepeatable() {
-    for(Pair<String, HttpEntity> elem:mContent) {
+    for(final Pair<String, HttpEntity> elem:mContent) {
       if (!elem.second.isRepeatable()) {
         return false;
       }
@@ -152,7 +152,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 
   @Override
   public boolean isStreaming() {
-    for(Pair<String, HttpEntity> elem:mContent) {
+    for(final Pair<String, HttpEntity> elem:mContent) {
       if (elem.second.isStreaming()) {
         return true;
       }
@@ -161,13 +161,13 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public void writeTo(OutputStream outstream) throws IOException {
+  public void writeTo(final OutputStream outstream) throws IOException {
     ensureBoundary();
-    Charset cs = Charset.forName("UTF8");
-    int skip = 2;
-    for(Pair<String, HttpEntity> elem:mContent) {
+    final Charset cs   = Charset.forName("UTF8");
+    int           skip = 2;
+    for(final Pair<String, HttpEntity> elem:mContent) {
       final ByteBuffer boundary = cs.encode(getBoundary(elem.first, elem.second));
-      int pos = boundary.position();
+      final int        pos      = boundary.position();
       if (pos>0) {
         boundary.flip();
       }
@@ -180,7 +180,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     outstream.flush();
   }
 
-  public void add(String name, HttpEntity childEntity) {
+  public void add(final String name, final HttpEntity childEntity) {
     mContent.add(new Pair<>(name, childEntity));
   }
 

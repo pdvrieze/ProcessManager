@@ -46,7 +46,7 @@ public abstract class VariableReference implements Parcelable, Comparable<Variab
 
     private final String mTagName;
 
-    public ResultReference(Identifiable node, IXmlResultType result) {
+    public ResultReference(final Identifiable node, final IXmlResultType result) {
       this("value", node.getId(), result.getName(), null);
     }
 
@@ -55,7 +55,7 @@ public abstract class VariableReference implements Parcelable, Comparable<Variab
       mTagName = tagName;
     }
 
-    public ResultReference(Parcel source) {
+    public ResultReference(final Parcel source) {
       this(source.readString(), source.readString(), source.readString(), source.readString());
     }
 
@@ -108,7 +108,7 @@ public abstract class VariableReference implements Parcelable, Comparable<Variab
       }
     };
 
-    public DefineReference(IXmlDefineType define) {
+    public DefineReference(final IXmlDefineType define) {
       this(define.getName(), define.getPath());
     }
 
@@ -116,7 +116,7 @@ public abstract class VariableReference implements Parcelable, Comparable<Variab
       super(null, defineName, xpath);
     }
 
-    public DefineReference(Parcel source) {
+    public DefineReference(final Parcel source) {
       this(source.readString(), source.readString());
     }
 
@@ -186,9 +186,9 @@ public abstract class VariableReference implements Parcelable, Comparable<Variab
 
   @Override
   public int compareTo(final VariableReference another) {
-    String nodeId = mNodeId==null ? "this" : mNodeId;
-    String otherNodeId = another.mNodeId==null ? "this" : another.mNodeId;
-    int cmp = nodeId.compareTo(otherNodeId);
+    final String nodeId      = mNodeId == null ? "this" : mNodeId;
+    final String otherNodeId = another.mNodeId == null ? "this" : another.mNodeId;
+    final int    cmp         = nodeId.compareTo(otherNodeId);
     if (cmp!=0) { return cmp; }
     return mVariableName.compareTo(another.mVariableName);
   }

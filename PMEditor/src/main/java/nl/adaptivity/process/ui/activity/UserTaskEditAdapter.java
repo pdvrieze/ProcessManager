@@ -54,7 +54,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
     public ItemViewHolder(final ViewDataBinding binding) {
       super(UserTaskEditAdapter.this, binding.getRoot());
       mBinding = binding;
-      View dragHandle = mBinding.getRoot().findViewById(R.id.drag_handle);
+      final View dragHandle = mBinding.getRoot().findViewById(R.id.drag_handle);
       dragHandle.setOnTouchListener(this);
       mBinding.getRoot().setOnClickListener(this);
     }
@@ -84,15 +84,15 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
     this(decorator, Collections.<TaskItem>emptyList());
   }
 
-  public UserTaskEditAdapter(CharSequenceDecorator decorator, @NonNull final List<TaskItem> items) {
+  public UserTaskEditAdapter(final CharSequenceDecorator decorator, @NonNull final List<TaskItem> items) {
     super(items);
     mDecorator = decorator;
     mItemTouchHelper = new ItemTouchHelper(new Callback() {
 
       @Override
       public int getMovementFlags(final RecyclerView recyclerView, final ViewHolder viewHolder) {
-        int swipeFlags = makeFlag(ItemTouchHelper.ACTION_STATE_IDLE, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
-        int dragFlags = makeFlag(ItemTouchHelper.ACTION_STATE_IDLE, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
+        final int swipeFlags = makeFlag(ItemTouchHelper.ACTION_STATE_IDLE, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        final int dragFlags  = makeFlag(ItemTouchHelper.ACTION_STATE_IDLE, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
         return makeMovementFlags(dragFlags, swipeFlags);
       }
 
@@ -153,7 +153,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
 
   @Override
   public int getItemViewType(final int position) {
-    TaskItem item = getItem(position);
+    final TaskItem item = getItem(position);
     switch (item.getType()) {
       case LABEL:
         return VIEWTYPE_LABEL;
@@ -170,8 +170,8 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
   }
 
   boolean onMove(final RecyclerView recyclerView, final ViewHolder viewHolder, final ViewHolder target) {
-    int fromPosition = viewHolder.getAdapterPosition();
-    int toPosition = target.getAdapterPosition();
+    final int fromPosition = viewHolder.getAdapterPosition();
+    final int toPosition   = target.getAdapterPosition();
     if (fromPosition<toPosition) {
       for (int i = fromPosition; i < toPosition; i++) {
         Collections.swap(getContent(), i, i + 1);

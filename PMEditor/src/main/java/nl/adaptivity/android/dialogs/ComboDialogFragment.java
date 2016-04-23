@@ -71,7 +71,7 @@ public class ComboDialogFragment extends DialogFragment implements OnClickListen
   @NonNull
   @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {
-    AlertDialog.Builder builder = new Builder(getActivity());
+    final AlertDialog.Builder builder = new Builder(getActivity());
     builder.setTitle(mTitle);
     mComboView = (Spinner) LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_combo_view, null, false);
     mComboView.setAdapter(new ComboAdapter(builder.getContext(), mValues));
@@ -97,12 +97,12 @@ public class ComboDialogFragment extends DialogFragment implements OnClickListen
     }
   }
 
-  public static ComboDialogFragment newInstance(int dialogId, List<? extends Parcelable> values, CharSequence title) {
-    Bundle args = new Bundle(2);
+  public static ComboDialogFragment newInstance(final int dialogId, final List<? extends Parcelable> values, final CharSequence title) {
+    final Bundle args = new Bundle(2);
     args.putParcelableArrayList(UIConstants.KEY_VALUES, CollectionUtil.toArrayList(values));
     args.putCharSequence(UIConstants.KEY_TITLE, title);
     args.putInt(UIConstants.KEY_DIALOG_ID, dialogId);
-    ComboDialogFragment fragment = new ComboDialogFragment();
+    final ComboDialogFragment fragment = new ComboDialogFragment();
     fragment.setArguments(args);
     return fragment;
   }

@@ -58,30 +58,29 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   private TextView mLblLabel;
 
   public static NodeEditDialogFragment newInstance(final int position) {
-    NodeEditDialogFragment frag = new NodeEditDialogFragment();
-    Bundle args = new Bundle(1);
+    final NodeEditDialogFragment frag = new NodeEditDialogFragment();
+    final Bundle                 args = new Bundle(1);
     args.putInt(NODE_POS, position);
     frag.setArguments(args);
     return frag;
   }
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
   }
 
   @Override
-  public Dialog onCreateDialog(Bundle savedInstanceState) {
+  public Dialog onCreateDialog(final Bundle savedInstanceState) {
     mPos = getArguments().getInt(NODE_POS,-1);
-    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     builder.setTitle("Edit node")
     .setCancelable(true)
 //    .setView(myDialogView)
     .setPositiveButton(android.R.string.ok, this)
     .setNegativeButton(android.R.string.cancel, this);
 
-    @SuppressLint("InflateParams")
-    View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, null);
+    @SuppressLint("InflateParams") final View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, null);
     builder.setView(myDialogView);
 
     final AlertDialog dialog = builder.create();
@@ -102,8 +101,8 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     mRgMinMax.setOnCheckedChangeListener(this);
 
     if (getActivity() instanceof NodeEditListener) {
-      NodeEditListener listener = (NodeEditListener) getActivity();
-      DrawableProcessNode node = listener.getNode(mPos);
+      final NodeEditListener    listener = (NodeEditListener) getActivity();
+      final DrawableProcessNode node     = listener.getNode(mPos);
       mEtLabel.setText(node.getLabel());
       mRgMinMax.setVisibility(View.GONE);
       mVgMinMax.setVisibility(View.GONE);
@@ -115,13 +114,13 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     return dialog;
   }
 
-  private void setEditLabelEnabled(boolean enabled) {
+  private void setEditLabelEnabled(final boolean enabled) {
     final int visibility = enabled ? View.VISIBLE : View.GONE;
     mEtLabel.setVisibility(visibility);
     mLblLabel.setVisibility(visibility);
   }
 
-  private void initNumberPicker(NumberPicker np, int min) {
+  private void initNumberPicker(final NumberPicker np, final int min) {
     np.setWrapSelectorWheel(false);
     np.setMinValue(min);
     np.setMaxValue(MAX_MAX);
@@ -129,18 +128,18 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     np.setOnValueChangedListener(this);
   }
 
-  private void setMinMaxEditEnabled(boolean enabled) {
+  private void setMinMaxEditEnabled(final boolean enabled) {
     mVgMinMax.setEnabled(enabled);
     mNpMin.setEnabled(enabled);
     mNpMax.setEnabled(enabled);
   }
 
   @Override
-  public void onClick(DialogInterface dialog, int which) {
+  public void onClick(final DialogInterface dialog, final int which) {
     if (which==DialogInterface.BUTTON_POSITIVE) {
       if (getActivity() instanceof NodeEditListener) {
-        NodeEditListener listener = (NodeEditListener) getActivity();
-        DrawableProcessNode node = listener.getNode(mPos);
+        final NodeEditListener    listener = (NodeEditListener) getActivity();
+        final DrawableProcessNode node     = listener.getNode(mPos);
         node.setLabel(mEtLabel.getText().toString());
         listener.onNodeEdit(mPos);
       }
@@ -148,7 +147,7 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+  public void onValueChange(final NumberPicker picker, final int oldVal, final int newVal) {
     if (picker.getId()==R.id.np_min) {
       mNpMax.setMinValue(Math.max(1, newVal));
       if (mNpMax.getValue()<mNpMax.getMinValue()) {
@@ -158,9 +157,9 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public void onCheckedChanged(RadioGroup group, int checkedId) {
-    DrawableJoinSplit jsnode = (DrawableJoinSplit) ((NodeEditListener)getActivity()).getNode(mPos);
-    int max = jsnode.getMaxPredecessorCount()==1 ? jsnode.getSuccessors().size() :jsnode.getPredecessors().size();
+  public void onCheckedChanged(final RadioGroup group, final int checkedId) {
+    final DrawableJoinSplit jsnode = (DrawableJoinSplit) ((NodeEditListener)getActivity()).getNode(mPos);
+    final int               max    = jsnode.getMaxPredecessorCount() == 1 ? jsnode.getSuccessors().size() :jsnode.getPredecessors().size();
 
     switch (checkedId) {
       case R.id.radioand:
@@ -183,7 +182,7 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+  public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
     if (actionId==EditorInfo.IME_ACTION_DONE) {
       // TODO make a method of this that both call
       onClick(null, DialogInterface.BUTTON_POSITIVE);

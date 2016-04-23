@@ -33,14 +33,14 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   private long mHandle=-1L;
   private ForceLoadContentObserver mObserver;
 
-  public ProcessModelLoader(Context context, long handle) {
+  public ProcessModelLoader(final Context context, final long handle) {
     super(context);
     mObserver = new ForceLoadContentObserver();
     mHandle = handle;
     onContentChanged();
   }
 
-  public ProcessModelLoader(Context context, Uri uri) {
+  public ProcessModelLoader(final Context context, final Uri uri) {
     super(context);
     mObserver = new ForceLoadContentObserver();
     mUri = uri;
@@ -68,7 +68,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
     } else {
       processModel = ProcessModelProvider.getProcessModel(getContext(), mUri);
       id = ContentUris.parseId(mUri);
-      Cursor handleCursor = getContext().getContentResolver().query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id), new String[] {ProcessModels.COLUMN_HANDLE}, null, null, null);
+      final Cursor handleCursor = getContext().getContentResolver().query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id), new String[] {ProcessModels.COLUMN_HANDLE}, null, null, null);
       try {
         handleCursor.moveToFirst();
         if (!handleCursor.isNull(0)) {
@@ -78,8 +78,8 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
         handleCursor.close();
       }
     }
-    Uri updateUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
-    ContentResolver contentResolver = getContext().getContentResolver();
+    final Uri             updateUri       = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
+    final ContentResolver contentResolver = getContext().getContentResolver();
     contentResolver.registerContentObserver(updateUri, false, mObserver);
     return new ProcessModelHolder(processModel, handle);
   }

@@ -24,7 +24,7 @@ import nl.adaptivity.process.editor.android.databinding.TaskitemPasswordBinding;
 
 public class PasswordItem extends TextLabeledItem {
 
-  public PasswordItem(CharSequence name, CharSequence label, CharSequence value) {
+  public PasswordItem(final CharSequence name, final CharSequence label, final CharSequence value) {
     super(name, label, value);
   }
 
@@ -34,12 +34,12 @@ public class PasswordItem extends TextLabeledItem {
   }
 
   @Override
-  public void updateView(ViewDataBinding binding) {
-    TaskitemPasswordBinding b = (TaskitemPasswordBinding) binding;
+  public void updateView(final ViewDataBinding binding) {
+    final TaskitemPasswordBinding b = (TaskitemPasswordBinding) binding;
     b.setTaskitem(this);
-    TextView textview = b.taskitemDetailTextText;
+    final TextView textview = b.taskitemDetailTextText;
     textview.setText(getValue());
-    Object tag = textview.getTag();
+    final Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {
       textview.removeTextChangedListener((TextWatcher) tag);
     }

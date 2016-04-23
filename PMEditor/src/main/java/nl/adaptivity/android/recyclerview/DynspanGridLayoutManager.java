@@ -36,7 +36,7 @@ public class DynspanGridLayoutManager extends GridLayoutManager {
 
   public DynspanGridLayoutManager(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
-    TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DynspanGridLayoutManager, defStyleAttr, defStyleRes);
+    final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DynspanGridLayoutManager, defStyleAttr, defStyleRes);
     mMinSpanWidth = a.getDimensionPixelSize(R.styleable.DynspanGridLayoutManager_minSpanWidth, -1);
     a.recycle();
   }
@@ -53,11 +53,11 @@ public class DynspanGridLayoutManager extends GridLayoutManager {
   @Override
   public void onMeasure(final Recycler recycler, final State state, final int widthSpec, final int heightSpec) {
     if (mMinSpanWidth>0) {
-      int widthSize = MeasureSpec.getSize(widthSpec);
-      int widthMode = MeasureSpec.getMode(widthSpec);
+      final int widthSize = MeasureSpec.getSize(widthSpec);
+      final int widthMode = MeasureSpec.getMode(widthSpec);
 
-      int heightSize = MeasureSpec.getSize(heightSpec);
-      int heightMode = MeasureSpec.getMode(heightSpec);
+      final int heightSize = MeasureSpec.getSize(heightSpec);
+      final int heightMode = MeasureSpec.getMode(heightSpec);
 
       int width = 0;
       int height = 0;

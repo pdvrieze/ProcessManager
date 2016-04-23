@@ -32,12 +32,12 @@ public final class LogUtil {
 
   public static void logResponse(final String tag, final int debugLevel, final String url, final String statusLine, final InputStream content) throws
           IOException {
-    StringBuilder errorMessage = new StringBuilder();
+    final StringBuilder errorMessage = new StringBuilder();
     errorMessage.append("Error updating the server for url: ")
                 .append(url).append("\n    ")
                 .append(statusLine).append("\n    ");
-    BufferedReader contentBuffer = new BufferedReader(new InputStreamReader(content));
-    String line = contentBuffer.readLine();
+    final BufferedReader contentBuffer = new BufferedReader(new InputStreamReader(content));
+    String               line          = contentBuffer.readLine();
     while (line!=null) {
       errorMessage.append("    ").append(line).append('\n');
       line = contentBuffer.readLine();

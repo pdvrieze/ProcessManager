@@ -176,7 +176,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   @Bindable
   public abstract CharSequence getValue();
 
-  public void setValue(CharSequence value) {
+  public void setValue(final CharSequence value) {
     throw new UnsupportedOperationException("Not supported by this task item");
   }
 
@@ -185,7 +185,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   @Bindable
   public abstract CharSequence getLabel();
 
-  public void setLabel(CharSequence value) {
+  public void setLabel(final CharSequence value) {
     throw new UnsupportedOperationException("Not supported by this task item: ");
   }
 
@@ -261,7 +261,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     while ((in.nextTag())==EventType.START_ELEMENT) {
       if (StringUtil.isEqual(Constants.MODIFY_NS_STR,in.getNamespaceUri())) {
         if (StringUtil.isEqual("attribute", in.getLocalName())) {
-          AttributeSequence attr = ModifyHelper.parseAttribute(in);
+          final AttributeSequence attr = ModifyHelper.parseAttribute(in);
           switch (attr.getParamName().toString()) {
             case "name":
               name = attr; break;

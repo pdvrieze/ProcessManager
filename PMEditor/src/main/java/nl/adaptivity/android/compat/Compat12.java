@@ -22,7 +22,7 @@ import android.view.MotionEvent;
 @TargetApi(12)
 final class Compat12 {
 
-  public static boolean isZoomIn(MotionEvent event) {
+  public static boolean isZoomIn(final MotionEvent event) {
     return event.getAxisValue(MotionEvent.AXIS_VSCROLL)<0f;
     
   }

@@ -34,14 +34,14 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
   private long mHandle=-1L;
   private Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
 
-  public TaskLoader(Context context, long handle) {
+  public TaskLoader(final Context context, final long handle) {
     super(context);
     mObserver = new ForceLoadContentObserver();
     mHandle = handle;
     onContentChanged();
   }
 
-  public TaskLoader(Context context, Uri uri) {
+  public TaskLoader(final Context context, final Uri uri) {
     super(context);
     mObserver = new ForceLoadContentObserver();
     mUri = uri;
@@ -59,10 +59,10 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
 
   @Override
   public ExecutableUserTask loadInBackground() {
-    ExecutableUserTask task;
-    final ContentResolver contentResolver = getContext().getContentResolver();
+    final ExecutableUserTask task;
+    final ContentResolver    contentResolver = getContext().getContentResolver();
     if (mHandle>=0) {
-      Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] { BaseColumns._ID }, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(mHandle)} , null);
+      final Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] {BaseColumns._ID }, Tasks.COLUMN_HANDLE + " = ?", new String[] {Long.toString(mHandle)} , null);
       try {
         if (! idresult.moveToFirst()) { return null; }
         mUri = ContentUris.withAppendedId(Tasks.CONTENT_URI, idresult.getLong(0));

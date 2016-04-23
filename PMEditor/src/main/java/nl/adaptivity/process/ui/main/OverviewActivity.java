@@ -148,10 +148,10 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
     task.execute(ProviderHelper.getAuthBase(this));
 
     if (savedInstanceState==null) {
-      Intent intent = getIntent();
-      Uri uri = intent.getData();
-      long handle = 0;
-      @IdRes int navTarget = R.id.nav_home;
+      final Intent intent    = getIntent();
+      final Uri    uri       = intent.getData();
+      long         handle    = 0;
+      @IdRes int   navTarget = R.id.nav_home;
       if (uri!=null) {
         final String path = uri.getPath();
         if (path.startsWith(SERVERPATH_MODELS)) {
@@ -167,14 +167,14 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
         }
       }
       if (handle!=0) {
-        AsyncTask<Long, Void, Long> bgNavigation = new AsyncTask<Long, Void, Long>() {
+        final AsyncTask<Long, Void, Long> bgNavigation = new AsyncTask<Long, Void, Long>() {
           public int mNavTarget;
 
           @Override
           protected Long doInBackground(final Long... params) {
             mNavTarget = params[0].intValue();
-            long handle = params[1].longValue();
-            long id;
+            final long handle = params[1].longValue();
+            final long id;
             switch (mNavTarget) {
               case R.id.nav_models:
                 id = ProcessModelProvider.getIdForHandle(OverviewActivity.this, handle);

@@ -37,7 +37,7 @@ public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> ext
     }
   }
 
-  public void onClickView(VH viewHolder) {};
+  public void onClickView(final VH viewHolder) {};
 
   @Override
   public OnItemClickListener getOnItemClickListener() {

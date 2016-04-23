@@ -44,30 +44,30 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     private RectF mBounds = new RectF();
     private DrawableProcessModel mDiagram;
 
-    public ConnectorView(BaseProcessAdapter parent) {
+    public ConnectorView(final BaseProcessAdapter parent) {
       parent.getBounds(mBounds);
       mDiagram = parent.getDiagram();
     }
 
     @Override
-    public void getBounds(RectF dest) {
+    public void getBounds(final RectF dest) {
       dest.set(mBounds);
     }
 
     @Override
-    public void move(float x, float y) { /* ignore */ }
+    public void move(final float x, final float y) { /* ignore */ }
 
     @Override
-    public void setPos(float x, float y) { /* ignore */ }
+    public void setPos(final float x, final float y) { /* ignore */ }
 
     @Override
-    public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+    public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
       if (mPen ==null) { mPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
       if (mDiagram==null) { return; }
-      for(DrawableProcessNode start:mDiagram.getModelNodes()) {
+      for(final DrawableProcessNode start:mDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
-          for (Identifiable endId: start.getSuccessors()) {
-            DrawableProcessNode end = start.getOwnerModel().getNode(endId);
+          for (final Identifiable endId: start.getSuccessors()) {
+            final DrawableProcessNode end = start.getOwnerModel().getNode(endId);
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
               final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/ - mBounds.left) * scale);
               final float y1 = (float) ((start.getY()-mBounds.top)*scale);
@@ -90,7 +90,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   private boolean mInvalid = true;
   private AndroidTheme mTheme;
 
-  public BaseProcessAdapter(DrawableProcessModel diagram) {
+  public BaseProcessAdapter(final DrawableProcessModel diagram) {
     mDiagram = diagram;
   }
 
@@ -106,12 +106,12 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   }
 
   @Override
-  public DrawableProcessNode getItem(int pos) {
+  public DrawableProcessNode getItem(final int pos) {
     return mDiagram.getNode(pos);
   }
 
   @Override
-  public LWDrawableView getView(int position) {
+  public LWDrawableView getView(final int position) {
     final DrawableProcessNode item = getItem(position);
     LWDrawableView result = mViewCache.get(item);
     if (result!=null) {
@@ -123,7 +123,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   }
 
   @Override
-  public List<? extends RelativeLightView> getRelativeDecorations(int position, double scale, boolean selected) {
+  public List<? extends RelativeLightView> getRelativeDecorations(final int position, final double scale, final boolean selected) {
     return Collections.emptyList();
   }
 
@@ -139,7 +139,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   }
 
   @Override
-  public void getBounds(RectF diagramBounds) {
+  public void getBounds(final RectF diagramBounds) {
     if (mInvalid) {
       final int len = getCount();
       if (len==0) {
@@ -170,33 +170,33 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   }
 
   @Override
-  public void onDecorationClick(DiagramView view, int position, LightView decoration) {
+  public void onDecorationClick(final DiagramView view, final int position, final LightView decoration) {
     // ignore
   }
 
   @Override
-  public void onDecorationMove(DiagramView view, int position, RelativeLightView decoration, float x, float y) {
+  public void onDecorationMove(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
     //ignore
   }
 
   @Override
-  public void onDecorationUp(DiagramView view, int position, RelativeLightView decoration, float x, float y) {
+  public void onDecorationUp(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
     //ignore
   }
 
   @Override
-  public boolean onNodeClickOverride(DiagramView diagramView, int touchedElement, MotionEvent e) {
+  public boolean onNodeClickOverride(final DiagramView diagramView, final int touchedElement, final MotionEvent e) {
     //ignore
     return false;
   }
 
   @Override
-  public double getGravityX(int pos) {
+  public double getGravityX(final int pos) {
     return getItem(pos).getX();
   }
 
   @Override
-  public double getGravityY(int pos) {
+  public double getGravityY(final int pos) {
     return getItem(pos).getY();
   }
 

@@ -59,12 +59,12 @@ public class AutoCompletePreference extends DialogPreference {
   private String mText;
 
   @TargetApi(VERSION_CODES.LOLLIPOP)
-  public AutoCompletePreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+  public AutoCompletePreference(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
 
     int suggestionsId;
     {
-      TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AutoCompletePreference, defStyleAttr, defStyleRes);
+      final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AutoCompletePreference, defStyleAttr, defStyleRes);
       try {
         suggestionsId = a.getResourceId(R.styleable.AutoCompletePreference_candidates, 0);
       } finally {
@@ -88,21 +88,21 @@ public class AutoCompletePreference extends DialogPreference {
     mEditText.setEnabled(true);
 
     if (suggestionsId!=0) {
-      String[] candidates = context.getResources().getStringArray(suggestionsId);
+      final String[] candidates = context.getResources().getStringArray(suggestionsId);
       mEditText.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, candidates));
     }
 
   }
 
-  public AutoCompletePreference(Context context, AttributeSet attrs, int defStyleAttr) {
+  public AutoCompletePreference(final Context context, final AttributeSet attrs, final int defStyleAttr) {
     this(context, attrs, defStyleAttr, 0);
   }
 
-  public AutoCompletePreference(Context context, AttributeSet attrs) {
+  public AutoCompletePreference(final Context context, final AttributeSet attrs) {
     this(context, attrs, android.R.attr.editTextPreferenceStyle, 0);
   }
 
-  public AutoCompletePreference(Context context) {
+  public AutoCompletePreference(final Context context) {
     this(context, null, android.R.attr.editTextPreferenceStyle, 0);
   }
 
@@ -111,7 +111,7 @@ public class AutoCompletePreference extends DialogPreference {
    *
    * @param text The text to save
    */
-  public void setText(String text) {
+  public void setText(final String text) {
     final boolean wasBlocking = shouldDisableDependents();
 
     mText = text;
@@ -134,13 +134,13 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected void onBindDialogView(View view) {
+  protected void onBindDialogView(final View view) {
     super.onBindDialogView(view);
 
-    EditText editText = mEditText;
+    final EditText editText = mEditText;
     editText.setText(getText());
 
-    ViewParent oldParent = editText.getParent();
+    final ViewParent oldParent = editText.getParent();
     if (oldParent != view) {
       if (oldParent != null) {
         ((ViewGroup) oldParent).removeView(editText);
@@ -156,8 +156,8 @@ public class AutoCompletePreference extends DialogPreference {
    *
    * @param dialogView The dialog view.
    */
-  protected void onAddEditTextToDialogView(View dialogView, EditText editText) {
-    ViewGroup container = (ViewGroup) dialogView
+  protected void onAddEditTextToDialogView(final View dialogView, final EditText editText) {
+    final ViewGroup container = (ViewGroup) dialogView
             .findViewById(R.id.edit_container);
     if (container != null) {
       container.addView(editText, ViewGroup.LayoutParams.MATCH_PARENT,
@@ -166,11 +166,11 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected void onDialogClosed(boolean positiveResult) {
+  protected void onDialogClosed(final boolean positiveResult) {
     super.onDialogClosed(positiveResult);
 
     if (positiveResult) {
-      String value = mEditText.getText().toString();
+      final String value = mEditText.getText().toString();
       if (callChangeListener(value)) {
         setText(value);
       }
@@ -178,12 +178,12 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected Object onGetDefaultValue(TypedArray a, int index) {
+  protected Object onGetDefaultValue(final TypedArray a, final int index) {
     return a.getString(index);
   }
 
   @Override
-  protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
+  protected void onSetInitialValue(final boolean restoreValue, final Object defaultValue) {
     setText(restoreValue ? getPersistedString(mText) : (String) defaultValue);
   }
 
@@ -220,14 +220,14 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected void onRestoreInstanceState(Parcelable state) {
+  protected void onRestoreInstanceState(final Parcelable state) {
     if (state == null || !state.getClass().equals(SavedState.class)) {
       // Didn't save state for us in onSaveInstanceState
       super.onRestoreInstanceState(state);
       return;
     }
 
-    SavedState myState = (SavedState) state;
+    final SavedState myState = (SavedState) state;
     super.onRestoreInstanceState(myState.getSuperState());
     setText(myState.text);
   }
@@ -235,28 +235,28 @@ public class AutoCompletePreference extends DialogPreference {
   private static class SavedState extends BaseSavedState {
     String text;
 
-    public SavedState(Parcel source) {
+    public SavedState(final Parcel source) {
       super(source);
       text = source.readString();
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
+    public void writeToParcel(final Parcel dest, final int flags) {
       super.writeToParcel(dest, flags);
       dest.writeString(text);
     }
 
-    public SavedState(Parcelable superState) {
+    public SavedState(final Parcelable superState) {
       super(superState);
     }
 
     public static final Parcelable.Creator<SavedState> CREATOR =
             new Parcelable.Creator<SavedState>() {
-              public SavedState createFromParcel(Parcel in) {
+              public SavedState createFromParcel(final Parcel in) {
                 return new SavedState(in);
               }
 
-              public SavedState[] newArray(int size) {
+              public SavedState[] newArray(final int size) {
                 return new SavedState[size];
               }
             };

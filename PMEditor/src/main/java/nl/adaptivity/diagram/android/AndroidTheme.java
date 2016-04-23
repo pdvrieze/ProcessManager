@@ -35,16 +35,16 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
   private final AndroidStrategy mStrategy;
   private SparseArray<SparseArray<AndroidPen>> mPens;
 
-  public AndroidTheme(AndroidStrategy strategy){
+  public AndroidTheme(final AndroidStrategy strategy){
     mStrategy = strategy;
     mPens = new SparseArray<>();
   }
 
   @Override
-  public AndroidPen getPen(ThemeItem item, int state) {
-    int itemState = item.getEffectiveState(state);
-    int themeState = overrideState(item, state, itemState);
-    SparseArray<AndroidPen> statePens = mPens.get(item.getItemNo());
+  public AndroidPen getPen(final ThemeItem item, final int state) {
+    final int               itemState  = item.getEffectiveState(state);
+    final int               themeState = overrideState(item, state, itemState);
+    SparseArray<AndroidPen> statePens  = mPens.get(item.getItemNo());
     if (statePens==null) {
       statePens = new SparseArray<>();
       mPens.append(item.getItemNo(), statePens);
@@ -67,7 +67,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
    * @param itemState The effective state of the item from the item's perspective
    * @return
    */
-  private static int overrideState(ThemeItem item, int state, int itemState) {
+  private static int overrideState(final ThemeItem item, final int state, final int itemState) {
     if (item instanceof ProcessThemeItems) {
       switch ((ProcessThemeItems) item) {
         case BACKGROUND:
@@ -90,7 +90,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
    * @param state The state of the item.
    * @return The overridden pen. Optimally this is actually the same pen passed in.
    */
-  private static AndroidPen overrideTheme(AndroidPen pen, ThemeItem item, int state) {
+  private static AndroidPen overrideTheme(final AndroidPen pen, final ThemeItem item, final int state) {
     if (item instanceof ProcessThemeItems) {
       switch ((ProcessThemeItems) item) {
         case BACKGROUND:

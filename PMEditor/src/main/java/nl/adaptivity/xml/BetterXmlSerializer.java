@@ -47,7 +47,7 @@ public class BetterXmlSerializer implements XmlSerializer{
   private String encoding;
   private boolean escapeAggressive = false;
 
-  private void check(boolean close) throws IOException {
+  private void check(final boolean close) throws IOException {
     if (!pending)
       return;
 
@@ -55,14 +55,14 @@ public class BetterXmlSerializer implements XmlSerializer{
     pending = false;
 
     if (indent.length <= depth) {
-      boolean[] hlp = new boolean[depth + 4];
+      final boolean[] hlp = new boolean[depth + 4];
       System.arraycopy(indent, 0, hlp, 0, depth);
       indent = hlp;
     }
     indent[depth] = indent[depth - 1];
 
     if (nspCounts.length <= depth + 1) {
-      int[] hlp = new int[depth + 8];
+      final int[] hlp = new int[depth + 8];
       System.arraycopy(nspCounts, 0, hlp, 0, depth + 1);
       nspCounts = hlp;
     }
@@ -73,11 +73,11 @@ public class BetterXmlSerializer implements XmlSerializer{
     writer.write(close ? " />" : ">");
   }
 
-  private void writeEscaped(String s, int quot)
+  private void writeEscaped(final String s, final int quot)
           throws IOException {
 
     for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
       switch (c) {
         case '&' :
         writer.write("&amp;");
@@ -123,7 +123,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     			writer.write(' ');
     	}*/
 
-  public void docdecl(String dd) throws IOException {
+  public void docdecl(final String dd) throws IOException {
     writer.write("<!DOCTYPE");
     writer.write(dd);
     writer.write(">");
@@ -138,14 +138,14 @@ public class BetterXmlSerializer implements XmlSerializer{
     flush();
   }
 
-  public void entityRef(String name) throws IOException {
+  public void entityRef(final String name) throws IOException {
     check(false);
     writer.write('&');
     writer.write(name);
     writer.write(';');
   }
 
-  public boolean getFeature(String name) {
+  public boolean getFeature(final String name) {
     //return false;
     return (
             "http://xmlpull.org/v1/doc/features.html#indent-output"
@@ -155,7 +155,7 @@ public class BetterXmlSerializer implements XmlSerializer{
             : false;
   }
 
-  public String getPrefix(String namespace, boolean create) {
+  public String getPrefix(final String namespace, final boolean create) {
     try {
       return getPrefix(namespace, false, create);
     }
@@ -164,7 +164,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     }
   }
 
-  private String getPrefix(String namespace, boolean includeDefault, boolean create)
+  private String getPrefix(final String namespace, final boolean includeDefault, final boolean create)
           throws IOException {
 
     for (int i = nspCounts[depth + 1] * 2 - 2;
@@ -209,23 +209,23 @@ public class BetterXmlSerializer implements XmlSerializer{
       while (prefix == null);
     }
 
-    boolean p = pending;
+    final boolean p = pending;
     pending = false;
     setPrefix(prefix, namespace);
     pending = p;
     return prefix;
   }
 
-  public Object getProperty(String name) {
+  public Object getProperty(final String name) {
     throw new RuntimeException("Unsupported property");
   }
 
-  public void ignorableWhitespace(String s)
+  public void ignorableWhitespace(final String s)
           throws IOException {
     text(s);
   }
 
-  public void setFeature(String name, boolean value) {
+  public void setFeature(final String name, final boolean value) {
     if ("http://xmlpull.org/v1/doc/features.html#indent-output"
             .equals(name)) {
       indent[depth] = value;
@@ -234,7 +234,7 @@ public class BetterXmlSerializer implements XmlSerializer{
       throw new RuntimeException("Unsupported Feature");
   }
 
-  public void setProperty(String name, Object value) {
+  public void setProperty(final String name, final Object value) {
     throw new RuntimeException(
             "Unsupported Property:" + value);
   }
@@ -268,23 +268,23 @@ public class BetterXmlSerializer implements XmlSerializer{
   }
 
   private void addSpaceToNspStack() {
-    int nspCount = nspCounts[pending ? depth + 1 : depth];
-    int pos = nspCount << 1;
+    final int nspCount = nspCounts[pending ? depth + 1 : depth];
+    final int pos      = nspCount << 1;
     if (nspStack.length < pos + 2) {
       {
-        String[] hlp = new String[nspStack.length + 16];
+        final String[] hlp = new String[nspStack.length + 16];
         System.arraycopy(nspStack, 0, hlp, 0, pos);
         nspStack = hlp;
       }
       {
-        boolean[] help = new boolean[nspWritten.length + 8];
+        final boolean[] help = new boolean[nspWritten.length + 8];
         System.arraycopy(nspWritten, 0, help, 0, nspCount);
         nspWritten = help;
       }
     }
   }
 
-  public void setOutput(Writer writer) {
+  public void setOutput(final Writer writer) {
     this.writer = writer;
 
     // elementStack = new String[12]; //nsp/prefix/name
@@ -307,7 +307,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     unicode = false;
   }
 
-  public void setOutput(OutputStream os, String encoding)
+  public void setOutput(final OutputStream os, final String encoding)
           throws IOException {
     if (os == null)
       throw new IllegalArgumentException();
@@ -322,8 +322,8 @@ public class BetterXmlSerializer implements XmlSerializer{
   }
 
   public void startDocument(
-          String encoding,
-          Boolean standalone)
+                                   final String encoding,
+                                   final Boolean standalone)
           throws IOException {
     writer.write("<?xml version='1.0' ");
 
@@ -348,7 +348,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     writer.write("?>");
   }
 
-  public BetterXmlSerializer startTag(String namespace, String name)
+  public BetterXmlSerializer startTag(final String namespace, final String name)
           throws IOException {
     check(false);
 
@@ -364,12 +364,12 @@ public class BetterXmlSerializer implements XmlSerializer{
     int esp = depth * 3;
 
     if (elementStack.length < esp + 3) {
-      String[] hlp = new String[elementStack.length + 12];
+      final String[] hlp = new String[elementStack.length + 12];
       System.arraycopy(elementStack, 0, hlp, 0, esp);
       elementStack = hlp;
     }
 
-    String prefix =
+    final String prefix =
             namespace == null
                     ? ""
                     : getPrefix(namespace, true, true);
@@ -402,9 +402,9 @@ public class BetterXmlSerializer implements XmlSerializer{
   }
 
   public BetterXmlSerializer attribute(
-          String namespace,
-          String name,
-          String value)
+                                              String namespace,
+                                              final String name,
+                                              final String value)
           throws IOException {
     if (!pending)
       throw new IllegalStateException("illegal position for attribute");
@@ -422,7 +422,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     //		depth--;
     //		pending = false;
 
-    String prefix =
+    final String prefix =
             "".equals(namespace)
                     ? ""
                     : getPrefix(namespace, false, true);
@@ -450,7 +450,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     }
     writer.write(name);
     writer.write('=');
-    char q = value.indexOf('"') == -1 ? '"' : '\'';
+    final char q = value.indexOf('"') == -1 ? '"' : '\'';
     writer.write(q);
     writeEscaped(value, q);
     writer.write(q);
@@ -459,8 +459,8 @@ public class BetterXmlSerializer implements XmlSerializer{
   }
 
   public BetterXmlSerializer namespace(
-          String prefix,
-          String namespace)
+                                              final String prefix,
+                                              String namespace)
           throws IOException {
     if (!pending)
       throw new IllegalStateException("illegal position for attribute");
@@ -484,7 +484,7 @@ public class BetterXmlSerializer implements XmlSerializer{
 
     if (! wasSet) { // Don't use setPrefix as we know it isn't there
       addSpaceToNspStack();
-      int pos = (nspCounts[depth+1]++)<<1;
+      final int pos = (nspCounts[depth + 1]++) << 1;
       nspStack[pos] = prefix;
       nspStack[pos+1] = namespace;
       nspWritten[pos>>1] = true;
@@ -500,7 +500,7 @@ public class BetterXmlSerializer implements XmlSerializer{
       writer.write(prefix);
     }
     writer.write('=');
-    char q = namespace.indexOf('"') == -1 ? '"' : '\'';
+    final char q = namespace.indexOf('"') == -1 ? '"' : '\'';
     writer.write(q);
     writeEscaped(namespace, q);
     writer.write(q);
@@ -518,7 +518,7 @@ public class BetterXmlSerializer implements XmlSerializer{
       writer.close();
     }
   */
-  public BetterXmlSerializer endTag(String namespace, String name)
+  public BetterXmlSerializer endTag(final String namespace, final String name)
           throws IOException {
 
     if (!pending)
@@ -545,7 +545,7 @@ public class BetterXmlSerializer implements XmlSerializer{
       }
 
       writer.write("</");
-      String prefix = elementStack[depth * 3 + 1];
+      final String prefix = elementStack[depth * 3 + 1];
       if (!"".equals(prefix)) {
         writer.write(prefix);
         writer.write(':');
@@ -570,34 +570,34 @@ public class BetterXmlSerializer implements XmlSerializer{
     return pending ? depth + 1 : depth;
   }
 
-  public BetterXmlSerializer text(String text) throws IOException {
+  public BetterXmlSerializer text(final String text) throws IOException {
     check(false);
     indent[depth] = false;
     writeEscaped(text, -1);
     return this;
   }
 
-  public BetterXmlSerializer text(char[] text, int start, int len)
+  public BetterXmlSerializer text(final char[] text, final int start, final int len)
           throws IOException {
     text(new String(text, start, len));
     return this;
   }
 
-  public void cdsect(String data) throws IOException {
+  public void cdsect(final String data) throws IOException {
     check(false);
     writer.write("<![CDATA[");
     writer.write(data);
     writer.write("]]>");
   }
 
-  public void comment(String comment) throws IOException {
+  public void comment(final String comment) throws IOException {
     check(false);
     writer.write("<!--");
     writer.write(comment);
     writer.write("-->");
   }
 
-  public void processingInstruction(String pi)
+  public void processingInstruction(final String pi)
           throws IOException {
     check(false);
     writer.write("<?");

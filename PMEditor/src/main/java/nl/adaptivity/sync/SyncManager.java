@@ -60,9 +60,9 @@ public class SyncManager {
 
   private void onInnerSyncStatusChanged(final int which) {
     if (mAccount!=null) {
-      for (String authority: AUTHORITIES) {
+      for (final String authority: AUTHORITIES) {
         if (ContentResolver.isSyncActive(mAccount, authority) || ContentResolver.isSyncPending(mAccount, authority)) {
-          for (SyncStatusObserverData observerData : mSyncObservers) {
+          for (final SyncStatusObserverData observerData : mSyncObservers) {
             if (authority.equals(observerData.authority)) {
               observerData.observer.onStatusChanged(which);
             }
@@ -72,12 +72,12 @@ public class SyncManager {
     }
   }
 
-  public SyncManager(Account account) {
+  public SyncManager(final Account account) {
     mAccount = account;
   }
 
   public SyncStatusObserverData addOnStatusChangeObserver(final String authority, @NonNull final SyncStatusObserver syncObserver) {
-    SyncStatusObserverData data;
+    final SyncStatusObserverData data;
     if (mSyncObserverHandle ==null && isSyncable(authority)) {
       mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
     }
@@ -86,21 +86,21 @@ public class SyncManager {
     return data;
   }
 
-  public void removeOnStatusChangeObserver(SyncStatusObserverData handle) {
+  public void removeOnStatusChangeObserver(final SyncStatusObserverData handle) {
     if (mSyncObserverHandle!=null && mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
       ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
       mSyncObserverHandle = null;
     }
   }
 
-  public boolean isSyncable(String authority) {
+  public boolean isSyncable(final String authority) {
     if (mAccount==null||(DISABLEONDEBUG && BuildConfig.DEBUG && Debug.isDebuggerConnected())) { return false; }
     return ContentResolver.getIsSyncable(mAccount, authority) > 0;
   }
 
   public List<String> getActiveSyncTargets() {
-    List<String> result = new ArrayList<>(2);
-    for (String authority: AUTHORITIES) {
+    final List<String> result = new ArrayList<>(2);
+    for (final String authority: AUTHORITIES) {
       if (isSyncable(authority)) {
         result.add(authority);
       }

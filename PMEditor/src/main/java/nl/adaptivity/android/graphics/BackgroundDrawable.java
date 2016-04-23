@@ -38,32 +38,32 @@ public class BackgroundDrawable extends Drawable {
   private final Drawable mForeground;
   private final Rect mTmpRect = new Rect();
 
-  public BackgroundDrawable(Context context, int backgroundRes, int foregroundRes) {
-    Resources resources = context.getResources();
-    Theme theme = context.getTheme();
+  public BackgroundDrawable(final Context context, final int backgroundRes, final int foregroundRes) {
+    final Resources resources = context.getResources();
+    final Theme     theme     = context.getTheme();
     mBackground = ResourcesCompat.getDrawable(resources, backgroundRes, theme);
     mForeground = ResourcesCompat.getDrawable(resources, foregroundRes, theme);
   }
 
-  public BackgroundDrawable(Drawable background, Drawable foreground) {
+  public BackgroundDrawable(final Drawable background, final Drawable foreground) {
     mBackground = background;
     mForeground = foreground;
   }
 
   @Override
-  public void draw(Canvas canvas) {
+  public void draw(final Canvas canvas) {
     mBackground.draw(canvas);
     mForeground.draw(canvas);
   }
 
   @Override
-  public void setAlpha(int alpha) {
+  public void setAlpha(final int alpha) {
     mBackground.setAlpha(alpha);
     mForeground.setAlpha(alpha);
   }
 
   @Override
-  public void setColorFilter(ColorFilter cf) {
+  public void setColorFilter(final ColorFilter cf) {
     mBackground.setColorFilter(cf);
     mForeground.setColorFilter(cf);
   }
@@ -79,10 +79,10 @@ public class BackgroundDrawable extends Drawable {
   }
 
   @Override
-  protected boolean onStateChange(int[] stateSet) {
+  protected boolean onStateChange(final int[] stateSet) {
     boolean result = mBackground.setState(stateSet);
     if (result) {
-      Rect bounds = getBounds();
+      final Rect bounds = getBounds();
       mBackground.getCurrent().getPadding(mTmpRect);
       mForeground.setBounds(bounds.left+mTmpRect.left, bounds.top+mTmpRect.top, bounds.right-mTmpRect.right, bounds.bottom-mTmpRect.bottom);
     }
@@ -99,7 +99,7 @@ public class BackgroundDrawable extends Drawable {
   public int getIntrinsicWidth() {
     final int fgIntrinsicWidth = mForeground.getIntrinsicWidth();
     if (fgIntrinsicWidth<0) { return -1; }
-    Rect padding = mTmpRect ;
+    final Rect padding = mTmpRect ;
     mBackground.getCurrent().getPadding(padding);
     return fgIntrinsicWidth+padding.left+padding.right;
   }
@@ -108,27 +108,27 @@ public class BackgroundDrawable extends Drawable {
   public int getIntrinsicHeight() {
     final int fgIntrinsicHeight = mForeground.getIntrinsicHeight();
     if (fgIntrinsicHeight<0) { return -1; }
-    Rect padding = mTmpRect ;
+    final Rect padding = mTmpRect ;
     mBackground.getCurrent().getPadding(padding);
     return mForeground.getIntrinsicHeight()+padding.top+padding.bottom;
   }
 
   @Override
   public int getMinimumWidth() {
-    Rect padding = mTmpRect ;
+    final Rect padding = mTmpRect ;
     mBackground.getCurrent().getPadding(padding);
     return mForeground.getMinimumWidth()+padding.left+padding.right;
   }
 
   @Override
   public int getMinimumHeight() {
-    Rect padding = mTmpRect ;
+    final Rect padding = mTmpRect ;
     mBackground.getCurrent().getPadding(padding);
     return mForeground.getMinimumHeight()+padding.top+padding.bottom;
   }
 
   @Override
-  public void setBounds(int left, int top, int right, int bottom) {
+  public void setBounds(final int left, final int top, final int right, final int bottom) {
     mBackground.setBounds(left, top, right, bottom);
     mBackground.getCurrent().getPadding(mTmpRect);
     mForeground.setBounds(left+mTmpRect.left, top+mTmpRect.top, right-mTmpRect.right, bottom-mTmpRect.bottom);
@@ -136,7 +136,7 @@ public class BackgroundDrawable extends Drawable {
   }
 
   @Override
-  public void setBounds(Rect bounds) {
+  public void setBounds(final Rect bounds) {
     // This is what the parent does as well.
     setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
   }

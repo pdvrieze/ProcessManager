@@ -108,9 +108,9 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     try {
       final int resultCode = result.getResponseCode();
       if (resultCode >= 200 && resultCode < 400) {
-        final InputStream inputStream = result.getInputStream();
-        final String contentEncoding = result.getContentEncoding();
-        XmlReader parser = XmlStreaming.newReader(inputStream, contentEncoding);
+        final InputStream inputStream     = result.getInputStream();
+        final String      contentEncoding = result.getContentEncoding();
+        final XmlReader   parser          = XmlStreaming.newReader(inputStream, contentEncoding);
         try {
           parser.nextTag(); // Make sure to forward the task.
           return parseItem(parser); // Always an update

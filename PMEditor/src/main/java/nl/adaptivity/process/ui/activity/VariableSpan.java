@@ -113,7 +113,7 @@ public class VariableSpan extends ReplacementSpan {
    * @return The spanned.
    */
   public static Spanned newVarSpanned(final Context context, final XmlDefineType define, final VariableReference variableReference, @DrawableRes final int borderDrawableId) {
-    CharSequence label;
+    final CharSequence label;
     if (define!=null && CollectionUtil.isNullOrEmpty(define.getContent()) && (StringUtil.isNullOrEmpty(define.getPath())||StringUtil.isEqual(".", define.getPath()))) {
       label = VariableReference.newDefineReference(define).getLabel();
     } else if (StringUtil.isNullOrEmpty(variableReference.getVariableName()) && (StringUtil.isNullOrEmpty(variableReference.getXPath())|| ".".equals(variableReference.getXPath()))) {
@@ -132,7 +132,7 @@ public class VariableSpan extends ReplacementSpan {
 
   @NotNull
   static Spanned getSpanned(final Context context, final XmlReader bodyStreamReader, final XmlDefineType define, @DrawableRes final int varspanBorderId) throws XmlException {
-    SpannableStringBuilder builder = new SpannableStringBuilder();
+    final SpannableStringBuilder builder = new SpannableStringBuilder();
     while (bodyStreamReader.hasNext()) {
       switch (bodyStreamReader.next()) {
         case CDSECT:

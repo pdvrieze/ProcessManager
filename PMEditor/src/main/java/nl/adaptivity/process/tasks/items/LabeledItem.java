@@ -27,7 +27,7 @@ public abstract class LabeledItem extends TaskItem {
   private CharSequence mValue;
   private boolean mDirty = false;
 
-  public LabeledItem(CharSequence name, CharSequence label, CharSequence value) {
+  public LabeledItem(final CharSequence name, final CharSequence label, final CharSequence value) {
     super(name);
     mValue = value;
     setLabel(label);
@@ -38,7 +38,7 @@ public abstract class LabeledItem extends TaskItem {
     return mLabel;
   }
 
-  public void setLabel(CharSequence label) {
+  public void setLabel(final CharSequence label) {
     mLabel = label;
     notifyPropertyChanged(BR.label);
   }
@@ -48,14 +48,14 @@ public abstract class LabeledItem extends TaskItem {
     return true;
   }
 
-  public void setValue(CharSequence value) {
+  public void setValue(final CharSequence value) {
     boolean dirty = false;
     if (mValue==null) {
       if (value!=null) { dirty = true; }
     } else if (! mValue.equals(value)) {
       dirty = true;
     }
-    boolean oldCanComplete = isCompleteable();
+    final boolean oldCanComplete = isCompleteable();
     mValue = value;
     if (dirty) {
       notifyPropertyChanged(BR.value);
@@ -85,7 +85,7 @@ public abstract class LabeledItem extends TaskItem {
     return mDirty;
   }
 
-  public void setDirty(boolean dirty) {
+  public void setDirty(final boolean dirty) {
     if (mDirty!=dirty) {
       mDirty = dirty;
       notifyPropertyChanged(BR.dirty);
@@ -98,7 +98,7 @@ public abstract class LabeledItem extends TaskItem {
     if (o == null || getClass() != o.getClass()) { return false; }
     if (!super.equals(o)) { return false; }
 
-    LabeledItem that = (LabeledItem) o;
+    final LabeledItem that = (LabeledItem) o;
 
     if (mLabel != null ? !mLabel.equals(that.mLabel) : that.mLabel != null) { return false; }
     return mValue != null ? mValue.equals(that.mValue) : that.mValue == null;

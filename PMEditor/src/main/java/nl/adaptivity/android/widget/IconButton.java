@@ -72,7 +72,7 @@ public class IconButton extends ViewGroup {
 
     public LayoutParams(final Context c, final AttributeSet attrs) {
       super(c, attrs);
-      TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.IconButtonLP);
+      final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.IconButtonLP);
       //noinspection ResourceType
       role = a.getInt(R.styleable.IconButtonLP_role, ROLE_TITLE);
       a.recycle();
@@ -125,8 +125,8 @@ public class IconButton extends ViewGroup {
   }
 
   private void applyAttrs(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
-    TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.IconButton, defStyleAttr, defStyleRes == 0 ? R.style.Widget_IconButton : defStyleRes);
-    int dpi = context.getResources().getConfiguration().densityDpi;
+    final TypedArray a   = context.obtainStyledAttributes(attrs, R.styleable.IconButton, defStyleAttr, defStyleRes == 0 ? R.style.Widget_IconButton : defStyleRes);
+    final int        dpi = context.getResources().getConfiguration().densityDpi;
     mIconPadding = a.getDimensionPixelOffset(R.styleable.IconButton_iconPadding, DEFAULT_ICON_PADDING_DP * 160 / dpi);
     mIconWidth = a.getDimensionPixelSize(R.styleable.IconButton_iconWidth, 0);
     mIconHeight = a.getDimensionPixelSize(R.styleable.IconButton_iconHeight, 0);
@@ -141,7 +141,7 @@ public class IconButton extends ViewGroup {
     View titleView = null;
     View subtitleView = null;
     for (int i = 0; i < getChildCount(); i++) {
-      View child = getChildAt(i);
+      final View child = getChildAt(i);
       iconView = getIfMatches(child, LayoutParams.ROLE_ICON, iconView, "Setting multiple icons in an IconButton will not work");
       titleView = getIfMatches(child, LayoutParams.ROLE_TITLE, titleView, "Setting multiple titles in an IconButton will not work");
       subtitleView = getIfMatches(child, LayoutParams.ROLE_SUBTITLE, subtitleView, "Setting multiple subtitles in an IconButton will not work");
@@ -165,8 +165,8 @@ public class IconButton extends ViewGroup {
     int usedWidth = hPadding;
     int usedHeight = vPadding;
 
-    ViewGroup.LayoutParams iconLp = iconView==null ? null : iconView.getLayoutParams();
-    int iconWidth;
+    final ViewGroup.LayoutParams iconLp = iconView == null ? null : iconView.getLayoutParams();
+    final int                    iconWidth;
     if (mIconWidth > 0) {
       iconWidth = mIconWidth;
     } else if (iconView!=null) {
@@ -247,7 +247,7 @@ public class IconButton extends ViewGroup {
   }
 
   private View getIfMatches(final View candidate, final int role, final View origView, final String errorMessage) {
-    LayoutParams lp = (LayoutParams) candidate.getLayoutParams();
+    final LayoutParams lp = (LayoutParams) candidate.getLayoutParams();
     if (lp.role==role) {
       if (origView!=null) {
         throw new IllegalStateException(errorMessage);
@@ -264,7 +264,7 @@ public class IconButton extends ViewGroup {
     View titleView = null;
     View subtitleView = null;
     for (int i = 0; i < getChildCount(); i++) {
-      View child = getChildAt(i);
+      final View child = getChildAt(i);
       iconView = getIfMatches(child, LayoutParams.ROLE_ICON, iconView, "Setting multiple icons in an IconButton will not work");
       titleView = getIfMatches(child, LayoutParams.ROLE_TITLE, titleView, "Setting multiple titles in an IconButton will not work");
       subtitleView = getIfMatches(child, LayoutParams.ROLE_SUBTITLE, subtitleView, "Setting multiple subtitles in an IconButton will not work");
@@ -272,10 +272,10 @@ public class IconButton extends ViewGroup {
     final boolean ltr =(ViewCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_LTR);
     int layoutOffsetX = ltr ? ViewCompat.getPaddingStart(this) : (r-l) - ViewCompat.getPaddingStart(this);
     if (iconView!=null) {
-      int cl = ltr ? (layoutOffsetX) : layoutOffsetX-iconView.getMeasuredWidth();
-      int cr = cl + iconView.getMeasuredWidth();
-      int ct = ((b-t) - iconView.getMeasuredHeight())/2;
-      int cb = ct + iconView.getMeasuredHeight();
+      final int cl = ltr ? (layoutOffsetX) : layoutOffsetX - iconView.getMeasuredWidth();
+      final int cr = cl + iconView.getMeasuredWidth();
+      final int ct = ((b - t) - iconView.getMeasuredHeight()) / 2;
+      final int cb = ct + iconView.getMeasuredHeight();
       iconView.layout(cl, ct, cr, cb);
       if (ltr) {
         layoutOffsetX += iconView.getMeasuredWidth() + mIconPadding;
@@ -284,10 +284,10 @@ public class IconButton extends ViewGroup {
       }
     } else {
       if (mIconDrawable!=null) {
-        int cl = ltr ? (layoutOffsetX) : layoutOffsetX-mIconWidth;
-        int cr = cl + mIconWidth;
-        int ct = ((b-t) - mIconHeight)/2;
-        int cb = ct + mIconHeight;
+        final int cl = ltr ? (layoutOffsetX) : layoutOffsetX - mIconWidth;
+        final int cr = cl + mIconWidth;
+        final int ct = ((b - t) - mIconHeight) / 2;
+        final int cb = ct + mIconHeight;
         mIconDrawable.setBounds(cl, ct, cr, cb);
       }
       if (ltr) {
@@ -417,7 +417,7 @@ public class IconButton extends ViewGroup {
   }
 
   @Override
-  public void onDraw(Canvas c) {
+  public void onDraw(final Canvas c) {
     super.onDraw(c);
     if (mIconDrawable!=null) {
       mIconDrawable.draw(c);
@@ -427,7 +427,7 @@ public class IconButton extends ViewGroup {
   @Override
   protected boolean checkLayoutParams(final ViewGroup.LayoutParams p) {
     if (! (p instanceof LayoutParams)) { return false; }
-    LayoutParams lp = (LayoutParams) p;
+    final LayoutParams lp = (LayoutParams) p;
     return lp.role>=0 && lp.role<3 && super.checkLayoutParams(p);
   }
 

@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 public class ProcessSyncAdapter extends DelegatingRemoteXmlSyncAdapter {
 
-  public ProcessSyncAdapter(Context context) {
+  public ProcessSyncAdapter(final Context context) {
     super(context, true, false, Arrays.asList(new ProcessModelSyncAdapter(), new ProcessInstanceSyncAdapter()));
   }
 
@@ -34,7 +34,7 @@ public class ProcessSyncAdapter extends DelegatingRemoteXmlSyncAdapter {
     return SettingsActivity.getSyncSource(getContext());
   }
 
-  protected String getListUrl(String base) {
+  protected String getListUrl(final String base) {
     return base+"/processModels";
   }
 

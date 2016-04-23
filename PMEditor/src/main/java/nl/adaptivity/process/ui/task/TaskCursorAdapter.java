@@ -43,7 +43,7 @@ public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorVie
     }
   }
 
-  public TaskCursorAdapter(Context context, Cursor c) {
+  public TaskCursorAdapter(final Context context, final Cursor c) {
     super(context, c, false);
   }
 
@@ -54,8 +54,8 @@ public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorVie
     final int drawableId;
     final int contentDescId;
     if (mStateColIdx >= 0) {
-      String s = cursor.getString(mStateColIdx);
-      TaskState state = TaskState.fromString(s);
+      final String    s     = cursor.getString(mStateColIdx);
+      final TaskState state = TaskState.fromString(s);
       drawableId = state == null ? 0 : state.getDecoratorId();
       contentDescId = state==null? 0 : state.getDecoratorContentDescId();
     } else {

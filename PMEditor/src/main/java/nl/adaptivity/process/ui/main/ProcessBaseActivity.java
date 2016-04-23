@@ -154,7 +154,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
         mTmpFile = new File (savedInstanceState.getString(UIConstants.KEY_TMPFILE));
       }
       if (savedInstanceState.containsKey(UIConstants.KEY_PROCESSMODEL)) {
-        PMParcelable pm = savedInstanceState.getParcelable(UIConstants.KEY_PROCESSMODEL);
+        final PMParcelable pm = savedInstanceState.getParcelable(UIConstants.KEY_PROCESSMODEL);
         if (pm!=null) {
           mProcessModel = DrawableProcessModel.get(pm.getProcessModel());
         }

@@ -42,7 +42,7 @@ public final class BindingAdapters {
   private BindingAdapters() {}
 
   @BindingAdapter("textRes")
-  public static void setTextRes(TextView view, @StringRes int textRes) {
+  public static void setTextRes(final TextView view, @StringRes final int textRes) {
     if (textRes==0) {
       view.setText(null);
     } else {
@@ -51,7 +51,7 @@ public final class BindingAdapters {
   }
 
   @BindingAdapter("drawableRes")
-  public static void setDrawableRes(ImageView view, @DrawableRes int drawableRes) {
+  public static void setDrawableRes(final ImageView view, @DrawableRes final int drawableRes) {
     if (drawableRes==0) {
       view.setImageDrawable(null);
     } else {

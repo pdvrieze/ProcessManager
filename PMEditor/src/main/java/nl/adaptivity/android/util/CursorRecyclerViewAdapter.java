@@ -68,7 +68,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
   private DataSetObserver mDataSetObserver;
 
 // Object Initialization
-  public CursorRecyclerViewAdapter(Context context, Cursor cursor) {
+  public CursorRecyclerViewAdapter(final Context context, final Cursor cursor) {
     mContext = context;
     mCursor = cursor;
     mDataValid = cursor != null;
@@ -81,7 +81,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
 // Object Initialization end
 
   @Override
-  public final void onBindViewHolder(VH viewHolder, int position) {
+  public final void onBindViewHolder(final VH viewHolder, final int position) {
     if (!mDataValid) {
       throw new IllegalStateException("this should only be called when the cursor is valid");
     }
@@ -92,12 +92,12 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
   }
 
   @Override
-  public void setHasStableIds(boolean hasStableIds) {
+  public void setHasStableIds(final boolean hasStableIds) {
     super.setHasStableIds(true);
   }
 
   @Override
-  public long getItemId(int position) {
+  public long getItemId(final int position) {
     if (mDataValid && mCursor != null && mCursor.moveToPosition(position)) {
       return mCursor.getLong(mRowIdColumn);
     }
@@ -138,8 +138,8 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * Change the underlying cursor to a new cursor. If there is an existing cursor it will be
    * closed. This will use {@link #swapCursor(Cursor)} as delegate.
    */
-  public final void changeCursor(Cursor cursor) {
-    Cursor old = swapCursor(cursor);
+  public final void changeCursor(final Cursor cursor) {
+    final Cursor old = swapCursor(cursor);
     if (old != null) {
       old.close();
     }
@@ -150,7 +150,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * {@link #changeCursor(Cursor)}, the returned old Cursor is <em>not</em>
    * closed.
    */
-  public Cursor swapCursor(Cursor newCursor) {
+  public Cursor swapCursor(final Cursor newCursor) {
     if (newCursor == mCursor) {
       return null;
     }

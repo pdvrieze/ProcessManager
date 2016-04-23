@@ -297,7 +297,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
   }
 
   private static CharSequence readCharSequence(final Parcel source) {
-    byte b = source.readByte();
+    final byte b = source.readByte();
     if (b==2) {
       return null;
     } else if (b==0) {

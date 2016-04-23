@@ -23,19 +23,19 @@ import android.text.TextWatcher;
 
 public abstract class TextLabeledItem extends LabeledItem implements TextWatcher {
 
-  public TextLabeledItem(CharSequence name, CharSequence label, CharSequence value) {
+  public TextLabeledItem(final CharSequence name, final CharSequence label, final CharSequence value) {
     super(name, label, value);
   }
 
   @Override
-  public void beforeTextChanged(CharSequence s, int start, int count, int after) { /*do nothing*/ }
+  public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) { /*do nothing*/ }
 
   @Override
-  public void onTextChanged(CharSequence s, int start, int before, int count) {
+  public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
     setValue(s.toString());
   }
 
   @Override
-  public void afterTextChanged(Editable s) { /*do nothing*/ }
+  public void afterTextChanged(final Editable s) { /*do nothing*/ }
 
 }

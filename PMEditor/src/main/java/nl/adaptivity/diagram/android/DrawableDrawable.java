@@ -33,7 +33,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   private double mScale;
   private boolean mAutoscale;
 
-  public DrawableDrawable(nl.adaptivity.diagram.Drawable image, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final boolean autoScale) {
+  public DrawableDrawable(final nl.adaptivity.diagram.Drawable image, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final boolean autoScale) {
     mTheme = theme;
     mImage = image;
     mScale = DEFAULT_SCALE;
@@ -50,11 +50,11 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public void draw(Canvas canvas) {
+  public void draw(final Canvas canvas) {
     if (mImage!=null) {
       IAndroidCanvas androidCanvas =  new AndroidCanvas(canvas, mTheme);
       if (mAutoscale) { // if autoscaling, also adjust the position to the bounds
-        Rectangle bounds = mImage.getBounds();
+        final Rectangle bounds = mImage.getBounds();
         androidCanvas=androidCanvas.translate(-bounds.left, -bounds.top);
       }
       mImage.draw(androidCanvas.scale(mScale), null);
@@ -67,12 +67,12 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public void setAlpha(int alpha) {
+  public void setAlpha(final int alpha) {
     throw new UnsupportedOperationException("Setting alpha not supported");
   }
 
   @Override
-  public void setColorFilter(ColorFilter cf) {
+  public void setColorFilter(final ColorFilter cf) {
     throw new UnsupportedOperationException("Color filters not supported");
   }
 
@@ -82,10 +82,10 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public boolean setState(int[] stateSet) {
+  public boolean setState(final int[] stateSet) {
     if (mImage!=null) {
       int dState = nl.adaptivity.diagram.Drawable.STATE_DISABLED;
-      for(int state:stateSet) {
+      for(final int state:stateSet) {
         switch (state) {
         case android.R.attr.state_enabled:
           dState &= ~nl.adaptivity.diagram.Drawable.STATE_DISABLED;
@@ -101,7 +101,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
           break;
         }
       }
-      boolean result = mImage.getState()!=dState;
+      final boolean result = mImage.getState() != dState;
       mImage.setState(dState);
       super.setState(stateSet);
       return result;
@@ -113,7 +113,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   public void setBounds(final int left, final int top, final int right, final int bottom) {
     super.setBounds(left, top, right, bottom);
     if (mAutoscale) {
-      Rectangle imgBounds = mImage.getBounds();
+      final Rectangle imgBounds = mImage.getBounds();
       mScale= Math.min((right - left) / imgBounds.width, (bottom - top) / imgBounds.height);
     }
   }
@@ -140,7 +140,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
    * Set the scale to use for drawing. This automatically disables autoscaling.
    * @param scale The new scale.
    */
-  public void setScale(double scale) {
+  public void setScale(final double scale) {
     mScale = scale;
     mAutoscale = false;
   }

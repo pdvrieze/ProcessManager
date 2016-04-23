@@ -34,7 +34,7 @@ public class ProcessModelHolder {
     this.handle = null;
   }
 
-  public ProcessModelHolder(DrawableProcessModel model, Long handle) {
+  public ProcessModelHolder(final DrawableProcessModel model, final Long handle) {
     mLoading = false;
     this.model = model;
     this.handle = handle;

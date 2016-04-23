@@ -59,12 +59,12 @@ public class PMProcessesFragment extends Fragment {
   private ProcessesCallback mCallback;
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     if (savedInstanceState!=null) {
       final PMParcelable parcelable = savedInstanceState.<PMParcelable>getParcelable(KEY_PROCESSMODEL);
       mProcessModel = parcelable==null ? null : parcelable.getProcessModel();
-      String s = savedInstanceState.getString(KEY_FILE);
+      final String s = savedInstanceState.getString(KEY_FILE);
       mTmpFile = s==null ? null : new File(s);
       mMenu = savedInstanceState.getBoolean(ARG_MENU, true);
     } else if (getArguments()!=null){
@@ -80,9 +80,9 @@ public class PMProcessesFragment extends Fragment {
 
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
-    Fragment parent = getParentFragment();
+    final Fragment parent = getParentFragment();
     if (this instanceof PMProvider) {
       mProvider = (PMProvider) this;
     } else if (parent!=null && (parent instanceof PMProvider)) {
@@ -111,23 +111,23 @@ public class PMProcessesFragment extends Fragment {
 
 
 
-  public void doShareFile(ClientProcessModel<?, ?> processModel) {
+  public void doShareFile(final ClientProcessModel<?, ?> processModel) {
     mCallback.requestShareFile(processModel);
   }
 
-  public void doSaveFile(ClientProcessModel<?, ?> processModel) {
+  public void doSaveFile(final ClientProcessModel<?, ?> processModel) {
     mCallback.requestSaveFile(processModel);
   }
 
-  public void doShareSVG(ClientProcessModel<?, ?> processModel) {
+  public void doShareSVG(final ClientProcessModel<?, ?> processModel) {
     mCallback.requestShareSVG(processModel);
   }
 
-  public void doExportSVG(ClientProcessModel<?, ?> processModel) {
+  public void doExportSVG(final ClientProcessModel<?, ?> processModel) {
     mCallback.requestExportSVG(processModel);
   }
 
-  public void setPMProvider(PMProvider pmProvider) {
+  public void setPMProvider(final PMProvider pmProvider) {
     mProvider = pmProvider;
     if (mMenu) {
       setHasOptionsMenu(mProvider!=null);
@@ -135,12 +135,12 @@ public class PMProcessesFragment extends Fragment {
   }
 
   @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
     inflater.inflate(R.menu.pm_menu, menu);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(final MenuItem item) {
     ClientProcessModel<?, ?> pm = null;
     if ((item.getItemId()==R.id.ac_export||item.getItemId()==R.id.ac_export_svg||item.getItemId()==R.id.ac_share_pm||item.getItemId()==R.id.ac_share_pm_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
@@ -166,7 +166,7 @@ public class PMProcessesFragment extends Fragment {
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(final Bundle outState) {
     if (mProcessModel!=null) outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mProcessModel));
     if (mTmpFile!=null)  outState.putString(KEY_FILE, mTmpFile.toString());
   }

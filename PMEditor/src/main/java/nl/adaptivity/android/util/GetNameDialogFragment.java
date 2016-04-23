@@ -42,7 +42,7 @@ public class GetNameDialogFragment extends DialogFragment {
   private class MyClickListener implements OnClickListener, OnEditorActionListener {
 
     @Override
-    public void onClick(DialogInterface dialog, int which) {
+    public void onClick(final DialogInterface dialog, final int which) {
       if (which==DialogInterface.BUTTON_POSITIVE) {
         mOwner.onNameDialogCompletePositive(GetNameDialogFragment.this, mId, mEditText.getText().toString());
       } else {
@@ -88,29 +88,29 @@ public class GetNameDialogFragment extends DialogFragment {
 
   private EditText mEditText;
 
-  private void setId(int id) {
+  private void setId(final int id) {
     mId = id;
   }
 
   public GetNameDialogFragment() { /* empty */}
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
     if (mOwner==null && activity instanceof GetNameDialogFragmentCallbacks) {
       mOwner = (GetNameDialogFragmentCallbacks) activity;
     }
   }
 
-  public void setCallbacks(GetNameDialogFragmentCallbacks callbacks) {
+  public void setCallbacks(final GetNameDialogFragmentCallbacks callbacks) {
     mOwner = callbacks;
   }
 
   @Override
-  public Dialog onCreateDialog(Bundle savedInstanceState) {
+  public Dialog onCreateDialog(final Bundle savedInstanceState) {
     CharSequence prevName;
-    String title;
-    String message;
+    final String title;
+    final String message;
     if (getArguments()==null) {
       prevName = null;
       title = DEFAULT_TITLE;
@@ -124,15 +124,15 @@ public class GetNameDialogFragment extends DialogFragment {
       prevName = savedInstanceState.getCharSequence(KEY_EDIT);
     }
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-    LayoutInflater inflater = LayoutInflater.from(builder.getContext());
-    @SuppressLint("InflateParams") View parent = inflater.inflate(R.layout.dialog_content_edit_name, null, false);
+    final AlertDialog.Builder                 builder  = new AlertDialog.Builder(getActivity());
+    final LayoutInflater                      inflater = LayoutInflater.from(builder.getContext());
+    @SuppressLint("InflateParams") final View parent   = inflater.inflate(R.layout.dialog_content_edit_name, null, false);
     mEditText = (EditText) parent.findViewById(R.id.edit);
 //    mEditText = new EditText(getActivity());
     mEditText.setInputType(InputType.TYPE_CLASS_TEXT);
     mEditText.setText(prevName);
     mEditText.selectAll();
-    MyClickListener listener = new MyClickListener();
+    final MyClickListener listener = new MyClickListener();
 
     mEditText.setOnEditorActionListener(listener);
     builder.setTitle(title)
@@ -145,19 +145,19 @@ public class GetNameDialogFragment extends DialogFragment {
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(final Bundle outState) {
     outState.putCharSequence(KEY_EDIT, mEditText.getText());
   }
 
-  public static GetNameDialogFragment show(FragmentManager fragmentManager, int id, String title, String message, GetNameDialogFragmentCallbacks callbacks) {
+  public static GetNameDialogFragment show(final FragmentManager fragmentManager, final int id, final String title, final String message, final GetNameDialogFragmentCallbacks callbacks) {
     return show(fragmentManager, id, title, message, callbacks, null);
   }
 
-  public static GetNameDialogFragment show(FragmentManager fragmentManager, int id, String title, String message, GetNameDialogFragmentCallbacks callbacks, String previous) {
-    GetNameDialogFragment f = new GetNameDialogFragment();
+  public static GetNameDialogFragment show(final FragmentManager fragmentManager, final int id, final String title, final String message, final GetNameDialogFragmentCallbacks callbacks, final String previous) {
+    final GetNameDialogFragment f = new GetNameDialogFragment();
     f.setCallbacks(callbacks);
     f.setId(id);
-    Bundle args = new Bundle(3);
+    final Bundle args = new Bundle(3);
     if (title!=null) { args.putString(ARG_TITLE, title); }
     if (message!=null) { args.putString(ARG_MESSAGE, message); }
     if (previous!=null) { args.putString(ARG_PREV_NAME, previous); }

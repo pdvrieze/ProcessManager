@@ -28,7 +28,7 @@ import android.provider.BaseColumns;
 public final class ProcessModelUtil {
   private ProcessModelUtil() {}
 
-  public static String suggestNewName(final Context context, CharSequence previousName) {
+  public static String suggestNewName(final Context context, final CharSequence previousName) {
 
 
     return Util.suggestNewName(previousName, new NameChecker() {
@@ -36,8 +36,8 @@ public final class ProcessModelUtil {
       ContentResolver resolver = context.getContentResolver();
 
       @Override
-      public boolean isAvailable(String string) {
-        Cursor result = resolver.query(ProcessModels.CONTENT_ID_URI_BASE, new String[] { BaseColumns._ID }, "name = ?", new String[] { string} , null);
+      public boolean isAvailable(final String string) {
+        final Cursor result = resolver.query(ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID }, "name = ?", new String[] {string} , null);
         try {
           if (result.moveToFirst()) {
             return false;

@@ -782,7 +782,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     return mPm;
   }
 
-  private void setPm(DrawableProcessModel pm) {
+  private void setPm(final DrawableProcessModel pm) {
     mPm = pm;
   }
 

@@ -49,8 +49,8 @@ public class JoinSplitNodeEditDialogFragment extends DialogFragment implements O
   private DlgNodeEditJoinBinding mBinding;
 
   public static JoinSplitNodeEditDialogFragment newInstance(final int position) {
-    JoinSplitNodeEditDialogFragment frag = new JoinSplitNodeEditDialogFragment();
-    Bundle args = new Bundle(1);
+    final JoinSplitNodeEditDialogFragment frag = new JoinSplitNodeEditDialogFragment();
+    final Bundle                          args = new Bundle(1);
     args.putInt(NODE_POS, position);
     frag.setArguments(args);
     return frag;

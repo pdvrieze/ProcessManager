@@ -116,13 +116,13 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   public XmlMessage asMessage() {
-    QName service  = UserTaskServiceDescriptor.SERVICENAME;
-    String endpoint = UserTaskServiceDescriptor.ENDPOINT;
-    String operation = PostTask.ELEMENTLOCALNAME;
-    StringWriter bodyWriter = new StringWriter();
+    final QName        service    = UserTaskServiceDescriptor.SERVICENAME;
+    final String       endpoint   = UserTaskServiceDescriptor.ENDPOINT;
+    final String       operation  = PostTask.ELEMENTLOCALNAME;
+    final StringWriter bodyWriter = new StringWriter();
     try {
-      XmlWriter writer = XmlStreaming.newWriter(bodyWriter, true);
-      Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
+      final XmlWriter          writer   = XmlStreaming.newWriter(bodyWriter, true);
+      final Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
 
       envelope.serialize(writer);
       writer.close();
@@ -130,7 +130,7 @@ public class EditableUserTask extends UserTaskBase {
       throw new RuntimeException(e);
     }
 
-    XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, new CompactFragment(bodyWriter.toString()));
+    final XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, new CompactFragment(bodyWriter.toString()));
     return result;
   }
 
@@ -196,14 +196,14 @@ public class EditableUserTask extends UserTaskBase {
     }
   }
 
-  public static EditableUserTask deserialize(XmlReader in) throws XmlException {
+  public static EditableUserTask deserialize(final XmlReader in) throws XmlException {
     return XmlUtil.deserializeHelper(new EditableUserTask(), in);
   }
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
     if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceUri())) {
-      AttributeSequence attrVar = ModifyHelper.parseAttribute(in);
+      final AttributeSequence attrVar = ModifyHelper.parseAttribute(in);
       switch (attrVar.getParamName().toString()) {
         case "summary": mSummary = attrVar; return true;
         case "handle": mHandle = attrVar; return true;

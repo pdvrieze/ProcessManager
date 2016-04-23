@@ -52,12 +52,12 @@ public class DiagramView extends View implements OnZoomListener{
   private static class DiagramViewStateCreator implements Creator<DiagramViewState> {
 
     @Override
-    public DiagramViewState createFromParcel(Parcel source) {
+    public DiagramViewState createFromParcel(final Parcel source) {
       return new DiagramViewState(source);
     }
 
     @Override
-    public DiagramViewState[] newArray(int size) {
+    public DiagramViewState[] newArray(final int size) {
       return new DiagramViewState[size];
     }
 
@@ -73,7 +73,7 @@ public class DiagramView extends View implements OnZoomListener{
     private double mScale;
     private int mGridSize;
 
-    public DiagramViewState(DiagramView diagramView, Parcelable viewState) {
+    public DiagramViewState(final DiagramView diagramView, final Parcelable viewState) {
       super(viewState);
       mOffsetX = diagramView.mOffsetX;
       mOffsetY = diagramView.mOffsetY;
@@ -81,7 +81,7 @@ public class DiagramView extends View implements OnZoomListener{
       mGridSize = diagramView.mGridSize;
     }
 
-    public DiagramViewState(Parcel source) {
+    public DiagramViewState(final Parcel source) {
       super(source);
       mOffsetX = source.readDouble();
       mOffsetY = source.readDouble();
@@ -95,7 +95,7 @@ public class DiagramView extends View implements OnZoomListener{
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
+    public void writeToParcel(final Parcel dest, final int flags) {
       super.writeToParcel(dest, flags);
       dest.writeDouble(mOffsetX);
       dest.writeDouble(mOffsetY);
@@ -119,9 +119,9 @@ public class DiagramView extends View implements OnZoomListener{
     private double mOrigX;
     private double mOrigY;
     @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+    public boolean onScroll(final MotionEvent e1, final MotionEvent e2, final float distanceX, final float distanceY) {
       if (isEditable()&& (mMoving>=0 || mMoveItem)) {
-        int touchedElement = mMoving>=0 ? mMoving: getTouchedElement(e1);
+        final int touchedElement = mMoving >= 0 ? mMoving: getTouchedElement(e1);
         if (touchedElement>=0) {
           if (mMoving <0) {
             if (Math.max(Math.abs(distanceY),Math.abs(distanceX))>MIN_DRAG_DIST) {
@@ -133,12 +133,12 @@ public class DiagramView extends View implements OnZoomListener{
             }
           }
           if (mMoving>=0) {
-            LightView lv = mAdapter.getView(touchedElement);
+            final LightView lv = mAdapter.getView(touchedElement);
             if (mGridSize>0) {
-              double dX = (e2.getX()-e1.getX())/ mScale;
-              float newX = Math.round((mOrigX + dX)/mGridSize)*mGridSize;
-              double dY = (e2.getY()-e1.getY())/ mScale;
-              float newY = Math.round((mOrigY + dY)/mGridSize)*mGridSize;
+              final double dX   = (e2.getX() - e1.getX()) / mScale;
+              final float  newX = Math.round((mOrigX + dX) / mGridSize) * mGridSize;
+              final double dY   = (e2.getY() - e1.getY()) / mScale;
+              final float  newY = Math.round((mOrigY + dY) / mGridSize) * mGridSize;
               lv.move((float)(newX- mAdapter.getGravityX(touchedElement)), (float) (newY- mAdapter.getGravityY(touchedElement)));
             } else {
               lv.move((float)(-distanceX/ mScale), (float) (-distanceY/ mScale));
@@ -149,7 +149,7 @@ public class DiagramView extends View implements OnZoomListener{
         }
         return false;
       } else {
-        double scale = getScale();
+        final double scale = getScale();
         setOffsetX(getOffsetX()+(distanceX/scale));
         setOffsetY(getOffsetY()+(distanceY/scale));
         return true;
@@ -157,8 +157,8 @@ public class DiagramView extends View implements OnZoomListener{
     }
 
     @Override
-    public void onShowPress(MotionEvent e) {
-      int touchedElement = getTouchedElement(e);
+    public void onShowPress(final MotionEvent e) {
+      final int touchedElement = getTouchedElement(e);
       if (touchedElement>=0) highlightTouch(touchedElement);
     }
 
@@ -169,14 +169,14 @@ public class DiagramView extends View implements OnZoomListener{
      * @param value <code>true</code> when the focus is an element,
      *          <code>false</code> when not.
      */
-    public void setMoveItem(boolean value) {
+    public void setMoveItem(final boolean value) {
       mMoveItem = value;
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
+    public boolean onSingleTapUp(final MotionEvent e) {
       try {
-        int touchedElement = getTouchedElement(e);
+        final int touchedElement = getTouchedElement(e);
         if (touchedElement>=0 && isEditable()) {
           if (mAdapter.onNodeClickOverride(DiagramView.this, touchedElement, e)) {
             return true;
@@ -194,7 +194,7 @@ public class DiagramView extends View implements OnZoomListener{
     }
 
     @Override
-    public boolean onSingleTapConfirmed(MotionEvent e) {
+    public boolean onSingleTapConfirmed(final MotionEvent e) {
       try {
         return super.onSingleTapUp(e);
       } finally {
@@ -213,7 +213,7 @@ public class DiagramView extends View implements OnZoomListener{
   public static abstract class DiagramDrawable extends android.graphics.drawable.Drawable {
 
     @Override
-    public final void draw(Canvas canvas) {
+    public final void draw(final Canvas canvas) {
       draw(canvas, 1d);
     }
 
@@ -253,8 +253,8 @@ public class DiagramView extends View implements OnZoomListener{
 
 
     @Override
-    public boolean onScaleBegin(ScaleGestureDetector detector) {
-      double newScale = getScale()*detector.getScaleFactor();
+    public boolean onScaleBegin(final ScaleGestureDetector detector) {
+      final double newScale = getScale() * detector.getScaleFactor();
       mPreviousDiagramX = getOffsetX()+ detector.getFocusX()/newScale;
       mPreviousDiagramY = getOffsetY()+ detector.getFocusY()/newScale;
 
@@ -263,14 +263,14 @@ public class DiagramView extends View implements OnZoomListener{
 
 
     @Override
-    public boolean onScale(ScaleGestureDetector detector) {
-      double scaleAdjust = detector.getScaleFactor();
-      double newScale = getScale()*scaleAdjust;
+    public boolean onScale(final ScaleGestureDetector detector) {
+      final double scaleAdjust = detector.getScaleFactor();
+      final double newScale    = getScale() * scaleAdjust;
       if (newScale<=MAXSCALE && newScale>=MINSCALE) {
         setScale(newScale);
 
-        double newDiagramX = detector.getFocusX()/newScale;
-        double newDiagramY = detector.getFocusY()/newScale;
+        final double newDiagramX = detector.getFocusX() / newScale;
+        final double newDiagramY = detector.getFocusY() / newScale;
 
         setOffsetX(mPreviousDiagramX - newDiagramX);
         setOffsetY(mPreviousDiagramY - newDiagramY);
@@ -303,7 +303,7 @@ public class DiagramView extends View implements OnZoomListener{
   private static final int DEFAULT_GRID_SIZE=8;
   private static final float DEFAULT_MAX_SCALE= (float) (2 * DENSITY);
 
-  public DiagramView(Context context, AttributeSet attrs, int defStyle) {
+  public DiagramView(final Context context, final AttributeSet attrs, final int defStyle) {
     super(context, attrs, defStyle);
     mMultitouch = (isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     mGestureDetector = new GestureDetector(context, mGestureListener);
@@ -311,7 +311,7 @@ public class DiagramView extends View implements OnZoomListener{
     init(attrs);
   }
 
-  public DiagramView(Context context, AttributeSet attrs) {
+  public DiagramView(final Context context, final AttributeSet attrs) {
     super(context, attrs);
     mMultitouch = (!isInEditMode()) &&(isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     mGestureDetector = new GestureDetector(context, mGestureListener);
@@ -319,7 +319,7 @@ public class DiagramView extends View implements OnZoomListener{
     init(attrs);
   }
 
-  public DiagramView(Context context) {
+  public DiagramView(final Context context) {
     super(context);
     mMultitouch = (isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     mGestureDetector = new GestureDetector(context, mGestureListener);
@@ -327,12 +327,12 @@ public class DiagramView extends View implements OnZoomListener{
     init(null);
   }
 
-  public void init(AttributeSet attrs) {
+  public void init(final AttributeSet attrs) {
     if (attrs==null) {
       mGridSize=DEFAULT_GRID_SIZE;
       mMaxScale=DEFAULT_MAX_SCALE;
     } else {
-      TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.DiagramView, 0, 0);
+      final TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.DiagramView, 0, 0);
       try {
         mGridSize = a.getInteger(R.styleable.DiagramView_gridSize, DEFAULT_GRID_SIZE);
         mEditable = a.getBoolean(R.styleable.DiagramView_editable, true);
@@ -354,7 +354,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  public void setOffsetX(double offsetX) {
+  public void setOffsetX(final double offsetX) {
     mOffsetX = offsetX;
     Compat.postInvalidateOnAnimation(this);
   }
@@ -365,7 +365,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  public void setOffsetY(double offsetY) {
+  public void setOffsetY(final double offsetY) {
     mOffsetY = offsetY;
     Compat.postInvalidateOnAnimation(this);
   }
@@ -390,7 +390,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  public void setGridSize(int gridSize) {
+  public void setGridSize(final int gridSize) {
     mGridSize = gridSize;
   }
 
@@ -398,7 +398,7 @@ public class DiagramView extends View implements OnZoomListener{
     return mAdapter;
   }
 
-  public void setAdapter(DiagramAdapter<?, ?> diagram) {
+  public void setAdapter(final DiagramAdapter<?, ?> diagram) {
     mAdapter = diagram;
     updateZoomControlButtons();
     postInvalidate();
@@ -410,12 +410,12 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  public void setOnNodeClickListener(OnNodeClickListener nodeClickListener) {
+  public void setOnNodeClickListener(final OnNodeClickListener nodeClickListener) {
     mOnNodeClickListener = nodeClickListener;
   }
 
-  protected void highlightTouch(int touchedElement) {
-    LightView lv = mAdapter.getView(touchedElement);
+  protected void highlightTouch(final int touchedElement) {
+    final LightView lv = mAdapter.getView(touchedElement);
     if (! lv.isTouched()) {
       lv.setTouched(true);
       invalidate(touchedElement);
@@ -426,26 +426,26 @@ public class DiagramView extends View implements OnZoomListener{
    * Invalidate the item at the given position.
    * @param position
    */
-  private void invalidate(int position) {
-    LightView lv = mAdapter.getView(position);
+  private void invalidate(final int position) {
+    final LightView lv = mAdapter.getView(position);
     invalidate(lv);
   }
 
-  public void invalidate(LightView view) {
+  public void invalidate(final LightView view) {
     view.getBounds(mTmpRectF);
     outset(mTmpRectF, INVALIDATE_MARGIN);
     toCanvasRect(mTmpRectF, mTmpRect);
     invalidate(mTmpRect);
   }
 
-  private static void outset(RectF rect, float outset) {
+  private static void outset(final RectF rect, final float outset) {
     rect.left-=outset;
     rect.top-=outset;
     rect.right+=outset;
     rect.bottom+=outset;
   }
 
-  private void toCanvasRect(RectF source, Rect dest) {
+  private void toCanvasRect(final RectF source, final Rect dest) {
     dest.left=(int) Math.floor(toCanvasX(source.left));
     dest.top=(int) Math.floor(toCanvasY(source.top));
     dest.right = (int) Math.ceil(toCanvasX(source.right));
@@ -458,12 +458,12 @@ public class DiagramView extends View implements OnZoomListener{
    * @param event The event to analyse.
    * @return The index of the touched element, or <code>-1</code> when none.
    */
-  private int getTouchedElement(MotionEvent event) {
-    int idx = event.getActionIndex();
-    float x = event.getX(idx);
-    float diagX = toDiagramX(x);
-    float y = event.getY(idx);
-    float diagY = toDiagramY(y);
+  private int getTouchedElement(final MotionEvent event) {
+    final int   idx   = event.getActionIndex();
+    final float x     = event.getX(idx);
+    final float diagX = toDiagramX(x);
+    final float y     = event.getY(idx);
+    final float diagY = toDiagramY(y);
 
 
 //    final int pIdx = pE.getActionIndex();
@@ -479,7 +479,7 @@ public class DiagramView extends View implements OnZoomListener{
     return mLastTouchedElement;
   }
 
-  protected int findTouchedElement(float diagX, float diagY) {
+  protected int findTouchedElement(final float diagX, final float diagY) {
     final int len = mAdapter.getCount();
     for(int i=0;i < len ; ++i) {
       getItemBounds(i, mTmpRectF);
@@ -491,7 +491,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  public void onDraw(Canvas canvas) {
+  public void onDraw(final Canvas canvas) {
     if (mTouchActionOptimize) {
       ensureValidCache();
 
@@ -518,7 +518,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   private void ensureValidCache() {
     if (mCacheBitmap!=null) {
-      double oldScale = mCacheBitmap.getHeight()/mCacheRect.height;
+      final double oldScale    = mCacheBitmap.getHeight() / mCacheRect.height;
       final double scaleChange = mScale /oldScale;
       if (scaleChange > 1.5 || scaleChange<0.34) {
         mCacheBitmap=null; // invalidate
@@ -548,20 +548,20 @@ public class DiagramView extends View implements OnZoomListener{
     }
   }
 
-  private void drawDiagram(Canvas canvas) {
+  private void drawDiagram(final Canvas canvas) {
     if (mAdapter !=null) {
-      LightView bg = mAdapter.getBackground();
-      Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = mAdapter.getTheme();
+      final LightView                                       bg    = mAdapter.getBackground();
+      final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = mAdapter.getTheme();
       if (bg!=null) {
         drawPositioned(canvas, theme, bg);
       }
 
-      int len = mAdapter.getCount();
+      final int len = mAdapter.getCount();
       for(int i=0; i<len; i++) {
         drawPositioned(canvas, theme, mAdapter.getView(i));
       }
 
-      LightView overlay = mAdapter.getOverlay();
+      final LightView overlay = mAdapter.getOverlay();
       if (overlay!=null) {
         drawPositioned(canvas, theme, overlay);
       }
@@ -571,26 +571,26 @@ public class DiagramView extends View implements OnZoomListener{
     }
   }
 
-  private void drawPositioned(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, LightView view) {
+  private void drawPositioned(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final LightView view) {
     view.getBounds(mTmpRectF);
-    int save = canvas.save();
+    final int save = canvas.save();
     canvas.translate(toCanvasX(mTmpRectF.left), toCanvasY(mTmpRectF.top));
     view.draw(canvas, theme, mScale);
     canvas.restoreToCount(save);
   }
 
-  private void drawDecorations(Canvas canvas) {
+  private void drawDecorations(final Canvas canvas) {
     // TODO handle decoration touches
     if (mAdapter !=null) {
       mDecorations.clear();
-      Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = mAdapter.getTheme();
-      int len = mAdapter.getCount();
+      final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = mAdapter.getTheme();
+      final int                                             len   = mAdapter.getCount();
       for(int i=0; i<len; i++) {
-        final LightView lv = mAdapter.getView(i);
-        List<? extends RelativeLightView> decorations = mAdapter.getRelativeDecorations(i, mScale, lv.isSelected());
-        for(RelativeLightView decoration: decorations) {
+        final LightView                         lv          = mAdapter.getView(i);
+        final List<? extends RelativeLightView> decorations = mAdapter.getRelativeDecorations(i, mScale, lv.isSelected());
+        for(final RelativeLightView decoration: decorations) {
           mDecorations.add(Tupple.tupple(Integer.valueOf(i), decoration));
-          int savePos = canvas.save();
+          final int savePos = canvas.save();
           decoration.getBounds(mTmpRectF);
           canvas.translate(toCanvasX(mTmpRectF.left), toCanvasY(mTmpRectF.top));
           decoration.draw(canvas, theme, mScale);
@@ -600,28 +600,28 @@ public class DiagramView extends View implements OnZoomListener{
     }
   }
 
-  public float toCanvasX(double x) {
+  public float toCanvasX(final double x) {
     return (float) ((x- mOffsetX)* mScale);
   }
 
-  public float toCanvasY(double y) {
+  public float toCanvasY(final double y) {
     return (float) ((y- mOffsetY)* mScale);
   }
 
-  public float toDiagramX(float x) {
+  public float toDiagramX(final float x) {
     return (float) (x/ mScale + mOffsetX);
   }
 
-  public float toDiagramY(float y) {
+  public float toDiagramY(final float y) {
     return (float) (y/ mScale + mOffsetY);
   }
 
-  private void getItemBounds(int pos, RectF rect) {
+  private void getItemBounds(final int pos, final RectF rect) {
     mAdapter.getView(pos).getBounds(rect);
   }
 
-  private void drawOverlay(Canvas canvas) {
-    int canvasSave = canvas.save();
+  private void drawOverlay(final Canvas canvas) {
+    final int canvasSave = canvas.save();
     if (mOverlay!=null) {
       final float scalef = (float) mScale;
       canvas.scale(scalef, scalef);
@@ -634,7 +634,7 @@ public class DiagramView extends View implements OnZoomListener{
     canvas.restoreToCount(canvasSave);
   }
 
-  private void drawDebugOverlay(Canvas canvas) {
+  private void drawDebugOverlay(final Canvas canvas) {
     if (mBuildTimeText!=null) {
       ensureBuildTimeTextBounds();
 
@@ -644,10 +644,10 @@ public class DiagramView extends View implements OnZoomListener{
 
   private void ensureBuildTimeTextBounds() {
     if (mBuildTimeText==null) {
-      InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
+      final InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
       if (stream!=null) {
         try {
-          Properties props = new Properties();
+          final Properties props = new Properties();
           try {
             props.load(stream);
           } catch (IOException e) {
@@ -698,17 +698,17 @@ public class DiagramView extends View implements OnZoomListener{
     return mRed;
   }
 
-  private void updateCacheRect(Rectangle cacheRect) {
-    RectF diagrambounds = mTmpRectF;
+  private void updateCacheRect(final Rectangle cacheRect) {
+    final RectF diagrambounds = mTmpRectF;
     mAdapter.getBounds(diagrambounds);
-    double diagLeft = Math.max(diagrambounds.left-1, mOffsetX -CACHE_PADDING);
-    double diagWidth = Math.min(diagrambounds.right-diagLeft+6, (getWidth()/ mScale) + (CACHE_PADDING*2));
-    double diagTop = Math.max(diagrambounds.top-1, mOffsetY -CACHE_PADDING);
-    double diagHeight = Math.min(diagrambounds.bottom-diagTop+6, (getHeight()/ mScale) + (CACHE_PADDING*2));
+    final double diagLeft   = Math.max(diagrambounds.left - 1, mOffsetX - CACHE_PADDING);
+    final double diagWidth  = Math.min(diagrambounds.right - diagLeft + 6, (getWidth() / mScale) + (CACHE_PADDING * 2));
+    final double diagTop    = Math.max(diagrambounds.top - 1, mOffsetY - CACHE_PADDING);
+    final double diagHeight = Math.min(diagrambounds.bottom - diagTop + 6, (getHeight() / mScale) + (CACHE_PADDING * 2));
     cacheRect.set(diagLeft, diagTop, diagWidth, diagHeight);
   }
 
-  public void setOverlay(android.graphics.drawable.Drawable overlay) {
+  public void setOverlay(final android.graphics.drawable.Drawable overlay) {
     if (mOverlay!=null) {
       invalidate(mOverlay.getBounds());
     }
@@ -719,12 +719,12 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  public boolean onTouchEvent(MotionEvent event) {
-    int action = event.getActionMasked();
-    int touchedElement = -1;
-    int idx = event.getActionIndex();
-    float diagX = toDiagramX(event.getX(idx));
-    float diagY = toDiagramY(event.getY(idx));
+  public boolean onTouchEvent(final MotionEvent event) {
+    final int   action         = event.getActionMasked();
+    int         touchedElement = -1;
+    final int   idx            = event.getActionIndex();
+    final float diagX          = toDiagramX(event.getX(idx));
+    final float diagY          = toDiagramY(event.getY(idx));
     if (action==MotionEvent.ACTION_DOWN) {
 
       touchedElement = findTouchedElement(diagX, diagY);
@@ -746,7 +746,7 @@ public class DiagramView extends View implements OnZoomListener{
           }
         }
         if (mTouchedDecoration==null) {
-          for(Tupple<Integer,RelativeLightView> decoration: mDecorations) {
+          for(final Tupple<Integer,RelativeLightView> decoration: mDecorations) {
             decoration.getElem2().getBounds(mTmpRectF);
             if (mTmpRectF.contains(diagX, diagY)) {
               mTouchedDecoration = decoration;
@@ -766,7 +766,7 @@ public class DiagramView extends View implements OnZoomListener{
     } else if (action==MotionEvent.ACTION_UP|| action==MotionEvent.ACTION_CANCEL) {
       final int len = mAdapter.getCount();
       for(int i=0; i<len ; ++i) {
-        LightView lv = mAdapter.getView(i);
+        final LightView lv = mAdapter.getView(i);
         lv.setTouched(false);
       }
 
@@ -806,17 +806,17 @@ public class DiagramView extends View implements OnZoomListener{
 
   @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
   @Override
-  public boolean onGenericMotionEvent(MotionEvent event) {
-    int action = event.getActionMasked();
+  public boolean onGenericMotionEvent(final MotionEvent event) {
+    final int action = event.getActionMasked();
     if (action==MotionEvent.ACTION_SCROLL) {
-      boolean zoomIn = Compat.isZoomIn(event);
+      final boolean zoomIn = Compat.isZoomIn(event);
       onZoom(zoomIn);
     }
     return super.onGenericMotionEvent(event);
   }
 
   @Override
-  public void onVisibilityChanged(boolean visible) {
+  public void onVisibilityChanged(final boolean visible) {
     // Part of zoomcontroller
     // ignore it
   }
@@ -824,7 +824,7 @@ public class DiagramView extends View implements OnZoomListener{
 
 
   @Override
-  protected void onWindowVisibilityChanged(int visibility) {
+  protected void onWindowVisibilityChanged(final int visibility) {
     if (visibility==View.VISIBLE) {
       showZoomController();
     } else {
@@ -835,9 +835,9 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  protected void onVisibilityChanged(View changedView, int visibility) {
+  protected void onVisibilityChanged(final View changedView, final int visibility) {
     if (mZoomController!=null) {
-      boolean show = visibility==View.VISIBLE;
+      final boolean show = visibility == View.VISIBLE;
       if (show!=mZoomController.isVisible()) {
         mZoomController.setVisible(show);
         updateZoomControlButtons();
@@ -846,7 +846,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  public void onZoom(boolean zoomIn) {
+  public void onZoom(final boolean zoomIn) {
     final double newScale;
     if (zoomIn) {
       newScale = getScale()*1.2;
@@ -903,12 +903,12 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  protected void onRestoreInstanceState(Parcelable state) {
+  protected void onRestoreInstanceState(final Parcelable state) {
     if (!(state instanceof DiagramViewState)) {
       super.onRestoreInstanceState(state);
       return;
     }
-    DiagramViewState diagramViewState = (DiagramViewState) state;
+    final DiagramViewState diagramViewState = (DiagramViewState) state;
     super.onRestoreInstanceState(diagramViewState.getSuperState());
     mOffsetX = diagramViewState.mOffsetX;
     mOffsetY = diagramViewState.mOffsetY;
@@ -916,16 +916,16 @@ public class DiagramView extends View implements OnZoomListener{
     mGridSize = diagramViewState.mGridSize;
   }
 
-  public void setSelection(int position) {
+  public void setSelection(final int position) {
     // TODO handle more complicated selection.
-    int len = mAdapter.getCount();
+    final int len = mAdapter.getCount();
     for(int i=0; i<len; ++i) {
       mAdapter.getView(i).setSelected(i==position);
     }
   }
 
   public int getSelection() {
-    int len = mAdapter.getCount();
+    final int len = mAdapter.getCount();
     for(int i=0; i<len; ++i) {
       if (mAdapter.getView(i).isSelected()) {
         return i;
@@ -940,7 +940,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  public void setEditable(boolean editable) {
+  public void setEditable(final boolean editable) {
     mEditable = editable;
     dismissZoomController();
   }
