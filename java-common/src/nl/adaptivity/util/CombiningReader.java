@@ -20,6 +20,7 @@ import java.io.*;
 
 
 /**
+ * Reader that combines multiple "component" readers into one.
  * Created by pdvrieze on 01/11/15.
  */
 public class CombiningReader extends Reader {

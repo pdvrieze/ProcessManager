@@ -19,7 +19,7 @@ package nl.adaptivity.xml
 /**
  * Created by pdvrieze on 14/04/16.
  */
-internal object StringUtil {
+internal object StringUtilDeprecated {
 
   @Deprecated("Use asString", ReplaceWith("seq.asString()","net.devrieze.util.kotlin.asString"), DeprecationLevel.ERROR)
   fun toString(seq: CharSequence?) = seq?.toString()

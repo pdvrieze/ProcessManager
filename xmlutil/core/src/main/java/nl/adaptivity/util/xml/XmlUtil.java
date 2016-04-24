@@ -17,17 +17,12 @@
 package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.CombiningReader;
-import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.TextEvent;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -35,10 +30,12 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import java.io.*;
 import java.util.*;
@@ -208,7 +205,6 @@ public final class XmlUtil {
    * @return The QName.
    */
   @NotNull
-  @Contract(pure = true)
   public static QName asQName(@NotNull final Node reference, @NotNull final String name) {
     final int colPos = name.indexOf(':');
     if (colPos >= 0) {
@@ -241,7 +237,7 @@ public final class XmlUtil {
     for (Element child = getFirstChildElement(parent); child != null; child = getNextSiblingElement(child)) {
       if ((namespaceURI == null) || (namespaceURI.length() == 0)) {
         if (((child.getNamespaceURI() == null) || (child.getNamespaceURI().length() == 0))
-                && StringUtil.isEqual(localName, child.getLocalName())) {
+            && StringUtil.isEqual(localName, child.getLocalName())) {
           return child;
         }
       } else {
@@ -446,7 +442,6 @@ public final class XmlUtil {
    * @param serializables The source list.
    * @return A result list
    */
-  @Contract(pure=true)
   public static @NotNull ArrayList<String> toString(@NotNull final Iterable<? extends XmlSerializable> serializables) {
     final int flags = DEFAULT_FLAGS;
 
