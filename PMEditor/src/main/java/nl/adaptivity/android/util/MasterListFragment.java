@@ -25,6 +25,7 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.View;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.sync.SyncManager;
 
 
@@ -63,8 +64,8 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
     }
 
     @Override
-    public SyncManager getSyncManager() {
-      return new SyncManager(null, AUTHORITIES);
+    public ProcessSyncManager getSyncManager() {
+      return new ProcessSyncManager(null);
     }
   };
 
