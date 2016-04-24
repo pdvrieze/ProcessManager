@@ -40,7 +40,7 @@ class Factory {
      * This function implements task level generation. Support that as well in this file.
      */
     @JvmStatic
-    fun doGenerate(outputDir: File, input:Iterable<File>) {
+    fun doGenerate(outputDir: File, input: Iterable<File>) {
       if (outputDir.isFile) throw ProcessingException("The output location is not a directory")
       visitClasses(input) { clazz ->
         if (XmlSerializable::class.java.isAssignableFrom(clazz)) {
@@ -53,77 +53,15 @@ class Factory {
       }
     }
 
-    private fun generateFactory(outDir:File, typeInfo:FullTypeInfo) {
+    private fun generateFactory(outDir: File, typeInfo: FullTypeInfo) {
       val factoryClassName = typeInfo.factoryClassName
       val packageName = typeInfo.packageName
       val nsPrefix = typeInfo.nsPrefix
 
       val fileCreator = createJavaFile(packageName, factoryClassName) {
         emptyConstructor()
-        method("serialize", null, arrayOf(XmlException::class.java), XmlWriter::class.java to "writer", typeInfo.elemType to "value") {
-          val writer:XmlWriter = XmlStreaming.newWriter(StringWriter())
-
-          appendln("    writer.startTag(${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)}, ${toLiteral(nsPrefix)});")
-
-          typeInfo.attributes.forEach { attr ->
-            appendln()
-            if (attr.accessorType.isMap) {
-              val keyType = ReflectionUtil.typeParams(attr.accessorType.javaType, Map::class.java)?.get(0) ?: CharSequence::class.java
-              appendln("    for(${Map.Entry::class.java.ref}<${keyType.ref}, ${attr.accessorType.elemType.ref}> attr: value.${attr.readJava}.entrySet()) {")
-              val keyClass = keyType.toClass()
-              if (QName::class.java.isAssignableFrom(keyClass)) {
-                appendln("      QName key = attr.getKey(); writer.attribute(key.getNamespaceURI(), key.getLocalPart(), key.getPrefix(), ${attr.readJava("attr.getValue()")});")
-              } else {
-                val getKey= if(String::class.java==keyClass) "attr.getKey()" else "attr.getKey().toString()"
-                appendln("      writer.attribute(null, ${getKey}, null, ${attr.readJava("attr.getValue()")});")
-              }
-              appendln("    }")
-            } else {
-              appendln("    {")
-              appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.readJava};")
-              if (attr.isOptional && !attr.accessorType.isPrimitive) {
-                appendln("      if (attrValue!=null) writer.attribute(null, ${toLiteral(attr.name)}, null, ${attr.readJava(
-                      "attrValue")});")
-              } else {
-                appendln("      writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue==null ? ${toLiteral(attr.default)} : ${attr.readJava(
-                      "attrValue")});")
-              }
-              appendln("    }")
-            }
-          }
-
-          typeInfo.textContent?.let { content ->
-            appendln()
-            appendln("    {")
-            appendln("      final ${content.accessorType.javaType.ref} contentValue = value.${content.readJava};")
-            appendln("      if (contentValue!=null) writer.text(${content.readJava("contentValue")});")
-            appendln("    }")
-          }
-
-          typeInfo.children.forEach { childInfo ->
-            val accessor = childInfo.accessorType
-            appendln()
-            appendln("    {")
-            val attrname = if (accessor.isCollection) "childValues" else "childValue"
-            appendln("      final ${accessor.javaType.ref} $attrname = value.${childInfo.readJava};")
-            var indent:String
-            if (accessor.isCollection) {
-              indent = " ".repeat(8)
-              appendln("      for(final ${accessor.elemType.ref} childValue: childValues) {")
-            } else indent = " ".repeat(6)
-
-            writeSerializeChild(indent, typeInfo, childInfo, "childValue")
-
-            if (accessor.isCollection) {
-              appendln("      }")
-            }
-            appendln("    }")
-
-          }
-
-          appendln()
-          appendln("    writer.endTag(${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)}, ${toLiteral(nsPrefix)});")
-        }
+        writeSerialize(nsPrefix, typeInfo)
+        writeDeserialize(nsPrefix, typeInfo)
 
       }
 
@@ -133,13 +71,144 @@ class Factory {
       }
     }
 
-    private fun getFactorySourceFile(outDir: File, packageName:String, factoryClassName:String): File {
-      val directory = packageName.replace('.','/');
-      val filename = factoryClassName +".java"
+    private fun JavaFile.writeSerialize(nsPrefix: CharSequence?,
+                                        typeInfo: FullTypeInfo) {
+      method("serialize",
+             null,
+             arrayOf(XmlException::class.java),
+             XmlWriter::class.java to "writer",
+             typeInfo.elemType to "value") {
+        val writer: XmlWriter = XmlStreaming.newWriter(StringWriter())
+
+        appendln("    writer.startTag(${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)}, ${toLiteral(
+              nsPrefix)});")
+
+        typeInfo.attributes.forEach { attr ->
+          appendln()
+          if (attr.accessorType.isMap) {
+            val keyType = ReflectionUtil.typeParams(attr.accessorType.javaType,
+                                                    Map::class.java)?.get(0) ?: CharSequence::class.java
+            appendln("    for(${Map.Entry::class.java.ref}<${keyType.ref}, ${attr.accessorType.elemType.ref}> attr: value.${attr.readJava}.entrySet()) {")
+            val keyClass = keyType.toClass()
+            if (QName::class.java.isAssignableFrom(keyClass)) {
+              appendln("      QName key = attr.getKey(); writer.attribute(key.getNamespaceURI(), key.getLocalPart(), key.getPrefix(), ${attr.readJava(
+                    "attr.getValue()")});")
+            } else {
+              val getKey = if (String::class.java == keyClass) "attr.getKey()" else "attr.getKey().toString()"
+              appendln("      writer.attribute(null, ${getKey}, null, ${attr.readJava("attr.getValue()")});")
+            }
+            appendln("    }")
+          } else {
+            appendln("    {")
+            appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.readJava};")
+            if (attr.isOptional && !attr.accessorType.isPrimitive) {
+              appendln("      if (attrValue!=null) writer.attribute(null, ${toLiteral(attr.name)}, null, ${attr.readJava(
+                    "attrValue")});")
+            } else {
+              appendln("      writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue==null ? ${toLiteral(attr.default)} : ${attr.readJava(
+                    "attrValue")});")
+            }
+            appendln("    }")
+          }
+        }
+
+        typeInfo.textContent?.let { content ->
+          appendln()
+          appendln("    {")
+          appendln("      final ${content.accessorType.javaType.ref} contentValue = value.${content.readJava};")
+          appendln("      if (contentValue!=null) writer.text(${content.readJava("contentValue")});")
+          appendln("    }")
+        }
+
+        typeInfo.children.forEach { childInfo ->
+          val accessor = childInfo.accessorType
+          appendln()
+          appendln("    {")
+          val attrname = if (accessor.isCollection) "childValues" else "childValue"
+          appendln("      final ${accessor.javaType.ref} $attrname = value.${childInfo.readJava};")
+          var indent: String
+          if (accessor.isCollection) {
+            indent = " ".repeat(8)
+            appendln("      for(final ${accessor.elemType.ref} childValue: childValues) {")
+          } else indent = " ".repeat(6)
+
+          writeSerializeChild(indent, typeInfo, childInfo, "childValue")
+
+          if (accessor.isCollection) {
+            appendln("      }")
+          }
+          appendln("    }")
+
+        }
+
+        appendln()
+        appendln("    writer.endTag(${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)}, ${toLiteral(
+              nsPrefix)});")
+      }
+    }
+
+    private fun getFactorySourceFile(outDir: File, packageName: String, factoryClassName: String): File {
+      val directory = packageName.replace('.', '/');
+      val filename = factoryClassName + ".java"
       return File(outDir, "${directory}/$filename").apply { parentFile.mkdirs(); createNewFile() }
     }
 
+    private fun JavaFile.writeDeserialize(nsPrefix: CharSequence?,
+                                          typeInfo: FullTypeInfo) {
 
+      method("deserialize",
+             typeInfo.elemType,
+             arrayOf(XmlException::class.java),
+             XmlReader::class.java to "reader") {
+        if (typeInfo.attributes.size>0) {
+          for (attr in typeInfo.attributes) {
+            appendln("    ${attr.accessorType.javaType.ref} ${attr.name} = ${if (attr.default.isNotBlank()) attr.javaFromString(
+                  toLiteral(attr.default)) else attr.accessorType.defaultValueJava};")
+          }
+          appendln()
+        }
+
+        if (typeInfo.children.size>0) {
+          for (child in typeInfo.children) {
+            appendln("    ${child.accessorType.javaType.ref} ${child.name} = ${child.accessorType.defaultValueJava};")
+          }
+          appendln()
+        }
+
+        appendln("    reader.require(${XmlStreaming.EventType::class.java.ref}.START_ELEMENT, ${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)});")
+
+        if (typeInfo.attributes.size>0) {
+          appendln()
+          appendln("    for (int i = 0; i < reader.getAttributeCount(); i++) {")
+          appendln("      switch(reader.getAttributeLocalName(i).toString() {")
+          for(attr in typeInfo.attributes) {
+            append("        case \"${attr.name}\": ")
+            if (attr.accessorType.isMap) appendln("")
+            appendln("")
+          }
+          appendln("        default:")
+          appendln("          throw new XmlException(\"Unexpected attribute found (\"+reader.getAttributeLocalName(i)+\")\");")
+          appendln("      }")
+          appendln("    }")
+        }
+
+        val eventType = XmlStreaming.EventType::class.java.ref
+        appendln()
+        appendln("    EventType eventType;")
+        appendln("    while ((eventType=reader.next())!=${eventType}.END_ELEMENT) {")
+        appendln("      switch(eventType) {")
+        appendln("        case CDSECT:")
+        appendln("        case TEXT:")
+        if (typeInfo.textContent!=null) {
+          appendln("        break;")
+        }
+        appendln("      }")
+        appendln("    }")
+
+        appendln("    reader.require(${eventType}.END_ELEMENT, ${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)});")
+
+      }
+    }
   }
 }
 

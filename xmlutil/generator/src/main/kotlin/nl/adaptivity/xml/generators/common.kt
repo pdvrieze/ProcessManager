@@ -19,6 +19,7 @@ package nl.adaptivity.xml.generators
 import net.devrieze.util.ReflectionUtil
 import nl.adaptivity.kotlin.jvmhelpers.ThrowableUtil
 import nl.adaptivity.xml.AbstractXmlReader
+import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlSerializable
 import nl.adaptivity.xml.schema.annotations.*
 import java.io.File
@@ -96,6 +97,12 @@ abstract class MemberInfo {
     BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
       return builtin.serializeJava(valueRef)
     } ?: throw ProcessingException("Unable to convert type to string content: ${declaredType.elemType}")
+  }
+
+  fun javaFromString(stringRepr: String): Any {
+    BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
+      return builtin.deserializeJava(stringRepr)
+    } ?: throw ProcessingException("Unable to convert string content to type: ${declaredType.elemType}")
   }
 
   constructor(memberName:String, propertyName:String, ownerType: Type, lookup: TypeInfoProvider, declaredMemberType: TypeInfo?=null):
@@ -279,6 +286,18 @@ abstract class TypeInfo(clazz: Type) {
 
   val xmlType: QName by lazy { if (javaType==AnyType::class.java) Object::class.java.xmlType else javaType.toClass().xmlType }
   val isPrimitive: Boolean by lazy { elemType.toClass().isPrimitive }
+  val defaultValueJava: String by lazy {
+    if (javaType is Class<*>&& javaType.isArray) {
+      "null"
+    } else {
+      val c = javaType.toClass()
+      if (c.isPrimitive) {
+        BUILTINS[c]?.defaultValueJava ?: throw UnsupportedOperationException("No default value know for type ${c}")
+      } else {
+        "null"
+      }
+    }
+  }
 }
 
 
@@ -304,19 +323,19 @@ val Type.iterableTypeParam:Type? get() {
   return ReflectionUtil.typeParams(this, Iterable::class.java)?.get(0)
 }
 
-internal class Builtin(val typeName:QName, val serializeJava: (String)->String, val deserializeJava: (String)->String) {
-  constructor(typeName:String, serializeJava: (String) -> String, deserializeJava: (String) -> String):
-      this(QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, typeName, "xs"), serializeJava, deserializeJava)
+internal class Builtin(val typeName:QName, val defaultValueJava:String, val serializeJava: (String)->String, val deserializeJava: (String)->String) {
+  constructor(typeName:String, defaultValueJava:String, serializeJava: (String) -> String, deserializeJava: (String) -> String):
+      this(QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, typeName, "xs"), defaultValueJava, serializeJava, deserializeJava)
 }
 
 internal val BUILTINS = mapOf<Class<out Any>,Builtin>(
-      Int::class.java to Builtin("int", { it -> "Integer.toString(${it})"}, {it -> "Integer.valueOf($it)"}),
-      String::class.java to Builtin("string", { it -> it}, {it -> it}),
-      CharSequence::class.java to Builtin("string", { it -> "$it.toString"}, {it -> it}),
-      Boolean::class.java to Builtin("boolean", { it -> "$it ? \"true\" : \"false\""}, {it -> "Boolean.valueOf($it)"}),
-      UUID::class.java to Builtin("string", { it -> "$it.toString()"}, { it -> "UUID.fromString($it)"}),
-      QName::class.java to Builtin("string", { it -> "{$it.namespaceUri}$it.localName"}, { it -> "${AbstractXmlReader::class.java.canonicalName}.toQname($it)"}),
-      Long::class.java to Builtin("long", { it -> "Long.toString(${it})"}, {it -> "Long.valueOf($it)"})
+      Int::class.java to Builtin("int", "-1", { it -> "Integer.toString(${it})"}, {it -> "Integer.valueOf($it)"}),
+      String::class.java to Builtin("string", "null", { it -> it}, {it -> it}),
+      CharSequence::class.java to Builtin("string", "null", { it -> "$it.toString"}, {it -> it}),
+      Boolean::class.java to Builtin("boolean", "false", { it -> "$it ? \"true\" : \"false\""}, {it -> "Boolean.valueOf($it)"}),
+      UUID::class.java to Builtin("string", "null", { it -> "$it.toString()"}, { it -> "UUID.fromString($it)"}),
+      QName::class.java to Builtin("QName", "null", { it -> "{$it.namespaceUri}$it.localName"}, { it -> "${AbstractXmlReader::class.java.canonicalName}.toQname($it)"}),
+      Long::class.java to Builtin("long", "-1L", { it -> "Long.toString(${it})"}, {it -> "Long.valueOf($it)"})
 )
 
 
