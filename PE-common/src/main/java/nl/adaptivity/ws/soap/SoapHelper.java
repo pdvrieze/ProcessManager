@@ -329,10 +329,10 @@ public class SoapHelper {
             }
 
           } else if ((returnName != null) && XmlUtil.isElement(reader, returnName)) {
-            params.put(RESULT, XmlUtil.childToNode(reader));
+            params.put(RESULT, DomUtil.childToNode(reader));
             reader.require(EventType.END_ELEMENT, returnName.getNamespaceURI(), returnName.getLocalPart());
           } else {
-            params.put(reader.getLocalName().toString(), XmlUtil.childToNode(reader));
+            params.put(reader.getLocalName().toString(), DomUtil.childToNode(reader));
             reader.require(EventType.END_ELEMENT, null, null);
           }
           break;
@@ -448,7 +448,7 @@ public class SoapHelper {
         } else {
 
           if (value.getNextSibling() != null && (value.getNextSibling() instanceof Element)) {
-            throw new UnsupportedOperationException("Collection parameters not yet supported: "+pMethod.toGenericString()+" found: '"+XmlUtil.toString(value.getNextSibling())+"' in "+XmlUtil.toString(value.getParentNode()));
+            throw new UnsupportedOperationException("Collection parameters not yet supported: " + pMethod.toGenericString() + " found: '" + DomUtil.toString(value.getNextSibling()) + "' in " + DomUtil.toString(value.getParentNode()));
           }
           try {
             JAXBContext context;

@@ -27,6 +27,7 @@ package org.w3.soapEnvelope;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -105,7 +106,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
       // XXX make sure this is secure
       mPrincipal = new SimplePrincipal(XmlUtil.readSimpleElement(in).toString());
     } else {
-      getAny().add(XmlUtil.childToNode(in));
+      getAny().add(DomUtil.childToNode(in));
     }
     return true;
   }

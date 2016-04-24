@@ -62,7 +62,7 @@ public class JAXBUnmarshallingAdapter<T extends XmlSerializable> extends JAXBAda
 
       final QName   outerName = v.name == null ? new QName("value") : v.name;
       final Element root;
-      root = XmlUtil.createElement(document, outerName);
+      root = DomUtil.createElement(document, outerName);
 
 
       final nl.adaptivity.xml.SimpleNamespaceContext sourceNamespaceContext = v.getNamespaceContext();

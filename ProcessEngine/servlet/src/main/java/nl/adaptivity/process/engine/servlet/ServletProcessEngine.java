@@ -43,6 +43,7 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
@@ -748,7 +749,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
             transaction.commit();
           }
           try {
-            final Document domResult = XmlUtil.tryParseXml(result.getInputStream());
+            final Document domResult = DomUtil.tryParseXml(result.getInputStream());
             Element rootNode = domResult.getDocumentElement();
             // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
             if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {

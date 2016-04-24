@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
+import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.EndElementEvent;
@@ -245,7 +246,7 @@ public class PETransformer {
       writer.close();
       final NodeList applicationResult = (NodeList) xpathexpr.evaluate(eventFragment, XPathConstants.NODESET);
       if (applicationResult.getLength()>0) {
-        result.addAll(toEvents(new ProcessData("--xpath result--", XmlUtil.nodeListToFragment(applicationResult))));
+        result.addAll(toEvents(new ProcessData("--xpath result--", DomUtil.nodeListToFragment(applicationResult))));
       }
       return result;
     }

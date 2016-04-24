@@ -20,9 +20,9 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
@@ -118,7 +118,7 @@ public class TestXmlResultType {
     value.setAttribute("name", "user");
     value.appendChild(testData.createTextNode("Paul"));
 
-    assertEquals("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>",XmlUtil.toString(testData));
+    assertEquals("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>", DomUtil.toString(testData));
 
 
     final XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", (char[]) null, null);

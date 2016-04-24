@@ -89,7 +89,7 @@ public final class XmlUtil {
   }
 
   /**
-   * A class that filters an xml stream such that it will only
+   * A class that filters an xml stream such that it will only contain expected elements.
    */
   private static class SubstreamFilter extends XmlBufferedReader {
 
@@ -126,27 +126,6 @@ public final class XmlUtil {
 
   private XmlUtil() { /* Utility class is not constructible. */ }
 
-// Object Initialization
-  /**
-   * Create an {@link Element} with the given name. Depending on the prefix, and namespace it uses the "correct"
-   * approach, with null namespace or prefix, or specified namespace and prefix.
-   *
-   * @param document  The owning document.
-   * @param qName The name of the element.
-   */
-  public static Element createElement(@NotNull final Document document, @NotNull final QName qName) {
-    final Element root;
-    if (XMLConstants.NULL_NS_URI.equals(qName.getNamespaceURI()) || null == qName.getNamespaceURI()) {
-      root = document.createElement(qName.getLocalPart());
-    } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(qName.getPrefix())) {
-      root = document.createElementNS(qName.getNamespaceURI(), qName.getLocalPart());
-    } else {
-      root = document.createElementNS(qName.getNamespaceURI(), qName.getPrefix() + ':' + qName.getLocalPart());
-    }
-    return root;
-  }
-// Object Initialization end
-
   /**
    * Get the next text sequence in the reader. This will skip over comments and ignorable whitespace, but not tags.
    *
@@ -173,39 +152,6 @@ public final class XmlUtil {
 
     }
     return result;
-  }
-
-  /**
-   * XPath processing does require either a document or a fragment to actually work. This method will
-   * make this work. If the node is either that will be returned, otherwise, if it is the root node of the owner document,
-   * the owner document is returned. Otherwise, a fragment will be created with a clone of the node.
-   * @param node The node to attach if needed.
-   * @return A document or documentfragment representing the given node (it may be a clone though)
-   */
-  public static Node ensureAttached(final Node node) {
-    if (node==null) { return null; }
-    if (node instanceof Document || node instanceof DocumentFragment) {
-      return node;
-    }
-    if (node.isSameNode(node.getOwnerDocument().getDocumentElement())) {
-      return node.getOwnerDocument();
-    }
-    final DocumentFragment frag = node.getOwnerDocument().createDocumentFragment();
-    frag.appendChild(node.cloneNode(true));
-    return frag;
-  }
-
-  public static boolean isAttached(final Node node) {
-    if (node instanceof Document || node instanceof DocumentFragment) {
-      return true;
-    }
-    final Node docElem = node.getOwnerDocument().getDocumentElement();
-    if (docElem!=null) {
-      for (Node curNode = node; curNode != null; curNode = curNode.getParentNode()) {
-        if (docElem.isSameNode(curNode)) { return true; }
-      }
-    }
-    return false;
   }
 
   public static void skipElement(final XmlReader in) throws XmlException {
@@ -253,55 +199,6 @@ public final class XmlUtil {
 
   public static void writeEndElement(final XmlWriter out, final QName predelemname) throws XmlException {
     out.endTag(predelemname.getNamespaceURI(), predelemname.getLocalPart(), predelemname.getPrefix());
-  }
-
-  @Nullable
-  public static Document tryParseXml(final InputStream inputStream) throws IOException {
-    return tryParseXml(new InputSource(inputStream));
-  }
-
-  @Nullable
-  public static Document tryParseXml(final Reader reader) throws IOException {
-    return tryParseXml(new InputSource(reader));
-  }
-
-  @Nullable
-  public static Document tryParseXml(@NotNull final String xmlString) throws IOException {
-    return tryParseXml(new StringReader(xmlString));
-  }
-
-  public static Document tryParseXml(final InputSource xmlSource) throws IOException {
-    try {
-      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-      final DocumentBuilder db = dbf.newDocumentBuilder();
-
-      return db.parse(xmlSource);
-    } catch (@NotNull final SAXException e) {
-      return null;
-    } catch (@NotNull final ParserConfigurationException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-
-  public static DocumentFragment tryParseXmlFragment(final Reader reader) throws IOException {
-    try {
-      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-      final DocumentBuilder db = dbf.newDocumentBuilder();
-      final Document doc = db.parse(new InputSource(new CombiningReader(new StringReader("<elem>"), reader, new StringReader("</elem>"))));
-      final DocumentFragment frag = doc.createDocumentFragment();
-      final Element docelem = doc.getDocumentElement();
-      for (Node child = docelem.getFirstChild(); child != null; child = docelem.getFirstChild()) {
-        frag.appendChild(child);
-      }
-      doc.removeChild(docelem);
-      return frag;
-    } catch (@NotNull ParserConfigurationException | SAXException e) {
-      throw new IOException(e);
-    }
-
   }
 
   /**
@@ -538,43 +435,6 @@ public final class XmlUtil {
       throw new RuntimeException(e);
     }
   }
-  public static String toString(final Node value) {
-    return toString(value, DEFAULT_FLAGS);
-  }
-
-  public static String toString(final Node value, final int flags) {
-    final StringWriter out =new StringWriter();
-    try {
-      final Transformer t = TransformerFactory
-        .newInstance()
-        .newTransformer();
-      configure(t, flags);
-      t.transform(new DOMSource(value), new StreamResult(out));
-    } catch (@NotNull final TransformerException e) {
-      throw new RuntimeException(e);
-    }
-    return out.toString();
-  }
-
-  public static String toString(@NotNull final NodeList nodeList) {
-    return toString(nodeList, DEFAULT_FLAGS);
-  }
-
-  public static String toString(@NotNull final NodeList nodeList, final int flags) {
-    final StringWriter out =new StringWriter();
-    try {
-      final Transformer t = TransformerFactory
-        .newInstance()
-        .newTransformer();
-      configure(t, flags);
-      for(int i=0; i<nodeList.getLength(); ++i) {
-        t.transform(new DOMSource(nodeList.item(i)), new StreamResult(out));
-      }
-    } catch (@NotNull final TransformerException e) {
-      throw new RuntimeException(e);
-    }
-    return out.toString();
-  }
 
   public static String toString(@NotNull final XmlSerializable serializable) {
     final int flags = DEFAULT_FLAGS;
@@ -663,22 +523,6 @@ public final class XmlUtil {
     return result.toString();
   }
 
-  @Nullable
-  public static DocumentFragment toDocFragment(@Nullable final NodeList value) {
-    if (value==null || value.getLength()==0) { return null; }
-    final Document document = value.item(0).getOwnerDocument();
-    final DocumentFragment fragment = document.createDocumentFragment();
-    for(int i=0; i<value.getLength(); ++i) {
-      final Node n = value.item(i);
-      if (n.getOwnerDocument()!=document) {
-        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
-      } else {
-        fragment.appendChild(n.cloneNode(true));
-      }
-    }
-    return fragment;
-  }
-
   private static String toString(@NotNull final XmlSerializable serializable, final int flags) {
     final StringWriter out =new StringWriter();
     try {
@@ -732,45 +576,6 @@ public final class XmlUtil {
     } else {
       element.setAttributeNS(name.getNamespaceURI(),name.getPrefix()+':'+name.getLocalPart(), value);
     }
-  }
-
-  public static DocumentFragment childrenToDocumentFragment(final XmlReader in) throws XmlException {
-    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    final Document doc;
-    try {
-      doc = dbf.newDocumentBuilder().newDocument();
-    } catch (@NotNull final ParserConfigurationException e) {
-      throw new XmlException(e);
-    }
-    final DocumentFragment documentFragment = doc.createDocumentFragment();
-    final XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
-    while (in.hasNext() && (in.next()!= EventType.END_ELEMENT)) {
-      writeCurrentEvent(in, out);
-      if (in.getEventType()== EventType.START_ELEMENT) {
-        writeElementContent(null, in, out);
-      }
-    }
-    return documentFragment;
-  }
-
-
-  public static Node childToNode(final XmlReader in) throws XmlException {
-    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    final Document doc;
-    try {
-      doc = dbf.newDocumentBuilder().newDocument();
-    } catch (@NotNull final ParserConfigurationException e) {
-      throw new XmlException(e);
-    }
-    final DocumentFragment documentFragment = doc.createDocumentFragment();
-    final XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
-    writeCurrentEvent(in, out);
-    if (in.getEventType()== EventType.START_ELEMENT) {
-      writeElementContent(null, in, out);
-    }
-    return documentFragment.getFirstChild();
   }
 
 
@@ -904,27 +709,6 @@ public final class XmlUtil {
       default:
         throw new XmlException("Unsupported element found");
     }
-  }
-
-  @NotNull
-  public static CompactFragment nodeListToFragment(@NotNull final NodeList nodeList) throws XmlException {
-    switch(nodeList.getLength()) {
-      case 0:
-        return new CompactFragment("");
-      case 1:
-        final Node node = nodeList.item(0);
-        return nodeToFragment(node);
-      default:
-        return nodeToFragment(toDocFragment(nodeList));
-    }
-  }
-
-  @NotNull
-  public static CompactFragment nodeToFragment(final Node node) throws XmlException {
-    if (node instanceof Text) {
-      return new CompactFragment(((Text) node).getData());
-    }
-    return siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
   }
 
   public static void unhandledEvent(@NotNull final XmlReader in) throws XmlException {
@@ -1195,7 +979,7 @@ public final class XmlUtil {
     writeElementContent(new HashMap<String, String>(), in, out);
   }
 
-  private static void writeElementContent(@Nullable final Map<String, String> missingNamespaces, @NotNull final XmlReader in, @NotNull final XmlWriter out) throws
+  static void writeElementContent(@Nullable final Map<String, String> missingNamespaces, @NotNull final XmlReader in, @NotNull final XmlWriter out) throws
           XmlException {
     while (in.hasNext()) {
       final EventType type = in.next();
@@ -1211,7 +995,7 @@ public final class XmlUtil {
     }
   }
 
-  private static void configure(@NotNull final Transformer transformer, final int flags) {
+  static void configure(@NotNull final Transformer transformer, final int flags) {
     if ((flags & FLAG_OMIT_XMLDECL) != 0) {
       transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     }
@@ -1366,18 +1150,4 @@ public final class XmlUtil {
     }
   }
 
-  @Nullable
-  public static DocumentFragment toDocFragment(@Nullable final List<Node> value) {
-    if (value==null || value.size()==0) { return null; }
-    final Document document = value.get(0).getOwnerDocument();
-    final DocumentFragment fragment = document.createDocumentFragment();
-    for(final Node n: value) {
-      if (n.getOwnerDocument()!=document) {
-        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
-      } else {
-        fragment.appendChild(n.cloneNode(true));
-      }
-    }
-    return fragment;
-  }
 }

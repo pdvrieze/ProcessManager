@@ -64,13 +64,13 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   @SuppressWarnings("deprecation")
   @Deprecated
   public ProcessData(final String name, @Nullable final NodeList value) throws XmlException {
-    this(name, (value==null || value.getLength()<=1)? toNode(value) : XmlUtil.toDocFragment(value));
+    this(name, (value==null || value.getLength()<=1)? toNode(value) : DomUtil.toDocFragment(value));
   }
 
   @SuppressWarnings("deprecation")
   @Deprecated
   public ProcessData(final String name, final List<Node> value) throws XmlException {
-    this(name, XmlUtil.toDocFragment(value));
+    this(name, DomUtil.toDocFragment(value));
   }
 
   private ProcessData() {}
@@ -114,12 +114,12 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   }
 
   public DocumentFragment getContentFragment() throws XmlException {
-    return XmlUtil.childrenToDocumentFragment(getContentStream());
+    return DomUtil.childrenToDocumentFragment(getContentStream());
   }
 
   @NotNull
   private static CompactFragment toCompactFragment(final Node value) throws XmlException {
-    return XmlUtil.nodeToFragment(value);
+    return DomUtil.nodeToFragment(value);
   }
 
 

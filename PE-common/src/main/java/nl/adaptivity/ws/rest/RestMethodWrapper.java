@@ -370,7 +370,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
   private static Object getBody(final Class<?> pClass, final HttpMessage pMessage) throws XmlException {
     CompactFragment body = pMessage.getBody();
     if (body!=null) {
-      return XmlUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(body));
+      return DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(body));
     } else {
       return getAttachment(pClass, null, pMessage);
     }
@@ -444,7 +444,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     // TODO Avoid JAXB where possible, use XMLDeserializer instead
     final boolean string = CharSequence.class.isAssignableFrom(pClass);
     Node match;
-    DocumentFragment fragment = XmlUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(pBody));
+    DocumentFragment fragment = DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(pBody));
     for (Node n = fragment.getFirstChild(); n!=null; n = n.getNextSibling()) {
       match = xpathMatch(n, pXpath);
       if (match != null) {

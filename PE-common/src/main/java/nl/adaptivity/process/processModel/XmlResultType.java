@@ -68,7 +68,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   @Deprecated
   public XmlResultType(final String name, final String path, @Nullable final DocumentFragment content, final Iterable<nl.adaptivity.xml.Namespace> namespaceContext) {
-    this(name, path, content==null ? null : XmlUtil.toString(content).toCharArray(), namespaceContext);
+    this(name, path, content==null ? null : DomUtil.toString(content).toCharArray(), namespaceContext);
   }
 
   public XmlResultType(final String name, final String path, final char[] content, final Iterable<Namespace> originalNSContext) {
@@ -109,9 +109,9 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
       // shortcircuit missing path
       final ProcessData processData;
       if (getPath() == null || ".".equals(getPath())) {
-        processData = new ProcessData(getName(), XmlUtil.nodeToFragment(payload));
+        processData = new ProcessData(getName(), DomUtil.nodeToFragment(payload));
       } else {
-        processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(XmlUtil.ensureAttached(payload), XPathConstants.NODESET)));
+        processData = new ProcessData(getName(), DomUtil.nodeListToFragment((NodeList) getXPath().evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET)));
       }
       final char[] content = getContent();
       if (content!=null && content.length>0) {

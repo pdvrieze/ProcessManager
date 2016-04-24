@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
@@ -49,7 +50,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   @Deprecated
   public BaseMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final Node messageBody) throws
           XmlException {
-    this(service, endpoint, operation, url, method, contentType, XmlUtil.nodeToFragment(messageBody));
+    this(service, endpoint, operation, url, method, contentType, DomUtil.nodeToFragment(messageBody));
   }
 
   public BaseMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final CompactFragment messageBody) {
@@ -164,7 +165,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   public DocumentFragment getMessageBodyNode() {
     try {
-      return XmlUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
+      return DomUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
     } catch (@NotNull final IOException e) {
       throw new RuntimeException(e);
     }
