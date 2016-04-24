@@ -105,8 +105,8 @@ public class SoapMethodWrapper extends WsMethodWrapper {
   }
 
   private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<CompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
-    final Body<CompactFragment> body = envelope.getBody();
-    XmlReader reader = XMLFragmentStreamReader.from(body.getBodyContent());
+    final Body<? extends CompactFragment> body   = envelope.getBody();
+    XmlReader                             reader = XMLFragmentStreamReader.from(body.getBodyContent());
     reader.nextTag();
     assertRootNode(reader);
 
