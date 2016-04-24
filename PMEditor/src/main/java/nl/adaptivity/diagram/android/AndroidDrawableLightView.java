@@ -16,20 +16,20 @@
 
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import nl.adaptivity.diagram.Theme;
 
 
 public class AndroidDrawableLightView implements LightView {
 
-  private Drawable mDrawable;
-  private double mScale;
+  private final Drawable mDrawable;
+  private       double   mScale;
   private float mLeft = 0;
   private float mTop = 0;
 
-  public AndroidDrawableLightView(Drawable drawable, double scale) {
+  public AndroidDrawableLightView(final Drawable drawable, final double scale) {
     mDrawable = drawable;
     // Initialise bounds
     mDrawable.setBounds(0, 0, mDrawable.getIntrinsicWidth(), mDrawable.getIntrinsicHeight());
@@ -37,7 +37,7 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setFocussed(boolean focussed) {
+  public void setFocussed(final boolean focussed) {
     setState(android.R.attr.state_focused, focussed);
   }
 
@@ -47,7 +47,7 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setSelected(boolean selected) {
+  public void setSelected(final boolean selected) {
     setState(android.R.attr.state_selected, selected);
   }
 
@@ -57,7 +57,7 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setTouched(boolean touched) {
+  public void setTouched(final boolean touched) {
     setState(android.R.attr.state_pressed, touched);
   }
 
@@ -67,7 +67,7 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setActive(boolean active) {
+  public void setActive(final boolean active) {
     setState(android.R.attr.state_active, active);
   }
 
@@ -76,19 +76,19 @@ public class AndroidDrawableLightView implements LightView {
     return hasState(android.R.attr.state_active);
   }
 
-  private void setState(final int stateResource, boolean desiredState) {
+  private void setState(final int stateResource, final boolean desiredState) {
     final int[] oldState = mDrawable.getState();
     final int statePos = getStatePos(oldState, stateResource);
     if (desiredState) {
       if (statePos<0) {
-        int newState[] = new int[oldState.length+1];
+        final int[] newState = new int[oldState.length + 1];
         System.arraycopy(oldState, 0, newState, 0, oldState.length);
         newState[oldState.length]=stateResource;
         mDrawable.setState(newState);
       }
     } else {
       if (statePos>=0) {
-        int newState[] = new int[oldState.length-1];
+        final int[] newState = new int[oldState.length - 1];
         System.arraycopy(oldState, 0, newState, 0, statePos);
         System.arraycopy(oldState, statePos+1, newState, statePos, newState.length-statePos);
         mDrawable.setState(newState);
@@ -111,7 +111,7 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void getBounds(RectF target) {
+  public void getBounds(final RectF target) {
     target.top = mTop;
     target.left = mLeft;
     target.right = mLeft+ (float) (mDrawable.getIntrinsicWidth()/mScale);
@@ -119,19 +119,19 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setPos(float left, float top) {
+  public void setPos(final float left, final float top) {
     mLeft = left;
     mTop = top;
   }
 
   @Override
-  public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+  public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
     mScale = scale;
     mDrawable.draw(canvas);
   }
 
   @Override
-  public void move(float x, float y) {
+  public void move(final float x, final float y) {
     mTop = mTop+y;
     mLeft = mLeft+x;
   }

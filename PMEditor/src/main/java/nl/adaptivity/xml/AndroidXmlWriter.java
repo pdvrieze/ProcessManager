@@ -47,23 +47,23 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
     this(writer, true);
   }
 
-  public AndroidXmlWriter(final Writer writer, boolean repairNamespaces) throws XmlPullParserException, IOException {
+  public AndroidXmlWriter(final Writer writer, final boolean repairNamespaces) throws XmlPullParserException, IOException {
     this(repairNamespaces);
     mWriter.setOutput(writer);
     initWriter(mWriter);
   }
 
-  private AndroidXmlWriter(boolean repairNamespaces) throws XmlPullParserException {
+  private AndroidXmlWriter(final boolean repairNamespaces) throws XmlPullParserException {
     mRepairNamespaces = repairNamespaces;
     mWriter = new BetterXmlSerializer();
     initWriter(mWriter);
   }
 
-  public AndroidXmlWriter(final OutputStream outputStream, String encoding) throws XmlPullParserException, IOException {
+  public AndroidXmlWriter(final OutputStream outputStream, final String encoding) throws XmlPullParserException, IOException {
     this(outputStream, encoding, true);
   }
 
-  public AndroidXmlWriter(final OutputStream outputStream, String encoding, boolean repairNamespaces) throws XmlPullParserException, IOException {
+  public AndroidXmlWriter(final OutputStream outputStream, final String encoding, final boolean repairNamespaces) throws XmlPullParserException, IOException {
     this(repairNamespaces);
     mWriter.setOutput(outputStream, encoding);
     initWriter(mWriter);
@@ -81,7 +81,7 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
     this(serializer, true);
   }
 
-  public AndroidXmlWriter(final XmlSerializer serializer, boolean repairNamespaces) {
+  public AndroidXmlWriter(final XmlSerializer serializer, final boolean repairNamespaces) {
     mWriter = serializer;
     mRepairNamespaces = repairNamespaces;
     initWriter(mWriter);
@@ -101,9 +101,9 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
   @Override
   public void startTag(@Nullable final CharSequence namespace, @NonNull final CharSequence localName, @Nullable final CharSequence prefix) throws
           XmlException {
-    String namespaceStr = StringUtil.toString(namespace.toString());
+    final String namespaceStr = StringUtil.toString(namespace.toString());
     try {
-      if (namespace != null) {
+      if (namespace != null && namespace.length()>0) {
         mWriter.setPrefix(prefix==null ? "" : prefix.toString(), namespaceStr);
       }
       mWriter.startTag(namespaceStr, StringUtil.toString(localName));
@@ -180,8 +180,8 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
   @Override
   public void attribute(final CharSequence namespace, final CharSequence name, final CharSequence prefix, final CharSequence value) throws XmlException {
     try {
-      String sNamespace = StringUtil.toString(namespace);
-      String sPrefix = StringUtil.toString(prefix);
+      final String sNamespace = StringUtil.toString(namespace);
+      final String sPrefix    = StringUtil.toString(prefix);
       if (sPrefix!=null && sNamespace!=null) { setPrefix(sPrefix, sNamespace); }
       mWriter.attribute(sNamespace, StringUtil.toString(name), StringUtil.toString(value));
       ensureNamespaceIfRepairing(sNamespace, sPrefix);

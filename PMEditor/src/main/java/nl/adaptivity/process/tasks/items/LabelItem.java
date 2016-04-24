@@ -26,7 +26,7 @@ public class LabelItem extends TaskItem {
 
   private CharSequence mValue;
 
-  public LabelItem(CharSequence name, CharSequence value) {
+  public LabelItem(final CharSequence name, final CharSequence value) {
     super(name);
     mValue = value;
   }
@@ -37,7 +37,7 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
-  public void updateView(ViewDataBinding binding) {
+  public void updateView(final ViewDataBinding binding) {
     ((TaskitemLabelBinding) binding).setTaskitem(this);
   }
 
@@ -56,7 +56,7 @@ public class LabelItem extends TaskItem {
     return mValue;
   }
 
-  public void setValue(CharSequence value) {
+  public void setValue(final CharSequence value) {
     mValue = value;
     notifyPropertyChanged(BR.value);
   }
@@ -92,7 +92,7 @@ public class LabelItem extends TaskItem {
     if (o == null || getClass() != o.getClass()) { return false; }
     if (!super.equals(o)) { return false; }
 
-    LabelItem labelItem = (LabelItem) o;
+    final LabelItem labelItem = (LabelItem) o;
 
     return mValue != null ? mValue.equals(labelItem.mValue) : labelItem.mValue == null;
 

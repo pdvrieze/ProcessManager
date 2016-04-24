@@ -16,35 +16,35 @@
 
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import nl.adaptivity.diagram.Theme;
 
 /** An interface for a lightweight view. */
 public interface LightView {
 
-  public void setFocussed(boolean focussed);
+  void setFocussed(boolean focussed);
 
-  public boolean isFocussed();
+  boolean isFocussed();
 
-  public void setSelected(boolean selected);
+  void setSelected(boolean selected);
 
-  public boolean isSelected();
+  boolean isSelected();
 
-  public void setTouched(boolean touched);
+  void setTouched(boolean touched);
 
-  public boolean isTouched();
+  boolean isTouched();
 
-  public void getBounds(RectF target);
+  void getBounds(RectF target);
 
-  public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale);
+  void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale);
 
-  public void move(float x, float y);
+  void move(float x, float y);
 
-  public void setPos(float left, float top);
+  void setPos(float left, float top);
 
-  public void setActive(boolean active);
+  void setActive(boolean active);
 
-  public boolean isActive();
+  boolean isActive();
 
 }

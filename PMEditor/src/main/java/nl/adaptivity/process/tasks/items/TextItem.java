@@ -28,19 +28,19 @@ import java.util.List;
 
 public class TextItem extends TextLabeledItem {
 
-  private List<CharSequence> mSuggestions;
-  private ArrayAdapter<CharSequence> mSuggestionAdapter;
+  private final List<CharSequence>         mSuggestions;
+  private       ArrayAdapter<CharSequence> mSuggestionAdapter;
 
-  public TextItem(CharSequence name, CharSequence label, CharSequence value, List<? extends CharSequence> suggestions) {
+  public TextItem(final CharSequence name, final CharSequence label, final CharSequence value, final List<? extends CharSequence> suggestions) {
     super(name, label, value);
     mSuggestions = new ArrayList<>(suggestions);
   }
 
   @Override
-  public void updateView(ViewDataBinding binding) {
-    TaskitemTextBinding b = (TaskitemTextBinding) binding;
+  public void updateView(final ViewDataBinding binding) {
+    final TaskitemTextBinding b = (TaskitemTextBinding) binding;
     b.setTaskitem(this);
-    AutoCompleteTextView textview = (AutoCompleteTextView) b.taskitemDetailTextText;
+    final AutoCompleteTextView textview = (AutoCompleteTextView) b.taskitemDetailTextText;
     textview.setText(getValue());
     if (mSuggestions!=null && mSuggestions.size()>0) {
       if (mSuggestionAdapter == null) {
@@ -49,7 +49,7 @@ public class TextItem extends TextLabeledItem {
       textview.setAdapter(mSuggestionAdapter);
     }
 
-    Object tag = textview.getTag();
+    final Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {
       textview.removeTextChangedListener((TextWatcher) tag);
     }
@@ -73,7 +73,7 @@ public class TextItem extends TextLabeledItem {
     if (o == null || getClass() != o.getClass()) { return false; }
     if (!super.equals(o)) { return false; }
 
-    TextItem textItem = (TextItem) o;
+    final TextItem textItem = (TextItem) o;
 
     if (mSuggestions != null ? !mSuggestions.equals(textItem.mSuggestions) : textItem.mSuggestions != null) {
       return false;

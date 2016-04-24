@@ -37,7 +37,7 @@ public final class PMCursorAdapter extends BasePMCursorAdapter<PMViewHolder> {
     }
   }
 
-  public PMCursorAdapter(Context context, Cursor c) {
+  public PMCursorAdapter(final Context context, final Cursor c) {
     super(context, c, false);
   }
 

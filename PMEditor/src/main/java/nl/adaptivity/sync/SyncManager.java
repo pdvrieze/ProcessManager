@@ -21,10 +21,7 @@ import android.content.ContentResolver;
 import android.content.SyncStatusObserver;
 import android.os.Debug;
 import android.support.annotation.NonNull;
-import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.editor.android.BuildConfig;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.tasks.data.TaskProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +33,8 @@ import java.util.List;
 public class SyncManager {
 
   public class SyncStatusObserverData {
-    SyncStatusObserver observer;
-    String authority;
+    final SyncStatusObserver observer;
+    final String             authority;
 
     public SyncStatusObserverData(final String authority, final SyncStatusObserver syncObserver) {
       this.authority = authority;
@@ -46,9 +43,9 @@ public class SyncManager {
   }
 
   private static final boolean DISABLEONDEBUG = true;
-  private static final String[] AUTHORITIES = new String[]{ProcessModelProvider.AUTHORITY, TaskProvider.AUTHORITY};
   private final Account mAccount;
-  private List<SyncStatusObserverData> mSyncObservers = new ArrayList<>(2);
+  private String[]      mAuthorities;
+  private final List<SyncStatusObserverData> mSyncObservers = new ArrayList<>(2);
 
   private final SyncStatusObserver mSyncObserver = new SyncStatusObserver() {
     @Override
@@ -60,9 +57,9 @@ public class SyncManager {
 
   private void onInnerSyncStatusChanged(final int which) {
     if (mAccount!=null) {
-      for (String authority: AUTHORITIES) {
+      for (final String authority: mAuthorities) {
         if (ContentResolver.isSyncActive(mAccount, authority) || ContentResolver.isSyncPending(mAccount, authority)) {
-          for (SyncStatusObserverData observerData : mSyncObservers) {
+          for (final SyncStatusObserverData observerData : mSyncObservers) {
             if (authority.equals(observerData.authority)) {
               observerData.observer.onStatusChanged(which);
             }
@@ -72,12 +69,13 @@ public class SyncManager {
     }
   }
 
-  public SyncManager(Account account) {
+  public SyncManager(final Account account, final String[] authorities) {
     mAccount = account;
+    mAuthorities = authorities;
   }
 
   public SyncStatusObserverData addOnStatusChangeObserver(final String authority, @NonNull final SyncStatusObserver syncObserver) {
-    SyncStatusObserverData data;
+    final SyncStatusObserverData data;
     if (mSyncObserverHandle ==null && isSyncable(authority)) {
       mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
     }
@@ -86,21 +84,21 @@ public class SyncManager {
     return data;
   }
 
-  public void removeOnStatusChangeObserver(SyncStatusObserverData handle) {
+  public void removeOnStatusChangeObserver(final SyncStatusObserverData handle) {
     if (mSyncObserverHandle!=null && mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
       ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
       mSyncObserverHandle = null;
     }
   }
 
-  public boolean isSyncable(String authority) {
+  public boolean isSyncable(final String authority) {
     if (mAccount==null||(DISABLEONDEBUG && BuildConfig.DEBUG && Debug.isDebuggerConnected())) { return false; }
     return ContentResolver.getIsSyncable(mAccount, authority) > 0;
   }
 
   public List<String> getActiveSyncTargets() {
-    List<String> result = new ArrayList<>(2);
-    for (String authority: AUTHORITIES) {
+    final List<String> result = new ArrayList<>(2);
+    for (final String authority: mAuthorities) {
       if (isSyncable(authority)) {
         result.add(authority);
       }
@@ -108,33 +106,7 @@ public class SyncManager {
     return result;
   }
 
-  public boolean isProcessModelSyncActive() {
-    return ContentResolver.isSyncActive(mAccount, ProcessModelProvider.AUTHORITY);
+  public Account getAccount() {
+    return mAccount;
   }
-
-  public boolean isProcessModelSyncPending() {
-    return ContentResolver.isSyncPending(mAccount, ProcessModelProvider.AUTHORITY);
-  }
-
-  public boolean isTaskSyncActive() {
-    return ContentResolver.isSyncActive(mAccount, TaskProvider.AUTHORITY);
-  }
-
-
-  public boolean isTaskSyncPending() {
-    return ContentResolver.isSyncPending(mAccount, TaskProvider.AUTHORITY);
-  }
-
-  public void requestSyncProcessModelList(final boolean expedited) {
-    if (isSyncable(ProcessModelProvider.AUTHORITY)) {
-      ProviderHelper.requestSync(mAccount, ProcessModelProvider.AUTHORITY, expedited);
-    }
-  }
-
-  public void requestSyncTaskList(final boolean expedited) {
-    if (isSyncable(TaskProvider.AUTHORITY)) {
-      ProviderHelper.requestSync(mAccount, TaskProvider.AUTHORITY, expedited);
-    }
-  }
-
 }

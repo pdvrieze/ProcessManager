@@ -28,7 +28,7 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.sync.SyncManager;
 
 
-public class MasterListFragment extends RecyclerFragment {
+public class MasterListFragment<M extends SyncManager> extends RecyclerFragment {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -40,19 +40,19 @@ public class MasterListFragment extends RecyclerFragment {
     Log.i(MasterListFragment.class.getSimpleName(), "Creating a new instanceo of "+getClass().getSimpleName());
   }
 
-  public interface ProcessModelListCallbacks {
+  public interface ListCallbacks<M extends SyncManager> {
     /** Initiate a click. When this returns true, further ignore the event (don't select) */
     boolean onItemClicked(final int row, final long id);
     void onItemSelected(int row, long id);
     boolean isTwoPane();
-    SyncManager getSyncManager();
+    M getSyncManager();
   }
 
   /**
-   * A dummy implementation of the {@link ProcessModelListCallbacks} interface that does
+   * A dummy implementation of the {@link ListCallbacks} interface that does
    * nothing. Used only when this fragment is not attached to an activity.
    */
-  public static ProcessModelListCallbacks sDummyCallbacks = new ProcessModelListCallbacks() {
+  public static final ListCallbacks sDummyCallbacks = new ListCallbacks() {
     @Override public boolean onItemClicked(final int row, final long id) {/*dummy, not processed*/ return false; }
     @Override
     public void onItemSelected(final int row, final long id) {/*dummy*/}
@@ -64,7 +64,7 @@ public class MasterListFragment extends RecyclerFragment {
 
     @Override
     public SyncManager getSyncManager() {
-      return new SyncManager(null);
+      return new SyncManager(null, AUTHORITIES);
     }
   };
 
@@ -72,7 +72,7 @@ public class MasterListFragment extends RecyclerFragment {
    * The fragment's current callback object, which is notified of list item
    * clicks.
    */
-  private ProcessModelListCallbacks mCallbacks = sDummyCallbacks;
+  private ListCallbacks mCallbacks = sDummyCallbacks;
 
   @Override
   public void onActivityCreated(final Bundle savedInstanceState) {
@@ -84,8 +84,8 @@ public class MasterListFragment extends RecyclerFragment {
   public void onAttach(final Activity activity) {
     super.onAttach(activity);
     if (mCallbacks==sDummyCallbacks) {
-      if (getActivity() instanceof ProcessModelListCallbacks) {
-        mCallbacks = (ProcessModelListCallbacks) getActivity();
+      if (getActivity() instanceof ListCallbacks) {
+        mCallbacks = (ListCallbacks) getActivity();
       }
     }
   }
@@ -114,12 +114,12 @@ public class MasterListFragment extends RecyclerFragment {
     mCallbacks = sDummyCallbacks;
   }
 
-  protected ProcessModelListCallbacks getCallbacks() {
+  protected ListCallbacks<M> getCallbacks() {
     if (mCallbacks==sDummyCallbacks) {
       Fragment parent = getParentFragment();
       while (parent!=null) {
-        if (parent instanceof ProcessModelListCallbacks) {
-          mCallbacks = (ProcessModelListCallbacks) parent;
+        if (parent instanceof ListCallbacks) {
+          mCallbacks = (ListCallbacks) parent;
           return mCallbacks;
         }
         parent = getParentFragment();
@@ -150,11 +150,11 @@ public class MasterListFragment extends RecyclerFragment {
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
     final Adapter adapter = getListAdapter();
     if (adapter instanceof SelectableAdapter) {
-      SelectableAdapter selectableAdapter = (SelectableAdapter) adapter;
+      final SelectableAdapter selectableAdapter = (SelectableAdapter) adapter;
 
       if (selectableAdapter.getSelectedId() != RecyclerView.NO_ID) {
         // Serialize and persist the activated item position.

@@ -75,11 +75,11 @@ public class RecyclerFragment extends Fragment {
    * way to have the built-in indeterminant progress state be shown.
    */
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                           final Bundle savedInstanceState) {
     final Context context = getActivity();
 
-    RecyclerView rv = new RecyclerView(getActivity());
+    final RecyclerView rv = new RecyclerView(getActivity());
     rv.setId(android.R.id.list);
     rv.setLayoutManager(new LinearLayoutManager(getActivity()));
 
@@ -94,7 +94,7 @@ public class RecyclerFragment extends Fragment {
    */
   @CallSuper
   @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(final View view, final Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     ensureList();
   }
@@ -113,8 +113,8 @@ public class RecyclerFragment extends Fragment {
   /**
    * Provide the cursor for the list view.
    */
-  public void setListAdapter(Adapter<?> adapter) {
-    boolean hadAdapter = mAdapter != null;
+  public void setListAdapter(final Adapter<?> adapter) {
+    final boolean hadAdapter = mAdapter != null;
     mAdapter = adapter;
     if (mRecyclerView != null) {
       mRecyclerView.setAdapter(adapter);
@@ -146,14 +146,14 @@ public class RecyclerFragment extends Fragment {
       }
       return;
     }
-    View root = getView();
+    final View root = getView();
     if (root == null) {
       throw new IllegalStateException("Content view not yet created");
     }
     if (root instanceof RecyclerView) {
       mRecyclerView = (RecyclerView) root;
     } else {
-      View rawRecyclerView = root.findViewById(android.R.id.list);
+      final View rawRecyclerView = root.findViewById(android.R.id.list);
       if (!(rawRecyclerView instanceof RecyclerView)) {
         if (rawRecyclerView == null) {
           throw new RuntimeException(

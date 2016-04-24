@@ -52,7 +52,7 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setSelected(boolean selected) {
+  public void setSelected(final boolean selected) {
     setState(Drawable.STATE_SELECTED, selected);
     mState |= Drawable.STATE_SELECTED;
   }
@@ -63,7 +63,7 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setTouched(boolean touched) {
+  public void setTouched(final boolean touched) {
     setState(Drawable.STATE_TOUCHED, touched);
     mState |= Drawable.STATE_TOUCHED;
   }
@@ -74,7 +74,7 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setActive(boolean active) {
+  public void setActive(final boolean active) {
     setState(Drawable.STATE_ACTIVE, active);
     mState |= Drawable.STATE_ACTIVE;
   }

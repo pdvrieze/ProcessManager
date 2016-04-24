@@ -16,14 +16,13 @@
 
 package nl.adaptivity.process.ui.main;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 
 
 /**
  * Created by pdvrieze on 11/01/16.
  */
-public class AuthenticatedActivity extends AppCompatActivity {
+public abstract class AuthenticatedActivity extends AppCompatActivity {
 
   public static final int REQUEST_DOWNLOAD_AUTHENTICATOR = 41;
 }

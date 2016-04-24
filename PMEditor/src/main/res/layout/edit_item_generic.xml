@@ -36,6 +36,7 @@
         <ImageView
                 android:id="@+id/drag_handle"
                 style="@style/DragHandle"
+                android:contentDescription="@string/cdesc_drag"
                 />
 
         <LinearLayout
@@ -54,7 +55,7 @@
                     />
 
             <include android:id="@+id/includedCommon"
-                     bind:taskitem="@{taskitem}"
+                    bind:taskitem="@{taskitem}"
                      layout="@layout/edit_item_common"
                     />
 

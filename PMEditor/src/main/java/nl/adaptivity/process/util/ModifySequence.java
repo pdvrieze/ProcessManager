@@ -19,9 +19,9 @@ package nl.adaptivity.process.util;
 import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.namespace.QName;
@@ -297,7 +297,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
   }
 
   private static CharSequence readCharSequence(final Parcel source) {
-    byte b = source.readByte();
+    final byte b = source.readByte();
     if (b==2) {
       return null;
     } else if (b==0) {

@@ -16,13 +16,11 @@
 
 package nl.adaptivity.process.tasks.data;
 
-import nl.adaptivity.process.tasks.data.TaskProvider.Items;
-import nl.adaptivity.process.tasks.data.TaskProvider.Options;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 
 @Deprecated
 public class TasksOpenHelper extends SQLiteOpenHelper {
@@ -39,12 +37,12 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
   private static final String SQL_CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_NAME_OPTIONS + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY )";
 
-  public TasksOpenHelper(Context context) {
+  public TasksOpenHelper(final Context context) {
     super(context, DB_NAME, null, DB_VERSION);
   }
 
   @Override
-  public void onCreate(SQLiteDatabase db) {
+  public void onCreate(final SQLiteDatabase db) {
     db.execSQL(SQL_CREATE_OPTIONS_TABLE);
     db.execSQL(SQL_CREATE_ITEMS_TABLE);
     db.execSQL(SQL_CREATE_TASKS_TABLE);
@@ -56,7 +54,7 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
   }
 
   @Override
-  public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+  public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
     db.beginTransaction();
     try {
       if (oldVersion==1 && newVersion==2) {
@@ -75,7 +73,7 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
   }
 
   @Override
-  public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+  public void onDowngrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
     onUpgrade(db, oldVersion, newVersion);
   }
 

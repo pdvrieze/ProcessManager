@@ -21,7 +21,6 @@ import android.support.annotation.IdRes;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.RadioButton;
 
@@ -37,7 +36,7 @@ public class RadioButtonHelper extends FrameLayout {
     void onCheckedChanged(RadioButtonHelper source, int oldCheckedId, int newCheckedId);
   }
 
-  private OnClickListener mClickListener = new OnClickListener() {
+  private final OnClickListener mClickListener = new OnClickListener() {
     @Override
     public void onClick(final View v) {
       radioButtonClicked(v);
@@ -69,10 +68,10 @@ public class RadioButtonHelper extends FrameLayout {
     super(context, attrs, defStyleAttr, defStyleRes);
   }
 
-  public void check(@IdRes int id) {
-    int oldCheckedId = mCheckedId;
+  public void check(@IdRes final int id) {
+    final int oldCheckedId = mCheckedId;
     if (mRadioChildren!=null) {
-      for (RadioButton b : mRadioChildren) {
+      for (final RadioButton b : mRadioChildren) {
         b.setChecked(b.getId()==id);
       }
     }
@@ -90,27 +89,27 @@ public class RadioButtonHelper extends FrameLayout {
   public void clearCheck() {
     mCheckedId=0;
     if (mRadioChildren!=null) {
-      for (RadioButton button : mRadioChildren) {
+      for (final RadioButton button : mRadioChildren) {
         button.setChecked(false);
       }
     }
   }
 
-  public void setOnCheckedChangeListener(OnCheckedChangeListener listener) {
+  public void setOnCheckedChangeListener(final OnCheckedChangeListener listener) {
     mOnCheckedChangedListener = listener;
   }
 
   @Override
   public void requestLayout() {
     // Just hook into this to find children
-    ArrayList<RadioButton> newRadioChildren = new ArrayList<RadioButton>();
-    int oldChecked = mCheckedId;
+    final ArrayList<RadioButton> newRadioChildren = new ArrayList<RadioButton>();
+    final int                    oldChecked       = mCheckedId;
     addRadioChildren(newRadioChildren, this);
     if (mRadioChildren!=null) {
-      int origCount = mRadioChildren.size();
+      final int origCount = mRadioChildren.size();
       mRadioChildren.removeAll(newRadioChildren);
-      int commonCount = origCount - mRadioChildren.size();
-      for(RadioButton removedButton:mRadioChildren) {
+      final int commonCount = origCount - mRadioChildren.size();
+      for(final RadioButton removedButton:mRadioChildren) {
         removedButton.setOnClickListener(null);
       }
     }
@@ -127,7 +126,7 @@ public class RadioButtonHelper extends FrameLayout {
 
   private void addRadioChildren(final ArrayList<RadioButton> target, final ViewGroup parent) {
     for (int i = 0; i < parent.getChildCount(); i++) {
-      View child = parent.getChildAt(i);
+      final View child = parent.getChildAt(i);
       if (child instanceof RadioButton) {
         final RadioButton radioButton = (RadioButton) child;
         radioButton.setOnClickListener(mClickListener);

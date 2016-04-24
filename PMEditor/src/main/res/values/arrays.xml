@@ -17,11 +17,6 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string-array name="array_slider_main_items">
-        <item>Tasks</item>
-        <item>Process Models</item>
-    </string-array>
-
     <string-array name="sync_source_suggestions" tools:ignore="InconsistentArrays">
         <item>@string/default_sync_location</item>
     </string-array>

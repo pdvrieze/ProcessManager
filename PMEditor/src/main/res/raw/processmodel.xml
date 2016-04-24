@@ -16,11 +16,9 @@
   -->
 
 <processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ProcessEngine.xsd"
-      xmlns="http://adaptivity.nl/ProcessEngine/"
-      xmlns:umh="http://adaptivity.nl/userMessageHandler"
-      xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
-      name="testProcessModel">
+              xmlns="http://adaptivity.nl/ProcessEngine/"
+              xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+              name="testProcessModel">
       <start id="start"/>
       <activity id="ac1" predecessor="start" name="ac1">
         <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">

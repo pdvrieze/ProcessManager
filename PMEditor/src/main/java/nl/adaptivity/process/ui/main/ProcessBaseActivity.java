@@ -34,19 +34,19 @@ import nl.adaptivity.android.graphics.AndroidTextMeasurer;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.diagram.svg.SVGCanvas;
 import nl.adaptivity.diagram.svg.SVGPath;
 import nl.adaptivity.diagram.svg.SVGPen;
 import nl.adaptivity.diagram.svg.SVGStrategy;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.ui.ProcessSyncManager;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.PMParcelable;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.ProcessesCallback;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.UIConstants;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.xml.AndroidXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -58,12 +58,12 @@ import java.io.*;
 /**
  * Created by pdvrieze on 11/01/16.
  */
-public class ProcessBaseActivity extends AuthenticatedActivity implements ProcessesCallback {
+public abstract class ProcessBaseActivity extends AuthenticatedActivity implements ProcessesCallback {
 
   private class FileStoreListener {
 
-    private String mMimeType;
-    private int mRequestCode;
+    private final String mMimeType;
+    private final int    mRequestCode;
 
     public FileStoreListener(final String mimeType, final int requestCode) {
       mMimeType = mimeType;
@@ -81,9 +81,9 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   }
 
   public class FileStoreTask extends AsyncTask<ClientProcessModel<?, ?>, Object, File> {
-    private File mFile;
-    private FileStoreListener mPostSave;
-    private int mType;
+    private       File              mFile;
+    private final FileStoreListener mPostSave;
+    private final int               mType;
 
     public FileStoreTask(final int type, final FileStoreListener postSave) {
       this(type, postSave, null);
@@ -144,7 +144,7 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   protected ClientProcessModel<?, ?> mProcessModel;
   /** Temporary file for sharing. */
   protected File mTmpFile;
-  private SyncManager mSyncManager;
+  private ProcessSyncManager mSyncManager;
 
   @Override
   protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -154,7 +154,7 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
         mTmpFile = new File (savedInstanceState.getString(UIConstants.KEY_TMPFILE));
       }
       if (savedInstanceState.containsKey(UIConstants.KEY_PROCESSMODEL)) {
-        PMParcelable pm = savedInstanceState.getParcelable(UIConstants.KEY_PROCESSMODEL);
+        final PMParcelable pm = savedInstanceState.getParcelable(UIConstants.KEY_PROCESSMODEL);
         if (pm!=null) {
           mProcessModel = DrawableProcessModel.get(pm.getProcessModel());
         }
@@ -345,9 +345,9 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
     if (mTmpFile!=null) { outState.putString(UIConstants.KEY_TMPFILE, mTmpFile.getPath()); }
   }
 
-  public SyncManager getSyncManager() {
+  public ProcessSyncManager getSyncManager() {
     if (mSyncManager==null) {
-      mSyncManager = new SyncManager(AuthenticatedWebClient.getStoredAccount(this));
+      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
     }
     return mSyncManager;
   }

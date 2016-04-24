@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class ComboAdapter<T> extends ArrayAdapter<T> {
 
-  private List<T> mList;
+  private final List<T> mList;
 
   public ComboAdapter(final Context context, final List<T> list) {
     super(context, android.R.layout.simple_dropdown_item_1line, list);

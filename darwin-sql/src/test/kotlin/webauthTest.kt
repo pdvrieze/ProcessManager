@@ -29,7 +29,7 @@ class WebauthTest {
 
   @Test
   fun verifyTableCount() {
-    assertEquals(WebAuthDB._tables.size, 3)
+    assertEquals(WebAuthDB._tables.size, 7)
   }
 
   @Test(dependsOnMethods = arrayOf("verifyTableCount"))
@@ -37,6 +37,10 @@ class WebauthTest {
     assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.roles))
     assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.users))
     assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.user_roles))
+    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.tokens))
+    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.pubkeys))
+    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.app_perms))
+    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.challenges))
   }
 
   @Test(dependsOnMethods = arrayOf("verifyTableCount"))
@@ -44,6 +48,10 @@ class WebauthTest {
     assertEquals(WebAuthDB["roles"], WebAuthDB.roles)
     assertEquals(WebAuthDB["users"], WebAuthDB.users)
     assertEquals(WebAuthDB["user_roles"], WebAuthDB.user_roles)
+    assertEquals(WebAuthDB["tokens"], WebAuthDB.tokens)
+    assertEquals(WebAuthDB["pubkeys"], WebAuthDB.pubkeys)
+    assertEquals(WebAuthDB["app_perms"], WebAuthDB.app_perms)
+    assertEquals(WebAuthDB["challenges"], WebAuthDB.challenges)
   }
 
   @Test(dependsOnMethods = arrayOf("verifyTablesRecorded"))

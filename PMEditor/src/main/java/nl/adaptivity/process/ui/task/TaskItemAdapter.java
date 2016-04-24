@@ -107,7 +107,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
     // do nothing
   }
 
-  public TaskItemAdapter(ExecutableUserTask userTask) {
+  public TaskItemAdapter(final ExecutableUserTask userTask) {
     mUserTask = userTask;
     if (userTask!=null) {
       mCompletable = userTask.isCompleteable();
@@ -115,7 +115,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
     }
   }
 
-  public void setUserTask(ExecutableUserTask userTask) {
+  public void setUserTask(final ExecutableUserTask userTask) {
     Log.d(TAG, "setUserTask() called with " + "userTask = [" + userTask + "]");
     if (mUserTask==userTask) { return; }
     if (mUserTask!=null) {
@@ -135,7 +135,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
 
   @Override
   public int getItemViewType(final int position) {
-    TaskItem item = mUserTask.getItems().get(position);
+    final TaskItem item = mUserTask.getItems().get(position);
     return getTypeOrd(item.getType());
   }
 
@@ -150,20 +150,20 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
   @Override
   public TaskItemHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
     if (mInflater==null) { mInflater = LayoutInflater.from(parent.getContext()); }
-    Type type = getType(viewType);
-    ViewDataBinding binding = DataBindingUtil.inflate(mInflater, type.layoutId, parent, false);
+    final Type            type    = getType(viewType);
+    final ViewDataBinding binding = DataBindingUtil.inflate(mInflater, type.layoutId, parent, false);
 
     return new TaskItemHolder(binding);
   }
 
   @Override
   public void onBindViewHolder(final TaskItemHolder holder, final int position) {
-    int oldPos = holder.getOldPosition();
+    final int oldPos = holder.getOldPosition();
     if (oldPos>=0) {
-      TaskItem oldItem = mUserTask.getItems().get(oldPos);
+      final TaskItem oldItem = mUserTask.getItems().get(oldPos);
       oldItem.removeOnPropertyChangedCallback(mOnPropertyChangedCallback);
     }
-    TaskItem item = mUserTask.getItems().get(position);
+    final TaskItem item = mUserTask.getItems().get(position);
     item.addOnPropertyChangedCallback(mOnPropertyChangedCallback);
     item.updateView(holder.binding);
     holder.binding.setVariable(BR.editable, mUserTask.isEditable());

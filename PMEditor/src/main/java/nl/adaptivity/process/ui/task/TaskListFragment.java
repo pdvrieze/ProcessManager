@@ -29,10 +29,10 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 
@@ -44,10 +44,10 @@ import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  * <p>
- * Activities containing this fragment MUST implement the {@link ProcessModelListCallbacks}
+ * Activities containing this fragment MUST implement the {@link ListCallbacks}
  * interface.
  */
-public class TaskListFragment extends MasterListFragment implements OnRefreshListener, OnSelectionListener {
+public class TaskListFragment extends MasterListFragment<ProcessSyncManager> implements OnRefreshListener, OnSelectionListener {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -73,14 +73,14 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   public TaskListFragment() {}
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
 
     {
-      Bundle arguments = getArguments();
+      final Bundle arguments = getArguments();
       if (arguments != null && arguments.containsKey(MasterDetailOuterFragment.ARG_ITEM_ID)) {
-        long itemId = arguments.getLong(MasterDetailOuterFragment.ARG_ITEM_ID);
+        final long itemId = arguments.getLong(MasterDetailOuterFragment.ARG_ITEM_ID);
         if (itemId>=0) { mAdapter.setSelectedItem(itemId); }
       }
     }
@@ -100,7 +100,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
 
   @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
   @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(final View view, final Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     getRecyclerView().setLayoutManager(new LinearLayoutManager(getActivity()));
     mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefresh);
@@ -142,7 +142,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
     if (mAdapter != null && mAdapter.getSelectedPos() != RecyclerView.NO_POSITION) {
       // Serialise and persist the activated item position.
@@ -156,13 +156,13 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   }
 
   @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
     inflater.inflate(R.menu.tasklist_menu, menu);
     super.onCreateOptionsMenu(menu, inflater);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.ac_sync_tasks: {
         doManualRefresh();
@@ -184,14 +184,14 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   }
 
   private void updateSyncState() {
-    SyncManager syncManager = getCallbacks().getSyncManager();
+    final ProcessSyncManager syncManager = getCallbacks().getSyncManager();
     if (! syncManager.isSyncable(TaskProvider.AUTHORITY)) {
       mSwipeRefresh.setRefreshing(false);
     } else {
       final boolean syncActive = syncManager.isTaskSyncActive();
       final boolean syncPending = syncManager.isTaskSyncPending();
       if (syncActive || (!syncPending)) { mManualSync= false; }
-      boolean sync = syncActive || mManualSync;
+      final boolean sync = syncActive || mManualSync;
       mSwipeRefresh.setRefreshing(sync);
     }
   }

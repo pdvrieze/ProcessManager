@@ -45,7 +45,7 @@ dependencies {
     testCompile 'xmlunit:xmlunit:1.6'
     testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     testCompile project(':DarwinJavaApi')
-    testCompile project(path: ':PE-common', configuration:"testRuntime")
+    testCompile project(':TestSupport')
 
 
 }

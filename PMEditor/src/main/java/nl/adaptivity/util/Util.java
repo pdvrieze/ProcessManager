@@ -35,8 +35,8 @@ public final class Util {
     if (list1==null) { return list2==null; }
     if (list2==null) { return false; }
     if (list1.size()!=list2.size()) { return false; }
-    Iterator<?> it1 = list1.iterator();
-    Iterator<?> it2 = list2.iterator();
+    final Iterator<?> it1 = list1.iterator();
+    final Iterator<?> it2 = list2.iterator();
 
     while (it1.hasNext()) {
       final Object val1 = it1.next();
@@ -51,20 +51,20 @@ public final class Util {
     return (val1 == null) ? (val2 == null) : val1.equals(val2);
   }
 
-  public static String suggestNewName(CharSequence previousName) {
+  public static String suggestNewName(final CharSequence previousName) {
     return suggestNewName(previousName, null);
   }
 
-  public static String suggestNewName(CharSequence previousName, NameChecker nameChecker) {
+  public static String suggestNewName(final CharSequence previousName, final NameChecker nameChecker) {
     int i=previousName.length()-1;
     while (Character.isDigit(previousName.charAt(i))) {
       --i;
     }
-    String suggestedNewName;
-    int suffix;
-    CharSequence base;
+    String             suggestedNewName;
+    int                suffix;
+    final CharSequence base;
     if ((i+1)<previousName.length()) {
-      int prevNo = Integer.parseInt(previousName.subSequence(i+1, previousName.length()).toString());
+      final int prevNo = Integer.parseInt(previousName.subSequence(i + 1, previousName.length()).toString());
       base = previousName.subSequence(0, i+1);
       suffix = prevNo+1;
     } else {

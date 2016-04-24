@@ -63,12 +63,12 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
   private List<CVPair> mUpdateList;
   private ISimpleSyncDelegate mActualDelegate;
 
-  public RemoteXmlSyncAdapterDelegate(Uri listContentUri) {
+  public RemoteXmlSyncAdapterDelegate(final Uri listContentUri) {
     this(listContentUri, null);
 //    if (!(this instanceof ISimpleSyncDelegate)) { throw new IllegalArgumentException("You must implement ISimpleSyncDelegate"); }
   }
 
-  public RemoteXmlSyncAdapterDelegate(Uri listContentUri, ISimpleSyncDelegate delegate) {
+  public RemoteXmlSyncAdapterDelegate(final Uri listContentUri, final ISimpleSyncDelegate delegate) {
     if (delegate ==null) {
       if (!(this instanceof ISimpleSyncDelegate)) { throw new IllegalArgumentException("You must implement ISimpleSyncDelegate"); }
       mActualDelegate = (ISimpleSyncDelegate) this;
@@ -94,9 +94,9 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    */
   @Override
   public
-  final void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
-    GetRequest getList = new GetRequest(mActualDelegate.getListUrl(delegator.getSyncSource()));
-    HttpURLConnection result;
+  final void updateListFromServer(final DelegatingResources delegator, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
+    final GetRequest        getList = new GetRequest(mActualDelegate.getListUrl(delegator.getSyncSource()));
+    final HttpURLConnection result;
     try {
       result = delegator.getWebClient().execute(getList);
     } catch (IOException e) {
@@ -107,7 +107,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
       try {
         final int statusCode = result.getResponseCode();
         if (statusCode >= 200 && statusCode < 400) {
-          InputStream content = result.getInputStream();
+          final InputStream content = result.getInputStream();
           try {
             mUpdateList = updateItemListFromServer(delegator, provider, syncResult, content);
           } finally {
@@ -147,22 +147,22 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    */
 
   @Override
-  public final void updateItemDetails(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, IOException, OperationApplicationException {
+  public final void updateItemDetails(final DelegatingResources delegator, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, IOException, OperationApplicationException {
     if (mUpdateList==null) {
       mUpdateList = Collections.emptyList();
     } else {
       Collections.sort(mUpdateList);
     }
-    final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
-    Cursor updateableItems = provider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_NEWDETAILSPENDING + " OR " + colSyncstate +" = "+SYNC_DETAILUPDATEPENDING/* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, BaseColumns._ID);
+    final String   colSyncstate    = mActualDelegate.getSyncStateColumn();
+    final String[] projectionId    = new String[] { BaseColumns._ID, colSyncstate };
+    final Cursor   updateableItems = provider.query(mListContentUri, projectionId, colSyncstate + " = " + SYNC_NEWDETAILSPENDING + " OR " + colSyncstate + " = " + SYNC_DETAILUPDATEPENDING/* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, BaseColumns._ID);
     try {
-      ListIterator<CVPair> listIterator = mUpdateList.listIterator();
+      final ListIterator<CVPair> listIterator = mUpdateList.listIterator();
       while(updateableItems.moveToNext()) {
-        long id = updateableItems.getLong(0);
-        CVPair pair=null;
+        final long id   = updateableItems.getLong(0);
+        CVPair     pair =null;
         while (listIterator.hasNext()) {
-          CVPair candidate = listIterator.next();
+          final CVPair candidate = listIterator.next();
           if (candidate.mId==id) {
             pair = candidate;
             break;
@@ -171,10 +171,10 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
             break;
           }
         }
-        ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+        final ArrayList<ContentProviderOperation> operations = new ArrayList<>();
         operations.addAll(mActualDelegate.doUpdateItemDetails(delegator, provider, id, pair));
-        ContentProviderResult[] applyResult = provider.applyBatch(operations);
-        for(ContentProviderResult result: applyResult) {
+        final ContentProviderResult[] applyResult = provider.applyBatch(operations);
+        for(final ContentProviderResult result: applyResult) {
           syncResult.stats.numUpdates+=result.count==null ? 0 : result.count;
         }
       }
@@ -200,7 +200,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
-  public final List<CVPair> updateItemListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult, InputStream content) throws XmlException, RemoteException, IOException, OperationApplicationException {
+  public final List<CVPair> updateItemListFromServer(final DelegatingResources delegator, final ContentProviderClient provider, final SyncResult syncResult, final InputStream content) throws XmlException, RemoteException, IOException, OperationApplicationException {
     final List<CVPair> result = new ArrayList<>();
     final List<CVPair> pendingResults = new ArrayList<>();
 
@@ -212,25 +212,25 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
 
 //    final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
 
-    List<ContentValuesProvider> remoteItems = parseItems(delegator, content);
+    final List<ContentValuesProvider> remoteItems = parseItems(delegator, content);
 
     // PROCESSING LOCAL ITEMS
-    ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-    Cursor localItems = provider.query(mListContentUri, null, mActualDelegate.getListSelection(), mActualDelegate.getListSelectionArgs(), null);
+    final ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+    final Cursor                              localItems = provider.query(mListContentUri, null, mActualDelegate.getListSelection(), mActualDelegate.getListSelectionArgs(), null);
     try {
-      int colIdxId = localItems.getColumnIndex(BaseColumns._ID);
-      int colIdxKey = localItems.getColumnIndex(colKey);
-      int colIdxSyncState = localItems.getColumnIndex(colSyncstate);
+      final int colIdxId        = localItems.getColumnIndex(BaseColumns._ID);
+      final int colIdxKey       = localItems.getColumnIndex(colKey);
+      final int colIdxSyncState = localItems.getColumnIndex(colSyncstate);
       while (localItems.moveToNext()) {
-        final String localKey = localItems.getString(colIdxKey);
-        final long localId = localItems.getLong(colIdxId);
-        final int localSyncState = localItems.getInt(colIdxSyncState);
-        Uri itemUri = ContentUris.withAppendedId(mListContentUri, localId);
+        final String localKey       = localItems.getString(colIdxKey);
+        final long   localId        = localItems.getLong(colIdxId);
+        final int    localSyncState = localItems.getInt(colIdxSyncState);
+        final Uri    itemUri        = ContentUris.withAppendedId(mListContentUri, localId);
 
-        int remoteItemIdx = getItemWithKeyIdx(remoteItems, colKey, localKey);
+        final int remoteItemIdx = getItemWithKeyIdx(remoteItems, colKey, localKey);
 
         if (remoteItemIdx>=0) {
-          ContentValuesProvider remoteItem = remoteItems.get(remoteItemIdx);
+          final ContentValuesProvider remoteItem = remoteItems.get(remoteItemIdx);
           if (localSyncState==SYNC_UPTODATE || localSyncState==SYNC_PUBLISH_TO_SERVER) { // the item magically appeared on the server
 
             if (isChanged(mActualDelegate, localItems, remoteItem)) {
@@ -251,9 +251,9 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
               result.add(new CVPair(localId, remoteItem));
             }
           } else if (localSyncState==SYNC_UPDATE_SERVER) {
-            ContentValues itemCv = remoteItem.getContentValues();
+            final ContentValues itemCv = remoteItem.getContentValues();
             itemCv.remove(colSyncstate);
-            ContentValues itemCpy = new ContentValues(itemCv);
+            final ContentValues itemCpy = new ContentValues(itemCv);
             itemCpy.remove(colSyncstate);
             ContentValuesProvider newValues = null;
             try { // Don't jinx the entire sync when only the single update fails
@@ -289,7 +289,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
           remoteItems.remove(remoteItemIdx);
         } else { // no matching remote item
           if (localSyncState==SYNC_PUBLISH_TO_SERVER) {
-            ContentValuesProvider newLocalValues = mActualDelegate.createItemOnServer(delegator, provider, itemUri, syncResult);
+            final ContentValuesProvider newLocalValues = mActualDelegate.createItemOnServer(delegator, provider, itemUri, syncResult);
             operations.add(ContentProviderOperation
                 .newUpdate(itemUri)
                 .withValues(newLocalValues.getContentValues())
@@ -309,7 +309,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
       localItems.close();
     }
 
-    for(ContentValuesProvider remoteItem: remoteItems) {
+    for(final ContentValuesProvider remoteItem: remoteItems) {
       // These are new items.
       final ContentValues itemCv = remoteItem.getContentValues();
       if (remoteItem.syncDetails()) {
@@ -326,26 +326,26 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
       }
       ++syncResult.stats.numInserts;
     }
-    ContentProviderResult[] batchResult = provider.applyBatch(operations);
-    for(CVPair pendingResult:pendingResults) {
-      ContentProviderResult cvpr = batchResult[(int)pendingResult.mId];
-      long newId = ContentUris.parseId(cvpr.uri);
+    final ContentProviderResult[] batchResult = provider.applyBatch(operations);
+    for(final CVPair pendingResult:pendingResults) {
+      final ContentProviderResult cvpr  = batchResult[(int)pendingResult.mId];
+      final long                  newId = ContentUris.parseId(cvpr.uri);
       result.add(new CVPair(newId, pendingResult.mCV));
     }
     return result;
   }
 
-  private boolean isChanged(ISimpleSyncDelegate actualDelegate, Cursor localItems, ContentValuesProvider remoteItem) {
-    for(Entry<String, Object> remotePair: remoteItem.getContentValues().valueSet()) {
-      String remoteKey = remotePair.getKey();
+  private boolean isChanged(final ISimpleSyncDelegate actualDelegate, final Cursor localItems, final ContentValuesProvider remoteItem) {
+    for(final Entry<String, Object> remotePair: remoteItem.getContentValues().valueSet()) {
+      final String remoteKey = remotePair.getKey();
       if (!actualDelegate.getSyncStateColumn().equals(remoteKey)) {
-        int localColIdx = localItems.getColumnIndex(remoteKey);
+        final int localColIdx = localItems.getColumnIndex(remoteKey);
         if (localColIdx>=0) {
-          Object remoteValue = remotePair.getValue();
+          final Object remoteValue = remotePair.getValue();
           if (remoteValue==null) {
             if (! localItems.isNull(localColIdx)) { return true; }
           } else {
-            Object localValue = getLocalValue(localItems, localColIdx, remoteValue.getClass());
+            final Object localValue = getLocalValue(localItems, localColIdx, remoteValue.getClass());
             if (!remoteValue.equals(localValue)) {
               return true;
             }
@@ -356,7 +356,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     return false;
   }
 
-  private static Object getLocalValue(Cursor localItems, int localColIdx, Class<?> clazz) {
+  private static Object getLocalValue(final Cursor localItems, final int localColIdx, final Class<?> clazz) {
     if (clazz==Integer.class) {
       return localItems.getInt(localColIdx);
     } else if (clazz==Long.class) {
@@ -373,7 +373,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
-  private int getItemWithKeyIdx(List<ContentValuesProvider> items, String keyColumn, String key) {
+  private int getItemWithKeyIdx(final List<ContentValuesProvider> items, final String keyColumn, final String key) {
     final int l = items.size();
     for(int i=0; i<l;++i) {
       if (StringUtil.isEqual(items.get(i).getContentValues().getAsString(keyColumn), key)){
@@ -383,11 +383,11 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     return -1;
   }
 
-  protected List<ContentValuesProvider> parseItems(DelegatingResources delegator, InputStream content) throws XmlException, IOException {
-    final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    XmlReader parser = XmlStreaming.newReader(content, "UTF8");
-    List<ContentValuesProvider> items = new ArrayList<>();
-    EventType type;
+  protected List<ContentValuesProvider> parseItems(final DelegatingResources delegator, final InputStream content) throws XmlException, IOException {
+    final String                      colSyncstate = mActualDelegate.getSyncStateColumn();
+    final XmlReader                   parser       = XmlStreaming.newReader(content, "UTF8");
+    final List<ContentValuesProvider> items        = new ArrayList<>();
+    EventType                         type;
     parser.nextTag();
     parser.require(EventType.START_ELEMENT, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
     while ((type = parser.next()) != EventType.END_ELEMENT) {

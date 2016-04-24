@@ -73,17 +73,17 @@ public class AndroidXmlReader extends AbstractXmlReader {
   final XmlPullParser mReader;
 
   private AndroidXmlReader() throws XmlPullParserException {
-    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+    final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
     factory.setNamespaceAware(true);
     mReader = factory.newPullParser();
   }
 
-  public AndroidXmlReader(Reader in) throws XmlPullParserException {
+  public AndroidXmlReader(final Reader in) throws XmlPullParserException {
     this();
     mReader.setInput(in);
   }
 
-  public AndroidXmlReader(InputStream in, String encoding) throws XmlPullParserException {
+  public AndroidXmlReader(final InputStream in, final String encoding) throws XmlPullParserException {
     this();
     mReader.setInput(in, encoding);
   }
@@ -173,12 +173,14 @@ public class AndroidXmlReader extends AbstractXmlReader {
 
   @Override
   public String getNamespaceUri() {
-    return mReader.getNamespace();
+    final String namespace = mReader.getNamespace();
+    return namespace == null ? XMLConstants.NULL_NS_URI :namespace;
   }
 
   @Override
   public String getPrefix() {
-    return mReader.getPrefix();
+    final String prefix = mReader.getPrefix();
+    return prefix==null ? XMLConstants.DEFAULT_NS_PREFIX : prefix;
   }
 
   @Override
@@ -192,8 +194,10 @@ public class AndroidXmlReader extends AbstractXmlReader {
   }
 
   @Override
+  @NotNull
   public String getAttributePrefix(final int index) {
-    return mReader.getAttributePrefix(index);
+    final String attributePrefix = mReader.getAttributePrefix(index);
+    return attributePrefix ==null ? XMLConstants.DEFAULT_NS_PREFIX : attributePrefix;
   }
 
   @Override
@@ -203,7 +207,8 @@ public class AndroidXmlReader extends AbstractXmlReader {
 
   @Override
   public String getAttributeNamespace(final int index) {
-    return mReader.getAttributeNamespace(index);
+    final String attributeNamespace = mReader.getAttributeNamespace(index);
+    return attributeNamespace==null ? XMLConstants.NULL_NS_URI: attributeNamespace;
   }
 
   @Override
@@ -310,9 +315,9 @@ public class AndroidXmlReader extends AbstractXmlReader {
   @Override
   public NamespaceContext getNamespaceContext() throws XmlException {
     try {
-      int nsCount = mReader.getNamespaceCount(mReader.getDepth());
-      String[] prefixes = new String[nsCount];
-      String[] uris = new String[nsCount];
+      final int      nsCount  = mReader.getNamespaceCount(mReader.getDepth());
+      final String[] prefixes = new String[nsCount];
+      final String[] uris     = new String[nsCount];
       for(int i=0; i<nsCount; ++i) {
         prefixes[i] = nullToEmpty(mReader.getNamespacePrefix(i));
         uris[i] = nullToEmpty(mReader.getNamespaceUri(i));

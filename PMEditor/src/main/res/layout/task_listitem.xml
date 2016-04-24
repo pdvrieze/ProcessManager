@@ -22,6 +22,7 @@
     <data>
         <variable name="summary" type="java.lang.CharSequence" />
         <variable name="taskStateDrawable" type="int" />
+        <variable name="taskStateContentDesc" type="java.lang.CharSequence" />
     </data>
 
     <LinearLayout
@@ -41,7 +42,9 @@
                 android:layout_height="match_parent"
                 android:id="@+id/task_state_decorator"
                 app:drawableRes="@{taskStateDrawable}"
-                tools:src="@drawable/decorator_taskstate_completed"/>
+                android:contentDescription="@{taskStateContentDesc}"
+                tools:src="@drawable/decorator_taskstate_completed"
+                tools:ignore="ContentDescription" />
 
         <LinearLayout
                 android:orientation="vertical"

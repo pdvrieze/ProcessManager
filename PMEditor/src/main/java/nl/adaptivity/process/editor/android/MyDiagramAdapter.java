@@ -54,13 +54,13 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   private static final double DECORATION_VSPACING = 12d;
   private static final double DECORATION_HSPACING = 12d;
 
-  private LightView mOverlay;
-  private Context mContext;
-  private RelativeLightView[] mCachedDecorations = new RelativeLightView[3];
-  private RelativeLightView[] mCachedStartDecorations = new RelativeLightView[2];
-  private RelativeLightView[] mCachedEndDecorations = new RelativeLightView[1];
-  private DrawableProcessNode mCachedDecorationItem = null;
-  private int mConnectingItem = -1;
+  private       LightView mOverlay;
+  private final Context   mContext;
+  private final RelativeLightView[] mCachedDecorations      = new RelativeLightView[3];
+  private final RelativeLightView[] mCachedStartDecorations = new RelativeLightView[2];
+  private final RelativeLightView[] mCachedEndDecorations   = new RelativeLightView[1];
+  private       DrawableProcessNode mCachedDecorationItem   = null;
+  private       int                 mConnectingItem         = -1;
 
   public MyDiagramAdapter(final Context context, final DrawableProcessModel diagram) {
     super (diagram);

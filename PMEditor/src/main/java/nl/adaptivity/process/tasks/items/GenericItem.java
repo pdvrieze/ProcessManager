@@ -25,7 +25,6 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AutoCompleteTextView;
-import android.widget.Filter;
 import nl.adaptivity.android.widget.ComboAdapter;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.databinding.TaskitemGenericBinding;
@@ -36,8 +35,8 @@ import java.util.List;
 public class GenericItem extends LabeledItem implements TextWatcher, OnClickListener {
 
 
-  private CharSequence mType;
-  private ObservableList<CharSequence> mOptions;
+  private final CharSequence                 mType;
+  private       ObservableList<CharSequence> mOptions;
 
 
   public GenericItem(final CharSequence name, final CharSequence label, final CharSequence type, final CharSequence value, final List<? extends CharSequence> options) {

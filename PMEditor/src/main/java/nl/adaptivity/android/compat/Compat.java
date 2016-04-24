@@ -32,31 +32,31 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class Compat {
+public final class Compat {
 
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-  private static class Compat14 {
+  private static final class Compat14 {
 
-    public static AccountManagerFuture<Bundle> getAuthToken(AccountManager accountManager, Account account, String accountTokenType, Bundle options,
-                                    boolean notifyAuthFailure, AccountManagerCallback<Bundle> callback, Handler handler) {
+    public static AccountManagerFuture<Bundle> getAuthToken(final AccountManager accountManager, final Account account, final String accountTokenType, final Bundle options,
+                                                            final boolean notifyAuthFailure, final AccountManagerCallback<Bundle> callback, final Handler handler) {
       return accountManager.getAuthToken(account, accountTokenType, options, notifyAuthFailure, callback, handler);
     }
 
   }
 
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-  private static class Compat17 {
+  private static final class Compat17 {
 
-    public static Fragment getParentFragment(Fragment fragment) {
+    public static Fragment getParentFragment(final Fragment fragment) {
       return fragment.getParentFragment();
     }
 
   }
 
   @TargetApi(Build.VERSION_CODES.KITKAT)
-  private static class Compat19 {
+  private static final class Compat19 {
 
-    public static void closeWithError(ParcelFileDescriptor pfd, String error) {
+    public static void closeWithError(final ParcelFileDescriptor pfd, final String error) {
       try {
         pfd.closeWithError(error);
       } catch (IOException e) {
@@ -70,18 +70,18 @@ public class Compat {
 
   }
 
-  public static void postInvalidateOnAnimation(View view) {
+  public static void postInvalidateOnAnimation(final View view) {
     ViewCompat.postInvalidateOnAnimation(view);
   }
 
-  public static boolean isZoomIn(MotionEvent event) {
+  public static boolean isZoomIn(final MotionEvent event) {
     if (Build.VERSION.SDK_INT>=12) {
       return Compat12.isZoomIn(event);
     }
     return false;
   }
 
-  public static void closeWithError(ParcelFileDescriptor pfd, String error) {
+  public static void closeWithError(final ParcelFileDescriptor pfd, final String error) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
       Compat19.closeWithError(pfd, error);
     } else {
@@ -94,7 +94,7 @@ public class Compat {
     }
   }
 
-  public static Fragment getParentFragment(Fragment fragment) {
+  public static Fragment getParentFragment(final Fragment fragment) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN_MR1) {
       return Compat17.getParentFragment(fragment);
     } else {
@@ -111,7 +111,7 @@ public class Compat {
   }
 
   @SuppressWarnings("deprecation")
-  public static AccountManagerFuture<Bundle> getAuthToken(AccountManager accountManager, Account account, String accountTokenType, Bundle options, boolean notifyAuthFailure, AccountManagerCallback<Bundle> callback, Handler handler) {
+  public static AccountManagerFuture<Bundle> getAuthToken(final AccountManager accountManager, final Account account, final String accountTokenType, final Bundle options, final boolean notifyAuthFailure, final AccountManagerCallback<Bundle> callback, final Handler handler) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       return Compat14.getAuthToken(accountManager, account, accountTokenType, options, notifyAuthFailure, callback, handler);
     } else {

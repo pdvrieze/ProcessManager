@@ -16,33 +16,25 @@
 
 package nl.adaptivity.process.ui;
 
-import android.content.Context;
-import android.content.res.Resources;
 import android.databinding.BindingAdapter;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.BoolRes;
+import android.support.annotation.AnyRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.view.ViewCompat;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
-import nl.adaptivity.process.editor.android.R;
 
 
 /**
  * Created by pdvrieze on 17/12/15.
  */
-public class BindingAdapters {
+public final class BindingAdapters {
 
   private static final String TAG = "BindingAdapters";
 
   private BindingAdapters() {}
 
   @BindingAdapter("textRes")
-  public static void setTextRes(TextView view, @StringRes int textRes) {
+  public static void setTextRes(final TextView view, @StringRes final int textRes) {
     if (textRes==0) {
       view.setText(null);
     } else {
@@ -51,7 +43,7 @@ public class BindingAdapters {
   }
 
   @BindingAdapter("drawableRes")
-  public static void setDrawableRes(ImageView view, @DrawableRes int drawableRes) {
+  public static void setDrawableRes(final ImageView view, @DrawableRes final int drawableRes) {
     if (drawableRes==0) {
       view.setImageDrawable(null);
     } else {

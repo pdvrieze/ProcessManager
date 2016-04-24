@@ -22,14 +22,15 @@ import android.os.RemoteException;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.ui.main.OverviewActivity;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
-import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -45,9 +46,10 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
 
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
   private long mModelHandleToInstantiate;
+  private ProcessSyncManager mSyncManager;
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_processmodel_detail);
 
@@ -66,10 +68,10 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
     if (savedInstanceState == null) {
       // Create the detail fragment and add it to the activity
       // using a fragment transaction.
-      Bundle arguments = new Bundle();
+      final Bundle arguments = new Bundle();
       arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID,
           getIntent().getLongExtra(ProcessModelDetailFragment.ARG_ITEM_ID,-1));
-      ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
+      final ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
       fragment.setArguments(arguments);
       getSupportFragmentManager().beginTransaction()
           .add(R.id.processmodel_detail_container, fragment)
@@ -78,8 +80,8 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    int id = item.getItemId();
+  public boolean onOptionsItemSelected(final MenuItem item) {
+    final int id = item.getItemId();
     if (id == android.R.id.home) {
       // This ID represents the Home or Up button. In the case of this
       // activity, the Up button is shown. Use NavUtils to allow users
@@ -95,9 +97,9 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
   }
 
   @Override
-  public void onProcessModelSelected(long processModelRowId) {
+  public void onProcessModelSelected(final long processModelRowId) {
     if (processModelRowId>=0) {
-      Intent intent = new Intent(this, ProcessModelDetailActivity.class);
+      final Intent intent = new Intent(this, ProcessModelDetailActivity.class);
       intent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, processModelRowId);
       startActivity(intent);
     }
@@ -105,27 +107,30 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
   }
 
   @Override
-  public void onInstantiateModel(long modelHandle, String suggestedName) {
+  public void onInstantiateModel(final long modelHandle, final String suggestedName) {
     mModelHandleToInstantiate = modelHandle;
     GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, suggestedName);
   }
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String name) {
+  public void onNameDialogCompletePositive(final GetNameDialogFragment dialog, final int id, final String name) {
     try {
       ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, name);
     } catch (RemoteException e) {
-      Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
+      Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();
     }
   }
 
   @Override
-  public SyncManager getSyncManager() {
-    return null;
+  public ProcessSyncManager getSyncManager() {
+    if (mSyncManager ==null) {
+      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
+    }
+    return mSyncManager;
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
+  public void onNameDialogCompleteNegative(final GetNameDialogFragment dialog, final int id) {
     mModelHandleToInstantiate=-1L;
   }
 }

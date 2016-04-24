@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.tasks.data;
 
-import nl.adaptivity.process.tasks.ExecutableUserTask;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -26,22 +24,24 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import nl.adaptivity.process.tasks.ExecutableUserTask;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 
 
 public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
 
   private Uri mUri=null;
   private long mHandle=-1L;
-  private Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
+  private final Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
 
-  public TaskLoader(Context context, long handle) {
+  public TaskLoader(final Context context, final long handle) {
     super(context);
     mObserver = new ForceLoadContentObserver();
     mHandle = handle;
     onContentChanged();
   }
 
-  public TaskLoader(Context context, Uri uri) {
+  public TaskLoader(final Context context, final Uri uri) {
     super(context);
     mObserver = new ForceLoadContentObserver();
     mUri = uri;
@@ -59,10 +59,10 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
 
   @Override
   public ExecutableUserTask loadInBackground() {
-    ExecutableUserTask task;
-    final ContentResolver contentResolver = getContext().getContentResolver();
+    final ExecutableUserTask task;
+    final ContentResolver    contentResolver = getContext().getContentResolver();
     if (mHandle>=0) {
-      Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] { BaseColumns._ID }, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(mHandle)} , null);
+      final Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] {BaseColumns._ID }, Tasks.COLUMN_HANDLE + " = ?", new String[] {Long.toString(mHandle)} , null);
       try {
         if (! idresult.moveToFirst()) { return null; }
         mUri = ContentUris.withAppendedId(Tasks.CONTENT_URI, idresult.getLong(0));

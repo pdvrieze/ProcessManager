@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwinlib.BuildConfig;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParser;
@@ -39,14 +40,14 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
     UPDATE_LIST_FROM_SERVER {
 
       @Override
-      public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
+      public void execute(final DelegatingResources delegator, final ISyncAdapterDelegate delegate, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
         delegate.updateListFromServer(delegator, provider, syncResult);
       }},
 
     UPDATE_ITEM_DETAILS_FROM_SERVER {
 
       @Override
-      public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult)
+      public void execute(final DelegatingResources delegator, final ISyncAdapterDelegate delegate, final ContentProviderClient provider, final SyncResult syncResult)
           throws XmlException, IOException, RemoteException, OperationApplicationException {
         delegate.updateItemDetails(delegator, provider, syncResult);
       }};
@@ -60,34 +61,34 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
   private AuthenticatedWebClient mHttpClient;
   private List<? extends ISyncAdapterDelegate> mDelegates;
 
-  public DelegatingRemoteXmlSyncAdapter(Context context, boolean autoInitialize, List<? extends ISyncAdapterDelegate> delegates) {
+  public DelegatingRemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final List<? extends ISyncAdapterDelegate> delegates) {
     super(context, autoInitialize);
     mDelegates = delegates;
   }
 
-  public DelegatingRemoteXmlSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs, List<? extends ISyncAdapterDelegate> delegates) {
+  public DelegatingRemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final boolean allowParallelSyncs, final List<? extends ISyncAdapterDelegate> delegates) {
     super(context, autoInitialize, allowParallelSyncs);
     mDelegates = delegates;
   }
 
-  protected void setDelegates(List<? extends ISyncAdapterDelegate> delegates) {
+  protected void setDelegates(final List<? extends ISyncAdapterDelegate> delegates) {
     mDelegates = delegates;
   }
 
   @Override
-  public final void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+  public final void onPerformSync(final Account account, final Bundle extras, final String authority, final ContentProviderClient provider, final SyncResult syncResult) {
     URI mBase = getSyncSource();
     if (! mBase.toString().endsWith("/")) {
-      assert false : "Sync sources should be forced to end with / in all cases.";
+      if (BuildConfig.DEBUG) throw new AssertionError("Sync sources should be forced to end with / in all cases.");
       mBase = URI.create(mBase.toString() +'/');
     }
 
     {
-      URI authbase = AuthenticatedWebClient.getAuthBase(mBase);
+      final URI authbase = AuthenticatedWebClient.getAuthBase(mBase);
       mHttpClient = new AuthenticatedWebClient(getContext(), account, authbase);
     }
-    for(ISyncAdapterDelegate delegate: mDelegates) {
-      for(Phases phase:Phases.values()) {
+    for(final ISyncAdapterDelegate delegate: mDelegates) {
+      for(final Phases phase:Phases.values()) {
         try {
           /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" STARTING phase "+phase); //}
           phase.execute(this, delegate, provider, syncResult);

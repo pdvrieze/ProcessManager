@@ -29,8 +29,7 @@ import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
@@ -54,41 +53,45 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   }
 
   public enum TaskState {
-    Available("Acknowledged", R.string.taskstate_available, R.drawable.decorator_taskstate_available, STATE_AVAILABLE),
+    Available("Acknowledged", R.string.taskstate_available, R.drawable.decorator_taskstate_available, R.string.taskstate_available, STATE_AVAILABLE),
     /**
      * Some tasks allow for alternatives (different users). Taken signifies that
      * the task has been claimed and others can not claim it anymore (unless
      * released again).
      */
-    Taken("Taken", R.string.taskstate_taken, R.drawable.decorator_taskstate_accepted, STATE_EDITABLE),
+    Taken("Taken", R.string.taskstate_taken, R.drawable.decorator_taskstate_accepted, R.string.taskstate_taken, STATE_EDITABLE),
     /**
      * Signifies that work on the task has actually started.
      */
-    Started("Started", R.string.taskstate_started, R.drawable.decorator_taskstate_started, STATE_EDITABLE),
+    Started("Started", R.string.taskstate_started, R.drawable.decorator_taskstate_started, R.string.taskstate_started, STATE_EDITABLE),
     /**
      * Signifies that the task is complete. This generally is the end state of a
      * task.
      */
-    Complete("Complete", R.string.taskstate_complete, R.drawable.decorator_taskstate_completed, 0),
+    Complete("Complete", R.string.taskstate_complete, R.drawable.decorator_taskstate_completed, R.string.taskstate_complete, 0),
     /**
      * Signifies that the task has failed for some reason.
      */
-    Failed("Failed", R.string.taskstate_failed, R.drawable.decorator_taskstate_failed, 0),
+    Failed("Failed", R.string.taskstate_failed, R.drawable.decorator_taskstate_failed, R.string.taskstate_failed, 0),
     /**
      * Signifies that the task has been cancelled (but not through a failure).
      */
-    Cancelled("Cancelled", R.string.taskstate_cancelled, R.drawable.decorator_taskstate_cancelled, 0)
+    Cancelled("Cancelled", R.string.taskstate_cancelled, R.drawable.decorator_taskstate_cancelled, R.string.taskstate_cancelled, 0)
     ;
 
     private final String mAttrValue;
     private final int mLabelId;
+    @DrawableRes
     private final int mDecoratorId;
+    @StringRes
+    private final int mDecoratorContentDescId;
     private final int mState;
 
-    private TaskState(final String attrValue, @StringRes final int labelId, @DrawableRes final int decoratorId, final int state) {
+    TaskState(final String attrValue, @StringRes final int labelId, @DrawableRes final int decoratorId, final int decoratorContentDescId, final int state) {
       mAttrValue = attrValue;
       mLabelId = labelId;
       mDecoratorId = decoratorId;
+      mDecoratorContentDescId = decoratorContentDescId;
       mState=state;
     }
 
@@ -99,6 +102,11 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
     @StringRes
     public int getLabelId() {
       return mLabelId;
+    }
+
+    @StringRes
+    public int getDecoratorContentDescId() {
+      return mDecoratorContentDescId;
     }
 
     @DrawableRes
@@ -168,10 +176,10 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   };
   protected TaskState mState;
 
-  private String mSummary;
-  private long mHandle;
-  private String mOwner;
-  private ObservableList<TaskItem> mItems;
+  private       String                   mSummary;
+  private       long                     mHandle;
+  private       String                   mOwner;
+  private final ObservableList<TaskItem> mItems;
   private boolean mDirty = false;
   private long mRemoteHandle;
   private long mInstanceHandle;

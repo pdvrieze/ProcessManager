@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.dialogs;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -32,18 +33,20 @@ import android.widget.Spinner;
 import net.devrieze.util.CollectionUtil;
 import nl.adaptivity.android.widget.ComboAdapter;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.ui.UIConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 /**
- * Created by pdvrieze on 16/02/16.
+ * A dialog fragment that allows a user to choose from a "combobox" style control
  */
-public class ComboDialogFragment extends DialogFragment implements OnClickListener{
+public class ComboDialogFragment<T extends Parcelable> extends DialogFragment implements OnClickListener{
 
-  private ArrayList<? extends Parcelable> mValues;
+  private static final String KEY_VALUES = "values";
+  private static final String KEY_TITLE = "title";
+  private static final String KEY_DIALOG_ID = "dialogId";
+  private ArrayList<T> mValues;
   private CharSequence mTitle;
   private DialogResultListener mListener;
   private int mDialogId;
@@ -53,9 +56,9 @@ public class ComboDialogFragment extends DialogFragment implements OnClickListen
   @Override
   public void onCreate(@Nullable final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    mValues = getArguments().getParcelableArrayList(UIConstants.KEY_VALUES);
-    mTitle = getArguments().getCharSequence(UIConstants.KEY_TITLE);
-    mDialogId = getArguments().getInt(UIConstants.KEY_DIALOG_ID);
+    mValues = getArguments().getParcelableArrayList(KEY_VALUES);
+    mTitle = getArguments().getCharSequence(KEY_TITLE);
+    mDialogId = getArguments().getInt(KEY_DIALOG_ID);
   }
 
   @Override
@@ -66,13 +69,14 @@ public class ComboDialogFragment extends DialogFragment implements OnClickListen
     }
   }
 
+  @SuppressLint("InflateParams")
   @NonNull
   @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {
-    AlertDialog.Builder builder = new Builder(getActivity());
+    final AlertDialog.Builder builder = new Builder(getActivity());
     builder.setTitle(mTitle);
     mComboView = (Spinner) LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_combo_view, null, false);
-    mComboView.setAdapter(new ComboAdapter(builder.getContext(), mValues));
+    mComboView.setAdapter(new ComboAdapter<>(builder.getContext(), mValues));
     builder.setView(mComboView)
            .setCancelable(true)
            .setPositiveButton(android.R.string.ok, this)
@@ -95,12 +99,22 @@ public class ComboDialogFragment extends DialogFragment implements OnClickListen
     }
   }
 
-  public static ComboDialogFragment newInstance(int dialogId, List<? extends Parcelable> values, CharSequence title) {
-    Bundle args = new Bundle(2);
-    args.putParcelableArrayList(UIConstants.KEY_VALUES, CollectionUtil.toArrayList(values));
-    args.putCharSequence(UIConstants.KEY_TITLE, title);
-    args.putInt(UIConstants.KEY_DIALOG_ID, dialogId);
-    ComboDialogFragment fragment = new ComboDialogFragment();
+  /**
+   * Create a new ComboDialogFragment with the given parameters.
+   *
+   * @param dialogId The dialogId to use.
+   * @param values The values to put into the list. This will be copied.
+   * @param title The dialog title
+   * @param <T> The type of items used. Note that the system uses toString on the object.
+   *
+   * @return The newly created dialog fragment.
+   */
+  public static <T extends Parcelable> ComboDialogFragment<T> newInstance(final int dialogId, final List<? extends T> values, final CharSequence title) {
+    final Bundle args = new Bundle(2);
+    args.putParcelableArrayList(KEY_VALUES, CollectionUtil.toArrayList(values));
+    args.putCharSequence(KEY_TITLE, title);
+    args.putInt(KEY_DIALOG_ID, dialogId);
+    final ComboDialogFragment<T> fragment = new ComboDialogFragment<>();
     fragment.setArguments(args);
     return fragment;
   }

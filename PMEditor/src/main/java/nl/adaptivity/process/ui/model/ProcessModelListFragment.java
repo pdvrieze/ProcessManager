@@ -41,6 +41,7 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -53,7 +54,6 @@ import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 import java.io.IOException;
@@ -68,10 +68,10 @@ import java.util.UUID;
  * state upon selection. This helps indicate which item is currently being
  * viewed in a {@link ProcessModelDetailFragment}.
  * <p>
- * Activities containing this fragment MUST implement the {@link ProcessModelListCallbacks}
+ * Activities containing this fragment MUST implement the {@link ListCallbacks}
  * interface.
  */
-public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, GetNameDialogFragmentCallbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
+public class ProcessModelListFragment extends MasterListFragment<ProcessSyncManager> implements LoaderCallbacks<Cursor>, GetNameDialogFragmentCallbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
 
   private static final int LOADERID = 3;
 
@@ -93,7 +93,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   public ProcessModelListFragment() {}
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getLoaderManager().initLoader(LOADERID, null, this);
     final PMCursorAdapter adapter = new PMCursorAdapter(getActivity(), null);
@@ -123,7 +123,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(final View view, final Bundle savedInstanceState) {
     getRecyclerView().setLayoutManager(new LinearLayoutManager(getActivity()));
     mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefresh);
     mSwipeRefresh.setOnRefreshListener(this);
@@ -179,14 +179,14 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   private void updateSyncState() {
-    SyncManager syncManager = getCallbacks().getSyncManager();
+    final ProcessSyncManager syncManager = getCallbacks().getSyncManager();
     if (! syncManager.isSyncable(ProcessModelProvider.AUTHORITY)) {
       mSwipeRefresh.setRefreshing(false);
     } else {
       final boolean syncActive = syncManager.isProcessModelSyncActive();
       final boolean syncPending = syncManager.isProcessModelSyncPending();
       if (syncActive || (!syncPending)) { mManualSync= false; }
-      boolean sync = syncActive || mManualSync;
+      final boolean sync = syncActive || mManualSync;
       mSwipeRefresh.setRefreshing(sync);
     }
   }
@@ -194,24 +194,24 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
 
   @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
     inflater.inflate(R.menu.pmlist_menu, menu);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.menu_add_pm:
         createNewPM();
         return true;
       case R.id.ac_import:
-        Intent importIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        final Intent importIntent = new Intent(Intent.ACTION_GET_CONTENT);
         importIntent.addCategory(Intent.CATEGORY_OPENABLE);
         importIntent.setType("*/*");
         startActivityForResult(Intent.createChooser(importIntent, "Import from"),REQUEST_IMPORT);
         return true;
       case R.id.menu_settings: {
-        Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
+        final Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
         startActivity(settingsIntent);
         return true;
       }
@@ -226,15 +226,15 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
 
   @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+  public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     if (resultCode==Activity.RESULT_OK) {
       if (requestCode==REQUEST_IMPORT) {
         try {
-          InputStream in = getActivity().getContentResolver().openInputStream(data.getData());
+          final InputStream in = getActivity().getContentResolver().openInputStream(data.getData());
           try {
-            DrawableProcessModel pm = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
-            Uri uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
-            long id = ContentUris.parseId(uri);
+            final DrawableProcessModel pm  = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
+            final Uri                  uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
+            final long                 id  = ContentUris.parseId(uri);
             doOnItemSelected(AdapterView.INVALID_POSITION, id);
           } finally {
             in.close();
@@ -251,43 +251,43 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string) {
+  public void onNameDialogCompletePositive(final GetNameDialogFragment dialog, final int id, final String string) {
     createNewPM(string);
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
+  public void onNameDialogCompleteNegative(final GetNameDialogFragment dialog, final int id) {
     // ignore
   }
 
-  void createNewPM(String name) {
+  void createNewPM(final String name) {
 
-    DrawableProcessModel model = new DrawableProcessModel(UUID.randomUUID(), name, new ArrayList<DrawableProcessNode>());
-    Uri uri;
+    final DrawableProcessModel model = new DrawableProcessModel(UUID.randomUUID(), name, new ArrayList<DrawableProcessNode>());
+    final Uri                  uri;
     try {
       uri = ProcessModelProvider.newProcessModel(getActivity(), model);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    Intent editIntent = new Intent(getActivity(), PMEditor.class);
+    final Intent editIntent = new Intent(getActivity(), PMEditor.class);
     editIntent.setData(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, ContentUris.parseId(uri)));
     startActivity(editIntent);
   }
 
   @Override
-  public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+  public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
     return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, XmlBaseColumns.COLUMN_SYNCSTATE+" IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_NEWDETAILSPENDING+ " )", null, null);
   }
 
   @Override
-  public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+  public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
     if (data!=null) {
       getListAdapter().changeCursor(data);
     }
   }
 
   @Override
-  public void onLoaderReset(Loader<Cursor> loader) {
+  public void onLoaderReset(final Loader<Cursor> loader) {
     getListAdapter().changeCursor(null);
   }
 }

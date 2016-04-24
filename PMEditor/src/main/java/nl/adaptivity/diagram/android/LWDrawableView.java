@@ -16,25 +16,25 @@
 
 package nl.adaptivity.diagram.android;
 
+import android.graphics.Canvas;
+import android.graphics.RectF;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import android.graphics.Canvas;
-import android.graphics.RectF;
 
 
 public class LWDrawableView implements LightView{
 
-  private Drawable mItem;
+  private final Drawable      mItem;
   /** Cached canvas */
-  private AndroidCanvas mAndroidCanvas;
+  private       AndroidCanvas mAndroidCanvas;
 
-  public LWDrawableView(Drawable item) {
+  public LWDrawableView(final Drawable item) {
     mItem = item;
   }
 
   @Override
-  public void setFocussed(boolean focussed) {
+  public void setFocussed(final boolean focussed) {
     if (focussed) {
       mItem.setState(mItem.getState()|Drawable.STATE_FOCUSSED);
     } else {
@@ -48,7 +48,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void setSelected(boolean selected) {
+  public void setSelected(final boolean selected) {
     if (selected) {
       mItem.setState(mItem.getState()|Drawable.STATE_SELECTED);
     } else {
@@ -62,7 +62,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void setTouched(boolean touched) {
+  public void setTouched(final boolean touched) {
     if (touched) {
       mItem.setState(mItem.getState()|Drawable.STATE_TOUCHED);
     } else {
@@ -76,7 +76,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void setActive(boolean active) {
+  public void setActive(final boolean active) {
     if (active) {
       mItem.setState(mItem.getState()|Drawable.STATE_ACTIVE);
     } else {
@@ -90,8 +90,8 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void getBounds(RectF rect) {
-    Rectangle bounds = mItem.getBounds();
+  public void getBounds(final RectF rect) {
+    final Rectangle bounds = mItem.getBounds();
     rect.set(bounds.leftf(), bounds.topf(), bounds.rightf(), bounds.bottomf());
   }
 
@@ -102,7 +102,7 @@ public class LWDrawableView implements LightView{
    * just creates the canvas and passes the work to {@link #onDraw(IAndroidCanvas, Rectangle)}
    */
   @Override
-  public final void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+  public final void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
     if (mAndroidCanvas==null) {
       mAndroidCanvas=new AndroidCanvas(canvas, theme);
     } else {
@@ -117,12 +117,12 @@ public class LWDrawableView implements LightView{
 
 
   @Override
-  public void move(float x, float y) {
+  public void move(final float x, final float y) {
     mItem.translate(x, y);
   }
 
   @Override
-  public void setPos(float left, float top) {
+  public void setPos(final float left, final float top) {
     mItem.setPos(left, top);
   }
 

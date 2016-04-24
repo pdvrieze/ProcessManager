@@ -103,7 +103,7 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
 
   @Override
   public Cursor swapCursor(final Cursor newCursor) {
-    Cursor oldCursor = super.swapCursor(newCursor);
+    final Cursor oldCursor = super.swapCursor(newCursor);
     if (hasStableIds() && newCursor!=null && mSelectionId!=RecyclerView.NO_ID) {
       setSelectedItem(mSelectionId);
     }

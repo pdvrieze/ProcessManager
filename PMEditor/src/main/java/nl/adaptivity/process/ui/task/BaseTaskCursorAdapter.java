@@ -20,8 +20,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.view.LayoutInflater;
-import nl.adaptivity.android.recyclerview.SelectableCursorAdapter;
 import nl.adaptivity.android.recyclerview.ClickableViewHolder;
+import nl.adaptivity.android.recyclerview.SelectableCursorAdapter;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 
 
@@ -30,10 +30,10 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
  */
 public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> extends SelectableCursorAdapter<VH> {
 
-  protected LayoutInflater mInflater;
-  protected int mSummaryColIdx;
-  protected int mStateColIdx;
-  protected int mInstNameColIdx;
+  protected final LayoutInflater mInflater;
+  protected       int            mSummaryColIdx;
+  protected       int            mStateColIdx;
+  protected       int            mInstNameColIdx;
 
   public BaseTaskCursorAdapter(final Context context, final Cursor cursor, final boolean allowUnselection) {
     super(context, cursor, allowUnselection);
@@ -44,7 +44,7 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
   }
 
   @CallSuper
-  protected void updateColIdxs(Cursor c) {
+  protected void updateColIdxs(final Cursor c) {
     if (c == null) {
       mSummaryColIdx = -1;
       mStateColIdx = -1;
@@ -57,7 +57,7 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
   }
 
   @Override
-  public final Cursor swapCursor(Cursor newCursor) {
+  public final Cursor swapCursor(final Cursor newCursor) {
     final Cursor result = super.swapCursor(newCursor);
     updateColIdxs(newCursor);
     return result;

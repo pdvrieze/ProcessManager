@@ -32,7 +32,7 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
 
   private List<CharSequence> mOptions;
 
-  public ListItem(CharSequence name, CharSequence label, CharSequence value, List<? extends CharSequence> options) {
+  public ListItem(final CharSequence name, final CharSequence label, final CharSequence value, final List<? extends CharSequence> options) {
     super(name, label, value);
     mOptions = new ArrayList<>(options);
   }
@@ -43,12 +43,12 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
   }
 
   @Override
-  public void updateView(ViewDataBinding binding) {
-    TaskitemListBinding b = (TaskitemListBinding) binding;
+  public void updateView(final ViewDataBinding binding) {
+    final TaskitemListBinding b = (TaskitemListBinding) binding;
     b.setTaskitem(this);
-    Spinner view = b.taskitemDetailList;
-    CharSequence value = getValue();
-    int index = AdapterView.INVALID_POSITION;
+    final Spinner      view  = b.taskitemDetailList;
+    final CharSequence value = getValue();
+    int                index = AdapterView.INVALID_POSITION;
     if (value!=null) {
       if (mOptions == null) {
         mOptions=new ArrayList<>(1);
@@ -69,12 +69,12 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
   }
 
   @Override
-  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+  public void onItemSelected(final AdapterView<?> parent, final View view, final int position, final long id) {
     setValue(mOptions.get(position));
   }
 
   @Override
-  public void onNothingSelected(AdapterView<?> parent) {
+  public void onNothingSelected(final AdapterView<?> parent) {
     setValue(null);
   }
 
@@ -89,7 +89,7 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
     if (o == null || getClass() != o.getClass()) { return false; }
     if (!super.equals(o)) { return false; }
 
-    ListItem listItem = (ListItem) o;
+    final ListItem listItem = (ListItem) o;
 
     return mOptions != null ? mOptions.equals(listItem.mOptions) : listItem.mOptions == null;
 

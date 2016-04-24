@@ -36,6 +36,7 @@ import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCal
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.BaseProcessAdapter;
 import nl.adaptivity.process.editor.android.PMEditor;
@@ -48,7 +49,6 @@ import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import nl.adaptivity.sync.SyncManager;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -66,13 +66,13 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
     void onInstantiateModel(long modelId, String suggestedName);
 
-    SyncManager getSyncManager();
+    ProcessSyncManager getSyncManager();
   }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
 
     @Override
-    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+    public void onLayoutChange(final View v, final int left, final int top, final int right, final int bottom, final int oldLeft, final int oldTop, final int oldRight, final int oldBottom) {
       if (mItem!=null && ((oldRight-oldLeft!=right-left)||(oldBottom-oldTop!=bottom-top))) {
         updateDiagramScale();
       }
@@ -111,7 +111,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public ProcessModelDetailFragment() {}
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
     if (activity instanceof ProcessModelDetailFragmentCallbacks) {
       mCallbacks = (ProcessModelDetailFragmentCallbacks) activity;
@@ -119,23 +119,23 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   void updateDiagramScale() {
-    RectF diagramBounds =new RectF();
+    final RectF diagramBounds =new RectF();
     mItem.getBounds(diagramBounds);
     final DiagramView diagramView = mBinding.diagramView1;
     float scale = Math.min(diagramView.getWidth()/diagramBounds.width(),diagramView.getHeight()/diagramBounds.height());
     diagramView.setScale(scale);
     scale = (float) diagramView.getScale();
 
-    float w2 = diagramView.getWidth()/scale;
+    final float w2 = diagramView.getWidth() / scale;
 
     diagramView.setOffsetX(diagramBounds.left-(w2-diagramBounds.width())/2);
 
-    float h2 = diagramView.getHeight()/scale;
+    final float h2 = diagramView.getHeight() / scale;
     diagramView.setOffsetY(diagramBounds.top-(h2-diagramBounds.height())/2);
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     if (getArguments().containsKey(ARG_ITEM_ID)) {
@@ -145,8 +145,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                           final Bundle savedInstanceState) {
     mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_processmodel_detail, container, false);
     mBinding.setData(new ProcessModelHolder());
 
@@ -170,8 +170,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       final boolean checked = mBinding.checkboxFavourite.isChecked();
       if (checked != mBinding.getData().isFavourite()) {
         mBinding.getData().setFavourite(mBinding.checkboxFavourite.isChecked());
-        Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, mProcessModelId);
-        ContentValues cv = new ContentValues(1);
+        final Uri           uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, mProcessModelId);
+        final ContentValues cv  = new ContentValues(1);
         cv.put(ProcessModels.COLUMN_FAVOURITE, checked);
         getActivity().getContentResolver().update(uri, cv, null, null);
       }
@@ -179,14 +179,14 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public Loader<ProcessModelHolder> onCreateLoader(int id, Bundle args) {
+  public Loader<ProcessModelHolder> onCreateLoader(final int id, final Bundle args) {
     mProcessModelId = args.getLong(ARG_ITEM_ID);
-    Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,mProcessModelId);
+    final Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE, mProcessModelId);
     return new ProcessModelLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<ProcessModelHolder> loader, ProcessModelHolder data) {
+  public void onLoadFinished(final Loader<ProcessModelHolder> loader, final ProcessModelHolder data) {
     Log.d(TAG, "onLoadFinished: ");
     mBinding.processmodelDetailSpinner.setVisibility(View.GONE);
     mBinding.setData(data);
@@ -206,14 +206,14 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public void onLoaderReset(Loader<ProcessModelHolder> loader) {
+  public void onLoaderReset(final Loader<ProcessModelHolder> loader) {
     mBinding.processmodelName.setText(null);
     mItem = null;
     mBinding.diagramView1.setAdapter(null);
   }
 
   @Override
-  public void onClick(View v) {
+  public void onClick(final View v) {
     switch (v.getId()) {
       case R.id.btn_pm_edit:
         btnPmEditClicked(); return;
@@ -227,44 +227,44 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   public void btnPmEditClicked() {
-    Intent intent = new Intent(getActivity(), PMEditor.class);
-    long id = getArguments().getLong(ARG_ITEM_ID);
+    final Intent intent = new Intent(getActivity(), PMEditor.class);
+    final long   id     = getArguments().getLong(ARG_ITEM_ID);
     intent.setData(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id));
     startActivity(intent);
   }
 
   public void btnPmExecClicked() {
-    long id = getArguments().getLong(ARG_ITEM_ID);
+    final long id = getArguments().getLong(ARG_ITEM_ID);
     mCallbacks.onInstantiateModel(id, mBinding.processmodelName.getText()+" Instance");
   }
 
   public void btnPmCloneClicked() {
-    CharSequence previousName = mBinding.processmodelName.getText();
-    String suggestedNewName = ProcessModelUtil.suggestNewName(getActivity(), previousName);
+    final CharSequence previousName     = mBinding.processmodelName.getText();
+    final String       suggestedNewName = ProcessModelUtil.suggestNewName(getActivity(), previousName);
 
     GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name", new GetNameDialogFragmentCallbacks() {
 
       @Override
-      public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string) {
+      public void onNameDialogCompletePositive(final GetNameDialogFragment dialog, final int id, final String string) {
         cloneWithName(string);
       }
 
       @Override
-      public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
+      public void onNameDialogCompleteNegative(final GetNameDialogFragment dialog, final int id) {
         // ignore
       }
     }, suggestedNewName);
     // Don't do anything yet
   }
 
-  protected void cloneWithName(String newName) {
+  protected void cloneWithName(final String newName) {
     // TODO Auto-generated method stub
-    DrawableProcessModel currentModel = ((BaseProcessAdapter) mBinding.diagramView1.getAdapter()).getDiagram();
-    DrawableProcessModel newModel = currentModel.clone();
+    final DrawableProcessModel currentModel = ((BaseProcessAdapter) mBinding.diagramView1.getAdapter()).getDiagram();
+    final DrawableProcessModel newModel     = currentModel.clone();
     newModel.setName(newName);
     newModel.setUuid(UUID.randomUUID());
 
-    Uri uri;
+    final Uri uri;
     try {
       uri = ProcessModelProvider.newProcessModel(getActivity(), newModel);
     } catch (IOException e) {
@@ -276,8 +276,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   public void btnPmPublishClicked() {
-    Uri itemUri = getCurrentProcessUri();
-    ContentValues cv = new ContentValues(1);
+    final Uri           itemUri = getCurrentProcessUri();
+    final ContentValues cv      = new ContentValues(1);
     cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
     final ContentResolver contentResolver = getActivity().getContentResolver();
     contentResolver.update(itemUri, cv, null, null);
@@ -286,13 +286,13 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
     inflater.inflate(R.menu.pm_detail_menu, menu);
     super.onCreateOptionsMenu(menu, inflater);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(final MenuItem item) {
     if (item.getItemId()==R.id.ac_delete) {
       onDeleteItem();
       return true;
@@ -301,12 +301,12 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   private boolean onDeleteItem() {
-    Uri uri = getCurrentProcessUri();
-    boolean result;
+    final Uri     uri = getCurrentProcessUri();
+    final boolean result;
     if (mModelHandle==null) {
       result = getActivity().getContentResolver().delete(uri, null, null)>0;
     } else {
-      ContentValues cv = new ContentValues(1);
+      final ContentValues cv = new ContentValues(1);
       cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER));
       result = getActivity().getContentResolver().update(uri, cv , null, null)>0;
       mCallbacks.getSyncManager().requestSyncProcessModelList(true);

@@ -24,17 +24,20 @@ import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.PostRequest;
 import nl.adaptivity.process.tasks.ExecutableUserTask;
-import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.tasks.items.GenericItem;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlWriter;
 import org.xmlpull.v1.XmlPullParserException;
 
 import javax.xml.XMLConstants;
@@ -108,9 +111,9 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     try {
       final int resultCode = result.getResponseCode();
       if (resultCode >= 200 && resultCode < 400) {
-        final InputStream inputStream = result.getInputStream();
-        final String contentEncoding = result.getContentEncoding();
-        XmlReader parser = XmlStreaming.newReader(inputStream, contentEncoding);
+        final InputStream inputStream     = result.getInputStream();
+        final String      contentEncoding = result.getContentEncoding();
+        final XmlReader   parser          = XmlStreaming.newReader(inputStream, contentEncoding);
         try {
           parser.nextTag(); // Make sure to forward the task.
           return parseItem(parser); // Always an update

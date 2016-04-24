@@ -16,17 +16,16 @@
 
 package nl.adaptivity.process.ui.model;
 
-import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.android.util.MasterListFragment.ProcessModelListCallbacks;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
+import nl.adaptivity.android.util.MasterListFragment.ListCallbacks;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
-import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -42,10 +41,10 @@ import nl.adaptivity.sync.SyncManager;
  * {@link ProcessModelDetailFragment}.
  * <p>
  * This activity also implements the required
- * {@link MasterListFragment.ProcessModelListCallbacks} interface to listen for item
+ * {@link ListCallbacks} interface to listen for item
  * selections.
  */
-public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListCallbacks, ProcessModelDetailFragmentCallbacks {
+public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ListCallbacks, ProcessModelDetailFragmentCallbacks {
 
   public interface ProcessModelListCallbacks {
 
@@ -53,7 +52,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
     void onInstantiateModel(long id, String suggestedName);
 
-    SyncManager getSyncManager();
+    ProcessSyncManager getSyncManager();
   }
 
 
@@ -62,7 +61,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   public static ProcessModelListOuterFragment newInstance(final long modelId) {
-    ProcessModelListOuterFragment result = new ProcessModelListOuterFragment();
+    final ProcessModelListOuterFragment result = new ProcessModelListOuterFragment();
     if (modelId!=0) {
       result.setArguments(addArgs(null, modelId));
     }
@@ -78,14 +77,14 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   private ProcessModelListCallbacks mCallbacks;
 
   @Override
-  protected ProcessModelListFragment createListFragment(Bundle args) {
-    ProcessModelListFragment listFragment = new ProcessModelListFragment();
+  protected ProcessModelListFragment createListFragment(final Bundle args) {
+    final ProcessModelListFragment listFragment = new ProcessModelListFragment();
     if (args!=null) { listFragment.setArguments(args); }
     return listFragment;
   }
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
     if (activity instanceof ProcessModelListCallbacks) {
       mCallbacks = (ProcessModelListCallbacks) activity;
@@ -101,25 +100,25 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   /**
-   * Callback method from {@link MasterListFragment.ProcessModelListCallbacks} indicating
+   * Callback method from {@link ListCallbacks} indicating
    * that the item with the given ID was selected.
    */
   @Override
-  public void onProcessModelSelected(long processModelId) {
+  public void onProcessModelSelected(final long processModelId) {
     if (mTwoPane) {
       if (processModelId>=0) {
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.
-        Bundle arguments = new Bundle();
+        final Bundle arguments = new Bundle();
         arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, processModelId);
-        ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
+        final ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
         fragment.setArguments(arguments);
         getChildFragmentManager().beginTransaction()
             .replace(R.id.processmodel_detail_container, fragment)
             .commit();
       } else {
-        Fragment frag = getChildFragmentManager().findFragmentById(R.id.processmodel_detail_container);
+        final Fragment frag = getChildFragmentManager().findFragmentById(R.id.processmodel_detail_container);
         if (frag!=null) {
           getFragmentManager().beginTransaction()
               .remove(frag)
@@ -131,7 +130,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
       if (processModelId>=0) {
         // In single-pane mode, simply start the detail activity
         // for the selected item ID.
-        Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
+        final Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
         detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, processModelId);
         startActivity(detailIntent);
       }
@@ -139,33 +138,33 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  public SyncManager getSyncManager() {
+  public ProcessSyncManager getSyncManager() {
     return mCallbacks.getSyncManager();
   }
 
   @Override
-  protected ProcessModelDetailFragment createDetailFragment(long itemId) {
-    ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
-    Bundle arguments = new Bundle();
+  protected ProcessModelDetailFragment createDetailFragment(final long itemId) {
+    final ProcessModelDetailFragment fragment  = new ProcessModelDetailFragment();
+    final Bundle                     arguments = new Bundle();
     arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, itemId);
     fragment.setArguments(arguments);
     return fragment;
   }
 
   @Override
-  protected Intent getDetailIntent(long itemId) {
-    Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
+  protected Intent getDetailIntent(final long itemId) {
+    final Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
     detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, itemId);
     return detailIntent;
   }
 
   @Override
-  public CharSequence getTitle(Context context) {
+  public CharSequence getTitle(final Context context) {
     return context.getString(R.string.title_processmodel_list);
   }
 
   @Override
-  public void onInstantiateModel(long modelId, String suggestedName) {
+  public void onInstantiateModel(final long modelId, final String suggestedName) {
     mCallbacks.onInstantiateModel(modelId, suggestedName);
   }
 }

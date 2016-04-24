@@ -14,80 +14,67 @@
   ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
   ~ see <http://www.gnu.org/licenses/>.
   -->
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                    xmlns:app="http://schemas.android.com/apk/res-auto"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    app:cardElevation="0dp">
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="horizontal" >
+    <FrameLayout
 
-    <ScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:background="@drawable/leftseparator"
-        android:fillViewport="true" >
-
-        <LinearLayout
-            android:id="@+id/diagramElementsGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill_horizontal"
-            android:gravity="center"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
             android:orientation="vertical"
-            android:padding="8dp" >
+            tools:menu="@menu/diagram_menu">
 
-            <!--
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
+        <!--  include layout="@layout/actionbar"/>-->
 
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
+        <nl.adaptivity.diagram.android.DiagramView
+                android:id="@+id/diagramView1"
+                android:layout_gravity="fill"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/diagrambg"
+                app:gridSize="8" />
 
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
+        <android.support.v7.widget.CardView android:id="@+id/cardview"
+                android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="@dimen/dragpanelborder"
+                                            android:layout_marginBottom="@dimen/dragpanelborder"
+                                            android:layout_marginRight="12dp"
+                                            android:layout_marginEnd="12dp"
+                                            android:layout_gravity="start|center_vertical"
+                                            android:background="@color/elementContainerBg"
+                                            app:cardCornerRadius="4dp"
+                                            app:cardElevation="12dp">
 
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
 
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
+            <ScrollView
+                    android:id="@+id/vScrollView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginRight="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:fillViewport="true">
 
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
+                <LinearLayout
+                        android:id="@+id/diagramElementsGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="fill_vertical"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="4dp"
+                        android:showDividers="middle">
+                </LinearLayout>
+            </ScrollView>
+        </android.support.v7.widget.CardView>
 
-            <ImageView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:src="@drawable/ic_launcher" />
-            -->
-        </LinearLayout>
-    </ScrollView>
-
-    <nl.adaptivity.diagram.android.DiagramView
-        android:id="@+id/diagramView1"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
-
-</LinearLayout>
+    </FrameLayout>
+</android.support.v7.widget.CardView>

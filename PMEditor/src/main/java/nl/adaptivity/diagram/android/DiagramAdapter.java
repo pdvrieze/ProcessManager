@@ -16,11 +16,11 @@
 
 package nl.adaptivity.diagram.android;
 
-import java.util.List;
-
-import nl.adaptivity.diagram.Theme;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+import nl.adaptivity.diagram.Theme;
+
+import java.util.List;
 
 /**
  * A {@link DiagramAdapter} is responsible for providing the diagram to the diagramView.

@@ -20,8 +20,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
@@ -52,7 +53,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   public static final String TASKPARAM_LOCALNAME = "taskParam";
   public static final QName TASKPARAM_NAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
 
-  public static Factory FACTORY = new Factory();
+  public static final Factory FACTORY = new Factory();
 
   private CompactFragment mReplies;
   private EditableUserTask mTask;

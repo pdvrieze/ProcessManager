@@ -43,12 +43,8 @@ import nl.adaptivity.process.util.CharSequenceDecorator;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
-import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -158,19 +154,19 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     }
   }
 
-  public CharSequence toItemValue(EditText source, CharSequence currentValue) {
-    String currentName = mBinding.editName.getText().toString();
+  public CharSequence toItemValue(final EditText source, final CharSequence currentValue) {
+    final String currentName = mBinding.editName.getText().toString();
     if (! (currentValue instanceof ModifySequence)) {
       if (! hasVariables(source.getText())) {
         return source.getText();
       } else {
-        VariableSpan[] spans = new VariableSpan[0];
-        XmlDefineType newDefine = createDefine(getDefineName("d_"+currentName), source.getText());
+        final VariableSpan[] spans     = new VariableSpan[0];
+        final XmlDefineType  newDefine = createDefine(getDefineName("d_" + currentName), source.getText());
         mListener.updateDefine(newDefine);
         return ModifySequence.newAttributeSequence("value", newDefine.getName(),null);
       }
     } else { //
-      ModifySequence current = (ModifySequence) currentValue;
+      final ModifySequence current = (ModifySequence) currentValue;
       if (! hasVariables(source.getText())) {
         return source.getText(); // Perhaps trigger define purging
       } else {
@@ -195,33 +191,34 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     return varName;
   }
 
-  public XmlDefineType createDefine(String name, Spanned annotatedSequence) {
-    XmlDefineType result = new XmlDefineType();
+  public XmlDefineType createDefine(final String name, final Spanned annotatedSequence) {
+    final XmlDefineType result = new XmlDefineType();
     result.setName(name);
 
     return updateDefine(result, annotatedSequence);
   }
 
   @NotNull
-  private XmlDefineType updateDefine(final XmlDefineType define, final Spanned annotatedSequence) {CharArrayWriter caw = new CharArrayWriter();
+  private XmlDefineType updateDefine(final XmlDefineType define, final Spanned annotatedSequence) {
+    final CharArrayWriter caw = new CharArrayWriter();
     try {
-      XmlWriter writer = XmlStreaming.newWriter(caw);
+      final XmlWriter writer = XmlStreaming.newWriter(caw);
       try {
-        int prev = 0;
-        int sequenceLength = annotatedSequence.length();
-        int next = annotatedSequence.nextSpanTransition(0, sequenceLength, VariableSpan.class);
+        int       prev           = 0;
+        final int sequenceLength = annotatedSequence.length();
+        int       next           = annotatedSequence.nextSpanTransition(0, sequenceLength, VariableSpan.class);
         while (next>=0 && next < sequenceLength) {
           writer.text(annotatedSequence.subSequence(prev, next));
           prev = next;
 
           next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
           Log.d(TAG, "updateDefine getSpans(" + prev + ", " + next + ")");
-          VariableSpan[] spans = annotatedSequence.getSpans(prev, next, VariableSpan.class);
-          VariableSpan span = spans[0]; // no nesting
-          VariableReference reference = span.getReference();
+          final VariableSpan[] spans     = annotatedSequence.getSpans(prev, next, VariableSpan.class);
+          final VariableSpan   span      = spans[0]; // no nesting
+          VariableReference    reference = span.getReference();
           if (define.getRefNode() == null) { // trick to treat the first result reference different, by using the define's params
             if (reference instanceof ResultReference) {
-              ResultReference resultReference = (ResultReference) reference;
+              final ResultReference resultReference = (ResultReference) reference;
               define.setRefNode(resultReference.getNodeId());
               define.setRefName(resultReference.getVariableName());
               define.setPath(Collections.<Namespace>emptyList(), ".");
@@ -242,15 +239,15 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     } catch (XmlException e) {
       throw new RuntimeException(e);
     }
-    char[] content = caw.toCharArray();
+    final char[] content = caw.toCharArray();
     define.setContent(Collections.<Namespace>emptyList(), content);
     return define;
   }
 
 
-  public static boolean hasVariables(CharSequence string) {
+  public static boolean hasVariables(final CharSequence string) {
     if (string instanceof Spanned) {
-      Spanned span = (Spanned) string;
+      final Spanned span = (Spanned) string;
       return span.nextSpanTransition(0, span.length(), VariableSpan.class) >=0;
     }
     return false;
@@ -313,10 +310,10 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   private List<? extends VariableReference> getAllVariables() {
-    ArrayList<VariableReference> allVars = new ArrayList<>();
+    final ArrayList<VariableReference> allVars = new ArrayList<>();
     allVars.addAll(mAvailableVariables);
-    String currentName = "d_"+mBinding.editName.getText().toString();
-    for (XmlDefineType define : mDefines) {
+    final String currentName = "d_" + mBinding.editName.getText().toString();
+    for (final XmlDefineType define : mDefines) {
       if (!(currentName.equals(define.getName()) ||
           (CollectionUtil.isNullOrEmpty(define.getContent()) && (StringUtil.isNullOrEmpty(define.getPath())||".".equals(define.getPath()))))) {
         allVars.add(VariableReference.newDefineReference(define));

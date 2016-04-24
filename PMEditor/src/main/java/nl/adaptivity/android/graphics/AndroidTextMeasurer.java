@@ -19,7 +19,6 @@ package nl.adaptivity.android.graphics;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Typeface;
-import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.svg.SVGPen;
 import nl.adaptivity.diagram.svg.TextMeasurer;
@@ -33,13 +32,13 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
     final Paint mPaint;
     final FontMetrics mFontMetrics = new FontMetrics();
 
-    public AndroidMeasureInfo(Paint paint) {
+    public AndroidMeasureInfo(final Paint paint) {
       mPaint = paint;
       mPaint.getFontMetrics(mFontMetrics);
     }
 
     @Override
-    public void setFontSize(double fontSize) {
+    public void setFontSize(final double fontSize) {
       mPaint.setTextSize((float) fontSize*FONT_MEASURE_FACTOR);
       mPaint.getFontMetrics(mFontMetrics);
     }
@@ -49,8 +48,8 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
   private static final float FONT_MEASURE_FACTOR = 1f;
 
   @Override
-  public AndroidMeasureInfo getTextMeasureInfo(SVGPen<AndroidMeasureInfo> svgPen) {
-    Paint paint = new Paint();
+  public AndroidMeasureInfo getTextMeasureInfo(final SVGPen<AndroidMeasureInfo> svgPen) {
+    final Paint paint = new Paint();
     paint.setTextSize((float) svgPen.getFontSize()*FONT_MEASURE_FACTOR);
     if (svgPen.isTextItalics()) {
       paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.ITALIC));
@@ -61,7 +60,7 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
   }
 
   @Override
-  public double measureTextWidth(AndroidMeasureInfo textMeasureInfo, String text, double foldWidth) {
+  public double measureTextWidth(final AndroidMeasureInfo textMeasureInfo, final String text, final double foldWidth) {
     return textMeasureInfo.mPaint.measureText(text)/FONT_MEASURE_FACTOR;
   }
 
@@ -75,27 +74,27 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
   }
 
   @Override
-  public double getTextMaxAscent(AndroidMeasureInfo textMeasureInfo) {
+  public double getTextMaxAscent(final AndroidMeasureInfo textMeasureInfo) {
     return Math.abs(textMeasureInfo.mFontMetrics.top)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextAscent(AndroidMeasureInfo textMeasureInfo) {
+  public double getTextAscent(final AndroidMeasureInfo textMeasureInfo) {
     return Math.abs(textMeasureInfo.mFontMetrics.ascent)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextMaxDescent(AndroidMeasureInfo textMeasureInfo) {
+  public double getTextMaxDescent(final AndroidMeasureInfo textMeasureInfo) {
     return Math.abs(textMeasureInfo.mFontMetrics.bottom)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextDescent(AndroidMeasureInfo textMeasureInfo) {
+  public double getTextDescent(final AndroidMeasureInfo textMeasureInfo) {
     return Math.abs(textMeasureInfo.mFontMetrics.descent)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextLeading(AndroidMeasureInfo textMeasureInfo) {
+  public double getTextLeading(final AndroidMeasureInfo textMeasureInfo) {
     return (Math.abs(textMeasureInfo.mFontMetrics.top)+Math.abs(textMeasureInfo.mFontMetrics.bottom)-Math.abs(textMeasureInfo.mFontMetrics.ascent)-Math.abs(textMeasureInfo.mFontMetrics.descent))/FONT_MEASURE_FACTOR;
   }
 

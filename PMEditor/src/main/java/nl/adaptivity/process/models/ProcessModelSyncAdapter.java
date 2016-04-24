@@ -21,7 +21,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.util.Log;
-import android.util.Xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.DeleteRequest;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.GetRequest;
@@ -30,13 +29,15 @@ import nl.adaptivity.android.util.LogUtil;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.ISimpleSyncDelegate;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.SimpleContentValuesProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;
@@ -47,9 +48,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
-import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import static nl.adaptivity.sync.RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER;
+import static nl.adaptivity.sync.RemoteXmlSyncAdapter.SYNC_UPTODATE;
 
 
 @SuppressWarnings("boxing")
@@ -227,6 +227,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
         }
 
       } else {
+        //noinspection WrongConstant
         if (Log.isLoggable(TAG, Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), Integer.toString(response.getResponseCode()) + " " + response
                   .getResponseMessage(), response.getErrorStream());

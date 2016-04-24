@@ -34,6 +34,10 @@ elif [ "${DST/drawable*-xxhdpi}" != "${DST}" ]; then
 	CORRECT=8
 	((WIDTH = ( $CORRECT * $QUARTW ) + $1 ))
 	(( HEIGHT= ( $CORRECT * $QUARTH ) + $2 ))
+elif [ "${DST/drawable*-xxxhdpi}" != "${DST}" ]; then
+	CORRECT=12
+	((WIDTH = ( $CORRECT * $QUARTW ) + $1 ))
+	(( HEIGHT= ( $CORRECT * $QUARTH ) + $2 ))
 else
 	WIDTH=$1
 	HEIGHT=$2

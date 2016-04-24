@@ -201,10 +201,14 @@ task wsDoc(type:Javadoc) {
     dependsOn configurations.compile
     group = "documentation"
     classpath = sourceSets.main.compileClasspath.filter{f -> !f.path.contains("gwt-user")}
-    source = files(sourceSets.main.allJava, project(":PE-common").sourceSets.main.allJava)
+    source = sourceSets.main.allJava
     destinationDir = file("${buildDir}/docs/wsDoc")
     options.docletpath = configurations.wsDoc.files.asType(List)
     options.doclet = "nl.adaptivity.ws.doclet.WsDoclet"
+
+    doFirst() {
+        source=project.files(source, project(":PE-common").sourceSets.main.allJava)
+    }
 }
 
 assemble.dependsOn tasks.wsDoc

@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class ComboFilter<T> extends Filter {
 
-  private List<T> mList;
+  private final List<T> mList;
 
   public ComboFilter(final List<T> list) {
     mList = list;

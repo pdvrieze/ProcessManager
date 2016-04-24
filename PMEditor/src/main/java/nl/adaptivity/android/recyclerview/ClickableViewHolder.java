@@ -26,7 +26,7 @@ import android.view.View.OnClickListener;
  */
 public abstract class ClickableViewHolder extends ViewHolder implements OnClickListener {
 
-  private ClickableAdapter mClickableAdapter;
+  private final ClickableAdapter mClickableAdapter;
 
   public ClickableViewHolder(final ClickableAdapter clickableAdapter, final View itemView) {
     super(itemView);

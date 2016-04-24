@@ -45,7 +45,7 @@ public class RelativeLightView implements LightView {
 
   private final LightView mView;
 
-  public RelativeLightView(LightView view, @LVGravity int relativePos) {
+  public RelativeLightView(final LightView view, @LVGravity final int relativePos) {
     mView = view;
     mRelativePos = ((relativePos & HMASK)==0 ? HGRAVITY : relativePos) & ((relativePos & VMASK) == 0 ? VGRAVITY : relativePos);
   }
@@ -56,7 +56,7 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setFocussed(boolean focussed) {
+  public void setFocussed(final boolean focussed) {
     mView.setFocussed(focussed);
   }
 
@@ -66,7 +66,7 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setSelected(boolean selected) {
+  public void setSelected(final boolean selected) {
     mView.setSelected(selected);
   }
 
@@ -76,7 +76,7 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setTouched(boolean b) {
+  public void setTouched(final boolean b) {
     mView.setTouched(b);
   }
 
@@ -86,7 +86,7 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setActive(boolean active) {
+  public void setActive(final boolean active) {
     mView.setActive(active);
   }
 
@@ -96,22 +96,22 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void getBounds(RectF target) {
+  public void getBounds(final RectF target) {
     mView.getBounds(target);
   }
 
   @Override
-  public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+  public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
     mView.draw(canvas, theme, scale);
   }
 
   @Override
-  public void move(float x, float y) {
+  public void move(final float x, final float y) {
     mView.move(x, y);
   }
 
   @Override
-  public void setPos(float left, float top) {
+  public void setPos(final float left, final float top) {
     mView.setPos(left, top);
   }
 

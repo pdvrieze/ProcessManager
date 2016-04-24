@@ -25,14 +25,9 @@ import nl.adaptivity.process.tasks.items.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
-import nl.adaptivity.xml.XmlDeserializer;
-import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.namespace.QName;
 
@@ -84,8 +79,8 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     }
 
     ;
-    private String mStr;
-    @LayoutRes public final int layoutId;
+    private final           String mStr;
+    @LayoutRes public final int    layoutId;
 
     Type(final String str, @LayoutRes final int layoutId) {
       mStr = str;
@@ -176,7 +171,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   @Bindable
   public abstract CharSequence getValue();
 
-  public void setValue(CharSequence value) {
+  public void setValue(final CharSequence value) {
     throw new UnsupportedOperationException("Not supported by this task item");
   }
 
@@ -185,7 +180,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   @Bindable
   public abstract CharSequence getLabel();
 
-  public void setLabel(CharSequence value) {
+  public void setLabel(final CharSequence value) {
     throw new UnsupportedOperationException("Not supported by this task item: ");
   }
 
@@ -261,7 +256,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     while ((in.nextTag())==EventType.START_ELEMENT) {
       if (StringUtil.isEqual(Constants.MODIFY_NS_STR,in.getNamespaceUri())) {
         if (StringUtil.isEqual("attribute", in.getLocalName())) {
-          AttributeSequence attr = ModifyHelper.parseAttribute(in);
+          final AttributeSequence attr = ModifyHelper.parseAttribute(in);
           switch (attr.getParamName().toString()) {
             case "name":
               name = attr; break;

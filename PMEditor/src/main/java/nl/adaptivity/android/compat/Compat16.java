@@ -22,9 +22,9 @@ import android.view.View;
 
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-class Compat16 {
+final class Compat16 {
 
-  public static void postInvalidateOnAnimation(View view) {
+  public static void postInvalidateOnAnimation(final View view) {
     view.postInvalidateOnAnimation();
   }
 

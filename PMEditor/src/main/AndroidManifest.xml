@@ -34,11 +34,12 @@
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:name="nl.adaptivity.xml.XmlApplication"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme" tools:ignore="AllowBackup">
         <activity
                 android:name=".PMEditor"
                 android:label="@string/title_editor"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+                tools:ignore="UnusedAttribute">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
@@ -68,6 +69,7 @@
 
         <service
                 android:name="nl.adaptivity.process.models.ProcessModelSyncService"
+                android:process=":sync"
                 android:exported="true"
                 tools:ignore="ExportedService">
             <intent-filter>
@@ -80,6 +82,7 @@
         </service>
         <service
                 android:name="nl.adaptivity.process.tasks.data.TaskSyncService"
+                android:process=":sync"
                 android:exported="true"
                 tools:ignore="ExportedService">
             <intent-filter>
@@ -127,7 +130,7 @@
                 android:name="nl.adaptivity.process.ui.task.TaskDetailActivity"
                 android:label="@string/title_task_detail"
                 android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                android:theme="@style/AppTheme.NoActionBar">
+                android:theme="@style/AppTheme.NoActionBar" tools:ignore="UnusedAttribute">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
@@ -135,7 +138,8 @@
         <activity
                 android:name="nl.adaptivity.process.ui.main.SettingsActivity"
                 android:label="@string/title_activity_settings"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+                tools:ignore="UnusedAttribute">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />

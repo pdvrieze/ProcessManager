@@ -16,15 +16,12 @@
 
 package nl.adaptivity.android.recyclerview;
 
-import android.support.v7.widget.RecyclerView.ViewHolder;
-
-
 /**
  * Created by pdvrieze on 04/01/16.
  */
 public interface ClickableAdapter<VH extends ClickableViewHolder> {
 
-  public interface OnItemClickListener<VH extends ClickableViewHolder> {
+  interface OnItemClickListener<VH extends ClickableViewHolder> {
 
     /**
      * Callback to handle item clicks. This method can stop processing of the click by returning true.

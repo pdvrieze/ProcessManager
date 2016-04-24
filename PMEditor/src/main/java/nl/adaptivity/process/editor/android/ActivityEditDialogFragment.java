@@ -79,11 +79,6 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   }
 
   @Override
-  public void onAttach(final Activity activity) {
-    super.onAttach(activity);
-  }
-
-  @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {
     mPos = getArguments().getInt(UIConstants.KEY_NODE_POS, -1);
     final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -136,7 +131,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
         break;
       case R.id.editAcHuman: {
         mActivityNode.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
-        List<? extends ResultReference> variables = getAccessibleVariables();
+        final List<? extends ResultReference> variables = getAccessibleVariables();
         final Intent intent = UserTaskEditorActivity.createIntent(getActivity(),
                                                                   ParcelableActivity.newInstance(mActivityNode, mActivityNode.isCompat()),
                                                                   mActivityNode.getId(), variables);
@@ -147,20 +142,20 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   }
 
   private ArrayList<ResultReference> getAccessibleVariables() {
-    NodeEditListener listener = (NodeEditListener) getActivity();
-    DrawableProcessNode node = listener.getNode(mPos);
-    List<DrawableProcessNode> seen = new ArrayList<>();
-    ArrayList<ResultReference> result = new ArrayList<>();
+    final NodeEditListener           listener = (NodeEditListener) getActivity();
+    final DrawableProcessNode        node     = listener.getNode(mPos);
+    final List<DrawableProcessNode>  seen     = new ArrayList<>();
+    final ArrayList<ResultReference> result   = new ArrayList<>();
     getAccessibleVariablesFromPredecessors(node, seen, result);
 
     return result;
   }
 
   private void getAccessibleVariablesFromPredecessors(final DrawableProcessNode reference, final List<DrawableProcessNode> seen, final List<ResultReference> gather) {
-    for(Identifiable predId: reference.getPredecessors()) {
-      DrawableProcessNode pred = reference.getOwnerModel().asNode(predId);
+    for(final Identifiable predId: reference.getPredecessors()) {
+      final DrawableProcessNode pred = reference.getOwnerModel().asNode(predId);
       if (! seen.contains(pred)) {
-        for(IXmlResultType result: pred.getResults()) {
+        for(final IXmlResultType result: pred.getResults()) {
           gather.add(VariableReference.newResultReference(pred, result));
         }
         seen.add(pred);

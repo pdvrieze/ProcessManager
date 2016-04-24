@@ -27,7 +27,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,15 +105,10 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
 // Object Initialization end
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-  }
-
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
     mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_overview, container, false);
     mBinding.setFragment(this);
-    OverviewTaskCursorAdapter taskAdapter = new OverviewTaskCursorAdapter(getActivity(), null);
+    final OverviewTaskCursorAdapter taskAdapter = new OverviewTaskCursorAdapter(getActivity(), null);
     taskAdapter.setSelectionEnabled(false);
     taskAdapter.setOnItemClickListener(this);
     mBinding.overviewTaskList.setAdapter(taskAdapter);
@@ -138,7 +132,7 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
       }
     };
 
-    OverviewPMCursorAdapter pmAdapter = new OverviewPMCursorAdapter(getActivity(), null);
+    final OverviewPMCursorAdapter pmAdapter = new OverviewPMCursorAdapter(getActivity(), null);
     pmAdapter.setSelectionEnabled(false);
     pmAdapter.setOnItemClickListener(this);
     mBinding.overviewModelList.setAdapter(pmAdapter);
@@ -168,7 +162,7 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   }
 
   @Override
-  public void onAttach(Context context) {
+  public void onAttach(final Context context) {
     super.onAttach(context);
     if (context instanceof OverviewCallbacks) {
       mCallbacks = (OverviewCallbacks) context;
@@ -184,11 +178,6 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   }
 
   @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-  }
-
-  @Override
   public void onResume() {
     super.onResume();
     updateLayoutManagerColumnCount();
@@ -200,26 +189,26 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   }
 
   private void updateLayoutManagerColumnCount() {
-    int minColWidth = getResources().getDimensionPixelSize(R.dimen.fragment_overview_min_col_width);
+    final int minColWidth = getResources().getDimensionPixelSize(R.dimen.fragment_overview_min_col_width);
     {
-      GridLayoutManager taskGlm = (GridLayoutManager) mBinding.overviewTaskList.getLayoutManager();
-      int taskWidth = ((ViewGroup)mBinding.overviewTaskList.getParent()).getWidth();
+      final GridLayoutManager taskGlm   = (GridLayoutManager) mBinding.overviewTaskList.getLayoutManager();
+      final int               taskWidth = ((ViewGroup)mBinding.overviewTaskList.getParent()).getWidth();
       taskGlm.setSpanCount(Math.max(1,taskWidth / minColWidth));
     }
     {
-      GridLayoutManager modelGlm = (GridLayoutManager) mBinding.overviewModelList.getLayoutManager();
-      int modelWidth = ((ViewGroup)mBinding.overviewModelList.getParent()).getWidth();
+      final GridLayoutManager modelGlm   = (GridLayoutManager) mBinding.overviewModelList.getLayoutManager();
+      final int               modelWidth = ((ViewGroup)mBinding.overviewModelList.getParent()).getWidth();
       modelGlm.setSpanCount(Math.max(1,modelWidth / minColWidth));
     }
   }
 
-  public void onPendingTasksClicked(View view) {
+  public void onPendingTasksClicked(final View view) {
     if (mCallbacks!=null) {
       mCallbacks.showTasksFragment();
     }
   }
 
-  public void onMoreModelsClicked(View view) {
+  public void onMoreModelsClicked(final View view) {
     if (mCallbacks!=null) {
       mCallbacks.showModelsFragment();
     }
@@ -248,7 +237,7 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
    */
   // TODO: Rename and change types and number of parameters
   public static OverviewFragment newInstance() {
-    OverviewFragment fragment = new OverviewFragment();
+    final OverviewFragment fragment = new OverviewFragment();
 //    Bundle args = new Bundle();
 //    args.putString(ARG_PARAM1, param1);
 //    args.putString(ARG_PARAM2, param2);

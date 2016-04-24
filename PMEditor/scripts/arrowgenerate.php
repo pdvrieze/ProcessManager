@@ -15,6 +15,10 @@
       return 240;
     } elseif (strpos($destfile,'drawable-xhdpi')!==FALSE) {
       return 320;
+    } elseif (strpos($destfile,'drawable-xxhdpi')!==FALSE) {
+      return 480;
+    } elseif (strpos($destfile,'drawable-xxxhdpi')!==FALSE) {
+      return 640;
     } else {
       return 160;
     }

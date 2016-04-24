@@ -18,8 +18,6 @@ package nl.adaptivity.android.recyclerview;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView.Adapter;
-import android.support.v7.widget.RecyclerView.ViewHolder;
-import nl.adaptivity.process.tasks.TaskItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +42,15 @@ public abstract class ClickableListAdapter<T, VH extends ClickableViewHolder> ex
     }
   }
 
-  private void onClickView(final VH viewHolder) {}
+  protected void onClickView(final VH viewHolder) {/* children can override to implement behaviour. */}
 
-  public boolean addItem(T item) {
+  /**
+   * Add an item to the list.
+   *
+   * @param item The item to add
+   * @return <code>true</code> if something was added, <code>false</code> if not.
+   */
+  public boolean addItem(final T item) {
     if (mContent.add(item)) {
       notifyItemInserted(mContent.size() - 1);
       return true;
@@ -69,7 +73,7 @@ public abstract class ClickableListAdapter<T, VH extends ClickableViewHolder> ex
     return mContent==null ? 0 : mContent.size();
   }
 
-  public T getItem(int position) {
+  public T getItem(final int position) {
     return mContent.get(position);
   }
 

@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textStyle="bold"
-                android:text="name: "
+                android:text="@string/edit_item_label_name"
                 />
 
         <TextView
@@ -56,7 +56,7 @@
                 android:textStyle="bold"
                 android:layout_marginLeft="32sp"
                 android:layout_marginStart="32sp"
-                android:text="type: "
+                android:text="@string/edit_item_label_type"
                 />
 
         <TextView

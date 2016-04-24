@@ -35,29 +35,29 @@ public class PMParcelable implements Parcelable {
   public static final Parcelable.Creator<PMParcelable> CREATOR = new Creator<PMParcelable>() {
 
     @Override
-    public PMParcelable[] newArray(int size) {
+    public PMParcelable[] newArray(final int size) {
       return new PMParcelable[size];
     }
 
     @Override
-    public PMParcelable createFromParcel(Parcel source) {
+    public PMParcelable createFromParcel(final Parcel source) {
       return new PMParcelable(source);
     }
   };
-  private ClientProcessModel<?, ?> mProcessModel;
+  private final ClientProcessModel<?, ?> mProcessModel;
 
-  public PMParcelable(Parcel source) {
+  public PMParcelable(final Parcel source) {
     this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
-  public PMParcelable(ClientProcessModel<?, ?> processModel) {
+  public PMParcelable(final ClientProcessModel<?, ?> processModel) {
     mProcessModel = processModel;
   }
 
-  private static InputStream readInputStream(Parcel source) {
-    int len = source.readInt();
+  private static InputStream readInputStream(final Parcel source) {
+    final int len = source.readInt();
     if (len>0) {
-      byte buf[] = new byte[len];
+      final byte[] buf = new byte[len];
       source.readByteArray(buf);
       return new ByteArrayInputStream(buf);
     } else {
@@ -71,8 +71,8 @@ public class PMParcelable implements Parcelable {
   }
 
   @Override
-  public void writeToParcel(Parcel dest, int flags) {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
+  public void writeToParcel(final Parcel dest, final int flags) {
+    final ByteArrayOutputStream out = new ByteArrayOutputStream();
     try {
       if (mProcessModel!=null) {
         PMParser.serializeProcessModel(out, mProcessModel);

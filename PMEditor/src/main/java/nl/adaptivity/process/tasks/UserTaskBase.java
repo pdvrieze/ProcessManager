@@ -21,10 +21,10 @@ import android.support.annotation.CallSuper;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 
@@ -51,16 +51,16 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
-    List<XmlSerializable> pending = new ArrayList<>();
+    final List<XmlSerializable> pending = new ArrayList<>();
     ModifyHelper.writeAttribute(pending, out, "summary", getSummary());
     ModifyHelper.writeAttribute(pending, out, "instancehandle", getInstanceHandle());
     ModifyHelper.writeAttribute(pending, out, "remotehandle", getRemoteHandle());
     ModifyHelper.writeAttribute(pending, out, "owner", getOwner());
     serializeAdditionalAttributes(pending, out);
-    for (XmlSerializable item : pending) {
+    for (final XmlSerializable item : pending) {
       item.serialize(out);
     }
-    for(TaskItem item: getItems()) {
+    for(final TaskItem item: getItems()) {
       item.serialize(out);
     }
     XmlUtil.writeEndElement(out, ELEMENTNAME);

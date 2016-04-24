@@ -69,7 +69,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   private static final String KEY_PROCESSMODEL = "processmodel";
   private static final String KEY_PROCESSMODEL_URI = "processmodeluri";
-  private static final int ITEM_MARGIN = 8/*dp*/;
+
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
   private static final int STATE_XMOST=STATE_CUSTOM3;
@@ -147,9 +147,9 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   private static class MoveDrawable extends DiagramDrawable{
 
     private int mAlpha = 255;
-    private List<float[]> mArrows;
-    private Paint mPaint;
-    private Drawable mMinMaxOverlay;
+    private final List<float[]> mArrows;
+    private       Paint         mPaint;
+    private final Drawable      mMinMaxOverlay;
 
     public MoveDrawable(@Nullable final Drawable minMaxOverlay, @NotNull final List<float[]> arrows) {
       mMinMaxOverlay = minMaxOverlay;
@@ -211,7 +211,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
     private final boolean mImmediate;
 
-    private Drawable mOverlay;
+    private final Drawable mOverlay;
 
     public WaitTask(final boolean immediate, final Drawable overlay) {
       super(NULLCALLABLE);
@@ -655,8 +655,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   private class ItemShadowBuilder extends DragShadowBuilder {
 
-    private DrawableDrawable mDrawable;
-    private double mScale;
+    private final DrawableDrawable mDrawable;
+    private       double           mScale;
 
     public ItemShadowBuilder(final DrawableDrawable d) {
       super(elementsView);
@@ -689,7 +689,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   boolean mStep = true;
 
-  private ItemDragListener mItemDragListener = new ItemDragListener();
+  private final ItemDragListener mItemDragListener = new ItemDragListener();
 
   private DiagramView diagramView1;
 
@@ -762,10 +762,10 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     lp.gravity=Gravity.CENTER;
     lp.weight=1f;
     if (elementsView.getOrientation()==LinearLayout.HORIZONTAL) {
-      lp.leftMargin=(int) Math.round(DiagramView.DENSITY*ITEM_MARGIN);
+      lp.leftMargin=getResources().getDimensionPixelSize(R.dimen.dragnodemargin);
       lp.rightMargin=lp.leftMargin;
     } else {
-      lp.topMargin=(int) Math.round(DiagramView.DENSITY*ITEM_MARGIN/*dp*/);
+      lp.topMargin=getResources().getDimensionPixelSize(R.dimen.dragnodemargin);
       lp.bottomMargin=lp.topMargin;
     }
 
@@ -782,7 +782,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     return mPm;
   }
 
-  private void setPm(DrawableProcessModel pm) {
+  private void setPm(final DrawableProcessModel pm) {
     mPm = pm;
   }
 
@@ -851,12 +851,6 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       }
     }
   }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-  }
-
 
 
   @Override

@@ -19,9 +19,9 @@ package nl.adaptivity.process.ui.task;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.process.editor.android.R;
@@ -39,13 +39,13 @@ public class TaskDetailActivity extends AppCompatActivity {
   private ActivityTaskDetailBinding mBinding;
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
     setSupportActionBar(mBinding.toolbar);
 
     // Show the Up button in the action bar.
-    ActionBar actionBar = getSupportActionBar();
+    final ActionBar actionBar = getSupportActionBar();
     if (actionBar != null) {
       actionBar.setDisplayHomeAsUpEnabled(true);
     }
@@ -62,10 +62,10 @@ public class TaskDetailActivity extends AppCompatActivity {
     if (savedInstanceState == null) {
       // Create the detail fragment and add it to the activity
       // using a fragment transaction.
-      Bundle arguments = new Bundle();
+      final Bundle arguments = new Bundle();
       arguments.putLong(MasterDetailOuterFragment.ARG_ITEM_ID,
                         getIntent().getLongExtra(MasterDetailOuterFragment.ARG_ITEM_ID, -1));
-      TaskDetailFragment fragment = new TaskDetailFragment();
+      final TaskDetailFragment fragment = new TaskDetailFragment();
       fragment.setArguments(arguments);
       getSupportFragmentManager().beginTransaction()
                                  .add(R.id.task_detail_container, fragment)
@@ -74,8 +74,8 @@ public class TaskDetailActivity extends AppCompatActivity {
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    int id = item.getItemId();
+  public boolean onOptionsItemSelected(final MenuItem item) {
+    final int id = item.getItemId();
     if (id == android.R.id.home) {
       // This ID represents the Home or Up button. In the case of this
       // activity, the Up button is shown. Use NavUtils to allow users

@@ -105,7 +105,6 @@ public class DataOpenHelper extends SQLiteOpenHelper {
                                                          ProcessInstances.COLUMN_NAME + " AS " + Tasks.COLUMN_INSTANCENAME + " FROM " +
                                                          TABLE_NAME_TASKS + " AS t LEFT JOIN " +
                                                          TABLE_NAME_INSTANCES + " AS i ON ( t." + Tasks.COLUMN_INSTANCEHANDLE + " = i." + ProcessInstances.COLUMN_HANDLE + " )";
-          ;
 
   private static final String SQL_CREATE_VIEW_MODELS_EXT = "CREATE VIEW " + VIEW_NAME_PROCESSMODELEXT + " AS SELECT m." +
                                                            BaseColumns._ID + ", m." +
@@ -122,15 +121,15 @@ public class DataOpenHelper extends SQLiteOpenHelper {
                                                            ";";
   private static final boolean CREATE_DEFAULT_MODEL = false;
 
-  private Context mContext;
+  private final Context mContext;
 
-  public DataOpenHelper(Context context) {
+  public DataOpenHelper(final Context context) {
     super(context, DB_NAME, null, DB_VERSION);
     mContext = context;
   }
 
   @Override
-  public void onCreate(SQLiteDatabase db) {
+  public void onCreate(final SQLiteDatabase db) {
     db.execSQL(SQL_CREATE_TABLE);
     db.execSQL(SQL_CREATE_TABLE_INSTANCES);
     db.execSQL(SQL_CREATE_VIEW_MODELS_EXT);
@@ -140,13 +139,13 @@ public class DataOpenHelper extends SQLiteOpenHelper {
     db.execSQL(SQL_CREATE_VIEW_TASKSEXT);
 
     if (CREATE_DEFAULT_MODEL) {
-      final String modelName = mContext.getString(R.string.example_1_name);
-      ContentValues cv = new ContentValues();
-      InputStream in = mContext.getResources().openRawResource(R.raw.processmodel);
+      final String                               modelName       = mContext.getString(R.string.example_1_name);
+      final ContentValues                        cv              = new ContentValues();
+      final InputStream                          in              = mContext.getResources().openRawResource(R.raw.processmodel);
       final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
-      DrawableProcessModel model = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+      final DrawableProcessModel                 model           = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
       model.setName(modelName);
-      CharArrayWriter out = new CharArrayWriter();
+      final CharArrayWriter out = new CharArrayWriter();
       try {
         try {
           PMParser.serializeProcessModel(out, model);
@@ -168,7 +167,7 @@ public class DataOpenHelper extends SQLiteOpenHelper {
   }
 
   @Override
-  public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+  public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
     db.beginTransaction();
     try {
       if (oldVersion==8) {
@@ -197,7 +196,7 @@ public class DataOpenHelper extends SQLiteOpenHelper {
       db.execSQL(SQL_CREATE_VIEW_TASKSEXT);
       final File oldDatabasePath = mContext.getDatabasePath(TasksOpenHelper.DB_NAME);
       if(oldDatabasePath.exists()) {
-        SQLiteDatabase tasksDb = new TasksOpenHelper(mContext).getReadableDatabase();
+        final SQLiteDatabase tasksDb = new TasksOpenHelper(mContext).getReadableDatabase();
 
         try {
           copyTable(tasksDb, db, TasksOpenHelper.TABLE_NAME_OPTIONS, TABLE_NAME_OPTIONS);
@@ -255,12 +254,12 @@ public class DataOpenHelper extends SQLiteOpenHelper {
   }
 
   @Override
-  public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+  public void onDowngrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
     onUpgrade(db, oldVersion, newVersion);
   }
 
-  private static void copyTable(SQLiteDatabase sourceDb, SQLiteDatabase targetDb, String sourceTable, String targetTable) {
-    Cursor source = sourceDb.query(sourceTable, null, null, null, null, null, null);
+  private static void copyTable(final SQLiteDatabase sourceDb, final SQLiteDatabase targetDb, final String sourceTable, final String targetTable) {
+    final Cursor source = sourceDb.query(sourceTable, null, null, null, null, null, null);
     try {
       while(source.moveToNext()) {
         targetDb.insert(targetTable, null, toContentValues(source));
@@ -271,8 +270,8 @@ public class DataOpenHelper extends SQLiteOpenHelper {
   }
 
   private static ContentValues toContentValues(final Cursor cursor) {
-    final int columnCount = cursor.getColumnCount();
-    ContentValues result = new ContentValues(columnCount);
+    final int           columnCount = cursor.getColumnCount();
+    final ContentValues result      = new ContentValues(columnCount);
     for (int i = 0; i < columnCount; i++) {
       final String columnName = cursor.getColumnName(i);
       switch (cursor.getType(i)) {

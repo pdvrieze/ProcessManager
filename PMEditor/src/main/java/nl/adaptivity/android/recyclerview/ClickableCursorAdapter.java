@@ -18,7 +18,6 @@ package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.database.Cursor;
-import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
 
 
 /**
@@ -37,7 +36,7 @@ public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> ext
     }
   }
 
-  public void onClickView(VH viewHolder) {};
+  public void onClickView(final VH viewHolder) {}
 
   @Override
   public OnItemClickListener getOnItemClickListener() {

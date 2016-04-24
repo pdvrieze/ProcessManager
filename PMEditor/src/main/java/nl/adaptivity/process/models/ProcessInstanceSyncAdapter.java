@@ -41,7 +41,6 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;
@@ -53,8 +52,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static nl.adaptivity.sync.RemoteXmlSyncAdapter.SYNC_UPTODATE;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 @SuppressWarnings("boxing")
 public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate implements ISimpleSyncDelegate {
@@ -156,7 +153,8 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
         }
       } else {
         final String statusline = Integer.toString(urlConnection.getResponseCode()) + urlConnection.getResponseMessage();
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
+        //noinspection WrongConstant
+        if (Log.isLoggable(TAG, android.util.Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), statusline, urlConnection.getErrorStream());
         }
         // Don't throw an exception.

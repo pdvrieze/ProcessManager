@@ -23,7 +23,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -68,7 +67,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   private Preference mPrefAccount;
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setupActionBar();
     if (! onIsMultiPane()) {
@@ -78,14 +77,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   }
 
   @Override
-  protected void onPostCreate(final Bundle savedInstanceState) {
-    super.onPostCreate(savedInstanceState);
-  }
-
-  @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     if (requestCode==CHOOSE_ACCOUNT_REQUEST_CODE) {
-      String accountName;
+      final String accountName;
       if (resultCode==RESULT_OK) {
         accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
       } else if (resultCode==RESULT_CANCELED) {
@@ -107,7 +101,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
    * Set up the {@link android.app.ActionBar}, if the API is available.
    */
   private void setupActionBar() {
-    ActionBar actionBar = getSupportActionBar();
+    final ActionBar actionBar = getSupportActionBar();
     if (actionBar != null) {
       // Show the Up button in the action bar.
       actionBar.setDisplayHomeAsUpEnabled(true);
@@ -124,7 +118,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   /** {@inheritDoc} */
   @Override
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-  public void onBuildHeaders(List<Header> target) {
+  public void onBuildHeaders(final List<Header> target) {
     if (onIsMultiPane()) {
       loadHeadersFromResource(R.xml.pref_headers, target);
     } // Only use headers in multi-pane mode, but not in single mode. In that case just put things sequentially.
@@ -134,16 +128,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
    * A preference value change listener that updates the preference's summary
    * to reflect its new value.
    */
-  private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+  private static final Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
     @Override
-    public boolean onPreferenceChange(Preference preference, Object value) {
-      String stringValue = value.toString();
+    public boolean onPreferenceChange(final Preference preference, final Object value) {
+      final String stringValue = value.toString();
 
       if (preference instanceof ListPreference) {
         // For list preferences, look up the correct display value in
         // the preference's 'entries' list.
-        ListPreference listPreference = (ListPreference) preference;
-        int index = listPreference.findIndexOfValue(stringValue);
+        final ListPreference listPreference = (ListPreference) preference;
+        final int            index          = listPreference.findIndexOfValue(stringValue);
 
         // Set the summary to reflect the new value.
         preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
@@ -156,7 +150,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
           preference.setSummary(R.string.pref_ringtone_silent);
 
         } else {
-          Ringtone ringtone = RingtoneManager.getRingtone(preference.getContext(), Uri.parse(stringValue));
+          final Ringtone ringtone = RingtoneManager.getRingtone(preference.getContext(), Uri.parse(stringValue));
 
           if (ringtone == null) {
             // Clear the summary if there was a lookup error.
@@ -164,7 +158,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
           } else {
             // Set the summary to reflect the new ringtone display
             // name.
-            String name = ringtone.getTitle(preference.getContext());
+            final String name = ringtone.getTitle(preference.getContext());
             preference.setSummary(name);
           }
         }
@@ -184,7 +178,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
    * This method stops fragment injection in malicious applications.
    * Make sure to deny any unknown fragments here.
    */
-  protected boolean isValidFragment(String fragmentName) {
+  protected boolean isValidFragment(final String fragmentName) {
     return PreferenceFragment.class.getName().equals(fragmentName) ||
            GeneralPreferenceFragment.class.getName().equals(fragmentName) ||
            DataSyncPreferenceFragment.class.getName().equals(fragmentName) ||
@@ -196,7 +190,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     if (AuthenticatedWebClient.KEY_ACCOUNT_NAME.equals(preference.getKey())) {
       final Account currentAccount;
       {
-        String accountName = preference.getSharedPreferences().getString(preference.getKey(), null);
+        final String accountName = preference.getSharedPreferences().getString(preference.getKey(), null);
         if (accountName==null || accountName.isEmpty()) {
           currentAccount = null;
         } else {
@@ -204,9 +198,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         }
       }
 
-      String source = preference.getSharedPreferences().getString(PREF_SYNC_SOURCE, null);
+      final String source = preference.getSharedPreferences().getString(PREF_SYNC_SOURCE, null);
 
-      Bundle options;
+      final Bundle options;
       if (source == null) {
         options = null;
       } else {
@@ -215,16 +209,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
         options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase.toString());
       }
 
-      @SuppressWarnings("deprecation")
-      Intent intent = AccountManager.newChooseAccountIntent(currentAccount, null, new String[]{AuthenticatedWebClient.ACCOUNT_TYPE}, false, null, null, null, options);
+      @SuppressWarnings("deprecation") final Intent intent = AccountManager.newChooseAccountIntent(currentAccount, null, new String[]{AuthenticatedWebClient.ACCOUNT_TYPE}, false, null, null, null, options);
       startActivityForResult(intent, CHOOSE_ACCOUNT_REQUEST_CODE);
     }
     return false;
   }
 
 
-  public static URI getSyncSource(Context context) {
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+  public static URI getSyncSource(final Context context) {
+    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     if (prefs.contains(PREF_SYNC_SOURCE)) {
       String sync_source = prefs.getString(PREF_SYNC_SOURCE, "");
       if (! (sync_source.charAt(sync_source.length()-1)=='/')) {
@@ -245,15 +238,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   public static class GeneralPreferenceFragment extends PreferenceFragment {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setHasOptionsMenu(true);
       createGeneralPreferences(this, false);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-      int id = item.getItemId();
+    public boolean onOptionsItemSelected(final MenuItem item) {
+      final int id = item.getItemId();
       if (id == android.R.id.home) {
         NavUtils.navigateUpTo(getActivity(), NavUtils.getParentActivityIntent(getActivity()));
         return true;
@@ -269,15 +262,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   public static class NotificationPreferenceFragment extends PreferenceFragment {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setHasOptionsMenu(true);
       createNotificationPreferences(this, false);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-      int id = item.getItemId();
+    public boolean onOptionsItemSelected(final MenuItem item) {
+      final int id = item.getItemId();
       if (id == android.R.id.home) {
         NavUtils.navigateUpTo(getActivity(), NavUtils.getParentActivityIntent(getActivity()));
         return true;
@@ -295,7 +288,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
    *
    * @see #sBindPreferenceSummaryToValueListener
    */
-  private static void bindPreferenceSummaryToValue(Preference preference) {
+  private static void bindPreferenceSummaryToValue(final Preference preference) {
     // Set the listener to watch for value changes.
     preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
@@ -312,7 +305,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   public static class DataSyncPreferenceFragment extends PreferenceFragment {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       setHasOptionsMenu(true);
 
@@ -320,8 +313,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-      int id = item.getItemId();
+    public boolean onOptionsItemSelected(final MenuItem item) {
+      final int id = item.getItemId();
       if (id == android.R.id.home) {
         NavUtils.navigateUpTo(getActivity(), NavUtils.getParentActivityIntent(getActivity()));
         return true;
@@ -344,12 +337,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     }
   }
 
-  private static void createGeneralPreferences(PreferenceFragment fragment, final boolean addCategory) {
+  private static void createGeneralPreferences(final PreferenceFragment fragment, final boolean addCategory) {
     setCategory(fragment, R.string.pref_header_general, addCategory);
     fragment.addPreferencesFromResource(R.xml.pref_general);
   }
 
-  private static void createNotificationPreferences(PreferenceFragment fragment, final boolean addCategory) {
+  private static void createNotificationPreferences(final PreferenceFragment fragment, final boolean addCategory) {
     setCategory(fragment, R.string.pref_header_notifications, addCategory);
     fragment.addPreferencesFromResource(R.xml.pref_notification);
 
@@ -365,12 +358,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
     setCategory(fragment, R.string.pref_header_data_sync, addCategory);
     fragment.addPreferencesFromResource(R.xml.pref_data_sync);
     bindPreferenceSummaryToValue(fragment.findPreference(PREF_SYNC_FREQUENCY));
-    AutoCompletePreference pref_sync_source = (AutoCompletePreference) fragment.findPreference(PREF_SYNC_SOURCE);
+    final AutoCompletePreference pref_sync_source = (AutoCompletePreference) fragment.findPreference(PREF_SYNC_SOURCE);
     pref_sync_source.getEditText().setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
 
     bindPreferenceSummaryToValue(pref_sync_source);
 
-    Preference prefAccount = fragment.findPreference(AuthenticatedWebClient.KEY_ACCOUNT_NAME);
+    final Preference prefAccount = fragment.findPreference(AuthenticatedWebClient.KEY_ACCOUNT_NAME);
     ((SettingsActivity)fragment.getActivity()).mPrefAccount = prefAccount;
     prefAccount.setOnPreferenceClickListener((SettingsActivity)fragment.getActivity());
     bindPreferenceSummaryToValue(prefAccount);
@@ -378,7 +371,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
   private static void setCategory(final PreferenceFragment fragment, final int headerLabelId, final boolean addCategory) {
     if (addCategory) {
-      PreferenceCategory header = new PreferenceCategory(fragment.getActivity());
+      final PreferenceCategory header = new PreferenceCategory(fragment.getActivity());
       header.setTitle(headerLabelId);
       fragment.getPreferenceScreen().addPreference(header);
     }

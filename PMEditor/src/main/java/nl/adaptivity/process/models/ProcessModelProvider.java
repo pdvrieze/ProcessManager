@@ -24,7 +24,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.Tupple;
-import nl.adaptivity.android.util.ContentProviderHelper;
+import nl.adaptivity.process.data.ProcessModelPipeProvider;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.data.ProviderHelper;
@@ -146,7 +146,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static enum QueryTarget{
+  private enum QueryTarget{
     PROCESSMODELS(ProcessModels.CONTENT_URI),
     PROCESSMODEL(ProcessModels.CONTENT_ID_URI_PATTERN),
     PROCESSMODELCONTENT(ProcessModels.CONTENT_ID_STREAM_PATTERN),
@@ -158,12 +158,12 @@ public class ProcessModelProvider extends ContentProvider {
     private final String path;
     private final Uri baseUri;
 
-    private QueryTarget() {
+    QueryTarget() {
       baseUri=null;
       path=null;
     }
 
-    private QueryTarget(final Uri uri) {
+    QueryTarget(final Uri uri) {
       baseUri = Uri.fromParts(uri.getScheme(), uri.getAuthority()+'/'+uri.getPath(), null);
       final String frag = uri.getFragment();
       if (frag != null) {
@@ -176,7 +176,7 @@ public class ProcessModelProvider extends ContentProvider {
 
   private static class UriHelper {
 
-    private static UriMatcher _uriMatcher;
+    private static final UriMatcher _uriMatcher;
 
     static {
       _uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -190,9 +190,9 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     final QueryTarget mTarget;
-    final long mId;
-    final String mTable;
-    boolean mNetNotify;
+    final long        mId;
+    final String      mTable;
+    final boolean     mNetNotify;
 
     private UriHelper(final QueryTarget u, final boolean netNotify) {
       this(u, -1, netNotify);
@@ -370,7 +370,7 @@ public class ProcessModelProvider extends ContentProvider {
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
-    return ContentProviderHelper.createPipe(this, mDbHelper, DataOpenHelper.TABLE_NAME_MODELS, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
+    return ProcessModelPipeProvider.createPipe(this, mDbHelper, DataOpenHelper.TABLE_NAME_MODELS, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
   }
 
   @Override

@@ -17,28 +17,28 @@
 package nl.adaptivity.sync;
 
 
-import java.util.Arrays;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import java.util.Arrays;
+
 public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapter implements ISimpleSyncDelegate {
 
   public interface XmlBaseColumns extends BaseColumns {
-    public static final String COLUMN_SYNCSTATE = "syncstate";
+    String COLUMN_SYNCSTATE = "syncstate";
   }
 
   public interface ContentValuesProvider {
     /** The values that need to be stored in the database for the item. */
-    public ContentValues getContentValues();
+    ContentValues getContentValues();
 
     /** Indicate whether the value has further details to parse. This allows different sync state depending on update
      * or new.
      * @return true if details need to be synced.
      */
-    public boolean syncDetails();
+    boolean syncDetails();
   }
 
   public static class SimpleContentValuesProvider implements ContentValuesProvider {
@@ -46,7 +46,7 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
     private final ContentValues mContentValues;
     private final boolean mSyncDetails;
 
-    public SimpleContentValuesProvider(ContentValues contentValues, boolean syncDetails) {
+    public SimpleContentValuesProvider(final ContentValues contentValues, final boolean syncDetails) {
       mContentValues = contentValues;
       mSyncDetails = syncDetails;
     }
@@ -65,14 +65,14 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
     public final ContentValuesProvider mCV;
     public final long mId;
 
-    public CVPair(long id, ContentValuesProvider cV) {
+    public CVPair(final long id, final ContentValuesProvider cV) {
       mCV = cV;
       mId = id;
     }
 
     @Override
-    public int compareTo(CVPair another) {
-      long rhs = another.mId;
+    public int compareTo(final CVPair another) {
+      final long rhs = another.mId;
       return mId < rhs ? -1 : (mId == rhs ? 0 : 1);
     }
 
@@ -90,18 +90,18 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
 
   RemoteXmlSyncAdapterDelegate mCoordinator;
 
-  public RemoteXmlSyncAdapter(Context context, boolean autoInitialize, Uri listContentUri) {
+  public RemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final Uri listContentUri) {
     super(context, autoInitialize, null);
     init(listContentUri);
   }
 
-  private void init(Uri listContentUri) {
+  private void init(final Uri listContentUri) {
     listContentUri.buildUpon().encodedFragment("nonetnotify").build();
     mCoordinator = new RemoteXmlSyncAdapterDelegate(listContentUri, this);
     setDelegates(Arrays.asList(mCoordinator));
   }
 
-  public RemoteXmlSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs, Uri listContentUri) {
+  public RemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final boolean allowParallelSyncs, final Uri listContentUri) {
     super(context, autoInitialize, allowParallelSyncs, null);
     init(listContentUri);
   }
