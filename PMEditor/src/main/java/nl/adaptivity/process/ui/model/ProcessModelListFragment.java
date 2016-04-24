@@ -41,6 +41,7 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -53,7 +54,6 @@ import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 import java.io.IOException;
@@ -68,10 +68,10 @@ import java.util.UUID;
  * state upon selection. This helps indicate which item is currently being
  * viewed in a {@link ProcessModelDetailFragment}.
  * <p>
- * Activities containing this fragment MUST implement the {@link ProcessModelListCallbacks}
+ * Activities containing this fragment MUST implement the {@link ListCallbacks}
  * interface.
  */
-public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, GetNameDialogFragmentCallbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
+public class ProcessModelListFragment extends MasterListFragment<ProcessSyncManager> implements LoaderCallbacks<Cursor>, GetNameDialogFragmentCallbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
 
   private static final int LOADERID = 3;
 
@@ -179,7 +179,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   private void updateSyncState() {
-    final SyncManager syncManager = getCallbacks().getSyncManager();
+    final ProcessSyncManager syncManager = getCallbacks().getSyncManager();
     if (! syncManager.isSyncable(ProcessModelProvider.AUTHORITY)) {
       mSwipeRefresh.setRefreshing(false);
     } else {

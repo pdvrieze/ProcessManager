@@ -22,11 +22,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
-import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.android.util.MasterListFragment.ProcessModelListCallbacks;
+import nl.adaptivity.android.util.MasterListFragment.ListCallbacks;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
-import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -42,10 +41,10 @@ import nl.adaptivity.sync.SyncManager;
  * {@link ProcessModelDetailFragment}.
  * <p>
  * This activity also implements the required
- * {@link MasterListFragment.ProcessModelListCallbacks} interface to listen for item
+ * {@link ListCallbacks} interface to listen for item
  * selections.
  */
-public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListCallbacks, ProcessModelDetailFragmentCallbacks {
+public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ListCallbacks, ProcessModelDetailFragmentCallbacks {
 
   public interface ProcessModelListCallbacks {
 
@@ -53,7 +52,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
     void onInstantiateModel(long id, String suggestedName);
 
-    SyncManager getSyncManager();
+    ProcessSyncManager getSyncManager();
   }
 
 
@@ -101,7 +100,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   /**
-   * Callback method from {@link MasterListFragment.ProcessModelListCallbacks} indicating
+   * Callback method from {@link ListCallbacks} indicating
    * that the item with the given ID was selected.
    */
   @Override
@@ -139,7 +138,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  public SyncManager getSyncManager() {
+  public ProcessSyncManager getSyncManager() {
     return mCallbacks.getSyncManager();
   }
 

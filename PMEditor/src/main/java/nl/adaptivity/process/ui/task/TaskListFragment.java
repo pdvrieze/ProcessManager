@@ -29,10 +29,10 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 
@@ -44,10 +44,10 @@ import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  * <p>
- * Activities containing this fragment MUST implement the {@link ProcessModelListCallbacks}
+ * Activities containing this fragment MUST implement the {@link ListCallbacks}
  * interface.
  */
-public class TaskListFragment extends MasterListFragment implements OnRefreshListener, OnSelectionListener {
+public class TaskListFragment extends MasterListFragment<ProcessSyncManager> implements OnRefreshListener, OnSelectionListener {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -184,7 +184,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   }
 
   private void updateSyncState() {
-    final SyncManager syncManager = getCallbacks().getSyncManager();
+    final ProcessSyncManager syncManager = getCallbacks().getSyncManager();
     if (! syncManager.isSyncable(TaskProvider.AUTHORITY)) {
       mSwipeRefresh.setRefreshing(false);
     } else {

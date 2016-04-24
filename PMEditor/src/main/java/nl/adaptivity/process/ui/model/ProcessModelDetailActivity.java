@@ -22,14 +22,15 @@ import android.os.RemoteException;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.ui.main.OverviewActivity;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
-import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -45,6 +46,7 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
 
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
   private long mModelHandleToInstantiate;
+  private ProcessSyncManager mSyncManager;
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
@@ -120,8 +122,11 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
   }
 
   @Override
-  public SyncManager getSyncManager() {
-    return null;
+  public ProcessSyncManager getSyncManager() {
+    if (mSyncManager ==null) {
+      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
+    }
+    return mSyncManager;
   }
 
   @Override

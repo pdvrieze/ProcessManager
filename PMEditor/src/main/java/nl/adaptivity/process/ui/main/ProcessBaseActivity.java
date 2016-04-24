@@ -39,6 +39,7 @@ import nl.adaptivity.diagram.svg.SVGPath;
 import nl.adaptivity.diagram.svg.SVGPen;
 import nl.adaptivity.diagram.svg.SVGStrategy;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.PMParcelable;
@@ -46,7 +47,6 @@ import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.ProcessesCallback;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.UIConstants;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.xml.AndroidXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -144,7 +144,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   protected ClientProcessModel<?, ?> mProcessModel;
   /** Temporary file for sharing. */
   protected File mTmpFile;
-  private SyncManager mSyncManager;
+  private ProcessSyncManager mSyncManager;
 
   @Override
   protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -345,9 +345,9 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     if (mTmpFile!=null) { outState.putString(UIConstants.KEY_TMPFILE, mTmpFile.getPath()); }
   }
 
-  public SyncManager getSyncManager() {
+  public ProcessSyncManager getSyncManager() {
     if (mSyncManager==null) {
-      mSyncManager = new SyncManager(AuthenticatedWebClient.getStoredAccount(this));
+      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
     }
     return mSyncManager;
   }
