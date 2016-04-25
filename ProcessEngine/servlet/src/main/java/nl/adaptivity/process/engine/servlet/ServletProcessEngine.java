@@ -753,9 +753,9 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
             Element rootNode = domResult.getDocumentElement();
             // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
             if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
-              final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
+              final Element header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
               if (header != null) {
-                rootNode = XmlUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+                rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
               }
             }
             if (rootNode != null) {

@@ -88,7 +88,7 @@ public class JAXBUnmarshallingAdapter<T extends XmlSerializable> extends JAXBAda
 
 
       for (final Entry<QName, Object> attr : v.attributes.entrySet()) {
-        XmlUtil.setAttribute(root, attr.getKey(), (String) attr.getValue());
+        DomUtil.setAttribute(root, attr.getKey(), (String) attr.getValue());
       }
       for (final Object child : v.children) {
         if (child instanceof Node) {

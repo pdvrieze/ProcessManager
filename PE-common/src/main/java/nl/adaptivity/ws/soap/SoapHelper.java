@@ -198,7 +198,7 @@ public class SoapHelper {
       prefix = "";
     }
     if (pParam.getElem1() == RESULT) { // We need to create the wrapper that refers to the actual result.
-      String rpcprefix = XmlUtil.getPrefix(pMessage, SOAP_RPC_RESULT.getNamespaceURI());
+      String rpcprefix = DomUtil.getPrefix(pMessage, SOAP_RPC_RESULT.getNamespaceURI());
       final Element wrapper;
       if (rpcprefix == null) {
         wrapper = ownerDoc.createElementNS(SOAP_RPC_RESULT.getNamespaceURI(), "rpc:" + SOAP_RPC_RESULT.getLocalPart());

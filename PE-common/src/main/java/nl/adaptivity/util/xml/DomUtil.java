@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
@@ -277,5 +278,145 @@ public final class DomUtil {
       }
     }
     return fragment;
+  }
+
+  /**
+   * Make a QName for the given parameters.
+   * @param reference The node to use to look up the namespace that corresponds to the prefix.
+   * @param name This is the full name of the element. That includes the prefix (or if no colon present) the default prefix.
+   * @return The QName.
+   */
+  @NotNull
+  public static QName asQName(@NotNull final Node reference, @NotNull final String name) {
+    final int colPos = name.indexOf(':');
+    if (colPos >= 0) {
+      final String prefix = name.substring(0, colPos);
+      return new QName(reference.lookupNamespaceURI(prefix), name.substring(colPos + 1), prefix);
+    } else {
+      return new QName(reference.lookupNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.NULL_NS_URI);
+    }
+
+  }
+
+  @Nullable
+  public static Element getChild(@NotNull final Element parent, @NotNull final QName name) {
+    return getFirstChild(parent, name.getNamespaceURI(), name.getLocalPart());
+  }
+
+  public static Element getFirstChild(@NotNull final Element parent, @Nullable final String namespaceURI, final String localName) {
+    for (Element child = getFirstChildElement(parent); child != null; child = getNextSiblingElement(child)) {
+      if ((namespaceURI == null) || (namespaceURI.length() == 0)) {
+        if (((child.getNamespaceURI() == null) || (child.getNamespaceURI().length() == 0))
+            && StringUtil.isEqual(localName, child.getLocalName())) {
+          return child;
+        }
+      } else {
+        if (StringUtil.isEqual(namespaceURI, child.getNamespaceURI()) && StringUtil.isEqual(localName, child.getLocalName())) {
+          return child;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static Element getNextSibling(@NotNull final Element sibling, @NotNull final QName name) {
+    return getNextSibling(sibling, name.getNamespaceURI(), name.getLocalPart());
+  }
+
+  public static Element getNextSibling(@NotNull final Element sibling, final String namespaceURI, final String localName) {
+    for (Element child = getNextSiblingElement(sibling); child != null; child = getNextSiblingElement(child)) {
+      if (StringUtil.isEqual(namespaceURI, child.getNamespaceURI()) && StringUtil.isEqual(localName, child.getLocalName())) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the first child that is an element.
+   *
+   * @param parent The parent element.
+   * @return The first element child, or <code>null</code> if there is none.
+   */
+  public static Element getFirstChildElement(@NotNull final Element parent) {
+    for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child instanceof Element) {
+        return (Element) child;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the next sibling that is an element.
+   *
+   * @param sibling The reference element.
+   * @return The next element sibling, or <code>null</code> if there is none.
+   */
+  public static Element getNextSiblingElement(@NotNull final Element sibling) {
+    for (Node child = sibling.getNextSibling(); child != null; child = child.getNextSibling()) {
+      if (child instanceof Element) {
+        return (Element) child;
+      }
+    }
+    return null;
+  }
+
+  public static void setAttribute(@NotNull final Element element, @NotNull final QName name, final String value) {
+    if (name.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(name.getNamespaceURI())) {
+      element.setAttribute(name.getLocalPart(), value);
+    } else if (name.getPrefix()==null || XMLConstants.DEFAULT_NS_PREFIX.equals(name.getPrefix())) {
+      element.setAttributeNS(name.getNamespaceURI(),name.getLocalPart(), value);
+    } else {
+      element.setAttributeNS(name.getNamespaceURI(),name.getPrefix()+':'+name.getLocalPart(), value);
+    }
+  }
+
+  public static Node cannonicallize(final Node content) throws ParserConfigurationException,
+                                                               XmlException {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    final DocumentBuilder db = dbf.newDocumentBuilder();
+
+    if (content instanceof DocumentFragment) {
+      final DocumentFragment df = (DocumentFragment) content;
+      final DocumentFragment result = db.newDocument().createDocumentFragment();
+      final DOMResult dr = new DOMResult(result);
+      for(Node child=df.getFirstChild(); child!=null; child=child.getNextSibling()) {
+        XmlUtil.cannonicallize(new DOMSource(child), dr);
+      }
+      return result;
+    } else {
+      final Document result = db.newDocument();
+      XmlUtil.cannonicallize(new DOMSource(content), new DOMResult(result));
+      return result.getDocumentElement();
+    }
+  }
+
+  public static String getPrefix(final Node node, final String namespaceURI) {
+    if (node==null) { return null; }
+    if (node instanceof Element) {
+      final NamedNodeMap attrs = node.getAttributes();
+      for (int i=0; i<attrs.getLength(); ++i) {
+        final Attr attr = (Attr) attrs.item(i);
+        if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attr.getNamespaceURI()) && attr.getValue().equals(namespaceURI)) {
+          return attr.getName();
+        }
+      }
+    }
+    final String prefix = getPrefix(node.getParentNode(), namespaceURI);
+    if (node.hasAttributes()&& prefix!=null) {
+      if (prefix.isEmpty()) {
+        if (node.getAttributes().getNamedItem(XMLConstants.XMLNS_ATTRIBUTE) != null) {
+          return null;
+        }
+      } else {
+        if (node.getAttributes().getNamedItemNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, prefix) != null) {
+          return null;
+        }
+      }
+    }
+    return prefix;
   }
 }
