@@ -99,9 +99,9 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (AbstractXmlReader.isElement(in, PRINCIPALQNAME)) {
+    if (XmlReaderUtil.isElement(in, PRINCIPALQNAME)) {
       // XXX make sure this is secure
-      mPrincipal = new SimplePrincipal(AbstractXmlReader.readSimpleElement(in).toString());
+      mPrincipal = new SimplePrincipal(XmlReaderUtil.readSimpleElement(in).toString());
     } else {
       getAny().add(DomUtil.childToNode(in));
     }
@@ -150,7 +150,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
     for(Node n: getAny()) {
       XmlUtil.writeChild(out, n);
     }
-    XmlUtil.writeEndElement(out, getElementName());
+    AbstractXmlWriter.endTag(out, getElementName());
   }
 
   /**

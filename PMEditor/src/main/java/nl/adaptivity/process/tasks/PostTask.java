@@ -96,12 +96,12 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     if (mTask!=null || mReplies!=null) {
       XmlUtil.writeStartElement(out, REPLIESPARAM_NAME);
       getReplies().serialize(out);
-      XmlUtil.writeEndElement(out, REPLIESPARAM_NAME);
+      AbstractXmlWriter.endTag(out, REPLIESPARAM_NAME);
       XmlUtil.writeStartElement(out, TASKPARAM_NAME);
       mTask.serialize(out);
-      XmlUtil.writeEndElement(out, TASKPARAM_NAME);
+      AbstractXmlWriter.endTag(out, TASKPARAM_NAME);
     }
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   private static PostTask deserialize(final XmlReader in) throws XmlException {
@@ -113,7 +113,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS,in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
-          mReplies = AbstractXmlReader.elementContentToFragment(in);
+          mReplies = XmlReaderUtil.elementContentToFragment(in);
           return true;
         case TASKPARAM_LOCALNAME:
           in.next();//The param tag has been handled.

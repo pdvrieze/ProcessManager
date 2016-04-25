@@ -98,7 +98,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (AbstractXmlReader.isElement(in, Constants.USER_MESSAGE_HANDLER_NS, "item")) {
+    if (XmlReaderUtil.isElement(in, Constants.USER_MESSAGE_HANDLER_NS, "item")) {
       if (mItems==null) { mItems = new ArrayList<>(); }
       mItems.add(XmlItem.deserialize(in));
       return true;
@@ -144,7 +144,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     XmlUtil.writeAttribute(out, "summary", mSummary);
     if (mOwner!=null) { XmlUtil.writeAttribute(out, "owner", mOwner.getName()); }
     XmlUtil.writeChildren(out, mItems);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   @Override

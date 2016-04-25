@@ -52,7 +52,7 @@ public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   protected void serializeChildren(@NotNull final XmlWriter out) throws XmlException {
@@ -60,14 +60,14 @@ public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,
     for(final Identifiable pred: getPredecessors()) {
       XmlUtil.writeStartElement(out, PREDELEMNAME);
       out.text(pred.getId());
-      XmlUtil.writeEndElement(out, PREDELEMNAME);
+      AbstractXmlWriter.endTag(out, PREDELEMNAME);
     }
   }
 
   @Override
   public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
-    if (AbstractXmlReader.isElement(in, PREDELEMNAME)) {
-      final String id = AbstractXmlReader.readSimpleElement(in).toString();
+    if (XmlReaderUtil.isElement(in, PREDELEMNAME)) {
+      final String id = XmlReaderUtil.readSimpleElement(in).toString();
       addPredecessor(new Identifier(id));
       return true;
     }

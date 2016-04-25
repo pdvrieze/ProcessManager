@@ -58,7 +58,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
   @Override
   protected void deserializeCondition(final XmlReader in) throws XmlException {
-    mCondition = StringUtil.toString(AbstractXmlReader.readSimpleElement(in));
+    mCondition = StringUtil.toString(XmlReaderUtil.readSimpleElement(in));
   }
 
   @Override

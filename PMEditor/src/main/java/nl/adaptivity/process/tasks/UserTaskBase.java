@@ -60,13 +60,13 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
     for(final TaskItem item: getItems()) {
       item.serialize(out);
     }
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   @CallSuper
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (AbstractXmlReader.isElement(in, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
+    if (XmlReaderUtil.isElement(in, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
                                                                                                                  .getLocalPart(), TaskItem.ELEMENTNAME
                                                                                                                                           .getPrefix())) {
       parseTaskItem(in);

@@ -18,8 +18,7 @@ package nl.adaptivity.xml.generators
 
 import net.devrieze.util.ReflectionUtil
 import nl.adaptivity.kotlin.jvmhelpers.ThrowableUtil
-import nl.adaptivity.xml.AbstractXmlReader
-import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlReaderUtil
 import nl.adaptivity.xml.XmlSerializable
 import nl.adaptivity.xml.schema.annotations.*
 import java.io.File
@@ -30,7 +29,6 @@ import java.net.URLClassLoader
 import java.util.*
 import javax.xml.XMLConstants
 import javax.xml.namespace.QName
-import kotlin.reflect.KClass
 
 /*
  * Code shared between all code generators
@@ -334,7 +332,7 @@ internal val BUILTINS = mapOf<Class<out Any>,Builtin>(
       CharSequence::class.java to Builtin("string", "null", { it -> "$it.toString"}, {it -> it}),
       Boolean::class.java to Builtin("boolean", "false", { it -> "$it ? \"true\" : \"false\""}, {it -> "Boolean.valueOf($it)"}),
       UUID::class.java to Builtin("string", "null", { it -> "$it.toString()"}, { it -> "UUID.fromString($it)"}),
-      QName::class.java to Builtin("QName", "null", { it -> "{$it.namespaceUri}$it.localName"}, { it -> "${AbstractXmlReader::class.java.canonicalName}.toQname($it)"}),
+      QName::class.java to Builtin("QName", "null", { it -> "{$it.namespaceUri}$it.localName"}, { it -> "${XmlReaderUtil::class.java.canonicalName}.toQname($it)"}),
       Long::class.java to Builtin("long", "-1L", { it -> "Long.toString(${it})"}, {it -> "Long.valueOf($it)"})
 )
 

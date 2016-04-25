@@ -22,6 +22,7 @@ import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.AbstractXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
@@ -94,7 +95,7 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   @Override

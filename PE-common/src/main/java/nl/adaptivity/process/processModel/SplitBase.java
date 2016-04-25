@@ -22,6 +22,7 @@ import nl.adaptivity.process.processModel.engine.SplitImpl;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.AbstractXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
@@ -51,7 +52,7 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   @Override

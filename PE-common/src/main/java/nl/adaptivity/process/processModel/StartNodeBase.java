@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.AbstractXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
@@ -62,7 +63,7 @@ public abstract class StartNodeBase<T extends ProcessNode<T, M>, M extends Proce
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   @Override

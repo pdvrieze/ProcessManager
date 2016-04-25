@@ -99,7 +99,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @Override
   protected void serializeEndElement(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeEndElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
+    AbstractXmlWriter.endTag(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
   }
 
   @Override
@@ -182,7 +182,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
         XmlReader reader = transformer.createFilter(getBodyStreamReader());
         if (reader.hasNext()) reader.next(); // Initialise the reader
-        final CompactFragment transformed = AbstractXmlReader.siblingsToFragment(reader);
+        final CompactFragment transformed = XmlReaderUtil.siblingsToFragment(reader);
         return new ProcessData(getName(), transformed);
 
       } catch (@NotNull final XmlException e) {

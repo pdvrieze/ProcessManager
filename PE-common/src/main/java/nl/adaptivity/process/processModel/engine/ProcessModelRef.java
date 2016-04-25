@@ -109,7 +109,7 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
     XmlUtil.writeAttribute(out, "name", mName);
     XmlUtil.writeAttribute(out, "handle", mHandle);
     XmlUtil.writeAttribute(out, "uuid", mUuid==null ? null : mUuid.toString());
-    XmlUtil.writeEndElement(out, getElementName());
+    AbstractXmlWriter.endTag(out, getElementName());
   }
 
   void setName(final String name) {

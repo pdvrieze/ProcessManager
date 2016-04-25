@@ -43,7 +43,7 @@ public class CompactFragment implements XmlSerializable {
   public static final Factory FACTORY = new Factory();
 
   public static CompactFragment deserialize(final XmlReader in) throws XmlException {
-    return AbstractXmlReader.siblingsToFragment(in);
+    return XmlReaderUtil.siblingsToFragment(in);
   }
 
   private final nl.adaptivity.xml.SimpleNamespaceContext namespaces;
@@ -67,7 +67,7 @@ public class CompactFragment implements XmlSerializable {
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
     XmlReader in = XMLFragmentStreamReader.from(this);
-    XmlUtil.serialize(in, out);
+    AbstractXmlWriter.serialize(out, in);
     in.close();
   }
 

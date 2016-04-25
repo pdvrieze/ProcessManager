@@ -94,14 +94,14 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (AbstractXmlReader.isElement(in, Engine.NAMESPACE, "predecessor")) {
+    if (XmlReaderUtil.isElement(in, Engine.NAMESPACE, "predecessor")) {
       if (mPredecessors == null) { mPredecessors = new ArrayList<>(); }
-      mPredecessors.add(Long.parseLong(AbstractXmlReader.readSimpleElement(in).toString()));
+      mPredecessors.add(Long.parseLong(XmlReaderUtil.readSimpleElement(in).toString()));
       return true;
-    } else if (AbstractXmlReader.isElement(in, Engine.NAMESPACE, "body")) {
-      mBody = AbstractXmlReader.elementContentToFragment(in);
+    } else if (XmlReaderUtil.isElement(in, Engine.NAMESPACE, "body")) {
+      mBody = XmlReaderUtil.elementContentToFragment(in);
       return true;
-    } else if (AbstractXmlReader.isElement(in, ProcessData.ELEMENTNAME)) {
+    } else if (XmlReaderUtil.isElement(in, ProcessData.ELEMENTNAME)) {
       if (mResults==null) { mResults = new ArrayList<>(); }
       mResults.add(ProcessData.deserialize(in));
       return true;
@@ -275,10 +275,10 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
     }
     if (mBody!=null) {
       XmlUtil.writeStartElement(out, BODY_ELEMENTNAME);
-      mBody.serialize(XmlUtil.stripMetatags(out));
-      XmlUtil.writeEndElement(out, BODY_ELEMENTNAME);
+      mBody.serialize(AbstractXmlWriter.filterSubstream(out));
+      AbstractXmlWriter.endTag(out, BODY_ELEMENTNAME);
     }
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
 }

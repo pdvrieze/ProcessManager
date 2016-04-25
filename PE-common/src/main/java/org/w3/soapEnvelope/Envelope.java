@@ -116,9 +116,9 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
   public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
     final Envelope<T> result = new Envelope<T>();
-    AbstractXmlReader.skipPreamble(in);
+    XmlReaderUtil.skipPreamble(in);
     final QName elementName = result.getElementName();
-    assert AbstractXmlReader.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
+    assert XmlReaderUtil.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
     for(int i = in.getAttributeCount() - 1; i >= 0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -129,10 +129,10 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
           if (result.deserializeChild(in, bodyDeserializer)) {
             continue loop;
           }
-          AbstractXmlReader.unhandledEvent(in);
+          XmlReaderUtil.unhandledEvent(in);
           break;
         default:
-          AbstractXmlReader.unhandledEvent(in);
+          XmlReaderUtil.unhandledEvent(in);
       }
     }
     return result;
@@ -174,7 +174,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
     }
     XmlUtil.writeChild(out, header);
     XmlUtil.writeChild(out, mBody);
-    XmlUtil.writeEndElement(out, getElementName());
+    AbstractXmlWriter.endTag(out, getElementName());
   }
 
   /**

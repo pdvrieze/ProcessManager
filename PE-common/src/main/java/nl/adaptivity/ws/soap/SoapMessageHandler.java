@@ -124,7 +124,7 @@ public class SoapMessageHandler {
         case START_ELEMENT:
           break loop;
         default:
-          AbstractXmlReader.unhandledEvent(reader);
+          XmlReaderUtil.unhandledEvent(reader);
       }
     }
     if ( reader.getEventType() != EventType.START_ELEMENT) {

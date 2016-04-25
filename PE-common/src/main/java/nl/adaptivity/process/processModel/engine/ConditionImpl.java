@@ -48,7 +48,7 @@ public class ConditionImpl implements XmlSerializable, Condition {
 
   @NotNull
   public static ConditionImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-    final CharSequence condition = AbstractXmlReader.readSimpleElement(in);
+    final CharSequence condition = XmlReaderUtil.readSimpleElement(in);
     return new ConditionImpl(StringUtil.toString(condition));
   }
 

@@ -238,7 +238,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
         XmlUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
       }
     }
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   public static GenericItem parseTaskGenericItem(final XmlReader in) throws XmlException {
@@ -246,7 +246,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   }
 
   private static <T extends TaskItem> T parseTaskItemHelper(@NonNull final XmlReader in, final Factory<T> factory) throws XmlException {
-    AbstractXmlReader.skipPreamble(in);
+    XmlReaderUtil.skipPreamble(in);
     in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_ITEM);
     CharSequence name = StringUtil.toString(in.getAttributeValue(null, "name"));
     CharSequence label = StringUtil.toString(in.getAttributeValue(null, "label"));
@@ -274,7 +274,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
         }
       } else {
         in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_OPTION);
-        AbstractXmlReader.skipPreamble(in);
+        XmlReaderUtil.skipPreamble(in);
         if (in.getEventType()==EventType.START_ELEMENT) {
           if (StringUtil.isEqual(Constants.MODIFY_NS_STR,in.getNamespaceUri())) {
             options.add(ModifyHelper.parseAny(in));
@@ -282,7 +282,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
             in.require(EventType.TEXT, null, null);
           }
         }
-        options.add(AbstractXmlReader.allText(in).toString());
+        options.add(XmlReaderUtil.allText(in).toString());
         in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_OPTION);
       }
     }

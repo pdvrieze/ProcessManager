@@ -135,7 +135,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
 
           parser.nextTag(); // Skip document start etc.
           parser.require(EventType.START_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
-          final long handle = Long.parseLong(AbstractXmlReader.allText(parser).toString());
+          final long handle = Long.parseLong(XmlReaderUtil.allText(parser).toString());
           parser.nextTag();
           parser.require(EventType.END_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
 

@@ -61,13 +61,13 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
   public XMLContainer(final Source source) throws XmlException {
     XmlReader reader = XmlStreaming.newReader(source);
     if (reader.hasNext()) reader.next(); // Initialise the reader
-    setContent(AbstractXmlReader.siblingsToFragment(reader));
+    setContent(XmlReaderUtil.siblingsToFragment(reader));
   }
 
   public void deserializeChildren(@NotNull final XmlReader in) throws XmlException {
     if (in.hasNext()) {
       if (in.next() != XmlStreaming.END_ELEMENT) {
-        final CompactFragment content = AbstractXmlReader.siblingsToFragment(in);
+        final CompactFragment content = XmlReaderUtil.siblingsToFragment(in);
         setContent(content);
       }
     }
@@ -187,7 +187,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   private void serializeBody(@NotNull final XmlWriter out) throws XmlException {
     if (content !=null && content.length>0) {
-      final XmlReader contentReader = AbstractXmlReader.asSubstream(getBodyStreamReader());
+      final XmlReader contentReader = XmlReaderUtil.asSubstream(getBodyStreamReader());
       while(contentReader.hasNext() && contentReader.next()!=null) {
         XmlUtil.writeCurrentEvent(contentReader, out);
       }

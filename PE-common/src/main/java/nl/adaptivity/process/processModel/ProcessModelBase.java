@@ -147,7 +147,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
     XmlUtil.writeChildren(out, getImports());
     XmlUtil.writeChildren(out, getExports());
     XmlUtil.writeChildren(out, mProcessNodes);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   public void ensureIds() {
@@ -204,9 +204,9 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   public static <T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> M deserialize(final DeserializationFactory<T, M> factory, final M processModel, final XmlReader in) throws
           XmlException {
 
-    AbstractXmlReader.skipPreamble(in);
+    XmlReaderUtil.skipPreamble(in);
     final QName elementName = ELEMENTNAME;
-    assert AbstractXmlReader.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
+    assert XmlReaderUtil.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
     for(int i = in.getAttributeCount()-1; i>=0; --i) {
       processModel.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -218,7 +218,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
           if (processModel.deserializeChild(factory, in)) {
             continue loop;
           }
-          AbstractXmlReader.unhandledEvent(in);
+          XmlReaderUtil.unhandledEvent(in);
           break;
         case TEXT:
         case CDSECT:
@@ -226,7 +226,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
             continue loop;
           }
         default:
-          AbstractXmlReader.unhandledEvent(in);
+          XmlReaderUtil.unhandledEvent(in);
       }
     }
 

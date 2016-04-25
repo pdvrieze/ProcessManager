@@ -179,7 +179,7 @@ public class TestSoapHelper {
     reader.require(EventType.START_ELEMENT, "urn:bar", "foo");
     reader.next();
     reader.require(EventType.START_ELEMENT, "http://www.w3.org/2003/05/soap-rpc", "result");
-    CompactFragment parseResult = AbstractXmlReader.siblingsToFragment(reader);
+    CompactFragment parseResult = XmlReaderUtil.siblingsToFragment(reader);
     assertEquals(0, parseResult.getNamespaces().size());
   }
 

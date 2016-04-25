@@ -262,7 +262,7 @@ public final class DomUtil {
     if (node instanceof Text) {
       return new CompactFragment(((Text) node).getData());
     }
-    return AbstractXmlReader.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
+    return XmlReaderUtil.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
   }
 
   @Nullable

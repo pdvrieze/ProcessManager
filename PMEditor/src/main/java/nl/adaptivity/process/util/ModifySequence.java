@@ -20,6 +20,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.AbstractXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlWriter;
@@ -86,7 +87,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
       XmlUtil.writeAttribute(out, "value", mDefineName);
       XmlUtil.writeAttribute(out, "name", mParamName);
       XmlUtil.writeAttribute(out, "xpath", mXpath);
-      XmlUtil.writeEndElement(out, elementName);
+      AbstractXmlWriter.endTag(out, elementName);
     }
 
     @Override
@@ -192,7 +193,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
       XmlUtil.writeAttribute(out, "refNode", mRefNodeId);
       XmlUtil.writeAttribute(out, "value", mVariableName);
       XmlUtil.writeAttribute(out, "xpath", mXpath);
-      XmlUtil.writeEndElement(out, elementName);
+      AbstractXmlWriter.endTag(out, elementName);
     }
 
     @Override

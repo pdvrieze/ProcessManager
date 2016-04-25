@@ -64,7 +64,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
 
     @Override
     public XmlTask deserialize(final XmlReader in) throws XmlException {
-      AbstractXmlReader.skipPreamble(in);
+      XmlReaderUtil.skipPreamble(in);
 
       in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask");
 
@@ -78,12 +78,12 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
               in.nextTag();
               in.require(EventType.END_ELEMENT, null, "taskParam");
             } else {
-              AbstractXmlReader.skipElement(in);
+              XmlReaderUtil.skipElement(in);
               in.require(EventType.END_ELEMENT, null, null);
             }
             break;
           default:
-            AbstractXmlReader.unhandledEvent(in);
+            XmlReaderUtil.unhandledEvent(in);
         }
       }
       in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask");

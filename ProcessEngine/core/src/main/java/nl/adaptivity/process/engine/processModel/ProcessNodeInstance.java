@@ -318,7 +318,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
           XmlException, SQLException {
     List<ProcessData> defines = getDefines(transaction);
     PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, mState == NodeInstanceState.Complete), removeWhitespace);
-    transformer.transform(in, XmlUtil.stripMetatags(out));
+    transformer.transform(in, AbstractXmlWriter.filterSubstream(out));
   }
 
   public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final Source source, final boolean removeWhitespace) throws
@@ -400,9 +400,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
-      XmlUtil.writeEndElement(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
+      AbstractXmlWriter.endTag(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
     }
-    XmlUtil.writeEndElement(out, XmlProcessNodeInstance.ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, XmlProcessNodeInstance.ELEMENTNAME);
   }
 
 }

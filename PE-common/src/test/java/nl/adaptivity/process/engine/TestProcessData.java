@@ -323,7 +323,7 @@ public class TestProcessData {
     XmlReader in = XmlStreaming.newReader(new StringReader(testDataInner));
     in.next(); in.require(EventType.START_ELEMENT, "", "b");
     in.next(); in.require(EventType.START_ELEMENT, "urn:foo", "a");
-    CompactFragment fragment = AbstractXmlReader.siblingsToFragment(in);
+    CompactFragment fragment = XmlReaderUtil.siblingsToFragment(in);
     in.require(EventType.END_ELEMENT, "", "b");
     in.next(); in.require(EventType.END_DOCUMENT, null, null);
 
@@ -583,7 +583,7 @@ public class TestProcessData {
       when(nsContext.getNamespaceURI("")).thenReturn("");
       when(nsContext.getPrefix("")).thenReturn("");
       XmlStreaming.setFactory(factory);
-      AbstractXmlReader.siblingsToFragment(in);
+      XmlReaderUtil.siblingsToFragment(in);
 
       InOrder inOrder = inOrder(mockedWriter);
       // The Hello text will not be written with a writer, but directly escaped
@@ -614,7 +614,7 @@ public class TestProcessData {
     assertEquals(EventType.TEXT, in.next());
 
     XmlStreaming.setFactory(null); // reset to the default one
-    CompactFragment fragment = AbstractXmlReader.siblingsToFragment(in);
+    CompactFragment fragment = XmlReaderUtil.siblingsToFragment(in);
 
     assertEquals(0, fragment.getNamespaces().size());
     assertEquals(testData, fragment.getContentString());

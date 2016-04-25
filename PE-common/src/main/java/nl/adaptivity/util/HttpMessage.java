@@ -289,7 +289,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
       XmlUtil.writeStartElement(out, getElementName());
       XmlUtil.writeAttribute(out, "name", mKey);
       if (mValue!=null) { out.text(mValue); }
-      XmlUtil.writeEndElement(out, getElementName());
+      AbstractXmlWriter.endTag(out, getElementName());
     }
 
     public void setKey(final String key) {
@@ -600,10 +600,10 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     if (mBody!=null) {
       XmlUtil.writeStartElement(out, BODYELEMENTNAME);
       mBody.serialize(out);
-      XmlUtil.writeEndElement(out, BODYELEMENTNAME);
+      AbstractXmlWriter.endTag(out, BODYELEMENTNAME);
     }
 
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   /*

@@ -27,15 +27,10 @@ import org.w3c.dom.*;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
 
 import java.io.*;
 import java.util.*;
@@ -100,10 +95,12 @@ public final class XmlUtil {
     return new CharArrayReader(buffer.toCharArray());
   }
 
-  public static void writeEndElement(final XmlWriter out, final QName predelemname) throws XmlException {
-    out.endTag(predelemname.getNamespaceURI(), predelemname.getLocalPart(), predelemname.getPrefix());
-  }
-
+  /**
+   * Convert a prefixed element name (CNAME) to a qname. If there is no prefix, the default prefix is used.
+   * @param reference The namespace context to use to resolve the name.
+   * @param name The name to resolve
+   * @return A resolved qname.
+   */
   @NotNull
   public static QName asQName(@NotNull final NamespaceContext reference, @NotNull final String name) {
     final int colPos = name.indexOf(':');
@@ -111,7 +108,7 @@ public final class XmlUtil {
       final String prefix = name.substring(0, colPos);
       return new QName(reference.getNamespaceURI(prefix), name.substring(colPos + 1), prefix);
     } else {
-      return new QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.NULL_NS_URI);
+      return new QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.DEFAULT_NS_PREFIX);
     }
 
   }
@@ -130,42 +127,13 @@ public final class XmlUtil {
     out.close();
   }
 
-  public static void serialize(final Node in, @NotNull final XmlWriter out) throws XmlException {
-    serialize(XmlStreaming.newReader(new DOMSource(in)), out);
-  }
-
-  /**
-   * Serialize the inputstream to the outputstream. Not that it will ignore document level events if the outputstream is not at depth 0
-   * @param in The inputstream
-   * @param out the outputsream
-   * @throws XmlException When serialization fails.
-   */
-  public static void serialize(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
-    while (in.hasNext()) {
-      final EventType eventType = in.next();
-      if (eventType==null) { break; }
-      switch (eventType) {
-        case START_DOCUMENT:
-        case PROCESSING_INSTRUCTION:
-        case DOCDECL:
-        case END_DOCUMENT:
-          if (out.getDepth()>0) {
-            break; // ignore
-          }
-          // otherwise fall through
-        default:
-          writeCurrentEvent(in, out);
-      }
-    }
-  }
-
 
   @NotNull
   public static <T extends XmlDeserializable> T deserializeHelper(@NotNull final T result, @NotNull final XmlReader in) throws
           XmlException {
-    AbstractXmlReader.skipPreamble(in);
+    XmlReaderUtil.skipPreamble(in);
     final QName elementName = result.getElementName();
-    assert AbstractXmlReader.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
+    assert XmlReaderUtil.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -178,7 +146,7 @@ public final class XmlUtil {
             if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
               continue loop;
             }
-            AbstractXmlReader.unhandledEvent(in);
+            XmlReaderUtil.unhandledEvent(in);
             break;
           case TEXT:
           case CDSECT:
@@ -187,7 +155,7 @@ public final class XmlUtil {
             }
             // If the text was not deserialized, then just fall through
           default:
-            AbstractXmlReader.unhandledEvent(in);
+            XmlReaderUtil.unhandledEvent(in);
         }
       }
     } else if (result instanceof ExtXmlDeserializable){
@@ -196,7 +164,7 @@ public final class XmlUtil {
         in.require(XmlStreamingKt.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
-      if(! isXmlWhitespace(AbstractXmlReader.siblingsToFragment(in).getContent())) {
+      if(! isXmlWhitespace(XmlReaderUtil.siblingsToFragment(in).getContent())) {
         throw new XmlException("Unexpected child content in element");
       }
     }
@@ -204,15 +172,15 @@ public final class XmlUtil {
   }
 
   public static <T> T deSerialize(final InputStream in, @NotNull final Class<T> type) throws XmlException {
-    return AbstractXmlReader.deSerialize(XmlStreaming.newReader(in, "UTF-8"), type);
+    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(in, "UTF-8"), type);
   }
 
   public static <T> T deSerialize(final Reader in, @NotNull final Class<T> type) throws XmlException {
-    return AbstractXmlReader.deSerialize(XmlStreaming.newReader(in), type);
+    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(in), type);
   }
 
   public static <T> T deSerialize(final String in, @NotNull final Class<T> type) throws XmlException {
-    return AbstractXmlReader.deSerialize(XmlStreaming.newReader(new StringReader(in)), type);
+    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(new StringReader(in)), type);
   }
 
   /**
@@ -241,7 +209,7 @@ public final class XmlUtil {
   }
 
   public static <T> T deSerialize(final Source in, @NotNull final Class<T> type) throws XmlException {
-    return AbstractXmlReader.deSerialize(XmlStreaming.newReader(in), type);
+    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(in), type);
   }
 
   public static String toString(@NotNull final XmlSerializable serializable) {
@@ -267,10 +235,6 @@ public final class XmlUtil {
       result.add(toString(serializable));
     }
     return result;
-  }
-
-  public static XmlWriter filterSubstream(final XmlWriter streamWriter) {
-    return stripMetatags(streamWriter);
   }
 
   @NotNull
@@ -321,18 +285,11 @@ public final class XmlUtil {
 
   @NotNull
   private static CharArrayWriter toCharArrayWriter(final Source source) throws XmlException {
-    return AbstractXmlReader.toCharArrayWriter(XmlStreaming.newReader(source));
+    return XmlReaderUtil.toCharArrayWriter(XmlStreaming.newReader(source));
   }
-
-  @Deprecated
-  @NotNull
-  public static XmlWriter stripMetatags(final XmlWriter out) {
-    return new MetaStripper(out);
-  }
-
 
   public static char[] siblingsToCharArray(final XmlReader in) throws XmlException {
-    return AbstractXmlReader.siblingsToFragment(in).getContent();
+    return XmlReaderUtil.siblingsToFragment(in).getContent();
   }
 
   public static void addUndeclaredNamespaces(final XmlReader in, final XmlWriter out, final Map<String, String> missingNamespaces) throws XmlException {
@@ -345,7 +302,7 @@ public final class XmlUtil {
     if (prefix!=null) {
       if (!missingNamespaces.containsKey(prefix)) {
         final CharSequence uri = in.getNamespaceUri();
-        if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && AbstractXmlReader.isPrefixDeclaredInElement(in, prefix)) {
+        if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && XmlReaderUtil.isPrefixDeclaredInElement(in, prefix)) {
           return;
         } else if (uri.length()>0) {
           if (! StringUtil.isEqual(reference.getNamespaceUri(prefix), uri)) {
@@ -427,7 +384,7 @@ public final class XmlUtil {
   }
 
   public static void writeChild(final XmlWriter out, final Node in) throws XmlException {
-    serialize(in, out);
+    AbstractXmlWriter.serialize(out, in);
   }
 
   public static void writeChildren(final XmlWriter out, @Nullable final Iterable<? extends XmlSerializable> children) throws
@@ -480,7 +437,7 @@ public final class XmlUtil {
     if (value!=null && value.length()!=0) {
       out.text(value);
     }
-    writeEndElement(out, qName);
+    AbstractXmlWriter.endTag(out, qName);
   }
 
   public static void writeAttribute(@NotNull final XmlWriter out, final String name, @Nullable final String value) throws XmlException {

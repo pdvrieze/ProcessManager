@@ -80,7 +80,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   @Override
   public void deserializeChildren(final XmlReader in) throws XmlException {
     if ( in.next() != EventType.END_ELEMENT ) {
-      mValue = AbstractXmlReader.siblingsToFragment(in);
+      mValue = XmlReaderUtil.siblingsToFragment(in);
     }
   }
 
@@ -107,7 +107,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     XmlUtil.writeAttribute(out, "name", mName);
     mValue.serialize(out);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, ELEMENTNAME);
   }
 
   public DocumentFragment getContentFragment() throws XmlException {

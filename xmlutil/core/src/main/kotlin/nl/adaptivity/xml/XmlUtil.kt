@@ -36,3 +36,19 @@ fun qname(namespaceUri:CharSequence?, localname:CharSequence, prefix:CharSequenc
       QName(namespaceUri.asString()?:XMLConstants.NULL_NS_URI,
             localname.asString(),
             prefix.asString()?:XMLConstants.DEFAULT_NS_PREFIX)
+
+
+fun CharSequence.toQname(): QName {
+  val split = indexOf('}')
+  val localname: String
+  val nsUri: String?
+  if (split >= 0) {
+    if (this[0] != '{') throw IllegalArgumentException("Not a valid qname literal")
+    nsUri = substring(1, split)
+    localname = substring(split + 1)
+  } else {
+    nsUri = null
+    localname = toString()
+  }
+  return QName(nsUri, localname)
+}

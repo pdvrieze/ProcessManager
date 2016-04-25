@@ -21,6 +21,7 @@ import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.AbstractXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
@@ -77,7 +78,7 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
     XmlUtil.writeStartElement(out, EndNode.ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    XmlUtil.writeEndElement(out, EndNode.ELEMENTNAME);
+    AbstractXmlWriter.endTag(out, EndNode.ELEMENTNAME);
   }
 
   @Override

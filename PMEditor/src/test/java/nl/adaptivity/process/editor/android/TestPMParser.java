@@ -62,7 +62,7 @@ public class TestPMParser {
     XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
     CharArrayWriter out = new CharArrayWriter();
     XmlWriter writer = new AndroidXmlWriter(out);
-    XmlUtil.serialize(parser, writer);
+    AbstractXmlWriter.serialize(writer, parser);
     try {
       XMLAssert.assertXMLEqual(expected, out.toString());
     } catch (AssertionError e) {
