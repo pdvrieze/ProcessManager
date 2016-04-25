@@ -1,3 +1,8 @@
+import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.internal.file.copy.FileCopyAction
+
+import java.nio.file.Files
+
 /*
  * Copyright (c) 2016.
  *
@@ -64,9 +69,47 @@ jar {
 
 jar.dependsOn(compileKotlin2Js)
 
-task copyShared(type: Copy) {
-    from '../shared/src/main/kotlin'
-    into gendir
+boolean symlinksSupported() {
+
+    def tmpDir = new File(project.buildDir, "tmp")
+    try {
+        def linkName=new File(tmpDir, "testSymLink")
+        Files.createSymbolicLink(linkName.toPath(), tmpDir.toPath())
+        if (linkName.exists() ) {
+            try {
+                if (Files.isSymbolicLink(linkName.toPath())) {
+                    return true;
+                }
+            } finally {
+                linkName.delete()
+            }
+        }
+        return false
+    } catch (Exception e) {
+        return false
+    }
+
+}
+
+if (symlinksSupported()) {
+    task copyShared() {
+        doFirst {
+            def target = new File(gendir.parent, "../../shared/src/main/kotlin").toPath()
+            if (gendir.exists()) {
+                if (! (Files.isSymbolicLink(gendir.toPath()) && Files.readSymbolicLink(gendir.toPath()).equals(target))) {
+                    gendir.deleteDir()
+                    Files.createSymbolicLink(gendir.toPath(), target)
+                }
+            } else {
+                Files.createSymbolicLink(gendir.toPath(), target)
+            }
+        }
+    }
+} else {
+    task copyShared(type: Copy) {
+        from '../shared/src/main/kotlin'
+        into gendir
+    }
 }
 
 compileKotlin2Js {

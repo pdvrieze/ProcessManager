@@ -16,13 +16,14 @@
 
 package nl.adaptivity.xml
 
+import java.io.Closeable
 import javax.xml.namespace.NamespaceContext
 
 
 /**
  * Created by pdvrieze on 15/11/15.
  */
-interface XmlWriter {
+interface XmlWriter: Closeable, AutoCloseable {
 
   val depth: Int
 
@@ -33,7 +34,7 @@ interface XmlWriter {
   fun namespaceAttr(namespacePrefix: CharSequence, namespaceUri: CharSequence)
 
   @Throws(XmlException::class)
-  fun close()
+  override fun close()
 
   /**
    * Flush all state to the underlying buffer

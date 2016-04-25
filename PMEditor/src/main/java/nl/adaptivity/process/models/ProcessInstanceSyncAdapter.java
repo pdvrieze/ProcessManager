@@ -36,10 +36,7 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.SimpleContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -138,7 +135,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
 
           parser.nextTag(); // Skip document start etc.
           parser.require(EventType.START_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
-          final long handle = Long.parseLong(XmlUtil.nextText(parser).toString());
+          final long handle = Long.parseLong(AbstractXmlReader.allText(parser).toString());
           parser.nextTag();
           parser.require(EventType.END_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
 

@@ -33,7 +33,7 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.AbstractXmlReaderJava;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming.EventType;
@@ -151,7 +151,7 @@ public class VariableSpan extends ReplacementSpan {
         case END_DOCUMENT:
           return new SpannedString(builder);
         default:
-          XmlUtil.unhandledEvent(bodyStreamReader);
+          AbstractXmlReaderJava.unhandledEvent(bodyStreamReader);
       }
     }
     return new SpannedString(builder);

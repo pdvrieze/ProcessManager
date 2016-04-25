@@ -29,10 +29,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.w3.soapEnvelope.Envelope;
 
@@ -67,7 +64,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
 
     @Override
     public XmlTask deserialize(final XmlReader in) throws XmlException {
-      XmlUtil.skipPreamble(in);
+      AbstractXmlReaderJava.skipPreamble(in);
 
       in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask");
 
@@ -81,12 +78,12 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
               in.nextTag();
               in.require(EventType.END_ELEMENT, null, "taskParam");
             } else {
-              XmlUtil.skipElement(in);
+              AbstractXmlReader.skipElement(in);
               in.require(EventType.END_ELEMENT, null, null);
             }
             break;
           default:
-            XmlUtil.unhandledEvent(in);
+            AbstractXmlReaderJava.unhandledEvent(in);
         }
       }
       in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask");

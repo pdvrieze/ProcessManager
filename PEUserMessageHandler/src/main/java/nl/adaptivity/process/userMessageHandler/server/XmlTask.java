@@ -98,7 +98,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (XmlUtil.isElement(in, Constants.USER_MESSAGE_HANDLER_NS, "item")) {
+    if (AbstractXmlReaderJava.isElement(in, Constants.USER_MESSAGE_HANDLER_NS, "item")) {
       if (mItems==null) { mItems = new ArrayList<>(); }
       mItems.add(XmlItem.deserialize(in));
       return true;

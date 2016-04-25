@@ -21,9 +21,7 @@ import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.ActivityBase;
 import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 
 
 public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase<T, M> implements ClientProcessNode<T, M> {
@@ -60,7 +58,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
   @Override
   protected void deserializeCondition(final XmlReader in) throws XmlException {
-    mCondition = StringUtil.toString(XmlUtil.readSimpleElement(in));
+    mCondition = StringUtil.toString(AbstractXmlReader.readSimpleElement(in));
   }
 
   @Override
