@@ -70,19 +70,20 @@ abstract class AbstractXmlReader : XmlReader {
     @JvmStatic
     @Throws(XmlException::class)
     fun XmlReader.allText(): CharSequence {
+      val t = this
       return buildString {
         var type: EventType? = null
-        val result:StringBuilder = this
 
-        while ((next().apply { type=this }) !== EventType.END_ELEMENT) {
+        while ((t.next().apply { type = this@apply }) !== EventType.END_ELEMENT) {
           when (type) {
-            EventType.COMMENT              -> {} // ignore
+            EventType.COMMENT              -> {
+            } // ignore
             EventType.IGNORABLE_WHITESPACE ->
               // ignore whitespace starting the element.
-              if (length != 0) append(text)
+              if (length != 0) append(t.text)
 
             EventType.TEXT,
-            EventType.CDSECT               -> result.append(text)
+            EventType.CDSECT               -> append(t.text)
             else                           -> throw XmlException("Found unexpected child tag")
           }//ignore
 
@@ -94,10 +95,11 @@ abstract class AbstractXmlReader : XmlReader {
     @JvmStatic
     @Throws(XmlException::class)
     fun XmlReader.skipElement() {
-      require(EventType.START_ELEMENT, null, null)
-      while (hasNext() && this.next() !== EventType.END_ELEMENT) {
-        if (eventType === EventType.START_ELEMENT) {
-          skipElement()
+      val t = this
+      t.require(EventType.START_ELEMENT, null, null)
+      while (t.hasNext() && t.next() !== EventType.END_ELEMENT) {
+        if (t.eventType === EventType.START_ELEMENT) {
+          t.skipElement()
         }
       }
     }
@@ -117,28 +119,32 @@ abstract class AbstractXmlReader : XmlReader {
     @JvmStatic
     @Throws(XmlException::class)
     fun XmlReader.readSimpleElement(): CharSequence {
-      require(EventType.START_ELEMENT, null, null)
-
+      val t = this
+      t.require(EventType.START_ELEMENT, null, null)
       return buildString {
-        while ((next()) !== EventType.END_ELEMENT) {
-          when (eventType) {
+
+        while ((t.next()) !== EventType.END_ELEMENT) {
+          when (t.eventType) {
             EventType.COMMENT,
-            EventType.PROCESSING_INSTRUCTION -> { }
+            EventType.PROCESSING_INSTRUCTION -> {
+            }
             EventType.TEXT,
-            EventType.CDSECT                 -> append(text)
-            else                             -> throw XmlException("Expected text content or end tag, found: $eventType")
+            EventType.CDSECT                 -> append(t.text)
+            else                             -> throw XmlException("Expected text content or end tag, found: ${t.eventType}")
           }/* Ignore */
         }
+
       }
     }
 
     @JvmStatic
     @Throws(XmlException::class)
     fun XmlReader.toCharArrayWriter(): CharArrayWriter {
+      val t =this
       return CharArrayWriter().apply {
         XmlStreaming.newWriter(this).use { out ->
-          while (hasNext()) {
-            XmlUtil.writeCurrentEvent(this@toCharArrayWriter, out)
+          while (t.hasNext()) {
+            XmlUtil.writeCurrentEvent(t, out)
           }
         }
       }
@@ -152,15 +158,17 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     fun XmlReader.skipPreamble() {
-      while (isIgnorable() && hasNext()) {
-        next()
+      val r = this
+      while (r.isIgnorable() && r.hasNext()) {
+        r.next()
       }
     }
 
     @Throws(XmlException::class)
     @JvmStatic
     fun XmlReader.isIgnorable(): Boolean {
-      val type = eventType
+      val r = this
+      val type = r.eventType
 // Before start, means ignore the "current event"
       when (type) {
         EventType.COMMENT,
@@ -169,7 +177,7 @@ abstract class AbstractXmlReader : XmlReader {
         EventType.PROCESSING_INSTRUCTION,
         EventType.DOCDECL,
         EventType.IGNORABLE_WHITESPACE -> return true
-        EventType.TEXT                 -> return XmlUtil.isXmlWhitespace(text)
+        EventType.TEXT                 -> return XmlUtil.isXmlWhitespace(r.text)
         else                           -> return false
       }
     }
@@ -185,12 +193,12 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     fun XmlReader.elementContentToFragment(): CompactFragment {
-      val reader: XmlReader = this
-      skipPreamble()
-      if (hasNext()) {
-        require(EventType.START_ELEMENT, null, null)
-        next()
-        return siblingsToFragment()
+      val r = this
+      r.skipPreamble()
+      if (r.hasNext()) {
+        r.require(EventType.START_ELEMENT, null, null)
+        r.next()
+        return r.siblingsToFragment()
       }
       return CompactFragment("")
     }
@@ -206,35 +214,35 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     fun XmlReader.siblingsToFragment(): CompactFragment {
-      
+      val r = this
       val caw = CharArrayWriter()
-      if (!isStarted) {
-        if (hasNext()) {
-          next()
+      if (!r.isStarted) {
+        if (r.hasNext()) {
+          r.next()
         } else {
           return CompactFragment("")
         }
       }
 
-      val startLocation = locationInfo
+      val startLocation = r.locationInfo
       try {
 
         val missingNamespaces = TreeMap<String, String>()
         val gatheringContext: GatheringNamespaceContext? = null
         // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
-        val initialDepth = depth - if (eventType === EventType.START_ELEMENT) 1 else 0
-        var type: EventType? = eventType
-        while (type !== EventType.END_DOCUMENT && type !== EventType.END_ELEMENT && depth >= initialDepth) {
+        val initialDepth = r.depth - if (r.eventType === EventType.START_ELEMENT) 1 else 0
+        var type: EventType? = r.eventType
+        while (type !== EventType.END_DOCUMENT && type !== EventType.END_ELEMENT && r.depth >= initialDepth) {
           if (type === EventType.START_ELEMENT) {
             val out = XmlStreaming.newWriter(caw)
-            XmlUtil.writeCurrentEvent(this, out) // writes the start tag
-            XmlUtil.addUndeclaredNamespaces(this, out, missingNamespaces)
-            XmlUtil.writeElementContent(missingNamespaces, this ,  out) // writes the children and end tag
+            XmlUtil.writeCurrentEvent(r, out) // writes the start tag
+            XmlUtil.addUndeclaredNamespaces(r, out, missingNamespaces)
+            XmlUtil.writeElementContent(missingNamespaces, r,  out) // writes the children and end tag
             out.close()
           } else if (type === EventType.TEXT || type === EventType.IGNORABLE_WHITESPACE || type === EventType.CDSECT) {
-            caw.append(XmlUtil.xmlEncode(text.toString()))
+            caw.append(XmlUtil.xmlEncode(r.text.toString()))
           }
-          type = if (hasNext()) next() else null
+          type = if (r.hasNext()) r.next() else null
         }
         return CompactFragment(SimpleNamespaceContext(missingNamespaces), caw.toCharArray())
       } catch (e: XmlException) {
@@ -251,8 +259,9 @@ abstract class AbstractXmlReader : XmlReader {
     @JvmStatic
     @Throws(XmlException::class)
     fun XmlReader.isPrefixDeclaredInElement(prefix: String): Boolean {
-      for (i in namespaceStart..namespaceEnd - 1) {
-        if (StringUtil.isEqual(getNamespacePrefix(i), prefix)) {
+      val r = this
+      for (i in r.namespaceStart..r.namespaceEnd - 1) {
+        if (StringUtil.isEqual(r.getNamespacePrefix(i), prefix)) {
           return true
         }
       }
@@ -265,12 +274,13 @@ abstract class AbstractXmlReader : XmlReader {
     @JvmStatic
     @Throws(XmlException::class)
     fun XmlReader.unhandledEvent() {
-      when (eventType) {
-        EventType.CDSECT, EventType.TEXT -> if (!isWhitespace()) {
-          throw XmlException("Content found where not expected [" + locationInfo + "] Text:'" + text + "'")
+      val r = this
+      when (r.eventType) {
+        EventType.CDSECT, EventType.TEXT -> if (!r.isWhitespace()) {
+          throw XmlException("Content found where not expected [" + r.locationInfo + "] Text:'" + r.text + "'")
         }
         EventType.COMMENT                -> {} // we never mind comments.
-        EventType.START_ELEMENT          -> throw XmlException("Element found where not expected [" + locationInfo + "]: " + name)
+        EventType.START_ELEMENT          -> throw XmlException("Element found where not expected [" + r.locationInfo + "]: " + r.name)
         EventType.END_DOCUMENT           -> throw XmlException("End of document found where not expected")
       }// ignore
     }
@@ -288,7 +298,7 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     fun XmlReader.isElement(elementname: QName): Boolean {
-      return isElement(EventType.START_ELEMENT, elementname.namespaceURI, elementname.localPart, elementname.prefix)
+      return this.isElement(EventType.START_ELEMENT, elementname.namespaceURI, elementname.localPart, elementname.prefix)
     }
 
     /**
@@ -302,7 +312,7 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     fun XmlReader.isElement(type: EventType, elementname: QName): Boolean {
-      return isElement(type, elementname.namespaceURI, elementname.localPart, elementname.prefix)
+      return this.isElement(type, elementname.namespaceURI, elementname.localPart, elementname.prefix)
     }
 
     /**
@@ -320,8 +330,8 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     @JvmOverloads
-    fun XmlReader.isElement(elementNamespace: CharSequence, elementName: CharSequence, elementPrefix: CharSequence?=null): Boolean {
-      return isElement(EventType.START_ELEMENT, elementNamespace, elementName, elementPrefix)
+    fun XmlReader.isElement(elementNamespace: CharSequence?, elementName: CharSequence, elementPrefix: CharSequence?=null): Boolean {
+      return this.isElement(EventType.START_ELEMENT, elementNamespace, elementName, elementPrefix)
     }
 
     /**
@@ -338,26 +348,25 @@ abstract class AbstractXmlReader : XmlReader {
     @Throws(XmlException::class)
     @JvmStatic
     @JvmOverloads
-    fun XmlReader.isElement(type: EventType, elementNamespace: CharSequence, elementName: CharSequence, elementPrefix: CharSequence?=null): Boolean {
-      if (eventType !== type) {
+    fun XmlReader.isElement(type: EventType, elementNamespace: CharSequence?, elementName: CharSequence, elementPrefix: CharSequence?=null): Boolean {
+      val r = this
+      if (r.eventType !== type) {
         return false
       }
-      var expNs: CharSequence? = elementNamespace
-      if (expNs != null && expNs.length == 0) {
-        expNs = null
-      }
-      if (localName != elementName) {
+      val expNs: CharSequence? = elementNamespace?.let { if (it.isEmpty()) null else it }
+
+      if (r.localName != elementName) {
         return false
       }
 
-      if (StringUtil.isNullOrEmpty(elementNamespace)) {
-        if (StringUtil.isNullOrEmpty(elementPrefix!!)) {
-          return StringUtil.isNullOrEmpty(prefix)
+      if (elementNamespace.isNullOrEmpty()) {
+        if (elementPrefix.isNullOrEmpty()) {
+          return r.prefix.isNullOrEmpty()
         } else {
-          return elementPrefix == prefix
+          return elementPrefix == r.prefix
         }
       } else {
-        return StringUtil.isEqual(expNs!!, namespaceUri)
+        return expNs == r.namespaceUri
       }
     }
 
