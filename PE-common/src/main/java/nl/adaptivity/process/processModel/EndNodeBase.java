@@ -20,11 +20,7 @@ import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.AbstractXmlWriter;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,17 +71,17 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, EndNode.ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, EndNode.ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    AbstractXmlWriter.endTag(out, EndNode.ELEMENTNAME);
+    XmlWriterUtil.endTag(out, EndNode.ELEMENTNAME);
   }
 
   @Override
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     if (getPredecessor()!=null) {
-      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessor().getId());
+      XmlWriterUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessor().getId());
     }
   }
 

@@ -101,16 +101,32 @@ object XmlStreaming {
     START_DOCUMENT {
       override fun createEvent(reader:XmlReader) = reader.run {
         StartDocumentEvent(locationInfo, version, encoding, standalone) }
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.startDocument(reader.version, reader.encoding, reader.standalone)
     },
     START_ELEMENT {
       @Throws(XmlException::class)
       override fun createEvent(reader:XmlReader) = reader.run {
         StartElementEvent(locationInfo, namespaceUri, localName, prefix, attributes, namespaceDecls)}
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) {
+        writer.startTag(reader.namespaceUri, reader.localName, reader.prefix)
+        for (i in reader.namespaceStart..reader.namespaceEnd - 1) {
+          writer.namespaceAttr(reader.getNamespacePrefix(i), reader.getNamespaceUri(i))
+        }
+        for (i in 0..reader.attributeCount - 1) {
+          writer.attribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i), null, reader.getAttributeValue(i))
+        }
+      }
     },
     END_ELEMENT {
       @Throws(XmlException::class)
       override fun createEvent(reader:XmlReader) = reader.run {
         EndElementEvent(locationInfo, namespaceUri, localName, prefix)}
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.endTag(reader.namespaceUri, reader.localName, reader.prefix)
     },
     COMMENT {
       override fun createEvent(reader:XmlReader) = reader.run {
@@ -118,6 +134,9 @@ object XmlStreaming {
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.comment(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.comment(reader.text)
     },
     TEXT {
       override fun createEvent(reader:XmlReader) = reader.run {
@@ -125,47 +144,74 @@ object XmlStreaming {
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.text(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.text(reader.text)
     },
     CDSECT {
       override fun createEvent(reader:XmlReader) =  reader.run {TextEvent(locationInfo, CDSECT, text)}
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.cdsect(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.cdsect(reader.text)
     },
     DOCDECL {
       override fun createEvent(reader:XmlReader) =  reader.run {TextEvent(locationInfo, DOCDECL, text)}
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.docdecl(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.docdecl(reader.text)
     },
     END_DOCUMENT {
       override fun createEvent(reader:XmlReader) = reader.run { EndDocumentEvent(locationInfo) }
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.endDocument()
     },
     ENTITY_REF {
       override fun createEvent(reader:XmlReader) = reader.run { TextEvent(locationInfo, ENTITY_REF, text) }
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.entityRef(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.entityRef(reader.text)
     },
     IGNORABLE_WHITESPACE {
       override fun createEvent(reader:XmlReader) =  reader.run { TextEvent(locationInfo, IGNORABLE_WHITESPACE, text) }
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.ignorableWhitespace(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.ignorableWhitespace(reader.text)
     },
     ATTRIBUTE {
       @Throws(XmlException::class)
       override fun createEvent(reader:XmlReader) = reader.run { Attribute(locationInfo, namespaceUri, localName, prefix, text) }
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.attribute(reader.namespaceUri, reader.localName, reader.prefix, reader.text)
     },
     PROCESSING_INSTRUCTION {
       override fun createEvent(reader:XmlReader) = TextEvent(reader.locationInfo, PROCESSING_INSTRUCTION, reader.text)
 
       @Throws(XmlException::class)
       override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.processingInstruction(textEvent.text)
+
+      override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
+            writer.processingInstruction(reader.text)
     };
 
     @Throws(XmlException::class)
     open fun writeEvent(writer: XmlWriter, textEvent: TextEvent): Unit = throw UnsupportedOperationException("This is not generally supported, only by text types")
+
+    @Throws(XmlException::class)
+    abstract fun writeEvent(writer:XmlWriter, reader:XmlReader)
 
     @Throws(XmlException::class)
     abstract fun createEvent(reader:XmlReader): XmlEvent

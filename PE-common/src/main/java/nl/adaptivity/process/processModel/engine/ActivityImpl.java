@@ -80,7 +80,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
 
   @Override
   protected void serializeCondition(final XmlWriter out) throws XmlException {
-    XmlUtil.writeChild(out, mCondition);
+    XmlWriterUtil.writeChild(out, mCondition);
   }
 
   @Override

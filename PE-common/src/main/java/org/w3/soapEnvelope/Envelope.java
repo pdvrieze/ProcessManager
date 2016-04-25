@@ -167,14 +167,14 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, getElementName());
-    XmlUtil.writeAttribute(out, "encodingStyle", encodingStyle);
+    XmlWriterUtil.smartStartTag(out, getElementName());
+    XmlWriterUtil.writeAttribute(out, "encodingStyle", encodingStyle);
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
-      XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
+      XmlWriterUtil.writeAttribute(out, attr.getKey(), attr.getValue());
     }
-    XmlUtil.writeChild(out, header);
-    XmlUtil.writeChild(out, mBody);
-    AbstractXmlWriter.endTag(out, getElementName());
+    XmlWriterUtil.writeChild(out, header);
+    XmlWriterUtil.writeChild(out, mBody);
+    XmlWriterUtil.endTag(out, getElementName());
   }
 
   /**

@@ -19,11 +19,7 @@ package nl.adaptivity.process.util;
 import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.AbstractXmlWriter;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 
 import javax.xml.namespace.QName;
 
@@ -83,11 +79,11 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
       final QName elementName = ELEMENTNAME;
-      XmlUtil.writeStartElement(out, elementName);
-      XmlUtil.writeAttribute(out, "value", mDefineName);
-      XmlUtil.writeAttribute(out, "name", mParamName);
-      XmlUtil.writeAttribute(out, "xpath", mXpath);
-      AbstractXmlWriter.endTag(out, elementName);
+      XmlWriterUtil.smartStartTag(out, elementName);
+      XmlWriterUtil.writeAttribute(out, "value", mDefineName);
+      XmlWriterUtil.writeAttribute(out, "name", mParamName);
+      XmlWriterUtil.writeAttribute(out, "xpath", mXpath);
+      XmlWriterUtil.endTag(out, elementName);
     }
 
     @Override
@@ -189,11 +185,11 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
       final QName elementName = new QName(Constants.MODIFY_NS_STR, mElementName, Constants.MODIFY_NS_PREFIX);
-      XmlUtil.writeStartElement(out, elementName);
-      XmlUtil.writeAttribute(out, "refNode", mRefNodeId);
-      XmlUtil.writeAttribute(out, "value", mVariableName);
-      XmlUtil.writeAttribute(out, "xpath", mXpath);
-      AbstractXmlWriter.endTag(out, elementName);
+      XmlWriterUtil.smartStartTag(out, elementName);
+      XmlWriterUtil.writeAttribute(out, "refNode", mRefNodeId);
+      XmlWriterUtil.writeAttribute(out, "value", mVariableName);
+      XmlWriterUtil.writeAttribute(out, "xpath", mXpath);
+      XmlWriterUtil.endTag(out, elementName);
     }
 
     @Override

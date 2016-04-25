@@ -22,7 +22,6 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.util.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -43,7 +42,7 @@ public class ConditionImpl implements XmlSerializable, Condition {
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeSimpleElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX), getCondition());
+    XmlWriterUtil.writeSimpleElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX), getCondition());
   }
 
   @NotNull

@@ -20,7 +20,6 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.ActivityBase;
 import nl.adaptivity.process.processModel.Condition;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 
 
@@ -64,7 +63,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   @Override
   protected void serializeCondition(final XmlWriter out) throws XmlException {
     if (mCondition!=null && mCondition.length()>0) {
-      XmlUtil.writeSimpleElement(out, Condition.ELEMENTNAME, mCondition);
+      XmlWriterUtil.writeSimpleElement(out, Condition.ELEMENTNAME, mCondition);
     }
   }
 

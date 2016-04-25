@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
+import nl.adaptivity.xml.XmlUtilKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,9 @@ public abstract class AbstractBufferedEventReader extends AbstractEventReader {
   }
 
   protected void stripWhiteSpaceFromPeekBuffer() {
-    while(mPeekBuffer.size()>0 && mPeekBuffer.peekLast().isCharacters() && XmlUtil.isXmlWhitespace(mPeekBuffer.peekLast().asCharacters().getData())) {
+    while(mPeekBuffer.size()>0 && mPeekBuffer.peekLast().isCharacters() && XmlUtilKt.isXmlWhitespace(mPeekBuffer.peekLast()
+                                                                                                                .asCharacters()
+                                                                                                                .getData())) {
       mPeekBuffer.removeLast();
     }
   }

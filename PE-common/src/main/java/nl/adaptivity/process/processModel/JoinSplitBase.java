@@ -19,13 +19,11 @@ package nl.adaptivity.process.processModel;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlWriterUtil;
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.annotation.XmlAttribute;
 
 import java.util.Collection;
 
@@ -66,8 +64,12 @@ public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends Proce
   @Override
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
-    if (mMin>=0) { XmlUtil.writeAttribute(out, "min", mMin); }
-    if (mMax>=0) { XmlUtil.writeAttribute(out, "max", mMax); }
+    if (mMin>=0) {
+      XmlWriterUtil.writeAttribute(out, "min", (long) mMin);
+    }
+    if (mMax>=0) {
+      XmlWriterUtil.writeAttribute(out, "max", (long) mMax);
+    }
   }
 
   @Override

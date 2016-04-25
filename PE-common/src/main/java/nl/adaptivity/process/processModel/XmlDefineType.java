@@ -94,19 +94,19 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @Override
   protected void serializeStartElement(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
+    XmlWriterUtil.smartStartTag(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
   }
 
   @Override
   protected void serializeEndElement(@NotNull final XmlWriter out) throws XmlException {
-    AbstractXmlWriter.endTag(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
+    XmlWriterUtil.endTag(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
   }
 
   @Override
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
-    XmlUtil.writeAttribute(out, "refnode", getRefNode());
-    XmlUtil.writeAttribute(out, "refname", getRefName());
+    XmlWriterUtil.writeAttribute(out, "refnode", getRefNode());
+    XmlWriterUtil.writeAttribute(out, "refname", getRefName());
   }
 
   /* (non-Javadoc)

@@ -77,12 +77,12 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   @Override
   protected void serializeStartElement(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
   }
 
   @Override
   protected void serializeEndElement(@NotNull final XmlWriter out) throws XmlException {
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   public static XmlResultType get(IXmlResultType pImport) {

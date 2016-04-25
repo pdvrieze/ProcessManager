@@ -105,11 +105,12 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, getElementName());
-    XmlUtil.writeAttribute(out, "name", mName);
-    XmlUtil.writeAttribute(out, "handle", mHandle);
-    XmlUtil.writeAttribute(out, "uuid", mUuid==null ? null : mUuid.toString());
-    AbstractXmlWriter.endTag(out, getElementName());
+    XmlWriterUtil.smartStartTag(out, getElementName());
+    XmlWriterUtil.writeAttribute(out, "name", mName);
+    XmlWriterUtil.writeAttribute(out, "handle", mHandle);
+    final String value = mUuid==null ? null : mUuid.toString();
+    XmlWriterUtil.writeAttribute(out, "uuid", value);
+    XmlWriterUtil.endTag(out, getElementName());
   }
 
   void setName(final String name) {

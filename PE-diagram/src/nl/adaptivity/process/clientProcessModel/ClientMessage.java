@@ -19,10 +19,9 @@ package nl.adaptivity.process.clientProcessModel;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.process.processModel.BaseMessage;
 import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.AbstractXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlWriterUtil;
 import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
@@ -64,12 +63,12 @@ public class ClientMessage extends BaseMessage {
 
   @Override
   protected void serializeStartElement(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, getElementName());
+    XmlWriterUtil.smartStartTag(out, getElementName());
   }
 
   @Override
   protected void serializeEndElement(final XmlWriter out) throws XmlException {
-    AbstractXmlWriter.endTag(out, getElementName());
+    XmlWriterUtil.endTag(out, getElementName());
   }
 
   @Override

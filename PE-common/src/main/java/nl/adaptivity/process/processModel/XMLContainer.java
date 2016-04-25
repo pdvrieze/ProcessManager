@@ -189,7 +189,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
     if (content !=null && content.length>0) {
       final XmlReader contentReader = XmlReaderUtil.asSubstream(getBodyStreamReader());
       while(contentReader.hasNext() && contentReader.next()!=null) {
-        XmlUtil.writeCurrentEvent(contentReader, out);
+        XmlReaderUtil.writeCurrent(contentReader, out);
       }
     }
 

@@ -20,7 +20,6 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.EndElementEvent;
 import nl.adaptivity.xml.XmlEvent.StartElementEvent;
@@ -110,8 +109,8 @@ public class PETransformer {
 
     private static void stripWhiteSpaceFromPeekBuffer(final List<XmlEvent> results) {
       XmlEvent peekLast;
-      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtil.isXmlWhitespace(((TextEvent) peekLast)
-                                                                                                                                   .getText())) {
+      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtilKt.isXmlWhitespace(((TextEvent) peekLast)
+                                                                                                                                     .getText())) {
         results.remove(results.size()-1);
       }
     }
@@ -176,7 +175,7 @@ public class PETransformer {
             case COMMENT:
               break;
             case TEXT:
-              if (XmlUtil.isXmlWhitespace(((TextEvent) elem).getText())) {
+              if (XmlUtilKt.isXmlWhitespace(((TextEvent) elem).getText())) {
                 break;
               }
             default:
@@ -210,7 +209,7 @@ public class PETransformer {
 
     private static void addAllRegular(List<XmlEvent> target, Iterable<? extends XmlEvent> source) {
       for(XmlEvent event:source) {
-        if (! XmlUtil.isIgnorable(event)) {
+        if (!event.isIgnorable()) {
           target.add(event);
         }
       }
@@ -511,7 +510,7 @@ public class PETransformer {
     final XmlReader filteredIn = createFilter(in);
     while (filteredIn.hasNext()) {
       filteredIn.next(); // Don't forget to move to next element as well.
-      XmlUtil.writeCurrentEvent(filteredIn, out);
+      XmlReaderUtil.writeCurrent(filteredIn, out);
     }
   }
 
@@ -535,13 +534,13 @@ public class PETransformer {
     if (characters.getEventType() == EventType.IGNORABLE_WHITESPACE) {
       return true;
     }
-    return XmlUtil.isXmlWhitespace(characters.getText());
+    return XmlUtilKt.isXmlWhitespace(characters.getText());
   }
 
   static boolean isIgnorableWhiteSpace(@NotNull final XmlReader characters) throws XmlException {
     if (characters.getEventType()== EventType.IGNORABLE_WHITESPACE) {
       return true;
     }
-    return XmlUtil.isXmlWhitespace(characters.getText());
+    return XmlUtilKt.isXmlWhitespace(characters.getText());
   }
 }

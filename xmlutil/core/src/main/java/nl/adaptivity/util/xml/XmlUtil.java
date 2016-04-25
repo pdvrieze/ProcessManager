@@ -16,13 +16,10 @@
 
 package nl.adaptivity.util.xml;
 
-import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlEvent.TextEvent;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -50,33 +47,6 @@ public final class XmlUtil {
       this.mPrefix = prefix;
       this.mUrl = url;
 
-    }
-  }
-
-  private static class MetaStripper extends XmlDelegatingWriter {
-
-    public MetaStripper(final XmlWriter delegate) {
-      super(delegate);
-    }
-
-    @Override
-    public void processingInstruction(final CharSequence text) throws XmlException {
-      /* ignore */
-    }
-
-    @Override
-    public void endDocument() throws XmlException {
-      /* ignore */
-    }
-
-    @Override
-    public void docdecl(final CharSequence text) throws XmlException {
-      /* ignore */
-    }
-
-    @Override
-    public void startDocument(@Nullable final CharSequence version, @Nullable final CharSequence encoding, @Nullable final Boolean standalone) throws XmlException {
-      /* ignore */
     }
   }
 
@@ -164,7 +134,7 @@ public final class XmlUtil {
         in.require(XmlStreamingKt.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
-      if(! isXmlWhitespace(XmlReaderUtil.siblingsToFragment(in).getContent())) {
+      if(!XmlUtilKt.isXmlWhitespace(XmlReaderUtil.siblingsToFragment(in).getContent())) {
         throw new XmlException("Unexpected child content in element");
       }
     }
@@ -288,135 +258,7 @@ public final class XmlUtil {
     return XmlReaderUtil.toCharArrayWriter(XmlStreaming.newReader(source));
   }
 
-  public static char[] siblingsToCharArray(final XmlReader in) throws XmlException {
-    return XmlReaderUtil.siblingsToFragment(in).getContent();
-  }
-
-  public static void addUndeclaredNamespaces(final XmlReader in, final XmlWriter out, final Map<String, String> missingNamespaces) throws XmlException {
-    undeclaredPrefixes(in, out, missingNamespaces);
-  }
-
-  private static void undeclaredPrefixes(final XmlReader in, final XmlWriter reference, final Map<String, String> missingNamespaces) throws XmlException {
-    assert in.getEventType()==XmlStreamingKt.START_ELEMENT;
-    final String prefix = StringUtil.toString(in.getPrefix());
-    if (prefix!=null) {
-      if (!missingNamespaces.containsKey(prefix)) {
-        final CharSequence uri = in.getNamespaceUri();
-        if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && XmlReaderUtil.isPrefixDeclaredInElement(in, prefix)) {
-          return;
-        } else if (uri.length()>0) {
-          if (! StringUtil.isEqual(reference.getNamespaceUri(prefix), uri)) {
-            missingNamespaces.put(prefix, uri.toString());
-          }
-        }
-      }
-    }
-  }
-
-  public static void writeCurrentEvent(final XmlReader in, final XmlWriter out) throws XmlException {
-    switch (in.getEventType()) {
-      case START_DOCUMENT:
-        out.startDocument(null, in.getEncoding(), in.getStandalone());break;
-      case START_ELEMENT: {
-        out.startTag(in.getNamespaceUri(), in.getLocalName(), in.getPrefix());
-        {
-          final int nsStart = in.getNamespaceStart();
-          final int nsEnd = in.getNamespaceEnd();
-          for(int i=nsStart; i<nsEnd; ++i) {
-            out.namespaceAttr(in.getNamespacePrefix(i), in.getNamespaceUri(i));
-          }
-        }
-        {
-          final int attrCount = in.getAttributeCount();
-          for(int i=0; i<attrCount; ++i) {
-            out.attribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), null, in.getAttributeValue(i));
-          }
-        }
-        break;
-      }
-      case END_ELEMENT:
-        out.endTag(in.getNamespaceUri(), in.getLocalName(), in.getPrefix()); break;
-      case COMMENT:
-        out.comment(in.getText()); break;
-      case TEXT:
-        out.text(in.getText()); break;
-      case ATTRIBUTE:
-        out.attribute(in.getNamespaceUri(), in.getLocalName(),in.getPrefix(), in.getText()); break;
-      case CDSECT:
-        out.cdsect(in.getText()); break;
-      case DOCDECL:
-        out.docdecl(in.getText()); break;
-      case END_DOCUMENT:
-        out.endDocument(); break;
-      case ENTITY_REF:
-        out.entityRef(in.getText()); break;
-      case IGNORABLE_WHITESPACE:
-        out.ignorableWhitespace(in.getText()); break;
-      case PROCESSING_INSTRUCTION:
-        out.processingInstruction(in.getText()); break;
-      default:
-        throw new XmlException("Unsupported element found");
-    }
-  }
-
-  public static boolean isIgnorable(final XmlEvent event) {
-    final EventType type = event.getEventType();
-    if (type==null) { return true; } // Before start, means ignore the "current event"
-    switch (type) {
-      case COMMENT:
-      case START_DOCUMENT:
-      case END_DOCUMENT:
-      case PROCESSING_INSTRUCTION:
-      case DOCDECL:
-      case IGNORABLE_WHITESPACE:
-        return true;
-      case TEXT:
-        return isXmlWhitespace(((TextEvent) event).getText());
-      default:
-        return false;
-    }
-  }
-
-  public static void writeChild(final XmlWriter out, @Nullable final XmlSerializable child) throws XmlException {
-    if (child!=null) {
-      child.serialize(out);
-    }
-  }
-
-  public static void writeChild(final XmlWriter out, final Node in) throws XmlException {
-    AbstractXmlWriter.serialize(out, in);
-  }
-
-  public static void writeChildren(final XmlWriter out, @Nullable final Iterable<? extends XmlSerializable> children) throws
-          XmlException {
-    if (children!=null) {
-      for (final XmlSerializable child : children) {
-        writeChild(out, child);
-      }
-    }
-  }
-
-  public static void writeStartElement(@NotNull final XmlWriter out, @NotNull final QName qName) throws XmlException {
-    boolean writeNs = false;
-    String namespace = qName.getNamespaceURI();
-    CharSequence prefix;
-    if (namespace==null) {
-      namespace = out.getNamespaceContext().getNamespaceURI(qName.getPrefix());
-      prefix = qName.getPrefix();
-    } else {
-      prefix = out.getPrefix(namespace);
-      if (prefix==null) { // The namespace is not know in the output context, so add an attribute
-        writeNs = true;
-        prefix = qName.getPrefix();
-      }
-    }
-    out.startTag(namespace, qName.getLocalPart(), prefix);
-    if (writeNs) {
-      out.namespaceAttr(prefix, namespace);
-    }
-  }
-
-/* XXX These can't work because they don't allow for attributes
+  /* XXX These can't work because they don't allow for attributes
   public static void writeEmptyElement(@NotNull final StAXWriter out, @NotNull final QName qName) throws XMLStreamException {
     String namespace = qName.getNamespaceURI();
     String prefix;
@@ -431,94 +273,6 @@ public final class XmlUtil {
   }
 */
 
-  public static void writeSimpleElement(@NotNull final XmlWriter out, @NotNull final QName qName, @Nullable final CharSequence value) throws
-        XmlException {
-    writeStartElement(out, qName);
-    if (value!=null && value.length()!=0) {
-      out.text(value);
-    }
-    AbstractXmlWriter.endTag(out, qName);
-  }
-
-  public static void writeAttribute(@NotNull final XmlWriter out, final String name, @Nullable final String value) throws XmlException {
-    if (value!=null) {
-      out.attribute(null, name, null, value);
-    }
-  }
-
-  public static void writeAttribute(final XmlWriter out, final String name, @Nullable final Object value) throws XmlException {
-    if (value!=null) {
-      out.attribute(null, name, null, value.toString());
-    }
-  }
-
-  public static void writeAttribute(@NotNull final XmlWriter out, final QName name, @Nullable final String value) throws XmlException {
-    if (value!=null) {
-      out.attribute(name.getNamespaceURI(), name.getLocalPart(), name.getPrefix(), value);
-    }
-  }
-
-  public static void writeAttribute(@NotNull final XmlWriter out, final String name, final double value) throws XmlException {
-    if (! Double.isNaN(value)) {
-      out.attribute(null, name, null, Double.toString(value));
-    }
-  }
-
-  public static void writeAttribute(@NotNull final XmlWriter out, final String name, final long value) throws XmlException {
-    if (! Double.isNaN(value)) {
-      out.attribute(null, name, null, Long.toString(value));
-    }
-  }
-
-  public static void writeAttribute(@NotNull final XmlWriter out, final String name, @Nullable final QName value) throws
-          XmlException {
-    if (value!=null) {
-      String prefix;
-      if (value.getNamespaceURI()!=null) {
-        if (value.getPrefix()!=null && value.getNamespaceURI().equals(out.getNamespaceContext().getNamespaceURI(value.getPrefix()))) {
-          prefix = value.getPrefix();
-        } else {
-          prefix = out.getNamespaceContext().getPrefix(value.getNamespaceURI());
-          if (prefix == null) {
-            prefix = value.getPrefix();
-            out.namespaceAttr(prefix, value.getNamespaceURI());
-          }
-        }
-      } else {
-        prefix = value.getPrefix();
-        final String ns = out.getNamespaceContext().getNamespaceURI(prefix);
-        if (ns==null) { throw new IllegalArgumentException("Cannot determine namespace of qname"); }
-      }
-      out.attribute(null, name, null, prefix+':'+value.getLocalPart());
-    }
-  }
-
-
-  private static void writeElementContent(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws
-                                                                                                                                                            XmlException {
-    writeElementContent(new HashMap<String, String>(), in, out);
-  }
-
-  /**
-   * TODO make it package protected once XmlUtil is moved.
-   * @deprecated should be more private
-   */
-  @Deprecated
-  public static void writeElementContent(@Nullable final Map<String, String> missingNamespaces, @NotNull final XmlReader in, @NotNull final XmlWriter out) throws
-          XmlException {
-    while (in.hasNext()) {
-      final EventType type = in.next();
-      writeCurrentEvent(in, out);
-      if (type== EventType.START_ELEMENT) {
-        if (missingNamespaces!=null) {
-          addUndeclaredNamespaces(in, out, missingNamespaces);
-        }
-        writeElementContent(missingNamespaces, in, out);
-      } else if (type == EventType.END_ELEMENT) {
-        break;
-      }
-    }
-  }
 
   static void configure(@NotNull final Transformer transformer, final int flags) {
     if ((flags & FLAG_OMIT_XMLDECL) != 0) {
@@ -526,26 +280,6 @@ public final class XmlUtil {
     }
   }
 
-  public static boolean isXmlWhitespace(@NotNull final char[] data) {
-    for(int i=data.length-1; i>=0; --i) {
-      final char c = data[i];
-      if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-
-  public static boolean isXmlWhitespace(@NotNull final CharSequence data) {
-    for(int i=data.length()-1; i>=0; --i) {
-      final char c = data.charAt(i);
-      if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   public static void cannonicallize(final Source in, final Result out) throws XmlException {
     // TODO add wrapper methods that get stream readers and writers analogous to the event writers and readers

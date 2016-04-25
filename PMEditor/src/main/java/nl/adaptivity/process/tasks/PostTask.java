@@ -92,16 +92,16 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     if (mTask!=null || mReplies!=null) {
-      XmlUtil.writeStartElement(out, REPLIESPARAM_NAME);
+      XmlWriterUtil.smartStartTag(out, REPLIESPARAM_NAME);
       getReplies().serialize(out);
-      AbstractXmlWriter.endTag(out, REPLIESPARAM_NAME);
-      XmlUtil.writeStartElement(out, TASKPARAM_NAME);
+      XmlWriterUtil.endTag(out, REPLIESPARAM_NAME);
+      XmlWriterUtil.smartStartTag(out, TASKPARAM_NAME);
       mTask.serialize(out);
-      AbstractXmlWriter.endTag(out, TASKPARAM_NAME);
+      XmlWriterUtil.endTag(out, TASKPARAM_NAME);
     }
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   private static PostTask deserialize(final XmlReader in) throws XmlException {

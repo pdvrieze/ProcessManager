@@ -94,18 +94,18 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    XmlUtil.writeAttribute(out, "name", mName);
-    XmlUtil.writeAttribute(out, "label", mLabel);
-    XmlUtil.writeAttribute(out, "params", mParams);
-    XmlUtil.writeAttribute(out, "type", mType);
-    XmlUtil.writeAttribute(out, "value", mValue);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeAttribute(out, "name", mName);
+    XmlWriterUtil.writeAttribute(out, "label", mLabel);
+    XmlWriterUtil.writeAttribute(out, "params", mParams);
+    XmlWriterUtil.writeAttribute(out, "type", mType);
+    XmlWriterUtil.writeAttribute(out, "value", mValue);
     if (mOptions!=null) {
       for(String option:mOptions) {
-        XmlUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
+        XmlWriterUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
       }
     }
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @Override

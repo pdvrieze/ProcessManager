@@ -25,7 +25,6 @@ import nl.adaptivity.process.tasks.items.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
@@ -222,11 +221,19 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   }
 
   public void serialize(final XmlWriter out, final boolean serializeOptions) throws XmlException{
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    if ((! (getName() instanceof XmlSerializable))) { XmlUtil.writeAttribute(out, "name", getName()); }
-    if ((! (getLabel() instanceof XmlSerializable))) { XmlUtil.writeAttribute(out, "label", getLabel()); }
-    if ((! (getType() instanceof XmlSerializable))) { XmlUtil.writeAttribute(out, "type", getDBType()); }
-    if ((! (getValue() instanceof XmlSerializable))) { XmlUtil.writeAttribute(out, "value", getValue()); }
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    if ((! (getName() instanceof XmlSerializable))) {
+      XmlWriterUtil.writeAttribute(out, "name", getName());
+    }
+    if ((! (getLabel() instanceof XmlSerializable))) {
+      XmlWriterUtil.writeAttribute(out, "label", getLabel());
+    }
+    if ((! (getType() instanceof XmlSerializable))) {
+      XmlWriterUtil.writeAttribute(out, "type", getDBType());
+    }
+    if ((! (getValue() instanceof XmlSerializable))) {
+      XmlWriterUtil.writeAttribute(out, "value", getValue());
+    }
     
     if (getName() instanceof XmlSerializable) { ((XmlSerializable) getName()).serialize(out); }
     if (getLabel() instanceof XmlSerializable) { ((XmlSerializable) getLabel()).serialize(out); }
@@ -235,10 +242,10 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
 
     if (serializeOptions) {
       for(final CharSequence option: getOptions()) {
-        XmlUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
+        XmlWriterUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
       }
     }
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   public static GenericItem parseTaskGenericItem(final XmlReader in) throws XmlException {

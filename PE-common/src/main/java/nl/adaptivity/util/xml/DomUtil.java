@@ -218,9 +218,9 @@ public final class DomUtil {
     final DocumentFragment documentFragment = doc.createDocumentFragment();
     final XmlWriter        out              = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
     while (in.hasNext() && (in.next() != EventType.END_ELEMENT)) {
-      XmlUtil.writeCurrentEvent(in, out);
+      XmlReaderUtil.writeCurrent(in, out);
       if (in.getEventType()== EventType.START_ELEMENT) {
-        XmlUtil.writeElementContent(null, in, out);
+        XmlWriterUtil.writeElementContent(out, null, in);
       }
     }
     return documentFragment;
@@ -237,9 +237,9 @@ public final class DomUtil {
     }
     final DocumentFragment documentFragment = doc.createDocumentFragment();
     final XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
-    XmlUtil.writeCurrentEvent(in, out);
+    XmlReaderUtil.writeCurrent(in, out);
     if (in.getEventType()== EventType.START_ELEMENT) {
-      XmlUtil.writeElementContent(null, in, out);
+      XmlWriterUtil.writeElementContent(out, null, in);
     }
     return documentFragment.getFirstChild();
   }

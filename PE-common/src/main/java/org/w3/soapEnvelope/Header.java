@@ -110,7 +110,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public boolean deserializeChildText(final CharSequence elementText) {
-    if (XmlUtil.isXmlWhitespace(elementText)) { return true; }
+    if (XmlUtilKt.isXmlWhitespace(elementText)) { return true; }
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     try {
       Document doc = dbf.newDocumentBuilder().newDocument();
@@ -140,17 +140,17 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, getElementName());
+    XmlWriterUtil.smartStartTag(out, getElementName());
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
-      XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
+      XmlWriterUtil.writeAttribute(out, attr.getKey(), attr.getValue());
     }
     if (mPrincipal!=null) {
-      XmlUtil.writeSimpleElement(out, PRINCIPALQNAME, mPrincipal.toString());
+      XmlWriterUtil.writeSimpleElement(out, PRINCIPALQNAME, mPrincipal.toString());
     }
     for(Node n: getAny()) {
-      XmlUtil.writeChild(out, n);
+      XmlWriterUtil.serialize(out, n);
     }
-    AbstractXmlWriter.endTag(out, getElementName());
+    XmlWriterUtil.endTag(out, getElementName());
   }
 
   /**

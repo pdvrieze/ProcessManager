@@ -22,10 +22,7 @@ import nl.adaptivity.process.processModel.engine.SplitImpl;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.AbstractXmlWriter;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -49,17 +46,17 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @Override
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     if (getPredecessors()!=null && getPredecessors().size()>0) {
-      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessors().get(0).getId());
+      XmlWriterUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessors().get(0).getId());
     }
   }
 

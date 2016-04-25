@@ -21,7 +21,6 @@ import android.support.annotation.CallSuper;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
@@ -47,7 +46,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     final List<XmlSerializable> pending = new ArrayList<>();
     ModifyHelper.writeAttribute(pending, out, "summary", getSummary());
     ModifyHelper.writeAttribute(pending, out, "instancehandle", getInstanceHandle());
@@ -60,7 +59,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
     for(final TaskItem item: getItems()) {
       item.serialize(out);
     }
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @CallSuper

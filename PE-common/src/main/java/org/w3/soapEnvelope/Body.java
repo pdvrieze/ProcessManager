@@ -114,14 +114,14 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, getElementName());
+    XmlWriterUtil.smartStartTag(out, getElementName());
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
-      XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
+      XmlWriterUtil.writeAttribute(out, attr.getKey(), attr.getValue());
     }
     if (mContent!=null) {
       mContent.serialize(out);
     }
-    AbstractXmlWriter.endTag(out, getElementName());
+    XmlWriterUtil.endTag(out, getElementName());
   }
 
   /**

@@ -271,7 +271,7 @@ public class SoapHelper {
       while (reader.hasNext()) {
         switch(reader.next()) {
           case TEXT:
-            if (!XmlUtil.isXmlWhitespace(reader.getText())) {
+            if (!XmlUtilKt.isXmlWhitespace(reader.getText())) {
               throw new XmlException("Unexpected text content");
             }
           case IGNORABLE_WHITESPACE:
@@ -305,7 +305,7 @@ public class SoapHelper {
     outer: while (reader.hasNext()) {
       switch (reader.next()) {
         case TEXT:
-          if (!XmlUtil.isXmlWhitespace(reader.getText())) {
+          if (!XmlUtilKt.isXmlWhitespace(reader.getText())) {
             throw new XmlException("Unexpected text content");
           }
         case IGNORABLE_WHITESPACE:
@@ -396,7 +396,7 @@ public class SoapHelper {
 
   static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) throws XmlException {
     Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
-    while (value !=null && value instanceof Text && XmlUtil.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
+    while (value !=null && value instanceof Text && XmlUtilKt.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
     Object result;
     if ((value != null) && (!pClass.isInstance(value))) {
       if (Types.isPrimitive(pClass) || (Types.isPrimitiveWrapper(pClass))) {

@@ -21,6 +21,7 @@ import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlWriterUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;
@@ -76,13 +77,13 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   @Override
   protected void serializeAttributes(final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
-    XmlUtil.writeAttribute(out, "type", getContentType());
-    XmlUtil.writeAttribute(out, "serviceNS", getServiceNS());
-    XmlUtil.writeAttribute(out, "serviceName", getServiceName());
-    XmlUtil.writeAttribute(out, "endpoint", getEndpoint());
-    XmlUtil.writeAttribute(out, "operation", getOperation());
-    XmlUtil.writeAttribute(out, "url", getUrl());
-    XmlUtil.writeAttribute(out, "method", getMethod());
+    XmlWriterUtil.writeAttribute(out, "type", getContentType());
+    XmlWriterUtil.writeAttribute(out, "serviceNS", getServiceNS());
+    XmlWriterUtil.writeAttribute(out, "serviceName", getServiceName());
+    XmlWriterUtil.writeAttribute(out, "endpoint", getEndpoint());
+    XmlWriterUtil.writeAttribute(out, "operation", getOperation());
+    XmlWriterUtil.writeAttribute(out, "url", getUrl());
+    XmlWriterUtil.writeAttribute(out, "method", getMethod());
   }
 
 

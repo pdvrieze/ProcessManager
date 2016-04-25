@@ -112,12 +112,12 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
   @Override
   protected void serializeStartElement(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
   }
 
   @Override
   protected void serializeEndElement(@NotNull final XmlWriter out) throws XmlException {
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @Nullable

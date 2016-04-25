@@ -180,7 +180,7 @@ public abstract class XPathHolder extends XMLContainer {
       out.attribute(null, "xpath", null, pathString);
 
     }
-    XmlUtil.writeAttribute(out, "name", name);
+    XmlWriterUtil.writeAttribute(out, "name", name);
   }
 
   @Override

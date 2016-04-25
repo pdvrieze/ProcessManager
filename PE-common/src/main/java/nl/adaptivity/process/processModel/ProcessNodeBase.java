@@ -20,11 +20,7 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.xml.XmlDeserializable;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,15 +94,15 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   }
 
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeAttribute(out, "id", getId());
-    XmlUtil.writeAttribute(out, "label", getLabel());
-    XmlUtil.writeAttribute(out, "x", getX());
-    XmlUtil.writeAttribute(out, "y", getY());
+    XmlWriterUtil.writeAttribute(out, "id", getId());
+    XmlWriterUtil.writeAttribute(out, "label", getLabel());
+    XmlWriterUtil.writeAttribute(out, "x", getX());
+    XmlWriterUtil.writeAttribute(out, "y", getY());
   }
 
   protected void serializeChildren(final XmlWriter out) throws XmlException {
-    XmlUtil.writeChildren(out, getResults());
-    XmlUtil.writeChildren(out, getDefines());
+    XmlWriterUtil.writeChildren(out, getResults());
+    XmlWriterUtil.writeChildren(out, getDefines());
   }
 
   @Override

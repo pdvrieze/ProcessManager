@@ -258,14 +258,22 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    if (mState!=null) { XmlUtil.writeAttribute(out, "state", mState.name()); }
-    if (mProcessInstance!=-1) { XmlUtil.writeAttribute(out, "processinstance", mProcessInstance); }
-    if (mHandle!=-1) { XmlUtil.writeAttribute(out, "handle", mHandle); }
-    if (mNodeId!=null) { XmlUtil.writeAttribute(out, "nodeid", mNodeId); }
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    if (mState!=null) {
+      XmlWriterUtil.writeAttribute(out, "state", mState.name());
+    }
+    if (mProcessInstance!=-1) {
+      XmlWriterUtil.writeAttribute(out, "processinstance", mProcessInstance);
+    }
+    if (mHandle!=-1) {
+      XmlWriterUtil.writeAttribute(out, "handle", mHandle);
+    }
+    if (mNodeId!=null) {
+      XmlWriterUtil.writeAttribute(out, "nodeid", mNodeId);
+    }
     if (mPredecessors!=null) {
       for (Long predecessor: mPredecessors) {
-        XmlUtil.writeSimpleElement(out, PREDECESSOR_ELEMENTNAME, predecessor.toString());
+        XmlWriterUtil.writeSimpleElement(out, PREDECESSOR_ELEMENTNAME, predecessor.toString());
       }
     }
     if (mResults!=null) {
@@ -274,11 +282,11 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
       }
     }
     if (mBody!=null) {
-      XmlUtil.writeStartElement(out, BODY_ELEMENTNAME);
-      mBody.serialize(AbstractXmlWriter.filterSubstream(out));
-      AbstractXmlWriter.endTag(out, BODY_ELEMENTNAME);
+      XmlWriterUtil.smartStartTag(out, BODY_ELEMENTNAME);
+      mBody.serialize(XmlWriterUtil.filterSubstream(out));
+      XmlWriterUtil.endTag(out, BODY_ELEMENTNAME);
     }
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
 }

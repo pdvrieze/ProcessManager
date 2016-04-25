@@ -136,15 +136,25 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    if (mState!=null) { XmlUtil.writeAttribute(out, "state", mState.name()); }
-    if (mHandle>=0) { XmlUtil.writeAttribute(out, "handle", mHandle); }
-    if (mRemoteHandle>=0) { XmlUtil.writeAttribute(out, "remotehandle", mRemoteHandle); }
-    if (mInstanceHandle>=0) { XmlUtil.writeAttribute(out, "instancehandle", mInstanceHandle); }
-    XmlUtil.writeAttribute(out, "summary", mSummary);
-    if (mOwner!=null) { XmlUtil.writeAttribute(out, "owner", mOwner.getName()); }
-    XmlUtil.writeChildren(out, mItems);
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    if (mState!=null) {
+      XmlWriterUtil.writeAttribute(out, "state", mState.name());
+    }
+    if (mHandle>=0) {
+      XmlWriterUtil.writeAttribute(out, "handle", mHandle);
+    }
+    if (mRemoteHandle>=0) {
+      XmlWriterUtil.writeAttribute(out, "remotehandle", mRemoteHandle);
+    }
+    if (mInstanceHandle>=0) {
+      XmlWriterUtil.writeAttribute(out, "instancehandle", mInstanceHandle);
+    }
+    XmlWriterUtil.writeAttribute(out, "summary", mSummary);
+    if (mOwner!=null) {
+      XmlWriterUtil.writeAttribute(out, "owner", mOwner.getName());
+    }
+    XmlWriterUtil.writeChildren(out, mItems);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @Override

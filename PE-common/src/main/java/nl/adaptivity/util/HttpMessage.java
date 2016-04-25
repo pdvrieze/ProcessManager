@@ -286,10 +286,10 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
-      XmlUtil.writeStartElement(out, getElementName());
-      XmlUtil.writeAttribute(out, "name", mKey);
+      XmlWriterUtil.smartStartTag(out, getElementName());
+      XmlWriterUtil.writeAttribute(out, "name", mKey);
       if (mValue!=null) { out.text(mValue); }
-      AbstractXmlWriter.endTag(out, getElementName());
+      XmlWriterUtil.endTag(out, getElementName());
     }
 
     public void setKey(final String key) {
@@ -593,17 +593,17 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    XmlUtil.writeAttribute(out, "user", mUserPrincipal.getName());
-    XmlUtil.writeChildren(out, getQueries());
-    XmlUtil.writeChildren(out, getPosts());
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeAttribute(out, "user", mUserPrincipal.getName());
+    XmlWriterUtil.writeChildren(out, getQueries());
+    XmlWriterUtil.writeChildren(out, getPosts());
     if (mBody!=null) {
-      XmlUtil.writeStartElement(out, BODYELEMENTNAME);
+      XmlWriterUtil.smartStartTag(out, BODYELEMENTNAME);
       mBody.serialize(out);
-      AbstractXmlWriter.endTag(out, BODYELEMENTNAME);
+      XmlWriterUtil.endTag(out, BODYELEMENTNAME);
     }
 
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   /*

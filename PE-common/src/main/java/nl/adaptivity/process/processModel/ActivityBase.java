@@ -21,11 +21,7 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.AbstractXmlWriter;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,10 +88,10 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
 
   @Override
   public final void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @Override
@@ -103,9 +99,9 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
     super.serializeAttributes(out);
     Identifiable predecessor = getPredecessor();
     if (predecessor!=null) {
-      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, predecessor.getId());
+      XmlWriterUtil.writeAttribute(out, ATTR_PREDECESSOR, predecessor.getId());
     }
-    XmlUtil.writeAttribute(out, "name", getName());
+    XmlWriterUtil.writeAttribute(out, "name", getName());
   }
 
   protected final void serializeChildren(final XmlWriter out) throws XmlException {

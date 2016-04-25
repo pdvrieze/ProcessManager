@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,18 +48,18 @@ public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   protected void serializeChildren(@NotNull final XmlWriter out) throws XmlException {
     super.serializeChildren(out);
     for(final Identifiable pred: getPredecessors()) {
-      XmlUtil.writeStartElement(out, PREDELEMNAME);
+      XmlWriterUtil.smartStartTag(out, PREDELEMNAME);
       out.text(pred.getId());
-      AbstractXmlWriter.endTag(out, PREDELEMNAME);
+      XmlWriterUtil.endTag(out, PREDELEMNAME);
     }
   }
 

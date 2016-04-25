@@ -104,10 +104,10 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   }
 
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    XmlUtil.writeAttribute(out, "name", mName);
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeAttribute(out, "name", mName);
     mValue.serialize(out);
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   public DocumentFragment getContentFragment() throws XmlException {

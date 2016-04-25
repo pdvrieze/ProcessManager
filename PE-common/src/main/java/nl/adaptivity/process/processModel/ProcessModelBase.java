@@ -25,7 +25,6 @@ import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,19 +134,20 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
     ensureIds();
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    XmlUtil.writeAttribute(out, "name", getName());
-    XmlUtil.writeAttribute(out, "owner", mOwner==null ? null : mOwner.getName());
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeAttribute(out, "name", getName());
+    final String value = mOwner==null ? null : mOwner.getName();
+    XmlWriterUtil.writeAttribute(out, "owner", value);
     if (mRoles!=null && mRoles.size()>0) {
-      XmlUtil.writeAttribute(out, ATTR_ROLES,StringUtil.join(",", mRoles));
+      XmlWriterUtil.writeAttribute(out, ATTR_ROLES, StringUtil.join(",", mRoles));
     }
     if (getUuid() !=null) {
-      XmlUtil.writeAttribute(out, "uuid", getUuid().toString());
+      XmlWriterUtil.writeAttribute(out, "uuid", getUuid().toString());
     }
-    XmlUtil.writeChildren(out, getImports());
-    XmlUtil.writeChildren(out, getExports());
-    XmlUtil.writeChildren(out, mProcessNodes);
-    AbstractXmlWriter.endTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeChildren(out, getImports());
+    XmlWriterUtil.writeChildren(out, getExports());
+    XmlWriterUtil.writeChildren(out, mProcessNodes);
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   public void ensureIds() {

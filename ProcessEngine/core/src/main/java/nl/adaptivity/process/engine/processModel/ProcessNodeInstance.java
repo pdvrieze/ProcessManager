@@ -318,7 +318,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
           XmlException, SQLException {
     List<ProcessData> defines = getDefines(transaction);
     PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, mState == NodeInstanceState.Complete), removeWhitespace);
-    transformer.transform(in, AbstractXmlWriter.filterSubstream(out));
+    transformer.transform(in, XmlWriterUtil.filterSubstream(out));
   }
 
   public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final Source source, final boolean removeWhitespace) throws
@@ -377,14 +377,22 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   public void serialize(final Transaction transaction, final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, XmlProcessNodeInstance.ELEMENTNAME);
-    if (mState!=null) { XmlUtil.writeAttribute(out, "state", mState.name()); }
-    if (mProcessInstance!=null) { XmlUtil.writeAttribute(out, "processinstance", mProcessInstance.getHandle()); }
-    if (mHandle!=-1) { XmlUtil.writeAttribute(out, "handle", mHandle); }
-    if (mNode!=null) { XmlUtil.writeAttribute(out, "nodeid", mNode.getId()); }
+    XmlWriterUtil.smartStartTag(out, XmlProcessNodeInstance.ELEMENTNAME);
+    if (mState!=null) {
+      XmlWriterUtil.writeAttribute(out, "state", mState.name());
+    }
+    if (mProcessInstance!=null) {
+      XmlWriterUtil.writeAttribute(out, "processinstance", mProcessInstance.getHandle());
+    }
+    if (mHandle!=-1) {
+      XmlWriterUtil.writeAttribute(out, "handle", mHandle);
+    }
+    if (mNode!=null) {
+      XmlWriterUtil.writeAttribute(out, "nodeid", mNode.getId());
+    }
     if (mPredecessors!=null) {
       for (Handle<? extends ProcessNodeInstance> predecessor: mPredecessors) {
-        XmlUtil.writeSimpleElement(out, XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, Long.toString(predecessor.getHandle()));
+        XmlWriterUtil.writeSimpleElement(out, XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, Long.toString(predecessor.getHandle()));
       }
     }
     if (mResults!=null) {
@@ -393,16 +401,16 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       }
     }
     if (mNode instanceof Activity) {
-      XmlUtil.writeStartElement(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
+      XmlWriterUtil.smartStartTag(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
       XmlReader in = XMLFragmentStreamReader.from(((Activity) mNode).getMessage().getMessageBody());
       try {
         instantiateXmlPlaceholders(transaction, in, out, true);
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
-      AbstractXmlWriter.endTag(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
+      XmlWriterUtil.endTag(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
     }
-    AbstractXmlWriter.endTag(out, XmlProcessNodeInstance.ELEMENTNAME);
+    XmlWriterUtil.endTag(out, XmlProcessNodeInstance.ELEMENTNAME);
   }
 
 }

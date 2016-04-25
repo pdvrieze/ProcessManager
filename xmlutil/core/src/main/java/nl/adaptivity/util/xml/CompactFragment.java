@@ -67,7 +67,7 @@ public class CompactFragment implements XmlSerializable {
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
     XmlReader in = XMLFragmentStreamReader.from(this);
-    AbstractXmlWriter.serialize(out, in);
+    XmlWriterUtil.serialize(out, in);
     in.close();
   }
 

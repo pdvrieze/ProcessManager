@@ -18,11 +18,7 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.HandleMap.Handle;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 
 import javax.xml.bind.annotation.XmlValue;
 
@@ -62,7 +58,7 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeSimpleElement(out, getElementName(), Long.toString(mHandle));
+    XmlWriterUtil.writeSimpleElement(out, getElementName(), Long.toString(mHandle));
   }
 
   @Override

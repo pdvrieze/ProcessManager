@@ -21,7 +21,6 @@ package nl.adaptivity.xml
 import net.devrieze.util.StringUtil
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XmlUtil
-import nl.adaptivity.xml.XmlReaderUtil.Companion.toQname
 import nl.adaptivity.xml.XmlEvent.NamespaceImpl
 import nl.adaptivity.xml.XmlStreaming.EventType
 import java.io.CharArrayWriter
@@ -265,11 +264,10 @@ fun XmlReader.readSimpleElement(): CharSequence {
 
 @Throws(XmlException::class)
 fun XmlReader.toCharArrayWriter(): CharArrayWriter {
-  val t =this
   return CharArrayWriter().apply {
     XmlStreaming.newWriter(this).use { out ->
-      while (t.hasNext()) {
-        XmlUtil.writeCurrentEvent(t, out)
+      while (hasNext()) {
+        writeCurrent(out)
       }
     }
   }
@@ -282,25 +280,21 @@ fun XmlReader.toCharArrayWriter(): CharArrayWriter {
  */
 @Throws(XmlException::class)
 fun XmlReader.skipPreamble() {
-  val r = this
-  while (r.isIgnorable() && r.hasNext()) {
-    r.next()
+  while (isIgnorable() && hasNext()) {
+    next()
   }
 }
 
 @Throws(XmlException::class)
 fun XmlReader.isIgnorable(): Boolean {
-  val r = this
-  val type = r.eventType
-// Before start, means ignore the "current event"
-  when (type) {
+  when (eventType) {
     EventType.COMMENT,
     EventType.START_DOCUMENT,
     EventType.END_DOCUMENT,
     EventType.PROCESSING_INSTRUCTION,
     EventType.DOCDECL,
     EventType.IGNORABLE_WHITESPACE -> return true
-    EventType.TEXT                 -> return XmlUtil.isXmlWhitespace(r.text)
+    EventType.TEXT                 -> return XmlUtil.isXmlWhitespace(text)
     else                           -> return false
   }
 }
@@ -335,35 +329,34 @@ fun XmlReader.elementContentToFragment(): CompactFragment {
  */
 @Throws(XmlException::class)
 fun XmlReader.siblingsToFragment(): CompactFragment {
-  val r = this
   val caw = CharArrayWriter()
-  if (!r.isStarted) {
-    if (r.hasNext()) {
-      r.next()
+  if (!isStarted) {
+    if (hasNext()) {
+      next()
     } else {
       return CompactFragment("")
     }
   }
 
-  val startLocation = r.locationInfo
+  val startLocation = locationInfo
   try {
 
     val missingNamespaces = TreeMap<String, String>()
     val gatheringContext: GatheringNamespaceContext? = null
     // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
-    val initialDepth = r.depth - if (r.eventType === EventType.START_ELEMENT) 1 else 0
-    var type: EventType? = r.eventType
-    while (type !== EventType.END_DOCUMENT && type !== EventType.END_ELEMENT && r.depth >= initialDepth) {
+    val initialDepth = depth - if (eventType === EventType.START_ELEMENT) 1 else 0
+    var type: EventType? = eventType
+    while (type !== EventType.END_DOCUMENT && type !== EventType.END_ELEMENT && depth >= initialDepth) {
       if (type === EventType.START_ELEMENT) {
         val out = XmlStreaming.newWriter(caw)
-        XmlUtil.writeCurrentEvent(r, out) // writes the start tag
-        XmlUtil.addUndeclaredNamespaces(r, out, missingNamespaces)
-        XmlUtil.writeElementContent(missingNamespaces, r, out) // writes the children and end tag
+        writeCurrent(out) // writes the start tag
+        out.addUndeclaredNamespaces(this, missingNamespaces)
+        XmlUtil.writeElementContent(missingNamespaces, this, out) // writes the children and end tag
         out.close()
       } else if (type === EventType.TEXT || type === EventType.IGNORABLE_WHITESPACE || type === EventType.CDSECT) {
-        caw.append(XmlUtil.xmlEncode(r.text.toString()))
+        caw.append(XmlUtil.xmlEncode(text.toString()))
       }
-      type = if (r.hasNext()) r.next() else null
+      type = if (hasNext()) next() else null
     }
     return CompactFragment(SimpleNamespaceContext(missingNamespaces), caw.toCharArray())
   } catch (e: XmlException) {
@@ -373,6 +366,9 @@ fun XmlReader.siblingsToFragment(): CompactFragment {
   }
 
 }
+
+@Throws(XmlException::class)
+fun XmlReader.siblingsToCharArray() = siblingsToFragment().content
 
 /**
  * Check that the current state is a start element for the given name. The mPrefix is ignored.
@@ -440,6 +436,8 @@ fun XmlReader.isElement(type: EventType, elementNamespace: CharSequence?, elemen
   }
 }
 
+@Throws(XmlException::class)
+fun XmlReader.writeCurrent(writer:XmlWriter) = eventType.writeEvent(writer, this)
 
 /**
  * A class that filters an xml stream such that it will only contain expected elements.
