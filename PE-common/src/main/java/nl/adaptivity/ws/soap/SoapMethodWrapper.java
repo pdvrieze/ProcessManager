@@ -26,8 +26,8 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.ws.WsMethodWrapper;
+import nl.adaptivity.xml.AbstractXmlReader;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming.EventType;
@@ -114,7 +114,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     final LinkedHashMap<String, Node> params = SoapHelper.unmarshalWrapper(reader);
     reader.require(EventType.END_ELEMENT, null, null);
     if (reader.hasNext()) { reader.next(); }
-    while ( reader.hasNext() && XmlUtil.isIgnorable(reader)) { reader.next(); }
+    while (reader.hasNext() && AbstractXmlReader.isIgnorable(reader)) { reader.next(); }
     if (reader.getEventType()== EventType.START_ELEMENT) {
       throw new MessagingFormatException("Multiple body elements not expected");
     }

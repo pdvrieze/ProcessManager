@@ -113,7 +113,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS,in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
-          mReplies = AbstractXmlReaderJava.readerToFragment(in);
+          mReplies = AbstractXmlReader.elementContentToFragment(in);
           return true;
         case TASKPARAM_LOCALNAME:
           in.next();//The param tag has been handled.

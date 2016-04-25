@@ -282,7 +282,7 @@ public class SoapHelper {
             return unMarshalNode(null, resultType, context, params.get(RESULT));
           }
           default:
-            XmlUtil.unhandledEvent(reader);
+            AbstractXmlReader.unhandledEvent(reader);
         }
       }
       return null; // no nodes
@@ -297,7 +297,7 @@ public class SoapHelper {
   }
 
   static <T> LinkedHashMap<String, Node> unmarshalWrapper(final XmlReader reader) throws XmlException {
-    XmlUtil.skipPreamble(reader);
+    AbstractXmlReader.skipPreamble(reader);
     reader.require(EventType.START_ELEMENT, null, null);
     LinkedHashMap<String, Node> params = new LinkedHashMap<>();
     QName wrapperName = reader.getName();
@@ -311,8 +311,8 @@ public class SoapHelper {
         case IGNORABLE_WHITESPACE:
           break; // whitespace is ignored
         case START_ELEMENT: {
-          if (XmlUtil.isElement(reader, "http://www.w3.org/2003/05/soap-rpc", "result")) {
-            String s = StringUtil.toString(XmlUtil.readSimpleElement(reader));
+          if (AbstractXmlReader.isElement(reader, "http://www.w3.org/2003/05/soap-rpc", "result")) {
+            String s = StringUtil.toString(AbstractXmlReader.readSimpleElement(reader));
             final int i = s.indexOf(':');
             if (i >= 0) {
               returnName = new QName(reader.getNamespaceUri(s.substring(0,i)),s.substring(i + 1));
@@ -328,7 +328,7 @@ public class SoapHelper {
               params.put(RESULT, params.remove(returnName));
             }
 
-          } else if ((returnName != null) && XmlUtil.isElement(reader, returnName)) {
+          } else if ((returnName != null) && AbstractXmlReader.isElement(reader, returnName)) {
             params.put(RESULT, DomUtil.childToNode(reader));
             reader.require(EventType.END_ELEMENT, returnName.getNamespaceURI(), returnName.getLocalPart());
           } else {
@@ -340,7 +340,7 @@ public class SoapHelper {
         case END_ELEMENT:
           break outer;
         default:
-          XmlUtil.unhandledEvent(reader);
+          AbstractXmlReader.unhandledEvent(reader);
           // This is the parameter wrapper
       }
     }

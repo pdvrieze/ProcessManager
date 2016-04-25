@@ -17,11 +17,8 @@
 package nl.adaptivity.util.xml;
 
 import nl.adaptivity.util.CombiningReader;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -264,7 +261,7 @@ public final class DomUtil {
     if (node instanceof Text) {
       return new CompactFragment(((Text) node).getData());
     }
-    return XmlUtil.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
+    return AbstractXmlReader.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
   }
 
   @Nullable

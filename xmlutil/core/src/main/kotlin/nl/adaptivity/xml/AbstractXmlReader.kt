@@ -16,11 +16,16 @@
 
 package nl.adaptivity.xml
 
+import net.devrieze.util.StringUtil
 import net.devrieze.util.kotlin.matches
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XmlUtil
+import nl.adaptivity.util.xml.XmlUtil.writeElementContent
 import nl.adaptivity.xml.AbstractXmlReader.Companion.toCharArrayWriter
 import nl.adaptivity.xml.XmlStreaming.EventType
+import nl.adaptivity.xml.XmlStreaming.EventType.*
 import java.io.CharArrayWriter
+import java.util.*
 import javax.xml.namespace.QName
 
 
@@ -137,7 +142,224 @@ abstract class AbstractXmlReader : XmlReader {
           }
         }
       }
-   }
+    }
+
+
+    /**
+     * Skil the preamble events in the stream reader
+     * @param in The stream reader to skip
+     */
+    @Throws(XmlException::class)
+    @JvmStatic
+    fun XmlReader.skipPreamble() {
+      while (isIgnorable() && hasNext()) {
+        next()
+      }
+    }
+
+    @Throws(XmlException::class)
+    @JvmStatic
+    fun XmlReader.isIgnorable(): Boolean {
+      val type = eventType
+// Before start, means ignore the "current event"
+      when (type) {
+        EventType.COMMENT,
+        EventType.START_DOCUMENT,
+        EventType.END_DOCUMENT,
+        EventType.PROCESSING_INSTRUCTION,
+        EventType.DOCDECL,
+        EventType.IGNORABLE_WHITESPACE -> return true
+        EventType.TEXT                 -> return XmlUtil.isXmlWhitespace(text)
+        else                           -> return false
+      }
+    }
+
+    /**
+     * Differs from [.siblingsToFragment] in that it skips the current event.
+     * @param reader
+     * *
+     * @return
+     * *
+     * @throws XmlException
+     */
+    @Throws(XmlException::class)
+    @JvmStatic
+    fun XmlReader.elementContentToFragment(): CompactFragment {
+      val reader: XmlReader = this
+      skipPreamble()
+      if (hasNext()) {
+        require(EventType.START_ELEMENT, null, null)
+        next()
+        return siblingsToFragment()
+      }
+      return CompactFragment("")
+    }
+
+    /**
+     * Read the current element (and content) and all its siblings into a fragment.
+     * @param in The source stream.
+     * *
+     * @return the fragment
+     * *
+     * @throws XmlException parsing failed
+     */
+    @Throws(XmlException::class)
+    @JvmStatic
+    fun XmlReader.siblingsToFragment(): CompactFragment {
+      
+      val caw = CharArrayWriter()
+      if (!isStarted) {
+        if (hasNext()) {
+          next()
+        } else {
+          return CompactFragment("")
+        }
+      }
+
+      val startLocation = locationInfo
+      try {
+
+        val missingNamespaces = TreeMap<String, String>()
+        val gatheringContext: GatheringNamespaceContext? = null
+        // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
+        val initialDepth = depth - if (eventType === EventType.START_ELEMENT) 1 else 0
+        var type: EventType? = eventType
+        while (type !== EventType.END_DOCUMENT && type !== EventType.END_ELEMENT && depth >= initialDepth) {
+          if (type === EventType.START_ELEMENT) {
+            val out = XmlStreaming.newWriter(caw)
+            XmlUtil.writeCurrentEvent(this, out) // writes the start tag
+            XmlUtil.addUndeclaredNamespaces(this, out, missingNamespaces)
+            XmlUtil.writeElementContent(missingNamespaces, this ,  out) // writes the children and end tag
+            out.close()
+          } else if (type === EventType.TEXT || type === EventType.IGNORABLE_WHITESPACE || type === EventType.CDSECT) {
+            caw.append(XmlUtil.xmlEncode(text.toString()))
+          }
+          type = if (hasNext()) next() else null
+        }
+        return CompactFragment(SimpleNamespaceContext(missingNamespaces), caw.toCharArray())
+      } catch (e: XmlException) {
+        throw XmlException("Failure to parse children into string at " + startLocation, e)
+      } catch (e: RuntimeException) {
+        throw XmlException("Failure to parse children into string at " + startLocation, e)
+      }
+
+    }
+
+    /** Determine whether the prefix was declared within this tag. This will return `false` if it was only declared
+     * on a parent.
+     */
+    @JvmStatic
+    @Throws(XmlException::class)
+    fun XmlReader.isPrefixDeclaredInElement(prefix: String): Boolean {
+      for (i in namespaceStart..namespaceEnd - 1) {
+        if (StringUtil.isEqual(getNamespacePrefix(i), prefix)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    /**
+     * Helper method that throws exceptions for "unexpected" tags.
+     */
+    @JvmStatic
+    @Throws(XmlException::class)
+    fun XmlReader.unhandledEvent() {
+      when (eventType) {
+        EventType.CDSECT, EventType.TEXT -> if (!isWhitespace()) {
+          throw XmlException("Content found where not expected [" + locationInfo + "] Text:'" + text + "'")
+        }
+        EventType.COMMENT                -> {} // we never mind comments.
+        EventType.START_ELEMENT          -> throw XmlException("Element found where not expected [" + locationInfo + "]: " + name)
+        EventType.END_DOCUMENT           -> throw XmlException("End of document found where not expected")
+      }// ignore
+    }
+
+
+    /**
+     * Check that the current state is a start element for the given name. The mPrefix is ignored.
+     * @param in The stream reader to check
+     * *
+     * @param elementname The name to check against
+     * *
+     * @return `true` if it matches, otherwise `false`
+     */
+
+    @Throws(XmlException::class)
+    @JvmStatic
+    fun XmlReader.isElement(elementname: QName): Boolean {
+      return isElement(EventType.START_ELEMENT, elementname.namespaceURI, elementname.localPart, elementname.prefix)
+    }
+
+    /**
+     * Check that the current state is a start element for the given name. The mPrefix is ignored.
+     * @param in The stream reader to check
+     * *
+     * @param type
+     * @param elementname The name to check against  @return `true` if it matches, otherwise `false`
+     */
+
+    @Throws(XmlException::class)
+    @JvmStatic
+    fun XmlReader.isElement(type: EventType, elementname: QName): Boolean {
+      return isElement(type, elementname.namespaceURI, elementname.localPart, elementname.prefix)
+    }
+
+    /**
+     * Check that the current state is a start element for the given name. The mPrefix is ignored.
+     * @param in The stream reader to check
+     * *
+     * @param elementNamespace  The namespace to check against.
+     * *
+     * @param elementName The local name to check against
+     * *
+     * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined
+     * *
+     * @return `true` if it matches, otherwise `false`
+     */
+    @Throws(XmlException::class)
+    @JvmStatic
+    @JvmOverloads
+    fun XmlReader.isElement(elementNamespace: CharSequence, elementName: CharSequence, elementPrefix: CharSequence?=null): Boolean {
+      return isElement(EventType.START_ELEMENT, elementNamespace, elementName, elementPrefix)
+    }
+
+    /**
+     * Check that the current state is a start element for the given name. The mPrefix is ignored.
+     * @param in The stream reader to check
+     * *
+     * @param type The type to verify. Should be named so start or end element
+     * @param elementNamespace  The namespace to check against.
+     * *
+     * @param elementName The local name to check against
+     * *
+     * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined    @return `true` if it matches, otherwise `false`
+     */
+    @Throws(XmlException::class)
+    @JvmStatic
+    @JvmOverloads
+    fun XmlReader.isElement(type: EventType, elementNamespace: CharSequence, elementName: CharSequence, elementPrefix: CharSequence?=null): Boolean {
+      if (eventType !== type) {
+        return false
+      }
+      var expNs: CharSequence? = elementNamespace
+      if (expNs != null && expNs.length == 0) {
+        expNs = null
+      }
+      if (localName != elementName) {
+        return false
+      }
+
+      if (StringUtil.isNullOrEmpty(elementNamespace)) {
+        if (StringUtil.isNullOrEmpty(elementPrefix!!)) {
+          return StringUtil.isNullOrEmpty(prefix)
+        } else {
+          return elementPrefix == prefix
+        }
+      } else {
+        return StringUtil.isEqual(expNs!!, namespaceUri)
+      }
+    }
 
 
   }

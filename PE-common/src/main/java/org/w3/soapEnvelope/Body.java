@@ -79,8 +79,8 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
 
   public static <T extends XmlSerializable> Body<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyFactory) throws XmlException {
     final Body<T> result = new Body<T>();
-    XmlUtil.skipPreamble(in);
-    assert XmlUtil.isElement(in, result.getElementName()): "Expected " + result.getElementName() + " but found " + in.getLocalName();
+    AbstractXmlReader.skipPreamble(in);
+    assert AbstractXmlReader.isElement(in, result.getElementName()) : "Expected " + result.getElementName() + " but found " + in.getLocalName();
     for(int i = in.getAttributeCount() - 1; i >= 0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -95,7 +95,7 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
     if( in.next() != EventType.END_ELEMENT) { // first child
       if (in.hasNext()) { mContent = bodyFactory.deserialize(in); }
       // Be slightly flexible as CompactFragments already deserialize to the parent end element
-      if (! XmlUtil.isElement(in, EventType.END_ELEMENT, ELEMENTNAME)) {
+      if (!AbstractXmlReader.isElement(in, EventType.END_ELEMENT, ELEMENTNAME)) {
         in.nextTag();
       }
       in.require(EventType.END_ELEMENT, ELEMENTNAME.getNamespaceURI(), ELEMENTLOCALNAME);

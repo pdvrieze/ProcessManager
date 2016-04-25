@@ -57,7 +57,7 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (AbstractXmlReaderJava.isElement(in, OPTION_ELEMENTNAME)) {
+    if (AbstractXmlReader.isElement(in, OPTION_ELEMENTNAME)) {
       if (mOptions==null) { mOptions = new ArrayList<>(); }
       mOptions.add(StringUtil.toString(AbstractXmlReader.readSimpleElement(in)));
       return true;

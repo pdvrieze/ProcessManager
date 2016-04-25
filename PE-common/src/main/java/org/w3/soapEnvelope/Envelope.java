@@ -29,7 +29,6 @@ import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.schema.annotations.AnyType;
 import nl.adaptivity.xml.schema.annotations.Attribute;
 import nl.adaptivity.xml.schema.annotations.Child;
 import org.jetbrains.annotations.NotNull;
@@ -117,9 +116,9 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
   public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
     final Envelope<T> result = new Envelope<T>();
-    XmlUtil.skipPreamble(in);
+    AbstractXmlReader.skipPreamble(in);
     final QName elementName = result.getElementName();
-    assert XmlUtil.isElement(in, elementName): "Expected " + elementName + " but found " + in.getLocalName();
+    assert AbstractXmlReader.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
     for(int i = in.getAttributeCount() - 1; i >= 0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -130,10 +129,10 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
           if (result.deserializeChild(in, bodyDeserializer)) {
             continue loop;
           }
-          XmlUtil.unhandledEvent(in);
+          AbstractXmlReader.unhandledEvent(in);
           break;
         default:
-          XmlUtil.unhandledEvent(in);
+          AbstractXmlReader.unhandledEvent(in);
       }
     }
     return result;

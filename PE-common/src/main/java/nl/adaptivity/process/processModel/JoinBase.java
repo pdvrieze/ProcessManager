@@ -19,9 +19,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -68,8 +66,8 @@ public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,
 
   @Override
   public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
-    if (XmlUtil.isElement(in, PREDELEMNAME)) {
-      final String id = XmlUtil.readSimpleElement(in).toString();
+    if (AbstractXmlReader.isElement(in, PREDELEMNAME)) {
+      final String id = AbstractXmlReader.readSimpleElement(in).toString();
       addPredecessor(new Identifier(id));
       return true;
     }

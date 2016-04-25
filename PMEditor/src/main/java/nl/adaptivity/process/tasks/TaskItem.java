@@ -246,7 +246,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   }
 
   private static <T extends TaskItem> T parseTaskItemHelper(@NonNull final XmlReader in, final Factory<T> factory) throws XmlException {
-    AbstractXmlReaderJava.skipPreamble(in);
+    AbstractXmlReader.skipPreamble(in);
     in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_ITEM);
     CharSequence name = StringUtil.toString(in.getAttributeValue(null, "name"));
     CharSequence label = StringUtil.toString(in.getAttributeValue(null, "label"));
@@ -274,7 +274,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
         }
       } else {
         in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_OPTION);
-        AbstractXmlReaderJava.skipPreamble(in);
+        AbstractXmlReader.skipPreamble(in);
         if (in.getEventType()==EventType.START_ELEMENT) {
           if (StringUtil.isEqual(Constants.MODIFY_NS_STR,in.getNamespaceUri())) {
             options.add(ModifyHelper.parseAny(in));

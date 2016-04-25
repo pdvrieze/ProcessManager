@@ -29,11 +29,8 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.xml.XmlSerializable;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
 import nl.adaptivity.xml.schema.annotations.AnyType;
 import nl.adaptivity.xml.schema.annotations.Attribute;
 import nl.adaptivity.xml.schema.annotations.Child;
@@ -102,9 +99,9 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (XmlUtil.isElement(in, PRINCIPALQNAME)) {
+    if (AbstractXmlReader.isElement(in, PRINCIPALQNAME)) {
       // XXX make sure this is secure
-      mPrincipal = new SimplePrincipal(XmlUtil.readSimpleElement(in).toString());
+      mPrincipal = new SimplePrincipal(AbstractXmlReader.readSimpleElement(in).toString());
     } else {
       getAny().add(DomUtil.childToNode(in));
     }

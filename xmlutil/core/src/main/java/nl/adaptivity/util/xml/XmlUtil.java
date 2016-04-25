@@ -272,9 +272,9 @@ public final class XmlUtil {
   @NotNull
   public static <T extends XmlDeserializable> T deserializeHelper(@NotNull final T result, @NotNull final XmlReader in) throws
           XmlException {
-    AbstractXmlReaderJava.skipPreamble(in);
+    AbstractXmlReader.skipPreamble(in);
     final QName elementName = result.getElementName();
-    assert AbstractXmlReaderJava.isElement(in, elementName): "Expected " + elementName + " but found " + in.getLocalName();
+    assert AbstractXmlReader.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -287,7 +287,7 @@ public final class XmlUtil {
             if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
               continue loop;
             }
-            AbstractXmlReaderJava.unhandledEvent(in);
+            AbstractXmlReader.unhandledEvent(in);
             break;
           case TEXT:
           case CDSECT:
@@ -296,7 +296,7 @@ public final class XmlUtil {
             }
             // If the text was not deserialized, then just fall through
           default:
-            AbstractXmlReaderJava.unhandledEvent(in);
+            AbstractXmlReader.unhandledEvent(in);
         }
       }
     } else if (result instanceof ExtXmlDeserializable){
@@ -305,7 +305,7 @@ public final class XmlUtil {
         in.require(XmlStreamingKt.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
-      if(! isXmlWhitespace(AbstractXmlReaderJava.siblingsToFragment(in).getContent())) {
+      if(! isXmlWhitespace(AbstractXmlReader.siblingsToFragment(in).getContent())) {
         throw new XmlException("Unexpected child content in element");
       }
     }
@@ -451,7 +451,7 @@ public final class XmlUtil {
 
 
   public static char[] siblingsToCharArray(final XmlReader in) throws XmlException {
-    return AbstractXmlReaderJava.siblingsToFragment(in).getContent();
+    return AbstractXmlReader.siblingsToFragment(in).getContent();
   }
 
   public static void addUndeclaredNamespaces(final XmlReader in, final XmlWriter out, final Map<String, String> missingNamespaces) throws XmlException {
@@ -464,7 +464,7 @@ public final class XmlUtil {
     if (prefix!=null) {
       if (!missingNamespaces.containsKey(prefix)) {
         final CharSequence uri = in.getNamespaceUri();
-        if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && AbstractXmlReaderJava.isPrefixDeclaredInElement(in, prefix)) {
+        if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && AbstractXmlReader.isPrefixDeclaredInElement(in, prefix)) {
           return;
         } else if (uri.length()>0) {
           if (! StringUtil.isEqual(reference.getNamespaceUri(prefix), uri)) {

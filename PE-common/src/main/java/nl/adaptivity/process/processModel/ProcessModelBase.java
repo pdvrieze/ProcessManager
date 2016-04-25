@@ -24,13 +24,9 @@ import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.xml.XmlSerializable;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -208,9 +204,9 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   public static <T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> M deserialize(final DeserializationFactory<T, M> factory, final M processModel, final XmlReader in) throws
           XmlException {
 
-    XmlUtil.skipPreamble(in);
+    AbstractXmlReader.skipPreamble(in);
     final QName elementName = ELEMENTNAME;
-    assert XmlUtil.isElement(in, elementName): "Expected "+elementName+" but found "+ in.getLocalName();
+    assert AbstractXmlReader.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
     for(int i = in.getAttributeCount()-1; i>=0; --i) {
       processModel.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
@@ -222,7 +218,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
           if (processModel.deserializeChild(factory, in)) {
             continue loop;
           }
-          XmlUtil.unhandledEvent(in);
+          AbstractXmlReader.unhandledEvent(in);
           break;
         case TEXT:
         case CDSECT:
@@ -230,7 +226,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
             continue loop;
           }
         default:
-          XmlUtil.unhandledEvent(in);
+          AbstractXmlReader.unhandledEvent(in);
       }
     }
 

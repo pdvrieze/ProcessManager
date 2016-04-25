@@ -120,7 +120,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
         if (reader.hasNext()) reader.next(); // Initialise the reader
 
-        final CompactFragment transformed = XmlUtil.siblingsToFragment(reader);
+        final CompactFragment transformed = AbstractXmlReader.siblingsToFragment(reader);
         return new ProcessData(getName(), transformed);
       } else {
         return processData;

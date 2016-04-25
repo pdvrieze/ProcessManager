@@ -21,11 +21,8 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Condition;
-import nl.adaptivity.xml.XmlSerializable;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -51,7 +48,7 @@ public class ConditionImpl implements XmlSerializable, Condition {
 
   @NotNull
   public static ConditionImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-    final CharSequence condition = XmlUtil.readSimpleElement(in);
+    final CharSequence condition = AbstractXmlReader.readSimpleElement(in);
     return new ConditionImpl(StringUtil.toString(condition));
   }
 

@@ -66,8 +66,9 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
   @CallSuper
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (AbstractXmlReaderJava.isElement(in, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME.getLocalPart(), TaskItem.ELEMENTNAME
-            .getPrefix())) {
+    if (AbstractXmlReader.isElement(in, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
+                                                                                                                 .getLocalPart(), TaskItem.ELEMENTNAME
+                                                                                                                                          .getPrefix())) {
       parseTaskItem(in);
       return true;
     }

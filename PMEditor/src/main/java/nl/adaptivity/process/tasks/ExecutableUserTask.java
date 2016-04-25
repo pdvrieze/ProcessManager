@@ -363,7 +363,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   }
 
   public static List<ExecutableUserTask> parseTasks(final XmlReader in) throws XmlException {
-    AbstractXmlReaderJava.skipPreamble(in);
+    AbstractXmlReader.skipPreamble(in);
     in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
     final ArrayList<ExecutableUserTask> result = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {

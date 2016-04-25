@@ -94,14 +94,14 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (XmlUtil.isElement(in, Engine.NAMESPACE, "predecessor")) {
+    if (AbstractXmlReader.isElement(in, Engine.NAMESPACE, "predecessor")) {
       if (mPredecessors == null) { mPredecessors = new ArrayList<>(); }
-      mPredecessors.add(Long.parseLong(XmlUtil.readSimpleElement(in).toString()));
+      mPredecessors.add(Long.parseLong(AbstractXmlReader.readSimpleElement(in).toString()));
       return true;
-    } else if (XmlUtil.isElement(in, Engine.NAMESPACE, "body")) {
-      mBody = XmlUtil.readerToFragment(in);
+    } else if (AbstractXmlReader.isElement(in, Engine.NAMESPACE, "body")) {
+      mBody = AbstractXmlReader.elementContentToFragment(in);
       return true;
-    } else if (XmlUtil.isElement(in, ProcessData.ELEMENTNAME)) {
+    } else if (AbstractXmlReader.isElement(in, ProcessData.ELEMENTNAME)) {
       if (mResults==null) { mResults = new ArrayList<>(); }
       mResults.add(ProcessData.deserialize(in));
       return true;

@@ -182,7 +182,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
         XmlReader reader = transformer.createFilter(getBodyStreamReader());
         if (reader.hasNext()) reader.next(); // Initialise the reader
-        final CompactFragment transformed = XmlUtil.siblingsToFragment(reader);
+        final CompactFragment transformed = AbstractXmlReader.siblingsToFragment(reader);
         return new ProcessData(getName(), transformed);
 
       } catch (@NotNull final XmlException e) {

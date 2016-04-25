@@ -23,10 +23,7 @@ import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
@@ -127,7 +124,7 @@ public class SoapMessageHandler {
         case START_ELEMENT:
           break loop;
         default:
-          XmlUtil.unhandledEvent(reader);
+          AbstractXmlReader.unhandledEvent(reader);
       }
     }
     if ( reader.getEventType() != EventType.START_ELEMENT) {
