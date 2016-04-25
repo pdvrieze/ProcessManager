@@ -571,6 +571,13 @@ fun resolveMethodType(m:Method, t:Type, newType: (Class<*>)->Unit = {}): String 
 }
 
 fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, newType: (Class<*>)->Unit = {}): String {
+  fun getTypeString(type: Class<*>): String {
+    return type.declaringClass?.let {
+      val pkgName = type.`package`.name
+      it.canonicalName.removePrefix(pkgName).removePrefix(".")
+    } ?: type.let { newType(type); type.simpleName }
+  }
+
   fun doResolve(t:Type):String {
     return when (t) {
       is TypeVariable<*> -> {
@@ -579,13 +586,19 @@ fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, ne
         if (lookupResults!=null){
           lookupResults
         } else {
-          val resolve = doResolve((t.genericDeclaration.typeParameters.firstOrNull { it.name == t.name } ?: t).bounds[0])
+//          val resolve = doResolve((t.genericDeclaration.typeParameters.firstOrNull { it.name == t.name } ?: t).bounds[0])
+          val resolve = doResolve(t.bounds[0])
 
           "? extends $resolve"
         }
       }
       is GenericArrayType -> "${doResolve(t.genericComponentType)}"
-      is ParameterizedType -> "${doResolve(t.rawType)}"
+      is ParameterizedType -> buildString {
+        append(getTypeString(t.rawType.toClass()))
+        append('<')
+        t.actualTypeArguments.joinTo(this) { doResolve(it) }
+        append('>')
+      }
       is WildcardType -> {
         if(t.lowerBounds.size>0) {
           "? super ${t.lowerBounds.joinToString{doResolve(it)}}"
@@ -596,13 +609,10 @@ fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, ne
         }
       }
       is Class<*> -> {
-        val typeString = t.declaringClass?.let {
-          val pkgName = t.`package`.name
-          it.canonicalName.removePrefix(pkgName).removePrefix(".")
-        } ?: t.let { newType(t); t.simpleName }
+        val typeString = getTypeString(t)
         buildString {
           append(typeString)
-          t.typeParameters.joinTo(this, ", ", "<", ">") {doResolve(it)}
+          t.typeParameters.let { typeParams -> if (typeParams.size>0) {typeParams.joinTo(this, ", ", "<", ">") {doResolve(it)}}}
         }
       }
       else -> t.toString()
