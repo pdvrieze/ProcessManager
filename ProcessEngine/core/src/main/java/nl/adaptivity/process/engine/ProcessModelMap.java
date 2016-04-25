@@ -114,7 +114,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
           result.setOwner(owner);
         }
         return result;
-      } catch (IOException | XmlException e) {
+      } catch (IOException e) {
         throw new SQLException(e);
       }
     }

@@ -886,7 +886,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
             } finally {
               out.close();
             }
-          } catch (XmlException | XmlPullParserException|IOException e) {
+          } catch (XmlPullParserException|IOException e) {
             Log.e(TAG, "Failure to save process model on closure", e);
           }
         }

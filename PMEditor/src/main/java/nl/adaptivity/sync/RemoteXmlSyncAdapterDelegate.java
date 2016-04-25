@@ -258,7 +258,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
             ContentValuesProvider newValues = null;
             try { // Don't jinx the entire sync when only the single update fails
               newValues = mActualDelegate.updateItemOnServer(delegator, provider, itemUri, localSyncState, syncResult);
-            } catch (IOException | RemoteException | XmlException e) {
+            } catch (IOException | RemoteException e) {
               Log.w(TAG, "Error updating the server", e);
               if (mActualDelegate.resolvePotentialConflict(provider, itemUri, remoteItem)) {
                 if (! remoteItem.getContentValues().containsKey(colSyncstate)) {

@@ -149,7 +149,7 @@ public class DataOpenHelper extends SQLiteOpenHelper {
       try {
         try {
           PMParser.serializeProcessModel(out, model);
-        } catch (IOException | XmlPullParserException | XmlException e) {
+        } catch (IOException | XmlPullParserException e) {
           throw new RuntimeException(e);
         }
       } finally {

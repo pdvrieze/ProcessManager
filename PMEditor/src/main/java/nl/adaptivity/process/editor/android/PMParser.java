@@ -90,7 +90,7 @@ public final class PMParser {
       serializer.ignorableWhitespace("\n");
       processModel.serialize(new AndroidXmlWriter(serializer));
       serializer.endDocument();
-    } catch (IllegalArgumentException | IllegalStateException | IOException | XmlException e) {
+    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
       throw new RuntimeException(e);
     }
   }

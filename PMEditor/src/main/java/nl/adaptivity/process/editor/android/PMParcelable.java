@@ -79,7 +79,7 @@ public class PMParcelable implements Parcelable {
       } else {
         dest.writeInt(0);
       }
-    } catch (XmlException | XmlPullParserException | IOException e) {
+    } catch (XmlPullParserException | IOException e) {
       dest.writeInt(0);
       throw new RuntimeException(e);
     }
