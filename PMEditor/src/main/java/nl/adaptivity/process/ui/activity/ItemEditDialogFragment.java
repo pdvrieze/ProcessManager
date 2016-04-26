@@ -53,6 +53,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static net.devrieze.util.CollectionUtil.toArrayList;
+
 
 /**
  * A dialog fragment for editing task items. Created by pdvrieze on 04/02/16.
@@ -362,8 +364,8 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     final Bundle args = new Bundle(4);
     args.putInt(UIConstants.KEY_ITEMNO, itemNo);
     args.putString(UIConstants.KEY_ITEM, nl.adaptivity.xml.XmlUtil.toString(item));
-    args.putStringArrayList(UIConstants.KEY_DEFINES, nl.adaptivity.xml.XmlUtil.toString(defines));
-    args.putParcelableArrayList(UIConstants.KEY_VARIABLES, CollectionUtil.toArrayList(variables));
+    args.putStringArrayList(UIConstants.KEY_DEFINES, toArrayList(nl.adaptivity.xml.XmlUtil.toString(defines)));
+    args.putParcelableArrayList(UIConstants.KEY_VARIABLES, toArrayList(variables));
     f.setArguments(args);
     return f;
   }

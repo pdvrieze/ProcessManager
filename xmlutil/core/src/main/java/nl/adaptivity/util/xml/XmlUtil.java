@@ -75,6 +75,11 @@ public final class XmlUtil {
   }
 
 
+  public static <T extends XmlDeserializable> T deserializeHelper(T target, XmlReader reader) throws XmlException {
+    return nl.adaptivity.xml.XmlUtil.<T>deserializeHelper(target, reader);
+  }
+
+
   public static void cannonicallize(final Source in, final Result out) throws XmlException {
     // TODO add wrapper methods that get stream readers and writers analogous to the event writers and readers
     XmlReader xsr = XmlStreaming.newReader(in);

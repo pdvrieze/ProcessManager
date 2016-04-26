@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlUtil;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -93,7 +94,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   public static XmlTask deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new XmlTask(), in);
+    return nl.adaptivity.util.xml.XmlUtil.<XmlTask>deserializeHelper(new XmlTask(), in);
   }
 
   @Override

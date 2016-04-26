@@ -21,6 +21,7 @@ import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlUtil;
 
 import javax.xml.namespace.QName;
 
@@ -52,7 +53,7 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   private List<String> mOptions;
 
   public static XmlItem deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new XmlItem(), in);
+    return XmlUtil.<XmlItem>deserializeHelper(new XmlItem(), in);
   }
 
   @Override

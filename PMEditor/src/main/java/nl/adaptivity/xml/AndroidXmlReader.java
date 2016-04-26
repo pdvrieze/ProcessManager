@@ -34,7 +34,7 @@ import java.io.Reader;
 /**
  * Created by pdvrieze on 15/11/15.
  */
-public class AndroidXmlReader extends XmlReaderUtil.{
+public class AndroidXmlReader extends AbstractXmlReader{
 
   private static final EventType[] DELEGATE_TO_LOCAL;
 

@@ -354,6 +354,7 @@ fun XmlReader.siblingsToFragment(): CompactFragment {
         out.writeElementContent(missingNamespaces, this) // writes the children and end tag
         out.close()
       } else if (type === EventType.TEXT || type === EventType.IGNORABLE_WHITESPACE || type === EventType.CDSECT) {
+        // TODO if empty, ignore ignorable whitespace.
         caw.append(text.xmlEncode())
       }
       type = if (hasNext()) next() else null
