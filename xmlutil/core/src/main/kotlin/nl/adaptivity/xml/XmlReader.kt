@@ -20,10 +20,10 @@ package nl.adaptivity.xml
 
 import net.devrieze.util.StringUtil
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.XmlUtil
 import nl.adaptivity.xml.XmlEvent.NamespaceImpl
 import nl.adaptivity.xml.XmlStreaming.EventType
 import java.io.CharArrayWriter
+import java.io.Closeable
 import java.util.*
 import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
@@ -31,7 +31,7 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 15/11/15.
  */
-interface XmlReader {
+interface XmlReader : Closeable, AutoCloseable {
 
   /** Get the next tag. This must call next, not use the underlying stream.  */
   @Throws(XmlException::class)
@@ -100,7 +100,7 @@ interface XmlReader {
   fun getNamespacePrefix(i: Int): CharSequence
 
   @Throws(XmlException::class)
-  fun close()
+  override fun close()
 
   @Throws(XmlException::class)
   fun getNamespaceUri(i: Int): CharSequence
@@ -437,6 +437,7 @@ fun XmlReader.isElement(type: EventType, elementNamespace: CharSequence?, elemen
   }
 }
 
+/** Write the current event to the writer. This will **not** move the reader. */
 @Throws(XmlException::class)
 fun XmlReader.writeCurrent(writer:XmlWriter) = eventType.writeEvent(writer, this)
 

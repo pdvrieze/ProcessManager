@@ -24,7 +24,12 @@ package nl.adaptivity.xml
 import javax.xml.XMLConstants
 import javax.xml.namespace.QName
 import net.devrieze.util.kotlin.asString
+import nl.adaptivity.xml.XmlStreaming.EventType
+import java.util.*
+import javax.xml.XMLConstants.*
 import javax.xml.namespace.NamespaceContext
+import javax.xml.transform.Result
+import javax.xml.transform.Source
 
 /** Determine whether the character is xml whitespace. */
 fun isXmlWhitespace(char:Char) =
@@ -34,10 +39,10 @@ fun isXmlWhitespace(data: CharArray) = data.all { isXmlWhitespace(it) }
 
 fun isXmlWhitespace(data: CharSequence) = data.all { isXmlWhitespace(it) }
 
-fun qname(namespaceUri:CharSequence?, localname:CharSequence, prefix:CharSequence? = XMLConstants.DEFAULT_NS_PREFIX) =
-      QName(namespaceUri.asString()?:XMLConstants.NULL_NS_URI,
+fun qname(namespaceUri:CharSequence?, localname:CharSequence, prefix:CharSequence? = DEFAULT_NS_PREFIX) =
+      QName(namespaceUri.asString()?: NULL_NS_URI,
             localname.asString(),
-            prefix.asString()?:XMLConstants.DEFAULT_NS_PREFIX)
+            prefix.asString()?: DEFAULT_NS_PREFIX)
 
 
 fun CharSequence.toQname(): QName {
@@ -56,7 +61,7 @@ fun CharSequence.toQname(): QName {
 }
 
 fun QName.toCName(): String {
-  if (prefix == null || XMLConstants.NULL_NS_URI == prefix) return localPart
+  if (prefix == null || NULL_NS_URI == prefix) return localPart
   return "$prefix:$localPart"
 }
 
@@ -76,7 +81,7 @@ fun NamespaceContext.asQName(name: String): QName {
     val prefix = name.substring(0, colPos)
     return QName(reference.getNamespaceURI(prefix), name.substring(colPos + 1), prefix)
   } else {
-    return QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.DEFAULT_NS_PREFIX)
+    return QName(reference.getNamespaceURI(DEFAULT_NS_PREFIX), name, DEFAULT_NS_PREFIX)
   }
 
 }
@@ -92,6 +97,95 @@ fun CharSequence?.xmlEncode(): String? {
         '>'  -> append("&gt;")
         '&'  -> append("&amp;")
         else -> append(c)
+      }
+    }
+  }
+}
+
+
+private class NamespaceInfo(val prefix: String, val url: String)
+
+@Throws(XmlException::class)
+fun cannonicallize(source: Source, result: Result) {
+
+
+  fun addNamespace(collectedNS: MutableMap<String, NamespaceInfo>, prefix: String, namespaceURI: String) {
+    if (namespaceURI != NULL_NS_URI && namespaceURI !in collectedNS) {
+      collectedNS[namespaceURI] = NamespaceInfo(prefix, namespaceURI)
+    }
+  }
+
+  val collectedNS = HashMap<String, NamespaceInfo>()
+  XmlStreaming.newReader(source).use { reader ->
+    while (reader.hasNext()) {
+      when (reader.next()) {
+        EventType.START_ELEMENT -> {
+          addNamespace(collectedNS, reader.prefix.toString(), reader.namespaceUri.toString())
+
+          for (i in reader.attributeCount - 1 downTo 0) {
+            addNamespace(collectedNS,
+                         reader.getAttributePrefix(i).toString(),
+                         reader.getAttributeNamespace(i).toString())
+          }
+        }
+        else                    -> {
+        } /* Do nothing*/
+      }// ignore
+    }
+  }
+
+  // TODO add wrapper methods that get stream readers and writers analogous to the event writers and readers
+  XmlStreaming.newWriter(result, true).use { writer ->
+
+    XmlStreaming.newReader(source).use { reader ->
+
+      var first = true
+      while (reader.hasNext()) {
+        when (reader.next()) {
+        // TODO extract the default elements to a separate method that is also used to copy StreamReader to StreamWriter without events.
+          EventType.START_ELEMENT -> {
+            if (first) {
+              var needsDecl = false
+              var namespaceInfo = collectedNS[reader.namespaceUri]
+              if (namespaceInfo != null) {
+                if (first && reader.prefix == DEFAULT_NS_PREFIX) { // If the first element in the reader has a default prefix, leave this so
+                  namespaceInfo = NamespaceInfo("", namespaceInfo.url)
+                  collectedNS[namespaceInfo.url] = namespaceInfo
+                }
+                if (writer.getNamespaceUri(namespaceInfo.prefix) != reader.namespaceUri) {
+                  needsDecl = true
+                }
+                writer.setPrefix(namespaceInfo.prefix, namespaceInfo.url)
+                writer.startTag(namespaceInfo.prefix, reader.localName.toString(), namespaceInfo.url)
+              } else { // no namespace info (probably no namespace at all)
+                writer.startTag(reader.namespaceUri, reader.localName, reader.prefix)
+              }
+
+              if (first) {
+                first = false
+                for (ns in collectedNS.values) {
+                  writer.setPrefix(ns.prefix, ns.url)
+                  writer.namespaceAttr(ns.prefix, ns.url)
+                }
+              } else {
+                if (needsDecl && namespaceInfo != null) {
+                  writer.namespaceAttr(namespaceInfo.prefix, namespaceInfo.url)
+                }
+              }
+            } else { // not first
+
+              writer.startTag(reader.namespaceUri, reader.localName, null)
+            }
+            val ac = reader.attributeCount
+            for (i in 0..ac - 1) {
+              writer.attribute(reader.getAttributeNamespace(i),
+                               reader.getAttributeLocalName(i),
+                               null,
+                               reader.getAttributeValue(i))
+            }
+          }
+          else                    -> reader.writeCurrent(writer)
+        }
       }
     }
   }

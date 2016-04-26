@@ -94,7 +94,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   public static XmlTask deserialize(final XmlReader in) throws XmlException {
-    return nl.adaptivity.util.xml.XmlUtil.<XmlTask>deserializeHelper(new XmlTask(), in);
+    return XmlUtil.<nl.adaptivity.process.userMessageHandler.server.XmlTask>deserializeHelper(new XmlTask(), in);
   }
 
   @Override

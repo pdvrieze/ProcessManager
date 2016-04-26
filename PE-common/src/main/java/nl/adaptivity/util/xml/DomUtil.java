@@ -31,9 +31,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -162,7 +160,7 @@ public final class DomUtil {
       final Transformer t = TransformerFactory
         .newInstance()
         .newTransformer();
-      XmlUtil.configure(t, flags);
+      configure(t, flags);
       t.transform(new DOMSource(value), new StreamResult(out));
     } catch (@NotNull final TransformerException e) {
       throw new RuntimeException(e);
@@ -180,7 +178,7 @@ public final class DomUtil {
       final Transformer t = TransformerFactory
         .newInstance()
         .newTransformer();
-      XmlUtil.configure(t, flags);
+      configure(t, flags);
       for(int i=0; i<nodeList.getLength(); ++i) {
         t.transform(new DOMSource(nodeList.item(i)), new StreamResult(out));
       }
@@ -384,12 +382,12 @@ public final class DomUtil {
       final DocumentFragment result = db.newDocument().createDocumentFragment();
       final DOMResult dr = new DOMResult(result);
       for(Node child=df.getFirstChild(); child!=null; child=child.getNextSibling()) {
-        XmlUtil.cannonicallize(new DOMSource(child), dr);
+        nl.adaptivity.xml.XmlUtil.cannonicallize(new DOMSource(child), dr);
       }
       return result;
     } else {
       final Document result = db.newDocument();
-      XmlUtil.cannonicallize(new DOMSource(content), new DOMResult(result));
+      nl.adaptivity.xml.XmlUtil.cannonicallize(new DOMSource(content), new DOMResult(result));
       return result.getDocumentElement();
     }
   }
@@ -418,5 +416,11 @@ public final class DomUtil {
       }
     }
     return prefix;
+  }
+
+  static void configure(@NotNull final Transformer transformer, final int flags) {
+    if ((flags & XmlStreamingKt.FLAG_OMIT_XMLDECL) != 0) {
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    }
   }
 }
