@@ -341,9 +341,8 @@ private fun undeclaredPrefixes(reader: XmlReader,
 /**
  * TODO make it package protected once XmlUtil is moved.
  */
-@Deprecated("should be more private")
 @Throws(XmlException::class)
-fun XmlWriter.writeElementContent(missingNamespaces: MutableMap<String, String>?, reader: XmlReader) {
+internal fun XmlWriter.writeElementContent(missingNamespaces: MutableMap<String, String>?, reader: XmlReader) {
   while (reader.hasNext()) {
     val type = reader.next()
     reader.writeCurrent(this)

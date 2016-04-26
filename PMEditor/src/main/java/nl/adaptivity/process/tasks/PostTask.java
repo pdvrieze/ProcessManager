@@ -22,7 +22,6 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
@@ -105,7 +104,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   private static PostTask deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new PostTask(), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.PostTask>deserializeHelper(new PostTask(), in);
   }
 
   @Override

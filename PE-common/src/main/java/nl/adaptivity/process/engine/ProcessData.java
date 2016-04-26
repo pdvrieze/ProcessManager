@@ -22,6 +22,7 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;
@@ -74,7 +75,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
 
   // Object Initialization end
   public static ProcessData deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new ProcessData(), in);
+    return XmlUtil.<ProcessData>deserializeHelper(new ProcessData(), in);
   }
 
   @Override

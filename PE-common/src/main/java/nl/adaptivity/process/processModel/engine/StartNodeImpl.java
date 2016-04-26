@@ -24,7 +24,6 @@ import nl.adaptivity.process.processModel.StartNodeBase;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,7 @@ public class StartNodeImpl extends StartNodeBase<ExecutableProcessNode, ProcessM
   @NotNull
   public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.StartNodeImpl>deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
 
   public StartNodeImpl(final ProcessModelImpl  ownerModel) {

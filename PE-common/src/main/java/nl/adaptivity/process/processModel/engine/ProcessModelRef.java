@@ -21,6 +21,7 @@ import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlUtil;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +71,7 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   public static <T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new ProcessModelRef<T, M>(), in);
+    return XmlUtil.<ProcessModelRef<T,M>>deserializeHelper(new ProcessModelRef<T, M>(), in);
   }
 
   @Override

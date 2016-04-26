@@ -82,13 +82,14 @@ fun NamespaceContext.asQName(name: String): QName {
 }
 
 
-fun String?.xmlEncode(): String? {
+fun CharSequence?.xmlEncode(): String? {
   if (this==null) return null
 
   return buildString {
-    for (c in this) {
+    for (c in this@xmlEncode) {
       when (c) {
         '<'  -> append("&lt;")
+        '>'  -> append("&gt;")
         '&'  -> append("&amp;")
         else -> append(c)
       }

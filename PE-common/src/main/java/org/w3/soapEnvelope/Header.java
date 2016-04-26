@@ -30,7 +30,6 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.schema.annotations.AnyType;
 import nl.adaptivity.xml.schema.annotations.Attribute;
 import nl.adaptivity.xml.schema.annotations.Child;
@@ -94,7 +93,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
   private SimplePrincipal mPrincipal = null;
 
   public static Header deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new Header(), in);
+    return nl.adaptivity.xml.XmlUtil.<org.w3.soapEnvelope.Header>deserializeHelper(new Header(), in);
   }
 
   @Override

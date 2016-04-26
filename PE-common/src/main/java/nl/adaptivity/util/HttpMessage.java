@@ -24,7 +24,6 @@ import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.HttpMessage.Post;
 import nl.adaptivity.util.HttpMessage.Query;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.*;
 import org.jetbrains.annotations.NotNull;
@@ -213,7 +212,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     }
 
     public static Query deserialize(XmlReader in) throws XmlException {
-      return XmlUtil.deserializeHelper(new Query(), in);
+      return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.util.HttpMessage.Query>deserializeHelper(new Query(), in);
     }
 
     @Override
@@ -239,7 +238,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     }
 
     public static Query deserialize(XmlReader in) throws XmlException {
-      return XmlUtil.deserializeHelper(new Query(), in);
+      return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.util.HttpMessage.Query>deserializeHelper(new Query(), in);
     }
 
     @Override
@@ -563,7 +562,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
   }
 
   private static HttpMessage deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new HttpMessage(), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.util.HttpMessage>deserializeHelper(new HttpMessage(), in);
   }
 
   @Override

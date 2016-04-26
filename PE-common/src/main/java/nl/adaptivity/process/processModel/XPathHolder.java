@@ -21,7 +21,6 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +158,7 @@ public abstract class XPathHolder extends XMLContainer {
   @NotNull
   protected static <T extends XPathHolder> T deserialize(@NotNull final XmlReader in, @NotNull final T result) throws
           XmlException {
-    return XmlUtil.deserializeHelper(result, in);
+    return nl.adaptivity.xml.XmlUtil.<T>deserializeHelper(result, in);
   }
 
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {

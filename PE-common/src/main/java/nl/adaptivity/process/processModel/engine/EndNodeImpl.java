@@ -23,7 +23,6 @@ import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.EndNodeBase;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +47,7 @@ public class EndNodeImpl extends EndNodeBase<ExecutableProcessNode, ProcessModel
   @NotNull
   public static EndNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return XmlUtil.deserializeHelper(new EndNodeImpl(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.EndNodeImpl>deserializeHelper(new EndNodeImpl(ownerModel), in);
   }
 
   public EndNodeImpl(final ProcessModelImpl ownerModel, final ExecutableProcessNode previous) {

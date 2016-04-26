@@ -29,6 +29,7 @@ import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -78,7 +79,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   public XmlProcessNodeInstance() {}
 
   public static XmlProcessNodeInstance deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new XmlProcessNodeInstance(), in);
+    return XmlUtil.<XmlProcessNodeInstance>deserializeHelper(new XmlProcessNodeInstance(), in);
   }
 
   /**

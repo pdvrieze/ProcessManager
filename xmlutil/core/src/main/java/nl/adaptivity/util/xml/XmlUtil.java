@@ -52,49 +52,6 @@ public final class XmlUtil {
   private XmlUtil() { /* Utility class is not constructible. */ }
 
 
-  @NotNull
-  public static <T extends XmlDeserializable> T deserializeHelper(@NotNull final T result, @NotNull final XmlReader in) throws
-          XmlException {
-    XmlReaderUtil.skipPreamble(in);
-    final QName elementName = result.getElementName();
-    assert XmlReaderUtil.isElement(in, elementName) : "Expected " + elementName + " but found " + in.getLocalName();
-    for(int i=in.getAttributeCount()-1; i>=0; --i) {
-      result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
-    }
-    result.onBeforeDeserializeChildren(in);
-    EventType event = null;
-    if (result instanceof SimpleXmlDeserializable) {
-      loop: while (in.hasNext() && event != XmlStreamingKt.END_ELEMENT) {
-        switch ((event = in.next())) {
-          case START_ELEMENT:
-            if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
-              continue loop;
-            }
-            XmlReaderUtil.unhandledEvent(in);
-            break;
-          case TEXT:
-          case CDSECT:
-            if (((SimpleXmlDeserializable)result).deserializeChildText(in.getText())) {
-              continue loop;
-            }
-            // If the text was not deserialized, then just fall through
-          default:
-            XmlReaderUtil.unhandledEvent(in);
-        }
-      }
-    } else if (result instanceof ExtXmlDeserializable){
-      ((ExtXmlDeserializable)result).deserializeChildren(in);
-      if (XmlUtil.class.desiredAssertionStatus()) {
-        in.require(XmlStreamingKt.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
-      }
-    } else {// Neither, means ignore children
-      if(!nl.adaptivity.xml.XmlUtil.isXmlWhitespace(XmlReaderUtil.siblingsToFragment(in).getContent())) {
-        throw new XmlException("Unexpected child content in element");
-      }
-    }
-    return result;
-  }
-
   /* XXX These can't work because they don't allow for attributes
   public static void writeEmptyElement(@NotNull final StAXWriter out, @NotNull final QName qName) throws XMLStreamException {
     String namespace = qName.getNamespaceURI();

@@ -29,7 +29,6 @@ import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
@@ -336,7 +335,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   }
 
   public static ExecutableUserTask deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new ExecutableUserTask(), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.ExecutableUserTask>deserializeHelper(new ExecutableUserTask(), in);
   }
 
   @Override

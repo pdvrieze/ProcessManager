@@ -21,7 +21,6 @@ import nl.adaptivity.process.ProcessConsts.Endpoints;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.XmlMessage;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +67,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
   @NotNull
   public static DrawableActivity deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new DrawableActivity(ownerModel, true), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableActivity>deserializeHelper(new DrawableActivity(ownerModel, true), in);
   }
 
   @Override

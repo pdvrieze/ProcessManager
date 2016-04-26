@@ -27,9 +27,9 @@ import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.ws.WsMethodWrapper;
-import nl.adaptivity.xml.XmlReaderUtil.
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlReaderUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Body;

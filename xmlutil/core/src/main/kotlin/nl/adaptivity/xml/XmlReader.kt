@@ -294,7 +294,7 @@ fun XmlReader.isIgnorable(): Boolean {
     EventType.PROCESSING_INSTRUCTION,
     EventType.DOCDECL,
     EventType.IGNORABLE_WHITESPACE -> return true
-    EventType.TEXT                 -> return XmlUtil.isXmlWhitespace(text)
+    EventType.TEXT                 -> return isXmlWhitespace(text)
     else                           -> return false
   }
 }
@@ -351,10 +351,10 @@ fun XmlReader.siblingsToFragment(): CompactFragment {
         val out = XmlStreaming.newWriter(caw)
         writeCurrent(out) // writes the start tag
         out.addUndeclaredNamespaces(this, missingNamespaces)
-        XmlUtil.writeElementContent(missingNamespaces, this, out) // writes the children and end tag
+        out.writeElementContent(missingNamespaces, this) // writes the children and end tag
         out.close()
       } else if (type === EventType.TEXT || type === EventType.IGNORABLE_WHITESPACE || type === EventType.CDSECT) {
-        caw.append(XmlUtil.xmlEncode(text.toString()))
+        caw.append(text.xmlEncode())
       }
       type = if (hasNext()) next() else null
     }

@@ -18,7 +18,6 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
 
   @NotNull
   public static DrawableStartNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new DrawableStartNode(ownerModel, true), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableStartNode>deserializeHelper(new DrawableStartNode(ownerModel, true), in);
   }
 
   @Override

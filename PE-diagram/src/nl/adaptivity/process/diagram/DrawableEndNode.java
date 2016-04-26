@@ -18,7 +18,6 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +59,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
   @NotNull
   public static DrawableEndNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new DrawableEndNode(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableEndNode>deserializeHelper(new DrawableEndNode(ownerModel), in);
   }
 
   @Override

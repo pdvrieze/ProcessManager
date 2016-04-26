@@ -29,6 +29,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,7 +102,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
   @NotNull
   public static XmlMessage deserialize(@NotNull final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new XmlMessage(), in);
+    return XmlUtil.<XmlMessage>deserializeHelper(new XmlMessage(), in);
   }
 
   @NotNull

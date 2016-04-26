@@ -29,6 +29,7 @@ import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
@@ -86,7 +87,7 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
     }
     result.deserializeChildren(in, bodyFactory);
     if (XmlUtil.class.desiredAssertionStatus()) {
-      in.require(XmlStreaming.END_ELEMENT, result.getElementName().getNamespaceURI(), result.getElementName().getLocalPart());
+      in.require(EventType.END_ELEMENT, result.getElementName().getNamespaceURI(), result.getElementName().getLocalPart());
     }
     return result;
   }

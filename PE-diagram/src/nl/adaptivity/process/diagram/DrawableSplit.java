@@ -19,7 +19,6 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientSplitNode;
 import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +71,7 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
 
   @NotNull
   public static DrawableSplit deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new DrawableSplit(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableSplit>deserializeHelper(new DrawableSplit(ownerModel), in);
   }
 
   @Override

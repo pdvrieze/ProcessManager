@@ -28,6 +28,7 @@ import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlUtil;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

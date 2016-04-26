@@ -21,7 +21,6 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.SplitImpl;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -87,6 +86,6 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
 
   @NotNull
   public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new SplitImpl(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.SplitImpl>deserializeHelper(new SplitImpl(ownerModel), in);
   }
 }

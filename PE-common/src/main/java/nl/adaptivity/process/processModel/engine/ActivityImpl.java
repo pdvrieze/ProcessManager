@@ -23,7 +23,6 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.ActivityBase;
 import nl.adaptivity.process.processModel.Condition;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
@@ -110,7 +109,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
   @NotNull
   public static ActivityImpl deserialize(final ProcessModelImpl  ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return XmlUtil.deserializeHelper(new ActivityImpl(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.ActivityImpl>deserializeHelper(new ActivityImpl(ownerModel), in);
   }
 
 

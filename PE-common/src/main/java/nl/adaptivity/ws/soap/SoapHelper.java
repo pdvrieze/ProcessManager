@@ -27,6 +27,7 @@ import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlUtil;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
@@ -183,7 +184,7 @@ public class SoapHelper {
   private static Element createBodyMessage(final Element pBody, final QName pOperationName) {
     final Document pResultDoc = pBody.getOwnerDocument();
 
-    final Element message = pResultDoc.createElementNS(pOperationName.getNamespaceURI(), XmlUtil.getQualifiedName(pOperationName));
+    final Element message = pResultDoc.createElementNS(pOperationName.getNamespaceURI(), XmlUtil.toCName(pOperationName));
 
     pBody.appendChild(message);
     return message;
@@ -271,7 +272,7 @@ public class SoapHelper {
       while (reader.hasNext()) {
         switch(reader.next()) {
           case TEXT:
-            if (!XmlUtilKt.isXmlWhitespace(reader.getText())) {
+            if (!XmlUtil.isXmlWhitespace(reader.getText())) {
               throw new XmlException("Unexpected text content");
             }
           case IGNORABLE_WHITESPACE:
@@ -305,7 +306,7 @@ public class SoapHelper {
     outer: while (reader.hasNext()) {
       switch (reader.next()) {
         case TEXT:
-          if (!XmlUtilKt.isXmlWhitespace(reader.getText())) {
+          if (!XmlUtil.isXmlWhitespace(reader.getText())) {
             throw new XmlException("Unexpected text content");
           }
         case IGNORABLE_WHITESPACE:
@@ -396,7 +397,7 @@ public class SoapHelper {
 
   static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) throws XmlException {
     Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
-    while (value !=null && value instanceof Text && XmlUtilKt.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
+    while (value !=null && value instanceof Text && XmlUtil.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
     Object result;
     if ((value != null) && (!pClass.isInstance(value))) {
       if (Types.isPrimitive(pClass) || (Types.isPrimitiveWrapper(pClass))) {

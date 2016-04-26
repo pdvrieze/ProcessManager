@@ -27,6 +27,7 @@ import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlStreaming.XmlStreamingFactory;
+import nl.adaptivity.xml.XmlUtil;
 import org.custommonkey.xmlunit.*;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
@@ -208,7 +209,7 @@ public class TestProcessData {
     final ProcessModelImpl pm = getProcessModel("testModel2.xml");
     ActivityImpl ac2 = (ActivityImpl) pm.getNode("ac2");
     String serialized = XmlUtil.toString(ac2.getMessage());
-    XmlMessage msg2= XmlUtil.deSerialize(new StringReader(serialized), XmlMessage.class);
+    XmlMessage msg2= XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
     assertEquals(ac2.getMessage().getMessageBody().getContentString(),msg2.getMessageBody().getContentString());
     assertEquals(ac2.getMessage(), msg2);
   }
@@ -258,12 +259,12 @@ public class TestProcessData {
     final XmlResultType result1 = ac1.getResults().get(0);
     assertEquals("name", result1.getName());
     assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath());
-    final SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.Companion.from(result1.getOriginalNSContext());
+    final SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result1.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
     final XmlResultType result2 = ac1.getResults().get(1);
-    final SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.Companion.from(result2.getOriginalNSContext());
+    final SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result2.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 

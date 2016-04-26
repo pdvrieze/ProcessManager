@@ -25,7 +25,6 @@ import nl.adaptivity.process.processModel.JoinBase;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +55,7 @@ public class JoinImpl extends JoinBase<ExecutableProcessNode, ProcessModelImpl> 
   @NotNull
   public static JoinImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return XmlUtil.deserializeHelper(new JoinImpl(ownerModel), in);
+    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.JoinImpl>deserializeHelper(new JoinImpl(ownerModel), in);
   }
 
   public JoinImpl(final ProcessModelImpl  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
