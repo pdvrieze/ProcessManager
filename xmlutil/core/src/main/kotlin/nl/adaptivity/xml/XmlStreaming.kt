@@ -359,6 +359,7 @@ object XmlStreaming {
 
 /** Flag to indicate that the xml declaration should be omitted, when possible.  */
 const val FLAG_OMIT_XMLDECL = 1
+const val FLAG_REPAIR_NS = 2
 const val DEFAULT_FLAGS = FLAG_OMIT_XMLDECL
 
 

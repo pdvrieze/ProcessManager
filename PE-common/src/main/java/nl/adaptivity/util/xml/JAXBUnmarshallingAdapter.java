@@ -98,8 +98,8 @@ public class JAXBUnmarshallingAdapter<T extends XmlSerializable> extends JAXBAda
       final XMLInputFactory xif    = XMLInputFactory.newFactory();
       final XmlReader       reader = XmlStreaming.newReader(new DOMSource(root));
       reader.nextTag();
-      // XXX remove temporary cast
-      return mFactory.deserialize((StAXReader) reader);
+
+      return mFactory.deserialize(reader);
     } catch (@NotNull final Exception e) {
       e.printStackTrace();
       throw e;

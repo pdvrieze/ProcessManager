@@ -17,7 +17,7 @@
 package net.devrieze.util.kotlin
 
 /**
- * Created by pdvrieze on 14/04/16.
+ * Utility functions on CharSequences.
  */
 
 @Suppress("NOTHING_TO_INLINE")
@@ -34,7 +34,7 @@ fun CharSequence.equals(other:CharSequence):Boolean {
 }
 
 
-fun CharSequence?.equals(other:Object) =
+fun CharSequence?.equals(other:Any) =
       if (other is CharSequence) (this?.equals(other) ?: false) else this==null
 
 

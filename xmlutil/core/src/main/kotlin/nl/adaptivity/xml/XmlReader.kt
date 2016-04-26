@@ -172,9 +172,9 @@ fun XmlReader.unhandledEvent() {
     EventType.CDSECT, EventType.TEXT -> if (!isWhitespace()) {
       throw XmlException("Content found where not expected [$locationInfo] Text:'$text'")
     }
-    EventType.COMMENT                -> {} // we never mind comments.
     EventType.START_ELEMENT          -> throw XmlException("Element found where not expected [$locationInfo]: $name")
     EventType.END_DOCUMENT           -> throw XmlException("End of document found where not expected")
+    else                             -> {} // we never mind comments or the other events
   }// ignore
 }
 
@@ -189,8 +189,6 @@ fun XmlReader.asSubstream(): XmlReader = SubstreamFilterReader(this)
 /**
  * Get the next text sequence in the reader. This will skip over comments and ignorable whitespace, but not tags.
  * Any tags encountered with cause an exception to be thrown.
- *
- * @param in The reader to read from.
  *
  * @return   The text found
  *
