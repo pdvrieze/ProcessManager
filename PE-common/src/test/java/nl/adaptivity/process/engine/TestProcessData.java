@@ -156,8 +156,10 @@ public class TestProcessData {
     return _documentBuilder;
   }
 
-  private static InputStream getDocument(final String name) {
-    return TestProcessData.class.getResourceAsStream("/nl/adaptivity/process/engine/test/"+name);
+  private static InputStream getDocument(final String name) throws FileNotFoundException {
+    InputStream stream = TestProcessData.class.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name);
+    if (stream==null) { stream = new FileInputStream("nl/adaptivity/process/engine/test/"+name); }
+    return stream;
   }
 
   @BeforeMethod
