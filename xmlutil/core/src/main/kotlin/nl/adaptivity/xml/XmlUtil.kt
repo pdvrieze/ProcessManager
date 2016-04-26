@@ -17,12 +17,13 @@
 /**
  * Created by pdvrieze on 13/04/16.
  */
-
+@file:JvmName("XmlUtil")
 package nl.adaptivity.xml
 
 import javax.xml.XMLConstants
 import javax.xml.namespace.QName
 import net.devrieze.util.kotlin.asString
+import javax.xml.namespace.NamespaceContext
 
 /** Determine whether the character is xml whitespace. */
 fun isXmlWhitespace(char:Char) =
@@ -51,4 +52,25 @@ fun CharSequence.toQname(): QName {
     localname = toString()
   }
   return QName(nsUri, localname)
+}
+
+
+/**
+ * Convert a prefixed element name (CNAME) to a qname. If there is no prefix, the default prefix is used.
+ * @param reference The namespace context to use to resolve the name.
+ *
+ * @param name The name to resolve
+ *
+ * @return A resolved qname.
+ */
+fun NamespaceContext.asQName(name: String): QName {
+  val reference: NamespaceContext = this
+  val colPos = name.indexOf(':')
+  if (colPos >= 0) {
+    val prefix = name.substring(0, colPos)
+    return QName(reference.getNamespaceURI(prefix), name.substring(colPos + 1), prefix)
+  } else {
+    return QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.DEFAULT_NS_PREFIX)
+  }
+
 }

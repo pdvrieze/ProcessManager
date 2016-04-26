@@ -65,24 +65,6 @@ public final class XmlUtil {
     return new CharArrayReader(buffer.toCharArray());
   }
 
-  /**
-   * Convert a prefixed element name (CNAME) to a qname. If there is no prefix, the default prefix is used.
-   * @param reference The namespace context to use to resolve the name.
-   * @param name The name to resolve
-   * @return A resolved qname.
-   */
-  @NotNull
-  public static QName asQName(@NotNull final NamespaceContext reference, @NotNull final String name) {
-    final int colPos = name.indexOf(':');
-    if (colPos >= 0) {
-      final String prefix = name.substring(0, colPos);
-      return new QName(reference.getNamespaceURI(prefix), name.substring(colPos + 1), prefix);
-    } else {
-      return new QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.DEFAULT_NS_PREFIX);
-    }
-
-  }
-
   public static String getQualifiedName(@NotNull final QName name) {
     final String prefix = name.getPrefix();
     if ((prefix == null) || XMLConstants.NULL_NS_URI.equals(prefix)) {
@@ -134,7 +116,7 @@ public final class XmlUtil {
         in.require(XmlStreamingKt.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
-      if(!XmlUtilKt.isXmlWhitespace(XmlReaderUtil.siblingsToFragment(in).getContent())) {
+      if(!nl.adaptivity.xml.XmlUtil.isXmlWhitespace(XmlReaderUtil.siblingsToFragment(in).getContent())) {
         throw new XmlException("Unexpected child content in element");
       }
     }
