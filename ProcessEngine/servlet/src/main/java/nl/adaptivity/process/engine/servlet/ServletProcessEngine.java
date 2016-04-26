@@ -45,9 +45,9 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.TestOnly;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Document;
@@ -69,10 +69,7 @@ import javax.xml.stream.events.*;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.net.URI;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -540,7 +537,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
-    ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+    ProcessModelImpl processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
     return updateProcessModel(handle, processModel, user);
   }
 
@@ -562,7 +559,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
   public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
-    ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+    ProcessModelImpl processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
     return postProcessModel(processModel, owner);
   }
 

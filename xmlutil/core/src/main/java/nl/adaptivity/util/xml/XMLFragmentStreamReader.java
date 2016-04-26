@@ -125,7 +125,7 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
       } else {
         wrapperBuilder.append(" xmlns:").append(prefix);
       }
-      wrapperBuilder.append("=\"").append(XmlUtil.xmlEncode(uri)).append('"');
+      wrapperBuilder.append("=\"").append(nl.adaptivity.xml.XmlUtil.xmlEncode(uri)).append('"');
     }
     wrapperBuilder.append(" >");
 

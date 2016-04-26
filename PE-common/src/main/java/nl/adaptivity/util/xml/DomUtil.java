@@ -47,7 +47,7 @@ import java.util.List;
  */
 public final class DomUtil {
 
-  private static final int DEFAULT_FLAGS = XmlUtil.FLAG_OMIT_XMLDECL;
+  private static final int DEFAULT_FLAGS = XmlStreamingKt.FLAG_OMIT_XMLDECL;
 
   private DomUtil() {}
 

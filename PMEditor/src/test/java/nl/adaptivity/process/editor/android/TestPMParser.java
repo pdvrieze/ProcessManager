@@ -7,7 +7,6 @@ import nl.adaptivity.process.engine.TestProcessData;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.tasks.PostTask;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -77,7 +76,7 @@ public class TestPMParser {
     XmlReader parser = new AndroidXmlReader(new StringReader(source));
     XmlMessage msg = XmlMessage.deserialize(parser);
 
-    String out = XmlUtil.toString(msg);
+    String out = nl.adaptivity.xml.XmlUtil.toString(msg);
 
 
     try {
@@ -89,7 +88,7 @@ public class TestPMParser {
     String bodySource = msg.getMessageBody().getContentString();
     XmlReader bodyParser = msg.getBodyStreamReader();
     Envelope<PostTask> pt = Envelope.deserialize(bodyParser, PostTask.FACTORY);
-    String bodyOut = XmlUtil.toString(pt);
+    String bodyOut = nl.adaptivity.xml.XmlUtil.toString(pt);
     XMLUnit.setIgnoreWhitespace(true);
     XMLUnit.setIgnoreComments(true);
     XMLUnit.setIgnoreAttributeOrder(true);

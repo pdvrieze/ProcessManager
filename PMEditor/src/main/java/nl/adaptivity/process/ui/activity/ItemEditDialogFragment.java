@@ -43,7 +43,6 @@ import nl.adaptivity.process.util.CharSequenceDecorator;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,11 +83,11 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     try {
       mItemNo = getArguments().getInt(UIConstants.KEY_ITEMNO);
       if (savedInstanceState != null && savedInstanceState.containsKey(UIConstants.KEY_ITEM)) {
-        mItem = XmlUtil.deSerialize(savedInstanceState.getString(UIConstants.KEY_ITEM), TaskItem.class);
+        mItem = XmlStreaming.deSerialize(savedInstanceState.getString(UIConstants.KEY_ITEM), TaskItem.class);
       } else {
-        mItem = XmlUtil.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
+        mItem = XmlStreaming.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
       }
-      mDefines = XmlUtil.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
+      mDefines = nl.adaptivity.xml.XmlUtil.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
     } catch (XmlException e) {
       throw new RuntimeException(e);
     }
@@ -133,7 +132,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   public void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
     updateItemFromUI();
-    outState.putString(UIConstants.KEY_ITEM, XmlUtil.toString(mItem));
+    outState.putString(UIConstants.KEY_ITEM, nl.adaptivity.xml.XmlUtil.toString(mItem));
   }
 
   @Override
@@ -362,8 +361,8 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     final ItemEditDialogFragment f = new ItemEditDialogFragment();
     final Bundle args = new Bundle(4);
     args.putInt(UIConstants.KEY_ITEMNO, itemNo);
-    args.putString(UIConstants.KEY_ITEM, XmlUtil.toString(item));
-    args.putStringArrayList(UIConstants.KEY_DEFINES, XmlUtil.toString(defines));
+    args.putString(UIConstants.KEY_ITEM, nl.adaptivity.xml.XmlUtil.toString(item));
+    args.putStringArrayList(UIConstants.KEY_DEFINES, nl.adaptivity.xml.XmlUtil.toString(defines));
     args.putParcelableArrayList(UIConstants.KEY_VARIABLES, CollectionUtil.toArrayList(variables));
     f.setArguments(args);
     return f;

@@ -22,14 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 
-import java.io.*;
 import java.util.*;
 
 
@@ -50,34 +48,8 @@ public final class XmlUtil {
     }
   }
 
-  /** Flag to indicate that the xml declaration should be omitted, when possible. */
-  public static final int FLAG_OMIT_XMLDECL = 1;
-  private static final int DEFAULT_FLAGS = FLAG_OMIT_XMLDECL;
-
 
   private XmlUtil() { /* Utility class is not constructible. */ }
-
-  public static Reader toReader(final XmlSerializable serializable) throws XmlException {
-    final CharArrayWriter buffer = new CharArrayWriter();
-    final XmlWriter writer = XmlStreaming.newWriter(buffer);
-    serializable.serialize(writer);
-    writer.close();
-    return new CharArrayReader(buffer.toCharArray());
-  }
-
-  public static String getQualifiedName(@NotNull final QName name) {
-    final String prefix = name.getPrefix();
-    if ((prefix == null) || XMLConstants.NULL_NS_URI.equals(prefix)) {
-      return name.getLocalPart();
-    }
-    return prefix + ':' + name.getLocalPart();
-  }
-
-  public static void serialize(final XmlSerializable serializable, final Writer writer) throws XmlException {
-    final XmlWriter out = XmlStreaming.newWriter(writer, true);
-    serializable.serialize(out);
-    out.close();
-  }
 
 
   @NotNull
@@ -123,123 +95,6 @@ public final class XmlUtil {
     return result;
   }
 
-  public static <T> T deSerialize(final InputStream in, @NotNull final Class<T> type) throws XmlException {
-    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(in, "UTF-8"), type);
-  }
-
-  public static <T> T deSerialize(final Reader in, @NotNull final Class<T> type) throws XmlException {
-    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(in), type);
-  }
-
-  public static <T> T deSerialize(final String in, @NotNull final Class<T> type) throws XmlException {
-    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(new StringReader(in)), type);
-  }
-
-  /**
-   * Utility method to deserialize a list of xml containing strings
-   * @param in The strings to deserialize
-   * @param type The type that contains the factory to deserialize
-   * @param <T> The type
-   * @return A list of deserialized objects.
-   * @throws XmlException If deserialization fails anywhere.
-   */
-  public static <T> List<T> deSerialize(final Iterable<String> in, @NotNull final Class<T> type) throws XmlException {
-    ArrayList<T> result = (in instanceof Collection) ? new ArrayList<T>(((Collection) in).size()): new ArrayList<T>();
-    final XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
-    if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
-    final XmlDeserializerFactory<T> factory;
-    try {
-      //noinspection unchecked
-      factory = (XmlDeserializerFactory<T>) deserializer.value().newInstance();
-    } catch (InstantiationException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-    for (String string : in) {
-      result.add(factory.deserialize(XmlStreaming.newReader(new StringReader(string))));
-    }
-    return result;
-  }
-
-  public static <T> T deSerialize(final Source in, @NotNull final Class<T> type) throws XmlException {
-    return XmlReaderUtil.deSerialize(XmlStreaming.newReader(in), type);
-  }
-
-  public static String toString(@NotNull final XmlSerializable serializable) {
-    final int flags = DEFAULT_FLAGS;
-    return toString(serializable, flags);
-  }
-
-  /**
-   * Do bulk toString conversion of a list. Note that this is serialization, not dropping tags.
-   * @param serializables The source list.
-   * @return A result list
-   */
-  public static @NotNull ArrayList<String> toString(@NotNull final Iterable<? extends XmlSerializable> serializables) {
-    final int flags = DEFAULT_FLAGS;
-
-    final ArrayList<String> result;
-    if (serializables instanceof Collection) {
-      result = new ArrayList<>(((Collection)serializables).size());
-    } else {
-      result = new ArrayList<>();
-    }
-    for (final XmlSerializable serializable : serializables) {
-      result.add(toString(serializable));
-    }
-    return result;
-  }
-
-  @NotNull
-  public static String xmlEncode(@NotNull final String unEncoded) {
-    StringBuilder result = null;
-    int last=0;
-    for(int i=0; i<unEncoded.length(); ++i) {
-      switch (unEncoded.charAt(i)) {
-        case '<':
-          if (result==null) { result = new StringBuilder(unEncoded.length()); }
-          result.append(unEncoded,last, i).append("&lt;");
-          last = i+1;
-          break;
-        case '&':
-          if (result==null) { result = new StringBuilder(unEncoded.length()); }
-          result.append(unEncoded,last, i).append("&amp;");
-          last = i+1;
-          break;
-        default:
-          break;
-      }
-
-    }
-    if (result==null) { return unEncoded; }
-    result.append(unEncoded, last, unEncoded.length());
-    return result.toString();
-  }
-
-  private static String toString(@NotNull final XmlSerializable serializable, final int flags) {
-    final StringWriter out =new StringWriter();
-    try {
-      final XmlWriter serializer = XmlStreaming.newWriter(out);
-      serializable.serialize(serializer);
-      serializer.close();
-    } catch (@NotNull final XmlException e) {
-      throw new RuntimeException(e);
-    }
-    return out.toString();
-  }
-
-  public static char[] toCharArray(final Source content) throws XmlException {
-    return toCharArrayWriter(content).toCharArray();
-  }
-
-  public static String toString(final Source source) throws XmlException {
-    return toCharArrayWriter(source).toString();
-  }
-
-  @NotNull
-  private static CharArrayWriter toCharArrayWriter(final Source source) throws XmlException {
-    return XmlReaderUtil.toCharArrayWriter(XmlStreaming.newReader(source));
-  }
-
   /* XXX These can't work because they don't allow for attributes
   public static void writeEmptyElement(@NotNull final StAXWriter out, @NotNull final QName qName) throws XMLStreamException {
     String namespace = qName.getNamespaceURI();
@@ -257,7 +112,7 @@ public final class XmlUtil {
 
 
   static void configure(@NotNull final Transformer transformer, final int flags) {
-    if ((flags & FLAG_OMIT_XMLDECL) != 0) {
+    if ((flags & XmlStreamingKt.FLAG_OMIT_XMLDECL) != 0) {
       transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     }
   }

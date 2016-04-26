@@ -22,8 +22,8 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.ReaderInputStream;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlStreaming;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -60,7 +60,7 @@ public class TestXmlTask {
   @Test
   public void testSerialization() throws XmlException, IOException, SAXException {
     StringWriter out = new StringWriter();
-    XmlUtil.serialize(mSampleTask, out);
+    nl.adaptivity.xml.XmlUtil.serialize(mSampleTask, out);
     assertXMLEqual("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
                          "<umh:task owner=\"pdvrieze\" state=\"Failed\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"/>\n", out
                          .toString());
@@ -75,7 +75,7 @@ public class TestXmlTask {
     sampleTask2.setHandle(3L);
     sampleTask2.setSummary("testing");
     sampleTask2.setState(NodeInstanceState.FailRetry);
-    XmlUtil.serialize(sampleTask2, out);
+    nl.adaptivity.xml.XmlUtil.serialize(sampleTask2, out);
     assertXMLEqual("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
                              "<umh:task handle=\"3\" instancehandle=\"2\" owner=\"pdvrieze\" remotehandle=\"1\" summary=\"testing\" state=\"FailRetry\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"/>\n", out
                          .toString());
@@ -84,7 +84,7 @@ public class TestXmlTask {
   @Test
   public void testDeserialize() throws XmlException {
     StringReader in = new StringReader("<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />");
-    XmlTask result = XmlUtil.deSerialize(in, XmlTask.class);
+    XmlTask result = XmlStreaming.deSerialize(in, XmlTask.class);
     assertEquals(NodeInstanceState.Complete, result.getState());
     assertEquals(-1L, result.getHandle());
     assertEquals(-1L,result.getInstanceHandle());
@@ -96,7 +96,7 @@ public class TestXmlTask {
   @Test
   public void testDeserialize2() throws XmlException {
     StringReader in = new StringReader("<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>");
-    XmlTask result = XmlUtil.deSerialize(in, XmlTask.class);
+    XmlTask result = XmlStreaming.deSerialize(in, XmlTask.class);
     assertEquals(NodeInstanceState.Complete, result.getState());
     assertEquals(1L, result.getHandle());
     assertEquals(3L,result.getInstanceHandle());

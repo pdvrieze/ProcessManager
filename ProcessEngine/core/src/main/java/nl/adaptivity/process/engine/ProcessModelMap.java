@@ -25,7 +25,6 @@ import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.Factory;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
 
@@ -159,7 +158,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
       if (_supports_set_character_stream) {
         try {
-          statement.setCharacterStream(offset + 1, XmlUtil.toReader(element));
+          statement.setCharacterStream(offset + 1, nl.adaptivity.xml.XmlUtil.toReader(element));
           return 2;
         } catch (AbstractMethodError|UnsupportedOperationException e) {
           _supports_set_character_stream =false;
@@ -167,7 +166,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
           throw new RuntimeException(e);
         }
       }
-      statement.setString(offset + 1, XmlUtil.toString(element));
+      statement.setString(offset + 1, nl.adaptivity.xml.XmlUtil.toString(element));
       return 2;
     }
 

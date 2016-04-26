@@ -18,15 +18,12 @@ package nl.adaptivity.xml
 
 import nl.adaptivity.xml.XmlEvent.*
 import nl.adaptivity.xml.XmlStreaming.EventType
+import nl.adaptivity.xml.XmlStreaming.deSerialize
+import java.io.*
 
 import javax.xml.stream.XMLStreamException
 import javax.xml.transform.Result
 import javax.xml.transform.Source
-
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.Reader
-import java.io.Writer
 
 
 /**
@@ -215,6 +212,7 @@ object XmlStreaming {
 
     @Throws(XmlException::class)
     abstract fun createEvent(reader:XmlReader): XmlEvent
+
   }
 
 
@@ -319,7 +317,56 @@ object XmlStreaming {
   @Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
   @JvmField val CHARACTERS = EventType.TEXT
 
+  @JvmStatic
+  @Throws(XmlException::class)
+  fun <T> deSerialize(input: InputStream, type: Class<T>): T {
+    return XmlStreaming.newReader(input, "UTF-8").deSerialize(type)
+  }
+
+  @JvmStatic
+  @Throws(XmlException::class)
+  fun <T> deSerialize(input: Reader, type: Class<T>): T {
+    return XmlStreaming.newReader(input).deSerialize(type)
+  }
+
+  @JvmStatic
+  @Throws(XmlException::class)
+  fun <T> deSerialize(input: String, type: Class<T>): T {
+    return XmlStreaming.newReader(StringReader(input)).deSerialize(type)
+  }
+
+
+  @JvmStatic
+  @Throws(XmlException::class)
+  fun <T> deSerialize(reader: Source, type: Class<T>): T {
+    return XmlStreaming.newReader(reader).deSerialize(type)
+  }
+
+  @JvmStatic
+  @Throws(XmlException::class)
+  fun toCharArray(content: Source): CharArray {
+    return XmlStreaming.newReader(content).toCharArrayWriter().toCharArray()
+  }
+
+  @JvmStatic
+  @Throws(XmlException::class)
+  fun toString(source: Source): String {
+    return XmlStreaming.newReader(source).toCharArrayWriter().toString()
+  }
+
 }
+
+
+/** Flag to indicate that the xml declaration should be omitted, when possible.  */
+const val FLAG_OMIT_XMLDECL = 1
+const val DEFAULT_FLAGS = FLAG_OMIT_XMLDECL
+
+
+inline fun<reified T : Any>  deserialize(input:InputStream) = deSerialize(input, T::class.java)
+
+inline fun<reified T : Any>  deserialize(input:Reader) = deSerialize(input, T::class.java)
+
+inline fun<reified T : Any>  deserialize(input:String) = deSerialize(input, T::class.java)
 
 
 @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.START_DOCUMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))

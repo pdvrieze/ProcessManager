@@ -28,8 +28,8 @@ import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlStreaming;
 import org.w3.soapEnvelope.Envelope;
 
 import java.io.StringReader;
@@ -74,7 +74,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     Log.d(TAG, "deserializing message:\n"+strMessage);
     if (strMessage!=null && strMessage.length()>0) {
       try {
-        setMessage(XmlUtil.deSerialize(new StringReader(strMessage), XmlMessage.class));
+        setMessage(XmlStreaming.deSerialize(new StringReader(strMessage), XmlMessage.class));
       } catch (XmlException e) {
         throw new RuntimeException(e);
       }
@@ -128,7 +128,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     if (getMessage()==null) {
       dest.writeString("");
     } else {
-      dest.writeString(XmlUtil.toString(getMessage()));
+      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(getMessage()));
     }
 
     writeDefines(dest);
@@ -139,7 +139,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     final List<XmlDefineType> defines = getDefines();
     dest.writeInt(defines.size());
     for(final XmlDefineType define:defines) {
-      dest.writeString(XmlUtil.toString(define));
+      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(define));
     }
   }
 
@@ -148,7 +148,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     final List<XmlDefineType> result = new ArrayList<>();
     try {
       for (int i = 0; i < count; i++) {
-        result.add(XmlUtil.deSerialize(new StringReader(source.readString()),XmlDefineType.class));
+        result.add(XmlStreaming.deSerialize(new StringReader(source.readString()), XmlDefineType.class));
       }
     } catch (XmlException e) {
       throw new RuntimeException(e);
@@ -160,7 +160,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     final List<XmlResultType> results = getResults();
     dest.writeInt(results.size());
     for(final XmlResultType result:results) {
-      dest.writeString(XmlUtil.toString(result));
+      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(result));
     }
   }
 
@@ -169,7 +169,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     final List<XmlResultType> retValue = new ArrayList<>();
     try {
       for (int i = 0; i < count; i++) {
-        retValue.add(XmlUtil.deSerialize(new StringReader(source.readString()),XmlResultType.class));
+        retValue.add(XmlStreaming.deSerialize(new StringReader(source.readString()), XmlResultType.class));
       }
     } catch (XmlException e) {
       throw new RuntimeException(e);

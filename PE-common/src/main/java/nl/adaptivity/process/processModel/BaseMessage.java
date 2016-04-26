@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 import nl.adaptivity.xml.XmlWriterUtil;
@@ -213,7 +212,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   @Override
   public String toString() {
-    return XmlUtil.toString(this);
+    return nl.adaptivity.xml.XmlUtil.toString(this);
   }
 
   @Override

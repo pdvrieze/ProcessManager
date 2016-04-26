@@ -18,6 +18,7 @@
  * Created by pdvrieze on 13/04/16.
  */
 @file:JvmName("XmlUtil")
+@file:JvmMultifileClass
 package nl.adaptivity.xml
 
 import javax.xml.XMLConstants
@@ -54,6 +55,11 @@ fun CharSequence.toQname(): QName {
   return QName(nsUri, localname)
 }
 
+fun QName.toCName(): String {
+  if (prefix == null || XMLConstants.NULL_NS_URI == prefix) return localPart
+  return "$prefix:$localPart"
+}
+
 
 /**
  * Convert a prefixed element name (CNAME) to a qname. If there is no prefix, the default prefix is used.
@@ -73,4 +79,19 @@ fun NamespaceContext.asQName(name: String): QName {
     return QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.DEFAULT_NS_PREFIX)
   }
 
+}
+
+
+fun String?.xmlEncode(): String? {
+  if (this==null) return null
+
+  return buildString {
+    for (c in this) {
+      when (c) {
+        '<'  -> append("&lt;")
+        '&'  -> append("&amp;")
+        else -> append(c)
+      }
+    }
+  }
 }
