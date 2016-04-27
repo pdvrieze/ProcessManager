@@ -200,7 +200,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
    *
    * @return possible object is {@link Body }
    */
-  public Body<? extends T> getBody() {
+  public Body<T> getBody() {
     return mBody;
   }
 
