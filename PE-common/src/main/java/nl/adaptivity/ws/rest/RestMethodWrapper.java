@@ -40,6 +40,7 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -515,7 +516,10 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
       final XmlElementWrapper annotation = getElementWrapper();
       if (annotation != null) {
         setContentType(pResponse, "text/xml");
-        Sources.writeToStream(collectionToSource(getGenericReturnType(), (Collection<?>) value, getQName(annotation)), pResponse.getOutputStream());
+        try (OutputStream outStream = pResponse.getOutputStream()) {
+
+          writeCollection(outStream, getGenericReturnType(), (Collection<?>) value, getQName(annotation));
+        }
       }
     } else if (value instanceof CharSequence) {
       setContentType(pResponse, "text/plain");
@@ -594,22 +598,22 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     }
   }
 
-  private Source collectionToSource(final Type pGenericCollectionType, final Collection<?> pCollection, final QName pOutertagName) {
+  private void writeCollection(final OutputStream outputStream, final Type collectionType, final Collection<?> collection, final QName outerTagName) {
     final Class<?> rawType;
-    if (pGenericCollectionType instanceof ParameterizedType) {
-      final ParameterizedType returnType = (ParameterizedType) pGenericCollectionType;
+    if (collectionType instanceof ParameterizedType) {
+      final ParameterizedType returnType = (ParameterizedType) collectionType;
       rawType = (Class<?>) returnType.getRawType();
-    } else if (pGenericCollectionType instanceof Class<?>) {
-      rawType = (Class<?>) pGenericCollectionType;
-    } else if (pGenericCollectionType instanceof WildcardType) {
-      final Type[] UpperBounds = ((WildcardType) pGenericCollectionType).getUpperBounds();
+    } else if (collectionType instanceof Class<?>) {
+      rawType = (Class<?>) collectionType;
+    } else if (collectionType instanceof WildcardType) {
+      final Type[] UpperBounds = ((WildcardType) collectionType).getUpperBounds();
       if (UpperBounds.length > 0) {
         rawType = (Class<?>) UpperBounds[0];
       } else {
         rawType = Object.class;
       }
-    } else if (pGenericCollectionType instanceof TypeVariable) {
-      final Type[] UpperBounds = ((TypeVariable<?>) pGenericCollectionType).getBounds();
+    } else if (collectionType instanceof TypeVariable) {
+      final Type[] UpperBounds = ((TypeVariable<?>) collectionType).getBounds();
       if (UpperBounds.length > 0) {
         rawType = (Class<?>) UpperBounds[0];
       } else {
@@ -618,26 +622,45 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     } else {
       throw new IllegalArgumentException("Unsupported type variable");
     }
-    Class<?> elementType = null;
+    Class<?> elementType;
     if (Collection.class.isAssignableFrom(rawType)) {
-      final Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pGenericCollectionType);
+      final Type[] paramTypes = Types.getTypeParametersFor(Collection.class, collectionType);
       elementType = Types.toRawType(paramTypes[0]);
       if (elementType.isInterface()) {
         // interfaces not supported by jaxb
-        elementType = Types.commonAncestor(pCollection);
+        elementType = Types.commonAncestor(collection);
       }
     } else {
-      elementType = Types.commonAncestor(pCollection);
+      elementType = Types.commonAncestor(collection);
     }
     try {
-      JAXBContext context;
-      if (elementType == null) {
-        context = newJAXBContext(JAXBCollectionWrapper.class);
-      } else {
-        context = newJAXBContext(JAXBCollectionWrapper.class, elementType);
+      // As long as JAXB is an option, we have to know that this is a StAXWriter as JAXB needs to write to that.
+      try(StAXWriter xmlWriter = (StAXWriter) XmlStreaming.newWriter(outputStream, "UTF-8")) {
+        Marshaller marshaller = null;
+        XmlWriterUtil.smartStartTag(xmlWriter, outerTagName);
+        for(Object item:collection) {
+          if (item!=null) {
+            if (item instanceof XmlSerializable) {
+              ((XmlSerializable) item).serialize(xmlWriter);
+            } else if (item instanceof Node) {
+              XmlWriterUtil.serialize(xmlWriter, (Node) item);
+            } else {
+              if (marshaller==null) {
+                JAXBContext jaxbcontext = null;
+                if (elementType == null) {
+                  jaxbcontext = newJAXBContext(JAXBCollectionWrapper.class);
+                } else {
+                  jaxbcontext = newJAXBContext(JAXBCollectionWrapper.class, elementType);
+                }
+                marshaller = jaxbcontext.createMarshaller();
+              }
+              marshaller.marshal(item, xmlWriter.getDelegate());
+            }
+          }
+        }
+        XmlWriterUtil.endTag(xmlWriter, outerTagName);
       }
-      return new JAXBSource(context, new JAXBCollectionWrapper(pCollection, elementType).getJAXBElement(pOutertagName));
-    } catch (final JAXBException e) {
+    } catch (final XmlException | JAXBException e) {
       throw new MessagingException(e);
     }
   }
