@@ -38,6 +38,8 @@ import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlWriterUtil;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
@@ -60,7 +62,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     CANCELLED;
   }
 
-  public static class ProcessInstanceRef implements Handle<ProcessInstance> {
+  public static class ProcessInstanceRef implements Handle<ProcessInstance>, XmlSerializable {
 
     private long mHandle;
 
@@ -82,6 +84,16 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
         mName = processInstance.mProcessModel.getName() + " instance " + mHandle;
       }
       mUUID = processInstance.getUUID()==null ? null : processInstance.getUUID().toString();
+    }
+
+    @Override
+    public void serialize(@NotNull final XmlWriter out) throws XmlException {
+      XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX);
+      if (mHandle>=0) { out.attribute("", "handle", "", Long.toString(mHandle)); }
+      XmlWriterUtil.writeAttribute(out, "processModel", mProcessModel);
+      XmlWriterUtil.writeAttribute(out, "name", mName);
+      XmlWriterUtil.writeAttribute(out, "uuid", mUUID);
+      out.endTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX);
     }
 
     public void setHandle(final long handle) {

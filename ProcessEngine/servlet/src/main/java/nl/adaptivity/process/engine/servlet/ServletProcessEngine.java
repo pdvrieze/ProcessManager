@@ -622,17 +622,19 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+
+  private static final QName INSTANCEREFS_TAG = new QName(SERVICE_NS, "processInstances");
+
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
   @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
       final Iterable<ProcessInstance> processInstances = mProcessEngine.getOwnedProcessInstances(transaction, owner);
-      final Collection<ProcessInstanceRef> list = new ArrayList<>();
+      final List<ProcessInstanceRef> list = new ArrayList<>();
       for (final ProcessInstance pi : processInstances) {
         list.add(pi.getRef());
       }
-      transaction.commit();
-      return list;
+      return transaction.commit(new SerializableList<ProcessInstanceRef>(INSTANCEREFS_TAG, list));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error getting process instances", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
