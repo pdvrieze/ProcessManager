@@ -56,7 +56,7 @@ class TestReflection {
     val rt = target.getDeclaredMethod("getBody").genericReturnType
 
     val varLookup = { tv: TypeVariable<*> -> if (tv.genericDeclaration==target){ tv.name } else {null}}
-    val resolved = resolveType(rt, varLookup)
+    val resolved = resolveType(rt, varLookup, ::simpleNewType)
     Assert.assertEquals(resolved, "Iterable<W>")
   }
 
@@ -64,7 +64,7 @@ class TestReflection {
   fun resolveType1() {
     val rt = TestTarget::class.java.getDeclaredMethod("getBody").genericReturnType
 
-    val resolved = resolveType(rt)
+    val resolved = resolveType(rt, newType = ::simpleNewType)
     Assert.assertEquals(resolved, "Iterable<? extends XmlSerializable>")
   }
 
@@ -72,7 +72,7 @@ class TestReflection {
   fun resolveTypeVarsDirect() {
     val rt = TestTarget::class.java.getDeclaredMethod("myMap").genericReturnType
 
-    val resolved = resolveType(rt)
+    val resolved = resolveType(rt, newType = ::simpleNewType)
     Assert.assertEquals(resolved, "Map<String, ? extends XmlSerializable>")
   }
 
@@ -81,7 +81,7 @@ class TestReflection {
     val mrt = TestTarget::class.java.getDeclaredMethod("myMap").genericReturnType as ParameterizedType
     val paramValues = mrt.actualTypeArguments
 
-    val resolved = resolveType(Map.Entry::class.java.withParams(paramValues[0], paramValues[1]))
+    val resolved = resolveType(Map.Entry::class.java.withParams(paramValues[0], paramValues[1]), newType = ::simpleNewType)
     Assert.assertEquals(resolved, "Map.Entry<String, ? extends XmlSerializable>")
   }
 
@@ -95,7 +95,11 @@ class TestReflection {
       if (tv.genericDeclaration==target){ tv.name } else {null}
     }
 
-    val resolved = resolveType(Map.Entry::class.java.withParams(paramValues[0], paramValues[1]), varLookup)
+    val resolved = resolveType(Map.Entry::class.java.withParams(paramValues[0], paramValues[1]), varLookup, newType = ::simpleNewType)
     Assert.assertEquals(resolved, "Map.Entry<String, W>")
   }
+}
+
+fun simpleNewType(clazz:Class<*>):String {
+  return clazz.simpleName
 }

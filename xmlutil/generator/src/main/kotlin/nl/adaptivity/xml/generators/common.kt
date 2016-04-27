@@ -660,10 +660,8 @@ fun Class<*>.withParams(vararg params:Type):Type {
 fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, newType: (Class<*>)->String = {it.canonicalName}): String {
   fun getTypeString(type: Class<*>): String {
     return type.declaringClass?.let {
-      newType(it)
-      val pkgName = type.`package`.name
-      type.canonicalName.removePrefix(pkgName).removePrefix(".")
-    } ?: type.let { newType(type); type.simpleName }
+      "${newType(it)}.${type.simpleName}"
+    } ?: newType(type)
   }
 
   fun doResolve(t:Type):String {
