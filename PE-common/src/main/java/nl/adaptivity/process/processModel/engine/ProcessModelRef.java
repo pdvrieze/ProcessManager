@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 
 import java.util.UUID;
 
-
+@XmlDeserializer(ProcessModelRef.Factory.class)
 public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> implements IProcessModelRef<T, M>, XmlSerializable, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory<ProcessModelRef<?,?>> {
@@ -65,7 +65,7 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @NotNull
-  public static ProcessModelRef get(final IProcessModelRef<?, ?> src) {
+  public static ProcessModelRef<?,?> get(final IProcessModelRef<?, ?> src) {
     if (src instanceof ProcessModelRef) { return (ProcessModelRef) src; }
     return new ProcessModelRef(src);
   }

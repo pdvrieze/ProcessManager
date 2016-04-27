@@ -33,9 +33,7 @@ import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
-import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.ProcessModelBase;
-import nl.adaptivity.process.processModel.ProcessModelRefs;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Constants;
@@ -45,6 +43,7 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.xml.SerializableList;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
@@ -502,19 +501,20 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     return logger;
   }
 
-
+  private static final QName REFS_TAG = new QName(SERVICE_NS, "processModels");
   /*
    * Get the list of all process models in the engine. This will be limited to user owned ones
    */
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
-  public ProcessModelRefs getProcesModelRefs() {
+  public SerializableList<ProcessModelRef> getProcesModelRefs() {
     try (Transaction transaction = mProcessEngine.startTransaction()){
       final Iterable<? extends ProcessModelImpl> processModels = mProcessEngine.getProcessModels(transaction);
-      final ProcessModelRefs list = new ProcessModelRefs();
+
+      final ArrayList<ProcessModelRef<?,?>> list = new ArrayList<>();
       for (final ProcessModelImpl pm : processModels) {
-        list.add(pm.getRef());
+        list.add(ProcessModelRef.get(pm.getRef()));
       }
-      return transaction.commit(list);
+      return transaction.commit(new SerializableList<>(REFS_TAG, list));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error getting process model references", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);

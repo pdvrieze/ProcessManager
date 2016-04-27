@@ -48,7 +48,7 @@ dependencies {
     compile project(':ProcessEngine:core')
 
     compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
     wsDoc project(":PE-common:endpointDoclet")
 
