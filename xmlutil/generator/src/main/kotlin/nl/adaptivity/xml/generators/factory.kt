@@ -88,7 +88,7 @@ class Factory {
           if (attr.accessorType.isMap) {
             val keyType = ReflectionUtil.typeParams(attr.accessorType.javaType,
                                                     Map::class.java)?.get(0) ?: CharSequence::class.java
-            appendln("    for(${Map.Entry::class.java.ref}<${keyType.ref}, ${attr.accessorType.elemType.ref}> attr: value.${attr.readJava}.entrySet()) {")
+            appendln("    for(${Map.Entry::class.java.ref}<${keyType.ref}, ${attr.accessorType.elemType.ref}> attr: value.${attr.getterJava}.entrySet()) {")
             val keyClass = keyType.toClass()
             if (QName::class.java.isAssignableFrom(keyClass)) {
               appendln("      QName key = attr.getKey(); writer.attribute(key.getNamespaceURI(), key.getLocalPart(), key.getPrefix(), ${attr.readJava(
@@ -100,7 +100,7 @@ class Factory {
             appendln("    }")
           } else {
             appendln("    {")
-            appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.readJava};")
+            appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.getterJava};")
             if (attr.isOptional && !attr.accessorType.isPrimitive) {
               appendln("      if (attrValue!=null) writer.attribute(null, ${toLiteral(attr.name)}, null, ${attr.readJava(
                     "attrValue")});")
@@ -115,7 +115,7 @@ class Factory {
         typeInfo.textContent?.let { content ->
           appendln()
           appendln("    {")
-          appendln("      final ${content.accessorType.javaType.ref} contentValue = value.${content.readJava};")
+          appendln("      final ${content.accessorType.javaType.ref} contentValue = value.${content.getterJava};")
           appendln("      if (contentValue!=null) writer.text(${content.readJava("contentValue")});")
           appendln("    }")
         }
@@ -125,7 +125,7 @@ class Factory {
           appendln()
           appendln("    {")
           val attrname = if (accessor.isCollection) "childValues" else "childValue"
-          appendln("      final ${accessor.javaType.ref} $attrname = value.${childInfo.readJava};")
+          appendln("      final ${accessor.javaType.ref} $attrname = value.${childInfo.getterJava};")
           var indent: String
           if (accessor.isCollection) {
             indent = " ".repeat(8)
@@ -179,16 +179,23 @@ class Factory {
 
         if (typeInfo.attributes.size>0) {
           appendln()
+          val wildCardAttribute = typeInfo.attributes.singleOrNull { it.accessorType.isMap }
           appendln("    for (int i = 0; i < reader.getAttributeCount(); i++) {")
-          appendln("      switch(reader.getAttributeLocalName(i).toString() {")
-          for(attr in typeInfo.attributes) {
-            append("        case \"${attr.name}\": ")
-            if (attr.accessorType.isMap) appendln("")
-            appendln("")
+          if ((typeInfo.attributes.size>1 || wildCardAttribute==null )) {
+            appendln("      switch(reader.getAttributeLocalName(i).toString() {")
+            for(attr in typeInfo.attributes) {
+              appendln("        case \"${attr.name}\": ${attr.javaFromString("reader.getAttributeValue(i)")}")
+            }
+            appendln("        default:")
+            if (wildCardAttribute!=null) {
+              appendln("          ${wildCardAttribute.setJavaFromString("reader.getAttributeLocalName(i)","reader.getAttributeValue(i)")}")
+            } else {
+              appendln("          throw new XmlException(\"Unexpected attribute found (\"+reader.getAttributeLocalName(i)+\")\");")
+            }
+            appendln("      }")
+          } else { // must have a wildcard only
+            appendln("      ${wildCardAttribute.setJavaFromString("reader.getAttributeLocalName(i)","reader.getAttributeValue(i)")}")
           }
-          appendln("        default:")
-          appendln("          throw new XmlException(\"Unexpected attribute found (\"+reader.getAttributeLocalName(i)+\")\");")
-          appendln("      }")
           appendln("    }")
         }
 

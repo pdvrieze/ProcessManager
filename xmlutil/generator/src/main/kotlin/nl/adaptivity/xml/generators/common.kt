@@ -89,7 +89,9 @@ abstract class MemberInfo {
   val declaredType:TypeInfo get() = _declaredType?: accessorType
   val accessorType: TypeInfo
   val xmlType: QName get()= declaredType.xmlType
-  val readJava: String
+  val getterJava: String
+  val setterJavaBase: String
+  val setterIsField: Boolean
 
   fun readJava(valueRef:String):String {
     BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
@@ -97,7 +99,15 @@ abstract class MemberInfo {
     } ?: throw ProcessingException("Unable to convert type to string content: ${declaredType.elemType}")
   }
 
-  fun javaFromString(stringRepr: String): Any {
+  open fun setJavaFromString(stringRepr:String):String {
+    if (setterIsField) {
+      return "$setterJavaBase = ${javaFromString(stringRepr)}"
+    } else {
+      return "$setterJavaBase(${javaFromString(stringRepr)})"
+    }
+  }
+
+  open fun javaFromString(stringRepr: String): String {
     BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
       return builtin.deserializeJava(stringRepr)
     } ?: throw ProcessingException("Unable to convert string content to type: ${declaredType.elemType}")
@@ -110,17 +120,42 @@ abstract class MemberInfo {
     this.name = memberName
     _declaredType = declaredMemberType
 
-    val m: Method? = ownerType.getGetterForName(propertyName)
-    if (m!=null) {
-      accessorType = lookup.getTypeInfo(m.genericReturnType)
-      readJava = m.name+"()"
+    var getter: Method? = ownerType.getGetterForName(propertyName)
+    var setter: Method? = ownerType.getSetterForName(propertyName)
+    if (getter!=null && setter==null) {
+      val javaPropertyName = getter.propertyName
+      if (javaPropertyName!=propertyName) { setter = ownerType.getSetterForName(javaPropertyName) }
+    } else if (setter!=null && getter==null) {
+      val javaPropertyName = setter.propertyName
+      if (javaPropertyName!=propertyName) { getter = ownerType.getGetterForName(javaPropertyName) }
+    }
+
+    if (getter!=null) {
+      accessorType = lookup.getTypeInfo(getter.genericReturnType)
+      val getterOnly = accessorType.isMap || accessorType.isCollection
+      if (getterOnly) {
+        getterJava = getter.name+"()"
+        setterJavaBase = getter.name+"()"
+        setterIsField = false
+      } else if (setter!=null) {
+        if (lookup.getTypeInfo(setter.genericParameterTypes[0])!=accessorType) throw ProcessingException("")
+        getterJava = getter.name+"()"
+        setterJavaBase = setter.name
+        setterIsField = false
+      } else {
+        val f: Field = ownerType.getFieldForName(propertyName) ?: throw ProcessingException("No accessor for member \"${propertyName}\" found on type ${ownerType.canonicalName}")
+        getterJava = getter.name+"()"
+        setterJavaBase = f.name
+        setterIsField = true
+      }
     } else {
-      val f: Field = ownerType.getFieldForName(propertyName) ?: throw ProcessingException("No accessor for member \"${memberName}\" found on type ${ownerType.canonicalName}")
+      val f: Field = ownerType.getFieldForName(propertyName) ?: throw ProcessingException("No accessor for member \"${propertyName}\" found on type ${ownerType.canonicalName}")
       accessorType = lookup.getTypeInfo(f.genericType)
-      readJava = f.name
+      getterJava = f.name
+      setterJavaBase = f.name
+      setterIsField = true
     }
   }
-
 
   protected fun <T> Class<T>.getGetterForName(name: String): Method? {
     val possibleGetters = allMethods.filter { m -> !( Modifier.isPrivate(m.modifiers) || Modifier.isStatic(m.modifiers) || m.isSynthetic || m.isBridge) && m.parameterTypes.size == 0 }.toList()
@@ -139,12 +174,28 @@ abstract class MemberInfo {
   }
 
 
-  protected fun <T> Class<T>.getFieldForName(name: String): Field? {
+  protected fun Class<*>.getSetterForName(name: String): Method? {
+    val possibleSetters = allMethods.filter { m -> !( Modifier.isPrivate(m.modifiers) || Modifier.isStatic(m.modifiers) || m.isSynthetic || m.isBridge) && m.parameterTypes.size == 1 }.toList()
+
+    // First find annotated methods
+    possibleSetters.asSequence()
+          .filter { m -> m.getAnnotation(XmlName::class.java)?.let {it.value==name}?:false }
+          .firstOrNull()?.let { m-> return m }
+
+    possibleSetters
+          .filter { m -> m.isSetter(name) }
+          .let { it: List<Method> ->
+            if (it.size>2) throw ProcessingException("Multiple candidate setters for member ${name} found")
+            return it.singleOrNull()
+          }
+  }
+
+  protected fun Class<*>.getFieldForName(name: String): Field? {
     val possibleFields = allFields.filter { f -> (! Modifier.isPrivate(f.modifiers) || Modifier.isStatic(f.modifiers)) }.toList()
 
     // First find annotated methods
     possibleFields.asSequence()
-          .filter { f -> f.getAnnotation(XmlName::class.java).value==name }
+          .filter { f -> f.getAnnotation(XmlName::class.java)?.value==name }
           .firstOrNull()?.let { f-> return f }
 
     possibleFields
@@ -187,8 +238,12 @@ class AttributeInfo:MemberInfo {
     default = attribute.default
   }
 
-  override fun toString(): String{
-    return "AttributeInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$readJava, isOptional=$isOptional, default='$default')"
+  fun setJavaFromString(key:String, value: String): String {
+    return "$getterJava.put($key, $value)"
+  }
+
+  override fun toString(): String {
+    return "AttributeInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$getterJava, isOptional=$isOptional, default='$default')"
   }
 
 
@@ -219,7 +274,7 @@ class ChildInfo:MemberInfo {
   constructor(child: Child, ownerType: Type, lookup: TypeInfoProvider):super(child.name, child.propertyName(lookup), ownerType, lookup, lookup.getTypeInfo(child.type.java))
 
   override fun toString(): String{
-    return "ChildInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$readJava)"
+    return "ChildInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$getterJava)"
   }
 
 
@@ -234,6 +289,22 @@ fun Method.isGetter(name: String): Boolean {
     this.name.length==it.length+suffix.length &&
           this.name.startsWith(it) &&
           this.name.endsWith(suffix) }
+}
+
+private val SETTERPREFIXES = arrayOf("set")
+
+fun Method.isSetter(name: String): Boolean {
+  val suffix = "${name[0].toUpperCase()}${name.substring(1)}"
+  return !isSynthetic && SETTERPREFIXES.any {
+    this.name.length==it.length+suffix.length &&
+          this.name.startsWith(it) &&
+          this.name.endsWith(suffix) }
+}
+
+val Method.propertyName: String get() {
+  return (GETTERPREFIXES.asSequence() + SETTERPREFIXES.asSequence())
+        .first { name.startsWith(it) && Character.isUpperCase(name[it.length]) }
+        ?.let { "${Character.toLowerCase(name[it.length])}${name.substring(it.length+1)}" }
 }
 
 abstract class TypeInfo(clazz: Type) {
