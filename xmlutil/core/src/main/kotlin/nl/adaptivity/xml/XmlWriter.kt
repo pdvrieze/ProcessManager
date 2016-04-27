@@ -153,10 +153,9 @@ fun XmlWriter.writeChild(node: Node) {
 }
 
 @Throws(XmlException::class)
-fun writeChildren(out: XmlWriter, children: Iterable<XmlSerializable>?) {
-  children?.forEach { out.writeChild(it) }
+fun XmlWriter.writeChildren(children: Iterable<XmlSerializable>?) {
+  children?.forEach { writeChild(it) }
 }
-
 
 fun XmlWriter.serialize(node: Node) {
   this.serialize(XmlStreaming.newReader(DOMSource(node)))
