@@ -109,7 +109,7 @@ public class PETransformer {
 
     private static void stripWhiteSpaceFromPeekBuffer(final List<XmlEvent> results) {
       XmlEvent peekLast;
-      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtilKt.isXmlWhitespace(((TextEvent) peekLast)
+      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtil.isXmlWhitespace(((TextEvent) peekLast)
                                                                                                                                      .getText())) {
         results.remove(results.size()-1);
       }
@@ -175,7 +175,7 @@ public class PETransformer {
             case COMMENT:
               break;
             case TEXT:
-              if (XmlUtilKt.isXmlWhitespace(((TextEvent) elem).getText())) {
+              if (XmlUtil.isXmlWhitespace(((TextEvent) elem).getText())) {
                 break;
               }
             default:
@@ -534,13 +534,13 @@ public class PETransformer {
     if (characters.getEventType() == EventType.IGNORABLE_WHITESPACE) {
       return true;
     }
-    return XmlUtilKt.isXmlWhitespace(characters.getText());
+    return XmlUtil.isXmlWhitespace(characters.getText());
   }
 
   static boolean isIgnorableWhiteSpace(@NotNull final XmlReader characters) throws XmlException {
     if (characters.getEventType()== EventType.IGNORABLE_WHITESPACE) {
       return true;
     }
-    return XmlUtilKt.isXmlWhitespace(characters.getText());
+    return XmlUtil.isXmlWhitespace(characters.getText());
   }
 }
