@@ -117,7 +117,7 @@ abstract class MemberInfo {
         this(memberName, propertyName, ownerType.toClass(), lookup, declaredMemberType)
 
   constructor(memberName:String, propertyName:String, ownerType: Class<*>, lookup: TypeInfoProvider, declaredMemberType: TypeInfo?=null) {
-    this.name = memberName
+    this.name = if(memberName.isBlank()) propertyName else memberName
     _declaredType = declaredMemberType
 
     var getter: Method? = ownerType.getGetterForName(propertyName)
@@ -363,6 +363,10 @@ abstract class TypeInfo(clazz: Type) {
       val c = javaType.toClass()
       if (c.isPrimitive) {
         BUILTINS[c]?.defaultValueJava ?: throw UnsupportedOperationException("No default value know for type ${c}")
+      } else if (Iterable::class.java.isAssignableFrom(c) && c.isAssignableFrom(ArrayList::class.java)) {
+        "new ArrayList()"
+      } else if (Map::class.java.isAssignableFrom(c) && c.isAssignableFrom(HashMap::class.java)) {
+        "new HashMap()"
       } else {
         "null"
       }

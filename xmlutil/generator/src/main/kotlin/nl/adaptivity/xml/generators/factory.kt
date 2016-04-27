@@ -17,6 +17,7 @@
 package nl.adaptivity.xml.generators
 
 import net.devrieze.util.ReflectionUtil
+import net.devrieze.util.StringUtil
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.schema.annotations.AnyType
 import nl.adaptivity.xml.schema.annotations.Element
@@ -26,6 +27,7 @@ import java.io.StringWriter
 import java.io.Writer
 import java.lang.reflect.*
 import java.util.*
+import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
 
 /*
@@ -160,16 +162,26 @@ class Factory {
              typeInfo.elemType,
              arrayOf(XmlException::class.java),
              XmlReader::class.java to "reader") {
-        if (typeInfo.attributes.size>0) {
-          for (attr in typeInfo.attributes) {
-            appendln("    ${attr.accessorType.javaType.ref} ${attr.name} = ${if (attr.default.isNotBlank()) attr.javaFromString(
-                  toLiteral(attr.default)) else attr.accessorType.defaultValueJava};")
+        val wildCardAttribute = run {
+          var _wildCardAttr:AttributeInfo? = null
+          if (typeInfo.attributes.size > 0) {
+            for (attr in typeInfo.attributes) {
+              if (attr.accessorType.isMap) {
+                if (_wildCardAttr!=null) { throw ProcessingException("Attempting to set multiple wildcard attributes") }
+                imports.add(HashMap::class.java)
+                _wildCardAttr = attr
+              }
+              appendln("    ${attr.accessorType.javaType.ref} ${attr.name} = ${if (attr.default.isNotBlank()) attr.javaFromString(
+                    toLiteral(attr.default)) else attr.accessorType.defaultValueJava};")
+            }
+            appendln()
           }
-          appendln()
+          _wildCardAttr;
         }
 
         if (typeInfo.children.size>0) {
           for (child in typeInfo.children) {
+            if (child.accessorType.isCollection) { imports.add(ArrayList::class.java) }
             appendln("    ${child.accessorType.javaType.ref} ${child.name} = ${child.accessorType.defaultValueJava};")
           }
           appendln()
@@ -179,28 +191,29 @@ class Factory {
 
         if (typeInfo.attributes.size>0) {
           appendln()
-          val wildCardAttribute = typeInfo.attributes.singleOrNull { it.accessorType.isMap }
+
           appendln("    for (int i = 0; i < reader.getAttributeCount(); i++) {")
           if ((typeInfo.attributes.size>1 || wildCardAttribute==null )) {
-            appendln("      switch(reader.getAttributeLocalName(i).toString() {")
+            appendln("      switch(reader.getAttributeLocalName(i).toString()) {")
             for(attr in typeInfo.attributes) {
-              appendln("        case \"${attr.name}\": ${attr.javaFromString("reader.getAttributeValue(i)")}")
+              appendln("        case \"${attr.name}\": ${attr.javaFromString("reader.getAttributeValue(i)")};")
             }
             appendln("        default:")
             if (wildCardAttribute!=null) {
-              appendln("          ${wildCardAttribute.setJavaFromString("reader.getAttributeLocalName(i)","reader.getAttributeValue(i)")}")
+              appendln("          ${wildCardAttribute.name}.put(${wildcardAttrName(wildCardAttribute)},${wildcardAttrValue(wildCardAttribute)});")
             } else {
               appendln("          throw new XmlException(\"Unexpected attribute found (\"+reader.getAttributeLocalName(i)+\")\");")
             }
             appendln("      }")
           } else { // must have a wildcard only
-            appendln("      ${wildCardAttribute.setJavaFromString("reader.getAttributeLocalName(i)","reader.getAttributeValue(i)")}")
+            appendln("      ${wildCardAttribute.name}.put(${wildcardAttrName(wildCardAttribute)},${wildcardAttrValue(wildCardAttribute)});")
           }
           appendln("    }")
         }
 
         val eventType = XmlStreaming.EventType::class.java.ref
         appendln()
+        imports.add(XmlStreaming.EventType::class.java)
         appendln("    EventType eventType;")
         appendln("    while ((eventType=reader.next())!=${eventType}.END_ELEMENT) {")
         appendln("      switch(eventType) {")
@@ -214,6 +227,8 @@ class Factory {
 
         appendln("    reader.require(${eventType}.END_ELEMENT, ${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)});")
 
+        appendln("")
+        appendln("    throw new UnsupportedOperationException(\"creating the type is not yet supported\");")
       }
     }
   }
@@ -234,7 +249,7 @@ private class JavaFile(val packageName:String, val className:String) {
 
   fun Type.ref(lookup:(TypeVariable<*>)->String?):String {
 
-    fun newType(clazz: Class<*>):String {
+    fun newType(clazz: Class<*>):String { // This does not work for duplicates in the local package
       val simpleName = clazz.simpleName
       if (clazz in imports) return simpleName
       if (imports.any { it.simpleName == simpleName }) { return clazz.canonicalName }
@@ -263,7 +278,7 @@ private class JavaFile(val packageName:String, val className:String) {
       if (returnType==null) {
         append("  public static final void ${name}(")
       } else {
-        append("  public static final ${resolveType(returnType, ::variableLookup)} ${name}(")
+        append("  public static final ${returnType.ref(::variableLookup)} ${name}(")
 
       }
       parameters.joinTo(this) { val (type, name) = it; "${type.ref} ${name}" }
@@ -294,7 +309,8 @@ private class JavaFile(val packageName:String, val className:String) {
 
       if (imports.size>0) {
         appendln()
-        imports.asSequence().map { c -> "import ${c.canonicalName};" }.sorted().forEach { appendln(it) }
+        imports.asSequence().filter { c-> c.`package`.name!=packageName || c.enclosingClass!=null}
+              .map { c -> "import ${c.canonicalName};" }.sorted().forEach { appendln(it) }
       }
       appendln()
       appendln("public class ${className} {")
@@ -321,12 +337,46 @@ private class JavaFile(val packageName:String, val className:String) {
             owner.nsPrefix)});")
       append(indent).appendln("}")
     } else /*if (childInfo.elemType==AnyType::class.java)*/ {
-      appendln("${AbstractXmlWriter::class.java.ref}.serialize(writer, ${valueRef});")
+
+      appendln("${FactoryHelper.XMLWriterUtil.ref}.serialize(writer, ${valueRef});")
 //      } else {
 //        throw ProcessingException("Don't know how to serialize child ${childInfo.name} type ${childInfo.elemType.typeName}")
     }
   }
 
+
+
+  fun wildcardAttrName(attr:AttributeInfo):String {
+    val attrType = attr.accessorType.javaType
+    if (attrType is ParameterizedType) {
+      val actualName = attrType.actualTypeArguments[0].toClass()
+      if (actualName.isAssignableFrom(CharSequence::class.java)) {
+        return "reader.getAttributeLocalName(i)"
+      } else if (actualName.isAssignableFrom(String::class.java)) {
+        return "reader.getAttributeLocalName(i).toString()"
+      } else if (actualName.isAssignableFrom(QName::class.java)) {
+        return "reader.getName()"
+      }
+    }
+    return "reader.getAttributeLocalName(i).toString()" // assume string
+  }
+
+  fun wildcardAttrValue(attr:AttributeInfo):String {
+    val attrType = attr.accessorType.javaType
+    if (attrType is ParameterizedType) {
+      val actualValue = attrType.actualTypeArguments[1].toClass()
+      if (actualValue.isAssignableFrom(CharSequence::class.java)) {
+        return "reader.getAttributeValue(i)"
+      } else if (actualValue.isAssignableFrom(String::class.java)) {
+        val stringUtil = StringUtil::class.java.ref
+        return "$stringUtil.toString(reader.getAttributeLocalName(i))"
+      } else if (actualValue.isAssignableFrom(QName::class.java)) {
+        val stringUtil = StringUtil::class.java.ref
+        return "${FactoryHelper.XMLUtil.ref}.asQName($stringUtil.toString(reader.getNamespaceContext(),reader.getAttributeValue(i)))"
+      }
+    }
+    return "reader.getAttributeLocalName(i).toString()" // assume string
+  }
 }
 
 private inline fun createJavaFile(packageName: String, className: String, block: JavaFile.()->Unit): JavaFile {
