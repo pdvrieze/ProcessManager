@@ -20,6 +20,7 @@ import nl.adaptivity.xml.XmlSerializable
 import nl.adaptivity.xml.XmlWriter
 import org.testng.Assert
 import org.testng.annotations.Test
+import java.lang.reflect.ParameterizedType
 import java.lang.reflect.TypeVariable
 
 /**
@@ -32,6 +33,8 @@ class TestTarget<out W : XmlSerializable>(): XmlSerializable {
   }
 
   fun getBody():Iterable<W> { return emptyList()}
+
+  fun myMap():Map<String, W> { return emptyMap() }
 
 }
 
@@ -63,5 +66,36 @@ class TestReflection {
 
     val resolved = resolveType(rt)
     Assert.assertEquals(resolved, "Iterable<? extends XmlSerializable>")
+  }
+
+  @Test
+  fun resolveTypeVarsDirect() {
+    val rt = TestTarget::class.java.getDeclaredMethod("myMap").genericReturnType
+
+    val resolved = resolveType(rt)
+    Assert.assertEquals(resolved, "Map<String, ? extends XmlSerializable>")
+  }
+
+  @Test
+  fun resolveTypeVarsInDirect() {
+    val mrt = TestTarget::class.java.getDeclaredMethod("myMap").genericReturnType as ParameterizedType
+    val paramValues = mrt.actualTypeArguments
+
+    val resolved = resolveType(Map.Entry::class.java.withParams(paramValues[0], paramValues[1]))
+    Assert.assertEquals(resolved, "Map.Entry<String, ? extends XmlSerializable>")
+  }
+
+  @Test
+  fun resolveTypeVarsInDirect2() {
+    val target = TestTarget::class.java
+    val mrt = TestTarget::class.java.getDeclaredMethod("myMap").genericReturnType as ParameterizedType
+    val paramValues = mrt.actualTypeArguments
+
+    val varLookup = { tv: TypeVariable<*> ->
+      if (tv.genericDeclaration==target){ tv.name } else {null}
+    }
+
+    val resolved = resolveType(Map.Entry::class.java.withParams(paramValues[0], paramValues[1]), varLookup)
+    Assert.assertEquals(resolved, "Map.Entry<String, W>")
   }
 }

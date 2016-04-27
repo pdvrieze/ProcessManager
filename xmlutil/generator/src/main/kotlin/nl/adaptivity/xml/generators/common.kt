@@ -138,7 +138,8 @@ abstract class MemberInfo {
         setterJavaBase = getter.name+"()"
         setterIsField = false
       } else if (setter!=null) {
-        if (lookup.getTypeInfo(setter.genericParameterTypes[0])!=accessorType) throw ProcessingException("")
+        // TODO make this nicer on generic assignability
+        if (lookup.getTypeInfo(setter.genericParameterTypes[0])!=accessorType) throw ProcessingException("Setter (${setter.genericParameterTypes[0]}) and getter types ($accessorType) do not match for property \"$propertyName\"")
         getterJava = getter.name+"()"
         setterJavaBase = setter.name
         setterIsField = false
@@ -606,7 +607,7 @@ internal fun getTypeVars(source: List<Type>): List<SimpleTypeVar> {
   return result
 }
 
-fun resolveMethodType(m:Method, t:Type, newType: (Class<*>)->Unit = {}): String {
+fun resolveMethodType(m:Method, t:Type, newType: (Class<*>)->String = {it.canonicalName}): String {
   val owner = m.declaringClass
 
   fun doActualLookup(tv:TypeVariable<*>, candidateDeclaration:Type): TypeVariable<*>? {
@@ -639,11 +640,29 @@ fun resolveMethodType(m:Method, t:Type, newType: (Class<*>)->Unit = {}): String 
   return resolveType(t, variableLookup, newType)
 }
 
-fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, newType: (Class<*>)->Unit = {}): String {
+fun Class<*>.withParams(vararg params:Type):Type {
+  val typeParams = typeParameters
+  if (typeParams.size!=params.size) throw IllegalArgumentException("Generic parameter count mismatch.")
+  return object: ParameterizedType {
+    val _rawType = if (this@withParams is ParameterizedType) this@withParams.rawType else this@withParams.toClass()
+    override fun getRawType() = _rawType
+
+    override fun getOwnerType() = this@withParams.enclosingClass
+
+    override fun getActualTypeArguments() = params
+
+    override fun toString(): String {
+      return params.joinToString(", ","WithParams: ${_rawType.toClass().canonicalName}<", ">") { it.toString() }
+    }
+  }
+}
+
+fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, newType: (Class<*>)->String = {it.canonicalName}): String {
   fun getTypeString(type: Class<*>): String {
     return type.declaringClass?.let {
+      newType(it)
       val pkgName = type.`package`.name
-      it.canonicalName.removePrefix(pkgName).removePrefix(".")
+      type.canonicalName.removePrefix(pkgName).removePrefix(".")
     } ?: type.let { newType(type); type.simpleName }
   }
 

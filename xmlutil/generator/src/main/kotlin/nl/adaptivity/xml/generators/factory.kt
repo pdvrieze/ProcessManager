@@ -88,7 +88,7 @@ class Factory {
           if (attr.accessorType.isMap) {
             val keyType = ReflectionUtil.typeParams(attr.accessorType.javaType,
                                                     Map::class.java)?.get(0) ?: CharSequence::class.java
-            appendln("    for(${Map.Entry::class.java.ref}<${keyType.ref}, ${attr.accessorType.elemType.ref}> attr: value.${attr.getterJava}.entrySet()) {")
+            appendln("    for(${Map.Entry::class.java.withParams(keyType, attr.accessorType.elemType).ref} attr: value.${attr.getterJava}.entrySet()) {")
             val keyClass = keyType.toClass()
             if (QName::class.java.isAssignableFrom(keyClass)) {
               appendln("      QName key = attr.getKey(); writer.attribute(key.getNamespaceURI(), key.getLocalPart(), key.getPrefix(), ${attr.readJava(
@@ -230,33 +230,42 @@ private class JavaFile(val packageName:String, val className:String) {
     }
   }
 
-  val Type.ref:String get() {
-    return when (this) {
-      is Class<*> -> {
-        val pkgName = this.`package`.name
-        val declaringClass = this.declaringClass
-        if (pkgName !="java.lang" && declaringClass==null && pkgName!=packageName) imports.add(this)
-        declaringClass?.let{ it.ref }
-        this.canonicalName.removePrefix(pkgName+'.')
-      }
-      is ParameterizedType -> this.actualTypeArguments.joinToString(", ", "${this.rawType.ref}<", ">") { it.ref }
-      is GenericArrayType -> "${this.genericComponentType.ref}[]"
-      is TypeVariable<*> -> {
-        (this.bounds.firstOrNull()?.ref  ?: "Object")
-      }
-      is WildcardType -> { this.upperBounds.firstOrNull()?.ref ?: "Object" }
-      else -> throw UnsupportedOperationException("Cannot display type: ${this}")
+  val Type.ref:String get() = this.ref({null})
+
+  fun Type.ref(lookup:(TypeVariable<*>)->String?):String {
+
+    fun newType(clazz: Class<*>):String {
+      val simpleName = clazz.simpleName
+      if (clazz in imports) return simpleName
+      if (imports.any { it.simpleName == simpleName }) { return clazz.canonicalName }
+      imports.add(clazz)
+      return simpleName
     }
+
+    return resolveType(this, lookup, ::newType )
   }
 
   inline fun method(name:String, returnType:Type?, vararg parameters:Pair<Type,String>, crossinline body:Appendable.()->Unit) {
     return method(name, returnType, emptyArray(), *parameters) { body() }
   }
 
-  inline fun method(name:String, returnType:Type?, throws: Array<out Class<out Throwable>>, vararg parameters:Pair<Type,String>, crossinline body:Appendable.()->Unit) {
+
+  fun method(name:String, returnType:Type?, throws: Array<out Class<out Throwable>>, vararg parameters:Pair<Type,String>, body:Appendable.()->Unit) {
     classBody.add {
       val typeVars : List<SimpleTypeVar> = getTypeVars(parameters.map { it.first })
-      append("  public static final ${returnType?.ref?:"void"} ${name}(")
+
+      fun variableLookup(tv: TypeVariable<*>):String? {
+        val l = typeVars.firstOrNull { it.name == tv.name }
+        return (l?.bounds ?: tv.bounds).asSequence().firstOrNull()?.let { it.ref(::variableLookup) }
+      }
+
+      System.err.println("typeVars = $typeVars")
+      if (returnType==null) {
+        append("  public static final void ${name}(")
+      } else {
+        append("  public static final ${resolveType(returnType, ::variableLookup)} ${name}(")
+
+      }
       parameters.joinTo(this) { val (type, name) = it; "${type.ref} ${name}" }
       append(")")
       if (throws.size>0) {
