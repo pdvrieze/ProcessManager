@@ -44,7 +44,7 @@ dependencies {
 sourceSets {
     main {
         kotlin {
-            srcDirs+=gendir
+            srcDirs+={ gendir }
         }
     }
 }
@@ -127,7 +127,7 @@ clean.doLast {
 
 idea {
     module {
-        sourceDirs -= gendir
+//        sourceDirs -= gendir
         generatedSourceDirs += gendir
         name="darwinjs"
 /*

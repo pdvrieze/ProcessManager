@@ -36,6 +36,8 @@ description = 'The service that handles tasks for users (and functions as web in
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
+def wsDestDir = file("${buildDir}/docs/wsDoc")
+
 configurations {
     apiCompile
     main {
@@ -44,6 +46,7 @@ configurations {
     wsDoc {
         description "Dependencies needed to run the custom web service doclet."
     }
+    wsDocOutput
 }
 
 def genImageDir = "$projectDir/gen/generated-images"
@@ -188,7 +191,7 @@ dependencies {
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
 
     wsDoc project(":PE-common:endpointDoclet")
-
+    wsDocOutput files(wsDestDir) { builtBy 'wsDoc' }
 }
 
 test {

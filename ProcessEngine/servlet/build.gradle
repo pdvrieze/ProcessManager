@@ -22,11 +22,13 @@ version = '1.0.0'
 description = 'The service that provides the process coordination system'
 //group = ['server', 'service' ]
 
+def wsDestDir = file("${buildDir}/docs/wsDoc")
 
 configurations {
     wsDoc {
         description "Dependencies needed to run the custom web service doclet."
     }
+    wsDocOutput
     codeGen {
         extendsFrom configurations.getByName('default')
     }
@@ -51,7 +53,7 @@ dependencies {
     providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
     wsDoc project(":PE-common:endpointDoclet")
-
+    wsDocOutput files(wsDestDir) { builtBy 'wsDoc' }
 }
 
 test {
@@ -83,7 +85,7 @@ task wsDoc(type:Javadoc) {
     group = "documentation"
     classpath = sourceSets.main.compileClasspath
     source = sourceSets.main.allJava
-    destinationDir = file("${buildDir}/docs/wsDoc")
+    destinationDir = wsDestDir
     options.docletpath = configurations.wsDoc.files.asType(List)
     options.doclet = "nl.adaptivity.ws.doclet.WsDoclet"
 
