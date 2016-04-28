@@ -169,7 +169,7 @@ private fun processSoap(options: Options, classDoc: ClassDoc, root: RootDoc) {
           root.printNotice("Found webmethod ${it.method.name()} with annotation: ${annot.annotationType().qualifiedTypeName()}")
           row {
             col { link("#${it.anchor}", it.soapName) }
-            col { text(method.commentText().let{it -> it.substring(0,it.indexOf('.')+1)}) }
+            col { text(method.summary) }
           }
         }
       }
@@ -234,7 +234,7 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc, par
             col { link("#${it.anchor}", it.method.name()) }
             col { text(it.httpMethod) }
             col { text(it.pathWithQueries) }
-            col { text(method.commentText().let{it -> it.substring(0,it.indexOf('.')+1)}) }
+            col { text(method.summary) }
           }
         }
       }
@@ -308,4 +308,8 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc, par
     }
 
   }
+}
+
+val Doc.summary:String get() {
+  return commentText().let{it -> it.indexOf('.').let {pos -> if (pos>0) { it.substring(0,pos+1)} else it } }
 }
