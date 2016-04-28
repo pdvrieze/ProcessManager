@@ -83,18 +83,6 @@ open class OldAccountDb constructor(private val connection: DBConnection) {
   }
 
 
-  fun newChallenge(keyid: Int, requestIp: String): String {
-    val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
-    return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
-      params(keyid) + requestIp + challenge + now + challenge + now
-      if (executeHasRows()) {
-        challenge
-      } else {
-        throw AuthException("Could not store challenge".appendWarnings(warningsIt))
-      }
-    }
-  }
-
   fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null) {
 
     // Helper function for the shared code that determines the application name to use
@@ -264,6 +252,22 @@ open class AccountDb(private val connection:DBConnection): OldAccountDb(connecti
   fun cleanChallenges() {
     val cutoff = now - MAXCHALLENGELIFETIME
     WebAuthDB.DELETE_FROM(c).WHERE { c.epoch lt cutoff }.execute(connection)
+  }
+
+  fun newChallenge(keyid: Int, requestIp: String): String {
+    val conn = connection
+    val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
+    return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
+      params(keyid) + requestIp + challenge + now + challenge + now
+      if (executeHasRows()) {
+        challenge
+      } else {
+        if (WebAuthDB.SELECT(p.keyid).WHERE { p.keyid eq keyid }.getSingle(conn)==null) {
+          throw AuthException("Unknown or expired key id. Reauthentication required", null, HttpURLConnection.HTTP_NOT_FOUND)
+        }
+        throw AuthException("Could not store challenge".appendWarnings(warningsIt))
+      }
+    }
   }
 
 
