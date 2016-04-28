@@ -204,7 +204,7 @@ public abstract class XPathHolder extends XMLContainer {
         xpath.setNamespaceContext(namespaceContext);
         xpath.compile(path.toString());
       } catch (@NotNull final XPathExpressionException e) {
-        Logger.getLogger(XPathHolder.class.getSimpleName()).log(Level.WARNING, "The path used is not valid");
+        Logger.getLogger(XPathHolder.class.getSimpleName()).log(Level.WARNING, "The path used is not valid ("+path+") - "+e.getMessage());
       }
     }
   }

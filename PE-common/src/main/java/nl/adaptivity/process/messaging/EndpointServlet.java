@@ -129,6 +129,7 @@ public class EndpointServlet extends HttpServlet {
    */
   private void processRestSoap(final HttpMethod method, @NotNull final HttpServletRequest request, @NotNull final HttpServletResponse response) {
     try {
+      request.authenticate(response); // Try to authenticate
       final HttpMessage message = new HttpMessage(request);
       try {
         try {
@@ -159,7 +160,7 @@ public class EndpointServlet extends HttpServlet {
       }
     } catch (@NotNull final Exception e) {
       try {
-        getLogger().log(Level.WARNING, "Error when processing REST/SOAP", e);
+        getLogger().log(Level.WARNING, "Error when processing REST/SOAP ("+request.getRequestURI()+")", e);
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       } catch (@NotNull final IOException e1) {
         e1.addSuppressed(e);
