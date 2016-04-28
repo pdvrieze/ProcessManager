@@ -502,7 +502,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   }
 
   private static final QName REFS_TAG = new QName(SERVICE_NS, "processModels");
-  /*
+  /**
    * Get the list of all process models in the engine. This will be limited to user owned ones. The list will contain only
    * a summary of each model including name, id and uuid, not the content.
    */
