@@ -174,7 +174,6 @@ private fun processSoap(options: Options, classDoc: ClassDoc, root: RootDoc) {
         }
       }
       appendln()
-
       webMethods.forEach { m ->
         appendln()
         heading2("<a name=\"${m.anchor}\">${m.soapName}</a>")
