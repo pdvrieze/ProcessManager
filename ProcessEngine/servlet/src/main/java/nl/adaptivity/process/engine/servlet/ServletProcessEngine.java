@@ -503,7 +503,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   private static final QName REFS_TAG = new QName(SERVICE_NS, "processModels");
   /*
-   * Get the list of all process models in the engine. This will be limited to user owned ones
+   * Get the list of all process models in the engine. This will be limited to user owned ones. The list will contain only
+   * a summary of each model including name, id and uuid, not the content.
    */
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public SerializableList<ProcessModelRef> getProcesModelRefs() {
@@ -521,6 +522,13 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * Get the full process model content for the model with the given handle.
+   * @param handle The handle of the process model
+   * @param user The user whose permissions are verified
+   * @return The process model
+   * @throws FileNotFoundException When the model does not exist. This is translated to a 404 error in http.
+   */
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public ProcessModelImpl getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
     try (Transaction transaction = mProcessEngine.startTransaction()){
@@ -535,12 +543,30 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * Update the process model with the given handle.
+   * @param handle The model handle
+   * @param attachment The actual new model
+   * @param user The user performing the update. This will be verified against ownership and permissions
+   * @return A reference to the model. This may include a newly generated uuid if not was provided.
+   * @throws IOException
+   * @throws XmlException
+   */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
     ProcessModelImpl processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
     return updateProcessModel(handle, processModel, user);
   }
 
+  /**
+   * Update the process model with the given handle.
+   * @param handle The model handle
+   * @param processModel The actual new model
+   * @param user The user performing the update. This will be verified against ownership and permissions
+   * @return A reference to the model. This may include a newly generated uuid if not was provided.
+   * @throws IOException
+   * @throws XmlException
+   */
   @WebMethod(operationName = "updateProcessModel")
   public ProcessModelRef updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
     if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
@@ -557,12 +583,28 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "The posted process model is not valid");
   }
 
+  /**
+   * Add a process model to the system.
+   * @param attachment The process model to add.
+   * @param owner The creator/owner of the model.
+   * @return A reference to the model with handle and a new uuid if none was provided.
+   * @throws IOException
+   * @throws XmlException
+   */
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
   public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
     ProcessModelImpl processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
     return postProcessModel(processModel, owner);
   }
 
+  /**
+   * Add a process model to the system.
+   * @param processModel The process model to add.
+   * @param owner The creator/owner of the model.
+   * @return A reference to the model with handle and a new uuid if none was provided.
+   * @throws IOException
+   * @throws XmlException
+   */
   @WebMethod(operationName = "postProcessModel")
   public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
     if (owner==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
@@ -578,11 +620,22 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     return null;
   }
 
+  /**
+   * Rename the given process model.
+   * @param handle The handle to the model
+   * @param name The new name
+   * @param user The user performing the action.
+   */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "name", type = ParamType.QUERY) final String name, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     mProcessEngine.renameProcessModel(user, Handles.<ProcessModelImpl>handle(handle), name);
   }
 
+  /**
+   * Delete the process model.
+   * @param handle The handle of the process model to delete
+   * @param user A user with permission to delete the model.
+   */
   @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
   public void deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
@@ -625,6 +678,12 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   private static final QName INSTANCEREFS_TAG = new QName(SERVICE_NS, "processInstances");
 
+  /**
+   * Get a list of all process instances owned by the current user. This will provide a summary list, providing a subset.
+   * of information from the process instance.
+   * @param owner The user.
+   * @return A list of process instances.
+   */
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
   @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
@@ -641,6 +700,12 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * Get the given process instance.
+   * @param handle The handle of the instance.
+   * @param user A user with permission to see the model.
+   * @return The full process instance.
+   */
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
   public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
@@ -651,12 +716,26 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * Cause the process instance state to be re-evaluated. For failed service invocations, this will cause the server to
+   * try again.
+   * @param handle The handle of the instance
+   * @param user A user with appropriate permissions.
+   * @return A string indicating success.
+   */
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}", query= {"op=tickle"} )
   public String tickleProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     mProcessEngine.tickleInstance(handle);
     return "success";
   }
 
+  /**
+   * Cancel the process instance execution. This will cause all aspects of the instance to be cancelled. Note that this
+   * cannot undo the past.
+   * @param handle The instance to cancel
+   * @param user A user with permission to cancel the instance.
+   * @return The instance that was cancelled.
+   */
   @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
   public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
@@ -667,6 +746,15 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * Get the data for a specific task.
+   * @param handle The handle
+   * @param user A user with appropriate permissions
+   * @return The node instance.
+   * @throws FileNotFoundException
+   * @throws SQLException
+   * @throws XmlException
+   */
   @WebMethod(operationName="getProcessNodeInstance")
   public XmlProcessNodeInstance getProcessNodeInstanceSoap(
           @WebParam(name="handle", mode=Mode.IN) final long handle,
@@ -674,6 +762,15 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     return getProcessNodeInstance(handle, user);
   }
 
+  /**
+   * Get the information for a specific task.
+   * @param handle The handle of the task
+   * @param user A user with appropriate permissions
+   * @return the task
+   * @throws FileNotFoundException
+   * @throws SQLException
+   * @throws XmlException
+   */
   @RestMethod(method = HttpMethod.GET, path = "/tasks/${handle}")
   public XmlProcessNodeInstance getProcessNodeInstance(
           @RestParam(name = "handle", type = ParamType.VAR)
@@ -688,11 +785,25 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * Update the state of a task.
+   * @param handle Handle of the task to update
+   * @param newState The new state
+   * @param user A user with appropriate permissions
+   * @return the new state of the task. This may be different than requested, for example due to engine semantics. (either further, or no change at all)
+   */
   @WebMethod(operationName = "updateTaskState")
   public NodeInstanceState updateTaskStateSoap(@WebParam(name = "handle", mode = Mode.IN) final long handle, @WebParam(name = "state", mode = Mode.IN) final NodeInstanceState newState, @WebParam(name = "user", mode = Mode.IN) final Principal user) {
     return updateTaskState(handle, newState, user);
   }
 
+  /**
+   * Update the state of a task.
+   * @param handle Handle of the task to update
+   * @param newState The new state
+   * @param user A user with appropriate permissions
+   * @return the new state of the task. This may be different than requested, for example due to engine semantics. (either further, or no change at all)
+   */
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
   public NodeInstanceState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "state", type = ParamType.QUERY) final NodeInstanceState newState, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
@@ -702,6 +813,13 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
   }
 
+  /**
+   * finish a task. Process aware services will need to call this to signal completion.
+   * @param handle Handle of the task to update
+   * @param payload An XML document that is the "result" of the service.
+   * @param user A user with appropriate permissions
+   * @return the new state of the task. This may be different than requested, for example due to engine semantics. (either further, or no change at all)
+   */
   @WebMethod(operationName = "finishTask")
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state=Complete" })
   public NodeInstanceState finishTask(
