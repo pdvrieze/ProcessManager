@@ -274,7 +274,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun setPassword(user: String, password: String) {
     val hash = createPasswordHash("", password)
-    WebAuthDB.UPDATE{ SET(u.password, password) }.WHERE { u.user eq user }.execute(connection)
+    WebAuthDB.UPDATE{ SET(u.password, hash) }.WHERE { u.user eq user }.execute(connection)
   }
 
 
