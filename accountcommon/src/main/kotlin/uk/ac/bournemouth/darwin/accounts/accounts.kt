@@ -53,17 +53,23 @@ const val DBRESOURCE = "jdbc/webauth"
 
 private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).apply { nextBytes(this) }
 
-/**
- * A class that abstracts the interaction with the account database.
- */
-@Deprecated("Old class that is generally subsumed", ReplaceWith("AccountDB", "uk.ac.bournemouth.darwin.accounts.AccountDB"))
-open class OldAccountDb constructor(private val connection: DBConnection) {
-
-  val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
+open class AccountDb(private val connection:DBConnection) {
 
   companion object {
+    @Volatile
+    private var lastTokenClean:Long = 0
+
     val random: SecureRandom by lazy { SecureRandom() }
+
   }
+
+  private val u: WebAuthDB.users get() = WebAuthDB.users
+  private val c: WebAuthDB.challenges get() = WebAuthDB.challenges
+  private val t: WebAuthDB.tokens get() = WebAuthDB.tokens
+  private val r: WebAuthDB.user_roles get() = WebAuthDB.user_roles
+  private val p: WebAuthDB.pubkeys get() = WebAuthDB.pubkeys
+
+  val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
 
   fun updateCredentials(username: String, password: String): Boolean {
     return connection.prepareStatement("UPDATE users SET `password` = ? WHERE `user` = ?") {
@@ -142,23 +148,6 @@ open class OldAccountDb constructor(private val connection: DBConnection) {
     warnings.asSequence().map { "${it.errorCode}: ${it.message}" }.joinTo(result, ",\n    ")
     return result.toString()
   }
-
-}
-
-open class AccountDb(private val connection:DBConnection): OldAccountDb(connection) {
-
-  companion object {
-    @Volatile
-    private var lastTokenClean:Long = 0
-
-
-  }
-
-  private val u: WebAuthDB.users get() = WebAuthDB.users
-  private val c: WebAuthDB.challenges get() = WebAuthDB.challenges
-  private val t: WebAuthDB.tokens get() = WebAuthDB.tokens
-  private val r: WebAuthDB.user_roles get() = WebAuthDB.user_roles
-  private val p: WebAuthDB.pubkeys get() = WebAuthDB.pubkeys
 
   private fun <T:Any, S:IColumnType<T,S,C>, C: Column<T, S, C>> getSingle(col:C, user:String):T? {
     return u.let { u ->
@@ -304,7 +293,7 @@ class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=Htt
  *
  * @param block The code to execute in relation to the database.
  */
-inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() -> R): R {
+inline fun <R> accountDb(resourceName: String = DBRESOURCE, crossinline block: AccountDb.() -> R): R {
 
   val ic = InitialContext()
   //    val username = ic.lookup(AUTHDBADMINUSERNAME) as String
@@ -316,8 +305,8 @@ inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() 
 //  return dataSource.connection { AccountDb(it).block() }
 //}
 
-inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
-  WebAuthDB.connect(dataSource) {
-    return AccountDb(this).block()
+inline fun <R> accountDb(dataSource: DataSource, crossinline block: AccountDb.() -> R): R {
+  return WebAuthDB.connect(dataSource) {
+    AccountDb(this).block()
   }
 }
