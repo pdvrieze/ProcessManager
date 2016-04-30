@@ -29,6 +29,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPublicKeySpec
+import java.sql.SQLException
 import java.sql.SQLWarning
 import java.sql.Timestamp
 import javax.crypto.Cipher
@@ -257,17 +258,34 @@ open class AccountDb(private val connection:DBConnection): OldAccountDb(connecti
   fun newChallenge(keyid: Int, requestIp: String): String {
     val conn = connection
     val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
-    return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
-      params(keyid) + requestIp + challenge + now + challenge + now
-      if (executeHasRows()) {
-        challenge
-      } else {
-        if (WebAuthDB.SELECT(p.keyid).WHERE { p.keyid eq keyid }.getSingle(conn)==null) {
-          throw AuthException("Unknown or expired key id. Reauthentication required", null, HttpURLConnection.HTTP_NOT_FOUND)
+    try {
+      return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
+        params(keyid) + requestIp + challenge + now + challenge + now
+        if (executeHasRows()) {
+          challenge
+        } else {
+          throw AuthException("Could not store challenge".appendWarnings(warningsIt))
         }
-        throw AuthException("Could not store challenge".appendWarnings(warningsIt))
       }
+    } catch (e:SQLException) {
+      if (WebAuthDB.SELECT(p.keyid).WHERE { p.keyid eq keyid }.getSingle(conn) == null) {
+        throw AuthException("Unknown or expired key id. Reauthentication required",
+                            e,
+                            HttpURLConnection.HTTP_NOT_FOUND)
+      } else {
+        throw AuthException("Could not store challenge")
+      }
+
     }
+  }
+
+  fun createUser(userName: String, fullName:String?=null) {
+    WebAuthDB.INSERT(u.user, u.fullname).VALUES(userName, fullName).execute(connection)
+  }
+
+  fun setPassword(user: String, password: String) {
+    val hash = createPasswordHash("", password)
+    WebAuthDB.UPDATE{ SET(u.password, password) }.WHERE { u.user eq user }.execute(connection)
   }
 
 

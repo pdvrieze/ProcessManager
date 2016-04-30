@@ -30,7 +30,14 @@ dependencies {
     compile project(':darwin:jvm')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")
+    testCompile 'org.testng:testng:6.9.9'
+    testRuntime 'mysql:mysql-connector-java:5.1.36'
+
 //    javascript project(':accountmgr:accountmgrjs')
+}
+
+test {
+    useTestNG()
 }
 
 war {
