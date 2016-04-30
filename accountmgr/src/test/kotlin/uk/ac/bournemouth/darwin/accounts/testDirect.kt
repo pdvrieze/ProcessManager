@@ -17,11 +17,9 @@
 package uk.ac.bournemouth.darwin.accounts
 
 import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.BeforeTest
-import org.testng.annotations.Test
+import org.testng.annotations.*
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
+import uk.ac.bournemouth.util.kotlin.sql.useTransacted
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.sql.Connection
@@ -70,17 +68,18 @@ private class MyDataSource: DataSource {
     return iface.cast(this)
   }
 
-  override fun getConnection(): Connection? {
-    return DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD).apply { autoCommit=false }
+  override fun getConnection(): Connection {
+    return DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
   }
 
-  override fun getConnection(username: String?, password: String?): Connection? {
-    return DriverManager.getConnection(JDBCURL, username, password).apply { autoCommit=false }
+  override fun getConnection(username: String?, password: String?): Connection {
+    return DriverManager.getConnection(JDBCURL, username, password)
   }
 
 }
 
 /**
+ * A test suite for the account manager.
  * Created by pdvrieze on 29/04/16.
  */
 class TestAccountControllerDirect {
@@ -126,36 +125,47 @@ class TestAccountControllerDirect {
   @Test
   fun createUser() {
     accountDb(RESOURCE) {
-      val accountDb = this
-      accountDb.createUser(testUser)
-      accountDb.setPassword(testUser, testPassword1)
+      doCreateUser()
     }
+    val users = WebAuthDB.connect(MyDataSource()) {
+      WebAuthDB.SELECT(WebAuthDB.users.user).WHERE { WebAuthDB.users.user .IS_NOT(NULL)}.getList(this)
+    }
+    Assert.assertEquals(users, listOf(testUser))
   }
 
-  @Test
+  private fun AccountDb.doCreateUser() {
+    createUser(testUser)
+    setPassword(testUser, testPassword1)
+  }
+
+  @Test(dependsOnMethods = arrayOf("createUser"))
   fun testAuthenticate() {
     accountDb {
+      doCreateUser()
       Assert.assertTrue(verifyCredentials(testUser, testPassword1))
     }
   }
 
-  @Test
+  @Test(dependsOnMethods = arrayOf("createUser"))
   fun testAuthenticateEmpty() {
     accountDb {
+      doCreateUser()
       Assert.assertFalse(verifyCredentials(testUser, ""))
     }
   }
 
-  @Test
+  @Test(dependsOnMethods = arrayOf("createUser"))
   fun testAuthenticateEmptyUser() {
     accountDb {
+      doCreateUser()
       Assert.assertFalse(verifyCredentials("", testPassword1))
     }
   }
 
-  @Test
+  @Test(dependsOnMethods = arrayOf("createUser"))
   fun testAuthenticateInvalidPassword() {
     accountDb {
+      doCreateUser()
       Assert.assertFalse(verifyCredentials(testUser, testPassword2))
     }
   }
