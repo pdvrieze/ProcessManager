@@ -1,6 +1,3 @@
-import org.gradle.api.internal.file.copy.CopyAction
-import org.gradle.api.internal.file.copy.FileCopyAction
-
 import java.nio.file.Files
 
 /*
@@ -70,6 +67,7 @@ jar {
 jar.dependsOn(compileKotlin2Js)
 
 boolean symlinksSupported() {
+    return false
 
     def tmpDir = new File(project.buildDir, "tmp")
     try {
