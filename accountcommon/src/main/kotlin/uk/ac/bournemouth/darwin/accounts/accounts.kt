@@ -72,10 +72,8 @@ open class AccountDb(private val connection:DBConnection) {
   val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
 
   fun updateCredentials(username: String, password: String): Boolean {
-    return connection.prepareStatement("UPDATE users SET `password` = ? WHERE `user` = ?") {
-      params(password) + username
-      execute()
-    }
+    return WebAuthDB.UPDATE { SET(u.password, createPasswordHash(getSalt(username), password)) }
+          .WHERE { u.user eq username  }.execute(connection)!=0
   }
 
   private fun generateAuthToken() = Base64.encoder().encodeToString(random.nextBytes(32))
@@ -272,6 +270,7 @@ open class AccountDb(private val connection:DBConnection) {
     WebAuthDB.INSERT(u.user, u.fullname).VALUES(userName, fullName).execute(connection)
   }
 
+  @Deprecated("updateCredentials is the correct way", ReplaceWith("updateCredentials(user, password)"), DeprecationLevel.ERROR)
   fun setPassword(user: String, password: String) {
     val hash = createPasswordHash("", password)
     WebAuthDB.UPDATE{ SET(u.password, hash) }.WHERE { u.user eq user }.execute(connection)
