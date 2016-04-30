@@ -17,6 +17,7 @@
 package uk.ac.bournemouth.darwin.accounts
 
 import org.testng.Assert
+import org.testng.Assert.*
 import org.testng.annotations.*
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.util.kotlin.sql.useTransacted
@@ -128,21 +129,21 @@ class TestAccountControllerDirect {
       doCreateUser()
     }
     val users = WebAuthDB.connect(MyDataSource()) {
-      WebAuthDB.SELECT(WebAuthDB.users.user).WHERE { WebAuthDB.users.user .IS_NOT(NULL)}.getList(this)
+      WebAuthDB.SELECT(WebAuthDB.users.user).getList(this)
     }
-    Assert.assertEquals(users, listOf(testUser))
+    assertEquals(users, listOf(testUser))
   }
 
   private fun AccountDb.doCreateUser() {
     createUser(testUser)
-    setPassword(testUser, testPassword1)
+    updateCredentials(testUser, testPassword1)
   }
 
   @Test(dependsOnMethods = arrayOf("createUser"))
   fun testAuthenticate() {
     accountDb {
       doCreateUser()
-      Assert.assertTrue(verifyCredentials(testUser, testPassword1))
+      assertTrue(verifyCredentials(testUser, testPassword1), "The password should be valid")
     }
   }
 
@@ -150,7 +151,7 @@ class TestAccountControllerDirect {
   fun testAuthenticateEmpty() {
     accountDb {
       doCreateUser()
-      Assert.assertFalse(verifyCredentials(testUser, ""))
+      assertFalse(verifyCredentials(testUser, ""))
     }
   }
 
@@ -158,7 +159,7 @@ class TestAccountControllerDirect {
   fun testAuthenticateEmptyUser() {
     accountDb {
       doCreateUser()
-      Assert.assertFalse(verifyCredentials("", testPassword1))
+      assertFalse(verifyCredentials("", testPassword1))
     }
   }
 
@@ -166,7 +167,103 @@ class TestAccountControllerDirect {
   fun testAuthenticateInvalidPassword() {
     accountDb {
       doCreateUser()
-      Assert.assertFalse(verifyCredentials(testUser, testPassword2))
+      assertFalse(verifyCredentials(testUser, testPassword2))
     }
   }
+
+  @Test(dependsOnMethods = arrayOf("createUser"))
+  fun testChangePassword() {
+    accountDb {
+      doCreateUser()
+      assertNotEquals(testPassword1, testPassword2)
+      assertFalse(verifyCredentials(testUser, testPassword2), "The new password should not work yet")
+
+      updateCredentials(testUser, testPassword2)
+    }
+    accountDb {
+      assertFalse(verifyCredentials(testUser, testPassword1), "The old password should be invalid")
+      assertTrue(verifyCredentials(testUser, testPassword2), "The new password should be valid")
+    }
+  }
+
+  private fun AccountDb.doNewAuthToken(user:String = testUser, keyId:Int?=null): String {
+    doCreateUser()
+    return createAuthtoken(user, "127.0.0.1", keyId)
+  }
+
+  fun testPasswdHashBinary() {
+    val u = WebAuthDB.users
+    accountDb { createUser() }
+    val hash = WebAuthDB.connect(MyDataSource()) {
+      val hash = WebAuthDB.SELECT(u.password).WHERE { u.user eq testUser }.getSingle(this)
+      assertNotNull(hash);
+      hash!!
+
+      val hashUpper = hash.toUpperCase()
+      val hashLower = hash.toLowerCase()
+      assertNotEquals(hash, hashUpper)
+      assertNotEquals(hash, hashLower)
+
+      assertNotNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hash) }.getSingle(this))
+
+      assertNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashLower) }.getSingle(this))
+
+      assertNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashUpper) }.getSingle(this))
+    }
+
+  }
+
+  @Test(dependsOnMethods = arrayOf("createUser"))
+  fun testNewAuthToken() {
+    val genToken = accountDb {
+      doNewAuthToken()
+    }
+    WebAuthDB.connect(MyDataSource()) {
+      WebAuthDB.SELECT(WebAuthDB.tokens.token, WebAuthDB.tokens.ip)
+            .WHERE { WebAuthDB.users.user eq testUser}
+            .getSingle(this) { token, ip ->
+              assertEquals(token, genToken)
+              assertEquals(ip, "127.0.0.1")
+            }
+    }
+  }
+
+  @Test(dependsOnMethods = arrayOf("testNewAuthToken"))
+  fun testUserFromAuthToken() {
+    accountDb {
+      val token = doNewAuthToken()
+      val user = userFromToken(token, "127.0.0.1")
+      assertEquals(user, testUser)
+    }
+  }
+
+  @Test(dependsOnMethods = arrayOf("testNewAuthToken"))
+  fun testUserFromAuthTokenInvalidIp() {
+    accountDb {
+      val token = doNewAuthToken()
+      val user1 = userFromToken(token, "127.0.0.2")
+      assertNull(user1)
+      val user2 = userFromToken(token, "")
+      assertNull(user2)
+    }
+  }
+
+  @Test(dependsOnMethods = arrayOf("testNewAuthToken"))
+  fun testUserFromInvalidToken() {
+    accountDb {
+      val token = doNewAuthToken()
+
+      assertNull(userFromToken(token.toLowerCase(), "127.0.0.1"))
+
+      assertNull(userFromToken(token.toUpperCase(), "127.0.0.1"))
+
+      assertNull(userFromToken("foobar", "127.0.0.1"))
+
+      assertNull(userFromToken("", "127.0.0.1"))
+
+
+    }
+  }
+
+
 }
