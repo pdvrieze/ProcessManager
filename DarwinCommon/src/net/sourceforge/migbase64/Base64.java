@@ -84,6 +84,9 @@ public class Base64
 		for (int i = 0, iS = CA.length; i < iS; i++)
 			IA[CA[i]] = i;
 		IA['='] = 0;
+		// Paul de Vrieze. Add url safe characters as used by android when requested.
+		IA['-'] = IA['+'];
+		IA['_'] = IA['/'];
 	}
 
 	public interface Codec {
@@ -557,11 +560,11 @@ public class Base64
 		int sepCnt = 0; // Number of separator characters. (Actually illegal characters, but that's a bonus...)
 		for (int i = 0; i < sLen; i++)  // If input is "pure" (I.e. no line separators or illegal chars) base64 this loop can be commented out.
 			if (IA[str.charAt(i)] < 0)
-				sepCnt++;
+				if(Character.isWhitespace(str.charAt(i))) { sepCnt++; } else { throw new IllegalArgumentException("Found unexpected character "+((int)str.charAt(i))+" at pos "+i); }
 
 		// Check so that legal chars (including '=') are evenly divideable by 4 as specified in RFC 2045.
 		if ((sLen - sepCnt) % 4 != 0)
-			return null;
+			throw new IllegalArgumentException("Chars not divideable by 4");
 
 		// Count '=' at end
 		int pad = 0;
