@@ -115,7 +115,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
           }
         } else {
           result.getErrorStream().skip(Integer.MAX_VALUE);
-          Log.e(TAG, "failure to get list from server: "+statusCode+" "+result.getResponseMessage()+"\n  url:"+getList.getUri());
+          Log.e(TAG, "failure to get list from server: " + statusCode + ' ' + result.getResponseMessage() + "\n  url:" + getList.getUri());
           mUpdateList = null;
           syncResult.stats.numIoExceptions++;
         }

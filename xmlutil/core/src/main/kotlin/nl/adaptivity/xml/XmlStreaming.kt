@@ -71,7 +71,7 @@ object XmlStreaming {
     }
 
     @Throws(XmlException::class)
-    override fun newReader(inputStream: InputStream, encoding: String): XmlReader {
+    override fun newReader(inputStream: InputStream, encoding: String?): XmlReader {
       try {
         return StAXReader(inputStream, encoding)
       } catch (e: XMLStreamException) {
@@ -234,7 +234,7 @@ object XmlStreaming {
     fun newReader(reader: Reader): XmlReader
 
     @Throws(XmlException::class)
-    fun newReader(inputStream: InputStream, encoding: String): XmlReader
+    fun newReader(inputStream: InputStream, encoding: String?): XmlReader
   }
 
   private var _factory: XmlStreamingFactory? = null
@@ -264,7 +264,7 @@ object XmlStreaming {
 
   @Throws(XmlException::class)
   @JvmStatic
-  fun newReader(inputStream: InputStream, encoding: String): XmlReader {
+  fun newReader(inputStream: InputStream, encoding: String?): XmlReader {
     return factory.newReader(inputStream, encoding)
   }
 
