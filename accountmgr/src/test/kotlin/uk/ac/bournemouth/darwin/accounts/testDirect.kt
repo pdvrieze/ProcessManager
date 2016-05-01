@@ -17,16 +17,16 @@
 package uk.ac.bournemouth.darwin.accounts
 
 import net.sourceforge.migbase64.Base64
-import org.testng.Assert
 import org.testng.Assert.*
-import org.testng.annotations.*
+import org.testng.annotations.AfterMethod
+import org.testng.annotations.BeforeMethod
+import org.testng.annotations.BeforeTest
+import org.testng.annotations.Test
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
-import uk.ac.bournemouth.util.kotlin.sql.useTransacted
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.math.BigInteger
 import java.security.KeyFactory
-import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPrivateKeySpec
@@ -217,10 +217,11 @@ class TestAccountControllerDirect {
     return createAuthtoken(user, "127.0.0.1", keyId)
   }
 
+  @Test
   fun testPasswdHashBinary() {
     val u = WebAuthDB.users
     accountDb { createUser() }
-    val hash = WebAuthDB.connect(MyDataSource()) {
+    WebAuthDB.connect(MyDataSource()) {
       val hash = WebAuthDB.SELECT(u.password).WHERE { u.user eq testUser }.getSingle(this)
       assertNotNull(hash);
       hash!!
@@ -305,7 +306,7 @@ class TestAccountControllerDirect {
 
   @Test(dependsOnMethods = arrayOf("testKeyPairs"))
   fun testRegisterKey() {
-    val now = System.currentTimeMillis()
+    val now = System.currentTimeMillis() /1000
     val keyId = accountDb {
       doCreateUser()
       registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
@@ -325,7 +326,30 @@ class TestAccountControllerDirect {
     val key = keyInfo.get(0)
     assertEquals(key.appname, "Test system")
     assertEquals(key.keyId, keyId)
-    assertTrue(key.lastUse>=now, "Last use should be set to a value after the initial value")
+    assertTrue(key.lastUse>=now, "Last use should be set to a value after the initial value (${key.lastUse}>=$now)")
+  }
+
+  @Test
+  fun testUpdateKeyUsageTime() {
+    val (keyid, token) = accountDb {
+      doCreateUser()
+      val keyid = registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
+      val token = createAuthtoken(testUser, "127.0.0.1", keyid)
+      (keyid to token)
+    }
+    Thread.sleep(1000)
+    accountDb {
+      val origUse = keyInfo(testUser).single { it.keyId == keyid }.lastUse
+      assertNotEquals(origUse, 0)
+      assertNotEquals(origUse, now)
+      assertNull(userFromToken(token, "127.0.0.2"))
+      val useAfterInvalid = keyInfo(testUser).single { it.keyId == keyid }.lastUse
+      assertEquals(useAfterInvalid, origUse)
+      assertEquals(userFromToken(token, "127.0.0.1"), testUser)
+      val useAfterTokenUse = keyInfo(testUser).single { it.keyId == keyid }.lastUse
+      assertNotEquals(useAfterTokenUse, origUse)
+      assertEquals(useAfterTokenUse, now)
+    }
   }
 
   @Test
@@ -341,19 +365,22 @@ class TestAccountControllerDirect {
 
       Base64.decoder().decode(challengeStr)
     }
+    val oldKeyInfo = accountDb {
+      keyInfo(testUser).single { it.keyId == keyid }
+    }
+
+    val now = System.currentTimeMillis() / 1000
+    assertTrue(oldKeyInfo.lastUse <= now, "Key last used before now")
+    Thread.sleep(2000) /* sleep a second to get a new timestamp*/
+
     accountDb {
       val rsaEnc = Cipher.getInstance("RSA").apply { init(Cipher.ENCRYPT_MODE, testPrivateKey) }
       val response = rsaEnc.doFinal(challenge)
-      val oldKeyInfo = keyInfo(testUser).single { it.keyId==keyid }
-      val now = System.currentTimeMillis()
-      assertTrue(oldKeyInfo.lastUse<=now, "Key last used before now")
-      if (oldKeyInfo.lastUse==now) { Thread.sleep(1) /* sleep a milisecond to get a new timestamp*/ }
 
       assertEquals(userFromChallengeResponse(keyid, "127.0.0.1", response), testUser)
-
       val newKeyInfo = keyInfo(testUser).single {it.keyId==keyid }
-      assertTrue(newKeyInfo.lastUse>now)
-      assertTrue(newKeyInfo.lastUse>oldKeyInfo.lastUse)
+      assertTrue(newKeyInfo.lastUse>now, "LastUse should be later than now (${newKeyInfo.lastUse}>$now)")
+      assertTrue(newKeyInfo.lastUse>oldKeyInfo.lastUse, "LastUse should be updated (${newKeyInfo.lastUse}>$now)")
 
       rsaEnc.init(Cipher.ENCRYPT_MODE, testPrivateKey)
       val invalidResponse = rsaEnc.doFinal(testPassword1.toByteArray())
@@ -382,6 +409,21 @@ class TestAccountControllerDirect {
       assertFalse(verifyResetToken("noone", resetToken))
       assertFalse(verifyResetToken(otherUser, resetToken))
       assertFalse(verifyResetToken(testUser, testPassword1))
+    }
+  }
+
+  @Test
+  fun testLogout() {
+    val token = accountDb {
+      doNewAuthToken()
+    }
+    accountDb {
+      assertEquals(userFromToken(token, "127.0.0.1"), testUser)
+      logout(token)
+      assertNull(userFromToken(token, "127.0.0.1"), "After logout the token should be invalid.")
+    }
+    accountDb {
+      assertNull(userFromToken(token, "127.0.0.1"), "A new database session should still have the token invalid.")
     }
   }
 }

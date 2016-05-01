@@ -81,11 +81,11 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun createAuthtoken(username: String, remoteAddr: String, keyid: Int? = null): String {
     val token = generateAuthToken()
-    return connection.prepareStatement("INSERT INTO tokens (`user`, `ip`, `keyid`, `token`, `epoch`) VALUES (?,?,?,?,?)") {
-      params(username) + remoteAddr + keyid + token + now
-      if (executeUpdate() == 0 ) throw AuthException("Failure to record the authentication token.".appendWarnings(warningsIt))
-      token
-    }
+    WebAuthDB.INSERT(t.user, t.ip, t.keyid, t.token, t.epoch)
+          .VALUES(username, remoteAddr, keyid, token, now)
+          .execute(connection)
+          .let { if (it==0) throw AuthException("Failure to record the authentication token.") }
+    return token
   }
 
 
@@ -195,7 +195,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   fun generateResetToken(user:String): String {
-    val resetToken = Base64.encoder().encodeToString(random.nextBytes(32))
+    val resetToken = Base64.encoder().encodeToString(random.nextBytes(15))
     if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(now)) }.WHERE { u.user eq user }.execute(connection)!=1) {
       throw AuthException("Could not store the reset token")
     }
@@ -210,10 +210,13 @@ open class AccountDb(private val connection:DBConnection) {
   fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getSafeList(connection)
 
   fun userFromToken(token: String, remoteAddr: String): String? {
-    return WebAuthDB.SELECT(t.user)
+    return WebAuthDB.SELECT(t.user, t.keyid)
                     .WHERE { (t.token eq token) AND (t.ip eq remoteAddr) }
-                    .getSingle(connection)
-                    ?.apply { updateTokenEpoch(token, remoteAddr ) }
+                    .getSingle(connection) { user, keyid ->
+                      updateTokenEpoch(token, remoteAddr)
+                      if (keyid!=null) updateKeyLastUse(keyid)
+                      user
+                    }
   }
 
   private fun toRSAPubKey(keyData:String):RSAPublicKey {
@@ -242,7 +245,14 @@ open class AccountDb(private val connection:DBConnection) {
     val rsa = Cipher.getInstance("RSA")
     rsa.init(Cipher.DECRYPT_MODE, pubkey)
     val decryptedResponse = rsa.doFinal(response)
-    if (Arrays.equals(decryptedResponse,challenge)) return user else return null
+    if (!Arrays.equals(decryptedResponse,challenge)) return null
+
+    updateKeyLastUse(keyId)
+    return user
+  }
+
+  private fun updateKeyLastUse(keyId: Int) {
+    WebAuthDB.UPDATE { SET(p.lastUse, now) }.WHERE { p.keyid eq keyId }.execute(connection)
   }
 
 
