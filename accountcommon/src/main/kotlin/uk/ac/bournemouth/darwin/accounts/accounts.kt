@@ -32,6 +32,7 @@ import java.security.spec.RSAPublicKeySpec
 import java.sql.SQLException
 import java.sql.SQLWarning
 import java.sql.Timestamp
+import java.util.*
 import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
@@ -88,7 +89,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
 
-  fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null) {
+  fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null):Int {
 
     // Helper function for the shared code that determines the application name to use
     fun realAppname(sql:String, setparamsFun: StatementHelper.(String) -> Unit) : String? {
@@ -110,13 +111,17 @@ open class AccountDb(private val connection:DBConnection) {
         params(pubkey) +realappname+ keyid + user
         if (executeUpdate()==0) throw AuthException("Failure to update the authentication key")
       }
+      return keyid.toInt()
     } else {
-      var realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=?") { it-> params(user) + it }
+      val realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=?") { it-> params(user) + it }
 
-      connection.prepareStatement("INSERT INTO `pubkeys` (user, appname, pubkey, lastUse) VALUES (?,?,?,?)") {
-        params(user) + realappname + pubkey + now
-        if (executeUpdate()==null) throw AuthException("Failure to store the authentication key")
-      }
+      return WebAuthDB.INSERT(p.user, p.appname, p.pubkey, p.lastUse)
+               .VALUES(user, realappname, pubkey, now)
+               .execute(connection) { count, keys ->
+                 if (count==0) throw AuthException("Failure to store the authentication key")
+                 if (!keys.next()) throw AuthException("Failure to store the authentication key")
+                 p.keyid.type.fromResultSet(keys, 1) ?: throw AuthException("Failure to store the authentication key")
+               }
     }
   }
 
@@ -222,7 +227,7 @@ open class AccountDb(private val connection:DBConnection) {
     val rsa = Cipher.getInstance("RSA")
     rsa.init(Cipher.DECRYPT_MODE, pubkey)
     val decryptedResponse = rsa.doFinal(response)
-    if (decryptedResponse==challenge) return user else return null
+    if (Arrays.equals(decryptedResponse,challenge)) return user else return null
   }
 
 
@@ -248,7 +253,7 @@ open class AccountDb(private val connection:DBConnection) {
     try {
       return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
         params(keyid) + requestIp + challenge + now + challenge + now
-        if (executeHasRows()) {
+        if (executeUpdate()!=0) {
           challenge
         } else {
           throw AuthException("Could not store challenge".appendWarnings(warningsIt))

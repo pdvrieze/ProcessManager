@@ -16,6 +16,7 @@
 
 package uk.ac.bournemouth.darwin.accounts
 
+import net.sourceforge.migbase64.Base64
 import org.testng.Assert
 import org.testng.Assert.*
 import org.testng.annotations.*
@@ -23,11 +24,19 @@ import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.util.kotlin.sql.useTransacted
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
+import java.math.BigInteger
+import java.security.KeyFactory
+import java.security.KeyPairGenerator
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
+import java.security.spec.RSAPrivateKeySpec
+import java.security.spec.RSAPublicKeySpec
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.logging.Logger
+import javax.crypto.Cipher
 import javax.naming.Context
 import javax.naming.InitialContext
 import javax.naming.spi.InitialContextFactory
@@ -91,8 +100,24 @@ class TestAccountControllerDirect {
     const val testPassword2 = "secret"
     const val RESOURCE = "jdbc/webauth"
 
+    const val testPrivExpEnc = "WuEDw/Maqf6SmURmkaHIoR69L5zU8dFlAE5l5ygD+3GRVrJOAtt2SZrU3knNim38p6XNuIF34QOPMpzpM0peAQ=="
+    const val testPubExpEnc = "AQAB"
+    const val testModulusEnc = "AM2wa0R9dY9FP3oaYU3o9nEownzIM1Yq2clbeIjFAVbN0JcgWRPdvu/NB+G9ksSWsw9r+RaLbIclMy1ac/SbCHc="
+
+    val testPubKey: RSAPublicKey
+    val testPrivateKey: RSAPrivateKey
+
     init {
       System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MyContextFactory::class.java.canonicalName)
+
+      val modulusInt = BigInteger(Base64.decoder().decode(testModulusEnc))
+      val publicExponentInt = BigInteger(Base64.decoder().decode(testPubExpEnc))
+      val privKeyInt  = BigInteger(Base64.decoder().decode(testPrivExpEnc))
+
+      val factory = KeyFactory.getInstance("RSA")
+      testPubKey = factory.generatePublic(RSAPublicKeySpec(modulusInt, publicExponentInt)) as RSAPublicKey
+      testPrivateKey = factory.generatePrivate(RSAPrivateKeySpec(modulusInt, privKeyInt)) as RSAPrivateKey
+
     }
   }
 
@@ -224,7 +249,7 @@ class TestAccountControllerDirect {
             .getSingle(this) { token, ip ->
               assertEquals(token, genToken)
               assertEquals(ip, "127.0.0.1")
-            }
+            } ?: AssertionError("Result expected")
     }
   }
 
@@ -260,10 +285,69 @@ class TestAccountControllerDirect {
       assertNull(userFromToken("foobar", "127.0.0.1"))
 
       assertNull(userFromToken("", "127.0.0.1"))
-
-
     }
   }
 
+  @Test
+  fun testKeyPairs() {
+    val testData = "Some very secret message"
+
+    val encrypter = Cipher.getInstance("RSA").apply { init(Cipher.ENCRYPT_MODE, testPrivateKey)}
+    val decrypter = Cipher.getInstance("RSA").apply { init(Cipher.DECRYPT_MODE, testPubKey)}
+
+    val encryptedData = encrypter.doFinal(testData.toByteArray())
+    assertNotEquals(encryptedData, testData)
+
+    val decryptedData = decrypter.doFinal(encryptedData)
+    assertEquals(String(decryptedData), testData)
+  }
+
+  @Test(dependsOnMethods = arrayOf("testKeyPairs"))
+  fun testRegisterKey() {
+    val keyId = accountDb {
+      doCreateUser()
+      registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
+    }
+    val p = WebAuthDB.pubkeys
+    WebAuthDB.connect(MyDataSource()) {
+      WebAuthDB.SELECT(p.pubkey, p.user)
+            .WHERE { (p.keyid eq keyId) }
+            .getSingle(this) { pubkey, user ->
+              assertEquals(user, testUser)
+              assertEquals(pubkey, "$testModulusEnc:$testPubExpEnc")
+            } ?: AssertionError("Result expected")
+    }
+
+  }
+
+  @Test
+  fun testChallenge() {
+    val keyid = accountDb {
+      doCreateUser()
+      registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
+    }
+    val challenge = accountDb {
+      val challengeStr = newChallenge(keyid, "127.0.0.1")
+      assertNotNull(challengeStr)
+      assertFalse(challengeStr.any { c -> c < '\u0020' || c > '\u007f' })
+
+      Base64.decoder().decode(challengeStr)
+    }
+    accountDb {
+      val rsaEnc = Cipher.getInstance("RSA").apply { init(Cipher.ENCRYPT_MODE, testPrivateKey) }
+      val response = rsaEnc.doFinal(challenge)
+
+      assertEquals(userFromChallengeResponse(keyid, "127.0.0.1", response), testUser)
+
+      rsaEnc.init(Cipher.ENCRYPT_MODE, testPrivateKey)
+      val invalidResponse = rsaEnc.doFinal(testPassword1.toByteArray())
+
+      assertNull(userFromChallengeResponse(keyid, "127.0.0.1", invalidResponse))
+
+      assertNull(userFromChallengeResponse(keyid, "127.0.0.2", response))
+
+      assertNull(userFromChallengeResponse(keyid+1, "127.0.0.1", response))
+    }
+  }
 
 }
