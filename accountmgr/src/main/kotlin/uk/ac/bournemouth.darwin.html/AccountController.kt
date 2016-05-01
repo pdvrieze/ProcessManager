@@ -20,14 +20,22 @@ import kotlinx.html.*
 import net.devrieze.util.nullIfNot
 import net.devrieze.util.overrideIf
 import net.sourceforge.migbase64.Base64
+import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.darwin.accounts.*
 import uk.ac.bournemouth.darwin.html.shared.darwinDialog
 import uk.ac.bournemouth.darwin.html.shared.setAliasDialog
+import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.Principal
 import java.text.DateFormat
 import java.util.*
+import javax.mail.Message
+import javax.mail.Session
+import javax.mail.Transport
+import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeMessage
 import javax.servlet.ServletException
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServlet
@@ -62,6 +70,8 @@ class AccountController : HttpServlet() {
         const val FIELD_RESETTOKEN = "resettoken"
         const val FIELD_NEWPASSWORD1 = "newpassword1"
         const val FIELD_NEWPASSWORD2 = "newpassword2"
+
+        const val MIN_RESET_DELAY = 60*1000 // 60 seconds between reset requests
     }
 
     private inline fun <R> accountDb(crossinline block: AccountDb.()->R): R = accountDb(DBRESOURCE, block)
@@ -74,6 +84,7 @@ class AccountController : HttpServlet() {
             "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
             "/myaccount" -> myAccount(req, resp)
             "/setAliasForm" -> setAliasForm(req, resp)
+            "/resetpasswd" -> resetPassword(req, resp)
             else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
     }
@@ -446,6 +457,77 @@ class AccountController : HttpServlet() {
                     }
                     div { id="forgotpasswd"
                         a(href=req.contextPath+"/resetpasswd")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun resetPassword(req:HttpServletRequest, resp: HttpServletResponse) {
+        val mailProperties = Properties()
+        val user = req.getParameter(FIELD_USERNAME)
+        if (user.isNullOrBlank()) {
+            requestResetDialog(req, resp)
+        } else {
+            accountDb {
+                if (!isUser(user)) throw AuthException("Unable to reset", errorCode = HttpServletResponse.SC_BAD_REQUEST)
+                val lastReset = lastReset(user)?.time ?: 0
+                if (now- lastReset <MIN_RESET_DELAY) throw AuthException("Too many reset attempts, try later", errorCode = 429)
+
+                val resetToken = generateResetToken(user)
+                val mailSession = Session.getDefaultInstance(mailProperties)
+                val message = MimeMessage(mailSession)
+                val resetUrl = URI(req.scheme, null, req.serverName, req.serverPort, req.requestURI, "?$FIELD_USERNAME=${URLEncoder.encode(user, "UTF8")}&$FIELD_RESETTOKEN=${URLEncoder.encode(resetToken)}", null).toString()
+                message.addRecipient(Message.RecipientType.TO, InternetAddress("$user@bournemouth.ac.uk", user))
+                message.setSubject("Darwin account password reset")
+                message.setContent("""
+                    <html><head><title>Darwin account password reset</title></head><body>
+                      <p>Please visit <a href="$resetUrl">$resetUrl</a> to reset your password.</p>
+                      <p>This token will be valid for 30 minutes. If you didn't initiate the reset,
+                         you can safely ignore this message</p>
+                    </body></html>
+                """.trimIndent(), "text/html")
+
+                Transport.send(message)
+            }
+            resp.darwinResponse(req,"Reset request sent") {
+                darwinDialog("Reset request sent") {
+                    p { +"A reset token has been sent to your email address. Please follow the instructions in the email."}
+                }
+            }
+        }
+
+    }
+
+    private fun requestResetDialog(req: HttpServletRequest,
+                                   resp: HttpServletResponse) {
+        resp.darwinResponse(req, "Provide username") {
+            darwinDialog("Give your username") {
+                p {
+                    this.style = "width:22em"
+                    +"Please provide your BU username such that a reset email can be sent to your email address."
+                }
+                form(action = "/resetpasswd", method = FormMethod.post) {
+                    table {
+                        tr {
+                            tr {
+                                label { for_ = FIELD_USERNAME; +"User name:" }
+                            }
+                            td {
+                                input(name = FIELD_USERNAME, type = InputType.text)
+                                +"@bournemouth.ac.uk"
+                            }
+                        }
+                    }
+                    span {
+                        style = "margin-top: 1em; float: right;"
+                        input(type = InputType.reset) {
+                            onClick = "window.location='/'"
+                        }
+                        input(type = InputType.submit) {
+                            value = "Request reset"
+                        }
+
                     }
                 }
             }

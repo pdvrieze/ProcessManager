@@ -169,6 +169,7 @@ class TestAccountControllerDirect {
     accountDb {
       doCreateUser()
       assertTrue(verifyCredentials(testUser, testPassword1), "The password should be valid")
+      assertFalse(verifyCredentials(testUser.toUpperCase(), testPassword1), "The username should be case sensitive")
     }
   }
 
@@ -304,6 +305,7 @@ class TestAccountControllerDirect {
 
   @Test(dependsOnMethods = arrayOf("testKeyPairs"))
   fun testRegisterKey() {
+    val now = System.currentTimeMillis()
     val keyId = accountDb {
       doCreateUser()
       registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
@@ -318,6 +320,12 @@ class TestAccountControllerDirect {
             } ?: AssertionError("Result expected")
     }
 
+    val keyInfo = accountDb { keyInfo(testUser) }
+    assertEquals(keyInfo.size, 1)
+    val key = keyInfo.get(0)
+    assertEquals(key.appname, "Test system")
+    assertEquals(key.keyId, keyId)
+    assertTrue(key.lastUse>=now, "Last use should be set to a value after the initial value")
   }
 
   @Test
@@ -336,8 +344,16 @@ class TestAccountControllerDirect {
     accountDb {
       val rsaEnc = Cipher.getInstance("RSA").apply { init(Cipher.ENCRYPT_MODE, testPrivateKey) }
       val response = rsaEnc.doFinal(challenge)
+      val oldKeyInfo = keyInfo(testUser).single { it.keyId==keyid }
+      val now = System.currentTimeMillis()
+      assertTrue(oldKeyInfo.lastUse<=now, "Key last used before now")
+      if (oldKeyInfo.lastUse==now) { Thread.sleep(1) /* sleep a milisecond to get a new timestamp*/ }
 
       assertEquals(userFromChallengeResponse(keyid, "127.0.0.1", response), testUser)
+
+      val newKeyInfo = keyInfo(testUser).single {it.keyId==keyid }
+      assertTrue(newKeyInfo.lastUse>now)
+      assertTrue(newKeyInfo.lastUse>oldKeyInfo.lastUse)
 
       rsaEnc.init(Cipher.ENCRYPT_MODE, testPrivateKey)
       val invalidResponse = rsaEnc.doFinal(testPassword1.toByteArray())
@@ -350,4 +366,22 @@ class TestAccountControllerDirect {
     }
   }
 
+  /**
+   * Test creating and using reset tokens. This also checks for invalid username token combinations.
+   */
+  @Test
+  fun testResetToken() {
+    val otherUser = "otherUser"
+    val resetToken = accountDb {
+      createUser()
+      createUser(otherUser)
+      generateResetToken(testUser)
+    }
+    accountDb {
+      assertTrue(verifyResetToken(testUser, resetToken))
+      assertFalse(verifyResetToken("noone", resetToken))
+      assertFalse(verifyResetToken(otherUser, resetToken))
+      assertFalse(verifyResetToken(testUser, testPassword1))
+    }
+  }
 }

@@ -147,9 +147,13 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   fun String.appendWarnings(warnings: Iterator<SQLWarning>): String {
-    val result = StringBuilder().append(this).append(" - \n    ")
-    warnings.asSequence().map { "${it.errorCode}: ${it.message}" }.joinTo(result, ",\n    ")
-    return result.toString()
+    return buildString {
+      append(this@appendWarnings)
+      if (warnings.hasNext()) {
+        append(" - \n    ")
+        warnings.asSequence().map { "${it.errorCode}: ${it.message}" }.joinTo(this, ",\n    ")
+      }
+    }
   }
 
   private fun <T:Any, S:IColumnType<T,S,C>, C: Column<T, S, C>> getSingle(col:C, user:String):T? {
@@ -160,6 +164,8 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun isLocalAccount(user:String) = ! getSingle(u.password, user).isNullOrBlank()
 
+  fun isUser(user:String) = getSingle(u.user, user)!=null
+
   fun isUserInRole(user: String, role: String) = WebAuthDB.SELECT(r.user)
         .WHERE { (r.user eq user) AND (r.role eq role) }
         .getSingle(connection) != null
@@ -167,6 +173,8 @@ open class AccountDb(private val connection:DBConnection) {
   fun fullname(user:String): String? = getSingle(u.fullname, user)
 
   fun alias(user: String): String? = getSingle(u.alias, user)
+
+  fun lastReset(user:String): Timestamp? = getSingle(u.resettime, user)
 
   fun keyInfo(user:String) = WebAuthDB.SELECT(p.keyid, p.appname, p.lastUse).WHERE { p.user eq user }.getList(connection) { p1, p2, p3 -> KeyInfo(p1!!, p2, p3!!)}
 
@@ -186,6 +194,13 @@ open class AccountDb(private val connection:DBConnection) {
 
   }
 
+  fun generateResetToken(user:String): String {
+    val resetToken = Base64.encoder().encodeToString(random.nextBytes(32))
+    if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(now)) }.WHERE { u.user eq user }.execute(connection)!=1) {
+      throw AuthException("Could not store the reset token")
+    }
+    return resetToken
+  }
 
   fun verifyResetToken(user: String, resetToken: String): Boolean {
     val resetTime:Timestamp = WebAuthDB.SELECT(u.resettime).WHERE { (u.user eq user) AND (u.resettoken eq resetToken) }.getSingle(connection) ?: return false
