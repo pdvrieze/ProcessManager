@@ -20,6 +20,7 @@ import org.testng.Assert.*
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
+import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import uk.ac.bournemouth.util.kotlin.sql.use
 import java.sql.Connection
@@ -30,6 +31,8 @@ import java.sql.DriverManager
  * Created by pdvrieze on 24/03/16.
  */
 class DBConnectionTest {
+
+  object db: Database(1) {}
 
   companion object {
     const val JDBCURL = "jdbc:mysql://localhost/test"
@@ -72,9 +75,9 @@ class DBConnectionTest {
 
   @Test
   fun testUse() {
-    DBConnection(conn!!).use {
+    DBConnection(conn!!, db).use {
       simpleInsert(it)
-      verifyRows(DBConnection(conn!!))
+      verifyRows(DBConnection(conn!!, db))
     }
     assertTrue(conn!!.isClosed)
   }
@@ -82,21 +85,21 @@ class DBConnectionTest {
   @Test
   fun testUseThrow() {
     try {
-      DBConnection(conn!!).transaction {
+      DBConnection(conn!!, db).transaction {
         simpleInsert(it)
         throw UnsupportedOperationException("test")
       }
     } catch(e:UnsupportedOperationException) {
       assertEquals(e.message,"test")
     }
-    verifyNoRows(DBConnection(conn!!))
+    verifyNoRows(DBConnection(conn!!, db))
     assertFalse(conn!!.isClosed)
   }
 
   @Test
   fun testOuterUse() {
     conn!!.use {
-      simpleInsert(DBConnection(it))
+      simpleInsert(DBConnection(it, db))
       it.prepareStatement("DROP TABLE ${TABLENAME}").use { it.execute() }
     }
     assertTrue(conn!!.isClosed)
@@ -105,7 +108,7 @@ class DBConnectionTest {
   @Test
   fun testCommit() {
     val c = conn!!
-    DBConnection(c).use {
+    DBConnection(c, db).use {
       simpleInsert(it)
       it.commit()
       verifyRows(it)
@@ -115,7 +118,7 @@ class DBConnectionTest {
   @Test
   fun testRollback() {
     val c = conn!!
-    DBConnection(c).use {
+    DBConnection(c, db).use {
       simpleInsert(it)
       it.rollback()
       verifyNoRows(it)
@@ -128,7 +131,7 @@ class DBConnectionTest {
   fun testAutoRollback() {
     val c = conn!!
     try {
-      DBConnection(c).use { it ->
+      DBConnection(c, db).use { it ->
         simpleInsert(it)
         throw UnsupportedOperationException("Test")
         fail("unreachable")
@@ -137,7 +140,7 @@ class DBConnectionTest {
     } catch (e:UnsupportedOperationException) {
       assertEquals(e.message,"Test")
     }
-    DBConnection(makeConnection()).use {
+    DBConnection(makeConnection(), db).use {
       verifyNoRows(it)
     }
   }
@@ -146,7 +149,7 @@ class DBConnectionTest {
   @Test
   fun testAutoRollbackTransaction() {
     val c = conn!!
-    DBConnection(c).use { it ->
+    DBConnection(c, db).use { it ->
       try {
         it.transaction {
           simpleInsert(it)

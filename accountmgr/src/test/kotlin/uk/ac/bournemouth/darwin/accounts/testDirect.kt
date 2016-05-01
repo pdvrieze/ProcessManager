@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.math.BigInteger
 import java.security.KeyFactory
+import java.security.SecureRandom
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPrivateKeySpec
@@ -95,6 +96,7 @@ private class MyDataSource: DataSource {
 class TestAccountControllerDirect {
 
   companion object {
+//    const val CIPHERSUITE = "RSA/ECB/NoPadding"
     const val testUser = "testUser"
     const val testPassword1 = "garbage"
     const val testPassword2 = "secret"
@@ -353,6 +355,23 @@ class TestAccountControllerDirect {
   }
 
   @Test
+  fun testBase64Random() {
+    val myRandom =  SecureRandom()
+
+    val randomBytes = ByteArray(32).apply { myRandom.nextBytes(this) }
+    val randomEncoded = Base64.encoder().encodeToString(randomBytes);
+    val randomUrlSafe = buildString {
+      randomEncoded.forEach { append(when(it){
+        '+' -> '-'
+        '/' -> '_'
+        else -> it })
+      }
+    }
+    val urlsafeDecoded = Base64.decode(randomUrlSafe)
+    assertEquals(urlsafeDecoded, randomBytes)
+  }
+
+  @Test
   fun testChallenge() {
     val keyid = accountDb {
       doCreateUser()
@@ -425,5 +444,120 @@ class TestAccountControllerDirect {
     accountDb {
       assertNull(userFromToken(token, "127.0.0.1"), "A new database session should still have the token invalid.")
     }
+  }
+
+//  @Test
+  fun testSimulatedAndroid() {
+    val challengeEnc  = "Rk7D9PjVfD5WmV8BfJrZzdzUew2tyvpqhUf/zHLOuVE="
+    val privateExpEnc = "WoMAqA/wagiivZF2cuuRv078EuGb8q0NOXd/dOtUITdk7SZcDm8rl8NFb09qIgnH" +
+          "gU6lO+A2/iRxzbp4TPl0bECKZ3UigJR1VXhIJXGAuDkw5VZzXMY7E1MJ95DNyVEh8KVucGmPCSjxu+" +
+          "TL4NM+7E4V4PDyfOC/WMIxeE99NtHunixHu4+a0ozWmf7zdKou42BcvXmrwZwmLNV9GsqDnJv5pog8" +
+          "QEbTHF+8T66zgj/+5FdGIf6pHP59glkO1wKCQiE1CQ2RITchYhV7/beKAshUATeOrPJD8pV4CMW+BK" +
+          "X4/qJFiVLXeEGyknmjF3MrYSS9D1g5QU/QWNbncNPvAQ=="
+    val modulusEnc = "ALoCoFoK0zSvfUvcxmnBdE+TTSkAneOXIG+GcAEdNnrJSPmnCCV3c2mFimaAzmrMZRu2" +
+          "ZCwp1Kt/PKhrz5K12jALfBcuE/yGE4Gom8gDQrDpUrA/pf0GykaYeG9RGwm0Z/zZH3/ASeAtrycdXP" +
+          "Td4XWcw6w/KBKFhEpxuIKh+hw5kGN8JQ+L5CrIzoROiPfN3L6BThquXMLFOJInkQ3IzaksP3pOpgOU" +
+          "0Ekpnu5qKOSFw0E4eMra1epVrCdM2wY/4XP2ZYQgkyAIRAa48o2ANRr1cHGEjFvTgm8Nh9JSclHi1X" +
+          "/FVLmmoCrEeUOiU6FqShwFh+EL/rd/TRLWuh6xwOk="
+
+    val pubkeyExpEnc = "AQAB"
+
+    val sentResponseEnc = "fecBS3QJ-EsZcVphtN1s8lQt0NcQUUDSCxrwG0s_ByZlm-0nC8uTwTupD_sYfw" +
+          "SWyqxhpJFV8kNH-wof1rYOPX2xplmzOgr_1oTqWPWDUsp2_2GepekHCXtDaEkB1v9RTwrp1eS2RYjX" +
+          "zu7c2XmnZ63wCHBV3kamT-soEV3Q3TLLezP3f0FqjkDENeWHmYP4T5Yrecn988GIB8dTY5HbZAQ1L7" +
+          "03VEmriZMeXKefaTi1hBGj2WqoOtXu24e2u2lLLfDd2zvgIgbNevRhXBAzez_wyDFurv9Dbq6BFJqT" +
+          "60h9pDgAfTxL8MwbR9I75Pz0csZCvPy-FkAjvjSPNYINSA=="
+
+    val modulus = Base64.decode(modulusEnc)
+
+    val factory = KeyFactory.getInstance(KEY_ALGORITHM)
+    val pubkey = factory.generatePublic(RSAPublicKeySpec(BigInteger(modulus), BigInteger(Base64.decode(pubkeyExpEnc)))) as RSAPublicKey
+
+    val privkey = factory.generatePrivate(RSAPrivateKeySpec(BigInteger(modulus), BigInteger(Base64.decode(privateExpEnc)))) as RSAPrivateKey
+
+    val challenge = Base64.decode(challengeEnc)
+
+    val cipher = Cipher.getInstance(CIPHERSUITE)
+    cipher.init(Cipher.ENCRYPT_MODE, privkey)
+    val sentResponse = Base64.decode(sentResponseEnc)
+    val calculatedResponse=cipher.doFinal(challenge)
+    assertEquals(calculatedResponse, sentResponse)
+
+    cipher.init(Cipher.DECRYPT_MODE, pubkey)
+    val receivedResponse = Base64.decode(sentResponseEnc)
+    val decodedResponse = cipher.doFinal(receivedResponse)
+    assertEquals(challenge, decodedResponse)
+
+
+
+
+  }
+
+  @Test
+  fun testBase64dec() {
+    val enc = "Y2hhbGxlbmdl"
+    val dec = String(Base64.decode(enc))
+    assertEquals(dec, "challenge")
+  }
+
+
+//  @Test
+  fun testSimulatedAndroid2() {
+    val challengeEnc  = "Y2hhbGxlbmdl"
+    val privateExpEnc = "WoMAqA/wagiivZF2cuuRv078EuGb8q0NOXd/dOtUITdk7SZcDm8rl8NFb09qIgnH" +
+          "gU6lO+A2/iRxzbp4TPl0bECKZ3UigJR1VXhIJXGAuDkw5VZzXMY7E1MJ95DNyVEh8KVucGmPCSjxu+" +
+          "TL4NM+7E4V4PDyfOC/WMIxeE99NtHunixHu4+a0ozWmf7zdKou42BcvXmrwZwmLNV9GsqDnJv5pog8" +
+          "QEbTHF+8T66zgj/+5FdGIf6pHP59glkO1wKCQiE1CQ2RITchYhV7/beKAshUATeOrPJD8pV4CMW+BK" +
+          "X4/qJFiVLXeEGyknmjF3MrYSS9D1g5QU/QWNbncNPvAQ=="
+    val modulusEnc = "ALoCoFoK0zSvfUvcxmnBdE+TTSkAneOXIG+GcAEdNnrJSPmnCCV3c2mFimaAzmrMZRu2" +
+          "ZCwp1Kt/PKhrz5K12jALfBcuE/yGE4Gom8gDQrDpUrA/pf0GykaYeG9RGwm0Z/zZH3/ASeAtrycdXP" +
+          "Td4XWcw6w/KBKFhEpxuIKh+hw5kGN8JQ+L5CrIzoROiPfN3L6BThquXMLFOJInkQ3IzaksP3pOpgOU" +
+          "0Ekpnu5qKOSFw0E4eMra1epVrCdM2wY/4XP2ZYQgkyAIRAa48o2ANRr1cHGEjFvTgm8Nh9JSclHi1X" +
+          "/FVLmmoCrEeUOiU6FqShwFh+EL/rd/TRLWuh6xwOk="
+
+    val pubkeyExpEnc = "AQAB"
+
+    val sentResponseEnc = "IdgRLSyfF_s-wmaTQiBfHWvGBDWd8p22JMUqz9E_lucroNRoBjH0CvSeOMCWVZ" +
+          "zzgVvd_ij1njWa6LNUKUGBMRlPXWeGX7OpseaMPW7OGnuySjn_8GGO6MKzhs-hLTGJq-FdpYRNpoj4" +
+          "8Kc1xEGfst3ZX-NCY-lIr2DAKyKSmvGXwLDWr6k3UR1NwUwsclzgKtATgKpJwlj_-Ohk-ZBAVyeRhe" +
+          "ieFgDImJlklCnms8zJjD70FHcbR20sSQyTUXML-eVb7_I7l-mPiBo_98p6ZPpzubPWwOf33wernu35" +
+          "d-v_qzTyvnQe8TbL_VvSo1i84rqtVA6tyvmqTnlcgQqdxw=="
+
+    val modulus = Base64.decode(modulusEnc)
+
+    val factory = KeyFactory.getInstance(KEY_ALGORITHM)
+    val pubkey = factory.generatePublic(RSAPublicKeySpec(BigInteger(modulus), BigInteger(Base64.decode(pubkeyExpEnc)))) as RSAPublicKey
+
+    val privkey = factory.generatePrivate(RSAPrivateKeySpec(BigInteger(modulus), BigInteger(Base64.decode(privateExpEnc)))) as RSAPrivateKey
+
+    val challenge = Base64.decode(challengeEnc)
+    val challengeStr = String(challenge)
+    assertEquals(challengeStr, "challenge")
+
+    val cipher = Cipher.getInstance(CIPHERSUITE)
+    cipher.init(Cipher.ENCRYPT_MODE, privkey)
+    val calculatedResponse=cipher.doFinal(challenge)
+    assertEquals(calculatedResponse.size, 256)
+    cipher.init(Cipher.DECRYPT_MODE, pubkey)
+    val decryptedChallenge = String(cipher.doFinal(calculatedResponse))
+
+    assertEquals(decryptedChallenge, "challenge")
+
+    val calculatedResponseEnc = Base64.encodeToString(calculatedResponse, false)
+    val webSafeCalculated = calculatedResponseEnc.replace('+','-').replace('/','_')
+    assertEquals(calculatedResponseEnc.length, 344)
+    assertEquals(sentResponseEnc.length, 344)
+    assertEquals(sentResponseEnc, webSafeCalculated)
+
+    val sentResponse = Base64.decode(sentResponseEnc)
+    assertEquals(calculatedResponse, sentResponse)
+
+    cipher.init(Cipher.DECRYPT_MODE, pubkey)
+    val decodedResponse = cipher.doFinal(sentResponse)
+    assertEquals(challenge, decodedResponse)
+
+
+
+
   }
 }

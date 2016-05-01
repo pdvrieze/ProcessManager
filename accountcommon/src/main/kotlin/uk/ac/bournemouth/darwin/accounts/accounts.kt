@@ -51,6 +51,8 @@ const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
 internal fun sha1(src: ByteArray): ByteArray = MessageDigest.getInstance("SHA1").digest(src)
 
 const val DBRESOURCE = "jdbc/webauth"
+const val CIPHERSUITE = "RSA/ECB/PKCS1Padding"
+const val KEY_ALGORITHM = "RSA"
 
 private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).apply { nextBytes(this) }
 
@@ -221,10 +223,12 @@ open class AccountDb(private val connection:DBConnection) {
 
   private fun toRSAPubKey(keyData:String):RSAPublicKey {
     val colPos = keyData.indexOf(':')
-    val modulus = BigInteger(Base64.decoder().decode(keyData.substring(0, colPos)))
+    val modulusEnc = keyData.substring(0, colPos)
+    val modulusBytes = Base64.decoder().decode(modulusEnc)
+    val modulus = BigInteger(modulusBytes)
     val publicExponent = BigInteger(Base64.decoder().decode(keyData.substring(colPos+1)))
 
-    val factory = KeyFactory.getInstance("RSA")
+    val factory = KeyFactory.getInstance(KEY_ALGORITHM)
     return factory.generatePublic(RSAPublicKeySpec(modulus, publicExponent)) as RSAPublicKey
   }
 
@@ -233,7 +237,7 @@ open class AccountDb(private val connection:DBConnection) {
     val challenge = WebAuthDB.SELECT(c.challenge)
                              .WHERE { (c.keyid eq keyId) AND (c.requestip eq requestIp) }
                              .getSingle(connection)
-                             ?.let{Base64.decoder().decode(it)} ?: return null
+                             ?.let{ Base64.decoder().decode(it)} ?: return null
 
     val (user, encodedpubkey) = WebAuthDB.SELECT(p.user, p.pubkey)
           .WHERE { p.keyid eq keyId }
@@ -242,7 +246,7 @@ open class AccountDb(private val connection:DBConnection) {
 
     val pubkey = toRSAPubKey(encodedpubkey?: throw AuthException("Invalid value for public key", errorCode = HttpURLConnection.HTTP_UNAUTHORIZED))
 
-    val rsa = Cipher.getInstance("RSA")
+    val rsa = Cipher.getInstance(CIPHERSUITE)
     rsa.init(Cipher.DECRYPT_MODE, pubkey)
     val decryptedResponse = rsa.doFinal(response)
     if (!Arrays.equals(decryptedResponse,challenge)) return null
@@ -322,19 +326,15 @@ class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=Htt
  *
  * @param block The code to execute in relation to the database.
  */
-inline fun <R> accountDb(resourceName: String = DBRESOURCE, crossinline block: AccountDb.() -> R): R {
-
-  val ic = InitialContext()
-  //    val username = ic.lookup(AUTHDBADMINUSERNAME) as String
-  //    val password = ic.lookup(AUTHDBADMINPASSWORD) as String
-  return accountDb(ic.lookup(resourceName) as DataSource, block)
+inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() -> R): R {
+  return accountDb(InitialContext().lookup(resourceName) as DataSource, block)
 }
 //
 //inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
 //  return dataSource.connection { AccountDb(it).block() }
 //}
 
-inline fun <R> accountDb(dataSource: DataSource, crossinline block: AccountDb.() -> R): R {
+inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
   return WebAuthDB.connect(dataSource) {
     AccountDb(this).block()
   }

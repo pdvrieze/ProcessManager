@@ -74,7 +74,7 @@ class AccountController : HttpServlet() {
         const val MIN_RESET_DELAY = 60*1000 // 60 seconds between reset requests
     }
 
-    private inline fun <R> accountDb(crossinline block: AccountDb.()->R): R = accountDb(DBRESOURCE, block)
+    private inline fun <R> accountDb(block: AccountDb.()->R): R = accountDb(DBRESOURCE, block)
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
@@ -175,9 +175,13 @@ class AccountController : HttpServlet() {
                 if (verifyCredentials(username, password)) {
                     if (pubkey.isNullOrBlank()) {
                         resp.contentType("text/plain")
-                        resp.writer.use { it.append("authenticated ").appendln(username) }
+                        resp.writer.use {
+                            it.append("authenticated:").appendln(username)
+                        }
                     } else {
-                        registerkey(username, pubkey, appname, keyid?.toLong())
+                        val newKeyId = registerkey(username, pubkey, appname, keyid?.toLong())
+                        resp.contentType("text/plain")
+                        resp.writer.use { it.append("key:").appendln(newKeyId.toString())}
                     }
 
                 } else {
@@ -276,9 +280,20 @@ class AccountController : HttpServlet() {
     private fun issueChallenge(req:HttpServletRequest, resp: HttpServletResponse, keyid: Int) {
         accountDb {
             cleanChallenges()
-            val challenge = newChallenge(keyid, req.remoteAddr) // This should fail on an incorrect keyid due to integrity constraints
+            val challenge: String
+            try {
+                challenge = newChallenge(keyid, req.remoteAddr) // This should fail on an incorrect keyid due to integrity constraints
+            } catch (e: AuthException) {
+                resp.contentType("text/plain")
+                resp.status = e.errorCode
+                resp.writer.use { it.appendln("INVALID REQUEST") }
+                if (e.errorCode== HttpServletResponse.SC_NOT_FOUND) { // missing code
+                    return
+                }
+                throw e
+            }
             resp.contentType("text/plain")
-            resp.writer.use { it.append(challenge) }
+            resp.writer.use { it.appendln(challenge) }
         }
     }
 
