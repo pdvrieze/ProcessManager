@@ -79,7 +79,16 @@ open class AccountDb(private val connection:DBConnection) {
           .WHERE { u.user eq username  }.execute(connection)!=0
   }
 
-  private fun generateAuthToken() = Base64.encoder().encodeToString(random.nextBytes(32))
+  private fun generateAuthToken() = buildString {
+    Base64.encoder().encode(random.nextBytes(32)).asSequence()
+          .map { b -> b.toChar() }
+          .forEach { c ->  when (c) {
+      '+' -> append('-')
+      '/' -> append('_')
+      '=' -> {}
+      else -> append(c)
+    } }
+  }
 
   fun createAuthtoken(username: String, remoteAddr: String, keyid: Int? = null): String {
     val token = generateAuthToken()
