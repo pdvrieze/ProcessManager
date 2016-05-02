@@ -25,10 +25,15 @@
 package nl.adaptivity.process.messaging;
 
 import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.ws.soap.SoapHelper;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 
 /**
@@ -71,13 +76,23 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> The type of the actual return value returned in the result of the
  *          SOAP message.
  */
-public class ActivityResponse<T> {
+@XmlDeserializer(ActivityResponse.Factory.class)
+public class ActivityResponse<T> implements XmlSerializable, SimpleXmlDeserializable {
 
   public static final String NAMESPACE = ProcessConsts.Engine.NAMESPACE;
 
-  public static final String ELEMENTNAME = "ActivityResponse";
+  public static final String ELEMENTLOCALNAME = "ActivityResponse";
+  public static final QName ELEMENTNAME = new QName(NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   public static final String ATTRTASKSTATE = "taskState";
+
+  public static class Factory implements XmlDeserializerFactory<ActivityResponse<?>>{
+
+    @Override
+    public ActivityResponse<?> deserialize(final XmlReader in) throws XmlException {
+      return ActivityResponse.deserialize(in);
+    }
+  }
 
   private T mReturnValue;
 
@@ -112,6 +127,47 @@ public class ActivityResponse<T> {
   @NotNull
   public static <V> ActivityResponse<V> create(final NodeInstanceState nodeInstanceState, final Class<V> returnType, final V returnValue) {
     return new ActivityResponse<>(nodeInstanceState, returnType, returnValue);
+  }
+
+  public static <T> ActivityResponse<T> deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.<ActivityResponse<T>>deserializeHelper(new ActivityResponse<T>(),in);
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeAttribute(@NotNull final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, @NotNull final CharSequence attributeValue) {
+    switch(attributeLocalName.toString()) {
+      case "taskState" : setTaskStateString(attributeValue.toString()); return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader in) throws XmlException {
+
+  }
+
+  @NotNull
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeAttribute(out, "taskState", mNodeInstanceState.name());
+
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   /**
