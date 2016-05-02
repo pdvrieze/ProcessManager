@@ -158,7 +158,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       }
 
       final SoapSeeAlso seeAlso = Annotations.getAnnotation(parameterAnnotations[i], SoapSeeAlso.class);
-      mParams[i] = SoapHelper.unMarshalNode(mMethod, parameterTypes[i], seeAlso==null ? new Class<?>[0] : seeAlso.value(), value);
+      mParams[i] = SoapHelper.unMarshalNode(mMethod, parameterTypes[i], seeAlso == null ? new Class<?>[0] : seeAlso.value(), parameterAnnotations[i], value);
 
     }
     if (params.size() > 0) {

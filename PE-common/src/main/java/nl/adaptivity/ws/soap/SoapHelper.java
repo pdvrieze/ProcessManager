@@ -23,11 +23,11 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlUtil;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
@@ -46,6 +46,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.Principal;
@@ -55,20 +56,41 @@ import java.util.*;
 /**
  * Static helper method that helps with handling soap requests and responses.
  *
+ * TODO fix this big mess by refactoring it.
+ *
  * @author Paul de Vrieze
  */
 public class SoapHelper {
 
   public static class XmlDeserializationHelper {
-    public static boolean isDeserializable(Class<?> clazz) {
-      return clazz.getAnnotation(XmlDeserializer.class)!=null;
+    public static Class<? extends XmlDeserializerFactory<?>> deserializationTarget(Class<?> clazz, Annotation[] paramContext) {
+      XmlDeserializer annotation = getFactoryAnnotation(clazz, paramContext);
+      if (annotation!=null) { return annotation.value(); }
+      else return null;
     }
 
-    public static <T> T deserialize(Class<T> pClass, Node value) throws XmlException {
-      XmlDeserializer deserializer = pClass.getAnnotation(XmlDeserializer.class);
+    private static XmlDeserializer getFactoryAnnotation(final Class<?> clazz, final Annotation[] paramContext) {
+      {
+        XmlDeserializer result = clazz.getAnnotation(XmlDeserializer.class);
+        if (result!=null) { return result; }
+      }
+      if (paramContext!=null) {
+        for (final Annotation a : paramContext) {
+          if (a instanceof SoapSeeAlso) {
+            for (final Class<?> refClass : ((SoapSeeAlso) a).value()) {
+              final XmlDeserializer result = refClass.getAnnotation(XmlDeserializer.class);
+              if (result != null) { return result; }
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    public static <T> T deserialize(Class<T> target, Class<? extends XmlDeserializerFactory<? extends T>> deserializer, Node value) throws XmlException {
       try {
-        XmlDeserializerFactory<?> factory = deserializer.value().newInstance();
-        return pClass.cast(factory.deserialize(XmlStreaming.newReader(new DOMSource(value))));
+        XmlDeserializerFactory<? extends T> factory = deserializer.newInstance();
+        return target.cast(factory.deserialize(XmlStreaming.newReader(new DOMSource(value))));
       } catch (InstantiationException | IllegalAccessException e) {
         throw new XmlException(e);
       }
@@ -259,13 +281,13 @@ public class SoapHelper {
     return wrapper;
   }
 
-  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Source source) throws XmlException {
+  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Source source) throws XmlException {
     XmlReader in = XmlStreaming.newReader(source);
     Envelope<CompactFragment> env = Envelope.deserialize(in);
-    return processResponse(resultType, context, env);
+    return processResponse(resultType, context, useSiteAnnotations, env);
   }
 
-  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Envelope<CompactFragment> env) {
+  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Annotation[] useSiteAnnotations, final Envelope<CompactFragment> env) {
     final CompactFragment bodyContent = env.getBody().getBodyContent();
     try {
       XmlReader reader = XMLFragmentStreamReader.from(bodyContent);
@@ -280,7 +302,7 @@ public class SoapHelper {
           case START_ELEMENT: {
             LinkedHashMap<String, Node> params = unmarshalWrapper(reader);
             // This is the parameter wrapper
-            return unMarshalNode(null, resultType, context, params.get(RESULT));
+            return unMarshalNode(null, resultType, context, useSiteAnnotations, params.get(RESULT));
           }
           default:
             XmlReaderUtil.unhandledEvent(reader);
@@ -292,9 +314,9 @@ public class SoapHelper {
     }
   }
 
-  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Writable pContent) throws XmlException {
+  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Writable pContent) throws XmlException {
     final Envelope<CompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
-    return processResponse(resultType, context, env);
+    return processResponse(resultType, context, useSiteAnnotations, env);
   }
 
   static <T> LinkedHashMap<String, Node> unmarshalWrapper(final XmlReader reader) throws XmlException {
@@ -395,7 +417,7 @@ public class SoapHelper {
     return result;
   }
 
-  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) throws XmlException {
+  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] jaxbContext, final Annotation[] useSiteAnnotations, final Node pAttrWrapper) throws XmlException {
     Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
     while (value !=null && value instanceof Text && XmlUtil.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
     Object result;
@@ -421,20 +443,17 @@ public class SoapHelper {
         }
       } else {
         Class<?> helper = null;
-        boolean deserializable;
+        Class<?> deserializabletargetType = null;
         try {
           helper = Class.forName(XmlDeserializationHelper.class.getName(), true, pClass.getClassLoader());
-          Method isDeserializable = helper.getMethod("isDeserializable", Class.class);
-          Object invoke = isDeserializable.invoke(null, pClass);
-          deserializable = ((Boolean) invoke).booleanValue();
-        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
-          throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+          Method deserializationTarget = helper.getMethod("deserializationTarget", Class.class, useSiteAnnotations.getClass());
+          deserializabletargetType = (Class<?>) deserializationTarget.invoke(null, pClass, useSiteAnnotations);
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
           throw new RuntimeException(e);
         }
-        if (deserializable) {
+        if (deserializabletargetType!=null) {
           try {
-            result = helper.getMethod("deserialize", Class.class, Node.class).invoke(null, pClass, value);
+            result = helper.getMethod("deserialize", Class.class, Class.class, Node.class).invoke(null, pClass, deserializabletargetType, value);
           } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException(e);
           } catch (InvocationTargetException e) {
@@ -455,11 +474,11 @@ public class SoapHelper {
             JAXBContext context;
 
             if (pClass.isInterface()) {
-              context = newJAXBContext(pMethod, Arrays.asList(pContext));
+              context = newJAXBContext(pMethod, Arrays.asList(jaxbContext));
             } else {
-              List<Class<?>> list = new ArrayList<>(1 + (pContext == null ? 0 : pContext.length));
+              List<Class<?>> list = new ArrayList<>(1 + (jaxbContext == null ? 0 : jaxbContext.length));
               list.add(pClass);
-              if (pContext != null) { list.addAll(Arrays.asList(pContext)); }
+              if (jaxbContext != null) { list.addAll(Arrays.asList(jaxbContext)); }
               context = newJAXBContext(pMethod, list);
             }
             final Unmarshaller um = context.createUnmarshaller();
@@ -480,7 +499,7 @@ public class SoapHelper {
             }
 
           } catch (final JAXBException e) {
-            throw new MessagingException(e);
+            throw new MessagingException("Error unmarshalling node "+pAttrWrapper, e);
           }
         }
       }
