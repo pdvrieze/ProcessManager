@@ -188,7 +188,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
   public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
     try(Transaction transaction = mService.newTransaction()) {
-      return mService.getPendingTask(transaction, Handles.<XmlTask>handle(Long.parseLong(handle)), user);
+      return transaction.commit(mService.getPendingTask(transaction, Handles.<XmlTask>handle(Long.parseLong(handle)), user));
     }
   }
 
@@ -201,7 +201,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
   public NodeInstanceState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
     try (Transaction transaction = mService.newTransaction()) {
-      return mService.startTask(transaction, Handles.<XmlTask>handle(handle), user);
+      return transaction.commit(mService.startTask(transaction, Handles.<XmlTask>handle(handle), user));
     }
   }
 
@@ -214,7 +214,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
   public NodeInstanceState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
     try (Transaction transaction = mService.newTransaction()) {
-      return mService.takeTask(transaction, Handles.<XmlTask>handle(handle), user);
+      return transaction.commit(mService.takeTask(transaction, Handles.<XmlTask>handle(handle), user));
     }
   }
 
@@ -229,7 +229,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
   public NodeInstanceState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
     try (Transaction transaction = mService.newTransaction()) {
-      return mService.finishTask(transaction, Handles.<XmlTask>handle(Long.parseLong(handle)), user);
+      return transaction.commit(mService.finishTask(transaction, Handles.<XmlTask>handle(Long.parseLong(handle)), user));
     }
   }
 

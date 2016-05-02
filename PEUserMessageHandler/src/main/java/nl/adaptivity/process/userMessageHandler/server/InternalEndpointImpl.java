@@ -108,7 +108,7 @@ public class InternalEndpointImpl extends UserTaskServiceDescriptor implements G
     try(Transaction transaction = mService.newTransaction()) {
       task.setEndpoint(endPoint);
       final boolean result = mService.postTask(transaction, XmlTask.get(task));
-      return ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean.class, Boolean.valueOf(result));
+      return transaction.commit(ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean.class, result));
     } catch (Exception e) {
       Logger.getAnonymousLogger().log(Level.WARNING, "Error posting task", e);
       throw e;
