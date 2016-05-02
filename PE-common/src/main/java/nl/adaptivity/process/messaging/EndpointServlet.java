@@ -146,6 +146,7 @@ public class EndpointServlet extends HttpServlet {
           }
         } catch (@NotNull final MessagingException e) {
           if (e.getCause() instanceof Exception) {
+            getLogger().log(Level.WARNING, "MessagingException "+e.getMessage(), e);
             throw (Exception) e.getCause();
           } else {
             throw e;
