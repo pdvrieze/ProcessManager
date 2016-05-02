@@ -322,6 +322,9 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
     // No-op, there is no cache
   }
 
+  @Override
+  public void invalidateCache() { /* No-op, no cache */ }
+
   /**
    * <p>
    * {@inheritDoc}

@@ -56,5 +56,7 @@ public interface TransactionedHandleMap<V, T extends Transaction> extends Handle
 
   void invalidateCache(Handle<? extends V> pHandle);
 
+  void invalidateCache();
+
   void clear(T pTransaction) throws SQLException;
 }

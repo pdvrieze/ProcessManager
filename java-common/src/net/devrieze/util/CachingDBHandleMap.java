@@ -188,6 +188,13 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
     invalidateCache(handle);
   }
 
+  @Override
+  public void invalidateCache() {
+    synchronized (mCache) {
+      mCache.clear();
+    }
+  }
+
   private void invalidateCache(final long pHandle) {
     synchronized (mCache) {
       mCache.remove(Long.valueOf(pHandle));

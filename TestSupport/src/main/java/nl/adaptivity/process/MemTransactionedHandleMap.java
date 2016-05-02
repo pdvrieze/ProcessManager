@@ -91,6 +91,9 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   public void invalidateCache(final Handle<? extends T> handle) { /* No-op */ }
 
   @Override
+  public void invalidateCache() { /* No-op */ }
+
+  @Override
   public void clear(final Transaction transaction) throws SQLException {
     clear();
   }
