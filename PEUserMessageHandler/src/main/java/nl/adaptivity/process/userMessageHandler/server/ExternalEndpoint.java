@@ -47,6 +47,8 @@ import java.util.logging.Logger;
  * The external interface to the user task management system. This is for interacting with tasks, not for the process
  * engine to use. The process engine uses the {@link InternalEndpoint internal endpoint}.
  *
+ * The default context path for the methods in this endpoind is `/PEUserMessageHandler/UserMessageService`
+ *
  * Note that task states are ordered and ultimately determined by the process engine. Task states may not always be
  * downgraded.
  */
@@ -126,7 +128,7 @@ public class ExternalEndpoint implements GenericEndpoint {
    */
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
-  public Collection<XmlTask> getPendingTasks(Principal user) throws SQLException{
+  public Collection<XmlTask> getPendingTasks(@RestParam(type = ParamType.PRINCIPAL) Principal user) throws SQLException{
     return getPendingTasks(mService, user);
   }
 
