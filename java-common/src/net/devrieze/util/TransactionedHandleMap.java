@@ -28,6 +28,9 @@ public interface TransactionedHandleMap<V, T extends Transaction> extends Handle
 
   long put(T pTransaction, V pValue) throws SQLException;
 
+  /**
+   * @deprecated use typed {@link #get(Transaction, Handle)}
+   */
   @Deprecated
   V get(T pTransaction, long pHandle) throws SQLException;
 
@@ -35,6 +38,9 @@ public interface TransactionedHandleMap<V, T extends Transaction> extends Handle
 
   V get(T pTransaction, Handle<? extends V> pHandle) throws SQLException;
 
+  /**
+   * @deprecated use typed {@link #get(Transaction, Handle)}
+   */
   @Deprecated
   V set(T pTransaction, long pHandle, V pValue) throws SQLException;
 
@@ -46,11 +52,17 @@ public interface TransactionedHandleMap<V, T extends Transaction> extends Handle
 
   boolean contains(T pTransaction, Handle<? extends V> pHandle) throws SQLException;
 
+  /**
+   * @deprecated use typed {@link #get(Transaction, Handle)}
+   */
   @Deprecated
   boolean contains(T pTransaction, long pHandle) throws SQLException;
 
   boolean remove(T pTransaction, Handle<? extends V> pObject) throws SQLException;
 
+  /**
+   * @deprecated use typed {@link #get(Transaction, Handle)}
+   */
   @Deprecated
   boolean remove(T pTransaction, long pHandle) throws SQLException;
 
