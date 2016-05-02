@@ -16,6 +16,8 @@
 
 package nl.adaptivity.messaging;
 
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,9 +34,20 @@ import java.net.URI;
  *
  * @author Paul de Vrieze
  */
-public class EndpointDescriptorImpl implements EndpointDescriptor {
+@XmlDeserializer(EndpointDescriptorImpl.Factory.class)
+public class EndpointDescriptorImpl implements EndpointDescriptor, XmlSerializable, SimpleXmlDeserializable {
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
+  public static final String ELEMENTLOCALNAME = "endpointDescriptor";
+  public static final QName ELEMENTNAME = new QName(MY_JBI_NS, ELEMENTLOCALNAME, "jbi");
+
+  public static class Factory implements XmlDeserializerFactory<EndpointDescriptorImpl> {
+
+    @Override
+    public EndpointDescriptorImpl deserialize(final XmlReader in) throws XmlException {
+      return EndpointDescriptorImpl.deserialize(in);
+    }
+  }
 
   private String mServiceLocalName;
 
@@ -51,6 +64,54 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
     mServiceNamespace = serviceName.getNamespaceURI();
     mEndpointName = endpointName;
     mEndpointLocation = endpointLocation;
+  }
+
+
+  private static EndpointDescriptorImpl deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.<EndpointDescriptorImpl>deserializeHelper(new EndpointDescriptorImpl(), in);
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    return false; // No children
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    return false; // No child text
+  }
+
+  @Override
+  public boolean deserializeAttribute(@NotNull final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, @NotNull final CharSequence attributeValue) {
+    switch (attributeLocalName.toString()) {
+      case "endpointLocation": mEndpointLocation = URI.create(attributeValue.toString()); return true;
+      case "endpointName": mEndpointName = attributeValue.toString(); return true;
+      case "serviceLocalName": mServiceLocalName = attributeValue.toString(); return true;
+      case "serviceNS": mServiceNamespace = attributeValue.toString(); return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader in) throws XmlException {
+    // do nothing
+  }
+
+  @NotNull
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
+    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtil.writeAttribute(out, "endpointLocation", mEndpointLocation!=null ? mEndpointLocation.toString() : null );
+    XmlWriterUtil.writeAttribute(out, "endpointName", mEndpointName);
+    XmlWriterUtil.writeAttribute(out, "serviceLocalName", mServiceLocalName);
+    XmlWriterUtil.writeAttribute(out, "serviceNS", mServiceNamespace);
+
+    XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
   @Override
