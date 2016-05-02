@@ -375,6 +375,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance> handle) throws
           SQLException {
+    getProcessModels().invalidateCache();
     getInstances().invalidateCache(handle);
     ProcessInstance instance = getInstances().get(transaction, handle);
     if (instance==null) { return false; }
