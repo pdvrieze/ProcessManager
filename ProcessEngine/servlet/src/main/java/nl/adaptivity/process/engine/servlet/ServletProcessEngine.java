@@ -872,12 +872,12 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
             if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
               final Element header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
               if (header != null) {
-                rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+                rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS, ActivityResponse.ELEMENTLOCALNAME);
               }
             }
             if (rootNode != null) {
               // If we receive an ActivityResponse, treat that specially.
-              if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
+              if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
                 final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
                 try (Transaction transaction = mProcessEngine.startTransaction()) {
                   final NodeInstanceState nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr);
