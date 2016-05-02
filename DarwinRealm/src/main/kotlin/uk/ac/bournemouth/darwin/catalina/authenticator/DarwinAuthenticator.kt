@@ -251,6 +251,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             maxAge = MAXTOKENLIFETIME;
             path="/"
             secure = secureCookie
+            version=1
         }
 
         private fun authenticateHelper(dataSource: DataSource, request: Request, response: HttpServletResponse): AuthResult {
