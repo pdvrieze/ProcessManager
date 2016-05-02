@@ -212,7 +212,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) );
       headers = Collections.<Object> singletonList(mResult);
-    } else if (mResult!=null && "nl.adaptivity.process.messaging.ActivityResponse".equals(mResult.getClass().getName())) {
+    } else if (mResult!=null && ActivityResponse.class.getCanonicalName().equals(mResult.getClass().getCanonicalName())) {
       /*
        * If the ActivityResponse was created by a different classloader like
        * when we directly invoke the endpoint through DarwinMessenger shortcut
