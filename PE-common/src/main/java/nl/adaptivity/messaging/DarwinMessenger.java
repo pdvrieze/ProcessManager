@@ -21,7 +21,6 @@ import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
-import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -587,7 +586,8 @@ public class DarwinMessenger implements IMessenger {
           if (returnType.isAssignableFrom(SourceDataSource.class)) {
             resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", resultSource)));
           } else {
-            final T resultval = SoapHelper.processResponse(returnType, returnContext, resultSource);
+            // TODO make sure to provide the needed context for deserialization.
+            final T resultval = SoapHelper.processResponse(returnType, returnContext, null, resultSource);
             resultfuture = new MessageTask<>(resultval);
           }
 
