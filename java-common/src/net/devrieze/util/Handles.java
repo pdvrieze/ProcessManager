@@ -17,6 +17,9 @@
 package net.devrieze.util;
 
 import net.devrieze.util.HandleMap.ComparableHandle;
+import net.devrieze.util.HandleMap.Handle;
+
+import java.net.URI;
 
 
 public final class Handles {
@@ -83,6 +86,26 @@ public final class Handles {
   public static <T> HandleMap.ComparableHandle<T> handle(final HandleMap.Handle<T> pHandle) {
     if (pHandle instanceof ComparableHandle) { return (ComparableHandle<T>) pHandle; }
     return new SimpleHandle<>(pHandle.getHandle());
+  }
+
+  /**
+   * Convenience method that will parse the handle from a string
+   * @param handle The string for the handle
+   * @param <T>
+   * @return
+   */
+  public static <T> HandleMap.ComparableHandle<T> handle(final String handle) {
+    return handle(Long.parseLong(handle));
+  }
+
+  public static <T> HandleMap.ComparableHandle<T> handle(final URI handle) {
+    String path = handle.getPath();
+    int slashPos = path.lastIndexOf('/');
+    if (slashPos>0) {
+      return handle(path.substring(slashPos+1));
+    } else {
+      return handle(path);
+    }
   }
 
 }
