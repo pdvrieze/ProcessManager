@@ -167,6 +167,13 @@ public class SoapHelper {
       if (headerElem instanceof Node) {
         final Node node = ownerDoc.importNode(((Node) headerElem), true);
         header.appendChild(node);
+      } if (headerElem instanceof XmlSerializable) {
+        try {
+          XmlWriter out = XmlStreaming.newWriter(new DOMResult(header));
+          ((XmlSerializable) headerElem).serialize(out);
+        } catch (XmlException e) {
+          throw new MessagingException(e);
+        }
       } else {
         try {
           Marshaller marshaller;
@@ -446,7 +453,7 @@ public class SoapHelper {
         Class<?> deserializabletargetType = null;
         try {
           helper = Class.forName(XmlDeserializationHelper.class.getName(), true, pClass.getClassLoader());
-          Method deserializationTarget = helper.getMethod("deserializationTarget", Class.class, useSiteAnnotations.getClass());
+          Method deserializationTarget = helper.getMethod("deserializationTarget", Class.class, (new Annotation[0].getClass()));
           deserializabletargetType = (Class<?>) deserializationTarget.invoke(null, pClass, useSiteAnnotations);
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
           throw new RuntimeException(e);
