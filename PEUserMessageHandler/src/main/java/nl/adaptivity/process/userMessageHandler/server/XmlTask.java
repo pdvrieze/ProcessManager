@@ -168,7 +168,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   @Override
-  public void setState(final NodeInstanceState newState, final Principal user) {
+  public void setState(final NodeInstanceState newState, final Principal user) { // TODO handle transactions
     try {
       NodeInstanceState verifiedNewState;
       if (newState == NodeInstanceState.Complete) {

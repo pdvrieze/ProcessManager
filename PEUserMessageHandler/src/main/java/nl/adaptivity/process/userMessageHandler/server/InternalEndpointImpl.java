@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
@@ -33,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -65,7 +67,7 @@ public class InternalEndpointImpl extends UserTaskServiceDescriptor implements G
 
   }
 
-  private final UserMessageService<?> mService;
+  private final UserMessageService<Transaction> mService;
 
   private URI mURI;
 
@@ -73,7 +75,7 @@ public class InternalEndpointImpl extends UserTaskServiceDescriptor implements G
     this(UserMessageService.getInstance());
   }
 
-  public InternalEndpointImpl(UserMessageService<?> service) {
+  public InternalEndpointImpl(UserMessageService<Transaction> service) {
     mService = service;
   }
 
@@ -102,11 +104,10 @@ public class InternalEndpointImpl extends UserTaskServiceDescriptor implements G
   }
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl endPoint, @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask.class) final UserTask<?> task) {
-    try {
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl endPoint, @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask.class) final UserTask<?> task) throws SQLException {
+    try(Transaction transaction = mService.newTransaction()) {
       task.setEndpoint(endPoint);
-      final boolean result = mService.postTask(XmlTask.get(task));
-      task.setState(NodeInstanceState.Acknowledged, task.getOwner()); // Only now mark as acknowledged
+      final boolean result = mService.postTask(transaction, XmlTask.get(task));
       return ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean.class, Boolean.valueOf(result));
     } catch (Exception e) {
       Logger.getAnonymousLogger().log(Level.WARNING, "Error posting task", e);

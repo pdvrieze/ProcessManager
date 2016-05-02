@@ -16,24 +16,17 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
-import nl.adaptivity.messaging.Descriptor;
-import nl.adaptivity.messaging.EndpointDescriptorImpl;
-import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
-import nl.adaptivity.process.messaging.ActivityResponse;
-import nl.adaptivity.process.messaging.GenericEndpoint;
-
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebParam.Mode;
+import net.devrieze.util.Transaction;
+import net.devrieze.util.TransactionedHandleMap;
 
 import java.sql.SQLException;
 
 
-/*@XmlSeeAlso(XmlTask.class)*/
-@Descriptor(UserTaskServiceDescriptor.class)
-public interface InternalEndpoint extends GenericEndpoint {
+/**
+ * Interface with some specific bets for user tasks
+ * Created by pdvrieze on 02/05/16.
+ */
+public interface IUserTaskMap<T extends Transaction> extends TransactionedHandleMap<XmlTask, T> {
 
-  @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl endPoint, @WebParam(name = "taskParam", mode = Mode.IN) final UserTask<?> task) throws SQLException;
-
+  Handle<XmlTask> containsRemoteHandle(final T transaction, long remoteHandle) throws SQLException;
 }

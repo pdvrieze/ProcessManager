@@ -16,9 +16,8 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
-import net.devrieze.util.Transaction;
-import net.devrieze.util.TransactionFactory;
-import net.devrieze.util.TransactionedHandleMap;
+import net.devrieze.util.*;
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissionDeniedException;
@@ -96,10 +95,10 @@ public class UserMessageService<T extends Transaction> implements CompletionList
 
   }
 
-  private final TransactionedHandleMap<XmlTask, T> mTasks;
+  private final IUserTaskMap<T> mTasks;
   private final TransactionFactory<T> mTransactionFactory;
 
-  private UserMessageService(TransactionFactory<T> transactionFactory, TransactionedHandleMap<XmlTask, T> taskMap) {
+  private UserMessageService(TransactionFactory<T> transactionFactory, IUserTaskMap taskMap) {
     mTransactionFactory = transactionFactory;
     mTasks = taskMap;
   }
@@ -109,16 +108,25 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return new UserMessageService<DBTransaction>(transactionFactory, new UserTaskMap(transactionFactory));
   }
 
-  public static <T extends Transaction> UserMessageService<T> newTestInstance(final TransactionFactory<T> transactionFactory, final TransactionedHandleMap<XmlTask, T> taskMap) {
+  public static <T extends Transaction> UserMessageService<T> newTestInstance(final TransactionFactory<T> transactionFactory, final IUserTaskMap<T> taskMap) {
     return new UserMessageService<>(transactionFactory, taskMap);
   }
 
-  private TransactionedHandleMap<XmlTask, T> getTasks() {
+  private IUserTaskMap<T> getTasks() {
     return mTasks;
   }
 
-  public boolean postTask(final XmlTask task) {
-    return getTasks().put(task) >= 0;
+  public boolean postTask(final T transaction, final XmlTask task) throws SQLException {
+    // This must be handled as the response can get lost without the transaction failing.
+    Handle<XmlTask> existingHandle = getTasks().containsRemoteHandle(transaction, task.getRemoteHandle());
+    if (existingHandle!=null) {
+      task.setHandle(existingHandle.getHandle());
+      return false; // no proper update
+    }
+    boolean result = getTasks().put(transaction, task) >= 0;
+    task.setState(NodeInstanceState.Acknowledged, task.getOwner()); // Only now mark as acknowledged
+    return result;
+
   }
 
   public Collection<XmlTask> getPendingTasks(T transaction, final Principal user) {
@@ -130,19 +138,11 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return result;
   }
 
-  public XmlTask getPendingTask(long handle, Principal user) {
-    return getTasks().get(handle);
+  public XmlTask getPendingTask(T transaction, Handle<XmlTask> handle, Principal user) throws SQLException {
+    return getTasks().get(transaction, handle);
   }
 
-  public NodeInstanceState finishTask(final long handle, final Principal user) {
-    try (T transaction = mTransactionFactory.startTransaction()) {
-      return finishTask(transaction, handle, user);
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public NodeInstanceState finishTask(final T transaction, final long handle, final Principal user) throws SQLException {
+  public NodeInstanceState finishTask(final T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
     if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     final XmlTask task = mTasks.get(transaction, handle);
     task.setState(NodeInstanceState.Complete, user);
@@ -152,22 +152,22 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return task.getState();
   }
 
-  private XmlTask getTask(final long handle) {
-    return getTasks().get(handle);
+  private XmlTask getTask(final T transaction, final Handle<XmlTask> handle) throws SQLException {
+    return getTasks().get(transaction, handle);
   }
 
-  public NodeInstanceState takeTask(final long handle, final Principal user) {
+  public NodeInstanceState takeTask(final T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    getTask(handle).setState(NodeInstanceState.Taken, user);
+    getTask(transaction, handle).setState(NodeInstanceState.Taken, user);
     return NodeInstanceState.Taken;
   }
 
-  public XmlTask updateTask(T transaction, long handle, XmlTask partialNewTask, Principal user) throws SQLException {
+  public XmlTask updateTask(T transaction, Handle<XmlTask> handle, XmlTask partialNewTask, Principal user) throws SQLException {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     // This needs to be a copy otherwise the cache will interfere with the changes
     XmlTask currentTask;
     {
-      final XmlTask t = getTask(handle);
+      final XmlTask t = getTask(transaction, handle);
       if (t==null) { return null; }
       currentTask = new XmlTask(t);
     }
@@ -187,9 +187,9 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return currentTask;
   }
 
-  public NodeInstanceState startTask(final long handle, final Principal user) {
+  public NodeInstanceState startTask(T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    getTask(handle).setState(NodeInstanceState.Started, user);
+    getTask(transaction, handle).setState(NodeInstanceState.Started, user);
     return NodeInstanceState.Taken;
   }
 

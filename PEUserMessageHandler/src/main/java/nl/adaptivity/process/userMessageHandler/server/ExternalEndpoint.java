@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.MessagingRegistry;
@@ -60,7 +61,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   public static final String SERVICE_LOCALNAME = "userMessageHandler";
   public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, SERVICE_LOCALNAME);
 
-  private final UserMessageService<?> mService;
+  private final UserMessageService<Transaction> mService;
 
   private URI mURI;
 
@@ -68,7 +69,7 @@ public class ExternalEndpoint implements GenericEndpoint {
     this(UserMessageService.getInstance());
   }
 
-  public ExternalEndpoint(@NotNull UserMessageService<?> service) {
+  public ExternalEndpoint(@NotNull UserMessageService<Transaction> service) {
     mService = service;
   }
 
@@ -168,7 +169,7 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   private static <T extends Transaction> XmlTask updateTask(UserMessageService<T> service, String handle, XmlTask partialNewTask, Principal user) throws SQLException, FileNotFoundException {
     try (T transaction = service.newTransaction()) {
-      final XmlTask result = service.updateTask(transaction, Long.parseLong(handle), partialNewTask, user);
+      final XmlTask result = service.updateTask(transaction, Handles.<XmlTask>handle(handle), partialNewTask, user);
       if (result==null) { throw new FileNotFoundException(); }
       transaction.commit();
       return result;
@@ -185,8 +186,10 @@ public class ExternalEndpoint implements GenericEndpoint {
    * @return The task.
    */
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
-  public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return mService.getPendingTask(Long.parseLong(handle), user);
+  public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
+    try(Transaction transaction = mService.newTransaction()) {
+      return mService.getPendingTask(transaction, Handles.<XmlTask>handle(Long.parseLong(handle)), user);
+    }
   }
 
   /**
@@ -196,8 +199,10 @@ public class ExternalEndpoint implements GenericEndpoint {
    * @return The new state of the task after completion of the request.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
-  public NodeInstanceState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return mService.startTask(Long.parseLong(handle), user);
+  public NodeInstanceState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
+    try (Transaction transaction = mService.newTransaction()) {
+      return mService.startTask(transaction, Handles.<XmlTask>handle(handle), user);
+    }
   }
 
   /**
@@ -207,8 +212,10 @@ public class ExternalEndpoint implements GenericEndpoint {
    * @return The new state of the task after completion of the request.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
-  public NodeInstanceState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return mService.takeTask(Long.parseLong(handle), user);
+  public NodeInstanceState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
+    try (Transaction transaction = mService.newTransaction()) {
+      return mService.takeTask(transaction, Handles.<XmlTask>handle(handle), user);
+    }
   }
 
 
@@ -220,8 +227,10 @@ public class ExternalEndpoint implements GenericEndpoint {
    * @return The new state of the task after completion of the request.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
-  public NodeInstanceState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return mService.finishTask(Long.parseLong(handle), user);
+  public NodeInstanceState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException {
+    try (Transaction transaction = mService.newTransaction()) {
+      return mService.finishTask(transaction, Handles.<XmlTask>handle(Long.parseLong(handle)), user);
+    }
   }
 
   @Override
