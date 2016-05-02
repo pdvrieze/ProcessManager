@@ -124,7 +124,7 @@ public class Base64
 
 		@Override
 		public String encodeToString(final byte[] src) {
-			return Base64.encodeToString(src, true);
+			return Base64.encodeToString(src, false);
 		}
 
 		@Override
