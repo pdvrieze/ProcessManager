@@ -61,7 +61,7 @@ import java.util.*;
  * @author Paul de Vrieze
  */
 public class SoapHelper {
-
+  // TODO should no longer be needed as DarwinMessenger will do the class loader shenanigans.
   public static class XmlDeserializationHelper {
     public static Class<? extends XmlDeserializerFactory<?>> deserializationTarget(Class<?> clazz, Annotation[] paramContext) {
       XmlDeserializer annotation = getFactoryAnnotation(clazz, paramContext);

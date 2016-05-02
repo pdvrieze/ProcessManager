@@ -580,7 +580,7 @@ public class DarwinMessenger implements IMessenger {
         final SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
         Source resultSource;
         try {
-          resultSource = handler.processMessage(XmlStreaming.newReader(message.getBodyReader()), message.getAttachments());
+          resultSource = handler.processMessage(message.getBodyReader(), message.getAttachments());
 
           final MessageTask<T> resultfuture;
           if (returnType.isAssignableFrom(SourceDataSource.class)) {
