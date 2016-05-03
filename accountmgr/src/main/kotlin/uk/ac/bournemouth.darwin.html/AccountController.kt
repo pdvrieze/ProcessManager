@@ -71,6 +71,9 @@ class AccountController : HttpServlet() {
         const val FIELD_NEWPASSWORD1 = "newpassword1"
         const val FIELD_NEWPASSWORD2 = "newpassword2"
 
+        const val CHALLENGE_VERSION = "2"
+        const val HEADER_CHALLENGE_VERSION = "X-Challenge-version"
+
         const val MIN_RESET_DELAY = 60*1000 // 60 seconds between reset requests
     }
 
@@ -293,6 +296,7 @@ class AccountController : HttpServlet() {
                 throw e
             }
             resp.contentType("text/plain")
+            resp.setHeader(HEADER_CHALLENGE_VERSION, CHALLENGE_VERSION)
             resp.writer.use { it.appendln(challenge) }
         }
     }
