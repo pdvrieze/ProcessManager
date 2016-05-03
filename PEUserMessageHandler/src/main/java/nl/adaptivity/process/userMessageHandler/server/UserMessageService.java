@@ -179,11 +179,12 @@ public class UserMessageService<T extends Transaction> implements CompletionList
         }
       }
     }
-
+    // Store the data
+    getTasks().set(transaction, handle, currentTask);
+    transaction.commit(); // the actual state isn't stored anyway.
     // This may update the server.
     currentTask.setState(partialNewTask.getState(), user);
 
-    getTasks().set(transaction, handle, currentTask);
     return currentTask;
   }
 
