@@ -20,6 +20,7 @@ import net.devrieze.util.*;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
+import net.devrieze.util.security.AuthenticationNeededException;
 import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
@@ -143,7 +144,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
   }
 
   public NodeInstanceState finishTask(final T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
-    if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     final XmlTask task = mTasks.get(transaction, handle);
     task.setState(NodeInstanceState.Complete, user);
     if ((task.getState() == NodeInstanceState.Complete) || (task.getState() == NodeInstanceState.Failed)) {
@@ -157,13 +158,13 @@ public class UserMessageService<T extends Transaction> implements CompletionList
   }
 
   public NodeInstanceState takeTask(final T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
-    if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (user==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     getTask(transaction, handle).setState(NodeInstanceState.Taken, user);
     return NodeInstanceState.Taken;
   }
 
   public XmlTask updateTask(T transaction, Handle<XmlTask> handle, XmlTask partialNewTask, Principal user) throws SQLException {
-    if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (user==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     // This needs to be a copy otherwise the cache will interfere with the changes
     XmlTask currentTask;
     {
@@ -189,7 +190,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
   }
 
   public NodeInstanceState startTask(T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
-    if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (user==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     getTask(transaction, handle).setState(NodeInstanceState.Started, user);
     return NodeInstanceState.Taken;
   }

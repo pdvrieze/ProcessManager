@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine.servlet;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.security.PermissionDeniedException;
+import net.devrieze.util.security.AuthenticationNeededException;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
@@ -33,7 +33,8 @@ import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Constants;
@@ -68,7 +69,10 @@ import javax.xml.stream.events.*;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -569,7 +573,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    */
   @WebMethod(operationName = "updateProcessModel")
   public ProcessModelRef updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
-    if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
       processModel.setHandle(handle);
 
@@ -607,7 +611,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    */
   @WebMethod(operationName = "postProcessModel")
   public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
-    if (owner==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (owner==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
       try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));

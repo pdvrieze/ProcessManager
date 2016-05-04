@@ -28,6 +28,7 @@ public abstract class BaseSecurityProvider implements SecurityProvider {
 
   @Override
   public final void ensurePermission(final Permission pPermission, final Principal pUser) {
+    if (pUser==null) { throw new AuthenticationNeededException("For permissions to be available, authentication is needed"); }
     if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return; }
     if (!hasPermission(pPermission, pUser)) {
       throw new PermissionDeniedException(getClass().getSimpleName() + " denied permission to " + pUser.getName() + ". to perform "
@@ -37,6 +38,7 @@ public abstract class BaseSecurityProvider implements SecurityProvider {
 
   @Override
   public final void ensurePermission(final Permission pPermission, final Principal pUser, final Principal pObject) {
+    if (pUser==null) { throw new AuthenticationNeededException("For permissions to be available, authentication is needed"); }
     if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return; }
     if (!hasPermission(pPermission, pUser, pObject)) {
       throw new PermissionDeniedException(getClass().getSimpleName() + " denied permission to " + pUser.getName() + " to perform "
@@ -46,6 +48,7 @@ public abstract class BaseSecurityProvider implements SecurityProvider {
 
   @Override
   public final void ensurePermission(final Permission pPermission, final Principal pUser, final SecureObject pObject) {
+    if (pUser==null) { throw new AuthenticationNeededException("For permissions to be available, authentication is needed"); }
     if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return; }
     if (!hasPermission(pPermission, pUser, pObject)) {
       throw new PermissionDeniedException(getClass().getSimpleName() + " denied permission to " + pUser.getName() + " to perform "

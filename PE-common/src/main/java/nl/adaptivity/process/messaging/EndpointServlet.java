@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.messaging;
 
+import net.devrieze.util.security.AuthenticationNeededException;
 import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
@@ -154,6 +155,8 @@ public class EndpointServlet extends HttpServlet {
         }
       } catch (@NotNull final HttpResponseException e) {
         response.sendError(e.getResponseCode(), e.getMessage());
+      } catch (@NotNull final AuthenticationNeededException e) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No authenticated user.");
       } catch (@NotNull final PermissionDeniedException e) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
       } catch (@NotNull final FileNotFoundException e) {
