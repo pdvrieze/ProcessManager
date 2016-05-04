@@ -20,7 +20,6 @@ import org.apache.catalina.Authenticator
 import org.apache.catalina.Container
 import org.apache.catalina.Context
 import org.apache.catalina.Lifecycle
-import org.apache.catalina.authenticator.AuthenticatorBase
 import org.apache.catalina.connector.Request
 import org.apache.catalina.connector.Response
 import org.apache.catalina.deploy.LoginConfig
@@ -34,14 +33,16 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl
 import java.io.IOException
+import java.io.PrintStream
 import java.net.URLEncoder
 import java.security.Principal
-import javax.naming.Context as NamingContext
+import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.servlet.ServletException
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletResponse
 import javax.sql.DataSource
+import javax.naming.Context as NamingContext
 
 
 class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
@@ -63,12 +64,30 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         container_ = container
     }
 
+    fun NamingContext.print(out:PrintStream, name:String, indent:Int = 0) {
+        for( binding in listBindings(name)) {
+            out.print(" ".repeat(indent))
+            out.println("${binding.name}")
+            val value = binding.`object`
+            if (value is NamingContext) {
+                value.print(out, binding.name, indent+4)
+            }
+        }
+    }
+
     val dataSource by lazy {
 
         val loader = ContextBindings.getClassLoader()
-        val context = loader.lookup(if (container_ is Context) "comp/env/" else "") as NamingContext
+        try {
+            val context = loader.lookup(if (container_ is Context) "comp/env/" else "") as NamingContext
 
-        context.lookup(resourceName) as DataSource
+            context.lookup(resourceName) as DataSource
+        } catch (e:NamingException) {
+            System.err.println("Failure to look up name $resourceName in context ${loader}")
+            System.err.println("  the context is:")
+            loader.print(System.err, "comp", 6)
+            throw NamingException("Failure to look up $resourceName").initCause(e)
+        }
     }
 
 
