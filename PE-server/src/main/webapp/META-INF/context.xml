@@ -34,7 +34,10 @@
 
     <!-- The authenticator module -->
 
-    <!--Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"/-->
+    <Realm className="uk.ac.bournemouth.darwin.catalina.realm.DarwinRealm"
+           resourceName="jdbc/webauthadm"/>
+
+    <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator" resourceName="jdbc/webauthadm"/>
     <!-- description="The authentication database"-->
     <Resource name="jdbc/webauth"
               auth="Container"
@@ -50,6 +53,21 @@
               registerMbeans="true"
               autoCommit="false"
               username="webauth"/>
+
+    <Resource name="jdbc/webauthadm"
+              auth="Container"
+              driverClassName="com.mysql.jdbc.Driver"
+              factory="org.apache.naming.factory.BeanFactory"
+              password="QfWEsNjJeM"
+              type="com.zaxxer.hikari.HikariDataSource"
+              jdbcUrl="jdbc:mysql://localhost/webauth"
+              connectionTimeout="10000"
+              idleTimeout="180000"
+              maxLifetime="180000"
+              leakDetectionThreshold="10000"
+              registerMbeans="true"
+              autoCommit="false"
+              username="webauthadm"/>
 
     <!-- The process engine database -->
 
