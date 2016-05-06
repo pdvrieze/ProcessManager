@@ -17,7 +17,6 @@
 package nl.adaptivity.util.xml;
 
 import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.xml.StAXWriter;
 import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -53,8 +52,8 @@ public class JAXBAdapter extends XmlAdapter<SimpleAdapter, XmlSerializable> {
     final DocumentFragment content  = document.createDocumentFragment();
     final XMLOutputFactory xof      = XMLOutputFactory.newFactory();
     final XMLStreamWriter  out      = xof.createXMLStreamWriter(new DOMResult(content));
-    // XXX Fix this temporary cast
-    v.serialize((StAXWriter) XmlStreaming.newWriter(new DOMResult(content)));
+
+    v.serialize(XmlStreaming.newWriter(new DOMResult(content)));
     final int childCount = content.getChildNodes().getLength();
     if (childCount == 0) {
       return new SimpleAdapter();
