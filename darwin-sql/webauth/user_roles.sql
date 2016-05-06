@@ -1,4 +1,4 @@
-DROP TABLE `user_roles`;
+DROP TABLE IF EXISTS `user_roles`;
 CREATE TABLE `user_roles` (
   `user` varchar(30) NOT NULL,
   `role` varchar(40) NOT NULL,

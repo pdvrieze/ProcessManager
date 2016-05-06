@@ -1,4 +1,4 @@
-DROP TABLE `challenges`;
+DROP TABLE IF EXISTS `challenges`;
 
 CREATE TABLE `challenges` (
   `keyid` int(11) NOT NULL DEFAULT '0',

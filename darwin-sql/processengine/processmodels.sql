@@ -1,6 +1,6 @@
-DROP TABLE `processmodels`;
-DROP TABLE `pmusers`;
-DROP TABLE `pmroles`;
+DROP TABLE IF EXISTS `processmodels`;
+DROP TABLE IF EXISTS `pmusers`;
+DROP TABLE IF EXISTS `pmroles`;
 
 CREATE TABLE `processmodels` (
   `pmhandle` BIGINT NOT NULL AUTO_INCREMENT,

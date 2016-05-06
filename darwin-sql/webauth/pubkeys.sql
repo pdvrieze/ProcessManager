@@ -1,4 +1,4 @@
-DROP TABLE `pubkeys`;
+DROP TABLE IF EXISTS `pubkeys`;
 
 CREATE TABLE `pubkeys` (
   `keyid` int(11) NOT NULL AUTO_INCREMENT,

@@ -1,8 +1,8 @@
-DROP TABLE `pnipredecessors`;
-DROP TABLE `nodedata`;
-DROP TABLE `instancedata`;
-DROP TABLE `processnodeinstances`;
-DROP TABLE `processinstances`;
+DROP TABLE IF EXISTS `pnipredecessors`;
+DROP TABLE IF EXISTS `nodedata`;
+DROP TABLE IF EXISTS `instancedata`;
+DROP TABLE IF EXISTS `processnodeinstances`;
+DROP TABLE IF EXISTS `processinstances`;
 
 CREATE TABLE `processinstances` (
   `pihandle` BIGINT NOT NULL AUTO_INCREMENT,

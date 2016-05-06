@@ -1,4 +1,4 @@
-DROP TABLE `roles`;
+DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
   `role` varchar(30) NOT NULL,
   `description` varchar(120) DEFAULT NULL,

@@ -1,4 +1,4 @@
-DROP TABLE `tokens`;
+DROP TABLE IF EXISTS `tokens`;
 
 CREATE TABLE `tokens` (
   `tokenid` int(11) NOT NULL AUTO_INCREMENT,

@@ -1,4 +1,4 @@
-DROP TABLE `app_perms`;
+DROP TABLE IF EXISTS `app_perms`;
 
 CREATE TABLE `app_perms` (
   `user` varchar(30) NOT NULL,

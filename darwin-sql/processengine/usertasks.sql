@@ -1,5 +1,5 @@
-DROP TABLE `nodedata`;
-DROP TABLE `usertasks`;
+DROP TABLE IF EXISTS `nodedata`;
+DROP TABLE IF EXISTS `usertasks`;
 
 CREATE TABLE `usertasks` (
   `taskhandle` BIGINT NOT NULL AUTO_INCREMENT,

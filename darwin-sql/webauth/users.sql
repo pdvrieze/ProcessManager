@@ -1,4 +1,4 @@
-DROP TABLE `users`;
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `user` VARCHAR(30) NOT NULL,
   `fullname` VARCHAR(80),
