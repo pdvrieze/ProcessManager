@@ -19,7 +19,7 @@ package nl.adaptivity.util.xml;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlUtilKt;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public class XmlDelegatingReader implements XmlReader {
     EventType event;
     while ((event=next())!=EventType.START_ELEMENT && event!=EventType.END_ELEMENT && event!=null) {
       if (event==EventType.TEXT) {
-        if (!XmlUtilKt.isXmlWhitespace(getText())) {
+        if (!XmlUtil.isXmlWhitespace(getText())) {
           throw new XmlException("Unexpected text content");
         }
       }

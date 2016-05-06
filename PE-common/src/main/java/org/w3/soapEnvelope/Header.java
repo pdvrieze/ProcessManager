@@ -109,7 +109,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public boolean deserializeChildText(final CharSequence elementText) {
-    if (XmlUtilKt.isXmlWhitespace(elementText)) { return true; }
+    if (XmlUtil.isXmlWhitespace(elementText)) { return true; }
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     try {
       Document doc = dbf.newDocumentBuilder().newDocument();
