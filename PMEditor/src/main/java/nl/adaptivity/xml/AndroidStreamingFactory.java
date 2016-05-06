@@ -16,7 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import nl.adaptivity.xml.XmlStreaming.XmlStreamingFactory;
 import org.xmlpull.v1.XmlPullParserException;
 
 import javax.xml.transform.Result;

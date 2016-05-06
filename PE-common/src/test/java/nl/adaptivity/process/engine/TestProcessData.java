@@ -26,7 +26,7 @@ import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlStreaming.XmlStreamingFactory;
+import nl.adaptivity.xml.XmlStreamingFactory;
 import nl.adaptivity.xml.XmlUtil;
 import org.custommonkey.xmlunit.*;
 import org.jetbrains.annotations.NotNull;

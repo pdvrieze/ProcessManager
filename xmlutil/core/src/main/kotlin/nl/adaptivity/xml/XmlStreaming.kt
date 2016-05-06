@@ -20,6 +20,7 @@ import nl.adaptivity.xml.XmlEvent.*
 import nl.adaptivity.xml.XmlStreaming.EventType
 import nl.adaptivity.xml.XmlStreaming.deSerialize
 import java.io.*
+import java.util.*
 
 import javax.xml.stream.XMLStreamException
 import javax.xml.transform.Result
@@ -31,67 +32,6 @@ import javax.xml.transform.Source
  * Created by pdvrieze on 15/11/15.
  */
 object XmlStreaming {
-
-  private class DefaultFactory : XmlStreamingFactory {
-
-    @Throws(XmlException::class)
-    override fun newWriter(writer: Writer, repairNamespaces: Boolean): XmlWriter {
-      try {
-        return StAXWriter(writer, repairNamespaces)
-      } catch (e: XMLStreamException) {
-        throw XmlException(e)
-      }
-    }
-
-    @Throws(XmlException::class)
-    override fun newWriter(outputStream: OutputStream, encoding: String, repairNamespaces: Boolean): XmlWriter {
-      try {
-        return StAXWriter(outputStream, encoding, repairNamespaces)
-      } catch (e: XMLStreamException) {
-        throw XmlException(e)
-      }
-    }
-
-    @Throws(XmlException::class)
-    override fun newWriter(result: Result, repairNamespaces: Boolean): XmlWriter {
-      try {
-        return StAXWriter(result, repairNamespaces)
-      } catch (e: XMLStreamException) {
-        throw XmlException(e)
-      }
-    }
-
-    @Throws(XmlException::class)
-    override fun newReader(reader: Reader): XmlReader {
-      try {
-        return StAXReader(reader)
-      } catch (e: XMLStreamException) {
-        throw XmlException(e)
-      }
-    }
-
-    @Throws(XmlException::class)
-    override fun newReader(inputStream: InputStream, encoding: String?): XmlReader {
-      try {
-        return StAXReader(inputStream, encoding)
-      } catch (e: XMLStreamException) {
-        throw XmlException(e)
-      }
-    }
-
-    @Throws(XmlException::class)
-    override fun newReader(source: Source): XmlReader {
-      try {
-        return StAXReader(source)
-      } catch (e: XMLStreamException) {
-        throw XmlException(e)
-      }
-    }
-
-    companion object {
-      internal val DEFAULTFACTORY = DefaultFactory()
-    }
-  }
 
 
   enum class EventType {
@@ -216,31 +156,16 @@ object XmlStreaming {
   }
 
 
-  interface XmlStreamingFactory {
-
-    @Throws(XmlException::class)
-    fun newWriter(writer: Writer, repairNamespaces: Boolean): XmlWriter
-
-    @Throws(XmlException::class)
-    fun newWriter(outputStream: OutputStream, encoding: String, repairNamespaces: Boolean): XmlWriter
-
-    @Throws(XmlException::class)
-    fun newWriter(result: Result, repairNamespaces: Boolean): XmlWriter
-
-    @Throws(XmlException::class)
-    fun newReader(source: Source): XmlReader
-
-    @Throws(XmlException::class)
-    fun newReader(reader: Reader): XmlReader
-
-    @Throws(XmlException::class)
-    fun newReader(inputStream: InputStream, encoding: String?): XmlReader
-  }
+  private val serviceLoader:ServiceLoader<XmlStreamingFactory> by lazy { ServiceLoader.load(XmlStreamingFactory::class.java) }
 
   private var _factory: XmlStreamingFactory? = null
 
   private val factory: XmlStreamingFactory
-    get() = _factory?:DefaultFactory.DEFAULTFACTORY
+    get() {
+      val currentFactory = _factory
+      if (currentFactory !=null) return currentFactory
+      return serviceLoader.first()
+    }
 
   @Throws(XmlException::class)
   @JvmStatic

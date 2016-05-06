@@ -35,6 +35,8 @@ dependencies {
     compile project(':darwinlib')
     compile project(':DarwinJavaApi')
     compile project(':JavaCommonApi')
+    compile project(':xmlutil:android')
+
     testCompile 'junit:junit:4.12'
     testCompile project(path: ':PE-common', configuration: 'testJarConfig')
 //    testCompile 'org.robolectric:robolectric:3.0'

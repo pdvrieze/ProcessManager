@@ -48,6 +48,7 @@ import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
@@ -60,6 +61,7 @@ import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.*;
 import java.nio.charset.Charset;
 import java.security.Principal;
@@ -206,6 +208,8 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     }
 
   }
+
+  private volatile static MethodHandle _getDelegate;
 
   private Map<String, String> mPathParams;
 
@@ -501,7 +505,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
       XMLOutputFactory factory = XMLOutputFactory.newInstance();
       factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
       try {
-        StAXWriter out = (StAXWriter) XmlStreaming.newWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding(), true);
+        XmlWriter out = XmlStreaming.newWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding(), true);
         try {
           out.startDocument(null, null, null);
           ((XmlSerializable) value).serialize(out);
@@ -635,7 +639,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     }
     try {
       // As long as JAXB is an option, we have to know that this is a StAXWriter as JAXB needs to write to that.
-      try(StAXWriter xmlWriter = (StAXWriter) XmlStreaming.newWriter(outputStream, "UTF-8")) {
+      try(XmlWriter xmlWriter = XmlStreaming.newWriter(outputStream, "UTF-8")) {
         Marshaller marshaller = null;
         XmlWriterUtil.smartStartTag(xmlWriter, outerTagName);
         for(Object item:collection) {
@@ -654,15 +658,28 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
                 }
                 marshaller = jaxbcontext.createMarshaller();
               }
-              marshaller.marshal(item, xmlWriter.getDelegate());
+              marshaller.marshal(item, (XMLStreamWriter) getDelegateMethod().invoke(xmlWriter));
             }
           }
         }
         XmlWriterUtil.endTag(xmlWriter, outerTagName);
       }
-    } catch (final XmlException | JAXBException e) {
+    } catch (Throwable e) {
       throw new MessagingException(e);
     }
+  }
+
+  private static MethodHandle getDelegateMethod() {
+    if (_getDelegate==null) {
+      try {
+        _getDelegate = MethodHandles.lookup()
+                                    .findVirtual(Class.forName("nl.adaptivity.xml.StAXWriter"),
+                                                 "getDelegate", MethodType.methodType(XMLStreamWriter.class));
+      } catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return _getDelegate;
   }
 
   private JAXBContext newJAXBContext(final Class<?>... pClasses) throws JAXBException {
