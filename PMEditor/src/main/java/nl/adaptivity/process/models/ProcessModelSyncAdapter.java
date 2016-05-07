@@ -158,6 +158,12 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
         } finally {
           ins.close();
         }
+      } else if (status==404) {
+        // Somehow already deleted on the server
+        syncResult.stats.numConflictDetectedExceptions++;
+        final ContentValues cv = new ContentValues(1);
+        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+        return new SimpleContentValuesProvider(cv, false);
       }
     } finally {
       response.disconnect();
