@@ -148,6 +148,14 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
         } finally {
           input.close();
         }
+      } else if (status==404) {
+        ContentValues cv = new ContentValues(1);
+        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+        if (Log.isLoggable(TAG, android.util.Log.DEBUG)) {
+          LogUtil.logResponse(TAG, Log.DEBUG, "Nonexisting process model: "+url.toString(), urlConnection.getResponseMessage(), urlConnection.getErrorStream());
+        }
+        ++syncResult.stats.numSkippedEntries;
+        return new SimpleContentValuesProvider(cv, false);
       } else {
         final String statusline = Integer.toString(urlConnection.getResponseCode()) + urlConnection.getResponseMessage();
         //noinspection WrongConstant
