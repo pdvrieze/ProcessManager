@@ -148,14 +148,14 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   public void updateItemFromUI() {
     mItem.setName(mBinding.editName.getText().toString());
     if (mBinding.editLabel.getVisibility() == View.VISIBLE) {
-      mItem.setLabel(toItemValue(mBinding.editLabel, mItem.getLabel()));
+      mItem.setLabel(toItemValue(mBinding.editLabel, "label", mItem.getLabel()));
     }
     if (mBinding.editValue.getVisibility() == View.VISIBLE) {
-      mItem.setValue(toItemValue(mBinding.editValue, mItem.getValue()));
+      mItem.setValue(toItemValue(mBinding.editValue, "value", mItem.getValue()));
     }
   }
 
-  public CharSequence toItemValue(final EditText source, final CharSequence currentValue) {
+  public CharSequence toItemValue(final EditText source, final String paramName, final CharSequence currentValue) {
     final String currentName = mBinding.editName.getText().toString();
     if (! (currentValue instanceof ModifySequence)) {
       if (! hasVariables(source.getText())) {
@@ -164,7 +164,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
         final VariableSpan[] spans     = new VariableSpan[0];
         final XmlDefineType  newDefine = createDefine(getDefineName("d_" + currentName), source.getText());
         mListener.updateDefine(newDefine);
-        return ModifySequence.newAttributeSequence("value", newDefine.getName(),null);
+        return ModifySequence.newAttributeSequence(paramName, newDefine.getName(),null);
       }
     } else { //
       final ModifySequence current = (ModifySequence) currentValue;
