@@ -79,14 +79,16 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
   }
 
   public static final int SYNC_PUBLISH_TO_SERVER = 6;
-  public static final int SYNC_DELETE_ON_SERVER = 7;
-  public static final int SYNC_UPDATE_SERVER = 1;
-  public static final int SYNC_UPTODATE = 0;
-  public static final int SYNC_PENDING = 2;
-  public static final int SYNC_NEWDETAILSPENDING = 3;
-  public static final int SYNC_DETAILUPDATEPENDING = 8;
-  public static final int SYNC_UPDATE_SERVER_PENDING = 4;
+  public static final int SYNC_DELETE_ON_SERVER             = 7;
+  public static final int SYNC_UPDATE_SERVER                = 1;
+  public static final int SYNC_UPTODATE                     = 0;
+  public static final int SYNC_PENDING                      = 2;
+  public static final int SYNC_NEWDETAILSPENDING            = 3;
+  public static final int SYNC_DETAILUPDATEPENDING          = 8;
+  public static final int SYNC_UPDATE_SERVER_PENDING        = 4;
   public static final int SYNC_UPDATE_SERVER_DETAILSPENDING = 5;
+  public static final int SYNC_LOCAL_ONLY                   = -1;
+  public static final int SYNC_DELETE                       = -2;
 
   RemoteXmlSyncAdapterDelegate mCoordinator;
 

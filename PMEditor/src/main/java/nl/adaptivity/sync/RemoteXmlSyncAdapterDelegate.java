@@ -296,7 +296,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
                 .build());
             ++syncResult.stats.numInserts;
             result.add(new CVPair(localId, newLocalValues)); // These need to be resolved from the batch operation
-          } else if (localSyncState==SYNC_UPTODATE) {
+          } else if (localSyncState==SYNC_UPTODATE || localSyncState == SYNC_DELETE_ON_SERVER || localSyncState == SYNC_DELETE) {
             operations.add(ContentProviderOperation.newDelete(itemUri).build());
             ++syncResult.stats.numDeletes;
           } else {
