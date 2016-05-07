@@ -205,7 +205,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
 
   private void doSaveFile(final Writer out, final ClientProcessModel<?, ?> processModel) throws IOException {
     try {
-      PMParser.serializeProcessModel(out , processModel);
+      PMParser.exportProcessModel(out , processModel);
     } catch (XmlPullParserException | XmlException e) {
       throw new IOException(e);
     }
@@ -213,7 +213,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
 
   private void doSaveFile(final OutputStream out, final ClientProcessModel<?, ?> processModel) throws IOException {
     try {
-      PMParser.serializeProcessModel(out , processModel);
+      PMParser.exportProcessModel(out , processModel);
     } catch (XmlException | XmlPullParserException e) {
       throw new IOException(e);
     }

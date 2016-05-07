@@ -233,9 +233,12 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
           final InputStream in = getActivity().getContentResolver().openInputStream(data.getData());
           try {
             final DrawableProcessModel pm  = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
+            pm.setHandle(-1);
             final Uri                  uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
             final long                 id  = ContentUris.parseId(uri);
-            doOnItemSelected(AdapterView.INVALID_POSITION, id);
+            if (isVisible()&& ! isRemoving()) {
+              doOnItemSelected(AdapterView.INVALID_POSITION, id);
+            }
           } finally {
             in.close();
           }

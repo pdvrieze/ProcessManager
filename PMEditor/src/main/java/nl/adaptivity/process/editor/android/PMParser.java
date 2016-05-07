@@ -35,6 +35,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static nl.adaptivity.xml.XmlStreaming.END_ELEMENT;
 
@@ -56,6 +57,23 @@ public final class PMParser {
     final AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
     processModel.serialize(writer);
     writer.close();
+  }
+
+  public static void exportProcessModel(final OutputStream out, final ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
+    ClientProcessModel<?,?> sanitizedModel = sanitizeForExport(processModel);
+    serializeProcessModel(out, sanitizedModel);
+  }
+
+  public static void exportProcessModel(final Writer out, final ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
+    ClientProcessModel<?,?> sanitizedModel = sanitizeForExport(processModel);
+    serializeProcessModel(out, sanitizedModel);
+  }
+
+  private static ClientProcessModel<?, ?> sanitizeForExport(final ClientProcessModel<?, ?> processModel) {
+    ClientProcessModel<?, ?> result = DrawableProcessModel.get(processModel);
+    if (result.getUuid()==null) { result.setUuid(UUID.randomUUID()); }
+    result.setHandle(-1);
+    return result;
   }
 
   private static BetterXmlSerializer getSerializer() throws XmlPullParserException {
