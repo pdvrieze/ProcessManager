@@ -20,6 +20,7 @@ import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.ReaderInputStream;
 import net.devrieze.util.Types;
+import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -340,7 +341,11 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     // TODO support collection/list parameters
     if ((result != null) && (!pClass.isInstance(result))) {
       if ((Types.isPrimitive(pClass) || (Types.isPrimitiveWrapper(pClass))) && (result instanceof String)) {
-        result = Types.parsePrimitive(pClass, ((String) result));
+        try {
+          result = Types.parsePrimitive(pClass, ((String) result));
+        } catch (NumberFormatException e) {
+          throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "The argument given is invalid", e);
+        }
       } else if (Enum.class.isAssignableFrom(pClass)) {
         @SuppressWarnings({ "rawtypes" })
         final Class clazz = pClass;
