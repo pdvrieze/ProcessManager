@@ -613,6 +613,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
     if (owner==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
+      processModel.setHandle(-1); // The handle cannot be set
       try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));
       } catch (SQLException e) {
@@ -669,7 +670,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
          @WebParam(name="handle") @RestParam(name = "handle", type = ParamType.VAR) final long handle,
          @WebParam(name="name") @RestParam(name = "name", type = ParamType.QUERY) final String name,
          @WebParam(name="uuid") @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
-         @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
+         @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws FileNotFoundException {
     try (Transaction transaction = mProcessEngine.startTransaction()){
       UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
       return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ProcessModelImpl>handle(handle), name, uuid, null));

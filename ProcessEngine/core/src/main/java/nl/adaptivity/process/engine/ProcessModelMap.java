@@ -35,11 +35,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 
-public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
+public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> implements IProcessModelMap<DBTransaction> {
 
 
   private static final String TABLE = "processmodels";
@@ -186,6 +188,26 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
       // Ignore. Don't even use the default implementation
     }
 
+  }
+
+  @Override
+  public ProcessModelImpl getModelWithUuid(final DBTransaction transaction, final UUID uuid) throws SQLException {
+    List<Long> candidates = new ArrayList<>();
+    try(PreparedStatement statement = transaction.prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_MODEL+" LIKE '%?%'")){
+      statement.setString(1, uuid.toString());
+      try (ResultSet rs = statement.executeQuery()) {
+        while (rs.next()) {
+          candidates.add(rs.getLong(1));
+        }
+      }
+    }
+    for(long candidateHandle: candidates) {
+      ProcessModelImpl candidate = get(transaction, candidateHandle);
+      if (uuid.equals(candidate.getUuid())) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   public ProcessModelMap(TransactionFactory transactionFactory, StringCache stringCache) {

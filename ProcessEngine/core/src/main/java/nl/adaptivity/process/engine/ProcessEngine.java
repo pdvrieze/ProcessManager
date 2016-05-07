@@ -28,11 +28,14 @@ import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance.State;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.processModel.ProcessModelBase;
-import nl.adaptivity.process.processModel.engine.*;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl.ExecutableSplitFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -134,7 +137,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   private TransactionedHandleMap<ProcessNodeInstance, T> mNodeInstanceMap = null;
 
-  private TransactionedHandleMap<ProcessModelImpl, T> mProcessModels = null;
+  private IProcessModelMap<T> mProcessModels = null;
 
   private final IMessageService<?, ProcessNodeInstance> mMessageService;
 
@@ -168,7 +171,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    */
   private ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService,
                         TransactionFactory transactionFactory,
-                        TransactionedHandleMap<ProcessModelImpl, T> processModels,
+                        IProcessModelMap<T> processModels,
                         TransactionedHandleMap<ProcessInstance, T> processInstances,
                         TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
     mMessageService = messageService;
@@ -192,7 +195,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, ProcessNodeInstance> messageService,
                                                                 TransactionFactory transactionFactory,
-                                                                TransactionedHandleMap<ProcessModelImpl, T> processModels,
+                                                                IProcessModelMap<T> processModels,
                                                                 TransactionedHandleMap<ProcessInstance, T> processInstances,
                                                                 TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
@@ -218,6 +221,18 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @throws SQLException
    */
   public IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> addProcessModel(T transaction, final ProcessModelBase<?, ?> basepm, final Principal user) throws SQLException {
+    UUID uuid = basepm.getUuid();
+    if (uuid==null) { uuid = UUID.randomUUID(); basepm.setUuid(uuid); } else {
+      Handle<ProcessModelImpl> handle = getProcessModels().getModelWithUuid(transaction, uuid);
+      if (handle!=null && handle.getHandle()!=-1) {
+        try {
+          updateProcessModel(transaction, handle, basepm, user);
+        } catch (FileNotFoundException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user);
 
     if (basepm.getOwner() == null) {
@@ -229,8 +244,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     pm = ProcessModelImpl.from(basepm);
 
     pm.cacheStrings(mStringCache);
-    UUID uuid = pm.getUuid();
-    if (uuid==null) { uuid = UUID.randomUUID(); pm.setUuid(uuid); }
+
     return new ProcessModelRef(pm.getName(), getProcessModels().put(transaction, pm), uuid);
   }
 
@@ -329,12 +343,12 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
 
-  private TransactionedHandleMap<ProcessModelImpl, T> getProcessModels() {
+  private IProcessModelMap<T> getProcessModels() {
     if (mProcessModels ==null) {
 
       // TODO Hack to use the db backed implementation here
       @SuppressWarnings("raw")
-      TransactionedHandleMap<ProcessModelImpl, T> tmp = (TransactionedHandleMap) new ProcessModelMap(mTransactionFactory, mStringCache);
+      IProcessModelMap<T> tmp = (IProcessModelMap) new ProcessModelMap(mTransactionFactory, mStringCache);
       mProcessModels = tmp;
     }
     return mProcessModels;
@@ -405,7 +419,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException When database operations fail.
    */
-  public HProcessInstance startProcess(T transaction, final Principal user, final ProcessModelImpl model, final String name, final UUID uuid, final Node payload) throws SQLException {
+  public HProcessInstance startProcess(T transaction, final Principal user, final ProcessModelImpl model, final String name, final UUID uuid, final Node payload) throws SQLException, FileNotFoundException {
+    if (model==null) throw new FileNotFoundException("The process model does not exist");
     if (user == null) {
       throw new HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
@@ -433,7 +448,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException
    */
-  public HProcessInstance startProcess(T transaction, final Principal user, final Handle<? extends ProcessModelImpl> handle, final String name, UUID uuid, final Node payload) throws SQLException {
+  public HProcessInstance startProcess(T transaction, final Principal user, final Handle<? extends ProcessModelImpl> handle, final String name, UUID uuid, final Node payload) throws SQLException, FileNotFoundException {
     ProcessModelImpl processModel = getProcessModels().get(transaction, handle);
     return startProcess(transaction, user, processModel, name, uuid, payload);
   }

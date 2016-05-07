@@ -164,7 +164,7 @@ public class TestProcessEngine {
   @BeforeMethod
   public void beforeTest() {
     mStubMessageService.clear();
-    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemTransactionedHandleMap<ProcessModelImpl>(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
+    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemProcessModelMap(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {
