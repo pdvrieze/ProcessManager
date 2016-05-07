@@ -115,5 +115,6 @@
     <string name="edit_item_label_name">name:</string>
     <string name="edit_item_label_type">type:</string>
     <string name="nav_share">Share</string>
+    <string name="title_activity_overview_debug">Debug PMI</string>
 
 </resources>

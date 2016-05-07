@@ -99,6 +99,9 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
         } catch (IOException e) {
           syncResult.stats.numIoExceptions++;
           Log.e(TAG, "Error contacting server", e);
+        } catch (RuntimeException e) {
+          syncResult.stats.numIoExceptions++; // Record as an IO exception
+          Log.e(TAG, "An unknown error occurred synchronizing", e);
         } catch (RemoteException|OperationApplicationException e) {
           syncResult.databaseError=true;
           Log.e(TAG, "Error updating database", e);

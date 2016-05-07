@@ -95,12 +95,14 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   private long mModelIdToInstantiate = -1L;
 
 
+  protected ActivityOverviewBinding bindLayout() { return DataBindingUtil.setContentView(this, R.layout.activity_overview); }
+
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getSupportFragmentManager().addOnBackStackChangedListener(this);
     mTitle = getTitle();
-    mBinding = DataBindingUtil.setContentView(this, R.layout.activity_overview);
+    mBinding = bindLayout();
     setSupportActionBar(mBinding.overviewAppBar.toolbar);
 
     final DrawerLayout drawer = mBinding.overviewDrawer;
@@ -222,7 +224,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   @Override
   public void onBackStackChanged() {
     final FragmentManager fm = getSupportFragmentManager();
-    final Fragment currentFragment = fm.findFragmentById(R.id.overview_container);
+    final Fragment currentFragment = fm.findFragmentById(mBinding.overviewAppBar.overviewContainer.getId());
     int navId=-1;
     if (currentFragment instanceof OverviewFragment) {
       navId = R.id.nav_home;
@@ -309,7 +311,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
       ((TaskListOuterFragment)mActiveFragment).showTask(taskId);
     } else {
       mActiveFragment = TaskListOuterFragment.newInstance(taskId);
-      getSupportFragmentManager().beginTransaction().replace(R.id.overview_container, mActiveFragment).addToBackStack("task").commit();
+      getSupportFragmentManager().beginTransaction().replace(mBinding.overviewAppBar.overviewContainer.getId(), mActiveFragment).addToBackStack("task").commit();
     }
   }
 
@@ -337,7 +339,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
           mActiveFragment = TaskListOuterFragment.newInstance(itemId);
           @SuppressLint("CommitTransaction")
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
-                                                                         .replace(R.id.overview_container, mActiveFragment, "tasks");
+                                                                         .replace(mBinding.overviewAppBar.overviewContainer.getId(), mActiveFragment, "tasks");
           if (addToBackstack) { transaction.addToBackStack("tasks"); }
           transaction.commit();
         }
@@ -348,7 +350,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
           mActiveFragment = ProcessModelListOuterFragment.newInstance(itemId);
           @SuppressLint("CommitTransaction")
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
-                                                                        .replace(R.id.overview_container, mActiveFragment, "models");
+                                                                        .replace(mBinding.overviewAppBar.overviewContainer.getId(), mActiveFragment, "models");
           if (addToBackstack) { transaction.addToBackStack("models"); }
           transaction.commit();
         }
@@ -364,7 +366,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
       }
     }
 
-    final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer);
+    final DrawerLayout drawer = mBinding.overviewDrawer;
     drawer.closeDrawer(GravityCompat.START);
     return true;
   }

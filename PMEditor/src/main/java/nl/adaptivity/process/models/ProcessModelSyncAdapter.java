@@ -87,6 +87,9 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
     final URI uri = getListUrl(delegator.getSyncSource()).resolve(Long.toString(handle));
     final GetRequest request = new GetRequest(uri);
     final HttpURLConnection response = delegator.getWebClient().execute(request);
+    if (response==null) {
+      throw new IOException("Connection failed");
+    }
 
     final int status = response.getResponseCode();
     try {
