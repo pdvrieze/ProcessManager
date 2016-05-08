@@ -70,8 +70,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
       id = ContentUris.parseId(mUri);
       final Cursor handleCursor = getContext().getContentResolver().query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id), new String[] {ProcessModels.COLUMN_HANDLE}, null, null, null);
       try {
-        handleCursor.moveToFirst();
-        if (!handleCursor.isNull(0)) {
+        if (handleCursor.moveToFirst() && !handleCursor.isNull(0)) {
           handle = Long.valueOf(handleCursor.getLong(0));
         }
       } finally {
