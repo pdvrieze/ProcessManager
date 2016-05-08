@@ -282,12 +282,12 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
    */
   public ParcelableActivity getParcelableResult() {
     final List<TaskItem> items = mAdapter.getContent();
-    final EditableUserTask EditableUserTask;
+    final EditableUserTask editableUserTask;
     if (mActivity.getUserTask()==null) {
-      EditableUserTask = new EditableUserTask(null, null, null, items);
+      editableUserTask = new EditableUserTask(null, null, null, items);
     } else {
-      EditableUserTask = mActivity.getUserTask();
-      EditableUserTask.setItems(items);
+      editableUserTask = mActivity.getUserTask();
+      editableUserTask.setItems(items);
     }
     for(final TaskItem item: items) {
       if (! (item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName()) || (item.getName() instanceof ModifySequence) )) {
@@ -299,7 +299,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
         }
       }
     }
-    mActivity.setMessage(EditableUserTask.asMessage());
+    mActivity.setMessage(editableUserTask.asMessage());
 
     return mActivity;
   }
