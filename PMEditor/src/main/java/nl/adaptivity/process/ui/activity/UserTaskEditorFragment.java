@@ -47,15 +47,15 @@ import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
 import nl.adaptivity.process.util.CharSequenceDecorator;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
-import nl.adaptivity.xml.Namespace;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -291,9 +291,10 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     }
     for(final TaskItem item: items) {
       if (! (item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName()) || (item.getName() instanceof ModifySequence) )) {
-        final XmlResultType result = getResultFor(item.getName().toString());
+        // TODO use existing prefix instead of hardcoded
+        final XmlResultType result = getResultFor(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, item.getName().toString());
         if (result==null) {
-          final XmlResultType newResult = new XmlResultType(getResultName("r_"+item.getName()), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
+          final XmlResultType newResult = new XmlResultType(getResultName("r_"+item.getName()), getResultPath(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, item.getName().toString()), (char[]) null, new SimpleNamespaceContext(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS));
           mActivity.getResults().add(newResult);
         }
       }
@@ -308,8 +309,8 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
    * @param name The name of the value
    * @return The first matching result, or null, if none found.
    */
-  private XmlResultType getResultFor(final String name) {
-    final String xpath = "/value/" + name + "/text()";
+  private XmlResultType getResultFor(final String prefix, final String name) {
+    final String xpath = getResultPath(prefix, name);
     for (final XmlResultType candidate : mActivity.getResults()) {
       if (CollectionUtil.isNullOrEmpty(candidate.getContent()) && xpath.equals(candidate.getPath())) {
         return candidate;
@@ -317,6 +318,8 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     }
     return null;
   }
+
+  private String getResultPath(final String prefix, final String valueName) {return "/" + prefix + "result/value[@name='" + valueName + "']/text()";}
 
   private String getResultName(final String candidate) {
     if (mActivity.getResult(candidate) ==null ) {
