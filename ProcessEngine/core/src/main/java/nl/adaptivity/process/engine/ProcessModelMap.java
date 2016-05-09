@@ -193,8 +193,8 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> implem
   @Override
   public ProcessModelImpl getModelWithUuid(final DBTransaction transaction, final UUID uuid) throws SQLException {
     List<Long> candidates = new ArrayList<>();
-    try(PreparedStatement statement = transaction.prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_MODEL+" LIKE '%?%'")){
-      statement.setString(1, uuid.toString());
+    try(PreparedStatement statement = transaction.prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_MODEL+" LIKE ?")){
+      statement.setString(1, '%'+uuid.toString()+'%');
       try (ResultSet rs = statement.executeQuery()) {
         while (rs.next()) {
           candidates.add(rs.getLong(1));
