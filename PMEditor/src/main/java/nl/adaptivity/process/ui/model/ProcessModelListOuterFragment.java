@@ -48,7 +48,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
   public interface ProcessModelListCallbacks {
 
-    void requestSyncProcessModelList(boolean immediate);
+    void requestSyncProcessModelList(boolean immediate, long minAge);
 
     void onInstantiateModel(long id, String suggestedName);
 
@@ -95,7 +95,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   public void onStart() {
     super.onStart();
     if (mCallbacks!=null) {
-      mCallbacks.requestSyncProcessModelList(true);
+      mCallbacks.requestSyncProcessModelList(true, ProcessSyncManager.DEFAULT_MIN_AGE);
     }
   }
 

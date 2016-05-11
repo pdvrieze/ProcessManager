@@ -124,7 +124,7 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
   @Override
   public ProcessSyncManager getSyncManager() {
     if (mSyncManager ==null) {
-      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
+      mSyncManager = new ProcessSyncManager(this, AuthenticatedWebClient.getStoredAccount(this));
     }
     return mSyncManager;
   }

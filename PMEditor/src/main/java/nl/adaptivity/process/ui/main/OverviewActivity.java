@@ -193,7 +193,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
 
           @Override
           protected void onPostExecute(final Long itemId) {
-            onNavigationItemSelected(mNavTarget, false, itemId.longValue());
+            onNavigationItemSelected(mNavTarget, true, itemId.longValue());
             mBinding.navView.setCheckedItem(mNavTarget);
           }
         };
@@ -288,7 +288,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
     // Handle navigation view item clicks here.
     final int id = item.getItemId();
 
-    return onNavigationItemSelected(id, false);
+    return onNavigationItemSelected(id, true);
   }
 
   @Override
@@ -387,13 +387,13 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   }
 
   @Override
-  public void requestSyncProcessModelList(final boolean immediate) {
-    getSyncManager().requestSyncProcessModelList(immediate);
+  public void requestSyncProcessModelList(final boolean immediate, final long minAge) {
+    getSyncManager().requestSyncProcessModelList(immediate, minAge);
   }
 
   @Override
-  public void requestSyncTaskList(final boolean immediate) {
-    getSyncManager().requestSyncTaskList(immediate);
+  public void requestSyncTaskList(final boolean immediate, final long minAge) {
+    getSyncManager().requestSyncTaskList(immediate, minAge);
   }
 
   @Override

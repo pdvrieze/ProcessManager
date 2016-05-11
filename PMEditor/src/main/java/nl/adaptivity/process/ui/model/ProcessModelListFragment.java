@@ -177,7 +177,7 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
   }
 
   private void doManualRefresh() {
-    getCallbacks().getSyncManager().requestSyncProcessModelList(true);
+    getCallbacks().getSyncManager().requestSyncProcessModelList(true, ProcessSyncManager.DEFAULT_MIN_AGE);
     mManualSync=true;
     updateSyncState();
 

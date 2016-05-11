@@ -17,6 +17,7 @@
 package nl.adaptivity.android.util;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
@@ -53,7 +54,8 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
    * A dummy implementation of the {@link ListCallbacks} interface that does
    * nothing. Used only when this fragment is not attached to an activity.
    */
-  public static final ListCallbacks sDummyCallbacks = new ListCallbacks() {
+  public final ListCallbacks sDummyCallbacks = new ListCallbacks() {
+    Context context = MasterListFragment.this.getContext();
     @Override public boolean onItemClicked(final int row, final long id) {/*dummy, not processed*/ return false; }
     @Override
     public void onItemSelected(final int row, final long id) {/*dummy*/}
@@ -65,7 +67,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
 
     @Override
     public ProcessSyncManager getSyncManager() {
-      return new ProcessSyncManager(null);
+      return new ProcessSyncManager(getContext(), null);
     }
   };
 

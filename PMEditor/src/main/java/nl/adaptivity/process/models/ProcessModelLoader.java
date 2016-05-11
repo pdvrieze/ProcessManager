@@ -25,6 +25,8 @@ import android.support.v4.content.AsyncTaskLoader;
 import net.devrieze.util.Tupple;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
 
 public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
@@ -61,26 +63,35 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
     Long handle = mHandle>=0 ? Long.valueOf(mHandle) : null;
     final DrawableProcessModel processModel;
     final long id;
+    final ProcessModelHolder modelHolder;
     if (handle!=null) {
-      final Tupple<DrawableProcessModel, Long> tupple = ProcessModelProvider.getProcessModelForHandle(getContext(), mHandle);
-      processModel = tupple.getElem1();
-      id = tupple.getElem2();
+      modelHolder = ProcessModelProvider.getProcessModelForHandle(getContext(), mHandle);
     } else {
       processModel = ProcessModelProvider.getProcessModel(getContext(), mUri);
       id = ContentUris.parseId(mUri);
-      final Cursor handleCursor = getContext().getContentResolver().query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id), new String[] {ProcessModels.COLUMN_HANDLE}, null, null, null);
+      final Cursor handleCursor = getContext().getContentResolver()
+                                              .query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id),
+                                                     new String[] {ProcessModels.COLUMN_HANDLE,
+                                                                   XmlBaseColumns.COLUMN_SYNCSTATE}, null, null, null);
+      boolean publicationPending;
       try {
-        if (handleCursor.moveToFirst() && !handleCursor.isNull(0)) {
-          handle = Long.valueOf(handleCursor.getLong(0));
+        if (handleCursor.moveToFirst()) {
+          handle = handleCursor.isNull(0)? null : Long.valueOf(handleCursor.getLong(0));
+          publicationPending = handleCursor.getInt(1) == RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER;
+          modelHolder =new ProcessModelHolder(processModel, handle, id, publicationPending);
+        } else {
+          modelHolder=null;
         }
       } finally {
         handleCursor.close();
       }
     }
-    final Uri             updateUri       = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
-    final ContentResolver contentResolver = getContext().getContentResolver();
-    contentResolver.registerContentObserver(updateUri, false, mObserver);
-    return new ProcessModelHolder(processModel, handle);
+    if (modelHolder!=null) {
+      final Uri             updateUri       = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, modelHolder.getId());
+
+      getContext().getContentResolver().registerContentObserver(updateUri, false, mObserver);
+    }
+    return modelHolder;
   }
 
   @Override

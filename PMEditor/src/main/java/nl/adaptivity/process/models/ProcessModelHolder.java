@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.models;
 
+import android.content.ContentProvider;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 
 /**
@@ -26,17 +27,23 @@ public class ProcessModelHolder {
   public final DrawableProcessModel model;
   public final Long handle;
   private final boolean mLoading;
+  private final boolean mPublicationPending;
+  private final long id;
 
   public ProcessModelHolder() {
     mLoading = true;
     this.model = null;
     this.handle = null;
+    this.mPublicationPending = false;
+    this.id= -1L;
   }
 
-  public ProcessModelHolder(final DrawableProcessModel model, final Long handle) {
+  public ProcessModelHolder(final DrawableProcessModel model, final long id, final Long handle, boolean publicationPending) {
     mLoading = false;
     this.model = model;
     this.handle = handle;
+    this.mPublicationPending = publicationPending;
+    this.id = id;
   }
 
   public String getName() {
@@ -51,7 +58,15 @@ public class ProcessModelHolder {
     return model==null ? false : model.isFavourite();
   }
 
+  public long getId() {
+    return id;
+  }
+
   public void setFavourite(final boolean favourite) {
     model.setFavourite(favourite);
+  }
+
+  public boolean isPublicationPending() {
+    return mPublicationPending;
   }
 }
