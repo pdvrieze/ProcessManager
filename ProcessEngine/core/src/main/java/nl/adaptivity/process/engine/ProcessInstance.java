@@ -501,18 +501,15 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
   @Override
   public void serialize(XmlWriter out) throws XmlException {
     //
-    if(out.getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
-      out.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
-    }
-    out.startTag(Constants.PROCESS_ENGINE_NS, "processInstance", null);
+    XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX);
     try {
-      out.attribute(null, "handle", null, Long.toString(mHandle));
-      out.attribute(null, "name", null, mName);
-      out.attribute(null, "processModel", null, Long.toString(getProcessModel().getHandle()));
-      out.attribute(null, "owner", null, mOwner.getName());
-      out.attribute(null, "state", null, mState.name());
+      XmlWriterUtil.writeAttribute(out, "handle", mHandle<0 ? null : Long.toString(mHandle));
+      XmlWriterUtil.writeAttribute(out, "name", mName);
+      XmlWriterUtil.writeAttribute(out, "processModel", Long.toString(getProcessModel().getHandle()));
+      XmlWriterUtil.writeAttribute(out, "owner", mOwner.getName());
+      XmlWriterUtil.writeAttribute(out, "state", mState.name());
 
-      out.startTag(Constants.PROCESS_ENGINE_NS, "inputs", null);
+      XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "inputs", null);
       try {
         for(ProcessData input:mInputs) {
           input.serialize(out);
@@ -521,7 +518,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
         out.endTag(Constants.PROCESS_ENGINE_NS, "inputs", null);
       }
 
-      out.startTag(Constants.PROCESS_ENGINE_NS, "outputs", null);
+      XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "outputs", null);
       try {
         for(ProcessData output:mOutputs) {
           output.serialize(out);
@@ -534,7 +531,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
 
         if (mThreads.size() > 0) {
           try {
-            out.startTag(Constants.PROCESS_ENGINE_NS, "active", null);
+            XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "active", null);
             for (Handle<? extends ProcessNodeInstance> active : mThreads) {
               writeActiveNodeRef(transaction, out, active);
             }
@@ -544,7 +541,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
         }
         if (mFinishedNodes.size() > 0) {
           try {
-            out.startTag(Constants.PROCESS_ENGINE_NS, "finished", null);
+            XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "finished", null);
             for (Handle<? extends ProcessNodeInstance> finished : mFinishedNodes) {
               writeActiveNodeRef(transaction, out, finished);
             }
@@ -554,7 +551,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
         }
         if (mEndResults.size() > 0) {
           try {
-            out.startTag(Constants.PROCESS_ENGINE_NS, "endresults", null);
+            XmlWriterUtil.smartStartTag(out, Constants.PROCESS_ENGINE_NS, "endresults", null);
             for (Handle<? extends ProcessNodeInstance> result : mEndResults) {
               writeResultNodeRef(transaction, out, result);
             }
