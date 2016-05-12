@@ -17,7 +17,10 @@
 package nl.adaptivity.xml;
 
 import android.app.Application;
+import android.os.StrictMode;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwinlib.*;
+import nl.adaptivity.android.darwinlib.BuildConfig;
 
 
 /**
@@ -32,5 +35,9 @@ public class XmlApplication extends Application {
     XmlStreaming.setFactory(new AndroidStreamingFactory());
     // Use the default preference database to store the account name (to enable settings)
     AuthenticatedWebClient.setSharedPreferenceName(null);
+
+    if (BuildConfig.DEBUG) {
+      StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyDeath().build());
+    }
   }
 }
