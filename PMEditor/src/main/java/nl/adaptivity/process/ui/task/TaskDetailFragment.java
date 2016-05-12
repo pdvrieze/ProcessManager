@@ -24,6 +24,7 @@ import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
@@ -72,11 +73,15 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
   @Override
   public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+//    setHasOptionsMenu(true);
+  }
 
+  @Override
+  public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
     if (getArguments().containsKey(MasterDetailOuterFragment.ARG_ITEM_ID)) {
       getLoaderManager().initLoader(LOADER_TASKITEM, getArguments(), this);
     }
-//    setHasOptionsMenu(true);
   }
 
   @Override

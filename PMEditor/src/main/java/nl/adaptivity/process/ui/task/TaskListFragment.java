@@ -75,6 +75,13 @@ public class TaskListFragment extends MasterListFragment<ProcessSyncManager> imp
   @Override
   public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public void onActivityCreated(final Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
 
     {
@@ -89,8 +96,6 @@ public class TaskListFragment extends MasterListFragment<ProcessSyncManager> imp
     setListAdapter(mAdapter);
     mTaskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), mAdapter);
     getLoaderManager().initLoader(TASKLISTLOADERID, null, mTaskLoaderCallbacks);
-
-    setHasOptionsMenu(true);
   }
 
   @Override
