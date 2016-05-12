@@ -51,7 +51,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
+public class ProcessInstance<T extends Transaction> implements HandleAware<ProcessInstance<T>>, SecureObject, XmlSerializable {
 
   public enum State {
     NEW,
@@ -186,15 +186,15 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     mState = state == null ? State.NEW : state;
   }
 
-  void setChildren(Transaction transaction, final Collection<? extends Handle<? extends ProcessNodeInstance>> children) throws SQLException {
+  void setChildren(T transaction, final Collection<? extends Handle<? extends ProcessNodeInstance<T>>> children) throws SQLException {
     mThreads.clear();
     mFinishedNodes.clear();
     mEndResults.clear();
 
-    List<ProcessNodeInstance> nodes = new ArrayList<>();
-    TreeMap<ComparableHandle<? extends ProcessNodeInstance>,ProcessNodeInstance> threads = new TreeMap<>();
+    List<ProcessNodeInstance<T>> nodes = new ArrayList<>();
+    TreeMap<ComparableHandle<? extends ProcessNodeInstance<T>>,ProcessNodeInstance<T>> threads = new TreeMap<>();
 
-    for(Handle<? extends ProcessNodeInstance> handle: children) {
+    for(Handle<? extends ProcessNodeInstance<T>> handle: children) {
       final ProcessNodeInstance inst = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
       nodes.add(inst);
       threads.put(Handles.handle(handle), inst);
@@ -207,7 +207,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
         threads.remove(Handles.handle(instance));
       }
 
-      final Collection<Handle<? extends ProcessNodeInstance>> preds = instance.getDirectPredecessors();
+      final Collection<? extends Handle<? extends ProcessNodeInstance>> preds = instance.getDirectPredecessors();
       if (preds!=null) {
         for(Handle<? extends ProcessNodeInstance> pred:preds) {
           ComparableHandle<? extends ProcessNodeInstance> handle = Handles.handle(pred);
@@ -252,13 +252,13 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     }
   }
 
-  public ProcessNodeInstance getNodeInstance(final Transaction transaction, final Identifiable pred) throws SQLException {
+  public ProcessNodeInstance<T> getNodeInstance(final T transaction, final Identifiable identifiable) throws SQLException {
     for (Handle<? extends ProcessNodeInstance> handle: CollectionUtil.combine(mEndResults, mFinishedNodes, mThreads)) {
-      ProcessNodeInstance instance = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
-      if (pred.getId().equals(instance.getNode().getId())) {
+      ProcessNodeInstance<T> instance = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
+      if (identifiable.getId().equals(instance.getNode().getId())) {
         return instance;
       }
-      ProcessNodeInstance result = instance.getPredecessor(transaction, pred.getId());
+      ProcessNodeInstance<T> result = instance.getPredecessor(transaction, identifiable.getId());
       if (result!=null) { return result; }
     }
     return null;
@@ -308,7 +308,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     return mUUid;
   }
 
-  public ProcessEngine getEngine() {
+  public ProcessEngine<T> getEngine() {
     return mEngine;
   }
 
@@ -332,7 +332,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     return mState;
   }
 
-  public synchronized void start(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final Node payload) throws SQLException {
+  public synchronized void start(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final Node payload) throws SQLException {
     if (mState==null) {
       initialize(transaction);
     }
@@ -349,30 +349,30 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
   }
 
   /** Method called when the instance is loaded from the server. This should reinitialise the instance. */
-  public void reinitialize(Transaction transaction) {
+  public void reinitialize(T transaction) {
     // TODO Auto-generated method stub
 
   }
 
-  public synchronized void provideTask(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void provideTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     if (node.provideTask(transaction, messageService)) {
       takeTask(transaction, messageService, node);
     }
   }
 
-  public synchronized void takeTask(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void takeTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     if (node.takeTask(transaction, messageService)) {
       startTask(transaction, messageService, node);
     }
   }
 
-  public synchronized void startTask(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void startTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     if (node.startTask(transaction, messageService)) {
       finishTask(transaction, messageService, node, null);
     }
   }
 
-  public synchronized void finishTask(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node, final Node resultPayload) throws SQLException {
+  public synchronized void finishTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node, final Node resultPayload) throws SQLException {
     if (node.getState() == NodeInstanceState.Complete) {
       throw new IllegalStateException("Task was already complete");
     }
@@ -395,7 +395,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
 
   }
 
-  private void startSuccessors(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance predecessor) throws SQLException {
+  private void startSuccessors(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance predecessor) throws SQLException {
     if (! mFinishedNodes.contains(predecessor)) {
       mFinishedNodes.add(predecessor);
     }
@@ -442,17 +442,17 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     }
   }
 
-  public synchronized void failTask(Transaction transaction, @SuppressWarnings("unused") final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node, final Throwable cause) throws SQLException {
+  public synchronized void failTask(Transaction transaction, @SuppressWarnings("unused") final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node, final Throwable cause) throws SQLException {
     node.failTask(transaction, cause);
   }
 
-  public synchronized void cancelTask(Transaction transaction, @SuppressWarnings("unused") final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void cancelTask(Transaction transaction, @SuppressWarnings("unused") final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     node.cancelTask(transaction);
   }
 
-  public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(Transaction transaction, final JoinImpl join) throws
+  public synchronized Collection<ProcessNodeInstance<T>> getActivePredecessorsFor(T transaction, final JoinImpl join) throws
           SQLException {
-    final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<>(Math.min(join.getPredecessors().size(), mThreads.size()));
+    final ArrayList<ProcessNodeInstance<T>> activePredecesors = new ArrayList<>(Math.min(join.getPredecessors().size(), mThreads.size()));
     for (final Handle<? extends ProcessNodeInstance> hnode : mThreads) {
       ProcessNodeInstance node = getEngine().getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
       if (node.getNode().isPredecessorOf(join)) {
@@ -462,7 +462,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     return activePredecesors;
   }
 
-  public synchronized Collection<? extends Handle<? extends ProcessNodeInstance>> getDirectSuccessors(Transaction transaction, final ProcessNodeInstance predecessor) throws SQLException {
+  public synchronized Collection<? extends Handle<? extends ProcessNodeInstance>> getDirectSuccessors(T transaction, final ProcessNodeInstance predecessor) throws SQLException {
     final ArrayList<Handle<? extends ProcessNodeInstance>> result = new ArrayList<>(predecessor.getNode().getSuccessors().size());
     for (final Handle<? extends ProcessNodeInstance> hcandidate : mThreads) {
       ProcessNodeInstance candidate = getEngine().getNodeInstance(transaction, hcandidate, SecurityProvider.SYSTEMPRINCIPAL);
@@ -471,9 +471,9 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     return result;
   }
 
-  private void addDirectSuccessor(Transaction transaction, final ArrayList<Handle<? extends ProcessNodeInstance>> result, ProcessNodeInstance candidate, final Handle<? extends ProcessNodeInstance> predecessor) throws SQLException {
+  private void addDirectSuccessor(T transaction, final ArrayList<Handle<? extends ProcessNodeInstance>> result, ProcessNodeInstance<T> candidate, final Handle<? extends ProcessNodeInstance> predecessor) throws SQLException {
     // First look for this node, before diving into it's children
-    for (final Handle<? extends ProcessNodeInstance> node : candidate.getDirectPredecessors()) {
+    for (final Handle<? extends ProcessNodeInstance<?>> node : candidate.getDirectPredecessors()) {
       if (node.getHandle() == predecessor.getHandle()) {
         result.add(candidate);
         return; // Assume that there is no further "successor" down the chain
@@ -481,7 +481,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     }
     for (final Handle<? extends ProcessNodeInstance> hnode : candidate.getDirectPredecessors()) {
       // Use the fact that we start with a proper node to get the engine and get the actual node based on the handle (which might be a node itself)
-      ProcessNodeInstance node = candidate.getProcessInstance().getEngine().getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
+      ProcessNodeInstance<T> node = candidate.getProcessInstance().getEngine().getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
       addDirectSuccessor(transaction, result, node, predecessor);
     }
   }
@@ -527,7 +527,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
         out.endTag(Constants.PROCESS_ENGINE_NS, "outputs", null);
       }
 
-      try(Transaction transaction = getEngine().startTransaction()) {
+      try(T transaction = getEngine().startTransaction()) {
 
         if (mThreads.size() > 0) {
           try {
@@ -569,7 +569,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
 
   }
 
-  private void writeActiveNodeRef(Transaction transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
+  private void writeActiveNodeRef(T transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
           XmlException, SQLException {
     ProcessNodeInstance nodeInstance = getEngine().getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
     out.startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null);
@@ -580,7 +580,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     }
   }
 
-  private void writeResultNodeRef(Transaction transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
+  private void writeResultNodeRef(T transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
           XmlException, SQLException {
     ProcessNodeInstance nodeInstance = getEngine().getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
     out.startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null);
@@ -627,7 +627,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
    * @param transaction The database transaction to use
    * @param messageService The message service to use for messenging.
    */
-  public void tickle(Transaction transaction, IMessageService<?, ProcessNodeInstance> messageService) {
+  public void tickle(T transaction, IMessageService<?, T, ProcessNodeInstance<T>> messageService) {
     for(Handle<? extends ProcessNodeInstance> handle: mThreads) {
       try {
         getEngine().tickleNode(transaction, handle);

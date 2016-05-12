@@ -35,6 +35,10 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
     mHandle = handle;
   }
 
+  public XmlHandle(Handle<? extends T> handle) {
+    mHandle = handle.getHandle();
+  }
+
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
     return false;

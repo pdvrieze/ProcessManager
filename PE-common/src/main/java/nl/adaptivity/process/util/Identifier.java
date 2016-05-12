@@ -23,14 +23,19 @@ import org.jetbrains.annotations.Nullable;
  * A class representing a simple identifier. It just holds a single string.
  */
 public final class Identifier implements Identifiable {
-  private static class ChangableIdentifier implements Identifiable {
+  private static class ChangeableIdentifier implements Identifiable {
 
     private final String mIdBase;
     private int mIdNo;
 
-    public ChangableIdentifier(final String idBase) {
+    public ChangeableIdentifier(final String idBase) {
       mIdBase = idBase;
       mIdNo = 1;
+    }
+
+    @Override
+    public int compareTo(final Identifiable o) {
+      return getId().compareTo(o.getId());
     }
 
     public void next() {
@@ -71,6 +76,11 @@ public final class Identifier implements Identifiable {
   }
 
   @Override
+  public int compareTo(final Identifiable o) {
+    return mID.compareTo(o.getId());
+  }
+
+  @Override
   public int hashCode() {
     return mID.hashCode();
   }
@@ -81,7 +91,7 @@ public final class Identifier implements Identifiable {
   }
 
   public static String findIdentifier(String idBase, Iterable<? extends Identifiable> exclusions) {
-    ChangableIdentifier idFactory = new ChangableIdentifier(idBase);
+    ChangeableIdentifier idFactory = new ChangeableIdentifier(idBase);
     outer: for(String candidate=idFactory.getId(); true; idFactory.next(), candidate = idFactory.getId()) {
       for(Identifiable exclusion: exclusions) {
         if (candidate.equals(exclusion.getId())) {

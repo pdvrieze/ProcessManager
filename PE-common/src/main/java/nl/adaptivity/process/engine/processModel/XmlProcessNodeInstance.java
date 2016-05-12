@@ -24,6 +24,8 @@
 
 package nl.adaptivity.process.engine.processModel;
 
+import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handles;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
@@ -60,7 +62,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   private static final String BODY_LOCALNAME = "body";
   static final QName BODY_ELEMENTNAME = new QName(Engine.NAMESPACE, BODY_LOCALNAME, Engine.NSPREFIX);
 
-  private List<Long> mPredecessors;
+  private List<Handle<? extends IProcessNodeInstance<?,?>>> mPredecessors;
 
   @XmlElement(required = true)
   protected CompactFragment mBody;
@@ -86,7 +88,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
    * Gets the value of the predecessor property.
    */
   @XmlElement(name="predecessor")
-  public List<Long> getPredecessors() {
+  public List<Handle<? extends IProcessNodeInstance<?,?>>> getPredecessors() {
     if (mPredecessors == null) {
       mPredecessors = new ArrayList<>();
     }
@@ -97,7 +99,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   public boolean deserializeChild(final XmlReader in) throws XmlException {
     if (XmlReaderUtil.isElement(in, Engine.NAMESPACE, "predecessor")) {
       if (mPredecessors == null) { mPredecessors = new ArrayList<>(); }
-      mPredecessors.add(Long.parseLong(XmlReaderUtil.readSimpleElement(in).toString()));
+      mPredecessors.add(Handles.<IProcessNodeInstance<?,?>>handle(XmlReaderUtil.readSimpleElement(in).toString()));
       return true;
     } else if (XmlReaderUtil.isElement(in, Engine.NAMESPACE, "body")) {
       mBody = XmlReaderUtil.elementContentToFragment(in);
@@ -273,8 +275,8 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
       XmlWriterUtil.writeAttribute(out, "nodeid", mNodeId);
     }
     if (mPredecessors!=null) {
-      for (Long predecessor: mPredecessors) {
-        XmlWriterUtil.writeSimpleElement(out, PREDECESSOR_ELEMENTNAME, predecessor.toString());
+      for (Handle<?> predecessor: mPredecessors) {
+        XmlWriterUtil.writeSimpleElement(out, PREDECESSOR_ELEMENTNAME, Long.toString(predecessor.getHandle()));
       }
     }
     if (mResults!=null) {

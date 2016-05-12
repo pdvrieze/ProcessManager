@@ -28,6 +28,7 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.Collections;
 
 
@@ -64,22 +65,22 @@ public class SplitImpl extends SplitBase<ExecutableProcessNode, ProcessModelImpl
   }
 
   @Override
-  public boolean condition(final Transaction transaction, final IProcessNodeInstance<?> instance) {
+  public <T extends Transaction> boolean condition(final T transaction, final IProcessNodeInstance<T, ?> instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final Transaction transaction, final IMessageService<T, U> messageService, final U instance) {
+  public <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean provideTask(final T transaction, final IMessageService<V, T, U> messageService, final U instance) throws SQLException {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> messageService, final U instance) {
+  public <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean takeTask(final IMessageService<V, T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> messageService, final U instance) {
+  public <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean startTask(final IMessageService<V, T, U> messageService, final U instance) {
     return true;
   }
 

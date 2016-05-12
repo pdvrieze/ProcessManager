@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.HandleMap.Handle;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
@@ -52,9 +53,9 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
 
   public ProcessModelRef() {}
 
-  public ProcessModelRef(final String name, final long handle, final UUID uuid) {
+  public ProcessModelRef(final String name, final Handle<? extends ProcessModel<?,?>> handle, final UUID uuid) {
     mName = name;
-    mHandle = handle;
+    mHandle = handle.getHandle();
     mUuid = uuid;
   }
 

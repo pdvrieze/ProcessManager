@@ -20,25 +20,26 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.ProcessException;
 import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
+import nl.adaptivity.process.util.Identifiable;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
 
 
-public class JoinInstance extends ProcessNodeInstance {
+public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> {
 
-  public JoinInstance(Transaction transaction, final JoinImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance>> predecessors, final ProcessInstance processInstance) throws SQLException {
+  public JoinInstance(final JoinImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance<?>>> predecessors, final ProcessInstance processInstance, final NodeInstanceState state) {
+    super(node, predecessors, processInstance, state);
+  }
+
+  public JoinInstance(T transaction, final JoinImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance<?>>> predecessors, final ProcessInstance processInstance) throws SQLException {
     super(node, predecessors, processInstance);
-    for (final Handle<? extends ProcessNodeInstance> hpredecessor : predecessors) {
-      ProcessNodeInstance predecessor = processInstance.getEngine().getNodeInstance(transaction, hpredecessor, SecurityProvider.SYSTEMPRINCIPAL);
-      if (predecessor.getState() == NodeInstanceState.Complete) {
-        mComplete += 1;
-      } else {
-        mSkipped += 1;
-      }
-    }
   }
 
   /**
@@ -50,40 +51,14 @@ public class JoinInstance extends ProcessNodeInstance {
     super(transaction, node, processInstance, state);
   }
 
-  private int mComplete = 0;
-
-  private int mSkipped = 0;
-
-  public void incComplete() {
-    mComplete++;
-  }
-
-  public int getTotal() {
-    return mComplete + mSkipped;
-  }
-
-  public int getComplete() {
-    return mComplete;
-  }
-
-  public void incSkipped() {
-    mSkipped++;
-  }
-
   @Override
   public JoinImpl getNode() {
     return (JoinImpl) super.getNode();
   }
 
-  public boolean addPredecessor(Transaction transaction, final ProcessNodeInstance predecessor) throws SQLException {
-    if (canAddNode(transaction)) {
-      getDirectPredecessors().add(predecessor);
-      if (predecessor.getState() == NodeInstanceState.Complete) {
-        mComplete += 1;
-      } else {
-        mSkipped += 1;
-      }
-      return true;
+  public boolean addPredecessor(T transaction, final ProcessNodeInstance predecessor) throws SQLException {
+    if (canAddNode(transaction) && getDirectPredecessors().add(predecessor)) {
+      getProcessInstance().getEngine().updateStorage(transaction, this);
     }
     return false;
   }
@@ -93,29 +68,68 @@ public class JoinInstance extends ProcessNodeInstance {
   }
 
   @Override
-  public <T> boolean startTask(Transaction transaction, final IMessageService<T, ProcessNodeInstance> messageService) {
-    final JoinImpl join = getNode();
-    if (join.startTask(messageService, this)) {
-      if (getTotal() == join.getPredecessors().size()) {
-        return true;
-      }
-      if (mComplete >= join.getMin()) {
-        if (mComplete >= join.getMax()) {
-          return true;
-        }
-        try {
-          return getProcessInstance().getActivePredecessorsFor(transaction, join).size() == 0;
-        } catch (SQLException e) {
-          throw new RuntimeException(e);
-        }
-      }
-      return false;
+  public <V> boolean startTask(T transaction, final IMessageService<V, T, ProcessNodeInstance<T>> messageService) throws SQLException {
+    if (getNode().startTask(messageService, this)) {
+      return updateTaskState(transaction);
     }
     return false;
   }
 
+  /**
+   * Update the state of the task, based on the predecessors
+   * @param transaction The transaction to use for the operations.
+   * @return <code>true</code> if the task is complete, <code>false</code> if not.
+   * @throws SQLException
+   */
+  private boolean updateTaskState(final T transaction) throws SQLException {
+    final JoinImpl join                      = getNode();
+    int            totalPossiblePredecessors = join.getPredecessors().size();
+    int            realizedPredecessors      = getDirectPredecessors().size();
+
+    if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
+      return true;
+    }
+
+    int complete =0;
+    int skipped = 0;
+    for (final ProcessNodeInstance predecessor : getDirectPredecessors(transaction)) {
+      switch(predecessor.getState()) {
+        case Complete:
+          complete +=1;
+          break;
+        case Cancelled:
+        case Failed:
+          skipped +=1;
+          break;
+        default:
+          // do nothing
+      }
+    }
+    if (totalPossiblePredecessors-skipped<join.getMin()) {
+      failTask(transaction, new ProcessException("Too many predecessors have failed"));
+      cancelNoncompletedPredecessors(transaction);
+      return false;
+    }
+
+    if (complete >= join.getMin()) {
+      if (complete >= join.getMax()) {
+        return true;
+      }
+        // XXX todo if we skipped/failed too many predecessors to ever be able to finish,
+      return getProcessInstance().getActivePredecessorsFor(transaction, join).size() == 0;
+    }
+    return false;
+  }
+
+  private void cancelNoncompletedPredecessors(final T transaction) throws SQLException {
+    Collection<ProcessNodeInstance<T>> preds = getProcessInstance().getActivePredecessorsFor(transaction, getNode());
+    for (ProcessNodeInstance<T> pred: preds) {
+      pred.tryCancelTask(transaction);
+    }
+  }
+
   @Override
-  public <T> boolean provideTask(Transaction transaction, final IMessageService<T, ProcessNodeInstance> messageService) throws SQLException {
+  public <V> boolean provideTask(T transaction, final IMessageService<V, T, ProcessNodeInstance<T>> messageService) throws SQLException {
     if (!isFinished()) {
       return getNode().provideTask(transaction, messageService, this);
     }
@@ -132,7 +146,26 @@ public class JoinInstance extends ProcessNodeInstance {
     return canAdd;
   }
 
-  private boolean canAddNode(Transaction transaction) throws SQLException {
+  @Override
+  public void tickle(final T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService) throws SQLException {
+    super.tickle(transaction, messageService);
+    Set<Identifiable> missingIdentifiers = new TreeSet<>();
+    missingIdentifiers.addAll(getNode().getPredecessors());
+    for (Handle<? extends ProcessNodeInstance<?>> predDef : getDirectPredecessors()) {
+      ProcessNodeInstance<T> pred = getProcessInstance().getEngine()
+                                                     .getNodeInstance(transaction, predDef, SecurityProvider.SYSTEMPRINCIPAL);
+      missingIdentifiers.remove(pred.getNode());
+    }
+    for (Identifiable missingIdentifier: missingIdentifiers) {
+      ProcessNodeInstance<T> candidate = getProcessInstance().getNodeInstance(transaction, missingIdentifier);
+      if (candidate!=null) {
+        addPredecessor(transaction, candidate);
+      }
+    }
+    updateTaskState(transaction);
+  }
+
+  private boolean canAddNode(T transaction) throws SQLException {
     if (!isFinished()) {
       return true;
     }

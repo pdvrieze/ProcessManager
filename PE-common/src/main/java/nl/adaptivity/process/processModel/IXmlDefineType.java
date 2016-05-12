@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.XmlSerializable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
@@ -29,7 +30,7 @@ import java.sql.SQLException;
 public interface IXmlDefineType extends XmlSerializable {
 
   @Nullable
-  <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction transaction, IProcessNodeInstance<T> node) throws
+  <T extends Transaction, V extends IProcessNodeInstance<T,V>> ProcessData apply(@NotNull T transaction, @NotNull IProcessNodeInstance<T, V> node) throws
           SQLException;
 
   char[] getContent();

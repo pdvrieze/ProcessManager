@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBHandleMap.HMElementFactory;
 
 
@@ -55,12 +56,12 @@ public abstract class AbstractElementFactory<T> implements HMElementFactory<T> {
   }
 
   @Override
-  public void postStore(DBTransaction pConnection, long pHandle, T pOldValue, T pElement) throws SQLException {
+  public void postStore(DBTransaction pConnection, Handle<? extends T> pHandle, T pOldValue, T pElement) throws SQLException {
     // Simple case, do nothing
   }
 
   @Override
-  public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
+  public void preRemove(DBTransaction pConnection, Handle<? extends T> pHandle) throws SQLException {
     // Don't do anything
   }
 

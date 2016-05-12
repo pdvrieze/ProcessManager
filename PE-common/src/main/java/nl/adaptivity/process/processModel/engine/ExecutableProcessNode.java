@@ -41,16 +41,18 @@ public interface ExecutableProcessNode extends ProcessNode<ExecutableProcessNode
    * @return <code>true</code> if the node can be started, <code>false</code> if
    *         not.
    */
-  boolean condition(Transaction transaction, IProcessNodeInstance<?> instance);
+  <T extends Transaction> boolean condition(T transaction, IProcessNodeInstance<T, ?> instance);
 
   /**
    * Take action to make task available
    *
+   *
+   * @param transaction
    * @param messageService The message service to use for the communication.
    * @param instance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction transaction, IMessageService<T, U> messageService, U instance) throws SQLException;
+  <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean provideTask(T transaction, IMessageService<V, T, U> messageService, U instance) throws SQLException;
 
   /**
    * Take action to accept the task (but not start it yet)
@@ -59,9 +61,9 @@ public interface ExecutableProcessNode extends ProcessNode<ExecutableProcessNode
    * @param instance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */
-  <T, U extends IProcessNodeInstance<U>> boolean takeTask(IMessageService<T, U> messageService, U instance);
+  <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean takeTask(IMessageService<V, T, U> messageService, U instance);
 
-  <T, U extends IProcessNodeInstance<U>> boolean startTask(IMessageService<T, U> messageService, U instance);
+  <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean startTask(IMessageService<V, T, U> messageService, U instance);
 
 
   List<? extends XmlResultType> getResults();

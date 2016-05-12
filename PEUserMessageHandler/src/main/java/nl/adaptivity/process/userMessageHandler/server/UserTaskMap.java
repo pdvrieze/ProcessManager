@@ -18,7 +18,6 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
-import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
@@ -125,7 +124,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTas
     }
 
     @Override
-    public XmlTask create(Transaction connection, ResultSet resultSet) throws SQLException {
+    public XmlTask create(DBTransaction connection, ResultSet resultSet) throws SQLException {
       long handle = resultSet.getLong(mColNoHandle);
       long remoteHandle = resultSet.getLong(mColNoRemoteHandle);
 
@@ -189,13 +188,13 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTas
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(XmlTask object) {
-      return getHandleCondition(object.getHandle());
+    public CharSequence getPrimaryKeyCondition(XmlTask task) {
+      return getHandleCondition(task);
     }
 
     @Override
     public int setPrimaryKeyParams(PreparedStatement statement, XmlTask object, int offset) throws SQLException {
-      return setHandleParams(statement, object.getHandle(), offset);
+      return setHandleParams(statement, object, offset);
     }
 
     @Override
@@ -223,7 +222,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTas
     }
 
     @Override
-    public void postStore(DBTransaction connection, long handle, XmlTask oldValue, XmlTask newValue) throws SQLException {
+    public void postStore(DBTransaction connection, Handle<? extends XmlTask> handle, XmlTask oldValue, XmlTask newValue) throws SQLException {
       try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
         final List<XmlItem> items = newValue.getItems();
         for(XmlItem item:items) {
@@ -233,7 +232,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTas
                 oldItem.getValue()==null ||
                 (! oldItem.getValue().equals(item.getValue()))) {
               if (! ((oldItem==null || oldItem.getValue()==null) && item.getValue()==null)) {
-                statement.setLong(1, handle);
+                statement.setLong(1, handle.getHandle());
                 statement.setString(2, item.getName());
                 statement.setString(3, item.getValue());
                 statement.addBatch();
@@ -246,13 +245,13 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTas
     }
 
     @Override
-    public CharSequence getHandleCondition(long element) {
+    public CharSequence getHandleCondition(Handle<? extends XmlTask> element) {
       return COL_HANDLE+" = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement statement, long handle, int offset) throws SQLException {
-      statement.setLong(offset, handle);
+    public int setHandleParams(PreparedStatement statement, Handle<? extends XmlTask> handle, int offset) throws SQLException {
+      statement.setLong(offset, handle.getHandle());
       return 1;
     }
 
@@ -272,22 +271,22 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTas
     }
 
     @Override
-    public void preRemove(DBTransaction connection, long handle) throws SQLException {
+    public void preRemove(DBTransaction connection, Handle<? extends XmlTask> handle) throws SQLException {
       final String sql = "DELETE FROM "+TABLEDATA+" WHERE `"+COL_HANDLE+"` = ?";
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.execute();
       }
     }
 
     @Override
     public void preRemove(DBTransaction connection, XmlTask element) throws SQLException {
-      preRemove(connection, element.getHandle());
+      preRemove(connection, element);
     }
 
     @Override
     public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, elementSource.getLong(mColNoHandle));
+      preRemove(connection, Handles.<XmlTask>handle(elementSource.getLong(mColNoHandle)));
     }
 
   }

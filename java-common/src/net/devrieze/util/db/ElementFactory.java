@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import net.devrieze.util.HandleMap.Handle;
-import net.devrieze.util.Transaction;
 
 
 public interface ElementFactory<T> {
@@ -68,13 +67,12 @@ public interface ElementFactory<T> {
   /**
    * Create a new element.
    *
-   * @param pConnectionProvider The connection provider to use for additional
+   * @param transaction The connection provider to use for additional
    *          data. This can be used to instantiate embedded collections.
-   * @param transaction
-   *@param pResultSet The resultset (moved to the relevant row) to use.  @return A new element.
+   * @param pResultSet The resultset (moved to the relevant row) to use.  @return A new element.
    * @throws SQLException When something goes wrong.
    */
-  T create(Transaction transaction, ResultSet pResultSet) throws SQLException;
+  T create(DBTransaction transaction, ResultSet pResultSet) throws SQLException;
 
   /**
    * Hook to allow for subsequent queries
@@ -149,7 +147,7 @@ public interface ElementFactory<T> {
    * elements.
    *
    * @param pConnection The connection to use in the background
-   * @param pElementSource The resultset that would be passed to {@link #create(Transaction, ResultSet)}
+   * @param pElementSource The resultset that would be passed to {@link #create(DBTransaction, ResultSet)}
    * @throws SQLException When something goes wrong.
    */
   void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException;
@@ -165,11 +163,11 @@ public interface ElementFactory<T> {
   /**
    * Execute related statements after the element itself has been stored. This
    * allows for storage of subservent lists in the same transaction.
-   *
-   * @param pConnection The connection to use to store the related elements.
-   * @param pHandle The new handle of the element. Note that the element itself
+   *  @param pConnection The connection to use to store the related elements.
+   * @param handle The new handle of the element. Note that the element itself
    *          (if it implements {@link Handle}) is not yet updated with the new
-   *          handle.
+   * @param oldValue
+   * @param newValue
    */
-  void postStore(DBTransaction pConnection, long pHandle, T pOldValue, T pNewValue) throws SQLException;
+  void postStore(DBTransaction pConnection, Handle<? extends T> handle, T oldValue, T newValue) throws SQLException;
 }

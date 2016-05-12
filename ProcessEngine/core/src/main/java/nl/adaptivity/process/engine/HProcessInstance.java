@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.HandleMap.Handle;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -42,7 +43,7 @@ public final class HProcessInstance extends XmlHandle {
     super(-1);
   }
 
-  public HProcessInstance(final long handle) {
+  public HProcessInstance(final Handle<? extends ProcessInstance> handle) {
     super(handle);
   }
 
