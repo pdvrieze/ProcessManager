@@ -419,7 +419,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#put(V)
    */
   @Override
-  public long put(final V pValue) {
+  public Handle<V> put(final V pValue) {
     if (pValue == null) {
       throw new NullPointerException("Handles can point to null objects");
     }
@@ -461,8 +461,9 @@ public class MemHandleMap<V> implements HandleMap<V> {
     }
     if (pValue instanceof HandleMap.HandleAware<?>) {
       ((HandleMap.HandleAware<?>) pValue).setHandle(handle);
+      return (Handle<V>) pValue;
     }
-    return handle;
+    return Handles.handle(handle);
   }
 
   /* (non-Javadoc)

@@ -112,12 +112,11 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.ActivityImpl>deserializeHelper(new ActivityImpl(ownerModel), in);
   }
 
-
   /**
    * Determine whether the process can start.
    */
   @Override
-  public boolean condition(final Transaction transaction, final IProcessNodeInstance<?> instance) {
+  public <T extends Transaction> boolean condition(final T transaction, final IProcessNodeInstance<T, ?> instance) {
     if (mCondition == null) {
       return true;
     }
@@ -128,6 +127,8 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
    * This will actually take the message element, and send it through the
    * message service.
    *
+   *
+   * @param transaction
    * @param messageService The message service to use to send the message.
    * @param instance The processInstance that represents the actual activity
    *          instance that the message responds to.
@@ -135,9 +136,9 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
    * @todo handle imports.
    */
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final Transaction transaction, @NotNull final IMessageService<T, U> messageService, @NotNull final U instance) throws SQLException {
+  public <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean provideTask(final T transaction, final IMessageService<V, T, U> messageService, final U instance) throws SQLException {
     // TODO handle imports
-    final T message = messageService.createMessage(getMessage());
+    final V message = messageService.createMessage(getMessage());
     try {
       if (!messageService.sendMessage(transaction, message, instance)) {
         instance.failTaskCreation(transaction, new MessagingException("Failure to send message"));
@@ -157,7 +158,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
    * @return <code>false</code>
    */
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> messageService, final U instance) {
+  public <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean takeTask(final IMessageService<V, T, U> messageService, final U instance) {
     return false;
   }
 
@@ -168,9 +169,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
    * @return <code>false</code>
    */
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> messageService, final U instance) {
+  public <V, T extends Transaction, U extends IProcessNodeInstance<T, U>> boolean startTask(final IMessageService<V, T, U> messageService, final U instance) {
     return false;
   }
-
-
 }

@@ -33,11 +33,11 @@ import java.util.List;
 public class ProcessNodeInstanceContext extends AbstractDataContext {
 
   private static final CompactFragment EMPTY_FRAGMENT = new CompactFragment(Collections.<Namespace>emptyList(), new char[0]);
-  private final ProcessNodeInstance mProcessNodeInstance;
+  private final ProcessNodeInstance<?> mProcessNodeInstance;
   private List<ProcessData> mDefines;
   private boolean mProvideResults;
 
-  public ProcessNodeInstanceContext(ProcessNodeInstance processNodeInstance, List<ProcessData> defines, boolean provideResults) {
+  public ProcessNodeInstanceContext(ProcessNodeInstance<?> processNodeInstance, List<ProcessData> defines, boolean provideResults) {
     mProcessNodeInstance = processNodeInstance;
     mDefines = defines;
     mProvideResults = provideResults;

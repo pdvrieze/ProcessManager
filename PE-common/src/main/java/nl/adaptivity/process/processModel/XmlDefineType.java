@@ -154,10 +154,10 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @Nullable
   @Override
-  public <T extends IProcessNodeInstance<T>> ProcessData apply(final Transaction transaction, @NotNull final IProcessNodeInstance<T> node) throws SQLException {
+  public <T extends Transaction, V extends IProcessNodeInstance<T, V>> ProcessData apply(final T transaction, @NotNull final IProcessNodeInstance<T, V> node) throws SQLException {
     final ProcessData processData;
     if (refNode!=null) {
-      final IProcessNodeInstance<T> predecessor = node.getPredecessor(transaction, refNode);
+      final IProcessNodeInstance<T, V> predecessor = node.getPredecessor(transaction, refNode);
       final ProcessData origpair = predecessor.getResult(transaction, refName);
       if (origpair==null) {
         processData = null;

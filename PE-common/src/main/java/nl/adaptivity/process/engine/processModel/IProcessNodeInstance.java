@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel;
 
+import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
@@ -36,9 +37,9 @@ import java.sql.SQLException;
  * @author Paul de Vrieze
  * @param <V> The actual type of the implementing class.
  */
-public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends HandleAware<V> {
+public interface IProcessNodeInstance<T extends Transaction, V extends IProcessNodeInstance<T, V>> extends HandleAware<V>, ComparableHandle<V> {
 
-  void serialize(Transaction transaction, XmlWriter out) throws XmlException;
+  void serialize(T transaction, XmlWriter out) throws XmlException;
 
   /**
    * Enumeration representing the various states a task can be in.
@@ -113,7 +114,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @param transaction
    * @param newState The new state of the task.
    */
-  void setState(Transaction transaction, NodeInstanceState newState) throws SQLException;
+  void setState(T transaction, NodeInstanceState newState) throws SQLException;
 
   /**
    * Called by the processEngine so indicate starting of the task.
@@ -124,7 +125,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @throws SQLException @link #takeTask(IMessageService)
 
    */
-  <T> boolean provideTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
+  <U> boolean provideTask(T transaction, IMessageService<U, T, V> messageService) throws SQLException;
 
   /**
    * Called by the processEngine to let the task be taken.
@@ -133,7 +134,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @return <code>true</code> if this stage has completed and the task should
    *         be {@link #startTask(Transaction, IMessageService) started}.
    */
-  <T> boolean takeTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
+  <U> boolean takeTask(T transaction, IMessageService<U, T, V> messageService) throws SQLException;
 
   /**
    * Called by the processEngine to let the system start the task.
@@ -142,7 +143,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @return <code>true</code> if the task has completed and
    *         {@link #finishTask(Transaction, Node)}  should be called.
    */
-  <T> boolean startTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
+  <U> boolean startTask(T transaction, IMessageService<U, T, V> messageService) throws SQLException;
 
   /**
    * Called by the processEngine to signify to the task that it is finished
@@ -150,29 +151,35 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    *
    * @param payload The payload which is the result of the processing.
    */
-  void finishTask(Transaction transaction, Node payload) throws SQLException;
+  void finishTask(T transaction, Node payload) throws SQLException;
 
   /**
    * Called to signify that this task has failed.
    */
-  void failTask(Transaction transaction, Throwable cause) throws SQLException;
+  void failTask(T transaction, Throwable cause) throws SQLException;
 
   /**
    * Called to signify that creating this task has failed, a retry would be expected.
    */
-  void failTaskCreation(Transaction transaction, Throwable cause) throws SQLException;
+  void failTaskCreation(T transaction, Throwable cause) throws SQLException;
 
   /**
    * Called to signify that this task has been cancelled.
    * @throws SQLException
    */
-  void cancelTask(Transaction transaction) throws SQLException;
+  void cancelTask(T transaction) throws SQLException;
+
+  /**
+   * Called to attempt to cancel the task if that is semantically valid.
+   * @throws SQLException
+   */
+  void tryCancelTask(T transaction) throws SQLException;
 
   /** Get the predecessor instance with the given node name.
    * @throws SQLException
    * */
-  IProcessNodeInstance<V> getPredecessor(Transaction transaction, String nodeName) throws SQLException;
+  IProcessNodeInstance<T, V> getPredecessor(T transaction, String nodeName) throws SQLException;
 
   /** Get the result instance with the given data name. */
-  ProcessData getResult(Transaction transaction, String name) throws SQLException;
+  ProcessData getResult(T transaction, String name) throws SQLException;
 }

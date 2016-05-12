@@ -124,7 +124,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
       task.setHandle(existingHandle.getHandle());
       return false; // no proper update
     }
-    boolean result = getTasks().put(transaction, task) >= 0;
+    boolean result = getTasks().put(transaction, task) != null;
     task.setState(NodeInstanceState.Acknowledged, task.getOwner()); // Only now mark as acknowledged
     return result;
 

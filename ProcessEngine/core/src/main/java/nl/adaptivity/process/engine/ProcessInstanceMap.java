@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
-import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
@@ -41,7 +40,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
+public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance<DBTransaction>> {
 /*
   private static class NodeInstanceData implements Comparable<NodeInstanceData> {
     long handle;
@@ -83,7 +82,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
   public static final String COL_DATA = "data";
   public static final String COL_ISOUTPUT = "isoutput";
 
-  static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
+  static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance<DBTransaction>> {
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"`, `"+COL_ISOUTPUT+"` FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
 
@@ -129,13 +128,13 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public CharSequence getHandleCondition(long element) {
+    public CharSequence getHandleCondition(Handle<? extends ProcessInstance<DBTransaction>> element) {
       return COL_HANDLE+" = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement statement, long handle, int offset) throws SQLException {
-      statement.setLong(offset, handle);
+    public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessInstance<DBTransaction>> handle, int offset) throws SQLException {
+      statement.setLong(offset, handle.getHandle());
       return 1;
     }
 
@@ -150,7 +149,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public ProcessInstance create(Transaction transaction, ResultSet row) throws SQLException {
+    public ProcessInstance create(DBTransaction transaction, ResultSet row) throws SQLException {
       Principal owner = new SimplePrincipal(row.getString(mColNoOwner));
       Handle<ProcessModelImpl> hProcessModel = Handles.handle(row.getLong(mColNoHProcessModel));
       ProcessModelImpl processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
@@ -217,36 +216,36 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public void preRemove(DBTransaction connection, long handle) throws SQLException {
+    public void preRemove(DBTransaction connection, Handle<? extends ProcessInstance<DBTransaction>> handle) throws SQLException {
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.executeUpdate();
       }
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_PREDECESSORS+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
                                                                               "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.executeUpdate();
       }
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_NODEDATA+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
                                                                               "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.executeUpdate();
       }
 
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE+"` where `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?;")) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.executeUpdate();
       }
     }
 
     @Override
-    public void preRemove(DBTransaction connection, ProcessInstance element) throws SQLException {
-      preRemove(connection, element.getHandle());
+    public void preRemove(DBTransaction connection, ProcessInstance<DBTransaction> element) throws SQLException {
+      preRemove(connection, element);
     }
 
     @Override
     public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, elementSource.getLong(mColNoHandle));
+      preRemove(connection, Handles.<ProcessInstance<DBTransaction>>handle(elementSource.getLong(mColNoHandle)));
     }
 
     @Override
@@ -267,13 +266,13 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(ProcessInstance object) {
-      return getHandleCondition(object.getHandle());
+    public CharSequence getPrimaryKeyCondition(ProcessInstance<DBTransaction> object) {
+      return getHandleCondition(object);
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement statement, ProcessInstance object, int offset) throws SQLException {
-      return setHandleParams(statement, object.getHandle(), offset);
+    public int setPrimaryKeyParams(PreparedStatement statement, ProcessInstance<DBTransaction> object, int offset) throws SQLException {
+      return setHandleParams(statement, object, offset);
     }
 
     @Override
@@ -311,7 +310,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   }
 
-  public ProcessInstanceMap(TransactionFactory transactionFactory, ProcessEngine processEngine) {
+  public ProcessInstanceMap(TransactionFactory<DBTransaction> transactionFactory, ProcessEngine<DBTransaction> processEngine) {
     super(transactionFactory, new ProcessInstanceElementFactory(processEngine));
   }
 

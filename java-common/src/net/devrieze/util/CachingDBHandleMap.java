@@ -90,7 +90,7 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
 
   final WeakHashMap<Long, V> mCache;
 
-  public CachingDBHandleMap(TransactionFactory pTransactionFactory, net.devrieze.util.db.DBHandleMap.HMElementFactory<V> pElementFactory) {
+  public CachingDBHandleMap(TransactionFactory<? extends DBTransaction> pTransactionFactory, net.devrieze.util.db.DBHandleMap.HMElementFactory<V> pElementFactory) {
     super(pTransactionFactory, pElementFactory);
     mCache = new WeakHashMap<>();
   }
@@ -106,21 +106,21 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
   }
 
   @Override
-  public long put(DBTransaction pTransaction, V pValue) throws SQLException {
-    long handle = super.put(pTransaction, pValue);
+  public Handle<V> put(DBTransaction pTransaction, V pValue) throws SQLException {
+    Handle<V> handle = super.put(pTransaction, pValue);
     putCache(handle, pValue);
     return handle;
   }
 
   private void putCache(V pValue) {
     if (pValue instanceof HandleAware) {
-      putCache(((HandleAware<?>)pValue).getHandle(), pValue);
+      putCache(((HandleAware<V>)pValue), pValue);
     }
   }
 
-  private void putCache(long pHandle, V pValue) {
+  private void putCache(Handle<V> pHandle, V pValue) {
     synchronized (mCache) {
-      mCache.put(Long.valueOf(pHandle), pValue);
+      mCache.put(pHandle.getHandle(), pValue);
     }
   }
 
@@ -133,25 +133,25 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
       if (val!=null) {
         return val;
       }
-      return storeInCache(pHandle, super.get(pHandle));
+      return storeInCache(Handles.<V>handle(pHandle), super.get(pHandle));
     }
   }
 
   @Override
-  @Nullable public V get(@NotNull DBTransaction pTransaction, long pHandle) throws SQLException {
-    Long key = Long.valueOf(pHandle);
+  @Nullable public V get(@NotNull DBTransaction pTransaction, Handle<? extends V> pHandle) throws SQLException {
+    Long key = Long.valueOf(pHandle.getHandle());
     final V val;
     synchronized(mCache) {
       val = mCache.get(key);
       if (val!=null) {
         return val;
       }
-      return storeInCache(pHandle, super.get(pTransaction, pHandle));
+      return storeInCache(Handles.handle(pHandle), super.get(pTransaction, pHandle));
     }
   }
 
   @Override
-  public V set(DBTransaction pTransaction, long pHandle, V pValue) throws SQLException {
+  public V set(DBTransaction pTransaction, Handle<? extends V> pHandle, V pValue) throws SQLException {
     V oldValue = super.get(pTransaction, pHandle); // Do not cache the old value or get it from the old cache
     if (! pValue.equals(oldValue)) {
       invalidateCache(pHandle);
@@ -161,11 +161,11 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
   }
 
   @Override
-  protected V set(final DBTransaction pTransaction, final long pHandle, final V oldValue, final V pValue) throws
+  protected V set(final DBTransaction pTransaction, final Handle<? extends V> pHandle, final V oldValue, final V pValue) throws
           SQLException {
     try {
       V result = super.set(pTransaction, pHandle, oldValue, pValue);
-      storeInCache(pHandle, pValue);
+      storeInCache(Handles.handle(pHandle), pValue);
       return result;
     } catch (Exception e) {
       invalidateCache(pHandle);
@@ -173,11 +173,13 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
     }
   }
 
-  private V storeInCache(long pHandle, V pV) {
-    final Long key = Long.valueOf(pHandle);
-    synchronized(mCache) {
-      mCache.remove(key); // remove whatever old value was there
-      mCache.put(key, pV);
+  private V storeInCache(ComparableHandle<? extends V> pHandle, V pV) {
+    if (! isPending(pHandle)) {
+      final Long key = Long.valueOf(pHandle.getHandle());
+      synchronized (mCache) {
+        mCache.remove(key); // remove whatever old value was there
+        mCache.put(key, pV);
+      }
     }
     return pV;
   }
@@ -202,13 +204,13 @@ public class CachingDBHandleMap<V> extends DBHandleMap<V> {
   }
 
   @Deprecated
-  public V getUncached(DBTransaction pTransaction, long pHandle) throws SQLException {
+  public V getUncached(DBTransaction pTransaction, ComparableHandle<V> pHandle) throws SQLException {
     return storeInCache(pHandle, super.get(pTransaction, pHandle));
   }
 
   @Override
-  public boolean remove(DBTransaction pTransaction, long pHandle) throws SQLException {
-    Long key = Long.valueOf(pHandle);
+  public boolean remove(DBTransaction pTransaction, Handle<? extends V> pHandle) throws SQLException {
+    Long key = Long.valueOf(pHandle.getHandle());
     synchronized (mCache) {
       mCache.remove(key);
     }

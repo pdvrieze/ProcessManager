@@ -33,7 +33,7 @@ import nl.adaptivity.process.processModel.IXmlMessage;
  * @param <U> The task that the message corresponds to. This allows for messages
  *          to be linked to tasks.
  */
-public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
+public interface IMessageService<T, TR extends Transaction,  U extends IProcessNodeInstance<TR, U>> {
 
   /**
    * Create a message.
@@ -53,7 +53,7 @@ public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
    * @return <code>true</code> or lack of failure, <code>false</code> on failure.
    * @throws SQLException
    */
-  boolean sendMessage(Transaction transaction, T message, U instance) throws SQLException;
+  boolean sendMessage(TR transaction, T message, U instance) throws SQLException;
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

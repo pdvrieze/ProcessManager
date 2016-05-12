@@ -384,6 +384,11 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     return mId;
   }
 
+  @Override
+  public int compareTo(final Identifiable o) {
+    return mId.compareTo(o.getId());
+  }
+
   public final void setId(final String id) {
     mId = id;
     mHashCode = 0;

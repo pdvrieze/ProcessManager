@@ -17,6 +17,8 @@
 package net.devrieze.util.db;
 
 import net.devrieze.util.AutoCloseableIterator;
+import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
 
 import javax.naming.Context;
@@ -338,7 +340,7 @@ public class DbSet<T> implements AutoCloseable {
             keys.next();
             handle = keys.getLong(1);
           }
-          mElementFactory.postStore(pTransaction, handle, null, pE);
+          mElementFactory.postStore(pTransaction, Handles.<T>handle(handle), null, pE);
           pTransaction.commit();
           return true;
         } else {
@@ -407,7 +409,7 @@ public class DbSet<T> implements AutoCloseable {
       try (ResultSet keys = statement.getGeneratedKeys()) {
         for(T element: pC) {
           keys.next();
-          long handle = keys.getLong(1);
+          Handle<T> handle = Handles.handle(keys.getLong(1));
           mElementFactory.postStore(connection, handle, null, element);
         }
       }
@@ -606,10 +608,10 @@ public class DbSet<T> implements AutoCloseable {
     }
   }
 
-  protected final long addWithKey(T pE) {
+  protected final Handle<T> addWithKey(T pE) {
     try (final DBTransaction transaction = mTransactionFactory.startTransaction()) {
-      long handle = addWithKey(transaction, pE);
-      if (handle>=0) {
+      Handle<T> handle = addWithKey(transaction, pE);
+      if (handle!=null) {
         transaction.commit();
       }
       return handle;
@@ -618,7 +620,7 @@ public class DbSet<T> implements AutoCloseable {
     }
   }
 
-  protected long addWithKey(DBTransaction connection, T pE) throws SQLException {
+  protected Handle<T> addWithKey(DBTransaction connection, T pE) throws SQLException {
     if (pE==null) { throw new NullPointerException(); }
 
     String sql = "INSERT INTO "+ mElementFactory.getTableName()+ " ( "+join(mElementFactory.getStoreColumns(),", ") +" ) VALUES ( " +join(mElementFactory
@@ -631,17 +633,17 @@ public class DbSet<T> implements AutoCloseable {
       try {
         int changecount = statement.executeUpdate();
         if (changecount > 0) {
-          final long result;
+          final Handle<T> handle;
           try (ResultSet keys = statement.getGeneratedKeys()) {
             keys.next();
-            result = keys.getLong(1);
+            handle = Handles.handle(keys.getLong(1));
           }
-          mElementFactory.postStore(connection, result, null, pE);
+          mElementFactory.postStore(connection, handle, null, pE);
 
           connection.commit();
-          return result;
+          return handle;
         } else {
-          return -1;
+          return null;
         }
       } catch (SQLException e) {
         throw new SQLException("Error executing the query: "+fullSql, e);

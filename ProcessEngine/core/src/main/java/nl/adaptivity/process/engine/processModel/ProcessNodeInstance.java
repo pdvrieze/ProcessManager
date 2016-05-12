@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel;
 
+import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
@@ -48,7 +49,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @XmlDeserializer(ProcessNodeInstance.Factory.class)
-public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
+public class ProcessNodeInstance<T extends Transaction> implements IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject {
 
   public static class Factory implements XmlDeserializerFactory<XmlProcessNodeInstance> {
 
@@ -63,7 +64,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private final List<ProcessData> mResults = new ArrayList<>();
 
-  private Collection<Handle<? extends ProcessNodeInstance>> mPredecessors;
+  private List<Handle<? extends ProcessNodeInstance<?>>> mPredecessors;
 
   private NodeInstanceState mState = NodeInstanceState.Pending;
 
@@ -73,7 +74,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Throwable mFailureCause;
 
-  public ProcessNodeInstance(final ExecutableProcessNode node, final Handle<? extends ProcessNodeInstance> predecessor, final ProcessInstance processInstance) {
+  public ProcessNodeInstance(final ExecutableProcessNode node, final Handle<? extends ProcessNodeInstance<?>> predecessor, final ProcessInstance processInstance) {
     super();
     mNode = node;
     if (predecessor==null) {
@@ -83,7 +84,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
         throw new NullPointerException("Nodes that are not startNodes need predecessors");
       }
     } else {
-      mPredecessors = Collections.<Handle<? extends ProcessNodeInstance>>singletonList(predecessor);
+      mPredecessors = Collections.<Handle<? extends ProcessNodeInstance<?>>>singletonList(predecessor);
     }
     mProcessInstance = processInstance;
     if ((predecessor == null) && !(node instanceof StartNode)) {
@@ -91,11 +92,22 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  protected ProcessNodeInstance(final ExecutableProcessNode node, final Collection<? extends Handle<? extends ProcessNodeInstance>> predecessors, final ProcessInstance processInstance) {
+  protected ProcessNodeInstance(final ExecutableProcessNode node, final Collection<? extends Handle<? extends ProcessNodeInstance<?>>> predecessors, final ProcessInstance processInstance) {
     super();
     mNode = node;
     mPredecessors = new ArrayList<>(predecessors);
     mProcessInstance = processInstance;
+    if (((mPredecessors == null) || (mPredecessors.size()==0)) && !(node instanceof StartNode)) {
+      throw new NullPointerException("Non-start-node process node instances need predecessors");
+    }
+  }
+
+  protected ProcessNodeInstance(final ExecutableProcessNode node, final Collection<? extends Handle<? extends ProcessNodeInstance<?>>> predecessors, final ProcessInstance processInstance, NodeInstanceState state) {
+    super();
+    mNode = node;
+    mPredecessors = new ArrayList<>(predecessors);
+    mProcessInstance = processInstance;
+    mState = state;
     if (((mPredecessors == null) || (mPredecessors.size()==0)) && !(node instanceof StartNode)) {
       throw new NullPointerException("Non-start-node process node instances need predecessors");
     }
@@ -116,12 +128,19 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
                                    .getProcessModel().getNode(nodeInstance.getNodeId()), processEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(nodeInstance.getProcessInstance()), SecurityProvider.SYSTEMPRINCIPAL), nodeInstance.getState());
   }
 
-  private Collection<Handle<? extends ProcessNodeInstance>> resolvePredecessors(final Transaction transaction, final ProcessInstance processInstance, final ExecutableProcessNode node) throws SQLException {
-    List<Handle<? extends ProcessNodeInstance>> result = new ArrayList<>();
+  private List<Handle<? extends ProcessNodeInstance<?>>> resolvePredecessors(final Transaction transaction, final ProcessInstance processInstance, final ExecutableProcessNode node) throws SQLException {
+    List<Handle<? extends ProcessNodeInstance<?>>> result = new ArrayList<>();
     for (Identifiable pred : node.getPredecessors()) {
-      result.add(processInstance.getNodeInstance(transaction, pred));
+      ProcessNodeInstance nodeInstance = processInstance.getNodeInstance(transaction, pred);
+      if (nodeInstance!=null) { result.add(nodeInstance); }
     }
     return result;
+  }
+
+  public void ensurePredecessor(final Handle<? extends ProcessNodeInstance<?>> handle) {
+    if(! hasDirectPredecessor(handle)) {
+      mPredecessors.add(handle);
+    }
   }
 
   public void setFailureCause(final String failureCause) {
@@ -137,20 +156,15 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  public <T extends Transaction> void tickle(final Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService) {
-    try {
-      switch (getState()) {
-        case FailRetry:
-        case Pending:
-          mProcessInstance.provideTask(transaction, messageService, this);
-          break;
-        default:
-          // ignore
-      }
-    } catch (SQLException e) {
-      Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when tickling process instance", e);
+  public void tickle(final T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService) throws SQLException {
+    switch (getState()) {
+      case FailRetry:
+      case Pending:
+        mProcessInstance.provideTask(transaction, messageService, this);
+        break;
+      default:
+        // ignore
     }
-
   }
 
   public ExecutableProcessNode getNode() {
@@ -171,7 +185,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return null;
   }
 
-  public List<ProcessData> getDefines(Transaction transaction) throws SQLException {
+  public List<ProcessData> getDefines(T transaction) throws SQLException {
     ArrayList<ProcessData> result = new ArrayList<>();
     for(IXmlDefineType define: mNode.getDefines()) {
       ProcessData data = define.apply(transaction, this);
@@ -180,11 +194,35 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return result;
   }
 
-  public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
+  private boolean hasDirectPredecessor(Handle<? extends ProcessNodeInstance<?>> handle) {
+    for (Handle<? extends ProcessNodeInstance<?>> pred : mPredecessors) {
+      if (pred.getHandle()==handle.getHandle()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public Collection<Handle<? extends ProcessNodeInstance<?>>> getDirectPredecessors() {
     return mPredecessors;
   }
 
-  public void setDirectPredecessors(Collection<Handle<? extends ProcessNodeInstance>> predecessors) {
+  public Collection<? extends ProcessNodeInstance<T>> getDirectPredecessors(T transaction) throws SQLException {
+    List<ProcessNodeInstance<T>> result = new ArrayList<>(mPredecessors.size());
+    for (int i = 0; i < mPredecessors.size(); i++) {
+      Handle<? extends ProcessNodeInstance> handle = mPredecessors.get(i);
+      if (handle instanceof ProcessNodeInstance) {
+        result.add((ProcessNodeInstance) handle);
+      } else {
+        ProcessNodeInstance nodeInstance = getProcessInstance().getEngine().getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
+        mPredecessors.set(i, nodeInstance);
+        result.add(nodeInstance);
+      }
+    }
+    return result;
+  }
+
+  public void setDirectPredecessors(Collection<Handle<? extends ProcessNodeInstance<?>>> predecessors) {
     if (predecessors==null || predecessors.isEmpty()) {
       mPredecessors = Collections.emptyList();
     } else {
@@ -193,7 +231,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public ProcessNodeInstance getPredecessor(Transaction transaction, String nodeName) throws SQLException {
+  public ProcessNodeInstance<T> getPredecessor(T transaction, String nodeName) throws SQLException {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     for(Handle<? extends ProcessNodeInstance> hpred: mPredecessors) {
       ProcessNodeInstance instance = getProcessInstance().getEngine().getNodeInstance(transaction, hpred, SecurityProvider.SYSTEMPRINCIPAL);
@@ -236,7 +274,13 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public <U> boolean provideTask(Transaction transaction, final IMessageService<U, ProcessNodeInstance> messageService) throws SQLException {
+  public int compareTo(final ComparableHandle<ProcessNodeInstance<T>> o) {
+    long otherHandle = o.getHandle();
+    return mHandle < otherHandle ? -1 : mHandle == otherHandle ? 0 : 1;
+  }
+
+  @Override
+  public <U> boolean provideTask(T transaction, final IMessageService<U, T, ProcessNodeInstance<T>> messageService) throws SQLException {
     try {
       final boolean result = mNode.provideTask(transaction, messageService, this);
       if (result) { // the task must be automatically taken. Mostly this is false and we don't set the state.
@@ -253,14 +297,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public <U> boolean takeTask(Transaction transaction, final IMessageService<U, ProcessNodeInstance> messageService) throws SQLException {
+  public <U> boolean takeTask(T transaction, final IMessageService<U, T, ProcessNodeInstance<T>> messageService) throws SQLException {
     final boolean result = mNode.takeTask(messageService, this);
     setState(transaction, NodeInstanceState.Taken);
     return result;
   }
 
   @Override
-  public <U> boolean startTask(Transaction transaction, final IMessageService<U, ProcessNodeInstance> messageService) throws SQLException {
+  public <U> boolean startTask(T transaction, final IMessageService<U, T, ProcessNodeInstance<T>> messageService) throws SQLException {
     final boolean startTask = mNode.startTask(messageService, this);
     setState(transaction, NodeInstanceState.Started);
     return startTask;
@@ -280,11 +324,20 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
+  public void tryCancelTask(final T transaction) throws SQLException {
+    try {
+      setState(transaction, NodeInstanceState.Cancelled);
+    } catch (IllegalArgumentException e) {
+      getLogger().log(Level.WARNING, "Task could not be cancelled");
+    }
+  }
+
+  @Override
   public String toString() {
     return mNode.getClass().getSimpleName() + " (" + mState + ")";
   }
 
-  public ProcessInstance getProcessInstance() {
+  public ProcessInstance<T> getProcessInstance() {
     return mProcessInstance;
   }
 
@@ -309,26 +362,26 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     mResults.addAll(results);
   }
 
-  public void instantiateXmlPlaceholders(Transaction transaction, Source source, final Result result) throws
+  public void instantiateXmlPlaceholders(T transaction, Source source, final Result result) throws
           SQLException, XmlException {
     instantiateXmlPlaceholders(transaction, source, true);
   }
 
-  public void instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final XmlWriter out, final boolean removeWhitespace) throws
+  public void instantiateXmlPlaceholders(final T transaction, final XmlReader in, final XmlWriter out, final boolean removeWhitespace) throws
           XmlException, SQLException {
     List<ProcessData> defines = getDefines(transaction);
     PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, mState == NodeInstanceState.Complete), removeWhitespace);
     transformer.transform(in, XmlWriterUtil.filterSubstream(out));
   }
 
-  public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final Source source, final boolean removeWhitespace) throws
+  public CompactFragment instantiateXmlPlaceholders(final T transaction, final Source source, final boolean removeWhitespace) throws
           SQLException, XmlException {
     XmlReader in = XmlStreaming.newReader(source);
     return instantiateXmlPlaceholders(transaction, in, removeWhitespace);
   }
 
   @NotNull
-  public WritableCompactFragment instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final boolean removeWhitespace) throws
+  public WritableCompactFragment instantiateXmlPlaceholders(final T transaction, final XmlReader in, final boolean removeWhitespace) throws
           XmlException, SQLException {
     CharArrayWriter caw = new CharArrayWriter();
 
@@ -343,7 +396,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return logger;
   }
 
-  public XmlProcessNodeInstance toSerializable(final Transaction transaction) throws SQLException, XmlException {
+  public XmlProcessNodeInstance toSerializable(final T transaction) throws SQLException, XmlException {
     XmlProcessNodeInstance xmlNodeInst = new XmlProcessNodeInstance();
     xmlNodeInst.setState(mState);
     xmlNodeInst.setHandle(mHandle);
@@ -365,10 +418,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     xmlNodeInst.setNodeId(mNode.getId());
 
     if (mPredecessors!=null && mPredecessors.size()>0) {
-      List<Long> predecessors = xmlNodeInst.getPredecessors();
-      for(Handle<? extends ProcessNodeInstance> h: mPredecessors) {
-        predecessors.add(Long.valueOf(h.getHandle()));
-      }
+      List<Handle<? extends IProcessNodeInstance<?,?>>> predecessors = xmlNodeInst.getPredecessors();
+      predecessors.addAll(mPredecessors);
     }
 
     xmlNodeInst.setResults(getResults());
@@ -376,7 +427,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return xmlNodeInst;
   }
 
-  public void serialize(final Transaction transaction, final XmlWriter out) throws XmlException {
+  @Override
+  public void serialize(final T transaction, final XmlWriter out) throws XmlException {
     XmlWriterUtil.smartStartTag(out, XmlProcessNodeInstance.ELEMENTNAME);
     if (mState!=null) {
       XmlWriterUtil.writeAttribute(out, "state", mState.name());

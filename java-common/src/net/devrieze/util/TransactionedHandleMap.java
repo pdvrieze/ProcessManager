@@ -26,7 +26,7 @@ import java.sql.SQLException;
  */
 public interface TransactionedHandleMap<V, T extends Transaction> extends HandleMap<V> {
 
-  long put(T pTransaction, V pValue) throws SQLException;
+  Handle<V> put(T pTransaction, V pValue) throws SQLException;
 
   /**
    * @deprecated use typed {@link #get(Transaction, Handle)}

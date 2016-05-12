@@ -20,7 +20,6 @@ import net.devrieze.util.*;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
-import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
@@ -37,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance> {
+public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance<DBTransaction>> {
 
   public static final String TABLE = "processnodeinstances";
   public static final String COL_HANDLE = "pnihandle";
@@ -50,7 +49,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
   public static final String TABLE_PREDECESSORS = "pnipredecessors";
   public static final String TABLE_NODEDATA = "nodedata";
 
-  static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance> {
+  static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance<DBTransaction>> {
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
     private static final String QUERY_PREDECESSOR = "SELECT `"+COL_PREDECESSOR+"` FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;";
@@ -85,13 +84,13 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public CharSequence getHandleCondition(long element) {
+    public CharSequence getHandleCondition(Handle<? extends ProcessNodeInstance<DBTransaction>> element) {
       return COL_HANDLE+" = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement statement, long handle, int offset) throws SQLException {
-      statement.setLong(offset, handle);
+    public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessNodeInstance<DBTransaction>> handle, int offset) throws SQLException {
+      statement.setLong(offset, handle.getHandle());
       return 1;
     }
 
@@ -106,9 +105,11 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public ProcessNodeInstance create(Transaction connection, ResultSet row) throws SQLException {
-      HProcessInstance hProcessInstance = new HProcessInstance(row.getLong(mColNoHProcessInstance));
-      ProcessInstance processInstance = mProcessEngine.getProcessInstance(connection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
+    public ProcessNodeInstance create(DBTransaction transaction, ResultSet row) throws SQLException {
+
+
+      Handle<ProcessInstance<? extends Transaction>> hProcessInstance = Handles.handle(row.getLong(mColNoHProcessInstance));
+      ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
 
       String nodeId = mStringCache.lookup(row.getString(mColNoNodeId));
       ExecutableProcessNode node = processInstance.getProcessModel().getNode(nodeId);
@@ -118,11 +119,22 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       final String sState = row.getString(mColNoState);
       NodeInstanceState state = sState == null ? null : NodeInstanceState.valueOf(sState);
 
+      List<Handle<ProcessNodeInstance<DBTransaction>>> predecessors = new ArrayList<>();
+
+      try(PreparedStatement preparedStatement = transaction.prepareStatement("SELECT "+COL_PREDECESSOR+" FROM "+TABLE_PREDECESSORS+" WHERE "+COL_HANDLE+" = ?")) {
+        preparedStatement.setLong(1, handle);
+        try(ResultSet rs = preparedStatement.executeQuery()) {
+          while(rs.next()) {
+            predecessors.add(Handles.<ProcessNodeInstance<DBTransaction>>handle(rs.getLong(1)));
+          }
+        }
+      }
+
       ProcessNodeInstance result;
       if (node instanceof JoinImpl) {
-        result =  new JoinInstance(connection, (JoinImpl) node, processInstance, state);
+        result =  new JoinInstance((JoinImpl) node, predecessors, processInstance, state);
       } else {
-        result = new ProcessNodeInstance(connection, node, processInstance, state);
+        result = new ProcessNodeInstance(node, predecessors, processInstance, state);
       }
       result.setHandle(handle);
       return result;
@@ -131,21 +143,11 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
 
     @Override
-    public void postCreate(DBTransaction connection, ProcessNodeInstance element) throws SQLException {
+    public void postCreate(DBTransaction connection, ProcessNodeInstance<DBTransaction> element) throws SQLException {
       {
-        List<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(QUERY_PREDECESSOR)) {
-          statement.setLong(1, element.getHandle());
-          if(statement.execute()) {
-            try (ResultSet resultset = statement.getResultSet()){
-              while(resultset.next()) {
-                Handle<? extends ProcessNodeInstance> predecessor = Handles.handle(resultset.getLong(1));
-                predecessors.add(predecessor);
-              }
-            }
-          }
+        for (Handle<? extends ProcessNodeInstance<?>> handle: element.getDirectPredecessors()) {
+          element.ensurePredecessor(handle);
         }
-        element.setDirectPredecessors(predecessors);
       }
       {
         List<ProcessData> results = new ArrayList<>();
@@ -170,13 +172,13 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance object) {
-      return getHandleCondition(object.getHandle());
+    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance<DBTransaction> object) {
+      return getHandleCondition(object);
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement statement, ProcessNodeInstance object, int offset) throws SQLException {
-      return setHandleParams(statement, object.getHandle(), offset);
+    public int setPrimaryKeyParams(PreparedStatement statement, ProcessNodeInstance<DBTransaction> object, int offset) throws SQLException {
+      return setHandleParams(statement, object, offset);
     }
 
     @Override
@@ -211,23 +213,23 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public void postStore(DBTransaction connection, long handle, ProcessNodeInstance oldValue, ProcessNodeInstance element) throws SQLException {
+    public void postStore(DBTransaction connection, Handle<? extends ProcessNodeInstance<DBTransaction>> handle, ProcessNodeInstance<DBTransaction> oldValue, ProcessNodeInstance<DBTransaction> element) throws SQLException {
       ProcessNodeInstanceMap.postStore(connection, handle, oldValue, element);
     }
 
     @Override
-    public void preRemove(DBTransaction connection, long handle) throws SQLException {
+    public void preRemove(DBTransaction connection, Handle<? extends ProcessNodeInstance<DBTransaction>> handle) throws SQLException {
       ProcessNodeInstanceMap.preRemove(connection, handle);
     }
 
     @Override
-    public void preRemove(DBTransaction connection, ProcessNodeInstance element) throws SQLException {
-      preRemove(connection, element.getHandle());
+    public void preRemove(DBTransaction connection, ProcessNodeInstance<DBTransaction> element) throws SQLException {
+      preRemove(connection, element);
     }
 
     @Override
     public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, elementSource.getLong(mColNoHandle));
+      preRemove(connection, Handles.<ProcessNodeInstance<DBTransaction>>handle(elementSource.getLong(mColNoHandle)));
     }
 
     @Override
@@ -263,19 +265,19 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
   private static final String FAILURE_CAUSE = "failureCause";
 
-  static void postStore(final DBTransaction connection, final long handle, final ProcessNodeInstance oldValue, final ProcessNodeInstance element) throws
+  static void postStore(final DBTransaction connection, final Handle<? extends ProcessNodeInstance<DBTransaction>> handle, final ProcessNodeInstance oldValue, final ProcessNodeInstance<DBTransaction> element) throws
           SQLException {
     if (oldValue!=null) { // update
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.executeUpdate();
       }
     }
     // TODO allow for updating/storing node data
     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
-      final Collection<Handle<? extends ProcessNodeInstance>> directPredecessors = element.getDirectPredecessors();
+      final Collection<Handle<? extends ProcessNodeInstance<?>>> directPredecessors = element.getDirectPredecessors();
       for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         if (predecessor==null) {
           statement.setNull(2, Types.BIGINT);
         } else {
@@ -289,7 +291,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `" + TABLE_NODEDATA + "` (`" + COL_HANDLE + "`, `" + COL_NAME + "`, `" + COL_DATA + "`) VALUES ( ?, ?, ?)" +
                                                                               "ON DUPLICATE KEY UPDATE `" + COL_DATA + "` = VALUES(`"+COL_DATA+"`)")) {
       for(ProcessData data: element.getResults()) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.setString(2, data.getName());
         String value = new String(data.getContent().getContent());
         statement.setString(3, value);
@@ -297,7 +299,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
         statement.addBatch();
       }
       if ((element.getState() == NodeInstanceState.Failed || element.getState() == NodeInstanceState.FailRetry) && element.getFailureCause() != null) {
-        statement.setLong(1, handle);
+        statement.setLong(1, handle.getHandle());
         statement.setString(2, FAILURE_CAUSE);
         statement.setString(3, element.getFailureCause().getLocalizedMessage());
         statement.addBatch();
@@ -306,13 +308,13 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
   }
 
-  static void preRemove(final DBTransaction connection, final long handle) throws SQLException {
+  static void preRemove(final DBTransaction connection, final Handle<? extends ProcessNodeInstance<DBTransaction>> handle) throws SQLException {
     try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-      statement.setLong(1, handle);
+      statement.setLong(1, handle.getHandle());
       statement.executeUpdate();
     }
     try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-      statement.setLong(1, handle);
+      statement.setLong(1, handle.getHandle());
       statement.executeUpdate();
     }
   }

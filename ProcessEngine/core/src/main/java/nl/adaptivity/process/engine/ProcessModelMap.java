@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
-import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
@@ -102,7 +101,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> implem
     }
 
     @Override
-    public ProcessModelImpl create(Transaction connection, ResultSet row) throws SQLException {
+    public ProcessModelImpl create(DBTransaction connection, ResultSet row) throws SQLException {
       Principal owner = new SimplePrincipal(mStringCache.lookup(row.getString(mColNoOwner)));
       try(Reader modelReader = row.getCharacterStream(mColNoModel)) {
         long handle = row.getLong(mColNoHandle);
@@ -122,12 +121,12 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> implem
 
     @Override
     public CharSequence getPrimaryKeyCondition(ProcessModelImpl object) {
-      return getHandleCondition(object.getHandle());
+      return getHandleCondition(object);
     }
 
     @Override
     public int setPrimaryKeyParams(PreparedStatement statement, ProcessModelImpl element, int offset) throws SQLException {
-      return setHandleParams(statement, element.getHandle(), offset);
+      return setHandleParams(statement, element, offset);
     }
 
     @Override
@@ -173,13 +172,13 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> implem
     }
 
     @Override
-    public CharSequence getHandleCondition(long handle) {
+    public CharSequence getHandleCondition(Handle<? extends ProcessModelImpl> handle) {
       return COL_HANDLE + " = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement statement, long handle, int offset) throws SQLException {
-      statement.setLong(offset, handle);
+    public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessModelImpl> handle, int offset) throws SQLException {
+      statement.setLong(offset, handle.getHandle());
       return 1;
     }
 

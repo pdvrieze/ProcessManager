@@ -66,7 +66,7 @@ public class ConditionImpl implements XmlSerializable, Condition {
    * @param instance The instance to use to evaluate against.
    * @return <code>true</code> if the condition holds, <code>false</code> if not
    */
-  public boolean eval(final Transaction transaction, final IProcessNodeInstance<?> instance) {
+  public <T extends Transaction> boolean eval(final T transaction, final IProcessNodeInstance<T, ?> instance) {
     // TODO process the condition as xpath, expose the node's defines as variables
     return true;
   }

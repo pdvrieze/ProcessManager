@@ -28,7 +28,7 @@ import java.sql.SQLException;
 public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T, Transaction> {
 
   @Override
-  public long put(final Transaction transaction, final T value) throws SQLException {
+  public Handle<T> put(final Transaction transaction, final T value) throws SQLException {
     return put(value);
   }
 

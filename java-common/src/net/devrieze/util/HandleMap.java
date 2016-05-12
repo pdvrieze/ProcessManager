@@ -79,7 +79,7 @@ public interface HandleMap<V> extends Set<V> {
    * @param pValue The value to put into the map.
    * @return The handle for the value.
    */
-  public long put(V pValue);
+  public Handle<V> put(V pValue);
 
   /**
    * Get the element with the given handle.

@@ -139,7 +139,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   private IProcessModelMap<T> mProcessModels = null;
 
-  private final IMessageService<?, ProcessNodeInstance> mMessageService;
+  private final IMessageService<?,T, ProcessNodeInstance<T>> mMessageService;
 
   private SecurityProvider mSecurityProvider = new PermissiveProvider();
 
@@ -149,12 +149,12 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @param messageService The service to use for actual sending of messages by
    *          activities.
    */
-  protected ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService, TransactionFactory transactionFactory) {
+  protected ProcessEngine(final IMessageService<?, T, ProcessNodeInstance<T>> messageService, TransactionFactory transactionFactory) {
     mMessageService = messageService;
     mTransactionFactory = transactionFactory;
   }
 
-  public static ProcessEngine newInstance(final IMessageService<?, ProcessNodeInstance> messageService) {
+  public static <T extends Transaction> ProcessEngine newInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService) {
     ProcessEngine pe = new ProcessEngine(messageService, new MyDBTransactionFactory());
     pe.mInstanceMap = new ProcessInstanceMap(pe.mTransactionFactory, pe);
     pe.mNodeInstanceMap = new ProcessNodeInstanceMap(pe.mTransactionFactory, pe, pe.mStringCache);
@@ -169,7 +169,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @param processInstances
    * @param processNodeInstances
    */
-  private ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService,
+  private ProcessEngine(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
                         TransactionFactory transactionFactory,
                         IProcessModelMap<T> processModels,
                         TransactionedHandleMap<ProcessInstance, T> processInstances,
@@ -193,7 +193,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     mNodeInstanceMap.invalidateCache(handle);
   }
 
-  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, ProcessNodeInstance> messageService,
+  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
                                                                 TransactionFactory transactionFactory,
                                                                 IProcessModelMap<T> processModels,
                                                                 TransactionedHandleMap<ProcessInstance, T> processInstances,
@@ -375,21 +375,14 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return instance;
   }
 
-  public boolean tickleInstance(long handle) {
-    return tickleInstance(new HProcessInstance(handle));
+  public boolean tickleInstance(T transaction, long handle) throws SQLException {
+    return tickleInstance(transaction, Handles.<ProcessInstance<T>>handle(handle));
   }
 
-  public boolean tickleInstance(Handle<? extends ProcessInstance> handle) {
-    try (T transaction=startTransaction()) {
-      return tickleInstance(transaction, handle);
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance> handle) throws
+  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance<T>> handle) throws
           SQLException {
-    getProcessModels().invalidateCache();
+    getProcessModels().invalidateCache(); // TODO be more specific
+    getNodeInstances().invalidateCache(); // TODO be more specific
     getInstances().invalidateCache(handle);
     ProcessInstance instance = getInstances().get(transaction, handle);
     if (instance==null) { return false; }
@@ -400,8 +393,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   public void tickleNode(final T transaction, final Handle<? extends ProcessNodeInstance> handle) throws SQLException {
     getNodeInstances().invalidateCache(handle);
-    ProcessNodeInstance nodeInstance = getNodeInstances().get(transaction, handle);
-    for(Handle<? extends ProcessNodeInstance> hpredecessor: nodeInstance.getDirectPredecessors()) {
+    ProcessNodeInstance<T> nodeInstance = getNodeInstances().get(transaction, handle);
+    for(Handle<? extends ProcessNodeInstance<T>> hpredecessor: nodeInstance.getDirectPredecessors(transaction)) {
       tickleNode(transaction, hpredecessor);
     }
     nodeInstance.tickle(transaction, mMessageService);
@@ -464,7 +457,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @todo change the parameter to a handle object.
    */
   public ProcessNodeInstance getNodeInstance(T transaction, final Handle<? extends ProcessNodeInstance> handle, final Principal user) throws SQLException {
-    final ProcessNodeInstance result = getNodeInstances().get(transaction, handle);
+    final ProcessNodeInstance result = (handle instanceof ProcessNodeInstance) ? (ProcessNodeInstance) handle : getNodeInstances().get(transaction, handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, result);
     return result;
   }
@@ -605,7 +598,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   }
 
-  public long registerNodeInstance(final T transaction, final ProcessNodeInstance instance) throws SQLException {
+  public Handle<ProcessNodeInstance> registerNodeInstance(final T transaction, final ProcessNodeInstance instance) throws SQLException {
     if (instance.getHandle() >= 0) {
       throw new IllegalArgumentException("Process node already registered");
     }

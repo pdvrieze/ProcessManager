@@ -27,6 +27,7 @@ import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
@@ -93,7 +94,7 @@ import java.util.logging.Logger;
 //             interfaceLocalname = "soap",
 //             interfacePrefix = "pe",
 //             serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
-public class ServletProcessEngine<T extends Transaction> extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
+public class ServletProcessEngine<T extends Transaction> extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, T, ProcessNodeInstance<T>>, GenericEndpoint {
 
   private static final long serialVersionUID = -6277449163953383974L;
 
@@ -469,7 +470,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   }
 
   @Override
-  public boolean sendMessage(Transaction transaction, final NewServletMessage message, final ProcessNodeInstance instance) throws SQLException {
+  public boolean sendMessage(T transaction, final NewServletMessage message, final ProcessNodeInstance<T> instance) throws SQLException {
     assert instance.getHandle()>=0;
     message.setHandle(transaction, instance);
 
@@ -714,7 +715,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
   public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
-      return transaction.commit(mProcessEngine.getProcessInstance(transaction, new HProcessInstance(handle), user));
+      return transaction.commit(mProcessEngine.getProcessInstance(transaction, Handles.handle(handle), user));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error getting process instance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -730,8 +731,12 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    */
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}", query= {"op=tickle"} )
   public String tickleProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    mProcessEngine.tickleInstance(handle);
-    return "success";
+    try (Transaction transaction = mProcessEngine.startTransaction()) {
+      transaction.commit(mProcessEngine.tickleInstance(transaction, handle));
+      return "success";
+    } catch (SQLException e) {
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failure", e);
+    }
   }
 
   /**
@@ -744,7 +749,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
   public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
-      return transaction.commit(mProcessEngine.cancelInstance(transaction, new HProcessInstance(handle), user));
+      return transaction.commit(mProcessEngine.cancelInstance(transaction, Handles.handle(handle), user));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error cancelling process intance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
