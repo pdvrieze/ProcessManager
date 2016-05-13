@@ -168,6 +168,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   }
 
   private static <T extends Transaction> XmlTask updateTask(UserMessageService<T> service, String handle, XmlTask partialNewTask, Principal user) throws SQLException, FileNotFoundException {
+    if (partialNewTask==null) { throw new IllegalArgumentException("No task information provided"); }
     try (T transaction = service.newTransaction()) {
       final XmlTask result = service.updateTask(transaction, Handles.<XmlTask>handle(handle), partialNewTask, user);
       if (result==null) { throw new FileNotFoundException(); }
