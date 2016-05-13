@@ -32,6 +32,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   private Uri mUri=null;
   private long mHandle=-1L;
   private final ForceLoadContentObserver mObserver;
+  private ProcessModelHolder mData = null;
 
   public ProcessModelLoader(final Context context, final long handle) {
     super(context);
@@ -51,8 +52,10 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   @Override
   protected void onStartLoading() {
     super.onStartLoading();
-    if (takeContentChanged()) {
+    if (mData==null || takeContentChanged()) {
       forceLoad();
+    } else {
+      deliverResult(mData);
     }
   }
 
@@ -81,6 +84,12 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
     final ContentResolver contentResolver = getContext().getContentResolver();
     contentResolver.registerContentObserver(updateUri, false, mObserver);
     return new ProcessModelHolder(processModel, handle);
+  }
+
+  @Override
+  public void deliverResult(final ProcessModelHolder data) {
+    mData = data;
+    super.deliverResult(data);
   }
 
   @Override
