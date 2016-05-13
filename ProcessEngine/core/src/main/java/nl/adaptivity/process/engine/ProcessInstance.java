@@ -135,11 +135,11 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   private final ProcessModelImpl mProcessModel;
 
-  private final Collection<Handle<? extends ProcessNodeInstance>> mThreads;
+  private final Collection<Handle<? extends ProcessNodeInstance<T>>> mThreads;
 
-  private final Collection<Handle<? extends ProcessNodeInstance>> mFinishedNodes;
+  private final Collection<Handle<? extends ProcessNodeInstance<T>>> mFinishedNodes;
 
-  private final Collection<Handle<? extends ProcessNodeInstance>> mEndResults;
+  private final Collection<Handle<? extends ProcessNodeInstance<T>>> mEndResults;
 
   private HashMap<JoinImpl, JoinInstance> mJoins;
 
@@ -402,9 +402,11 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     mThreads.remove(predecessor);
 
     final List<ProcessNodeInstance> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
+    final List<JoinInstance<Transaction>> joinsToEvaluate = new ArrayList<>();
     for (final Identifiable successorNode : predecessor.getNode().getSuccessors()) {
       final ProcessNodeInstance instance = createProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
       if (instance instanceof JoinInstance && mThreads.contains(instance)) {
+        joinsToEvaluate.add((JoinInstance<Transaction>) instance);
         continue;
       } else {
         mThreads.add(instance);
@@ -416,6 +418,9 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     transaction.commit();
     for (final ProcessNodeInstance task : startedTasks) {
       provideTask(transaction, messageService, task);
+    }
+    for(final ProcessNodeInstance<Transaction> join:joinsToEvaluate) {
+      startTask(transaction, messageService, join);
     }
   }
 
@@ -628,7 +633,8 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
    * @param messageService The message service to use for messenging.
    */
   public void tickle(T transaction, IMessageService<?, T, ProcessNodeInstance<T>> messageService) {
-    for(Handle<? extends ProcessNodeInstance> handle: mThreads) {
+    List<Handle<? extends ProcessNodeInstance<T>>> threads = new ArrayList<>(mThreads); // make a copy as the list may be changed due to tickling.
+    for(Handle<? extends ProcessNodeInstance<T>> handle: threads) {
       try {
         getEngine().tickleNode(transaction, handle);
       } catch (SQLException e) {

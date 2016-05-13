@@ -611,7 +611,11 @@ public class DarwinMessenger implements IMessenger {
     if (mLocalUrl == null) {
       destURL = registeredEndpoint.getEndpointLocation();
     } else {
-      destURL = mLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
+      URI endpointLocation = registeredEndpoint.getEndpointLocation();
+      if (endpointLocation==null) {
+        return new MessageTask<T>(new NullPointerException("No endpoint location specified, and the service could not be found"));
+      }
+      destURL = mLocalUrl.resolve(endpointLocation);
     }
 
     final MessageTask<T> messageTask = new MessageTask<>(destURL, message, completionListener, returnType);

@@ -32,6 +32,7 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
 
   private Uri mUri=null;
   private long mHandle=-1L;
+  private ExecutableUserTask mData = null;
   private final Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
 
   public TaskLoader(final Context context, final long handle) {
@@ -52,8 +53,10 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
   @Override
   protected void onStartLoading() {
     super.onStartLoading();
-    if (takeContentChanged()) {
+    if (mData==null || takeContentChanged()) {
       forceLoad();
+    } else {
+      deliverResult(mData);
     }
   }
 
@@ -77,7 +80,7 @@ public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
   }
 
   @Override
-  protected void onAbandon() {
+  protected void onReset() {
     getContext().getContentResolver().unregisterContentObserver(mObserver);
   }
 }

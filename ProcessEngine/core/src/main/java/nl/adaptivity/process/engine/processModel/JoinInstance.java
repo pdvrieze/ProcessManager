@@ -59,6 +59,7 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
   public boolean addPredecessor(T transaction, final ProcessNodeInstance predecessor) throws SQLException {
     if (canAddNode(transaction) && getDirectPredecessors().add(predecessor)) {
       getProcessInstance().getEngine().updateStorage(transaction, this);
+      return true;
     }
     return false;
   }
@@ -82,6 +83,8 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
    * @throws SQLException
    */
   private boolean updateTaskState(final T transaction) throws SQLException {
+    if (getState()==NodeInstanceState.Complete) return false; // Don't update if we're already complete
+
     final JoinImpl join                      = getNode();
     int            totalPossiblePredecessors = join.getPredecessors().size();
     int            realizedPredecessors      = getDirectPredecessors().size();
@@ -162,7 +165,9 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
         addPredecessor(transaction, candidate);
       }
     }
-    updateTaskState(transaction);
+    if(updateTaskState(transaction) && getState()!=NodeInstanceState.Complete) {
+      getProcessInstance().finishTask(transaction, messageService, this, null);
+    }
   }
 
   private boolean canAddNode(T transaction) throws SQLException {

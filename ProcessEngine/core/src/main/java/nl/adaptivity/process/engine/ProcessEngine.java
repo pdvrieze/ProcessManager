@@ -375,21 +375,14 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return instance;
   }
 
-  public boolean tickleInstance(long handle) {
-    return tickleInstance(Handles.<ProcessInstance<T>>handle(handle));
+  public boolean tickleInstance(T transaction, long handle) throws SQLException {
+    return tickleInstance(transaction, Handles.<ProcessInstance<T>>handle(handle));
   }
 
-  public boolean tickleInstance(Handle<? extends ProcessInstance<T>> handle) {
-    try (T transaction=startTransaction()) {
-      return tickleInstance(transaction, handle);
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance> handle) throws
+  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance<T>> handle) throws
           SQLException {
-    getProcessModels().invalidateCache();
+    getProcessModels().invalidateCache(); // TODO be more specific
+    getNodeInstances().invalidateCache(); // TODO be more specific
     getInstances().invalidateCache(handle);
     ProcessInstance instance = getInstances().get(transaction, handle);
     if (instance==null) { return false; }

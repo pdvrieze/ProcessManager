@@ -96,6 +96,13 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
   @Override
   public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public void onActivityCreated(final Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
     getLoaderManager().initLoader(LOADERID, null, this);
     final PMCursorAdapter adapter = new PMCursorAdapter(getActivity(), null);
     adapter.setOnSelectionListener(this);
@@ -114,8 +121,6 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
         });
       }
     };
-
-    setHasOptionsMenu(true);
   }
 
   @Override

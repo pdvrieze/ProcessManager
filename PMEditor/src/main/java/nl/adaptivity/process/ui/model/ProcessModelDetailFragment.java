@@ -25,6 +25,7 @@ import android.databinding.DataBindingUtil;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
@@ -138,10 +139,15 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
     if (getArguments().containsKey(ARG_ITEM_ID)) {
       getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
     }
-    setHasOptionsMenu(true);
   }
 
   @Override
