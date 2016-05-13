@@ -14,3 +14,6 @@
 	path = wiki
 	url = https://github.com/pdvrieze/ProcessManager.wiki.git
 	ignore = dirty
+[submodule "webeditor"]
+	path = webeditor
+	url = https://github.com/pdvrieze/webeditor.git
