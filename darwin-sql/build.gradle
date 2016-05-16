@@ -23,6 +23,7 @@ dependencies {
     compile project(":kotlinsql")
 
     testCompile 'org.testng:testng:6.9.9'
+    testRuntime 'mysql:mysql-connector-java:5.1.36'
 }
 
 

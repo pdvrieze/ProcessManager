@@ -319,6 +319,10 @@ open class AccountDb(private val connection:DBConnection) {
     WebAuthDB.UPDATE{ SET(u.password, hash) }.WHERE { u.user eq user }.execute(connection)
   }
 
+  fun ensureTables(): Unit {
+    WebAuthDB.ensureTables(connection, false)
+  }
+
 
 }
 

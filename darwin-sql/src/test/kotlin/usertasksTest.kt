@@ -25,8 +25,53 @@ import org.testng.annotations.Test
 import uk.ac.bournemouth.kotlinsql.*
 import uk.ac.bournemouth.kotlinsql.ColumnType.*
 import uk.ac.bournemouth.kotlinsql.ColumnType.NumericColumnType.*
+import java.io.OutputStreamWriter
+import java.io.PrintWriter
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.SQLException
+import java.util.logging.Logger
+import javax.sql.DataSource
 
 class UserTasksTest {
+
+
+  object myDataSource: DataSource {
+    const val JDBCURL = "jdbc:mysql://localhost/test"
+    const val USERNAME="test"
+    const val PASSWORD="DAGHYbH6Wb"
+
+    private var _logWriter: PrintWriter? = PrintWriter(OutputStreamWriter(System.err))
+
+    private var _loginTimeout:Int = 0
+
+    override fun setLogWriter(out: PrintWriter?) { _logWriter = out }
+
+    override fun setLoginTimeout(seconds: Int) { _loginTimeout = seconds }
+
+    override fun getParentLogger() = Logger.getAnonymousLogger()
+
+    override fun getLogWriter() = _logWriter
+
+    override fun getLoginTimeout() = _loginTimeout
+
+    override fun isWrapperFor(iface: Class<*>) = iface.isInstance(this)
+
+    override fun <T : Any> unwrap(iface: Class<T>): T {
+      if (! iface.isInstance(this)) throw SQLException("Interface not implemented")
+      return iface.cast(this)
+    }
+
+    override fun getConnection(): Connection {
+      return DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
+    }
+
+    override fun getConnection(username: String?, password: String?): Connection {
+      return DriverManager.getConnection(JDBCURL, username, password)
+    }
+
+  }
+
 
   @Test
   fun verifyTableCount() {
@@ -47,7 +92,7 @@ class UserTasksTest {
 
   @Test(dependsOnMethods = arrayOf("verifyTablesRecorded"))
   fun verifyUserTaskRows() {
-    assertEquals(UserTaskDB.usertasks._cols.map { it.name }, listOf("taskhandle", "remotehandle"))
+    assertEquals(UserTaskDB.usertasks._cols.map { it.name }, listOf("taskhandle", "remotehandle", "version"))
   }
 
 
@@ -97,6 +142,43 @@ class UserTasksTest {
     """.trimIndent()
 
     assertEquals(StringBuilder().apply{UserTaskDB.usertasks.appendDDL(this)}.toString(), expected)
+  }
+
+  @Test
+  fun testUpdateDb() {
+    UserTaskDB1.connect(myDataSource) {
+      UserTaskDB1._tables.forEach { table ->
+        table.createTransitive(this, true)
+      }
+    }
+    try {
+      UserTaskDB.connect(myDataSource) {
+        getMetaData().getColumns(tableNamePattern = UserTaskDB.usertasks._name, columnNamePattern = UserTaskDB.usertasks.version.name).use { rs ->
+          assertFalse(rs.next())
+        }
+        UserTaskDB.ensureTables(this)
+        getMetaData().getColumns(tableNamePattern = UserTaskDB.usertasks._name, columnNamePattern = UserTaskDB.usertasks.version.name).use { rs ->
+          assertTrue(rs.next())
+        }
+      }
+    } finally {
+      UserTaskDB1.connect(myDataSource) {
+        UserTaskDB1._tables.forEach {
+          it.dropTransitive(this, true)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun testEnsureWillCreateTables() {
+    UserTaskDB.connect(myDataSource) {
+      autoCommit=false
+      UserTaskDB.ensureTables(this)
+      assertTrue(hasTable(UserTaskDB.usertasks))
+      assertTrue(hasTable(UserTaskDB.nodedata))
+      rollback()
+    }
   }
 
 }

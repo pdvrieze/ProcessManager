@@ -27,7 +27,7 @@ import uk.ac.bournemouth.kotlinsql.MutableTable
 const val EXTRACONF="ENGINE=InnoDB CHARSET=utf8"
 
 
-object UserTaskDB: Database(1) {
+object UserTaskDB1: Database(1) {
 
   object usertasks : MutableTable("usertasks", EXTRACONF) {
     val taskhandle by BIGINT("taskhandle") { NOT_NULL; AUTO_INCREMENT }
@@ -50,4 +50,20 @@ object UserTaskDB: Database(1) {
     }
   }
 
+}
+
+object UserTaskDB: Database(2) {
+
+  object usertasks : MutableTable("usertasks", EXTRACONF) {
+    val taskhandle by BIGINT("taskhandle") { NOT_NULL; AUTO_INCREMENT }
+    val remotehandle by BIGINT("remotehandle") { NOT_NULL }
+    val version by INT("version") { NOT_NULL }
+
+    override fun init() {
+      usertasks.PRIMARY_KEY(taskhandle)
+    }
+  }
+
+
+  val nodedata = UserTaskDB1.nodedata
 }

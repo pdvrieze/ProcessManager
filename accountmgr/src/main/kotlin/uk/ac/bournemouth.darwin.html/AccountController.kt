@@ -36,6 +36,7 @@ import javax.mail.Session
 import javax.mail.Transport
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
+import javax.servlet.ServletConfig
 import javax.servlet.ServletException
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServlet
@@ -78,6 +79,11 @@ class AccountController : HttpServlet() {
     }
 
     private inline fun <R> accountDb(block: AccountDb.()->R): R = accountDb(DBRESOURCE, block)
+
+    override fun init(config: ServletConfig?) {
+        super.init(config)
+        accountDb { this.ensureTables() }
+    }
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
