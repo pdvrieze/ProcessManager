@@ -156,7 +156,10 @@ object XmlStreaming {
   }
 
 
-  private val serviceLoader:ServiceLoader<XmlStreamingFactory> by lazy { ServiceLoader.load(XmlStreamingFactory::class.java) }
+  private val serviceLoader:ServiceLoader<XmlStreamingFactory> by lazy {
+    val service = XmlStreamingFactory::class.java
+    ServiceLoader.load(service, service.classLoader)
+  }
 
   private var _factory: XmlStreamingFactory? = null
 
