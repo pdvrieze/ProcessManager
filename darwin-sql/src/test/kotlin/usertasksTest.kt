@@ -137,6 +137,7 @@ class UserTasksTest {
       CREATE TABLE `usertasks` (
         `taskhandle` BIGINT NOT NULL AUTO_INCREMENT,
         `remotehandle` BIGINT NOT NULL,
+        `version` INT NOT NULL,
         PRIMARY KEY (`taskhandle`)
       ) ENGINE=InnoDB CHARSET=utf8;
     """.trimIndent()
@@ -153,10 +154,13 @@ class UserTasksTest {
     }
     try {
       UserTaskDB.connect(myDataSource) {
-        getMetaData().getColumns(tableNamePattern = UserTaskDB.usertasks._name, columnNamePattern = UserTaskDB.usertasks.version.name).use { rs ->
+        getMetaData().getColumns(tableNamePattern = UserTaskDB.usertasks._name,
+                                 columnNamePattern = UserTaskDB.usertasks.version.name).use { rs ->
           assertFalse(rs.next())
         }
         UserTaskDB.ensureTables(this)
+      }
+      UserTaskDB.connect(myDataSource) {
         getMetaData().getColumns(tableNamePattern = UserTaskDB.usertasks._name, columnNamePattern = UserTaskDB.usertasks.version.name).use { rs ->
           assertTrue(rs.next())
         }
@@ -173,11 +177,14 @@ class UserTasksTest {
   @Test
   fun testEnsureWillCreateTables() {
     UserTaskDB.connect(myDataSource) {
-      autoCommit=false
-      UserTaskDB.ensureTables(this)
-      assertTrue(hasTable(UserTaskDB.usertasks))
-      assertTrue(hasTable(UserTaskDB.nodedata))
-      rollback()
+      try {
+        UserTaskDB.ensureTables(this)
+        assertTrue(hasTable(UserTaskDB.usertasks))
+        assertTrue(hasTable(UserTaskDB.nodedata))
+      } finally {
+        UserTaskDB._tables.forEach { it.dropTransitive(this, true) }
+      }
+      assertFalse(hasTable(UserTaskDB.usertasks))
     }
   }
 
