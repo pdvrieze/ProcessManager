@@ -18,23 +18,19 @@ buildscript {
     repositories {
         jcenter()
     }
-    dependencies {
-        classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.6'
-    }
 }
 
 
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'war'
-apply plugin: 'gwt'
 
 version = '1.0.0'
 description = 'The service that handles tasks for users (and functions as web interface entry point'
 //group = ['service', 'server']
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 def wsDestDir = file("${buildDir}/docs/wsDoc")
 
@@ -73,7 +69,7 @@ sourceSets {
 //                'images/arrow.svg')
 //    }
 }
-
+/*
 class PngGenerator extends Exec {
     @InputFile
     File inputFile
@@ -119,7 +115,7 @@ task generateAll {
     dependsOn project.tasks['generateEndNode']
     dependsOn project.tasks['generateStartNode']
 }
-
+*/
 task tomcatRun(dependsOn: ["war"]) {
     group = 'web application'
     description = "Do everything needed to be able to run as embedded tomcat"
@@ -138,17 +134,6 @@ artifacts {
     apiCompile apiJar
 }
 
-draftWar {
-//    dependsOn generateAll
-    classpath sourceSets.api.output
-    from fileTree(genImageDir)
-//    dependsOn(project.task('apiCompile'))
-//    from tasks.apiCompile {
-//        into 'WEB-INF/classes'
-//    }
-}
-
-
 war {
 //    dependsOn generateAll
     classpath sourceSets.api.output
@@ -159,19 +144,12 @@ war {
 //    }
 }
 
-gwt {
-    gwtVersion = '2.6.1'
-    modules 'nl.adaptivity.darwin.gwt.Darwin'
-    modules 'nl.adaptivity.process.userMessageHandler.PEUserMessageHandler'
-    devModules 'nl.adaptivity.darwin.gwt.DarwinDraft'
-    devModules 'nl.adaptivity.process.userMessageHandler.UMHDraft'
-}
-
 /*
 tomcat {
     contextPath='/PEUserMessageHandler'
 }
 */
+
 dependencies {
     apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 //    providedCompile "org.apache.tomcat:tomcatservlet-api:${tomcatVersion}"
@@ -183,7 +161,6 @@ dependencies {
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
     runtime project(':xmlutil:jvm')
 
-    compileOnly 'com.google.gwt:gwt-user:2.6.1'
     compile project(':DarwinClients')
 
     testCompile 'org.testng:testng:6.9.9'

@@ -4,7 +4,7 @@
     <option name="COMMON_VM_ARGUMENTS" value="-Dorg.apache.catalina.level=FINEST" />
     <option name="UPDATING_POLICY" value="redeploy-artifacts" />
     <deployment>
-      <file path="$PROJECT_DIR$/PEUserMessageHandler/build/libs/PEUserMessageHandler-draft-1.0.0.war">
+      <file path="$PROJECT_DIR$/PEUserMessageHandler/build/libs/PEUserMessageHandler-1.0.0.war">
         <settings>
           <option name="CONTEXT_PATH" value="/PEUserMessageHandler" />
         </settings>
@@ -96,7 +96,7 @@
     </ConfigurationWrapper>
     <method>
       <option name="Make" enabled="false" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":PE-Server:assembleExtraBootCp :ProcessEngine:servlet:war :DarwinServices:war :accountmgr:war :PEUserMessageHandler:draftWar :darwin:jvm:war :webeditor:war" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":PE-Server:assembleExtraBootCp :ProcessEngine:servlet:war :DarwinServices:war :accountmgr:war :PEUserMessageHandler:war :darwin:jvm:war :webeditor:war" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

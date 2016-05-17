@@ -44,10 +44,5 @@
     <servlet-name>internalEndpointServlet</servlet-name>
     <url-pattern>/internal</url-pattern>
   </servlet-mapping>
-  
-  <!-- Default page to serve -->
-  <welcome-file-list>
-    <welcome-file>PEUserMessageHandler.html</welcome-file>
-  </welcome-file-list>
 
 </web-app>
