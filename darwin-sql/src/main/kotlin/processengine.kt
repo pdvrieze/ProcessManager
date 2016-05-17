@@ -89,6 +89,7 @@ object ProcessEngineDB : Database(1) {
     override fun init() {
       PRIMARY_KEY(pnihandle)
       FOREIGN_KEY(pihandle).REFERENCES(processInstancesTable.pihandle)
+      UNIQUE(pihandle, nodeid)
     }
   }
 
