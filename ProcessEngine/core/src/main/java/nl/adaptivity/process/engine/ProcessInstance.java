@@ -29,6 +29,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -141,7 +142,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   private final Collection<Handle<? extends ProcessNodeInstance<T>>> mEndResults;
 
-  private HashMap<JoinImpl, JoinInstance> mJoins;
+  private volatile HashMap<JoinImpl, JoinInstance> mJoins;
 
   private long mHandle;
 
@@ -187,6 +188,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
   }
 
   void setChildren(T transaction, final Collection<? extends Handle<? extends ProcessNodeInstance<T>>> children) throws SQLException {
+    if (mJoins!=null) { mJoins.clear(); } // TODO proper synchronization
     mThreads.clear();
     mFinishedNodes.clear();
     mEndResults.clear();
@@ -198,6 +200,15 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
       final ProcessNodeInstance inst = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
       nodes.add(inst);
       threads.put(Handles.handle(handle), inst);
+      if (inst instanceof JoinInstance) {
+        if (mJoins==null) {
+          synchronized (this) { if (mJoins==null) { mJoins = new HashMap<>(); } }
+        }
+        synchronized (mJoins) {
+          JoinInstance<T> joinInst = (JoinInstance<T>) inst;
+          mJoins.put(joinInst.getNode(), joinInst);
+        }
+      }
     }
 
     for(ProcessNodeInstance instance: nodes) {
@@ -354,25 +365,25 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   }
 
-  public synchronized void provideTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void provideTask(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     if (node.provideTask(transaction, messageService)) {
       takeTask(transaction, messageService, node);
     }
   }
 
-  public synchronized void takeTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void takeTask(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     if (node.takeTask(transaction, messageService)) {
       startTask(transaction, messageService, node);
     }
   }
 
-  public synchronized void startTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
+  public synchronized void startTask(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
     if (node.startTask(transaction, messageService)) {
       finishTask(transaction, messageService, node, null);
     }
   }
 
-  public synchronized void finishTask(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node, final Node resultPayload) throws SQLException {
+  public synchronized void finishTask(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node, final Node resultPayload) throws SQLException {
     if (node.getState() == NodeInstanceState.Complete) {
       throw new IllegalStateException("Task was already complete");
     }
@@ -395,18 +406,18 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   }
 
-  private void startSuccessors(Transaction transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance predecessor) throws SQLException {
+  private void startSuccessors(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance predecessor) throws SQLException {
     if (! mFinishedNodes.contains(predecessor)) {
       mFinishedNodes.add(predecessor);
     }
     mThreads.remove(predecessor);
 
-    final List<ProcessNodeInstance> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
-    final List<JoinInstance<Transaction>> joinsToEvaluate = new ArrayList<>();
+    final List<ProcessNodeInstance<?>> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
+    final List<JoinInstance<T>> joinsToEvaluate = new ArrayList<>();
     for (final Identifiable successorNode : predecessor.getNode().getSuccessors()) {
-      final ProcessNodeInstance instance = createProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
+      final ProcessNodeInstance<T> instance = createProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
       if (instance instanceof JoinInstance && mThreads.contains(instance)) {
-        joinsToEvaluate.add((JoinInstance<Transaction>) instance);
+        joinsToEvaluate.add((JoinInstance<T>) instance);
         continue;
       } else {
         mThreads.add(instance);
@@ -419,7 +430,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     for (final ProcessNodeInstance task : startedTasks) {
       provideTask(transaction, messageService, task);
     }
-    for(final ProcessNodeInstance<Transaction> join:joinsToEvaluate) {
+    for(final ProcessNodeInstance<T> join:joinsToEvaluate) {
       startTask(transaction, messageService, join);
     }
   }
@@ -428,19 +439,25 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     if (node instanceof JoinImpl) {
       final JoinImpl join = (JoinImpl) node;
       if (mJoins == null) {
-        mJoins = new HashMap<>();
+        synchronized (this) {
+          if (mJoins==null) {
+            mJoins = new HashMap<>();
+          }
+        }
       }
-      JoinInstance instance = mJoins.get(join);
-      if (instance == null) {
+      synchronized (mJoins) {
+        JoinInstance instance = mJoins.get(join);
+        if (instance == null) {
 
-        final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(node.getPredecessors().size());
-        predecessors.add(predecessor);
-        instance = new JoinInstance(transaction, join, predecessors, this);
-        mJoins.put(join, instance);
-      } else {
-        instance.addPredecessor(transaction, predecessor);
+          final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(node.getPredecessors().size());
+          predecessors.add(predecessor);
+          instance = new JoinInstance(transaction, join, predecessors, this);
+          mJoins.put(join, instance);
+        } else {
+          instance.addPredecessor(transaction, predecessor);
+        }
+        return instance;
       }
-      return instance;
 
     } else {
       return new ProcessNodeInstance(node, predecessor, this);
