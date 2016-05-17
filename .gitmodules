@@ -17,3 +17,4 @@
 [submodule "webeditor"]
 	path = webeditor
 	url = https://github.com/pdvrieze/webeditor.git
+	ignore = dirty

@@ -29,6 +29,11 @@
           <option name="CONTEXT_PATH" value="/ProcessEngine" />
         </settings>
       </file>
+      <file path="$PROJECT_DIR$/webeditor/build/libs/webeditor.war">
+        <settings>
+          <option name="CONTEXT_PATH" value="/webeditor" />
+        </settings>
+      </file>
     </deployment>
     <server-settings>
       <option name="AJP_PORT" value="8009" />
@@ -91,7 +96,7 @@
     </ConfigurationWrapper>
     <method>
       <option name="Make" enabled="false" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":PE-Server:assembleExtraBootCp :ProcessEngine:servlet:war :DarwinServices:war :accountmgr:war :PEUserMessageHandler:draftWar :darwin:jvm:war" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":PE-Server:assembleExtraBootCp :ProcessEngine:servlet:war :DarwinServices:war :accountmgr:war :PEUserMessageHandler:draftWar :darwin:jvm:war :webeditor:war" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>
