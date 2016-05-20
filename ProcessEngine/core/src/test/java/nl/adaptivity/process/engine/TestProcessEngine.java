@@ -74,7 +74,7 @@ import static org.testng.AssertJUnit.*;
  */
 public class TestProcessEngine {
 
-  private class StubMessageService implements IMessageService<IXmlMessage,ProcessNodeInstance> {
+  private class StubMessageService implements IMessageService<IXmlMessage,Transaction, ProcessNodeInstance<Transaction>> {
 
 
     List<IXmlMessage> mMessages=new ArrayList<>();
@@ -116,7 +116,7 @@ public class TestProcessEngine {
 
   private static DocumentBuilder _documentBuilder;
 
-  ProcessEngine mProcessEngine;
+  ProcessEngine<Transaction> mProcessEngine;
   private StubMessageService mStubMessageService;
   private final EndpointDescriptor mLocalEndpoint = new EndpointDescriptorImpl(QName.valueOf("processEngine"),"processEngine", URI.create("http://localhost/"));
   private StubTransactionFactory mStubTransactionFactory;
@@ -216,12 +216,12 @@ public class TestProcessEngine {
     XMLUnit.setIgnoreWhitespace(true);
     assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
 
-    ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
+    ProcessInstance<Transaction> processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
     assertEquals(State.STARTED, processInstance.getState());
 
     assertEquals(1, processInstance.getActive().size());
     assertEquals(1, processInstance.getFinished().size());
-    Handle<? extends ProcessNodeInstance> hfinished = processInstance.getFinished().iterator().next();
+    Handle<? extends ProcessNodeInstance<Transaction>> hfinished = processInstance.getFinished().iterator().next();
     ProcessNodeInstance finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
     assertTrue(finished.getNode() instanceof StartNodeImpl);
     assertEquals("start", finished.getNode().getId());
@@ -251,7 +251,7 @@ public class TestProcessEngine {
 
     XMLUnit.setIgnoreWhitespace(true);
     assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(serializeToXmlCharArray(mStubMessageService.mMessages.get(0))));
-    ProcessNodeInstance ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);// This should be 0 as it's the first activity
+    ProcessNodeInstance<Transaction> ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);// This should be 0 as it's the first activity
 
 
     mStubMessageService.clear(); // (Process the message)

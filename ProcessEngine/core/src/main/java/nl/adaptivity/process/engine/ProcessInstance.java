@@ -508,15 +508,15 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     }
   }
 
-  public Collection<? extends Handle<? extends ProcessNodeInstance>> getActive() {
+  public Collection<? extends Handle<? extends ProcessNodeInstance<T>>> getActive() {
     return mThreads;
   }
 
-  public Collection<? extends Handle<? extends ProcessNodeInstance>> getFinished() {
+  public Collection<? extends Handle<? extends ProcessNodeInstance<T>>> getFinished() {
     return mFinishedNodes;
   }
 
-  public Collection<? extends Handle<? extends ProcessNodeInstance>> getResults() {
+  public Collection<? extends Handle<? extends ProcessNodeInstance<T>>> getResults() {
     return mEndResults;
   }
 
