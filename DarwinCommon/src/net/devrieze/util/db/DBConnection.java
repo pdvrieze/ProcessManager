@@ -35,8 +35,10 @@ import java.util.logging.Logger;
 /**
  * A class that helps with handling database operations and closing up afterwards. It keeps track of opened statements
  * so they can be automatically closed.
+ * @deprecated Use kotlinsql
  */
 @SuppressWarnings("deprecation")
+@Deprecated
 public class DBConnection implements AutoCloseable {
 
   private interface Warnable {
