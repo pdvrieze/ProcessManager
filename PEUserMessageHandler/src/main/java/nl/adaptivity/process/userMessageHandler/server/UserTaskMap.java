@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
-import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DBHandleMap;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.messaging.MessagingException;
@@ -28,7 +28,10 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlDeserializerFactory;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlReaderUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.w3.soapEnvelope.Envelope;
 
@@ -47,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
-public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements IUserTaskMap<DBTransaction> {
+public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DBTransaction> {
 
 
   public static final String TABLE = "usertasks";

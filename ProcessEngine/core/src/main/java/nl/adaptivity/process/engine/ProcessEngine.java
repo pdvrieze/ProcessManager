@@ -68,6 +68,9 @@ import java.util.logging.Logger;
  */
 public class ProcessEngine<T extends Transaction> /* implements IProcessEngine */{
 
+  private static final int CACHE_SIZE=10;
+  private static final int NODE_CACHE_SIZE=10;
+
   private static class MyDBTransactionFactory implements TransactionFactory<DBTransaction> {
     private final Context mContext;
 
@@ -155,11 +158,17 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
   public static <T extends Transaction> ProcessEngine newInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService) {
+    // TODO enable optional caching
     ProcessEngine pe = new ProcessEngine(messageService, new MyDBTransactionFactory());
     pe.mInstanceMap = new ProcessInstanceMap(pe.mTransactionFactory, pe);
     pe.mNodeInstanceMap = new ProcessNodeInstanceMap(pe.mTransactionFactory, pe, pe.mStringCache);
     pe.mProcessModels = new ProcessModelMap(pe.mTransactionFactory, pe.mStringCache);
     return pe;
+  }
+
+  private static <T extends Transaction, V> TransactionedHandleMap<V, T> wrapCache(TransactionedHandleMap<V,T> base, int cacheSize) {
+    if(cacheSize<=0) { return base; }
+    return new CachingHandleMap(base, cacheSize);
   }
 
   /**
@@ -547,7 +556,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     }
   }
 
-  public NodeInstanceState finishTask(T transaction, final Handle<ProcessNodeInstance> handle, final Node payload, final Principal user) throws SQLException {
+  public NodeInstanceState finishTask(T transaction, final Handle<? extends ProcessNodeInstance> handle, final Node payload, final Principal user) throws SQLException {
     final ProcessNodeInstance task = getNodeInstances().get(handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance pi = task.getProcessInstance();
@@ -566,7 +575,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @param resultSource The source that is parsed into DOM nodes and then passed on
    *          to {@link #finishTask(Transaction, Handle, Node, Principal)}
    */
-  public void finishedTask(T transaction, final Handle<ProcessNodeInstance> handle, final DataSource resultSource, final Principal user) {
+  public void finishedTask(T transaction, final Handle<? extends ProcessNodeInstance> handle, final DataSource resultSource, final Principal user) {
     InputSource result;
     try {
       result = resultSource==null ? null : new InputSource(resultSource.getInputStream());

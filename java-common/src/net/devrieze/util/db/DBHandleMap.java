@@ -16,6 +16,7 @@
 
 package net.devrieze.util.db;
 
+import net.devrieze.util.AutoCloseableIterator;
 import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.TransactionedHandleMap;
@@ -25,10 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,11 +45,7 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
 
     @Override
     public Iterator<V> iterator() {
-      try {
-        return DBHandleMap.this.iterator(mTransaction, false);
-      } catch (SQLException ex) {
-        throw new RuntimeException(ex);
-      }
+      return DBHandleMap.this.iterator(mTransaction, false);
     }
 
   }
@@ -84,9 +78,14 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public final Handle<V> put(V pValue) {
+  public DBTransaction newTransaction() {
+    return getTransactionFactory().startTransaction();
+  }
+
+  @Override
+  public final Handle<V> put(V value) {
     try (final DBTransaction transaction = getTransactionFactory().startTransaction()) {
-      Handle<V> result = put(transaction, pValue);
+      Handle<V> result = put(transaction, value);
       transaction.commit();
       return result;
     } catch (SQLException ex) {
@@ -96,11 +95,11 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public Handle<V> put(DBTransaction pTransaction, V pValue) throws SQLException {
-    Handle<V> result = addWithKey(pTransaction, pValue);
-    if (result==null) { throw new RuntimeException("Adding element "+pValue+" failed"); }
-    if (pValue instanceof HandleAware) {
-      ((HandleAware<?>) pValue).setHandle(result.getHandle());
+  public Handle<V> put(DBTransaction transaction, V value) throws SQLException {
+    Handle<V> result = addWithKey(transaction, value);
+    if (result==null) { throw new RuntimeException("Adding element " + value + " failed"); }
+    if (value instanceof HandleAware) {
+      ((HandleAware<?>) value).setHandle(result.getHandle());
     }
     return result;
   }
@@ -117,14 +116,14 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
 
   @Override
   @Nullable
-  public V get(@NotNull DBTransaction pTransaction, Handle<? extends V> pHandle) throws SQLException {
+  public V get(@NotNull DBTransaction transaction, Handle<? extends V> pHandle) throws SQLException {
     final ComparableHandle<? extends V> handle = Handles.handle(pHandle);
     if (mPendingCreates.containsKey(handle)) { return mPendingCreates.get(handle); }
 
     final HMElementFactory<V> elementFactory = getElementFactory();
     String sql = addFilter("SELECT "+elementFactory.getCreateColumns()+" FROM "+elementFactory.getTableName()+ " WHERE (" +elementFactory.getHandleCondition(pHandle)+")", " AND ");
 
-    try(PreparedStatement statement = pTransaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+    try(PreparedStatement statement = transaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
       int cnt = getElementFactory().setHandleParams(statement, pHandle, 1);
       setFilterParams(statement,cnt);
 
@@ -133,14 +132,14 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
       try(ResultSet resultset = statement.getResultSet()) {
         if(resultset.first()) {
           elementFactory.initResultSet(resultset.getMetaData());
-          V val = elementFactory.create(pTransaction, resultset);
+          V val = elementFactory.create(transaction, resultset);
           if (val==null) {
-            remove(pTransaction, handle);
+            remove(transaction, handle);
             return null;
           } else {
             mPendingCreates.put(handle,val);
             try {
-              elementFactory.postCreate(pTransaction, val);
+              elementFactory.postCreate(transaction, val);
             } finally {
               mPendingCreates.remove(handle);
             }
@@ -154,42 +153,43 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public final V get(net.devrieze.util.HandleMap.Handle<? extends V> pHandle) {
-    V element = getElementFactory().asInstance(pHandle);
+  public final V get(net.devrieze.util.HandleMap.Handle<? extends V> handle) {
+    V element = getElementFactory().asInstance(handle);
     if (element!=null) { return element; } // If the element is it's own handle, don't bother looking it up.
-    return get(pHandle.getHandle());
+    return get(handle.getHandle());
   }
 
 
   @Override
-  public final V get(DBTransaction pTransaction, long pHandle) throws SQLException {
-    return get(pTransaction, Handles.<V>handle(pHandle));
+  public final V get(DBTransaction transaction, long handle) throws SQLException {
+    return get(transaction, Handles.<V>handle(handle));
   }
 
   @Override
-  public final V castOrGet(DBTransaction pTransaction, Handle<? extends V> pHandle) throws SQLException {
-    V element = getElementFactory().asInstance(pHandle);
+  public final V castOrGet(DBTransaction transaction, Handle<? extends V> handle) throws SQLException {
+    V element = getElementFactory().asInstance(handle);
     if (element!=null) { return element; } // If the element is it's own handle, don't bother looking it up.
-    return get(pTransaction, pHandle);
+    return get(transaction, handle);
   }
 
   @Override
-  public final V set(long pHandle, V pValue) {
+  public final V set(long handle, V value) {
     try (DBTransaction transaction= getTransactionFactory().startTransaction()){
-      return transaction.commit(set(transaction, pHandle, pValue));
+      return transaction.commit(set(transaction, handle, value));
     } catch (SQLException ex) {
       throw new RuntimeException(ex);
     }
   }
 
   @Override
-  public V set(DBTransaction pTransaction, Handle<? extends V> pHandle, V pValue) throws SQLException {
-    V oldValue = get(pTransaction, pHandle);
+  public V set(DBTransaction transaction, Handle<? extends V> handle, V value) throws SQLException {
+    V oldValue = get(transaction, handle);
 
-    return set(pTransaction, pHandle, oldValue, pValue);
+    return set(transaction, handle, oldValue, value);
   }
 
   protected V set(DBTransaction pTransaction, Handle<? extends V> pHandle, V oldValue, V pValue) throws SQLException {
+    if (Objects.equals(oldValue, pValue)) { return oldValue; }
     String sql = addFilter("UPDATE "+ getElementFactory().getTableName()+ " SET "+join(getElementFactory().getStoreColumns(), getElementFactory().getStoreParamHolders(),", "," = ")+" WHERE (" + getElementFactory().getHandleCondition(pHandle)+")", " AND ");
     if (pValue instanceof HandleAware) {
       ((HandleAware<?>)pValue).setHandle(pHandle.getHandle());
@@ -209,13 +209,13 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public final V set(Handle<? extends V> pHandle, V pValue) {
-    return set(pHandle.getHandle(), pValue);
+  public final V set(Handle<? extends V> handle, V value) {
+    return set(handle.getHandle(), value);
   }
 
   @Override
-  public final V set(DBTransaction pTransaction, long pHandle, V pValue) throws SQLException {
-    return set(pTransaction, Handles.<V>handle(pHandle), pValue);
+  public final V set(DBTransaction transaction, long handle, V value) throws SQLException {
+    return set(transaction, Handles.<V>handle(handle), value);
   }
 
   /**
@@ -230,22 +230,31 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public Iterable<V> iterable(DBTransaction pTransaction) {
-    return new TransactionIterable(pTransaction);
-  }
-
-
-  @Override
-  public final boolean containsHandle(Handle<? extends V> pHandle) {
-    return contains(pHandle.getHandle());
-  }
-
-  @Override
-  public final boolean contains(DBTransaction pTransaction, Object pO) throws SQLException {
-    if (pO instanceof Handle) {
-      return contains(pTransaction, ((Handle<?>)pO).getHandle());
+  public AutoCloseableIterator<V> iterator(final DBTransaction pTransaction, final boolean pReadOnly) {
+    try {
+      return super.iterator(pTransaction, pReadOnly);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
-    return super.contains(pTransaction, pO);
+  }
+
+  @Override
+  public Iterable<V> iterable(DBTransaction transaction) {
+    return new TransactionIterable(transaction);
+  }
+
+
+  @Override
+  public final boolean containsHandle(Handle<? extends V> handle) {
+    return contains(handle.getHandle());
+  }
+
+  @Override
+  public final boolean contains(DBTransaction transaction, Object obj) throws SQLException {
+    if (obj instanceof Handle) {
+      return contains(transaction, ((Handle<?>) obj).getHandle());
+    }
+    return super.contains(transaction, obj);
   }
 
   public final boolean contains(Handle<? extends V> pHandle) {
@@ -253,14 +262,24 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public final boolean contains(DBTransaction pTransaction, long pHandle) throws SQLException {
-    return contains(pTransaction, Handles.<V>handle(pHandle));
+  public boolean containsAll(final DBTransaction transaction, final Collection<?> c) throws SQLException {
+    for(Object o: c) {
+      if (! contains(transaction, o)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
-  public boolean contains(long pHandle) {
+  public final boolean contains(DBTransaction transaction, long handle) throws SQLException {
+    return contains(transaction, Handles.<V>handle(handle));
+  }
+
+  @Override
+  public boolean contains(long handle) {
     try (final DBTransaction transaction = getTransactionFactory().startTransaction()) {
-      boolean result = contains(transaction, pHandle);
+      boolean result = contains(transaction, handle);
       transaction.commit();
       return result;
     } catch (SQLException ex) {
@@ -270,11 +289,11 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public boolean contains(DBTransaction pTransaction, Handle<? extends V> pHandle) throws SQLException {
-    String sql = addFilter("SELECT COUNT(*) FROM "+ getElementFactory().getTableName()+ " WHERE (" + getElementFactory().getHandleCondition(pHandle)+")", " AND ");
+  public boolean contains(DBTransaction transaction, Handle<? extends V> handle) throws SQLException {
+    String sql = addFilter("SELECT COUNT(*) FROM " + getElementFactory().getTableName() + " WHERE (" + getElementFactory().getHandleCondition(handle) + ")", " AND ");
 
-    try(PreparedStatement statement = pTransaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-      int cnt = getElementFactory().setHandleParams(statement, pHandle, 1);
+    try(PreparedStatement statement = transaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+      int cnt = getElementFactory().setHandleParams(statement, handle, 1);
       setFilterParams(statement,cnt);
 
       boolean result = statement.execute();
@@ -286,14 +305,14 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public final boolean remove(Handle<? extends V> pObject) {
-    return remove(pObject.getHandle());
+  public final boolean remove(Handle<? extends V> handle) {
+    return remove(handle.getHandle());
   }
 
   @Override
-  public final boolean remove(long pHandle) {
+  public final boolean remove(long handle) {
     try (final DBTransaction transaction = getTransactionFactory().startTransaction()) {
-      boolean result = remove(transaction, pHandle);
+      boolean result = remove(transaction, handle);
       if(result) { transaction.commit(); }
       return result;
     } catch (SQLException ex) {
@@ -302,19 +321,19 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public final boolean remove(DBTransaction pTransaction, long handle) throws SQLException {
-    return remove(pTransaction, Handles.<V>handle(handle));
+  public final boolean remove(DBTransaction transaction, long handle) throws SQLException {
+    return remove(transaction, Handles.<V>handle(handle));
   }
 
   @Override
-  public boolean remove(DBTransaction pTransaction, Handle<? extends V> pHandle) throws SQLException {
+  public boolean remove(DBTransaction transaction, Handle<? extends V> handle) throws SQLException {
     HMElementFactory<V> elementFactory = getElementFactory();
-    DBTransaction connection = pTransaction;
-    getElementFactory().preRemove(connection, pHandle);
-    String sql = addFilter("DELETE FROM "+elementFactory.getTableName()+ " WHERE (" +elementFactory.getHandleCondition(pHandle)+")", " AND ");
+    DBTransaction connection = transaction;
+    getElementFactory().preRemove(connection, handle);
+    String sql = addFilter("DELETE FROM " + elementFactory.getTableName() + " WHERE (" + elementFactory.getHandleCondition(handle) + ")", " AND ");
 
     try (PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
-      int cnt = elementFactory.setHandleParams(statement, pHandle, 1);
+      int cnt = elementFactory.setHandleParams(statement, handle, 1);
       setFilterParams(statement,cnt);
 
       int changecount = statement.executeUpdate();
@@ -325,7 +344,7 @@ public class DBHandleMap<V> extends DbSet<V> implements TransactionedHandleMap<V
   }
 
   @Override
-  public void invalidateCache(final Handle<? extends V> pHandle) {
+  public void invalidateCache(final Handle<? extends V> handle) {
     // No-op, there is no cache
   }
 

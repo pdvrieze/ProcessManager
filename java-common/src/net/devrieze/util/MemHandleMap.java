@@ -372,9 +372,9 @@ public class MemHandleMap<V> implements HandleMap<V> {
 
 
   @Override
-  public boolean contains(long pHandle) {
+  public boolean contains(long handle) {
     synchronized (this) {
-      final int index = indexFromHandle(pHandle);
+      final int index = indexFromHandle(handle);
       if ((index < 0) || (index >= mValues.length)) { return false; }
       return mValues[index]!=null;
     }
@@ -384,14 +384,14 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#contains(java.lang.Object)
    */
   @Override
-  public boolean contains(final Object pObject) {
-    if (pObject instanceof HandleMap.Handle) {
-      final long candidateHandle = ((HandleMap.Handle<?>) pObject).getHandle();
+  public boolean contains(final Object object) {
+    if (object instanceof HandleMap.Handle) {
+      final long candidateHandle = ((HandleMap.Handle<?>) object).getHandle();
       return contains(candidateHandle);
     } else {
       synchronized (this) {
         for (final Object candidate : this) {
-          if (candidate == pObject) {
+          if (candidate == object) {
             return true;
           }
         }
@@ -401,8 +401,8 @@ public class MemHandleMap<V> implements HandleMap<V> {
   }
 
   @Override
-  public boolean containsHandle(Handle<? extends V> pHandle) {
-    return contains(pHandle.getHandle());
+  public boolean containsHandle(Handle<? extends V> handle) {
+    return contains(handle.getHandle());
   }
 
   /**
@@ -419,8 +419,8 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#put(V)
    */
   @Override
-  public Handle<V> put(final V pValue) {
-    if (pValue == null) {
+  public Handle<V> put(final V value) {
+    if (value == null) {
       throw new NullPointerException("Handles can point to null objects");
     }
     int index; // The space in the mValues array where to store the value
@@ -445,7 +445,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
         // Ring buffer too full
         if ((mSize == mValues.length) || (mSize >= (mLoadFactor * mValues.length))) {
           expand();
-          return put(pValue);
+          return put(value);
           // expand
         } else {
           // Reuse a handle.
@@ -453,15 +453,15 @@ public class MemHandleMap<V> implements HandleMap<V> {
           generation = Math.max(mGenerations[index], mStartGeneration);
         }
       }
-      mValues[index] = pValue;
+      mValues[index] = value;
       mGenerations[index] = generation;
       mSize++;
 
       handle = ((long) generation << 32) + handleFromIndex(index);
     }
-    if (pValue instanceof HandleMap.HandleAware<?>) {
-      ((HandleMap.HandleAware<?>) pValue).setHandle(handle);
-      return (Handle<V>) pValue;
+    if (value instanceof HandleMap.HandleAware<?>) {
+      ((HandleMap.HandleAware<?>) value).setHandle(handle);
+      return (Handle<V>) value;
     }
     return Handles.handle(handle);
   }
@@ -493,17 +493,17 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#get(net.devrieze.util.MemHandleMap.Handle)
    */
   @Override
-  public V get(final HandleMap.Handle<? extends V> pHandle) {
-    return get(pHandle.getHandle());
+  public V get(final HandleMap.Handle<? extends V> handle) {
+    return get(handle.getHandle());
   }
 
   @Override
-  public V set(long pHandle, V pValue) {
+  public V set(long handle, V value) {
     // Split the handle up into generation and index.
-    final int generation = (int) (pHandle >> 32);
+    final int generation = (int) (handle >> 32);
     synchronized (this) {
-      final int index = indexFromHandle((int) pHandle);
-      if (index<0) { throw new ArrayIndexOutOfBoundsException((int)pHandle); }
+      final int index = indexFromHandle((int) handle);
+      if (index<0) { throw new ArrayIndexOutOfBoundsException((int) handle); }
 
       // If the generation doesn't map we have a wrong handle.
       if (mGenerations[index] != generation) {
@@ -513,17 +513,17 @@ public class MemHandleMap<V> implements HandleMap<V> {
       // Just get the element out of the map.
       final @SuppressWarnings("unchecked")
       V oldValue = (V) mValues[index];
-      mValues[index] = pValue;
-      if (pValue instanceof HandleMap.HandleAware<?>) {
-        ((HandleMap.HandleAware<?>) pValue).setHandle(pHandle);
+      mValues[index] = value;
+      if (value instanceof HandleMap.HandleAware<?>) {
+        ((HandleMap.HandleAware<?>) value).setHandle(handle);
       }
       return oldValue;
     }
   }
 
   @Override
-  public V set(Handle<? extends V> pHandle, V pValue) {
-    return set(pHandle.getHandle(), pValue);
+  public V set(Handle<? extends V> handle, V value) {
+    return set(handle.getHandle(), value);
   }
 
   /* (non-Javadoc)
@@ -538,19 +538,19 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#remove(net.devrieze.util.MemHandleMap.Handle)
    */
   @Override
-  public boolean remove(final HandleMap.Handle<? extends V> pObject) {
-    return remove(pObject.getHandle());
+  public boolean remove(final HandleMap.Handle<? extends V> handle) {
+    return remove(handle.getHandle());
   }
 
   /* (non-Javadoc)
    * @see net.devrieze.util.HandleMap#remove(long)
    */
   @Override
-  public boolean remove(final long pHandle) {
-    final int generation = (int) (pHandle >> 32);
+  public boolean remove(final long handle) {
+    final int generation = (int) (handle >> 32);
     synchronized (this) {
-      final int index = indexFromHandle((int) pHandle);
-      if (index<0) { throw new ArrayIndexOutOfBoundsException((int)pHandle); }
+      final int index = indexFromHandle((int) handle);
+      if (index<0) { throw new ArrayIndexOutOfBoundsException((int) handle); }
 
       if (mGenerations[index] != generation) {
         return false;

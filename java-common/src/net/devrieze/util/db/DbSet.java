@@ -278,10 +278,10 @@ public class DbSet<T> implements AutoCloseable {
     }
   }
 
-  public final boolean contains(Object pO) {
-    if(mElementFactory.asInstance(pO)==null) { return false; }
+  public final boolean contains(Object object) {
+    if(mElementFactory.asInstance(object) == null) { return false; }
     try (final DBTransaction transaction = mTransactionFactory.startTransaction()) {
-      boolean result = contains(transaction, pO);
+      boolean result = contains(transaction, object);
       transaction.commit();
       return result;
     } catch (SQLException ex) {
@@ -456,15 +456,15 @@ public class DbSet<T> implements AutoCloseable {
     }
  }
 
-  public void clear(DBTransaction pTransaction) throws SQLException {
-    mElementFactory.preClear(pTransaction);
+  public void clear(DBTransaction transaction) throws SQLException {
+    mElementFactory.preClear(transaction);
     String sql = addFilter("DELETE FROM "+ mElementFactory.getTableName(), " WHERE ");
 
-    try (PreparedStatement statement = pTransaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+    try (PreparedStatement statement = transaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
       setFilterParams(statement, 1);
 
       statement.executeUpdate();
-      pTransaction.commit();
+      transaction.commit();
     }
   }
 

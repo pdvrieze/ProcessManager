@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DBHandleMap;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance<DBTransaction>> {
+public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransaction>> {
 /*
   private static class NodeInstanceData implements Comparable<NodeInstanceData> {
     long handle;

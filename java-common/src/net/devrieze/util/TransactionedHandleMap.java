@@ -17,6 +17,7 @@
 package net.devrieze.util;
 
 import java.sql.SQLException;
+import java.util.Collection;
 
 
 /**
@@ -26,49 +27,55 @@ import java.sql.SQLException;
  */
 public interface TransactionedHandleMap<V, T extends Transaction> extends HandleMap<V> {
 
-  Handle<V> put(T pTransaction, V pValue) throws SQLException;
+  Handle<V> put(T transaction, V value) throws SQLException;
 
   /**
    * @deprecated use typed {@link #get(Transaction, Handle)}
    */
   @Deprecated
-  V get(T pTransaction, long pHandle) throws SQLException;
+  V get(T transaction, long handle) throws SQLException;
 
-  V castOrGet(T pTransaction, Handle<? extends V> pHandle) throws SQLException;
+  V castOrGet(T transaction, Handle<? extends V> handle) throws SQLException;
 
-  V get(T pTransaction, Handle<? extends V> pHandle) throws SQLException;
-
-  /**
-   * @deprecated use typed {@link #get(Transaction, Handle)}
-   */
-  @Deprecated
-  V set(T pTransaction, long pHandle, V pValue) throws SQLException;
-
-  V set(T pTransaction, Handle<? extends V> pHandle, V pValue) throws SQLException;
-
-  Iterable<V> iterable(T pTransaction);
-
-  boolean contains(T pTransaction, Object pO) throws SQLException;
-
-  boolean contains(T pTransaction, Handle<? extends V> pHandle) throws SQLException;
+  V get(T transaction, Handle<? extends V> handle) throws SQLException;
 
   /**
    * @deprecated use typed {@link #get(Transaction, Handle)}
    */
   @Deprecated
-  boolean contains(T pTransaction, long pHandle) throws SQLException;
+  V set(T transaction, long handle, V value) throws SQLException;
 
-  boolean remove(T pTransaction, Handle<? extends V> pObject) throws SQLException;
+  V set(T transaction, Handle<? extends V> handle, V value) throws SQLException;
+
+  Iterable<V> iterable(T transaction);
+
+  boolean contains(T transaction, Object obj) throws SQLException;
+
+  boolean contains(T transaction, Handle<? extends V> handle) throws SQLException;
+
+  boolean containsAll(T transaction, Collection<?> c) throws SQLException;
 
   /**
    * @deprecated use typed {@link #get(Transaction, Handle)}
    */
   @Deprecated
-  boolean remove(T pTransaction, long pHandle) throws SQLException;
+  boolean contains(T transaction, long handle) throws SQLException;
 
-  void invalidateCache(Handle<? extends V> pHandle);
+  boolean remove(T transaction, Handle<? extends V> handle) throws SQLException;
+
+  /**
+   * @deprecated use typed {@link #get(Transaction, Handle)}
+   */
+  @Deprecated
+  boolean remove(T transaction, long handle) throws SQLException;
+
+  void invalidateCache(Handle<? extends V> handle);
 
   void invalidateCache();
 
-  void clear(T pTransaction) throws SQLException;
+  void clear(T transaction) throws SQLException;
+
+  AutoCloseableIterator<V> iterator(T transaction, boolean readOnly);
+
+  T newTransaction();
 }

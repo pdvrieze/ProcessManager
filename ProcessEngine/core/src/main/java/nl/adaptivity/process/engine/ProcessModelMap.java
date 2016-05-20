@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DBHandleMap;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> implements IProcessModelMap<DBTransaction> {
+public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IProcessModelMap<DBTransaction> {
 
 
   private static final String TABLE = "processmodels";

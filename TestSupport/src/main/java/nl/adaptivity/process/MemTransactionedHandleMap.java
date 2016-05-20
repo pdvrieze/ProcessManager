@@ -16,16 +16,51 @@
 
 package nl.adaptivity.process;
 
+import com.sun.xml.internal.stream.util.ReadOnlyIterator;
+import net.devrieze.util.AutoCloseableIterator;
+import net.devrieze.util.Iterators;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.Transaction;
 
 import java.sql.SQLException;
+import java.util.Iterator;
 
 
 /**
  * Created by pdvrieze on 09/12/15.
  */
 public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T, Transaction> {
+
+  private static class IteratorWrapper<T> implements AutoCloseableIterator<T> {
+
+    private final boolean     readOnly;
+    private final Iterator<T> delegate;
+
+    public IteratorWrapper(Iterator<T> delegate, final boolean readOnly) {
+      this.readOnly = readOnly;
+      this.delegate = delegate;
+    }
+
+    @Override
+    public void remove() {
+      if (readOnly) throw new UnsupportedOperationException("The iterator is read-only");
+    }
+
+    @Override
+    public T next() {
+      return delegate.next();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return delegate.hasNext();
+    }
+
+    @Override
+    public void close() throws Exception {
+      // Do nothing
+    }
+  }
 
   @Override
   public Handle<T> put(final Transaction transaction, final T value) throws SQLException {
@@ -63,8 +98,13 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public boolean contains(final Transaction transaction, final Object o) throws SQLException {
-    return contains(o);
+  public AutoCloseableIterator<T> iterator(final Transaction transaction, final boolean readOnly) {
+    return new IteratorWrapper(iterator(), readOnly);
+  }
+
+  @Override
+  public boolean contains(final Transaction transaction, final Object obj) throws SQLException {
+    return contains(obj);
   }
 
   @Override
@@ -78,8 +118,8 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public boolean remove(final Transaction transaction, final Handle<? extends T> object) throws SQLException {
-    return remove(object);
+  public boolean remove(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
+    return remove(handle);
   }
 
   @Override

@@ -57,50 +57,51 @@ public interface HandleMap<V> extends Set<V> {
    * implements {@link HandleAware} a shortcut is applied instead of looping
    * through all values.
    *
-   * @param pObject The object to check.
+   * @param object The object to check.
    * @return <code>true</code> if it does.
    */
   @Override
-  public boolean contains(Object pObject);
+  public boolean contains(Object object);
 
-  public boolean containsHandle(HandleMap.Handle<? extends V> pHandle);
+  public boolean containsHandle(HandleMap.Handle<? extends V> handle);
 
   /**
    * Determine whether the given handle is contained in the map.
    *
-   * @param pHandle The handle to check.
+   * @param handle The handle to check.
    * @return <code>true</code> if it does.
    */
-  public boolean contains(long pHandle);
+  public boolean contains(long handle);
 
   /**
    * Put a new walue into the map. This is thread safe.
    *
-   * @param pValue The value to put into the map.
+   * @param value The value to put into the map.
    * @return The handle for the value.
    */
-  public Handle<V> put(V pValue);
+  public Handle<V> put(V value);
 
   /**
    * Get the element with the given handle.
    *
-   * @param pHandle The handle
+   * @param handle The handle
    * @return The element corresponding to the given handle.
    */
-  public V get(long pHandle);
+  public V get(long handle);
 
-  public V get(HandleMap.Handle<? extends V> pHandle);
+  public V get(HandleMap.Handle<? extends V> handle);
 
-  public V set(long pHandle, V pValue);
+  public V set(long handle, V value);
 
-  public V set(HandleMap.Handle<? extends V> pHandle, V pValue);
+  public V set(HandleMap.Handle<? extends V> handle, V value);
 
   @Override
   public int size();
 
-  public boolean remove(HandleMap.Handle<? extends V> pObject);
+  public boolean remove(HandleMap.Handle<? extends V> handle);
 
-  public boolean remove(long pHandle);
+  @Deprecated
+  public boolean remove(long handle);
 
   /**
    * Return a collection view over this map. Note that this collection is just a
