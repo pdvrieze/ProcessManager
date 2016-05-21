@@ -16,13 +16,14 @@
 
 package net.devrieze.util;
 
+import java.io.Closeable;
 import java.sql.SQLException;
 
 
 /**
  * Created by pdvrieze on 18/08/15.
  */
-public interface Transaction extends AutoCloseable {
+public interface Transaction extends AutoCloseable, Closeable {
 
   // Don't let transaction close throw exception, only runtime exceptions allowed
   @Override

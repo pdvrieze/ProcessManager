@@ -16,9 +16,10 @@
 
 package net.devrieze.util;
 
+import java.io.Closeable;
 import java.util.Iterator;
 
 
-public interface AutoCloseableIterator<T> extends AutoCloseable, Iterator<T> {
+public interface AutoCloseableIterator<T> extends AutoCloseable, Closeable, Iterator<T> {
   // Interface for joint functionality
 }
