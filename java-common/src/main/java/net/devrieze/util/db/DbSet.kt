@@ -21,6 +21,7 @@ import net.devrieze.util.HandleMap.ComparableHandle
 import net.devrieze.util.HandleMap.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.TransactionFactory
+import uk.ac.bournemouth.util.kotlin.sql.use
 import java.io.Closeable
 import java.sql.*
 import java.util.*
@@ -44,7 +45,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<DBTransaction>, 
     }
 
     override fun iterator(): MutableIterator<T> {
-      return this@DbSet.unsafeIterator()
+      return this@DbSet.unsafeIterator(false)
     }
 
   }
@@ -170,7 +171,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<DBTransaction>, 
   }
 
 
-  @Deprecated("")
+  @Deprecated("", ReplaceWith("unsafeIterator(false)"), DeprecationLevel.ERROR)
   fun unsafeIterator(): AutoCloseableIterator<T> {
     return unsafeIterator(false)
   }
@@ -869,29 +870,5 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<DBTransaction>, 
       }
 
     }
-  }
-}
-
-internal inline fun <R> Connection.use(block: (Connection)-> R):R {
-  try {
-    return block(this)
-  } finally {
-    close()
-  }
-}
-
-internal inline fun <R> PreparedStatement.use(block: (PreparedStatement)-> R):R {
-  try {
-    return block(this)
-  } finally {
-    close()
-  }
-}
-
-internal inline fun <R> ResultSet.use(block: (ResultSet)-> R):R {
-  try {
-    return block(this)
-  } finally {
-    close()
   }
 }
