@@ -93,7 +93,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
 
     @Override
     public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessNodeInstance<DBTransaction>> handle, int offset) throws SQLException {
-      statement.setLong(offset, handle.getHandle());
+      statement.setLong(offset, handle.getHandleValue());
       return 1;
     }
 
@@ -139,23 +139,23 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
       } else {
         result = new ProcessNodeInstance(node, predecessors, processInstance, state);
       }
-      result.setHandle(handle);
+      result.setHandleValue(handle);
       return result;
     }
 
 
 
     @Override
-    public void postCreate(DBTransaction connection, ProcessNodeInstance<DBTransaction> element) throws SQLException {
+    public void postCreate(DBTransaction transaction, ProcessNodeInstance<DBTransaction> element) throws SQLException {
       {
-        for (Handle<? extends ProcessNodeInstance<?>> handle: element.getDirectPredecessors()) {
+        for (ComparableHandle<? extends ProcessNodeInstance<DBTransaction>> handle: element.getDirectPredecessors()) {
           element.ensurePredecessor(handle);
         }
       }
       {
         List<ProcessData> results = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(QUERY_DATA)) {
-          statement.setLong(1, element.getHandle());
+        try (PreparedStatement statement = transaction.prepareStatement(QUERY_DATA)) {
+          statement.setLong(1, element.getHandleValue());
           if(statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
               while(resultset.next()) {
@@ -175,13 +175,13 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance<DBTransaction> object) {
-      return getHandleCondition(object);
+    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance<DBTransaction> nodeInstance) {
+      return getHandleCondition(nodeInstance.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement statement, ProcessNodeInstance<DBTransaction> object, int offset) throws SQLException {
-      return setHandleParams(statement, object, offset);
+    public int setPrimaryKeyParams(PreparedStatement statement, ProcessNodeInstance<DBTransaction> nodeInstance, int offset) throws SQLException {
+      return setHandleParams(statement, nodeInstance.getHandle(), offset);
     }
 
     @Override
@@ -210,7 +210,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     @Override
     public int setStoreParams(PreparedStatement statement, ProcessNodeInstance element, int offset) throws SQLException {
       statement.setString(offset, element.getNode().getId());
-      statement.setLong(offset+1, element.getProcessInstance().getHandle());
+      statement.setLong(offset+1, element.getProcessInstance().getHandleValue());
       statement.setString(offset+2, element.getState()==null ? null : element.getState().name());
       return 3;
     }
@@ -272,19 +272,19 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
           SQLException {
     if (oldValue!=null) { // update
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
     }
     // TODO allow for updating/storing node data
     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
-      final Collection<Handle<? extends ProcessNodeInstance<?>>> directPredecessors = element.getDirectPredecessors();
+      final Collection<ComparableHandle<? extends ProcessNodeInstance<DBTransaction>>> directPredecessors = element.getDirectPredecessors();
       for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         if (predecessor==null) {
           statement.setNull(2, Types.BIGINT);
         } else {
-          statement.setLong(2, predecessor.getHandle());
+          statement.setLong(2, predecessor.getHandleValue());
         }
         statement.addBatch();
       }
@@ -294,7 +294,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `" + TABLE_NODEDATA + "` (`" + COL_HANDLE + "`, `" + COL_NAME + "`, `" + COL_DATA + "`) VALUES ( ?, ?, ?)" +
                                                                               "ON DUPLICATE KEY UPDATE `" + COL_DATA + "` = VALUES(`"+COL_DATA+"`)")) {
       for(ProcessData data: element.getResults()) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.setString(2, data.getName());
         String value = new String(data.getContent().getContent());
         statement.setString(3, value);
@@ -302,7 +302,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
         statement.addBatch();
       }
       if ((element.getState() == NodeInstanceState.Failed || element.getState() == NodeInstanceState.FailRetry) && element.getFailureCause() != null) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.setString(2, FAILURE_CAUSE);
         statement.setString(3, element.getFailureCause().getLocalizedMessage());
         statement.addBatch();
@@ -313,11 +313,11 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
 
   static void preRemove(final DBTransaction connection, final Handle<? extends ProcessNodeInstance<DBTransaction>> handle) throws SQLException {
     try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-      statement.setLong(1, handle.getHandle());
+      statement.setLong(1, handle.getHandleValue());
       statement.executeUpdate();
     }
     try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-      statement.setLong(1, handle.getHandle());
+      statement.setLong(1, handle.getHandleValue());
       statement.executeUpdate();
     }
   }

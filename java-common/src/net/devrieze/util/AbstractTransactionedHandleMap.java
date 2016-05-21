@@ -151,7 +151,7 @@ public abstract class AbstractTransactionedHandleMap<V,T extends Transaction> im
 
   @Deprecated
   @Override
-  public Handle<V> put(final V value) {
+  public <W extends V> Handle<W> put(final W value) {
     try(T t = newTransaction()) {
       return put(t, value);
     } catch (SQLException e) {

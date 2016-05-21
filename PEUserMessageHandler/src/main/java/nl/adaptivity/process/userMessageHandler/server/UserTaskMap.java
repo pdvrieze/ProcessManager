@@ -161,7 +161,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
           XmlReader reader = XMLFragmentStreamReader.from(instance.getBody());
           Envelope<XmlTask> env = Envelope.deserialize(reader, new PostTaskFactory());
           XmlTask task = env.getBody().getBodyContent();
-          task.setHandle(handle);
+          task.setHandleValue(handle);
           task.setRemoteHandle(remoteHandle);
           task.setState(instance.getState());
           return task;
@@ -175,7 +175,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
     @Override
     public void postCreate(DBTransaction connection, XmlTask element) throws SQLException {
       try(PreparedStatement statement = connection.prepareStatement(QUERY_GET_DATA_FOR_TASK)) {
-        statement.setLong(1, element.getHandle());
+        statement.setLong(1, element.getHandleValue());
         if(statement.execute()) {
           try (ResultSet resultset = statement.getResultSet()) {
             while(resultset.next()) {
@@ -192,12 +192,12 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
 
     @Override
     public CharSequence getPrimaryKeyCondition(XmlTask task) {
-      return getHandleCondition(task);
+      return getHandleCondition(task.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement statement, XmlTask object, int offset) throws SQLException {
-      return setHandleParams(statement, object, offset);
+    public int setPrimaryKeyParams(PreparedStatement statement, XmlTask task, int offset) throws SQLException {
+      return setHandleParams(statement, task.getHandle(), offset);
     }
 
     @Override
@@ -235,7 +235,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
                 oldItem.getValue()==null ||
                 (! oldItem.getValue().equals(item.getValue()))) {
               if (! ((oldItem==null || oldItem.getValue()==null) && item.getValue()==null)) {
-                statement.setLong(1, handle.getHandle());
+                statement.setLong(1, handle.getHandleValue());
                 statement.setString(2, item.getName());
                 statement.setString(3, item.getValue());
                 statement.addBatch();
@@ -254,7 +254,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
 
     @Override
     public int setHandleParams(PreparedStatement statement, Handle<? extends XmlTask> handle, int offset) throws SQLException {
-      statement.setLong(offset, handle.getHandle());
+      statement.setLong(offset, handle.getHandleValue());
       return 1;
     }
 
@@ -277,7 +277,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
     public void preRemove(DBTransaction connection, Handle<? extends XmlTask> handle) throws SQLException {
       final String sql = "DELETE FROM "+TABLEDATA+" WHERE `"+COL_HANDLE+"` = ?";
       try (PreparedStatement statement = connection.prepareStatement(sql)) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.execute();
       }
     }

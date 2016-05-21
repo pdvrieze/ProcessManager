@@ -46,8 +46,8 @@ public class ProcessNodeInstanceContext extends AbstractDataContext {
   @Override
   protected ProcessData getData(String valueName) {
     switch (valueName) {
-      case "handle": return new ProcessData(valueName, new CompactFragment(Long.toString(mProcessNodeInstance.getHandle())));
-      case "instancehandle": return new ProcessData(valueName, new CompactFragment(Long.toString(mProcessNodeInstance.getProcessInstance().getHandle())));
+      case "handle": return new ProcessData(valueName, new CompactFragment(Long.toString(mProcessNodeInstance.getHandleValue())));
+      case "instancehandle": return new ProcessData(valueName, new CompactFragment(Long.toString(mProcessNodeInstance.getProcessInstance().getHandleValue())));
       case "endpoint": return new ProcessData(valueName, createEndpoint());
       case "owner": return new ProcessData(valueName, new CompactFragment(mProcessNodeInstance.getProcessInstance().getOwner().getName()));
     }

@@ -55,12 +55,12 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
 
   public ProcessModelRef(final String name, final Handle<? extends ProcessModel<?,?>> handle, final UUID uuid) {
     mName = name;
-    mHandle = handle.getHandle();
+    mHandle = handle.getHandleValue();
     mUuid = uuid;
   }
 
   public ProcessModelRef(@NotNull final IProcessModelRef<?, M> source) {
-    mHandle = source.getHandle();
+    mHandle = source.getHandleValue();
     mName = source.getName();
     mUuid = source.getUuid();
   }
@@ -129,7 +129,7 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @Override
-  public long getHandle() {
+  public long getHandleValue() {
     return mHandle;
   }
 

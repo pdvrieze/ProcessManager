@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.processModel;
 
 import net.devrieze.util.HandleMap.ComparableHandle;
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
@@ -37,7 +38,7 @@ import java.sql.SQLException;
  * @author Paul de Vrieze
  * @param <V> The actual type of the implementing class.
  */
-public interface IProcessNodeInstance<T extends Transaction, V extends IProcessNodeInstance<T, V>> extends HandleAware<V>, ComparableHandle<V> {
+public interface IProcessNodeInstance<T extends Transaction, V extends IProcessNodeInstance<T, V>> extends HandleAware<V> {
 
   void serialize(T transaction, XmlWriter out) throws XmlException;
 
@@ -51,44 +52,54 @@ public interface IProcessNodeInstance<T extends Transaction, V extends IProcessN
     /**
      * Initial task state. The instance has been created, but has not been successfully sent to a receiver.
      */
-    Pending,
+    Pending(false),
     /**
      * Signifies that the task has failed to be created, a new attempt should be made.
      */
-    FailRetry, /**
+    FailRetry(false), /**
      * Indicates that the task has been communicated to a
-     * handler.
+     * handler, but receipt has not been acknowledged.
      */
-    Sent,
+    Sent(false),
     /**
      * State acknowledging reception of the task. Note that this is generally
      * only used by process aware services. It signifies that a task has been
      * received, but processing has not started yet.
      */
-    Acknowledged,
+    Acknowledged(false),
     /**
      * Some tasks allow for alternatives (different users). Taken signifies that
      * the task has been claimed and others can not claim it anymore (unless
      * released again).
      */
-    Taken,
+    Taken(false),
     /**
      * Signifies that work on the task has actually started.
      */
-    Started,
+    Started(false),
     /**
      * Signifies that the task is complete. This generally is the end state of a
      * task.
      */
-    Complete,
+    Complete(true),
     /**
      * Signifies that the task has failed for some reason.
      */
-    Failed,
+    Failed(true),
     /**
      * Signifies that the task has been cancelled (but not through a failure).
      */
-    Cancelled;
+    Cancelled(true);
+
+    NodeInstanceState(boolean pFinal) {
+      mFinal = pFinal;
+    }
+
+    private final boolean mFinal;
+
+    public boolean isFinal() {
+      return mFinal;
+    }
 
     public static NodeInstanceState fromString(CharSequence string) {
       String lowerCase = StringUtil.toLowerCase(string);
@@ -178,7 +189,7 @@ public interface IProcessNodeInstance<T extends Transaction, V extends IProcessN
   /** Get the predecessor instance with the given node name.
    * @throws SQLException
    * */
-  IProcessNodeInstance<T, V> getPredecessor(T transaction, String nodeName) throws SQLException;
+  V resolvePredecessor(T transaction, String nodeName) throws SQLException;
 
   /** Get the result instance with the given data name. */
   ProcessData getResult(T transaction, String name) throws SQLException;

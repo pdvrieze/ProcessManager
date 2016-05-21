@@ -72,7 +72,7 @@ public class TestXmlTask {
     XmlTask sampleTask2 = new XmlTask(mSampleTask);
     sampleTask2.setRemoteHandle(1L);
     sampleTask2.setInstanceHandle(2L);
-    sampleTask2.setHandle(3L);
+    sampleTask2.setHandleValue(3L);
     sampleTask2.setSummary("testing");
     sampleTask2.setState(NodeInstanceState.FailRetry);
     nl.adaptivity.xml.XmlUtil.serialize(sampleTask2, out);

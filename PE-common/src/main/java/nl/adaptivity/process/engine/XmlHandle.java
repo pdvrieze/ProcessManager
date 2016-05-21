@@ -36,7 +36,7 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
   }
 
   public XmlHandle(Handle<? extends T> handle) {
-    mHandle = handle.getHandle();
+    mHandle = handle.getHandleValue();
   }
 
   @Override
@@ -66,7 +66,7 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
   }
 
   @Override
-  public final long getHandle() {
+  public final long getHandleValue() {
     return mHandle;
   }
 

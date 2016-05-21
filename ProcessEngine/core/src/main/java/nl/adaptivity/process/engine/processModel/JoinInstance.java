@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.engine.processModel;
 
+import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessException;
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.util.Identifiable;
 
@@ -34,11 +34,11 @@ import java.util.TreeSet;
 
 public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> {
 
-  public JoinInstance(final JoinImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance<?>>> predecessors, final ProcessInstance processInstance, final NodeInstanceState state) {
+  public JoinInstance(final JoinImpl node, final Collection<? extends ComparableHandle<? extends ProcessNodeInstance<T>>> predecessors, final ProcessInstance<T> processInstance, final NodeInstanceState state) {
     super(node, predecessors, processInstance, state);
   }
 
-  public JoinInstance(T transaction, final JoinImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance<?>>> predecessors, final ProcessInstance processInstance) throws SQLException {
+  public JoinInstance(T transaction, final JoinImpl node, final Collection<? extends ComparableHandle<? extends ProcessNodeInstance<T>>> predecessors, final ProcessInstance<T> processInstance) throws SQLException {
     super(node, predecessors, processInstance);
   }
 
@@ -47,7 +47,7 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
    * @param node
    * @param processInstance
    */
-  JoinInstance(Transaction transaction, JoinImpl node, ProcessInstance processInstance, NodeInstanceState state) throws SQLException {
+  JoinInstance(T transaction, JoinImpl node, ProcessInstance<T> processInstance, NodeInstanceState state) throws SQLException {
     super(transaction, node, processInstance, state);
   }
 
@@ -56,7 +56,13 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
     return (JoinImpl) super.getNode();
   }
 
-  public boolean addPredecessor(T transaction, final ProcessNodeInstance predecessor) throws SQLException {
+  @Override
+  public ComparableHandle<? extends JoinInstance<T>> getHandle() {
+    //noinspection unchecked
+    return (ComparableHandle<? extends JoinInstance<T>>) super.getHandle();
+  }
+
+  public boolean addPredecessor(T transaction, final ComparableHandle<? extends ProcessNodeInstance<T>> predecessor) throws SQLException {
     if (canAddNode(transaction) && getDirectPredecessors().add(predecessor)) {
       getProcessInstance().getEngine().updateStorage(transaction, this);
       return true;
@@ -95,7 +101,7 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
 
     int complete =0;
     int skipped = 0;
-    for (final ProcessNodeInstance predecessor : getDirectPredecessors(transaction)) {
+    for (final ProcessNodeInstance<T> predecessor : resolvePredecessors(transaction)) {
       switch(predecessor.getState()) {
         case Complete:
           complete +=1;
@@ -136,10 +142,10 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
     if (!isFinished()) {
       return getNode().provideTask(transaction, messageService, this);
     }
-    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(transaction, this);
+    final Collection<? extends Handle<? extends ProcessNodeInstance<T>>> directSuccessors = getProcessInstance().getDirectSuccessors(transaction, this);
     boolean canAdd = false;
-    for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
-      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
+    for (final Handle<? extends ProcessNodeInstance<T>> hDirectSuccessor : directSuccessors) {
+      ProcessNodeInstance<T> directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
       if ((directSuccessor.getState() == NodeInstanceState.Started) || (directSuccessor.getState() == NodeInstanceState.Complete)) {
         canAdd = false;
         break;
@@ -154,7 +160,7 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
     super.tickle(transaction, messageService);
     Set<Identifiable> missingIdentifiers = new TreeSet<>();
     missingIdentifiers.addAll(getNode().getPredecessors());
-    for (Handle<? extends ProcessNodeInstance<?>> predDef : getDirectPredecessors()) {
+    for (Handle<? extends ProcessNodeInstance<T>> predDef : getDirectPredecessors()) {
       ProcessNodeInstance<T> pred = getProcessInstance().getEngine()
                                                      .getNodeInstance(transaction, predDef, SecurityProvider.SYSTEMPRINCIPAL);
       missingIdentifiers.remove(pred.getNode());
@@ -162,7 +168,7 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
     for (Identifiable missingIdentifier: missingIdentifiers) {
       ProcessNodeInstance<T> candidate = getProcessInstance().getNodeInstance(transaction, missingIdentifier);
       if (candidate!=null) {
-        addPredecessor(transaction, candidate);
+        addPredecessor(transaction, candidate.getHandle());
       }
     }
     if(updateTaskState(transaction) && getState()!=NodeInstanceState.Complete) {
@@ -174,10 +180,10 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
     if (!isFinished()) {
       return true;
     }
-    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(transaction, this);
+    final Collection<? extends Handle<? extends ProcessNodeInstance<T>>> directSuccessors = getProcessInstance().getDirectSuccessors(transaction, this);
     boolean canAdd = false;
-    for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
-      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
+    for (final Handle<? extends ProcessNodeInstance<T>> hDirectSuccessor : directSuccessors) {
+      ProcessNodeInstance<T> directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
       if ((directSuccessor.getState() == NodeInstanceState.Started) || (directSuccessor.getState() == NodeInstanceState.Complete)) {
         canAdd = false;
         break;

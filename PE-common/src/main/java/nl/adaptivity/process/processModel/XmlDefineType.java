@@ -24,6 +24,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
@@ -157,7 +158,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   public <T extends Transaction, V extends IProcessNodeInstance<T, V>> ProcessData apply(final T transaction, @NotNull final IProcessNodeInstance<T, V> node) throws SQLException {
     final ProcessData processData;
     if (refNode!=null) {
-      final IProcessNodeInstance<T, V> predecessor = node.getPredecessor(transaction, refNode);
+      final IProcessNodeInstance<T, V> predecessor = node.resolvePredecessor(transaction, refNode);
       final ProcessData origpair = predecessor.getResult(transaction, refName);
       if (origpair==null) {
         processData = null;

@@ -134,7 +134,7 @@ public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransactio
 
     @Override
     public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessInstance<DBTransaction>> handle, int offset) throws SQLException {
-      statement.setLong(offset, handle.getHandle());
+      statement.setLong(offset, handle.getHandleValue());
       return 1;
     }
 
@@ -176,7 +176,7 @@ public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransactio
     public void postCreate(DBTransaction connection, ProcessInstance element) throws SQLException {
       {
         try (PreparedStatement statement = connection.prepareStatement(QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE)) {
-          statement.setLong(1, element.getHandle());
+          statement.setLong(1, element.getHandleValue());
 
           List<Handle<ProcessNodeInstance>> handles = new ArrayList<>();
           if (statement.execute()) {
@@ -191,7 +191,7 @@ public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransactio
       }
       {
         try (PreparedStatement statement = connection.prepareStatement(QUERY_DATA)) {
-          statement.setLong(1, element.getHandle());
+          statement.setLong(1, element.getHandleValue());
 
           List<ProcessData> inputs = new ArrayList<>();
           List<ProcessData> outputs = new ArrayList<>();
@@ -218,22 +218,22 @@ public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransactio
     @Override
     public void preRemove(DBTransaction connection, Handle<? extends ProcessInstance<DBTransaction>> handle) throws SQLException {
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_PREDECESSORS+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
                                                                               "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_NODEDATA+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
                                                                               "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
 
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE+"` where `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?;")) {
-        statement.setLong(1, handle.getHandle());
+        statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
     }
@@ -267,12 +267,12 @@ public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransactio
 
     @Override
     public CharSequence getPrimaryKeyCondition(ProcessInstance<DBTransaction> object) {
-      return getHandleCondition(object);
+      return getHandleCondition(object.getHandle());
     }
 
     @Override
     public int setPrimaryKeyParams(PreparedStatement statement, ProcessInstance<DBTransaction> object, int offset) throws SQLException {
-      return setHandleParams(statement, object, offset);
+      return setHandleParams(statement, object.getHandle(), offset);
     }
 
     @Override
@@ -300,7 +300,7 @@ public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransactio
 
     @Override
     public int setStoreParams(PreparedStatement statement, ProcessInstance element, int offset) throws SQLException {
-      statement.setLong(offset, element.getProcessModel().getHandle());
+      statement.setLong(offset, element.getProcessModel().getHandleValue());
       statement.setString(offset+1, element.getName());
       statement.setString(offset+2, element.getOwner().getName());
       statement.setString(offset+3, element.getState()==null? null : element.getState().name());

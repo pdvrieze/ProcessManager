@@ -276,7 +276,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
     }
     if (mPredecessors!=null) {
       for (Handle<?> predecessor: mPredecessors) {
-        XmlWriterUtil.writeSimpleElement(out, PREDECESSOR_ELEMENTNAME, Long.toString(predecessor.getHandle()));
+        XmlWriterUtil.writeSimpleElement(out, PREDECESSOR_ELEMENTNAME, Long.toString(predecessor.getHandleValue()));
       }
     }
     if (mResults!=null) {

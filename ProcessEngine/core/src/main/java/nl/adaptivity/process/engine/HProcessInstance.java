@@ -58,12 +58,12 @@ public final class HProcessInstance extends XmlHandle {
 
   @Override
   public boolean equals(final Object obj) {
-    return (obj == this) || ((obj instanceof HProcessInstance) && (getHandle() == ((HProcessInstance) obj).getHandle()));
+    return (obj == this) || ((obj instanceof HProcessInstance) && (getHandleValue() == ((HProcessInstance) obj).getHandleValue()));
   }
 
   @Override
   public int hashCode() {
-    return (int) getHandle();
+    return (int) getHandleValue();
   }
 
 }

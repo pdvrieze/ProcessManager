@@ -27,7 +27,7 @@ import java.util.Collection;
  */
 public interface TransactionedHandleMap<V, T extends Transaction> extends HandleMap<V> {
 
-  Handle<V> put(T transaction, V value) throws SQLException;
+  <W extends V> ComparableHandle<W> put(T transaction, W value) throws SQLException;
 
   /**
    * @deprecated use typed {@link #get(Transaction, Handle)}

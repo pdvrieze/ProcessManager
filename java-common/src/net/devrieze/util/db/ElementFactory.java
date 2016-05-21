@@ -84,14 +84,15 @@ public interface ElementFactory<T> {
 
   /**
    * Get an SQL condition that would select the given object.
+   * @param pObject
    */
   CharSequence getPrimaryKeyCondition(T pObject);
 
   /**
    * Set the primary key parameters related to {@link #getPrimaryKeyCondition(Object)}
    * @param pStatement The statement to set the parameters for.
-   * @param pOffset the index of the first parameter. This is used to chain placeholders.
-   * @return The amount of parameters set.
+   * @param pObject The object that resolves the condition
+   * @param pOffset the index of the first parameter. This is used to chain placeholders.  @return The amount of parameters set.
    * @throws SQLException When something goes wrong.
    */
   int setPrimaryKeyParams(PreparedStatement pStatement, T pObject, int pOffset) throws SQLException;

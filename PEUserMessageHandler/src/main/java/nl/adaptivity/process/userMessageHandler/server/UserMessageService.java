@@ -21,7 +21,6 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.AuthenticationNeededException;
-import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 
@@ -121,7 +120,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     // This must be handled as the response can get lost without the transaction failing.
     Handle<XmlTask> existingHandle = getTasks().containsRemoteHandle(transaction, task.getRemoteHandle());
     if (existingHandle!=null) {
-      task.setHandle(existingHandle.getHandle());
+      task.setHandleValue(existingHandle.getHandleValue());
       return false; // no proper update
     }
     boolean result = getTasks().put(transaction, task) != null;
@@ -143,12 +142,12 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return getTasks().get(transaction, handle);
   }
 
-  public NodeInstanceState finishTask(final T transaction, final Handle<XmlTask> handle, final Principal user) throws SQLException {
+  public NodeInstanceState finishTask(final T transaction, final Handle<XmlTask> taskHandle, final Principal user) throws SQLException {
     if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
-    final XmlTask task = mTasks.get(transaction, handle);
+    final XmlTask task = mTasks.get(transaction, taskHandle);
     task.setState(NodeInstanceState.Complete, user);
     if ((task.getState() == NodeInstanceState.Complete) || (task.getState() == NodeInstanceState.Failed)) {
-      mTasks.remove(transaction, task);
+      mTasks.remove(transaction, taskHandle);
     }
     return task.getState();
   }

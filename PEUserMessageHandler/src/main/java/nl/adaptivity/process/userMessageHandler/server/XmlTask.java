@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handles;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
@@ -83,7 +85,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   public XmlTask(UserTask<?> task) {
-    this.mHandle = task.getHandle();
+    this.mHandle = task.getHandleValue();
     this.mRemoteHandle = task.getRemoteHandle();
     this.mInstanceHandle = task.getInstanceHandle();
     this.mState = task.getState();
@@ -226,13 +228,18 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   @Override
-  public void setHandle(final long handle) {
+  public void setHandleValue(final long handle) {
     mHandle = handle;
   }
 
   @Override
-  public long getHandle() {
+  public long getHandleValue() {
     return mHandle;
+  }
+
+  @Override
+  public Handle<? extends XmlTask> getHandle() {
+    return Handles.handle(mHandle);
   }
 
   public void setRemoteHandle(final long handle) {

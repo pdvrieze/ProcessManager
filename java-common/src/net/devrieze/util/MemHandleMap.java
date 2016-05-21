@@ -386,7 +386,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
   @Override
   public boolean contains(final Object object) {
     if (object instanceof HandleMap.Handle) {
-      final long candidateHandle = ((HandleMap.Handle<?>) object).getHandle();
+      final long candidateHandle = ((HandleMap.Handle<?>) object).getHandleValue();
       return contains(candidateHandle);
     } else {
       synchronized (this) {
@@ -402,7 +402,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
 
   @Override
   public boolean containsHandle(Handle<? extends V> handle) {
-    return contains(handle.getHandle());
+    return contains(handle.getHandleValue());
   }
 
   /**
@@ -419,7 +419,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#put(V)
    */
   @Override
-  public Handle<V> put(final V value) {
+  public <W extends V> Handle<W> put(final W value) {
     if (value == null) {
       throw new NullPointerException("Handles can point to null objects");
     }
@@ -460,8 +460,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
       handle = ((long) generation << 32) + handleFromIndex(index);
     }
     if (value instanceof HandleMap.HandleAware<?>) {
-      ((HandleMap.HandleAware<?>) value).setHandle(handle);
-      return (Handle<V>) value;
+      ((HandleMap.HandleAware<?>) value).setHandleValue(handle);
     }
     return Handles.handle(handle);
   }
@@ -494,7 +493,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
    */
   @Override
   public V get(final HandleMap.Handle<? extends V> handle) {
-    return get(handle.getHandle());
+    return get(handle.getHandleValue());
   }
 
   @Override
@@ -515,7 +514,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
       V oldValue = (V) mValues[index];
       mValues[index] = value;
       if (value instanceof HandleMap.HandleAware<?>) {
-        ((HandleMap.HandleAware<?>) value).setHandle(handle);
+        ((HandleMap.HandleAware<?>) value).setHandleValue(handle);
       }
       return oldValue;
     }
@@ -523,7 +522,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
 
   @Override
   public V set(Handle<? extends V> handle, V value) {
-    return set(handle.getHandle(), value);
+    return set(handle.getHandleValue(), value);
   }
 
   /* (non-Javadoc)
@@ -539,7 +538,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
    */
   @Override
   public boolean remove(final HandleMap.Handle<? extends V> handle) {
-    return remove(handle.getHandle());
+    return remove(handle.getHandleValue());
   }
 
   /* (non-Javadoc)
@@ -742,7 +741,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
   @Override
   public boolean remove(final Object pObject) {
     if (pObject instanceof HandleMap.Handle) {
-      return remove(((HandleMap.Handle<?>) pObject).getHandle());
+      return remove(((HandleMap.Handle<?>) pObject).getHandleValue());
     }
     synchronized (this) {
       for (final Iterator<V> it = iterator(); it.hasNext();) {

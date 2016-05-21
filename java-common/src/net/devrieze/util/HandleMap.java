@@ -25,9 +25,11 @@ public interface HandleMap<V> extends Set<V> {
 
   public static final long NULL_HANDLE=0;
 
-  public static interface HandleAware<T> extends Handle<T> {
+  public static interface HandleAware<T> {
 
-    public void setHandle(long pHandle);
+    public Handle<? extends T> getHandle();
+
+    public void setHandleValue(long pHandle);
   }
 
   /**
@@ -35,7 +37,7 @@ public interface HandleMap<V> extends Set<V> {
    */
   public static interface Handle<T> {
 
-    public long getHandle();
+    public long getHandleValue();
   }
 
   public static interface ComparableHandle<T> extends Handle<T>, Comparable<ComparableHandle<T>> {
@@ -79,7 +81,7 @@ public interface HandleMap<V> extends Set<V> {
    * @param value The value to put into the map.
    * @return The handle for the value.
    */
-  public Handle<V> put(V value);
+  public <W extends V> Handle<W> put(W value);
 
   /**
    * Get the element with the given handle.

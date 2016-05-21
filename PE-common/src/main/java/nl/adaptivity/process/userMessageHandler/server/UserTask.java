@@ -59,6 +59,8 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
   long getInstanceHandle();
 
+  long getHandleValue();
+
   String getSummary();
 
 }

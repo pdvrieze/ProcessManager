@@ -108,7 +108,7 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
 
         ProcessModelImpl result = ProcessModelImpl.deserialize(new Factory(), XmlStreaming.newReader(modelReader));
 
-        result.setHandle(handle);
+        result.setHandleValue(handle);
         result.cacheStrings(mStringCache);
         if (result.getOwner()==null) {
           result.setOwner(owner);
@@ -121,12 +121,12 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
 
     @Override
     public CharSequence getPrimaryKeyCondition(ProcessModelImpl object) {
-      return getHandleCondition(object);
+      return getHandleCondition(object.getHandle());
     }
 
     @Override
     public int setPrimaryKeyParams(PreparedStatement statement, ProcessModelImpl element, int offset) throws SQLException {
-      return setHandleParams(statement, element, offset);
+      return setHandleParams(statement, element.getHandle(), offset);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
 
     @Override
     public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessModelImpl> handle, int offset) throws SQLException {
-      statement.setLong(offset, handle.getHandle());
+      statement.setLong(offset, handle.getHandleValue());
       return 1;
     }
 
@@ -190,7 +190,7 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
   }
 
   @Override
-  public ProcessModelImpl getModelWithUuid(final DBTransaction transaction, final UUID uuid) throws SQLException {
+  public Handle<? extends ProcessModelImpl> getModelWithUuid(final DBTransaction transaction, final UUID uuid) throws SQLException {
     List<Long> candidates = new ArrayList<>();
     try(PreparedStatement statement = transaction.prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_MODEL+" LIKE '%?%'")){
       statement.setString(1, uuid.toString());
@@ -203,7 +203,7 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
     for(long candidateHandle: candidates) {
       ProcessModelImpl candidate = get(transaction, candidateHandle);
       if (uuid.equals(candidate.getUuid())) {
-        return candidate;
+        return candidate.getHandle();
       }
     }
     return null;

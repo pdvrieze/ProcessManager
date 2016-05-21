@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.Handles;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts;
@@ -93,7 +95,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   protected ProcessModelBase(final ProcessModelBase<?, ?> basepm, final Collection<? extends T> modelNodes) {
     setModelNodes(modelNodes);
     setName(basepm.getName());
-    setHandle(basepm.getHandle());
+    setHandleValue(basepm.getHandle().getHandleValue());
     setOwner(basepm.getOwner());
     setRoles(basepm.getRoles());
     setUuid(basepm.getUuid());
@@ -274,14 +276,18 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   /**
    * Get the handle recorded for this model.
    */
-  public long getHandle() {
+  public Handle<? extends M> getHandle() {
+    return Handles.handle(mHandle);
+  }
+
+  public long getHandleValue() {
     return mHandle;
   }
 
   /**
    * Set the handle for this model.
    */
-  public void setHandle(final long handle) {
+  public void setHandleValue(final long handle) {
     mHandle = handle;
   }
 
@@ -318,7 +324,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   @Nullable
   @Override
   public IProcessModelRef<? extends T, M> getRef() {
-    return new ProcessModelRef(getName(), this, getUuid());
+    return new ProcessModelRef(getName(), this.getHandle(), getUuid());
   }
 
   @Override

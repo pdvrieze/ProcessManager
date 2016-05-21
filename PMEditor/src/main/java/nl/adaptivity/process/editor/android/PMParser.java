@@ -72,7 +72,7 @@ public final class PMParser {
   private static ClientProcessModel<?, ?> sanitizeForExport(final ClientProcessModel<?, ?> processModel) {
     ClientProcessModel<?, ?> result = DrawableProcessModel.get(processModel);
     if (result.getUuid()==null) { result.setUuid(UUID.randomUUID()); }
-    result.setHandle(-1);
+    result.setHandleValue(-1);
     return result;
   }
 

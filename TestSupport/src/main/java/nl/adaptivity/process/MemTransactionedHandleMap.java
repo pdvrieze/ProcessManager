@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process;
 
-import com.sun.xml.internal.stream.util.ReadOnlyIterator;
 import net.devrieze.util.AutoCloseableIterator;
-import net.devrieze.util.Iterators;
+import net.devrieze.util.Handles;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.Transaction;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Iterator;
 
 
@@ -63,8 +63,9 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public Handle<T> put(final Transaction transaction, final T value) throws SQLException {
-    return put(value);
+  public <W extends T> ComparableHandle<W> put(final Transaction transaction, final W value) throws SQLException {
+    final Handle<W> put = put(value);
+    return Handles.<W>handle(put);
   }
 
   @Override
@@ -100,6 +101,19 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   @Override
   public AutoCloseableIterator<T> iterator(final Transaction transaction, final boolean readOnly) {
     return new IteratorWrapper(iterator(), readOnly);
+  }
+
+  @Override
+  public boolean containsAll(final Transaction transaction, final Collection<?> c) throws SQLException {
+    for(Object o: c) {
+      if (! contains(o)) { return false; }
+    }
+    return true;
+  }
+
+  @Override
+  public Transaction newTransaction() {
+    return new StubTransaction();
   }
 
   @Override

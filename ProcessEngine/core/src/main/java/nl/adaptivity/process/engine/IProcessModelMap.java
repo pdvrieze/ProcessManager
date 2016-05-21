@@ -29,5 +29,5 @@ import java.util.UUID;
  */
 public interface IProcessModelMap<T extends Transaction> extends TransactionedHandleMap<ProcessModelImpl, T> {
 
-  Handle<ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException;
+  Handle<? extends ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException;
 }

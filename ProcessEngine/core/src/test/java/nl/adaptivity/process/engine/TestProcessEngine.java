@@ -16,9 +16,11 @@
 
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.CachingHandleMap;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Transaction;
+import net.devrieze.util.TransactionedHandleMap;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -37,11 +39,7 @@ import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -161,10 +159,18 @@ public class TestProcessEngine {
     }
   }
 
+  private static <V> TransactionedHandleMap<V,Transaction> cache(TransactionedHandleMap<V,Transaction> base, int count) {
+    return new CachingHandleMap<>(base, count);
+  }
+
+  private static <V> IProcessModelMap<Transaction> cache(IProcessModelMap<Transaction> base, int count) {
+    return new CachingProcessModelMap<>(base, count);
+  }
+
   @BeforeMethod
   public void beforeTest() {
     mStubMessageService.clear();
-    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemProcessModelMap(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
+    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(),1), cache(new MemTransactionedHandleMap<ProcessInstance>(),1), cache(new MemTransactionedHandleMap<ProcessNodeInstance>(),2));
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {
@@ -207,7 +213,7 @@ public class TestProcessEngine {
     HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
 
     assertEquals(1, mStubMessageService.mMessages.size());
-    assertEquals(1L, mStubMessageService.mMessageNodes.get(0).getHandle());
+    assertEquals(1L, mStubMessageService.mMessageNodes.get(0).getHandleValue());
 
     InputStream expected = getXml("testModel1_task1.xml");
 
@@ -266,7 +272,7 @@ public class TestProcessEngine {
     assertXMLEqual("<user><fullname>Paul</fullname></user>", result2.getContent().getContentString());
 
     assertEquals(1, mStubMessageService.mMessages.size());
-    assertEquals(2L, mStubMessageService.mMessageNodes.get(0).getHandle()); //We should have a new message with the new task (with the data)
+    assertEquals(2L, mStubMessageService.mMessageNodes.get(0).getHandleValue()); //We should have a new message with the new task (with the data)
     ProcessNodeInstance ac2=mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
 
     List<ProcessData> ac2Defines = ac2.getDefines(transaction);

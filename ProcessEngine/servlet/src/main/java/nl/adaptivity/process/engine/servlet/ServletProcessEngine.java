@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.servlet;
 
+import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
@@ -27,7 +28,6 @@ import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
@@ -104,11 +104,11 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   private class MessagingCompletionListener implements CompletionListener<DataSource> {
 
-    private final Handle<ProcessNodeInstance> mHandle;
+    private final Handle<? extends ProcessNodeInstance<T>> mHandle;
 
     private final Principal mOwner;
 
-    public MessagingCompletionListener(final Handle<ProcessNodeInstance> handle, final Principal owner) {
+    public MessagingCompletionListener(final Handle<? extends ProcessNodeInstance<T>> handle, final Principal owner) {
       mHandle = handle;
       mOwner = owner;
     }
@@ -141,11 +141,6 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
     private Principal getOwner() {
       return mNodeInstance.getProcessInstance().getOwner();
-    }
-
-
-    private long getHandle() {
-      return mNodeInstance.getHandle();
     }
 
     @Override
@@ -289,7 +284,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
         final XMLEventFactory xef = XMLEventFactory.newInstance();
 
         if ("handle".equals(valueName)) {
-          out.add(xef.createCharacters(Long.toString(nodeInstance.getHandle())));
+          out.add(xef.createCharacters(Long.toString(nodeInstance.getHandleValue())));
         } else if ("endpoint".equals(valueName)) {
           final QName qname1 = new QName(Constants.MY_JBI_NS_STR, "endpointDescriptor", "");
           final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", Constants.MY_JBI_NS_STR));
@@ -351,9 +346,9 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
         if ("handle".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, Long.toString(nodeInstance.getHandle()));
+            attr = xef.createAttribute(paramName, Long.toString(nodeInstance.getHandleValue()));
           } else {
-            attr = xef.createAttribute("handle", Long.toString(nodeInstance.getHandle()));
+            attr = xef.createAttribute("handle", Long.toString(nodeInstance.getHandleValue()));
           }
           out.add(attr);
         } else if ("owner".equals(valueName)) {
@@ -471,10 +466,11 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @Override
   public boolean sendMessage(T transaction, final NewServletMessage message, final ProcessNodeInstance<T> instance) throws SQLException {
-    assert instance.getHandle()>=0;
+    final ComparableHandle<? extends ProcessNodeInstance<T>> nodeHandle = instance.getHandle();
+    assert nodeHandle!=null;
     message.setHandle(transaction, instance);
 
-    Future<DataSource> result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(message.getHandle()), message.getOwner()), DataSource.class, new Class<?>[0]);
+    Future<DataSource> result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener(nodeHandle, message.getOwner()), DataSource.class, new Class<?>[0]);
     if (result.isCancelled()) { return false; }
     if (result.isDone()) {
       try {
@@ -576,7 +572,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   public ProcessModelRef updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
     if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
-      processModel.setHandle(handle);
+      processModel.setHandleValue(handle);
 
       try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(mProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), processModel, user));
@@ -614,7 +610,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
     if (owner==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
-      processModel.setHandle(-1); // The handle cannot be set
+      processModel.setHandleValue(-1); // The handle cannot be set
       try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));
       } catch (SQLException e) {
@@ -856,7 +852,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    * specially.
    * @throws SQLException
    */
-  public void onMessageCompletion(final Future<? extends DataSource> future, final Handle<ProcessNodeInstance> handle, final Principal owner) {
+  public void onMessageCompletion(final Future<? extends DataSource> future, final Handle<? extends ProcessNodeInstance<T>> handle, final Principal owner) {
     // XXX do this better
     try {
       if (future.isCancelled()) {

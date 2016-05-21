@@ -27,7 +27,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
@@ -40,7 +39,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Paul de Vrieze
  * @param <V> The type of the elements in the map.
  */
-public final class CachingHandleMap<V, T extends Transaction> extends AbstractTransactionedHandleMap<V, T> implements Closeable, AutoCloseable {
+public class CachingHandleMap<V, T extends Transaction> extends AbstractTransactionedHandleMap<V, T> implements Closeable, AutoCloseable {
 
 
   private class WrappingIterator implements AutoCloseableIterator<V> {
@@ -128,15 +127,17 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
   }
 
   @Override
-  public Handle<V> put(T transaction, V value) throws SQLException {
-    Handle<V> handle = mDelegate.put(transaction, value);
+  public <W extends V> ComparableHandle<W> put(T transaction, W value) throws SQLException {
+    ComparableHandle<W> handle = mDelegate.put(transaction, value);
     putCache(handle, value);
     return handle;
   }
 
-  private void putCache(V pValue) {
-    if (pValue instanceof HandleAware) {
-      putCache(((HandleAware<V>)pValue), pValue);
+  protected void putCache(V pValue) {
+    if (pValue instanceof Handle) {
+      putCache(((Handle<V>) pValue), pValue);
+    } else if (pValue instanceof HandleAware) {
+      putCache(((HandleAware<V>)pValue).getHandle(), pValue);
     }
   }
 
@@ -144,7 +145,7 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
     if (pValue!=null) { // never store null
       synchronized (mCacheHandles) {
         final int pos = mCacheHead;
-        final long handle = pHandle.getHandle();
+        final long handle = pHandle.getHandleValue();
         if (mCacheHandles[pos] != handle) {
           removeFromCache(handle);
         }
@@ -155,10 +156,10 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
     }
   }
 
-  public V getFromDelegate(T pTransaction, Handle<? extends V> pHandle) throws SQLException {
+  public V getFromDelegate(T transaction, Handle<? extends V> pHandle) throws SQLException {
     mPendingHandles.add(pHandle); // internal locking so no locking needed here
     try {
-      return mDelegate.get(pTransaction, pHandle);
+      return mDelegate.get(transaction, pHandle);
     } finally {
       mPendingHandles.remove(pHandle);
     }
@@ -207,11 +208,10 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
   }
 
   @Override
-  @Nullable public V get(@NotNull T transaction, Handle<? extends V> handle) throws SQLException {
-    Long key = Long.valueOf(handle.getHandle());
+  @Nullable public V get(@NotNull T transaction, @NotNull Handle<? extends V> handle) throws SQLException {
     final V val;
     synchronized(mCacheHandles) {
-      val = getFromCache(handle.getHandle());
+      val = getFromCache(handle.getHandleValue());
       if (val!=null) {
         return val;
       }
@@ -231,7 +231,7 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
 
   @Override
   public boolean contains(final T transaction, final Handle<? extends V> handle) throws SQLException {
-    if (getFromCache(handle.getHandle())!=null) {
+    if (getFromCache(handle.getHandleValue()) != null) {
       return true;
     }
     return mDelegate.contains(transaction, handle);
@@ -263,7 +263,7 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
 
   private V storeInCache(Handle<? extends V> pHandle, V pV) {
     if (! isPending(pHandle)) {
-      final long handle = pHandle.getHandle();
+      final long handle = pHandle.getHandleValue();
       synchronized (mCacheHandles) {
         removeFromCache(handle); // remove whatever old value was there
         putCache(pHandle, pV);
@@ -273,27 +273,23 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
   }
 
   private void removeFromCache(final long handle) {
-    boolean doAssert = false;
-    assert doAssert=true;
     for (int i = 0; i < mCacheHandles.length; i++) {
       if (mCacheHandles[i]==handle) {
         mCacheHandles[i]=-1;
         mCacheValues[i]=null;
-        if (!doAssert) {
-          return;
-        }
+        assert getFromCache(handle)==null;
+        return;
       }
     }
   }
 
-  private boolean isPending(final Handle<? extends V> pHandle) {
-    return mPendingHandles.contains(pHandle);
+  private boolean isPending(final Handle<? extends V> handle) {
+    return mPendingHandles.contains(handle);
   }
 
   @Override
-  public void invalidateCache(final Handle<? extends V> pHandle) {
-    long handle = pHandle.getHandle();
-    removeFromCache(handle);
+  public void invalidateCache(final Handle<? extends V> handle) {
+    removeFromCache(handle.getHandleValue());
   }
 
   @Override
@@ -312,7 +308,7 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
 
   @Override
   public boolean remove(T transaction, Handle<? extends V> handle) throws SQLException {
-    removeFromCache(handle.getHandle());
+    removeFromCache(handle.getHandleValue());
     return mDelegate.remove(transaction, handle);
   }
 
@@ -363,4 +359,7 @@ public final class CachingHandleMap<V, T extends Transaction> extends AbstractTr
     }
   }
 
+  protected TransactionedHandleMap<V, T> getDelegate() {
+    return mDelegate;
+  }
 }

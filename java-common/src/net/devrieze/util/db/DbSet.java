@@ -17,6 +17,7 @@
 package net.devrieze.util.db;
 
 import net.devrieze.util.AutoCloseableIterator;
+import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
@@ -620,7 +621,7 @@ public class DbSet<T> implements AutoCloseable {
     }
   }
 
-  protected Handle<T> addWithKey(DBTransaction connection, T pE) throws SQLException {
+  protected <W extends T> ComparableHandle<W> addWithKey(DBTransaction connection, W pE) throws SQLException {
     if (pE==null) { throw new NullPointerException(); }
 
     String sql = "INSERT INTO "+ mElementFactory.getTableName()+ " ( "+join(mElementFactory.getStoreColumns(),", ") +" ) VALUES ( " +join(mElementFactory
@@ -633,7 +634,7 @@ public class DbSet<T> implements AutoCloseable {
       try {
         int changecount = statement.executeUpdate();
         if (changecount > 0) {
-          final Handle<T> handle;
+          final ComparableHandle<W> handle;
           try (ResultSet keys = statement.getGeneratedKeys()) {
             keys.next();
             handle = Handles.handle(keys.getLong(1));

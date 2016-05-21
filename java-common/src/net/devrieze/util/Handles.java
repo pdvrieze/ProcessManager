@@ -17,7 +17,6 @@
 package net.devrieze.util;
 
 import net.devrieze.util.HandleMap.ComparableHandle;
-import net.devrieze.util.HandleMap.Handle;
 
 import java.net.URI;
 
@@ -33,7 +32,7 @@ public final class Handles {
     }
 
     @Override
-    public long getHandle() {
+    public long getHandleValue() {
       return mHandle;
     }
 
@@ -44,7 +43,7 @@ public final class Handles {
 
     @Override
     public int compareTo(ComparableHandle<T> pO) {
-      return Long.compare(getHandle(), pO.getHandle());
+      return Long.compare(getHandleValue(), pO.getHandleValue());
     }
 
     @Override
@@ -80,12 +79,12 @@ public final class Handles {
    * @return a Handle<T> object corresponding to the handle.
    */
   public static <T> HandleMap.ComparableHandle<T> handle(final long pHandle) {
-    return new SimpleHandle<>(pHandle);
+    return pHandle<0 ? null : new SimpleHandle<T>(pHandle);
   }
 
   public static <T> HandleMap.ComparableHandle<T> handle(final HandleMap.Handle<T> pHandle) {
     if (pHandle instanceof ComparableHandle) { return (ComparableHandle<T>) pHandle; }
-    return new SimpleHandle<>(pHandle.getHandle());
+    return new SimpleHandle<>(pHandle.getHandleValue());
   }
 
   /**
