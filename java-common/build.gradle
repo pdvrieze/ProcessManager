@@ -15,6 +15,7 @@
  */
 
 apply plugin: 'java'
+apply plugin: 'kotlin'
 apply plugin: 'idea'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
@@ -26,26 +27,13 @@ description = 'A library with generic support classes'
 //group = 'util'
 
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
-        }
-    }
-    test {
-        java {
-            srcDir 'test'
-        }
-    }
-
-}
-
 test {
     useTestNG()
 }
 
 dependencies {
     compile project(':JavaCommonApi')
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains:annotations:13.0"
     testCompile 'org.testng:testng:6.9.9'
 }
