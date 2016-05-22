@@ -16,12 +16,7 @@
 
 package net.devrieze.util.db
 
-import net.devrieze.util.AutoCloseableIterator
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
-import net.devrieze.util.Handles
-import net.devrieze.util.Transaction
-import net.devrieze.util.TransactionFactory
+import net.devrieze.util.*
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
 import uk.ac.bournemouth.util.kotlin.sql.use
@@ -642,6 +637,9 @@ open class OldDbSet<T:Any>(pTransactionFactory: TransactionFactory<OldDBTransact
                                              keys.next()
                                              Handles.handle<W>(keys.getLong(1))
                                            })
+          if (element is HandleMap.HandleAware<*>) {
+            element.setHandleValue(handle.handleValue)
+          }
           elementFactory.postStore(transaction, handle, null, element)
           return handle
         } else {
@@ -1209,6 +1207,9 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
           val handle = statement.withGeneratedKeys { keys ->
             keys.next()
             Handles.handle<W>(keys.getLong(1))
+          }
+          if (element is HandleMap.HandleAware<*>) {
+            element.setHandleValue(handle.handleValue)
           }
           elementFactory.postStore(transaction, handle, null, element)
           handle
