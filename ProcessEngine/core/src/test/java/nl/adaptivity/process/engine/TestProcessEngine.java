@@ -17,10 +17,10 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CachingHandleMap;
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.TransactionedHandleMap;
+import net.devrieze.util.OldTransactionedHandleMap;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -159,7 +159,7 @@ public class TestProcessEngine {
     }
   }
 
-  private static <V> TransactionedHandleMap<V,Transaction> cache(TransactionedHandleMap<V,Transaction> base, int count) {
+  private static <V> OldTransactionedHandleMap<V,Transaction> cache(OldTransactionedHandleMap<V,Transaction> base, int count) {
     return new CachingHandleMap<>(base, count);
   }
 

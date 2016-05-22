@@ -14,21 +14,14 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine;
+package net.devrieze.util
 
-import net.devrieze.util.Handle;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
-import org.jetbrains.annotations.Nullable;
+/**
+ * @param  Type parameter that should help with compile time handle differentiation
+ */
+interface Handle<out T> {
 
-import java.util.UUID;
-
-
-public interface IProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Handle<ProcessModel<T, M>>{
-
-  String getName();
-
-  @Nullable
-  UUID getUuid();
-
+  val handleValue: Long
 }
+
+interface ComparableHandle<T> : Handle<T>, Comparable<ComparableHandle<T>>// no body needed

@@ -16,13 +16,10 @@
 
 package nl.adaptivity.process.engine.processModel;
 
-import net.devrieze.util.Handles;
-import net.devrieze.util.StringCache;
-import net.devrieze.util.Transaction;
-import net.devrieze.util.TransactionFactory;
+import net.devrieze.util.*;
 import net.devrieze.util.db.AbstractElementFactory;
-import net.devrieze.util.db.DBHandleMap;
-import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.db.OldDBHandleMap;
+import net.devrieze.util.db.OldDBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
@@ -33,13 +30,14 @@ import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.util.xml.CompactFragment;
 
 import java.sql.*;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 
-public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTransaction>> {
+public class ProcessNodeInstanceMap extends OldDBHandleMap<ProcessNodeInstance<OldDBTransaction>> {
 
   public static final String TABLE = "processnodeinstances";
   public static final String COL_HANDLE = "pnihandle";
@@ -52,7 +50,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
   public static final String TABLE_PREDECESSORS = "pnipredecessors";
   public static final String TABLE_NODEDATA = "nodedata";
 
-  static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance<DBTransaction>> {
+  static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance<OldDBTransaction>, OldDBTransaction> {
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
     private static final String QUERY_PREDECESSOR = "SELECT `"+COL_PREDECESSOR+"` FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;";
@@ -87,12 +85,12 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
 
     @Override
-    public CharSequence getHandleCondition(Handle<? extends ProcessNodeInstance<DBTransaction>> element) {
+    public CharSequence getHandleCondition(Handle<? extends ProcessNodeInstance<OldDBTransaction>> element) {
       return COL_HANDLE+" = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessNodeInstance<DBTransaction>> handle, int offset) throws SQLException {
+    public int setHandleParams(PreparedStatement statement, Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle, int offset) throws SQLException {
       statement.setLong(offset, handle.getHandleValue());
       return 1;
     }
@@ -108,7 +106,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
 
     @Override
-    public ProcessNodeInstance create(DBTransaction transaction, ResultSet row) throws SQLException {
+    public ProcessNodeInstance create(OldDBTransaction transaction, ResultSet row) throws SQLException {
 
 
       Handle<ProcessInstance<? extends Transaction>> hProcessInstance = Handles.handle(row.getLong(mColNoHProcessInstance));
@@ -122,13 +120,13 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
       final String sState = row.getString(mColNoState);
       NodeInstanceState state = sState == null ? null : NodeInstanceState.valueOf(sState);
 
-      List<Handle<ProcessNodeInstance<DBTransaction>>> predecessors = new ArrayList<>();
+      List<Handle<ProcessNodeInstance<OldDBTransaction>>> predecessors = new ArrayList<>();
 
       try(PreparedStatement preparedStatement = transaction.prepareStatement("SELECT "+COL_PREDECESSOR+" FROM "+TABLE_PREDECESSORS+" WHERE "+COL_HANDLE+" = ?")) {
         preparedStatement.setLong(1, handle);
         try(ResultSet rs = preparedStatement.executeQuery()) {
           while(rs.next()) {
-            predecessors.add(Handles.<ProcessNodeInstance<DBTransaction>>handle(rs.getLong(1)));
+            predecessors.add(Handles.<ProcessNodeInstance<OldDBTransaction>>handle(rs.getLong(1)));
           }
         }
       }
@@ -146,9 +144,9 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
 
 
     @Override
-    public void postCreate(DBTransaction transaction, ProcessNodeInstance<DBTransaction> element) throws SQLException {
+    public void postCreate(OldDBTransaction transaction, ProcessNodeInstance<OldDBTransaction> element) throws SQLException {
       {
-        for (ComparableHandle<? extends ProcessNodeInstance<DBTransaction>> handle: element.getDirectPredecessors()) {
+        for (ComparableHandle<? extends ProcessNodeInstance<OldDBTransaction>> handle: element.getDirectPredecessors()) {
           element.ensurePredecessor(handle);
         }
       }
@@ -175,12 +173,12 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance<DBTransaction> nodeInstance) {
+    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance<OldDBTransaction> nodeInstance) {
       return getHandleCondition(nodeInstance.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement statement, ProcessNodeInstance<DBTransaction> nodeInstance, int offset) throws SQLException {
+    public int setPrimaryKeyParams(PreparedStatement statement, ProcessNodeInstance<OldDBTransaction> nodeInstance, int offset) throws SQLException {
       return setHandleParams(statement, nodeInstance.getHandle(), offset);
     }
 
@@ -216,27 +214,27 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
 
     @Override
-    public void postStore(DBTransaction connection, Handle<? extends ProcessNodeInstance<DBTransaction>> handle, ProcessNodeInstance<DBTransaction> oldValue, ProcessNodeInstance<DBTransaction> element) throws SQLException {
+    public void postStore(OldDBTransaction connection, Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle, ProcessNodeInstance<OldDBTransaction> oldValue, ProcessNodeInstance<OldDBTransaction> element) throws SQLException {
       ProcessNodeInstanceMap.postStore(connection, handle, oldValue, element);
     }
 
     @Override
-    public void preRemove(DBTransaction connection, Handle<? extends ProcessNodeInstance<DBTransaction>> handle) throws SQLException {
+    public void preRemove(OldDBTransaction connection, Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle) throws SQLException {
       ProcessNodeInstanceMap.preRemove(connection, handle);
     }
 
     @Override
-    public void preRemove(DBTransaction connection, ProcessNodeInstance<DBTransaction> element) throws SQLException {
+    public void preRemove(OldDBTransaction connection, ProcessNodeInstance<OldDBTransaction> element) throws SQLException {
       preRemove(connection, element);
     }
 
     @Override
-    public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, Handles.<ProcessNodeInstance<DBTransaction>>handle(elementSource.getLong(mColNoHandle)));
+    public void preRemove(OldDBTransaction connection, ResultSet elementSource) throws SQLException {
+      preRemove(connection, Handles.<ProcessNodeInstance<OldDBTransaction>>handle(elementSource.getLong(mColNoHandle)));
     }
 
     @Override
-    public void preClear(DBTransaction connection) throws SQLException {
+    public void preClear(OldDBTransaction connection) throws SQLException {
       CharSequence filter = getFilterExpression();
       {
         final String sql;
@@ -268,7 +266,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
 
   private static final String FAILURE_CAUSE = "failureCause";
 
-  static void postStore(final DBTransaction connection, final Handle<? extends ProcessNodeInstance<DBTransaction>> handle, final ProcessNodeInstance oldValue, final ProcessNodeInstance<DBTransaction> element) throws
+  static void postStore(final OldDBTransaction connection, final Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle, final ProcessNodeInstance oldValue, final ProcessNodeInstance<OldDBTransaction> element) throws
           SQLException {
     if (oldValue!=null) { // update
       try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
@@ -278,7 +276,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
     // TODO allow for updating/storing node data
     try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
-      final Collection<ComparableHandle<? extends ProcessNodeInstance<DBTransaction>>> directPredecessors = element.getDirectPredecessors();
+      final Collection<ComparableHandle<? extends ProcessNodeInstance<OldDBTransaction>>> directPredecessors = element.getDirectPredecessors();
       for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
         statement.setLong(1, handle.getHandleValue());
         if (predecessor==null) {
@@ -311,7 +309,7 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
     }
   }
 
-  static void preRemove(final DBTransaction connection, final Handle<? extends ProcessNodeInstance<DBTransaction>> handle) throws SQLException {
+  static void preRemove(final OldDBTransaction connection, final Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle) throws SQLException {
     try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
       statement.setLong(1, handle.getHandleValue());
       statement.executeUpdate();
@@ -325,5 +323,4 @@ public class ProcessNodeInstanceMap extends DBHandleMap<ProcessNodeInstance<DBTr
   public ProcessNodeInstanceMap(TransactionFactory transactionFactory, ProcessEngine processEngine, StringCache stringCache) {
     super(transactionFactory, new ProcessNodeInstanceFactory(processEngine, stringCache));
   }
-
 }

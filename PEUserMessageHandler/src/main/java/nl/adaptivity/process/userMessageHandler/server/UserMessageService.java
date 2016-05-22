@@ -17,12 +17,13 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.*;
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.db.DBTransaction;
-import net.devrieze.util.db.DbSet;
+import net.devrieze.util.db.OldDbSet;
 import net.devrieze.util.security.AuthenticationNeededException;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
+import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -56,9 +57,9 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     private javax.sql.DataSource getDBResource() {
       if (mDBResource ==null) {
         if (mContext!=null) {
-          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         } else {
-          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         }
       }
       return mDBResource;
@@ -66,11 +67,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
 
     @Override
     public DBTransaction startTransaction() {
-      try {
-        return new DBTransaction(getDBResource());
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+      return new DBTransaction(getDBResource(), UserTaskDB.INSTANCE);
     }
 
     @Override
@@ -80,7 +77,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
 
     @Override
     public boolean isValidTransaction(final Transaction transaction) {
-      return (transaction instanceof DBTransaction) &&  ((DBTransaction) transaction).providerEquals(mDBResource);
+      return (transaction instanceof DBTransaction) &&  ((DBTransaction) transaction).getConnection().getDb()==UserTaskDB.INSTANCE;
     }
   }
 

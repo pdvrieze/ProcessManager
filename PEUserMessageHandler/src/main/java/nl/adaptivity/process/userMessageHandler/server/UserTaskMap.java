@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
@@ -95,7 +96,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
   }
 
 
-  private static final class UserTaskFactory extends AbstractElementFactory<XmlTask> {
+  private static final class UserTaskFactory extends AbstractElementFactory<XmlTask, DBTransaction> {
 
 
     private static final int TASK_LOOKUP_TIMEOUT_MILIS = 1;
@@ -174,7 +175,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
 
     @Override
     public void postCreate(DBTransaction connection, XmlTask element) throws SQLException {
-      try(PreparedStatement statement = connection.prepareStatement(QUERY_GET_DATA_FOR_TASK)) {
+      try(PreparedStatement statement = connection.getConnection().getRawConnection().prepareStatement(QUERY_GET_DATA_FOR_TASK)) {
         statement.setLong(1, element.getHandleValue());
         if(statement.execute()) {
           try (ResultSet resultset = statement.getResultSet()) {
@@ -226,7 +227,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
 
     @Override
     public void postStore(DBTransaction connection, Handle<? extends XmlTask> handle, XmlTask oldValue, XmlTask newValue) throws SQLException {
-      try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
+      try (PreparedStatement statement = connection.getConnection().getRawConnection().prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
         final List<XmlItem> items = newValue.getItems();
         for(XmlItem item:items) {
           if (item!=null && item.getName()!=null && !"label".equals(item.getType())) {
@@ -267,7 +268,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
       } else {
         sql= "DELETE FROM `"+TABLEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"` WHERE "+filter+");";
       }
-      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+      try (PreparedStatement statement = connection.getConnection().getRawConnection().prepareStatement(sql)) {
         setFilterParams(statement, 1);
         statement.execute();
       }
@@ -276,7 +277,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
     @Override
     public void preRemove(DBTransaction connection, Handle<? extends XmlTask> handle) throws SQLException {
       final String sql = "DELETE FROM "+TABLEDATA+" WHERE `"+COL_HANDLE+"` = ?";
-      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+      try (PreparedStatement statement = connection.getConnection().getRawConnection().prepareStatement(sql)) {
         statement.setLong(1, handle.getHandleValue());
         statement.execute();
       }
@@ -300,7 +301,7 @@ public class UserTaskMap extends DBHandleMap<XmlTask> implements IUserTaskMap<DB
 
   @Override
   public Handle<XmlTask> containsRemoteHandle(final DBTransaction connection, final long remoteHandle) throws SQLException {
-    try(PreparedStatement statement = connection.prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_REMOTEHANDLE+" = ?")) {
+    try(PreparedStatement statement = connection.getConnection().getRawConnection().prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_REMOTEHANDLE+" = ?")) {
       statement.setLong(1, remoteHandle);
       try(ResultSet rs = statement.executeQuery()) {
         if (! rs.next()) { return null; }

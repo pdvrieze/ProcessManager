@@ -16,14 +16,14 @@
 
 package net.devrieze.util;
 
-import net.devrieze.util.HandleMap.ComparableHandle;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 
 
 public final class Handles {
 
-  private static final class SimpleHandle<T> implements HandleMap.ComparableHandle<T> {
+  private static final class SimpleHandle<T> implements ComparableHandle<T> {
 
     private final long mHandle;
 
@@ -78,11 +78,12 @@ public final class Handles {
    * @param pHandle The handle
    * @return a Handle<T> object corresponding to the handle.
    */
-  public static <T> HandleMap.ComparableHandle<T> handle(final long pHandle) {
+  @NotNull
+  public static <T> ComparableHandle<T> handle(final long pHandle) {
     return pHandle<0 ? null : new SimpleHandle<T>(pHandle);
   }
 
-  public static <T> HandleMap.ComparableHandle<T> handle(final HandleMap.Handle<T> pHandle) {
+  public static <T> ComparableHandle<T> handle(final Handle<T> pHandle) {
     if (pHandle instanceof ComparableHandle) { return (ComparableHandle<T>) pHandle; }
     return new SimpleHandle<>(pHandle.getHandleValue());
   }
@@ -93,11 +94,11 @@ public final class Handles {
    * @param <T>
    * @return
    */
-  public static <T> HandleMap.ComparableHandle<T> handle(final String handle) {
+  public static <T> ComparableHandle<T> handle(final String handle) {
     return handle(Long.parseLong(handle));
   }
 
-  public static <T> HandleMap.ComparableHandle<T> handle(final URI handle) {
+  public static <T> ComparableHandle<T> handle(final URI handle) {
     String path = handle.getPath();
     int slashPos = path.lastIndexOf('/');
     if (slashPos>0) {

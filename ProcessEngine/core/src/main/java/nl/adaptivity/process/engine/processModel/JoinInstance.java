@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.engine.processModel;
 
-import net.devrieze.util.HandleMap.ComparableHandle;
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.ComparableHandle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;

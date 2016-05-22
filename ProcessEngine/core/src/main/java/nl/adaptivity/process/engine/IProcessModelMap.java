@@ -16,8 +16,9 @@
 
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.Handle;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.TransactionedHandleMap;
+import net.devrieze.util.OldTransactionedHandleMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 import java.sql.SQLException;
@@ -27,7 +28,7 @@ import java.util.UUID;
 /**
  * Created by pdvrieze on 07/05/16.
  */
-public interface IProcessModelMap<T extends Transaction> extends TransactionedHandleMap<ProcessModelImpl, T> {
+public interface IProcessModelMap<T extends Transaction> extends OldTransactionedHandleMap<ProcessModelImpl, T> {
 
   Handle<? extends ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException;
 }

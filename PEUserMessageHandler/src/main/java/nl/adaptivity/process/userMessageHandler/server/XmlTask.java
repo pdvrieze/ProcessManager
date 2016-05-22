@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -228,8 +228,8 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   @Override
-  public void setHandleValue(final long handle) {
-    mHandle = handle;
+  public void setHandleValue(final long handleValue) {
+    mHandle = handleValue;
   }
 
   @Override

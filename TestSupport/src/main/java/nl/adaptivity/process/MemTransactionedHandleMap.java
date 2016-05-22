@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process;
 
-import net.devrieze.util.AutoCloseableIterator;
-import net.devrieze.util.Handles;
-import net.devrieze.util.MemHandleMap;
-import net.devrieze.util.Transaction;
+import net.devrieze.util.*;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -29,7 +26,7 @@ import java.util.Iterator;
 /**
  * Created by pdvrieze on 09/12/15.
  */
-public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T, Transaction> {
+public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.OldTransactionedHandleMap<T, Transaction> {
 
   private static class IteratorWrapper<T> implements AutoCloseableIterator<T> {
 
@@ -57,7 +54,7 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
       // Do nothing
     }
   }
@@ -117,8 +114,8 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public boolean contains(final Transaction transaction, final Object obj) throws SQLException {
-    return contains(obj);
+  public boolean contains(final Transaction transaction, final Object element) throws SQLException {
+    return contains(element);
   }
 
   @Override

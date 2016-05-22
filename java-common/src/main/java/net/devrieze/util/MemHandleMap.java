@@ -41,13 +41,13 @@ import java.util.Iterator;
  * @author Paul de Vrieze
  * @param <V> The type of object contained in the map.
  */
-public class MemHandleMap<V> implements HandleMap<V> {
+public class MemHandleMap<V> implements HandleMap<V>, Collection<V> {
 
   static class MapCollection<T> implements Collection<T> {
 
-    private final HandleMap<T> mHandleMap;
+    private final MemHandleMap<T> mHandleMap;
 
-    MapCollection(HandleMap<T> pHandleMap) {
+    MapCollection(MemHandleMap<T> pHandleMap) {
       mHandleMap = pHandleMap;
     }
 
@@ -63,7 +63,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
 
     @Override
     public boolean contains(final Object pObject) {
-      return mHandleMap.contains(pObject);
+      return mHandleMap.contains((T)pObject);
     }
 
     @Override
@@ -275,7 +275,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
   /**
    * This array contains the actual values in the map.
    */
-  private Object[] mValues;
+  private V[] mValues;
 
   /**
    * This array records for each value what generation it is. This is used to
@@ -331,7 +331,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @param pLoadFactor The load factor to use for the map.
    */
   public MemHandleMap(final int pCapacity, final float pLoadFactor) {
-    mValues = new Object[pCapacity];
+    mValues = (V[]) new Object[pCapacity];
     mGenerations = new int[pCapacity];
     mBarrier = pCapacity;
     mLoadFactor = pLoadFactor;
@@ -353,7 +353,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
   /* (non-Javadoc)
    * @see net.devrieze.util.HandleMap#clear()
    */
-  @Override
   public synchronized void clear() {
     Arrays.fill(mValues, null);
     Arrays.fill(mGenerations, 0);
@@ -384,14 +383,14 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#contains(java.lang.Object)
    */
   @Override
-  public boolean contains(final Object object) {
-    if (object instanceof HandleMap.Handle) {
-      final long candidateHandle = ((HandleMap.Handle<?>) object).getHandleValue();
+  public boolean contains(final Object element) {
+    if (element instanceof Handle) {
+      final long candidateHandle = ((Handle<?>) element).getHandleValue();
       return contains(candidateHandle);
     } else {
       synchronized (this) {
-        for (final Object candidate : this) {
-          if (candidate == object) {
+        for (final Object candidate : mValues) {
+          if (candidate == element) {
             return true;
           }
         }
@@ -492,7 +491,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#get(net.devrieze.util.MemHandleMap.Handle)
    */
   @Override
-  public V get(final HandleMap.Handle<? extends V> handle) {
+  public V get(final Handle<? extends V> handle) {
     return get(handle.getHandleValue());
   }
 
@@ -529,22 +528,26 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @see net.devrieze.util.HandleMap#size()
    */
   @Override
-  public int size() {
+  public int getSize() {
     return mSize;
   }
 
-  /* (non-Javadoc)
-   * @see net.devrieze.util.HandleMap#remove(net.devrieze.util.MemHandleMap.Handle)
-   */
   @Override
-  public boolean remove(final HandleMap.Handle<? extends V> handle) {
+  public int size() {
+    return getSize();
+  }
+
+  /* (non-Javadoc)
+     * @see net.devrieze.util.HandleMap#remove(net.devrieze.util.MemHandleMap.Handle)
+     */
+  @Override
+  public boolean remove(final Handle<? extends V> handle) {
     return remove(handle.getHandleValue());
   }
 
   /* (non-Javadoc)
    * @see net.devrieze.util.HandleMap#remove(long)
    */
-  @Override
   public boolean remove(final long handle) {
     final int generation = (int) (handle >> 32);
     synchronized (this) {
@@ -651,7 +654,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
     }
 
     final int newLen = mValues.length * 2;
-    final Object[] newValues = new Object[newLen];
+    final V[] newValues = (V[]) new Object[newLen];
     final int[] newGenerations = new int[newLen];
 
 
@@ -677,17 +680,8 @@ public class MemHandleMap<V> implements HandleMap<V> {
    * @deprecated Use {@link Handles#handle(long)} instead
    */
   @Deprecated
-  public static <T> HandleMap.Handle<T> handle(final long pHandle) {
+  public static <T> Handle<T> handle(final long pHandle) {
     return Handles.<T>handle(pHandle);
-  }
-
-  /* (non-Javadoc)
-   * @see net.devrieze.util.HandleMap#toCollection()
-   */
-  @Deprecated
-  @Override
-  public Collection<V> toCollection() {
-    return this;
   }
 
   @Override
@@ -695,7 +689,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
     return size()==0;
   }
 
-  @Override
   public Object[] toArray() {
     synchronized (this) {
       final Object[] result = new Object[size()];
@@ -704,7 +697,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
   }
 
   @SuppressWarnings("unchecked")
-  @Override
   public <U> U[] toArray(final U[] pA) {
     U[] array;
     synchronized (this) {
@@ -721,7 +713,7 @@ public class MemHandleMap<V> implements HandleMap<V> {
   private Object[] writeToArray(final Object[] result) {
     int i = 0;
     synchronized (this) {
-      for (final V elem : this) {
+      for (final V elem : mValues) {
         result[i] = elem;
         ++i;
       }
@@ -732,16 +724,14 @@ public class MemHandleMap<V> implements HandleMap<V> {
     return result;
   }
 
-  @Override
   public boolean add(final V pElement) {
     put(pElement);
     return true;
   }
 
-  @Override
   public boolean remove(final Object pObject) {
-    if (pObject instanceof HandleMap.Handle) {
-      return remove(((HandleMap.Handle<?>) pObject).getHandleValue());
+    if (pObject instanceof Handle) {
+      return remove(((Handle<?>) pObject).getHandleValue());
     }
     synchronized (this) {
       for (final Iterator<V> it = iterator(); it.hasNext();) {
@@ -754,7 +744,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
     return false;
   }
 
-  @Override
   public boolean containsAll(final Collection<?> pC) {
     synchronized (this) {
       for (final Object elem : pC) {
@@ -766,7 +755,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
     }
   }
 
-  @Override
   public boolean addAll(final Collection<? extends V> pC) {
     synchronized (this) {
       boolean result = false;
@@ -777,7 +765,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
     }
   }
 
-  @Override
   public boolean removeAll(final Collection<?> pC) {
     synchronized (this) {
       boolean result = false;
@@ -788,7 +775,6 @@ public class MemHandleMap<V> implements HandleMap<V> {
     }
   }
 
-  @Override
   public boolean retainAll(final Collection<?> pC) {
     boolean result = false;
     synchronized (this) {

@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.Handle;
 import net.devrieze.util.Transaction;
+import net.devrieze.util.OldTransactionedHandleMap;
 import net.devrieze.util.TransactionedHandleMap;
 
 import java.sql.SQLException;

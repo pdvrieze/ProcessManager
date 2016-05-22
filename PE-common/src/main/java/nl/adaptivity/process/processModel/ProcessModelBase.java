@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel;
 
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.Handles;
 import net.devrieze.util.StringUtil;
@@ -276,7 +276,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   /**
    * Get the handle recorded for this model.
    */
-  public Handle<? extends M> getHandle() {
+  public Handle<M> getHandle() {
     return Handles.handle(mHandle);
   }
 
@@ -287,8 +287,8 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   /**
    * Set the handle for this model.
    */
-  public void setHandleValue(final long handle) {
-    mHandle = handle;
+  public void setHandleValue(final long handleValue) {
+    mHandle = handleValue;
   }
 
   @Nullable

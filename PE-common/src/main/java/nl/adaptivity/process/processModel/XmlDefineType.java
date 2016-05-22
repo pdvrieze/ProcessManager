@@ -24,7 +24,6 @@
 
 package nl.adaptivity.process.processModel;
 
-import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;

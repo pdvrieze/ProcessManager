@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;

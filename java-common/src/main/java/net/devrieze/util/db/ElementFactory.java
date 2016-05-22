@@ -22,10 +22,11 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.List;
 
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
+import net.devrieze.util.Transaction;
 
 
-public interface ElementFactory<T> {
+public interface ElementFactory<T, TR extends Transaction> {
 
   CharSequence getTableName();
 
@@ -72,7 +73,7 @@ public interface ElementFactory<T> {
    * @param pResultSet The resultset (moved to the relevant row) to use.  @return A new element.
    * @throws SQLException When something goes wrong.
    */
-  T create(DBTransaction transaction, ResultSet pResultSet) throws SQLException;
+  T create(TR transaction, ResultSet pResultSet) throws SQLException;
 
   /**
    * Hook to allow for subsequent queries
@@ -80,7 +81,7 @@ public interface ElementFactory<T> {
    * @param pElement The element that has been created.
    * @throws SQLException When something goes wrong.
    */
-  void postCreate(DBTransaction pConnection, T pElement) throws SQLException;
+  void postCreate(TR pConnection, T pElement) throws SQLException;
 
   /**
    * Get an SQL condition that would select the given object.
@@ -140,7 +141,7 @@ public interface ElementFactory<T> {
    * @param pElement The element that is going to be removed.
    * @throws SQLException When something goes wrong.
    */
-  void preRemove(DBTransaction pConnection, T pElement) throws SQLException;
+  void preRemove(TR pConnection, T pElement) throws SQLException;
 
   /**
    * This method is called before an element is removed. This method
@@ -148,10 +149,10 @@ public interface ElementFactory<T> {
    * elements.
    *
    * @param pConnection The connection to use in the background
-   * @param pElementSource The resultset that would be passed to {@link #create(DBTransaction, ResultSet)}
+   * @param pElementSource The resultset that would be passed to {@link #create(TR, ResultSet)}
    * @throws SQLException When something goes wrong.
    */
-  void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException;
+  void preRemove(TR pConnection, ResultSet pElementSource) throws SQLException;
 
   /**
    * This method is clear before the collection is cleared out. This allows
@@ -159,7 +160,7 @@ public interface ElementFactory<T> {
    * @param pConnection The connection to use.
    * @throws SQLException When something goes wrong.
    */
-  void preClear(DBTransaction pConnection) throws SQLException;
+  void preClear(TR pConnection) throws SQLException;
 
   /**
    * Execute related statements after the element itself has been stored. This
@@ -170,5 +171,5 @@ public interface ElementFactory<T> {
    * @param oldValue
    * @param newValue
    */
-  void postStore(DBTransaction pConnection, Handle<? extends T> handle, T oldValue, T newValue) throws SQLException;
+  void postStore(TR pConnection, Handle<? extends T> handle, T oldValue, T newValue) throws SQLException;
 }

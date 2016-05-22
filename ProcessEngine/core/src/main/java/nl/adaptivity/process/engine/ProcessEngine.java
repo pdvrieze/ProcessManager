@@ -16,11 +16,9 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.HandleMap.ComparableHandle;
-import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.*;
-import net.devrieze.util.db.DBTransaction;
-import net.devrieze.util.db.DbSet;
+import net.devrieze.util.db.OldDBTransaction;
+import net.devrieze.util.db.OldDbSet;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
@@ -76,7 +74,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private static final int INSTANCE_CACHE_SIZE = 10;
 
 
-  private static class MyDBTransactionFactory implements TransactionFactory<DBTransaction> {
+  private static class MyDBTransactionFactory implements TransactionFactory<OldDBTransaction> {
     private final Context mContext;
 
     private javax.sql.DataSource mDBResource = null;
@@ -94,18 +92,18 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     private javax.sql.DataSource getDBResource() {
       if (mDBResource ==null) {
         if (mContext!=null) {
-          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         } else {
-          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         }
       }
       return mDBResource;
     }
 
     @Override
-    public DBTransaction startTransaction() {
+    public OldDBTransaction startTransaction() {
       try {
-        return new DBTransaction(getDBResource());
+        return new OldDBTransaction(getDBResource());
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
@@ -118,7 +116,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
     @Override
     public boolean isValidTransaction(final Transaction transaction) {
-      return transaction instanceof  DBTransaction && ((DBTransaction) transaction).providerEquals(mDBResource);
+      return transaction instanceof OldDBTransaction && ((OldDBTransaction) transaction).providerEquals(mDBResource);
     }
   }
 
@@ -141,9 +139,9 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private final StringCache mStringCache = new StringCacheImpl();
   private final TransactionFactory<? extends T> mTransactionFactory;
 
-  private TransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
+  private OldTransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
 
-  private TransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
+  private OldTransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
 
   private IProcessModelMap<T> mProcessModels = null;
 
@@ -171,14 +169,14 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return pe;
   }
 
-  private static <T extends Transaction, V> TransactionedHandleMap<V, T> wrapCache(TransactionedHandleMap<V,T> base, int cacheSize) {
+  private static <T extends Transaction, V> OldTransactionedHandleMap<V, T> wrapCache(OldTransactionedHandleMap<V,T> base, int cacheSize) {
     if(cacheSize<=0) { return base; }
-    return new CachingHandleMap(base, cacheSize);
+    return new CachingHandleMap<V, T>(base, cacheSize);
   }
 
   private static <T extends Transaction, V> IProcessModelMap<T> wrapCache(IProcessModelMap<T> base, int cacheSize) {
     if(cacheSize<=0) { return base; }
-    return new CachingProcessModelMap(base, cacheSize);
+    return new CachingProcessModelMap<T>(base, cacheSize);
   }
 
   /**
@@ -191,8 +189,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private ProcessEngine(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
                         TransactionFactory transactionFactory,
                         IProcessModelMap<T> processModels,
-                        TransactionedHandleMap<ProcessInstance<T>, T> processInstances,
-                        TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
+                        OldTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
+                        OldTransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     mMessageService = messageService;
     mProcessModels = processModels;
     mTransactionFactory = transactionFactory;
@@ -213,10 +211,10 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
   static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
-                                                                TransactionFactory transactionFactory,
-                                                                IProcessModelMap<T> processModels,
-                                                                TransactionedHandleMap<ProcessInstance<T>, T> processInstances,
-                                                                TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
+                                                                   TransactionFactory transactionFactory,
+                                                                   IProcessModelMap<T> processModels,
+                                                                   OldTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
+                                                                   OldTransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
 
@@ -353,11 +351,11 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return result;
   }
 
-  private TransactionedHandleMap<ProcessInstance<T>, T> getInstances() {
+  private OldTransactionedHandleMap<ProcessInstance<T>, T> getInstances() {
     return mInstanceMap;
   }
 
-  private TransactionedHandleMap<ProcessNodeInstance<T>, T> getNodeInstances() {
+  private OldTransactionedHandleMap<ProcessNodeInstance<T>, T> getNodeInstances() {
     return mNodeInstanceMap;
   }
 
@@ -496,7 +494,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 //      getNodeInstances().invalidateModelCache(childNode);
 //    }
     // TODO retain instance
-    TransactionedHandleMap<ProcessInstance<T>, T> instances = getInstances();
+    OldTransactionedHandleMap<ProcessInstance<T>, T> instances = getInstances();
     instances.remove(transaction, processInstance.getHandle());
   }
 

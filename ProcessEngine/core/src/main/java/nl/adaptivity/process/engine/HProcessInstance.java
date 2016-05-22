@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handle;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;

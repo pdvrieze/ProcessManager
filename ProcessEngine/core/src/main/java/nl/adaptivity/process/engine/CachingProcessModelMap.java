@@ -17,9 +17,8 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CachingHandleMap;
+import net.devrieze.util.Handle;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.TransactionedHandleMap;
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 import java.sql.SQLException;

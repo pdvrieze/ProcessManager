@@ -16,11 +16,12 @@
 
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.Handle;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
-import net.devrieze.util.db.DBHandleMap;
-import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.db.OldDBHandleMap;
+import net.devrieze.util.db.OldDBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.Factory;
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IProcessModelMap<DBTransaction> {
+public class ProcessModelMap extends OldDBHandleMap<ProcessModelImpl> implements IProcessModelMap<OldDBTransaction> {
 
 
   private static final String TABLE = "processmodels";
@@ -51,7 +52,7 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
 
   private static final String COL_MODEL = "model";
 
-  static class ProcessModelFactory extends AbstractElementFactory<ProcessModelImpl> {
+  static class ProcessModelFactory extends AbstractElementFactory<ProcessModelImpl, OldDBTransaction> {
 
     private static boolean _supports_set_character_stream = true;
     private int mColNoOwner;
@@ -101,7 +102,7 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
     }
 
     @Override
-    public ProcessModelImpl create(DBTransaction connection, ResultSet row) throws SQLException {
+    public ProcessModelImpl create(OldDBTransaction connection, ResultSet row) throws SQLException {
       Principal owner = new SimplePrincipal(mStringCache.lookup(row.getString(mColNoOwner)));
       try(Reader modelReader = row.getCharacterStream(mColNoModel)) {
         long handle = row.getLong(mColNoHandle);
@@ -183,14 +184,14 @@ public class ProcessModelMap extends DBHandleMap<ProcessModelImpl> implements IP
     }
 
     @Override
-    public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
+    public void preRemove(OldDBTransaction connection, ResultSet elementSource) throws SQLException {
       // Ignore. Don't even use the default implementation
     }
 
   }
 
   @Override
-  public Handle<? extends ProcessModelImpl> getModelWithUuid(final DBTransaction transaction, final UUID uuid) throws SQLException {
+  public Handle<? extends ProcessModelImpl> getModelWithUuid(final OldDBTransaction transaction, final UUID uuid) throws SQLException {
     List<Long> candidates = new ArrayList<>();
     try(PreparedStatement statement = transaction.prepareStatement("SELECT "+COL_HANDLE+" FROM "+TABLE+" WHERE "+COL_MODEL+" LIKE '%?%'")){
       statement.setString(1, uuid.toString());

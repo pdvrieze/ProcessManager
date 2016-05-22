@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.Handle;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.MemTransactionedHandleMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;

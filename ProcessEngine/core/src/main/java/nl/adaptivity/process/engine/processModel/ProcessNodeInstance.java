@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.engine.processModel;
 
-import net.devrieze.util.HandleMap.ComparableHandle;
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.ComparableHandle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecureObject;
@@ -270,8 +270,8 @@ public class ProcessNodeInstance<T extends Transaction> implements IProcessNodeI
   }
 
   @Override
-  public void setHandleValue(final long handle) {
-    mHandle = handle;
+  public void setHandleValue(final long handleValue) {
+    mHandle = handleValue;
   }
 
   @Override

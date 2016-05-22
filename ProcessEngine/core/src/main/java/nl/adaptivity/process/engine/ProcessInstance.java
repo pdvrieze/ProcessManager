@@ -17,8 +17,8 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CollectionUtil;
-import net.devrieze.util.HandleMap.ComparableHandle;
-import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.ComparableHandle;
+import net.devrieze.util.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
@@ -306,9 +306,9 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
   }
 
   @Override
-  public void setHandleValue(final long handle) {
+  public void setHandleValue(final long handleValue) {
 
-    mHandle = handle;
+    mHandle = handleValue;
   }
 
   public String getName() {
