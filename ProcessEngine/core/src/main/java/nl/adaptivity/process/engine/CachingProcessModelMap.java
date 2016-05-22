@@ -44,7 +44,7 @@ public class CachingProcessModelMap<T extends Transaction> extends CachingHandle
   public Handle<? extends ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException {
     Handle<? extends ProcessModelImpl> modelWithUuid = getDelegate().getModelWithUuid(transaction, uuid);
     if (modelWithUuid instanceof ProcessModelImpl) {
-      putCache((ProcessModelImpl) modelWithUuid);
+      putCache(transaction, (ProcessModelImpl) modelWithUuid);
     }
     return modelWithUuid;
   }

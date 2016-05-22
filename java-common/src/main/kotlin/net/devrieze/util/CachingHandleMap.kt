@@ -39,30 +39,30 @@ import java.util.concurrent.CopyOnWriteArraySet
 open class CachingHandleMap<V, T : Transaction>(protected open val delegate: OldTransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
 
-  private inner class WrappingIterator(private val mIterator: MutableIterator<V>) : AutoCloseableIterator<V> {
-    private var mLast: V? = null
+  private inner class WrappingIterator(private val transaction:T, private val iterator: MutableIterator<V>) : AutoCloseableIterator<V> {
+    private var last: V? = null
 
     override fun hasNext(): Boolean {
-      return mIterator.hasNext()
+      return iterator.hasNext()
     }
 
     override fun next(): V {
-      val result = mIterator.next()
-      putCache(result)
-      mLast = result
+      val result = iterator.next()
+      putCache(transaction, result)
+      last = result
       return result
     }
 
     override fun remove() {
-      if (mLast != null) {
+      if (last != null) {
         synchronized (mCacheHandles) {
-          val last = mLast
+          val last = last
           if (last is Handle<*>) {
             invalidateCache(last as Handle<V>)
           } else {
             for (i in mCacheHandles.indices) {
               val value = mCacheValues[i]
-              if (value != null && value == mLast) {
+              if (value != null && value == last) {
                 mCacheHandles[i] = -1
                 mCacheValues[i] = null
                 break
@@ -71,14 +71,14 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
           }
         }
       }
-      mIterator.remove()
+      iterator.remove()
     }
 
     @Throws(IOException::class)
     override fun close() {
-      if (mIterator is AutoCloseable) {
+      if (iterator is AutoCloseable) {
         try {
-          mIterator.close()
+          iterator.close()
         } catch (e: IOException) {
           throw e
         } catch (e: Exception) {
@@ -90,10 +90,10 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
 
   }
 
-  private inner class WrappingIterable(private val delegateIterable: MutableIterable<V>) : MutableIterable<V> {
+  private inner class WrappingIterable(private val transaction:T, private val delegateIterable: MutableIterable<V>) : MutableIterable<V> {
 
     override fun iterator(): MutableIterator<V> {
-      return WrappingIterator(delegateIterable.iterator())
+      return WrappingIterator(transaction, delegateIterable.iterator())
     }
   }
 
@@ -114,21 +114,22 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
   @Throws(SQLException::class)
   override fun <W : V> put(transaction: T, value: W): ComparableHandle<W> {
     val handle = delegate.put(transaction, value)
-    putCache(handle, value)
+    putCache(transaction, handle, value)
     return handle
   }
 
-  protected fun putCache(pValue: V) {
+  protected fun putCache(transaction: T, pValue: V) {
     if (pValue is Handle<*>) {
-      putCache(pValue as Handle<V>, pValue)
+      putCache(transaction, pValue as Handle<V>, pValue)
     } else if (pValue is HandleMap.HandleAware<*>) {
-      putCache((pValue as HandleMap.HandleAware<V>).handle, pValue)
+      putCache(transaction, (pValue as HandleMap.HandleAware<V>).handle, pValue)
     }
   }
 
-  private fun putCache(pHandle: Handle<V>, pValue: V?) {
+  private fun putCache(transaction: T, pHandle: Handle<V>, pValue: V?) {
     if (pValue != null) { // never store null
       synchronized (mCacheHandles) {
+        transaction.addRollbackHandler({ invalidateCache(pHandle) })
         val pos = mCacheHead
         val handle = pHandle.handleValue
         if (mCacheHandles[pos] != handle) {
@@ -152,6 +153,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
   }
 
   @Throws(SQLException::class)
+  @Deprecated("Use the transaction version")
   fun getFromDelegate(pHandle: Handle<V>): V? {
     mPendingHandles.add(pHandle) // internal locking so no locking needed here
     try {
@@ -185,13 +187,10 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
       if (`val` != null) {
         return `val`
       }
-      try {
+      newTransaction().use { transaction ->
         val value = getFromDelegate(handle)
-        return value?.apply { storeInCache(handle, this) }
-      } catch (e: SQLException) {
-        throw RuntimeException(e)
+        return value?.apply { storeInCache(transaction, handle, this) }
       }
-
     }
   }
 
@@ -204,7 +203,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
         return value
       }
       value = delegate[transaction, handle]
-      return value?.apply { storeInCache(Handles.handle(handle), this ) }
+      return value?.apply { storeInCache(transaction, Handles.handle(handle), this) }
     }
   }
 
@@ -236,15 +235,15 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
   override fun set(transaction: T, handle: Handle<V>, value: V): V? {
     invalidateCache(handle)
     delegate.set(transaction, handle, value)
-    return storeInCache(handle, value)
+    return storeInCache(transaction, handle, value)
   }
 
-  private fun storeInCache(pHandle: Handle<V>, pV: V): V {
+  private fun storeInCache(transaction: T, pHandle: Handle<V>, pV: V): V {
     if (!isPending(pHandle)) {
       val handle = pHandle.handleValue
       synchronized (mCacheHandles) {
         removeFromCache(handle) // remove whatever old value was there
-        putCache(pHandle, pV)
+        putCache(transaction, pHandle, pV)
       }
     }
     return pV
@@ -279,10 +278,10 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
 
   @Deprecated("")
   @Throws(SQLException::class)
-  fun getUncached(pTransaction: T, pHandle: ComparableHandle<V>): V? {
-    return delegate[pTransaction, pHandle].apply {
+  fun getUncached(transaction: T, pHandle: ComparableHandle<V>): V? {
+    return delegate[transaction, pHandle].apply {
       if (this!=null)
-        storeInCache(pHandle, this)
+        storeInCache(transaction, pHandle, this)
       else {
         removeFromCache(pHandle.handleValue)
       }
@@ -302,11 +301,11 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Old
   }
 
   override fun iterator(transaction: T, readOnly: Boolean): AutoCloseableIterator<V> {
-    return WrappingIterator(delegate.iterator(transaction, readOnly))
+    return WrappingIterator(transaction, delegate.iterator(transaction, readOnly))
   }
 
   override fun iterable(transaction: T): MutableIterable<V> {
-    return WrappingIterable(delegate.iterable(transaction))
+    return WrappingIterable(transaction, delegate.iterable(transaction))
   }
 
   @Throws(IOException::class)

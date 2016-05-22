@@ -19,7 +19,7 @@ package net.devrieze.util.db
 import net.devrieze.util.Transaction
 
 import java.sql.*
-import java.util.Properties
+import java.util.*
 import java.util.concurrent.Executor
 
 import javax.sql.DataSource
@@ -32,6 +32,8 @@ class OldDBTransaction : Transaction {
   private var mSafePoint: Savepoint? = null
   private var mDataSource: DataSource? = null
   private var mCommitted = true
+
+  private val rollbackHandlers = ArrayDeque<Runnable>()
 
   @Throws(SQLException::class)
   constructor(pDataSource: DataSource) {
@@ -167,6 +169,14 @@ class OldDBTransaction : Transaction {
   fun rollback(pSavepoint: Savepoint) {
     mCommitted = false
     mConnection!!.rollback(pSavepoint)
+
+    while (rollbackHandlers.isNotEmpty()) {
+      rollbackHandlers.pop().run()
+    }
+  }
+
+  override fun addRollbackHandler(runnable: Runnable) {
+    rollbackHandlers.add(runnable)
   }
 
   @Throws(SQLException::class)
@@ -306,6 +316,10 @@ class OldDBTransaction : Transaction {
   @Throws(SQLException::class)
   override fun rollback() {
     mConnection!!.rollback(mSafePoint)
+
+    while (rollbackHandlers.isNotEmpty()) {
+      rollbackHandlers.pop().run()
+    }
   }
 
   @Throws(SQLException::class)

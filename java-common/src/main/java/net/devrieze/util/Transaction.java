@@ -34,4 +34,6 @@ public interface Transaction extends AutoCloseable, Closeable {
   void rollback() throws SQLException;
 
   <T> T commit(T pValue) throws SQLException;
+
+  void addRollbackHandler(Runnable runnable);
 }

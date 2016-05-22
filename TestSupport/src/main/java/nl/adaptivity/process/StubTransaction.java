@@ -41,4 +41,9 @@ public class StubTransaction implements Transaction {
   public <T> T commit(final T value) throws SQLException {
     return value;
   }
+
+  @Override
+  public void addRollbackHandler(final Runnable runnable) {
+    // Do nothing
+  }
 }
