@@ -747,6 +747,13 @@ public final class CollectionUtil {
 
   }
 
+  public static boolean hasNull(final Collection<?> objects) {
+    for(Object o:objects) {
+      if (o==null) return true;
+    }
+    return false;
+  }
+
   public static boolean isNullOrEmpty(final byte[] content) {
     return content==null || content.length==0;
   }
