@@ -572,15 +572,36 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
     if (Double.compare(that.mX, mX) != 0) { return false; }
     if (Double.compare(that.mY, mY) != 0) { return false; }
-    if (mPredecessors != null ? !mPredecessors.equals(that.mPredecessors) : that.mPredecessors != null) {
-      return false;
-    }
-    if (mSuccessors != null ? !mSuccessors.equals(that.mSuccessors) : that.mSuccessors != null) { return false; }
     if (mId != null ? !mId.equals(that.mId) : that.mId != null) { return false; }
     if (mLabel != null ? !mLabel.equals(that.mLabel) : that.mLabel != null) { return false; }
     if (mDefines != null ? !mDefines.equals(that.mDefines) : that.mDefines != null) { return false; }
-    return mResults != null ? mResults.equals(that.mResults) : that.mResults == null;
+    if (mResults != null ? !mResults.equals(that.mResults) : that.mResults != null) { return false; }
 
+    if (mPredecessors==null) {
+      if (that.mPredecessors!=null) { return false; }
+    } else {
+      if (that.mPredecessors==null) { return false; }
+      ArrayList<String> thisIds = new ArrayList<>();
+      for (Identifiable id : mPredecessors) thisIds.add(getId());
+
+      ArrayList<String> thatIds = new ArrayList<>();
+      for (Identifiable id : that.mPredecessors) thatIds.add(getId());
+      if (! thisIds.equals(thatIds)) { return false; }
+    }
+
+    if (mSuccessors==null) {
+      if (that.mSuccessors!=null) { return false; }
+    } else {
+      if (that.mSuccessors==null) { return false; }
+      ArrayList<String> thisIds = new ArrayList<>();
+      for (Identifiable id : mSuccessors) thisIds.add(getId());
+
+      ArrayList<String> thatIds = new ArrayList<>();
+      for (Identifiable id : that.mSuccessors) thatIds.add(getId());
+      if (! thisIds.equals(thatIds)) { return false; }
+    }
+    if (mSuccessors != null ? !mSuccessors.equals(that.mSuccessors) : that.mSuccessors != null) { return false; }
+    return true;
   }
 
   /**
