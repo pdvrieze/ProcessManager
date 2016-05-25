@@ -20,12 +20,16 @@ import android.accounts.*;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.WorkerThread;
 import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.EnsureCallbacks;
 import nl.adaptivity.android.util.AsyncCallableTask;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.ui.main.AuthenticatedActivity;
@@ -48,15 +52,15 @@ public final class ProviderHelper {
   private ProviderHelper() {
   }
 
-  public static String getSyncSource(final Context context) {
+  public static URI getSyncSource(final Context context) {
     final SharedPreferences prefs  = PreferenceManager.getDefaultSharedPreferences(context);
     final String            source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
-    return source;
+    return source == null ? null : URI.create(source);
   }
 
   public static URI getAuthBase(final Context context) {
-    final String source = getSyncSource(context);
-    return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
+    final URI source = getSyncSource(context);
+    return source == null ? null : AuthenticatedWebClientFactory.getAuthBase(source);
   }
 
   public static void requestSync(final Account account, final String authority, final boolean expedited) {
@@ -91,30 +95,26 @@ public final class ProviderHelper {
       mAuthbase = authbase;
     }
 
+    @WorkerThread
     @Override
     public Account call() throws Exception {
       final URI     source  = mAuthbase;
-      final Account account = AuthenticatedWebClient.ensureAccount(mContext, source, ENSURE_ACCOUNT_REQUEST_CODE, AuthenticatedActivity.REQUEST_DOWNLOAD_AUTHENTICATOR);
-      if (account!=null) {
-        ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
-        final AccountManager accountManager = AccountManager.get(mContext);
-        final AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+
+      final EnsureCallbacks callbacks;
+      if (mContext instanceof EnsureCallbacks) {
+        callbacks = (EnsureCallbacks) mContext;
+      } else {
+        callbacks = new EnsureCallbacks() { // These callbacks will not do anything, just stop the flow
+          @Override
+          public void showDownloadDialog() { }
 
           @Override
-          public void run(final AccountManagerFuture<Bundle> future) {
-            try {
-              future.getResult();
-            } catch (OperationCanceledException | AuthenticatorException | IOException e) {
-              Log.e(TAG, "Failure to get auth token", e);
-            }
-          }
+          public void startSelectAccountActivity(final Intent selectAccount) { }
         };
-        if (mContext instanceof Activity) {
-          accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, (Activity) mContext, callback, null);
-        } else {
-          Compat.getAuthToken(accountManager, account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, true, callback, null);
-        }
+      }
 
+      final Account account = AuthenticatedWebClientFactory.tryEnsureAccount(mContext, source, callbacks);
+      if (account!=null && AuthenticatedWebClientFactory.isAccountValid(mContext, account, source)) {
         if (mAuthority!=null) {
           ProviderHelper.requestSync(account, mAuthority, mExpedited);
         }

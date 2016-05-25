@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.ui.model;
 
+import android.accounts.Account;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -23,6 +24,7 @@ import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.process.ui.ProcessSyncManager;
@@ -30,6 +32,7 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.ui.main.OverviewActivity;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
 
 
@@ -77,6 +80,8 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
           .add(R.id.processmodel_detail_container, fragment)
           .commit();
     }
+
+    requestAccount(SettingsActivity.getAuthBase(this));
   }
 
   @Override
@@ -121,13 +126,18 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
     }
   }
 
+// Property accessors start
   @Override
   public ProcessSyncManager getSyncManager() {
-    if (mSyncManager ==null) {
-      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
+    Account account = getAccount();
+    if (account == null) {
+      mSyncManager = null;
+    } else if (mSyncManager == null) {
+      mSyncManager = new ProcessSyncManager(account);
     }
     return mSyncManager;
   }
+// Property acccessors end
 
   @Override
   public void onNameDialogCompleteNegative(final GetNameDialogFragment dialog, final int id) {

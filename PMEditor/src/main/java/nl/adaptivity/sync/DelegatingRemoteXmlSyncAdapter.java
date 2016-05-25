@@ -23,6 +23,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.darwinlib.BuildConfig;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import nl.adaptivity.xml.XmlException;
@@ -83,9 +84,9 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
       mBase = URI.create(mBase.toString() +'/');
     }
 
-    {
-      final URI authbase = AuthenticatedWebClient.getAuthBase(mBase);
-      mHttpClient = new AuthenticatedWebClient(getContext(), account, authbase);
+    if (account!=null){
+      final URI authbase = AuthenticatedWebClientFactory.getAuthBase(mBase);
+      mHttpClient = AuthenticatedWebClientFactory.newClient(getContext(), account, authbase);
     }
     for(final ISyncAdapterDelegate delegate: mDelegates) {
       for(final Phases phase:Phases.values()) {

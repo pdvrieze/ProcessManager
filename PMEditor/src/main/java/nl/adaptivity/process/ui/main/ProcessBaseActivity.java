@@ -30,6 +30,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
 import nl.adaptivity.diagram.Canvas;
@@ -347,7 +348,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
 
   public ProcessSyncManager getSyncManager() {
     if (mSyncManager==null) {
-      mSyncManager = new ProcessSyncManager(AuthenticatedWebClient.getStoredAccount(this));
+      mSyncManager = new ProcessSyncManager(AuthenticatedWebClientFactory.getStoredAccount(this));
     }
     return mSyncManager;
   }

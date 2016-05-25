@@ -30,7 +30,5 @@ public class XmlApplication extends Application {
     super.onCreate();
     // Don't use standard stax as it is not available on android.
     XmlStreaming.setFactory(new AndroidStreamingFactory());
-    // Use the default preference database to store the account name (to enable settings)
-    AuthenticatedWebClient.setSharedPreferenceName(null);
   }
 }

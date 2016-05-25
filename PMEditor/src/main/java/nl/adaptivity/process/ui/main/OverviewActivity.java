@@ -66,27 +66,10 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
                                                                      OverviewCallbacks, GetNameDialogFragmentCallbacks, ProcessModelDetailFragmentCallbacks,
                                                                      TaskDetailCallbacks, OnBackStackChangedListener {
 
-  private final class SyncTask extends AsyncCallableTask<Account, SyncCallable> {
-
-    @Override
-    protected void onPostExecute(final Future<Account> accountf) {
-      try {
-        mAccount = accountf.get();
-      } catch (InterruptedException e) {
-        // ignore
-      } catch (ExecutionException e) {
-        Log.w(TAG, "Failure to link to the account", e.getCause());
-      }
-    }
-  }
-
-
   private static final String TAG = "OverviewActivity";
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
   public static final String SERVERPATH_MODELS = "/ProcessEngine/processModels";
   public static final String SERVERPATH_TASKS = "/PEUserMessageHandler/UserMessageService/pendingTasks";
-
-  private Account mAccount;
 
   private ActivityOverviewBinding mBinding;
   private CharSequence mTitle;
@@ -128,24 +111,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
     final NavigationView navigationView = mBinding.navView;
     navigationView.setNavigationItemSelectedListener(this);
 
-    final AsyncTask<URI, Void, Account> task = new AsyncTask<URI, Void, Account> () {
-
-      @Override
-      protected Account doInBackground(final URI... params) {
-        return AuthenticatedWebClient.ensureAccount(OverviewActivity.this, params[0], ProviderHelper.ENSURE_ACCOUNT_REQUEST_CODE, REQUEST_DOWNLOAD_AUTHENTICATOR);
-      }
-
-      @Override
-      protected void onPostExecute(final Account result) {
-        mAccount = result;
-        if (mAccount!=null) {
-          ProviderHelper.requestSync(mAccount, ProcessModelProvider.AUTHORITY, true);
-          ProviderHelper.requestSync(mAccount, TaskProvider.AUTHORITY, true);
-        }
-      }
-
-    };
-    task.execute(ProviderHelper.getAuthBase(this));
+    requestAccount(ProviderHelper.getAuthBase(this));
 
     if (savedInstanceState==null) {
       final Intent intent    = getIntent();
@@ -248,22 +214,12 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   }
 
   @Override
-  protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-    super.onActivityResult(requestCode, resultCode, data);
-    switch (requestCode) {
-      case ProviderHelper.ENSURE_ACCOUNT_REQUEST_CODE: {
-        if (resultCode == RESULT_OK) {
-          final String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-          AuthenticatedWebClient.storeUsedAccount(this, accountName);
-          mAccount = new Account(accountName, AuthenticatedWebClient.ACCOUNT_TYPE);
-          ProviderHelper.requestSync(this, ProcessModelProvider.AUTHORITY, true);
-          ProviderHelper.requestSync(this, TaskProvider.AUTHORITY, true);
-        }
-        break;
-      }
+  protected void doAccountDetermined(final Account account) {
+    if (account!=null) {
+      ProviderHelper.requestSync(this, ProcessModelProvider.AUTHORITY, true);
+      ProviderHelper.requestSync(this, TaskProvider.AUTHORITY, true);
     }
   }
-
 
   @Override
   public void onBackPressed() {
@@ -386,12 +342,16 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
 
   @Override
   public void requestSyncProcessModelList(final boolean immediate) {
-    getSyncManager().requestSyncProcessModelList(immediate);
+    if (getAccount()!=null) {
+      getSyncManager().requestSyncProcessModelList(immediate);
+    }
   }
 
   @Override
   public void requestSyncTaskList(final boolean immediate) {
-    getSyncManager().requestSyncTaskList(immediate);
+    if (getAccount()!=null) {
+      getSyncManager().requestSyncTaskList(immediate);
+    }
   }
 
   @Override
