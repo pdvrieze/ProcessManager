@@ -76,7 +76,16 @@ public class Iterators {
 
     @Override
     public void remove() {
-      // TODO Auto-generated method stub
+      try {
+        mIterator.remove();
+      } catch (Exception e) {
+        try {
+          mParent.close();
+        } catch (Exception e1) {
+          e.addSuppressed(e1);
+        }
+        throw e;
+      }
       
     }
 
