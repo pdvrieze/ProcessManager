@@ -121,9 +121,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
     @Override
     public void remove() {
-      // TODO Auto-generated method stub
-      //
-      throw new UnsupportedOperationException("Not yet implemented");
+      throw new UnsupportedOperationException("Removing elements is not supported by this iterator");
 
     }
 
