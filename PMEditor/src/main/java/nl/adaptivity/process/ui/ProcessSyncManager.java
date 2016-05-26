@@ -17,10 +17,15 @@
 package nl.adaptivity.process.ui;
 
 import android.accounts.Account;
+import android.content.ContentProviderClient;
 import android.content.ContentResolver;
+import android.content.Context;
 import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.models.ProcessSyncAdapter;
 import nl.adaptivity.process.tasks.data.TaskProvider;
+import nl.adaptivity.process.tasks.data.TaskSyncAdapter;
+import nl.adaptivity.sync.DirectSyncTask;
 import nl.adaptivity.sync.SyncManager;
 
 
@@ -29,9 +34,35 @@ import nl.adaptivity.sync.SyncManager;
  */
 public class ProcessSyncManager extends SyncManager {
   private static final String[] AUTHORITIES = new String[]{ProcessModelProvider.AUTHORITY, TaskProvider.AUTHORITY};
+  public static final boolean LOCALSYNC    = false;
+  public static final long DEFAULT_MIN_AGE  = 10000; // Don't refresh if less then 10 seconds ago
+  private final Context context;
 
-  public ProcessSyncManager(final Account account) {
+  private boolean syncingProcesses = false;
+  private boolean syncingTasks     = false;
+  private long    lastProcessSync  = 0;
+  private long    lastTaskSync     = 0;
+
+  private final Runnable      ONCOMPLETEPROCESSES = new Runnable() {
+    @Override
+    public void run() {
+      synchronized (ProcessSyncManager.this) {
+        syncingProcesses = false;
+      }
+    }
+  };
+  private final Runnable      ONCOMPLETETASKS = new Runnable() {
+    @Override
+    public void run() {
+      synchronized (ProcessSyncManager.this) {
+        syncingTasks = false;
+      }
+    }
+  };
+
+  public ProcessSyncManager(final Context context, final Account account) {
     super(account, AUTHORITIES);
+    this.context = context;
   }
 
   public boolean isProcessModelSyncActive() {
@@ -51,15 +82,43 @@ public class ProcessSyncManager extends SyncManager {
     return ContentResolver.isSyncPending(getAccount(), TaskProvider.AUTHORITY);
   }
 
-  public void requestSyncProcessModelList(final boolean expedited) {
-    if (isSyncable(ProcessModelProvider.AUTHORITY)) {
-      ProviderHelper.requestSync(getAccount(), ProcessModelProvider.AUTHORITY, expedited);
+  public void requestSyncProcessModelList(final boolean expedited, final long minAge) {
+    long now = System.currentTimeMillis();
+    if (getAccount()!=null && (now-lastProcessSync)>minAge) {
+      lastProcessSync=now;
+      if (!LOCALSYNC && isSyncable(ProcessModelProvider.AUTHORITY)) {
+        ProviderHelper.requestSync(getAccount(), ProcessModelProvider.AUTHORITY, expedited);
+      } else {
+        ContentResolver       contentResolver = context.getContentResolver();
+        ContentProviderClient providerClient  = contentResolver.acquireContentProviderClient(ProcessModelProvider.AUTHORITY);
+        DirectSyncTask        syncTask        = new DirectSyncTask(new ProcessSyncAdapter(context), getAccount(), providerClient, ONCOMPLETEPROCESSES);
+        synchronized (this) {
+          if (!syncingProcesses) {
+            syncingProcesses = true;
+            syncTask.execute(ProcessModelProvider.AUTHORITY);
+          }
+        }
+      }
     }
   }
 
-  public void requestSyncTaskList(final boolean expedited) {
-    if (isSyncable(TaskProvider.AUTHORITY)) {
-      ProviderHelper.requestSync(getAccount(), TaskProvider.AUTHORITY, expedited);
+  public void requestSyncTaskList(final boolean expedited, final long minAge) {
+    long now = System.currentTimeMillis();
+    if (getAccount()!=null && (now-lastTaskSync)>minAge) {
+      lastTaskSync=now;
+      if (!LOCALSYNC && isSyncable(TaskProvider.AUTHORITY)) {
+        ProviderHelper.requestSync(getAccount(), TaskProvider.AUTHORITY, expedited);
+      } else {
+        ContentResolver       contentResolver = context.getContentResolver();
+        ContentProviderClient providerClient  = contentResolver.acquireContentProviderClient(TaskProvider.AUTHORITY);
+        DirectSyncTask        syncTask        = new DirectSyncTask(new TaskSyncAdapter(context), getAccount(), providerClient, ONCOMPLETETASKS);
+        synchronized (this) {
+          if (!syncingTasks) {
+            syncingTasks = true;
+            syncTask.execute(TaskProvider.AUTHORITY);
+          }
+        }
+      }
     }
   }
 

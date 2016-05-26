@@ -170,7 +170,7 @@ public class TaskListFragment extends MasterListFragment<ProcessSyncManager> imp
   public boolean onOptionsItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.ac_sync_tasks: {
-        doManualRefresh();
+        onRefresh();
         return true;
       }
     }
@@ -179,12 +179,8 @@ public class TaskListFragment extends MasterListFragment<ProcessSyncManager> imp
 
   @Override
   public void onRefresh() {
-    getCallbacks().getSyncManager().requestSyncTaskList(true);
+    getCallbacks().getSyncManager().requestSyncTaskList(true, ProcessSyncManager.DEFAULT_MIN_AGE);
     mManualSync=true;
-  }
-
-  private void doManualRefresh() {
-    onRefresh();
     updateSyncState();
   }
 

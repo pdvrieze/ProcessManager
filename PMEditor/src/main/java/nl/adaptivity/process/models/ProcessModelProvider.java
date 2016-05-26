@@ -32,6 +32,7 @@ import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
+import nl.adaptivity.sync.DelegatingRemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.xml.XmlException;
@@ -237,6 +238,12 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     public boolean hasServerNotifyableColumns(final ContentValues values) {
+      if (values.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
+        int syncState = values.getAsInteger(XmlBaseColumns.COLUMN_SYNCSTATE);
+        if (syncState == RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER || syncState==RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER || syncState == RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER) {
+          return true;
+        }
+      }
       switch (mTarget) {
         case PROCESSMODEL:
         case PROCESSMODELS:
@@ -401,9 +408,11 @@ public class ProcessModelProvider extends ContentProvider {
       values.put(BaseColumns._ID, Long.valueOf(helper.mId));
     }
     final SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
-    notifyPMStreamChangeIfNeeded(id, helper, values);
-    return notify(helper, id);
+    synchronized (this) {
+      final long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
+      notifyPMStreamChangeIfNeeded(id, helper, values);
+      return notify(helper, id);
+    }
   }
 
   private void addSyncstateIfNeeded(final UriHelper helper, final ContentValues values) {
@@ -457,11 +466,13 @@ public class ProcessModelProvider extends ContentProvider {
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
     final SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.delete(helper.mTable, selection, selectionArgs);
-    if (result>0) {
-      notify(helper, helper.mId);
+    synchronized (this) {
+      final int result = db.delete(helper.mTable, selection, selectionArgs);
+      if (result > 0) {
+        notify(helper, helper.mId);
+      }
+      return result;
     }
-    return result;
   }
 
   @Override
@@ -477,12 +488,14 @@ public class ProcessModelProvider extends ContentProvider {
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
     final SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.update(helper.mTable, values, selection, selectionArgs);
-    if (result>0 && helper.hasNotifyableColumns(values)) {
-      notifyPMStreamChangeIfNeeded(helper.mId, helper, values);
-      getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify && helper.hasServerNotifyableColumns(values));
+    synchronized (this) {
+      final int result = db.update(helper.mTable, values, selection, selectionArgs);
+      if (result > 0 && helper.hasNotifyableColumns(values)) {
+        notifyPMStreamChangeIfNeeded(helper.mId, helper, values);
+        getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify && helper.hasServerNotifyableColumns(values));
+      }
+      return result;
     }
-    return result;
   }
 
   /**
@@ -490,14 +503,16 @@ public class ProcessModelProvider extends ContentProvider {
    */
   @Override
   public ContentProviderResult[] applyBatch(final ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
-    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    db.beginTransaction();
-    try {
-      final ContentProviderResult[] result = super.applyBatch(operations);
-      db.setTransactionSuccessful();
-      return result;
-    } finally {
-      db.endTransaction();
+    synchronized (this) {
+      final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+      db.beginTransaction();
+      try {
+        final ContentProviderResult[] result = super.applyBatch(operations);
+        db.setTransactionSuccessful();
+        return result;
+      } finally {
+        db.endTransaction();
+      }
     }
   }
 
@@ -513,20 +528,22 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static Tupple<DrawableProcessModel, Long> getProcessModelForHandle(final Context context, final long handle) {
+  public static ProcessModelHolder getProcessModelForHandle(final Context context, final long handle) {
     try {
       final ContentResolver contentResolver = context.getContentResolver();
-      final Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID, ProcessModels.COLUMN_FAVOURITE }, ProcessModels.COLUMN_HANDLE + " = ?", new String[] { Long.toString(handle)} , null);
+      final Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] {BaseColumns._ID, ProcessModels.COLUMN_FAVOURITE, XmlBaseColumns.COLUMN_SYNCSTATE}, ProcessModels.COLUMN_HANDLE + " = ?", new String[]{
+              Long.toString(handle)} , null);
       if (idresult==null) { return null; }
       try {
         if (! idresult.moveToFirst()) { return null; }
         final long id = idresult.getLong(0); // first column
         final boolean favourite = idresult.getInt(1) != 0;
+        final int syncState = idresult.getInt(2);
         final Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
         final InputStream in = contentResolver.openInputStream(uri);
         if (in==null) { throw new NullPointerException(); }
         try{
-          return Tupple.tupple(getProcessModel(in, favourite), id);
+          return new ProcessModelHolder(getProcessModel(in, favourite), id, handle, syncState==RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER);
         } finally {
           in.close();
         }

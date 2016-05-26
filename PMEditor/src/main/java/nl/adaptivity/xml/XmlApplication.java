@@ -17,7 +17,10 @@
 package nl.adaptivity.xml;
 
 import android.app.Application;
+import android.os.StrictMode;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwinlib.*;
+import nl.adaptivity.android.darwinlib.BuildConfig;
 
 
 /**
@@ -30,5 +33,9 @@ public class XmlApplication extends Application {
     super.onCreate();
     // Don't use standard stax as it is not available on android.
     XmlStreaming.setFactory(new AndroidStreamingFactory());
+
+    if (BuildConfig.DEBUG) {
+      StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyDeath().build());
+    }
   }
 }

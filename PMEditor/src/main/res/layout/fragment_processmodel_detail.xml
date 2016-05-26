@@ -123,6 +123,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/default_margin"
+                android:enabled="@{! data.publicationPending}"
                 android:visibility="@{(data.isLoading || data.handle!=null) ? View.GONE : View.VISIBLE}"
                 android:text="@string/btn_pm_publish" />
 

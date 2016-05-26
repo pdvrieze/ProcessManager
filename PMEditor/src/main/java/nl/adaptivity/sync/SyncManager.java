@@ -21,6 +21,7 @@ import android.content.ContentResolver;
 import android.content.SyncStatusObserver;
 import android.os.Debug;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import nl.adaptivity.process.editor.android.BuildConfig;
 
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.List;
  */
 public class SyncManager {
 
+  private static final String TAG = "SyncManager";
+
   public class SyncStatusObserverData {
     final SyncStatusObserver observer;
     final String             authority;
@@ -42,7 +45,7 @@ public class SyncManager {
     }
   }
 
-  private static final boolean DISABLEONDEBUG = true;
+  private static final boolean DISABLEONDEBUG = false;
   private final Account mAccount;
   private String[]      mAuthorities;
   private final List<SyncStatusObserverData> mSyncObservers = new ArrayList<>(2);
@@ -57,11 +60,13 @@ public class SyncManager {
 
   private void onInnerSyncStatusChanged(final int which) {
     if (mAccount!=null) {
-      for (final String authority: mAuthorities) {
-        if (ContentResolver.isSyncActive(mAccount, authority) || ContentResolver.isSyncPending(mAccount, authority)) {
-          for (final SyncStatusObserverData observerData : mSyncObservers) {
-            if (authority.equals(observerData.authority)) {
-              observerData.observer.onStatusChanged(which);
+      synchronized (this) {
+        for (final String authority : mAuthorities) {
+          if (ContentResolver.isSyncActive(mAccount, authority) || ContentResolver.isSyncPending(mAccount, authority)) {
+            for (final SyncStatusObserverData observerData : mSyncObservers) {
+              if (authority.equals(observerData.authority)) {
+                observerData.observer.onStatusChanged(which);
+              }
             }
           }
         }
@@ -76,18 +81,27 @@ public class SyncManager {
 
   public SyncStatusObserverData addOnStatusChangeObserver(final String authority, @NonNull final SyncStatusObserver syncObserver) {
     final SyncStatusObserverData data;
-    if (mSyncObserverHandle ==null && isSyncable(authority)) {
-      mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
+    synchronized (this) {
+      if (mSyncObserverHandle ==null && isSyncable(authority)) {
+        Log.d(TAG, "TRACE: OverallSyncObserver");
+        mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
+      }
+      data = new SyncStatusObserverData(authority, syncObserver);
+      Log.d(TAG, "TRACE: SyncObserver_"+authority);
+
+      mSyncObservers.add(data);
     }
-    data = new SyncStatusObserverData(authority, syncObserver);
-    mSyncObservers.add(data);
     return data;
   }
 
   public void removeOnStatusChangeObserver(final SyncStatusObserverData handle) {
-    if (mSyncObserverHandle!=null && mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
-      ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
-      mSyncObserverHandle = null;
+    Log.d(TAG, "TRACE: Remove SyncObserver_"+handle.authority);
+    synchronized (this) {
+      if (mSyncObserverHandle != null && mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
+        ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
+        Log.d(TAG, "TRACE: Remove OverallSyncObserver");
+        mSyncObserverHandle = null;
+      }
     }
   }
 
@@ -98,9 +112,11 @@ public class SyncManager {
 
   public List<String> getActiveSyncTargets() {
     final List<String> result = new ArrayList<>(2);
-    for (final String authority: mAuthorities) {
-      if (isSyncable(authority)) {
-        result.add(authority);
+    synchronized (this) {
+      for (final String authority : mAuthorities) {
+        if (isSyncable(authority)) {
+          result.add(authority);
+        }
       }
     }
     return result;
@@ -108,5 +124,16 @@ public class SyncManager {
 
   public Account getAccount() {
     return mAccount;
+  }
+
+  public void verifyNoObserversActive() {
+    synchronized (this) {
+      for (SyncStatusObserverData syncStatusObserverData : mSyncObservers) {
+        Log.w(TAG, "Synchronization observer active for " + syncStatusObserverData.authority);
+      }
+    }
+    if (mSyncObserverHandle!=null) {
+      Log.w(TAG, "Overall synchronization observer still active", new IllegalStateException());
+    }
   }
 }

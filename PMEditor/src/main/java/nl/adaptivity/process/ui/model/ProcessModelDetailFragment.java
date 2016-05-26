@@ -197,7 +197,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     mBinding.processmodelDetailSpinner.setVisibility(View.GONE);
     mBinding.setData(data);
 
-    if (data.model==null) {
+    if (data==null || data.model==null) {
       mBinding.diagramView1.setAdapter(null);
       mItem = null;
       mModelHandle = null;
@@ -288,7 +288,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     final ContentResolver contentResolver = getActivity().getContentResolver();
     contentResolver.update(itemUri, cv, null, null);
     mBinding.btnPmPublish.setEnabled(false);
-    mCallbacks.getSyncManager().requestSyncProcessModelList(true);
+    // XXX verify that this is really not needed
+//    mCallbacks.getSyncManager().requestSyncProcessModelList(true, minAge);
   }
 
   @Override
@@ -315,7 +316,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       final ContentValues cv = new ContentValues(1);
       cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER));
       result = getActivity().getContentResolver().update(uri, cv , null, null)>0;
-      mCallbacks.getSyncManager().requestSyncProcessModelList(true);
+      // XXX verify that this is really not needed
+//      mCallbacks.getSyncManager().requestSyncProcessModelList(true, minAge);
     }
     if (result && mCallbacks!=null) {
       mCallbacks.onProcessModelSelected(-1);

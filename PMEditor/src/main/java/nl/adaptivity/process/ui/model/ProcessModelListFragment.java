@@ -54,6 +54,7 @@ import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
+import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 import java.io.IOException;
@@ -163,10 +164,13 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
   @Override
   public void onPause() {
     super.onPause();
+    SyncManager syncManager = getCallbacks().getSyncManager();
     if (mSyncObserverHandle!=null) {
-      getCallbacks().getSyncManager().removeOnStatusChangeObserver(mSyncObserverHandle);
+      syncManager.removeOnStatusChangeObserver(mSyncObserverHandle);
       mSyncObserverHandle=null;
     }
+    syncManager.verifyNoObserversActive();
+
   }
 
   /**
@@ -178,9 +182,10 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
   }
 
   private void doManualRefresh() {
-    getCallbacks().getSyncManager().requestSyncProcessModelList(true);
+    getCallbacks().getSyncManager().requestSyncProcessModelList(true, ProcessSyncManager.DEFAULT_MIN_AGE);
     mManualSync=true;
     updateSyncState();
+
   }
 
   private void updateSyncState() {

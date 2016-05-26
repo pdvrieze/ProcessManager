@@ -352,7 +352,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     if (account==null) {
       mSyncManager = null;
     } else if (mSyncManager==null) {
-      mSyncManager = new ProcessSyncManager(account);
+      mSyncManager = new ProcessSyncManager(this, AuthenticatedWebClient.getStoredAccount(this));
     }
     return mSyncManager;
   }

@@ -48,7 +48,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
 
   public interface TaskListCallbacks {
 
-    void requestSyncTaskList(boolean immediate);
+    void requestSyncTaskList(boolean immediate, long minAge);
 
     void onShowTask(long taskId);
 
@@ -113,7 +113,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
     super.onAttach(activity);
     if (activity instanceof TaskListCallbacks) {
       mCallbacks = (TaskListCallbacks) activity;
-      mCallbacks.requestSyncTaskList(true); // request immediate sync
+      mCallbacks.requestSyncTaskList(true, ProcessSyncManager.DEFAULT_MIN_AGE); // request immediate sync
     }
   }
 

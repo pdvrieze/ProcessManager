@@ -21,10 +21,12 @@ import android.accounts.Account;
 import android.content.*;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.os.Trace;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.darwinlib.BuildConfig;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParser;
@@ -35,7 +37,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter implements RemoteXmlSyncAdapterDelegate.DelegatingResources {
+public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter implements RemoteXmlSyncAdapterDelegate.DelegatingResources, LocalSyncAdapter {
 
   private enum Phases {
     UPDATE_LIST_FROM_SERVER {
@@ -78,33 +80,50 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
 
   @Override
   public final void onPerformSync(final Account account, final Bundle extras, final String authority, final ContentProviderClient provider, final SyncResult syncResult) {
-    URI mBase = getSyncSource();
-    if (! mBase.toString().endsWith("/")) {
-      if (BuildConfig.DEBUG) throw new AssertionError("Sync sources should be forced to end with / in all cases.");
-      mBase = URI.create(mBase.toString() +'/');
+    if (!ProcessSyncManager.LOCALSYNC) {
+      onPerformLocalSync(account, extras, authority, provider, syncResult);
     }
+  }
 
-    if (account!=null){
-      final URI authbase = AuthenticatedWebClientFactory.getAuthBase(mBase);
-      mHttpClient = AuthenticatedWebClientFactory.newClient(getContext(), account, authbase);
-    }
-    for(final ISyncAdapterDelegate delegate: mDelegates) {
-      for(final Phases phase:Phases.values()) {
-        try {
-          /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" STARTING phase "+phase); //}
-          phase.execute(this, delegate, provider, syncResult);
-          /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" FINISHED phase "+phase); //}
-        } catch (IllegalStateException|XmlException e) {
-          syncResult.stats.numParseExceptions++;
-          Log.e(TAG, "Error parsing list", e);
-        } catch (IOException e) {
-          syncResult.stats.numIoExceptions++;
-          Log.e(TAG, "Error contacting server", e);
-        } catch (RemoteException|OperationApplicationException e) {
-          syncResult.databaseError=true;
-          Log.e(TAG, "Error updating database", e);
+  @Override
+  public void onPerformLocalSync(final Account account, final Bundle bundle, final String authority, final ContentProviderClient provider, final SyncResult syncResult) {
+    Trace.beginSection("SYNC-"+authority);
+    try {
+      URI mBase = getSyncSource();
+      if (!mBase.toString().endsWith("/")) {
+        if (BuildConfig.DEBUG) throw new AssertionError("Sync sources should be forced to end with / in all cases.");
+        mBase = URI.create(mBase.toString() + '/');
+      }
+
+      if (account!=null){
+        final URI authbase = AuthenticatedWebClientFactory.getAuthBase(mBase);
+        mHttpClient = AuthenticatedWebClientFactory.newClient(getContext(), account, authbase);
+      }
+      for (final ISyncAdapterDelegate delegate : mDelegates) {
+        for (final Phases phase : Phases.values()) {
+          try {
+          /*if (BuildConfig.DEBUG) { */
+            Log.e(TAG, getClass().getSimpleName() + " STARTING phase " + phase); //}
+            phase.execute(this, delegate, provider, syncResult);
+          /*if (BuildConfig.DEBUG) { */
+            Log.e(TAG, getClass().getSimpleName() + " FINISHED phase " + phase); //}
+          } catch (IllegalStateException | XmlException e) {
+            syncResult.stats.numParseExceptions++;
+            Log.e(TAG, "Error parsing list", e);
+          } catch (IOException e) {
+            syncResult.stats.numIoExceptions++;
+            Log.e(TAG, "Error contacting server", e);
+          } catch (RemoteException | OperationApplicationException e) {
+            syncResult.databaseError = true;
+            Log.e(TAG, "Error updating database", e);
+          } catch (Exception e) {
+            syncResult.stats.numIoExceptions++; // Record as an IO exception
+            Log.e(TAG, "An unknown error occurred synchronizing", e);
+          }
         }
       }
+    }  finally {
+      Trace.endSection();
     }
   }
 

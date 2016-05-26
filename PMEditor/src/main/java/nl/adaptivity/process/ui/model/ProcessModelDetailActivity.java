@@ -126,18 +126,16 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
     }
   }
 
-// Property accessors start
   @Override
   public ProcessSyncManager getSyncManager() {
     Account account = getAccount();
     if (account == null) {
       mSyncManager = null;
     } else if (mSyncManager == null) {
-      mSyncManager = new ProcessSyncManager(account);
+      mSyncManager = new ProcessSyncManager(this, AuthenticatedWebClient.getStoredAccount(this));
     }
     return mSyncManager;
   }
-// Property acccessors end
 
   @Override
   public void onNameDialogCompleteNegative(final GetNameDialogFragment dialog, final int id) {
