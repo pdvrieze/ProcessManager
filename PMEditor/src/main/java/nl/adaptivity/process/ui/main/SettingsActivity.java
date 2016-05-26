@@ -20,6 +20,8 @@ package nl.adaptivity.process.ui.main;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,19 +33,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.*;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.app.NavUtils;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.EnsureCallbacks;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.AuthenticatedWebClientCallbacks;
 import nl.adaptivity.android.preference.AutoCompletePreference;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.tasks.data.TaskProvider;
+import nl.adaptivity.process.ui.UIConstants;
+import nl.adaptivity.sync.SyncManager;
 
 import java.net.URI;
 import java.util.List;
@@ -60,18 +63,53 @@ import java.util.List;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, EnsureCallbacks {
+public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, AuthenticatedWebClientCallbacks {
+
+  private static class VerifyUpdatedAccountTask extends AsyncTask<Object,Void, String> {
+
+    private final Account mAccount;
+
+    public VerifyUpdatedAccountTask(final Account account) {mAccount = account;}
+
+    @Override
+    protected String doInBackground(final Object... params) {
+      Activity activity = (Activity) params[0];
+      URI      authBase = (URI) params[1];
+      return AuthenticatedWebClientFactory.getAuthToken(activity, authBase, mAccount);
+    }
+
+    @Override
+    protected void onPostExecute(final String token) {
+
+      if (token!=null) {
+        ContentResolver.setSyncAutomatically(mAccount, ProcessModelProvider.AUTHORITY, true);
+        ContentResolver.setSyncAutomatically(mAccount, TaskProvider.AUTHORITY, true);
+      }
+    }
+  }
 
   private class AccountLoader extends AsyncTask<URI, Void, Account> {
 
     @Override
     protected Account doInBackground(final URI... params) {
       URI authBase = params[0];
-      return AuthenticatedWebClientFactory.tryEnsureAccount(SettingsActivity.this, authBase, SettingsActivity.this);
+      Account account = AuthenticatedWebClientFactory.getStoredAccount(SettingsActivity.this);
+      if (account!=null && AuthenticatedWebClientFactory.isAccountValid(SettingsActivity.this, account, authBase)) {
+        return account;
+      } else {
+        return null;
+      }
     }
 
     @Override
     protected void onPostExecute(final Account account) {
+      if (account==null) {
+        AuthenticatedWebClientFactory.setStoredAccount(SettingsActivity.this, null);
+        if (mNeedsVerification) {
+          new VerifyUpdatedAccountTask(account).execute(SettingsActivity.this, getAuthBase(SettingsActivity.this));
+          mNeedsVerification = false;
+        }
+      }
       if (mPrefAccount!=null) {
         mPrefAccount.setSummary(account == null ? null : account.name);
       }
@@ -84,47 +122,64 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
   public static final String PREF_KITKATFILE="pref_kitkatfile";
 
-  public static final String PREF_SYNC_SOURCE            = "sync_source";
-  private static final int CHOOSE_ACCOUNT_REQUEST_CODE   = 4;
-  private static final int INSTALL_FINISHED_REQUEST_CODE = 5;
+  public static final String PREF_SYNC_SOURCE     = "sync_source";
+  private static final java.lang.String KEY_NEEDS_VERIFICATION = "NEEDS_VERIFICATION";
   private Preference mPrefAccount;
+  private boolean mNeedsVerification = false;
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    if (savedInstanceState!=null) {
+      mNeedsVerification = savedInstanceState.getBoolean(KEY_NEEDS_VERIFICATION, false);
+    }
     setupActionBar();
     if (! onIsMultiPane()) {
       final MergedPreferenceFragment preferenceFragment;
       preferenceFragment = new MergedPreferenceFragment();
       getFragmentManager().beginTransaction().replace(android.R.id.content, preferenceFragment).commit();
     }
-    final String source = PreferenceManager.getDefaultSharedPreferences(this).getString(PREF_SYNC_SOURCE, null);
 
-    new AccountLoader().execute(source==null? null : URI.create(source));
+    new AccountLoader().execute(getAuthBase(this));
+  }
+
+  @Override
+  protected void onSaveInstanceState(final Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putBoolean(KEY_NEEDS_VERIFICATION, mNeedsVerification);
   }
 
   @Override
   public void showDownloadDialog() {
-    AuthenticatedWebClientFactory.doShowDownloadDialog(this, INSTALL_FINISHED_REQUEST_CODE);
+    AuthenticatedWebClientFactory.doShowDownloadDialog(this, UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR);
   }
 
   @Override
   public void startSelectAccountActivity(final Intent selectAccount) {
-    startActivityForResult(selectAccount, CHOOSE_ACCOUNT_REQUEST_CODE);
+    startActivityForResult(selectAccount, UIConstants.REQUEST_SELECT_ACCOUNT);
   }
 
   @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     switch (requestCode) {
-      case CHOOSE_ACCOUNT_REQUEST_CODE: {
-        Account account = AuthenticatedWebClientFactory.handleSelectAcountActivityResult(this, resultCode, data);
+      case UIConstants.REQUEST_SELECT_ACCOUNT: {
+        final Account account = AuthenticatedWebClientFactory.handleSelectAcountActivityResult(this, resultCode, data);
         if (mPrefAccount!=null) {
           mPrefAccount.setSummary(account.name);
+          if (account!=null) {
+            new VerifyUpdatedAccountTask(account).execute(this, getAuthBase(this));
+          } else {
+            mNeedsVerification = true;
+          }
         }
         break;
       }
-      case INSTALL_FINISHED_REQUEST_CODE: {
+      case UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR: {
         AuthenticatedWebClientFactory.handleInstallAuthenticatorActivityResult(this, resultCode, data);
+        if (resultCode==RESULT_OK) {
+          // Trigger an automatic new attempt to show the download dialog
+          AuthenticatedWebClientFactory.showAccountSelection(this, this, getAuthBase(this));
+        }
         break;
       }
       default:
@@ -223,29 +278,20 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   @Override
   public boolean onPreferenceClick(final Preference preference) {
     if (AuthenticatedWebClient.KEY_ACCOUNT_NAME.equals(preference.getKey())) {
-      final Account currentAccount;
-      {
-        final String accountName = preference.getSharedPreferences().getString(preference.getKey(), null);
-        if (accountName==null || accountName.isEmpty()) {
-          currentAccount = null;
-        } else {
-          currentAccount = new Account(accountName, AuthenticatedWebClient.ACCOUNT_TYPE);
+      AuthenticatedWebClientFactory.showAccountSelection(this, this, getAuthBase(this));
+      return true;
+    } else if (PREF_SYNC_FREQUENCY.equals(preference.getKey())) {
+      Account account = AuthenticatedWebClientFactory.getStoredAccount(this);
+      if (account!=null) {
+        int pollFrequency = preference.getSharedPreferences().getInt(PREF_SYNC_FREQUENCY, -1) * 60;
+        for (String authority : new String[]{ProcessModelProvider.AUTHORITY, TaskProvider.AUTHORITY}) {
+          ContentResolver.removePeriodicSync(account, authority, null);
+          if (pollFrequency > 0) {
+            ContentResolver.addPeriodicSync(account, authority, null, pollFrequency);
+          }
         }
       }
-
-      final String source = preference.getSharedPreferences().getString(PREF_SYNC_SOURCE, null);
-
-      final Bundle options;
-      if (source == null) {
-        options = null;
-      } else {
-        options = new Bundle(1);
-        final URI authbase = AuthenticatedWebClientFactory.getAuthBase(URI.create(source));
-        options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase.toString());
-      }
-
-      @SuppressWarnings("deprecation") final Intent intent = AccountManager.newChooseAccountIntent(currentAccount, null, new String[]{AuthenticatedWebClient.ACCOUNT_TYPE}, false, null, null, null, options);
-      startActivityForResult(intent, CHOOSE_ACCOUNT_REQUEST_CODE);
+      return true;
     }
     return false;
   }

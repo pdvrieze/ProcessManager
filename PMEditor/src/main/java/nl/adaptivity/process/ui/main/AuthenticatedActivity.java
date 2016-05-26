@@ -21,7 +21,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.EnsureCallbacks;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.AuthenticatedWebClientCallbacks;
+import nl.adaptivity.process.ui.UIConstants;
 
 import java.net.URI;
 
@@ -29,13 +30,19 @@ import java.net.URI;
 /**
  * Created by pdvrieze on 11/01/16.
  */
-public abstract class AuthenticatedActivity extends AppCompatActivity implements EnsureCallbacks {
+public abstract class AuthenticatedActivity extends AppCompatActivity implements AuthenticatedWebClientCallbacks {
 
   private class RequestAccountTask extends AsyncTask<URI, Void, Account> {
 
     @Override
     protected Account doInBackground(final URI... params) {
-      return AuthenticatedWebClientFactory.tryEnsureAccount(AuthenticatedActivity.this, params[0], AuthenticatedActivity.this);
+      Account account = AuthenticatedWebClientFactory.getStoredAccount(AuthenticatedActivity.this);
+      if (account!=null) {
+        if (!AuthenticatedWebClientFactory.isAccountValid(AuthenticatedActivity.this, account, params[0])) {
+          return null;
+        }
+      }
+      return account;
     }
 
     @Override
@@ -45,9 +52,6 @@ public abstract class AuthenticatedActivity extends AppCompatActivity implements
     }
   }
 
-  public static final int REQUEST_DOWNLOAD_AUTHENTICATOR = 41;
-  private static final int REQUEST_SELECT_ACCOUNT        = 42;
-
   private Account mAccount;
 
   public Account getAccount() {
@@ -56,19 +60,19 @@ public abstract class AuthenticatedActivity extends AppCompatActivity implements
 
   @Override
   public void showDownloadDialog() {
-    AuthenticatedWebClientFactory.doShowDownloadDialog(this, REQUEST_DOWNLOAD_AUTHENTICATOR);
+    AuthenticatedWebClientFactory.doShowDownloadDialog(this, UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR);
   }
 
   @Override
   public void startSelectAccountActivity(final Intent selectAccount) {
-    startActivityForResult(selectAccount, REQUEST_SELECT_ACCOUNT);
+    startActivityForResult(selectAccount, UIConstants.REQUEST_SELECT_ACCOUNT);
   }
 
   @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     switch (requestCode) {
-      case REQUEST_DOWNLOAD_AUTHENTICATOR: AuthenticatedWebClientFactory.handleInstallAuthenticatorActivityResult(this, resultCode, data); break;
-      case REQUEST_SELECT_ACCOUNT: mAccount = AuthenticatedWebClientFactory.handleSelectAcountActivityResult(this, resultCode, data);
+      case UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR: AuthenticatedWebClientFactory.handleInstallAuthenticatorActivityResult(this, resultCode, data); break;
+      case UIConstants.REQUEST_SELECT_ACCOUNT:mAccount = AuthenticatedWebClientFactory.handleSelectAcountActivityResult(this, resultCode, data);
     }
     super.onActivityResult(requestCode, resultCode, data);
   }

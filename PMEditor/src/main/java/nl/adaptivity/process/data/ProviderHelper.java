@@ -25,17 +25,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.WorkerThread;
-import android.util.Log;
-import nl.adaptivity.android.compat.Compat;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.EnsureCallbacks;
+import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.AuthenticatedWebClientCallbacks;
 import nl.adaptivity.android.util.AsyncCallableTask;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.ui.main.AuthenticatedActivity;
 import nl.adaptivity.process.ui.main.SettingsActivity;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Callable;
 
@@ -100,11 +94,11 @@ public final class ProviderHelper {
     public Account call() throws Exception {
       final URI     source  = mAuthbase;
 
-      final EnsureCallbacks callbacks;
-      if (mContext instanceof EnsureCallbacks) {
-        callbacks = (EnsureCallbacks) mContext;
+      final AuthenticatedWebClientCallbacks callbacks;
+      if (mContext instanceof AuthenticatedWebClientCallbacks) {
+        callbacks = (AuthenticatedWebClientCallbacks) mContext;
       } else {
-        callbacks = new EnsureCallbacks() { // These callbacks will not do anything, just stop the flow
+        callbacks = new AuthenticatedWebClientCallbacks() { // These callbacks will not do anything, just stop the flow
           @Override
           public void showDownloadDialog() { }
 

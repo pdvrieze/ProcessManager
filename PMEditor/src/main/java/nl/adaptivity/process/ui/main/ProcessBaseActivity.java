@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.ui.main;
 
+import android.accounts.Account;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
@@ -347,8 +348,11 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   }
 
   public ProcessSyncManager getSyncManager() {
-    if (mSyncManager==null) {
-      mSyncManager = new ProcessSyncManager(AuthenticatedWebClientFactory.getStoredAccount(this));
+    final Account account = getAccount();
+    if (account==null) {
+      mSyncManager = null;
+    } else if (mSyncManager==null) {
+      mSyncManager = new ProcessSyncManager(account);
     }
     return mSyncManager;
   }
