@@ -21,10 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 
 import java.net.URI;
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
@@ -47,7 +44,6 @@ import java.util.logging.Logger;
  * @author Paul de Vrieze
  */
 public final class MessagingRegistry {
-
 
   private static class SimpleEndpointDescriptor implements EndpointDescriptor {
 
@@ -157,7 +153,7 @@ public final class MessagingRegistry {
         final long startTime = System.currentTimeMillis();
         try {
           if (unit == TimeUnit.NANOSECONDS) {
-            wait(unit.toMillis(timeout), (int) (unit.toNanos(timeout) % 1000000));
+            wait(TimeUnit.NANOSECONDS.toMillis(timeout), (int) (timeout % 1000000));
           } else {
             wait(unit.toMillis(timeout));
           }
@@ -250,9 +246,31 @@ public final class MessagingRegistry {
       public void execute(final IMessenger messenger) {
         messenger.registerEndpoint(mService, mEndPoint, mTarget);
       }
-    }
 
-    IMessenger mRealMessenger = null;
+      public EndpointDescriptor getDescriptor() {
+        return new SimpleEndpointDescriptor(mService, mEndPoint, mTarget);
+      }
+      
+      public boolean isEndpoint(EndpointDescriptor other) {
+        if (mService==null) {
+          if (other.getServiceName()!=null) { return false; }
+        } else {
+          if (! mService.equals(other.getServiceName())) return false;
+        }
+        
+        if (mEndPoint==null) {
+          if (other.getEndpointName()!=null) { return false; }
+        } else {
+          if (! mEndPoint.equals(other.getEndpointName())) return false;
+        }
+        
+        if (mTarget==null) {
+          return other.getServiceName()==null;
+        } else {
+          return mService.equals(other.getServiceName());
+        }
+      }
+    }
 
     Queue<MessengerCommand> mCommandQueue;
 
@@ -266,9 +284,8 @@ public final class MessagingRegistry {
     }
 
     public synchronized void flushTo(final IMessenger messenger) {
-      mRealMessenger = messenger;
       for (final MessengerCommand command : mCommandQueue) {
-        command.execute(mRealMessenger);
+        command.execute(messenger);
       }
       mCommandQueue = null; // We don't need it anymore, we'll just forward.
     }
@@ -276,41 +293,31 @@ public final class MessagingRegistry {
     @Override
     public EndpointDescriptor registerEndpoint(final QName service, final String endPoint, final URI target) {
       synchronized (this) {
-        if (mRealMessenger == null) {
-          mCommandQueue.add(new RegisterEndpointCommand(endPoint, service, target));
-          return new SimpleEndpointDescriptor(service, endPoint, target);
-        }
-        return mRealMessenger.registerEndpoint(service, endPoint, target);
+        mCommandQueue.add(new RegisterEndpointCommand(endPoint, service, target));
+        return new SimpleEndpointDescriptor(service, endPoint, target);
       }
     }
 
     @Override
     public void registerEndpoint(final EndpointDescriptor endpoint) {
       synchronized (this) {
-        if (mRealMessenger == null) {
-          mCommandQueue.add(new MessengerCommand() {
+        mCommandQueue.add(new MessengerCommand() {
 
-            @Override
-            public void execute(final IMessenger messenger) {
-              messenger.registerEndpoint(endpoint);
-            }
+          @Override
+          public void execute(final IMessenger messenger) {
+            messenger.registerEndpoint(endpoint);
+          }
 
-          });
-          return;
-        }
-        mRealMessenger.registerEndpoint(endpoint);
+        });
       }
     }
 
     @Override
     public <T> Future<T> sendMessage(final ISendableMessage message, final CompletionListener<T> completionListener, final Class<T> returnType, final Class<?>[] returnTypeContext) {
       synchronized (this) {
-        if (mRealMessenger == null) {
-          final WrappingFuture<T> future = new WrappingFuture<>(message, completionListener, returnType, returnTypeContext);
-          mCommandQueue.add(future);
-          return future;
-        }
-        return mRealMessenger.sendMessage(message, completionListener, returnType, returnTypeContext);
+        final WrappingFuture<T> future = new WrappingFuture<>(message, completionListener, returnType, returnTypeContext);
+        mCommandQueue.add(future);
+        return future;
       }
     }
 
@@ -322,29 +329,29 @@ public final class MessagingRegistry {
     @Override
     public List<EndpointDescriptor> getRegisteredEndpoints() {
       synchronized (this) {
-        if (mRealMessenger == null) {
-          return Collections.emptyList();
+        List<EndpointDescriptor> result = new ArrayList<>();
+        for(MessengerCommand command:mCommandQueue) {
+          if (command instanceof RegisterEndpointCommand) {
+            RegisterEndpointCommand register = (RegisterEndpointCommand) command;
+            result.add(register.getDescriptor());
+          }
         }
+        return result;
       }
-      return mRealMessenger.getRegisteredEndpoints();
     }
 
     @Override
     public boolean unregisterEndpoint(final EndpointDescriptor endpoint) {
       synchronized (this) {
-        if (mRealMessenger == null) {
-          mCommandQueue.add(new MessengerCommand() {
-
-            @Override
-            public void execute(final IMessenger messenger) {
-              messenger.unregisterEndpoint(endpoint);
-            }
-
-          });
-          return true;
+        for(Iterator<MessengerCommand> queue= mCommandQueue.iterator(); queue.hasNext();) {
+          MessengerCommand command = queue.next();
+          if (command instanceof RegisterEndpointCommand && ((RegisterEndpointCommand) command).isEndpoint(endpoint)) {
+            queue.remove();
+            return true;
+          }
         }
       }
-      return mRealMessenger.unregisterEndpoint(endpoint);
+      return false;
     }
 
   }
