@@ -167,7 +167,8 @@ public class XmlProcessModel {
   }
 
   /**
-   * @todo Optimize this to use a cache of role names.
+   * Read the roles from a string.
+   * @param rolesString A comma separated list of roles.
    */
   public void setRolesString(@Nullable final String rolesString) {
     this.roles = new HashSet<>();

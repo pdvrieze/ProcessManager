@@ -132,6 +132,7 @@ public class EndpointServlet extends HttpServlet {
     try {
       request.authenticate(response); // Try to authenticate
       final HttpMessage message = new HttpMessage(request);
+      boolean soap=false;
       try {
         try {
           if (!SoapMessageHandler.isSoapMessage(request)) {
@@ -140,6 +141,7 @@ public class EndpointServlet extends HttpServlet {
               getLogger().warning("Error processing rest request "+request.getRequestURI());
             }
           } else {
+            soap=true;
             final SoapMessageHandler soapHandler = getSoapMessageHandler();
             if (!soapHandler.processRequest(message, response)) {
               getLogger().warning("Error processing soap request "+request.getRequestURI());
