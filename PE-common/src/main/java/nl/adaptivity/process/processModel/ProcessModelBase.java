@@ -299,9 +299,8 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   }
 
   /**
+   * Set the owner of a model
    * @param owner
-   * @return
-   * @todo add security checks.
    */
   public void setOwner(final Principal owner) {
     mOwner = owner;
