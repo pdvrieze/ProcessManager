@@ -69,10 +69,6 @@ class DarwinRealm : RealmBase(), Lifecycle {
         throw UnsupportedOperationException("This implementation does not allow retrieving passwords.")
     }
 
-    override fun backgroundProcess() {
-        // TODO Auto-generated method stub
-    }
-
     override fun getName(): String {
         return NAME
     }
