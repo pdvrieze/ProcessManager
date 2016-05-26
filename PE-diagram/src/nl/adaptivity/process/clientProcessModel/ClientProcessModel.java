@@ -23,7 +23,7 @@ import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.ProcessModelBase;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
 
@@ -68,7 +68,7 @@ public abstract class ClientProcessModel<T extends ClientProcessNode<T, M>, M ex
   public abstract T asNode(final Identifiable id);
 
   public void setNodes(final Collection<? extends T> nodes) {
-    super.setModelNodes(ProcessNodeSet.processNodeSet(nodes));
+    super.setModelNodes(IdentifyableSet.processNodeSet(nodes));
     invalidate();
   }
 

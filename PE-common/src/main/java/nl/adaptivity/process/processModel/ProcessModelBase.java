@@ -27,6 +27,7 @@ import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
@@ -74,17 +75,17 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   public static final String ATTR_ROLES = "roles";
   public static final String ATTR_NAME = "name";
 
-  private ProcessNodeSet<T> mProcessNodes;
-  private String mName;
-  private long mHandle;
-  @Nullable private Principal mOwner;
-  private Set<String> mRoles;
-  @Nullable private UUID mUuid;
+  private           IdentifyableSet<T> mProcessNodes;
+  private           String             mName;
+  private           long               mHandle;
+  @Nullable private Principal          mOwner;
+  private           Set<String>        mRoles;
+  @Nullable private UUID               mUuid;
   @NotNull private List<XmlResultType> mImports = new ArrayList<>();
   @NotNull private List<XmlDefineType> mExports = new ArrayList<>();
 
   public ProcessModelBase(final Collection<? extends T> processNodes) {
-    mProcessNodes=ProcessNodeSet.processNodeSet(processNodes);
+    mProcessNodes= IdentifyableSet.processNodeSet(processNodes);
   }
 
   /**
@@ -358,7 +359,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
    * @param processNodes The process nodes to base the model on.
    */
   public void setModelNodes(@NotNull final Collection<? extends T> processNodes) {
-    mProcessNodes = ProcessNodeSet.processNodeSet(processNodes);
+    mProcessNodes = IdentifyableSet.processNodeSet(processNodes);
   }
 
   public boolean addNode(T node) {

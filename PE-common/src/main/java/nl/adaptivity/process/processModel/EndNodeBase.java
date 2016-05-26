@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
@@ -112,8 +113,8 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
 
   @NotNull
   @Override
-  public final ProcessNodeSet<? extends Identifiable> getSuccessors() {
-    return ProcessNodeSet.empty();
+  public final IdentifyableSet<? extends Identifiable> getSuccessors() {
+    return IdentifyableSet.empty();
   }
 
   @Override

@@ -28,6 +28,7 @@ import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
 import org.w3.soapEnvelope.Envelope;
@@ -178,7 +179,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
 
-  private static String[] toIdStrings(final ProcessNodeSet<? extends Identifiable> set) {
+  private static String[] toIdStrings(final IdentifyableSet<? extends Identifiable> set) {
     final String[] result = new String[set.size()];
     int i=0;
     for(final Identifiable elem:set) {

@@ -20,6 +20,7 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +37,9 @@ import java.util.*;
 public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessNode<T, M>, XmlDeserializable {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
-  @Nullable private M mOwnerModel;
-  @Nullable private ProcessNodeSet<Identifiable> mPredecessors;
-  @Nullable private ProcessNodeSet<Identifiable> mSuccessors = null;
+  @Nullable private M                             mOwnerModel;
+  @Nullable private IdentifyableSet<Identifiable> mPredecessors;
+  @Nullable private IdentifyableSet<Identifiable> mSuccessors = null;
   private String mId;
   private String mLabel;
   private double mX=Double.NaN;
@@ -69,13 +70,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     setResults(orig.getResults());
   }
 
-  private ProcessNodeSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> identifiables, int maxSize) {
+  private IdentifyableSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> identifiables, int maxSize) {
     if (identifiables==null) { return null; }
-    final ProcessNodeSet<Identifiable> result;
+    final IdentifyableSet<Identifiable> result;
     switch (maxSize) {
-      case 0: result = ProcessNodeSet.empty(); break;
-      case 1: if (identifiables.size() <= 1) { result = ProcessNodeSet.singleton(); break; }
-      default: result = ProcessNodeSet.processNodeSet(identifiables.size());
+      case 0: result = IdentifyableSet.empty(); break;
+      case 1: if (identifiables.size() <= 1) { result = IdentifyableSet.singleton(); break; }
+      default: result = IdentifyableSet.processNodeSet(identifiables.size());
     }
     for(Identifiable pred: identifiables) {
       if (pred instanceof Identifier) {
@@ -147,9 +148,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
         throw new IllegalProcessModelException("Can not add more predecessors");
       }
     } else if (getMaxPredecessorCount()==1) {
-      mPredecessors = ProcessNodeSet.singleton();
+      mPredecessors = IdentifyableSet.singleton();
     } else {
-      mPredecessors = ProcessNodeSet.processNodeSet(1);
+      mPredecessors = IdentifyableSet.processNodeSet(1);
     }
     if (mPredecessors.add(predId)) {
       M ownerModel = getOwnerModel();
@@ -187,7 +188,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     }
     mHashCode = 0;
     if (mSuccessors == null) {
-      mSuccessors = getMaxSuccessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet(1);
+      mSuccessors = getMaxSuccessorCount()==1 ? IdentifyableSet.singleton() : IdentifyableSet.processNodeSet(1);
     } else {
       if (mSuccessors.contains(nodeId)) { return; }
       if (mSuccessors.size()+1>getMaxSuccessorCount()) {
@@ -225,13 +226,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
        */
   @Nullable
   @Override
-  public final ProcessNodeSet<? extends Identifiable> getPredecessors() {
+  public final IdentifyableSet<? extends Identifiable> getPredecessors() {
     if (mPredecessors == null) {
       mHashCode = 0;
       switch (getMaxPredecessorCount()) {
-        case 0: mPredecessors = ProcessNodeSet.empty(); break;
-        case 1: mPredecessors = ProcessNodeSet.singleton(); break;
-        default: mPredecessors = ProcessNodeSet.processNodeSet(); break;
+        case 0: mPredecessors = IdentifyableSet.empty(); break;
+        case 1: mPredecessors = IdentifyableSet.singleton(); break;
+        default: mPredecessors = IdentifyableSet.processNodeSet(); break;
       }
     }
     return mPredecessors;
@@ -248,7 +249,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     mHashCode = 0;
 
     if (mPredecessors == null) {
-      mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
+      mPredecessors = getMaxPredecessorCount()==1 ? IdentifyableSet.singleton() : IdentifyableSet.processNodeSet();
     }
 
     if (mPredecessors.size()>0) {
@@ -293,7 +294,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     }
     mHashCode = 0;
     if (mSuccessors == null) {
-      mSuccessors = getMaxSuccessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
+      mSuccessors = getMaxSuccessorCount()==1 ? IdentifyableSet.singleton() : IdentifyableSet.processNodeSet();
     }
 
     if (mSuccessors.size()>0) {
@@ -314,18 +315,18 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
      */
   @Nullable
   @Override
-  public ProcessNodeSet<? extends Identifiable> getSuccessors() {
+  public IdentifyableSet<? extends Identifiable> getSuccessors() {
     if (mSuccessors==null) {
       mHashCode = 0;
       switch (getMaxSuccessorCount()) {
         case 0:
-          mSuccessors = ProcessNodeSet.empty();
+          mSuccessors = IdentifyableSet.empty();
           break;
         case 1:
-          mSuccessors = ProcessNodeSet.singleton();
+          mSuccessors = IdentifyableSet.singleton();
           break;
         default:
-          mSuccessors = ProcessNodeSet.processNodeSet(2);
+          mSuccessors = IdentifyableSet.processNodeSet(2);
       }
     }
     return mSuccessors;
