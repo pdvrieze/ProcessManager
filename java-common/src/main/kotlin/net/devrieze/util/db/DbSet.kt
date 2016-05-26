@@ -101,7 +101,6 @@ open class OldDbSet<T:Any>(pTransactionFactory: TransactionFactory<OldDBTransact
           }
           return false
         }
-        // TODO hope that this works
         elementFactory.postCreate(mTransaction, mNextElem)
         return true
       } catch (ex: SQLException) {
@@ -519,7 +518,6 @@ open class OldDbSet<T:Any>(pTransactionFactory: TransactionFactory<OldDBTransact
 
   }
 
-  // TODO do this smarter
   fun containsAll(elements: Collection<Any>): Boolean {
     val cpy = HashSet<Any>(elements)
     closingIterable().use { iterable: Iterable<T> ->
@@ -528,7 +526,6 @@ open class OldDbSet<T:Any>(pTransactionFactory: TransactionFactory<OldDBTransact
     return cpy.isEmpty()
   }
 
-  // TODO do this smarter
   fun retainAll(elements: Collection<Any>): Boolean {
     var changed = false
     closingIterable().use { col ->
@@ -543,7 +540,6 @@ open class OldDbSet<T:Any>(pTransactionFactory: TransactionFactory<OldDBTransact
     return changed
   }
 
-  // TODO do this smarter
   fun removeAll(elements: Collection<Any>): Boolean {
     var changed = false
     closingIterable().use { col ->
@@ -562,7 +558,6 @@ open class OldDbSet<T:Any>(pTransactionFactory: TransactionFactory<OldDBTransact
   fun removeAll(pTransaction: OldDBTransaction, pSelection: String, vararg pSelectionArgs: Any): Boolean {
     run {
       // First call pre-remove for all elements
-      // TODO can this hook into a cache/not require creation
       val sql = addFilter("SELECT " + elementFactory.createColumns + " FROM " + elementFactory.tableName + " WHERE (" + pSelection + ")",
                           " AND ")
       pTransaction.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).use { statement ->
@@ -836,7 +831,6 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
           }
           return false
         }
-        // TODO hope that this works
         elementFactory.postCreate(mTransaction, mNextElem)
         return true
       } catch (ex: SQLException) {
@@ -1148,7 +1142,6 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
   fun removeAll(pTransaction: DBTransaction, pSelection: String, vararg pSelectionArgs: Any): Boolean {
     run {
       // First call pre-remove for all elements
-      // TODO can this hook into a cache/not require creation
       val sql = addFilter("SELECT " + elementFactory.createColumns + " FROM " + elementFactory.tableName + " WHERE (" + pSelection + ")",
                           " AND ")
       pTransaction.connection.rawConnection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).use { statement ->
