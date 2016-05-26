@@ -122,6 +122,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
   public static final String PREF_KITKATFILE="pref_kitkatfile";
 
+  public static final String PREF_SYNC_LOCAL="sync_local";
+
   public static final String PREF_SYNC_SOURCE     = "sync_source";
   private static final java.lang.String KEY_NEEDS_VERIFICATION = "NEEDS_VERIFICATION";
   private Preference mPrefAccount;

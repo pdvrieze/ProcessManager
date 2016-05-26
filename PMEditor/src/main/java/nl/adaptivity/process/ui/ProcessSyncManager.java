@@ -20,11 +20,13 @@ import android.accounts.Account;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.preference.PreferenceManager;
 import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessSyncAdapter;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.tasks.data.TaskSyncAdapter;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.sync.DirectSyncTask;
 import nl.adaptivity.sync.SyncManager;
 
@@ -33,9 +35,8 @@ import nl.adaptivity.sync.SyncManager;
  * Created by pdvrieze on 24/04/16.
  */
 public class ProcessSyncManager extends SyncManager {
-  private static final String[] AUTHORITIES = new String[]{ProcessModelProvider.AUTHORITY, TaskProvider.AUTHORITY};
-  public static final boolean LOCALSYNC    = false;
-  public static final long DEFAULT_MIN_AGE  = 10000; // Don't refresh if less then 10 seconds ago
+  private static final String[] AUTHORITIES     = new String[]{ProcessModelProvider.AUTHORITY, TaskProvider.AUTHORITY};
+  public static final long      DEFAULT_MIN_AGE = 10000; // Don't refresh if less then 10 seconds ago
   private final Context context;
 
   private boolean syncingProcesses = false;
@@ -65,6 +66,14 @@ public class ProcessSyncManager extends SyncManager {
     this.context = context;
   }
 
+  public static boolean isLocalsync(final Context context) {
+    return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(SettingsActivity.PREF_SYNC_LOCAL, false);
+  }
+
+  public boolean isLocalsync() {
+    return isLocalsync(context);
+  }
+
   public boolean isProcessModelSyncActive() {
     return ContentResolver.isSyncActive(getAccount(), ProcessModelProvider.AUTHORITY);
   }
@@ -86,7 +95,7 @@ public class ProcessSyncManager extends SyncManager {
     long now = System.currentTimeMillis();
     if (getAccount()!=null && (now-lastProcessSync)>minAge) {
       lastProcessSync=now;
-      if (!LOCALSYNC && isSyncable(ProcessModelProvider.AUTHORITY)) {
+      if (!isLocalsync() && isSyncable(ProcessModelProvider.AUTHORITY)) {
         ProviderHelper.requestSync(getAccount(), ProcessModelProvider.AUTHORITY, expedited);
       } else {
         ContentResolver       contentResolver = context.getContentResolver();
@@ -106,7 +115,7 @@ public class ProcessSyncManager extends SyncManager {
     long now = System.currentTimeMillis();
     if (getAccount()!=null && (now-lastTaskSync)>minAge) {
       lastTaskSync=now;
-      if (!LOCALSYNC && isSyncable(TaskProvider.AUTHORITY)) {
+      if (!isLocalsync() && isSyncable(TaskProvider.AUTHORITY)) {
         ProviderHelper.requestSync(getAccount(), TaskProvider.AUTHORITY, expedited);
       } else {
         ContentResolver       contentResolver = context.getContentResolver();

@@ -80,7 +80,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
 
   @Override
   public final void onPerformSync(final Account account, final Bundle extras, final String authority, final ContentProviderClient provider, final SyncResult syncResult) {
-    if (!ProcessSyncManager.LOCALSYNC) {
+    if (!ProcessSyncManager.isLocalsync(getContext())) {
       onPerformLocalSync(account, extras, authority, provider, syncResult);
     }
   }
