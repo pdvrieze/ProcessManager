@@ -343,9 +343,9 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   }
 
   @Override
-  public void requestSyncProcessModelList(final boolean immediate) {
+  public void requestSyncProcessModelList(final boolean immediate, final long minAge) {
     if (getAccount()!=null) {
-      getSyncManager().requestSyncProcessModelList(immediate, minAge, final long minAge);
+      getSyncManager().requestSyncProcessModelList(immediate, minAge);
     }
   }
 

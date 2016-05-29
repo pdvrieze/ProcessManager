@@ -50,8 +50,8 @@ public class EditableUserTask extends UserTaskBase {
   public static class Factory implements XmlDeserializerFactory<EditableUserTask> {
 
     @Override
-    public EditableUserTask deserialize(final XmlReader in) throws XmlException {
-      return EditableUserTask.deserialize(in);
+    public EditableUserTask deserialize(final XmlReader reader) throws XmlException {
+      return EditableUserTask.deserialize(reader);
     }
   }
 

@@ -132,7 +132,7 @@ public class ProcessModelDetailActivity extends ProcessBaseActivity implements P
     if (account == null) {
       mSyncManager = null;
     } else if (mSyncManager == null) {
-      mSyncManager = new ProcessSyncManager(this, AuthenticatedWebClient.getStoredAccount(this));
+      mSyncManager = new ProcessSyncManager(this, AuthenticatedWebClientFactory.getStoredAccount(this));
     }
     return mSyncManager;
   }

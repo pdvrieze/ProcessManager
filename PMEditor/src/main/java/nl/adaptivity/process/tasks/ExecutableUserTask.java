@@ -46,8 +46,8 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   public static class Factory implements XmlDeserializerFactory<ExecutableUserTask> {
 
     @Override
-    public ExecutableUserTask deserialize(final XmlReader in) throws XmlException {
-      return ExecutableUserTask.deserialize(in);
+    public ExecutableUserTask deserialize(final XmlReader reader) throws XmlException {
+      return ExecutableUserTask.deserialize(reader);
     }
   }
 

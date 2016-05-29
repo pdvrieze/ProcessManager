@@ -132,8 +132,8 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   public static class DeserializerFactory implements XmlDeserializerFactory<TaskItem> {
 
     @Override
-    public TaskItem deserialize(final XmlReader in) throws XmlException {
-      return TaskItem.deserialize(in);
+    public TaskItem deserialize(final XmlReader reader) throws XmlException {
+      return TaskItem.deserialize(reader);
     }
   }
 

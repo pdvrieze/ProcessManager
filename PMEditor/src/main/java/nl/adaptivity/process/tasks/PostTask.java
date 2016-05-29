@@ -40,8 +40,8 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   public static class Factory implements XmlDeserializerFactory<PostTask> {
 
     @Override
-    public PostTask deserialize(final XmlReader in) throws XmlException {
-      return PostTask.deserialize(in);
+    public PostTask deserialize(final XmlReader reader) throws XmlException {
+      return PostTask.deserialize(reader);
     }
   }
 
