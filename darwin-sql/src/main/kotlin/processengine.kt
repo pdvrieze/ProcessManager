@@ -81,7 +81,7 @@ object ProcessEngineDB : Database(1) {
   }
 
 
-  object processNodeInstances : MutableTable("processinstances", EXTRACONF) {
+  object processNodeInstances : MutableTable("processnodeinstances", EXTRACONF) {
     val pnihandle by BIGINT("pnihandle") { NOT_NULL; AUTO_INCREMENT }
     val pihandle by reference(processInstances.pihandle) { NOT_NULL }
     val nodeid by VARCHAR("nodeid", 30) { NOT_NULL }
