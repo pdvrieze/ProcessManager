@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.CachingHandleMap;
+import net.devrieze.util.OldCachingHandleMap;
 import net.devrieze.util.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Transaction;
@@ -160,7 +160,7 @@ public class TestProcessEngine {
   }
 
   private static <V> OldTransactionedHandleMap<V,Transaction> cache(OldTransactionedHandleMap<V,Transaction> base, int count) {
-    return new CachingHandleMap<>(base, count);
+    return new OldCachingHandleMap<>(base, count);
   }
 
   private static <V> IProcessModelMap<Transaction> cache(IProcessModelMap<Transaction> base, int count) {

@@ -17,6 +17,8 @@
 package net.devrieze.util.db
 
 import net.devrieze.util.Transaction
+import uk.ac.bournemouth.kotlinsql.Database
+import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 
 import java.sql.*
 import java.util.*
@@ -26,9 +28,9 @@ import javax.sql.DataSource
 
 
 @Deprecated("")
-class OldDBTransaction : Transaction {
+class OldDBTransaction private constructor(connection: DBConnection) : DBTransaction(connection) {
 
-  private var mConnection: Connection? = null
+  private val mConnection: Connection? get() = connection.rawConnection
   private var mSafePoint: Savepoint? = null
   private var mDataSource: DataSource? = null
   private var mCommitted = true
@@ -36,18 +38,16 @@ class OldDBTransaction : Transaction {
   private val rollbackHandlers = ArrayDeque<Runnable>()
 
   @Throws(SQLException::class)
-  constructor(pDataSource: DataSource) {
+  constructor(pDataSource: DataSource, database: Database): this(DBConnection(pDataSource!!.connection, database)) {
     mDataSource = pDataSource
-    mConnection = mDataSource!!.connection
     mConnection!!.autoCommit = false
     mSafePoint = mConnection!!.setSavepoint()
   }
 
 
   @Throws(SQLException::class)
-  private constructor(pDataSource: DataSource, pConnection: Connection) {
+  private constructor(pDataSource: DataSource, pConnection: Connection, database: Database):this(DBConnection(pConnection, database)) {
     mDataSource = pDataSource
-    mConnection = pConnection
     mConnection!!.autoCommit = false
     mSafePoint = mConnection!!.setSavepoint()
   }
@@ -87,10 +87,6 @@ class OldDBTransaction : Transaction {
   fun nativeSQL(pSql: String): String {
     return mConnection!!.nativeSQL(pSql)
   }
-
-  val isClosed: Boolean
-    @Throws(SQLException::class)
-    get() = mConnection == null || mConnection!!.isClosed
 
   val metaData: DatabaseMetaData
     @Throws(SQLException::class)
@@ -166,13 +162,9 @@ class OldDBTransaction : Transaction {
   }
 
   @Throws(SQLException::class)
-  fun rollback(pSavepoint: Savepoint) {
+  override fun rollback(pSavepoint: Savepoint) {
+    super.rollback(pSavepoint)
     mCommitted = false
-    mConnection!!.rollback(pSavepoint)
-
-    while (rollbackHandlers.isNotEmpty()) {
-      rollbackHandlers.pop().run()
-    }
   }
 
   override fun addRollbackHandler(runnable: Runnable) {
@@ -330,55 +322,18 @@ class OldDBTransaction : Transaction {
     mCommitted = true
   }
 
-  override fun close() {
-    if (mConnection != null) {
-      // If commit has been called just before, this should not loose data.
-      try {
-        if (!mCommitted) {
-          // In the case of mCommitted we know rollback is not needed.
-          mConnection!!.rollback(mSafePoint)
-        }
-      } catch (ex: SQLException) {
-        throw RuntimeException(ex)
-      } finally {
-        try {
-          mConnection!!.close()
-        } catch (ex: SQLException) {
-          throw RuntimeException(ex)
-        } finally {
-          mConnection = null
-        }
-      }
-    }
-  }
-
-
   fun providerEquals(pDataSource: DataSource): Boolean {
     return mDataSource == pDataSource
-  }
-
-
-  /**
-   * Helper method that will invoke commit and return the passed variable. This is just to
-   * allow for prettier code.
-   * @param pValue The value to return.
-   * *
-   * @return The passed in value.
-   * *
-   * @throws SQLException When commit fails.
-   */
-  @Throws(SQLException::class)
-  override fun <T> commit(pValue: T): T {
-    commit()
-    return pValue
   }
 
   companion object {
 
 
     @Throws(SQLException::class)
-    fun take(pDataSource: DataSource, pConnection: Connection): OldDBTransaction {
-      return OldDBTransaction(pDataSource, pConnection)
+    fun take(pDataSource: DataSource,
+             pConnection: Connection,
+             database: Database): OldDBTransaction {
+      return OldDBTransaction(pDataSource, pConnection, database)
     }
   }
 

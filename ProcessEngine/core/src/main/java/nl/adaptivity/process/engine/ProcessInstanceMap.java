@@ -26,9 +26,11 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.util.xml.CompactFragment;
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.nodedata;
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.pnipredecessors;
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processNodeInstances;
 
 import java.security.Principal;
 import java.sql.PreparedStatement;
@@ -87,9 +89,9 @@ public class ProcessInstanceMap extends OldDBHandleMap<ProcessInstance<OldDBTran
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"`, `"+COL_ISOUTPUT+"` FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
 
-    private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
-    " FROM "+ProcessNodeInstanceMap.TABLE+
-    " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? ;";
+    private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT " + processNodeInstances.INSTANCE.getPnihandle().getName() +
+                                                                              " FROM " + processNodeInstances.INSTANCE.get_name() +
+                                                                              " WHERE " + processNodeInstances.INSTANCE.getPihandle().getName() + " = ? ;";
 
     public static final List<CharSequence> STORE_COLUMNS = Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER, COL_STATE, COL_UUID);
     public static final List<CharSequence> STORE_PARAMS = Arrays.<CharSequence>asList("?", "?", "?", "?", "?");
@@ -222,18 +224,18 @@ public class ProcessInstanceMap extends OldDBHandleMap<ProcessInstance<OldDBTran
         statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
-      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_PREDECESSORS+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
-                                                                              "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
+      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `" + pnipredecessors.INSTANCE.get_name() + "` where `" + processNodeInstances.INSTANCE.getPnihandle().getName() +
+                                                                     "` in (SELECT `" + processNodeInstances.INSTANCE.getPnihandle().getName() + "` FROM `" + processNodeInstances.INSTANCE.get_name() + "` WHERE `" + processNodeInstances.INSTANCE.getPihandle().getName() + "` = ?);")) {
         statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
-      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_NODEDATA+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
-                                                                              "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
+      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `" + nodedata.INSTANCE.get_name() + "` where `" + processNodeInstances.INSTANCE.getPnihandle().getName() +
+                                                                     "` in (SELECT `" + processNodeInstances.INSTANCE.getPnihandle().getName() + "` FROM `" + processNodeInstances.INSTANCE.get_name() + "` WHERE `" + processNodeInstances.INSTANCE.getPihandle().getName() + "` = ?);")) {
         statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }
 
-      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE+"` where `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?;")) {
+      try (PreparedStatement statement = connection.prepareStatement("DELETE FROM `" + processNodeInstances.INSTANCE.get_name() + "` where `" + processNodeInstances.INSTANCE.getPihandle().getName() + "` = ?;")) {
         statement.setLong(1, handle.getHandleValue());
         statement.executeUpdate();
       }

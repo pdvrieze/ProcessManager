@@ -16,8 +16,6 @@
 
 package net.devrieze.util
 
-import net.devrieze.util.db.OldDBHandleMap
-
 import java.sql.SQLException
 
 
@@ -26,6 +24,7 @@ import java.sql.SQLException
  * the interface is needed for testing without hitting the database.
  * Created by pdvrieze on 18/08/15.
  */
+@Deprecated("old", ReplaceWith("TransactionedHandleMap<V,T>"))
 interface OldTransactionedHandleMap<V, T : Transaction> : HandleMap<V> {
 
   @Throws(SQLException::class)

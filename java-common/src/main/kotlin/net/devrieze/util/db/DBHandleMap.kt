@@ -73,7 +73,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
           .SELECT(factory.createColumns)
           .WHERE { factory.getHandleCondition(this, pHandle) AND factory.filter(this) }
           .getSingleList(transaction.connection) { columns, values ->
-            elementFactory.create(transaction.connection, columns, values)
+            elementFactory.create(transaction, columns, values)
           }
     mPendingCreates.put(handle, result)
     try {

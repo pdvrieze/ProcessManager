@@ -27,7 +27,7 @@ import javax.sql.DataSource
  * Created by pdvrieze on 21/05/16.
  */
 
-class DBTransaction(connection: DBConnection): Transaction {
+open class DBTransaction(connection: DBConnection): Transaction {
   val connection: DBConnection
     get() { return _connection?: throw IllegalStateException("Using closed connection") }
 
@@ -37,9 +37,12 @@ class DBTransaction(connection: DBConnection): Transaction {
 
   constructor(dataSource: DataSource, db:Database): this(DBConnection(dataSource.connection, db))
 
-  override fun close() {
-    _connection?.rawConnection?.close()
-    _connection=null
+  override final fun close() {
+    try {
+      _connection?.rawConnection?.close()
+    } finally {
+      _connection = null
+    }
   }
 
   override fun commit() {
@@ -61,7 +64,7 @@ class DBTransaction(connection: DBConnection): Transaction {
     return pValue
   }
 
-  fun rollback(savePoint: Savepoint) {
+  open fun rollback(savePoint: Savepoint) {
     connection.rollback(savePoint)
 
     while (rollbackHandlers.isNotEmpty()) {

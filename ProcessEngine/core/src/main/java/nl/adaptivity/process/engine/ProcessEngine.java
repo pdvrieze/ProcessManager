@@ -42,6 +42,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB;
 
 import javax.activation.DataSource;
 import javax.naming.Context;
@@ -103,7 +104,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     @Override
     public OldDBTransaction startTransaction() {
       try {
-        return new OldDBTransaction(getDBResource());
+        return new OldDBTransaction(getDBResource(), ProcessEngineDB.INSTANCE);
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
@@ -141,7 +142,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   private OldTransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
 
-  private OldTransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
+  private TransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
 
   private IProcessModelMap<T> mProcessModels = null;
 
@@ -171,6 +172,11 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   private static <T extends Transaction, V> OldTransactionedHandleMap<V, T> wrapCache(OldTransactionedHandleMap<V,T> base, int cacheSize) {
     if(cacheSize<=0) { return base; }
+    return new OldCachingHandleMap<V, T>(base, cacheSize);
+  }
+
+  private static <T extends Transaction, V> TransactionedHandleMap<V, T> wrapCache(TransactionedHandleMap<V,T> base, int cacheSize) {
+    if(cacheSize<=0) { return base; }
     return new CachingHandleMap<V, T>(base, cacheSize);
   }
 
@@ -190,7 +196,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
                         TransactionFactory transactionFactory,
                         IProcessModelMap<T> processModels,
                         OldTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
-                        OldTransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
+                        TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     mMessageService = messageService;
     mProcessModels = processModels;
     mTransactionFactory = transactionFactory;
@@ -214,7 +220,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
                                                                    TransactionFactory transactionFactory,
                                                                    IProcessModelMap<T> processModels,
                                                                    OldTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
-                                                                   OldTransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
+                                                                   TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
 
@@ -355,7 +361,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return mInstanceMap;
   }
 
-  private OldTransactionedHandleMap<ProcessNodeInstance<T>, T> getNodeInstances() {
+  private TransactionedHandleMap<ProcessNodeInstance<T>, T> getNodeInstances() {
     return mNodeInstanceMap;
   }
 
@@ -565,7 +571,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
   public NodeInstanceState finishTask(T transaction, final Handle<? extends ProcessNodeInstance<T>> handle, final Node payload, final Principal user) throws SQLException {
-    final ProcessNodeInstance<T> task = getNodeInstances().get(handle);
+    final ProcessNodeInstance<T> task = getNodeInstances().get(transaction, handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance<T> pi = task.getProcessInstance();
     try {

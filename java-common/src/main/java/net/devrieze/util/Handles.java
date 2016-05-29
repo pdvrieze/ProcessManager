@@ -17,6 +17,7 @@
 package net.devrieze.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 
@@ -79,7 +80,7 @@ public final class Handles {
    * @return a Handle<T> object corresponding to the handle.
    */
   @NotNull
-  public static <T> ComparableHandle<T> handle(final long pHandle) {
+  public static @Nullable <T> ComparableHandle<T> handle(final long pHandle) {
     return pHandle<0 ? null : new SimpleHandle<T>(pHandle);
   }
 

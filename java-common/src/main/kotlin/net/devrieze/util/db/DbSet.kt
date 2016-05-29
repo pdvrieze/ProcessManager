@@ -56,7 +56,6 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
     private val mCloseOnFinish: Boolean
 
     init {
-      elementFactory.initResultSet(mResultSet.metaData)
       mResultSet.metaData
       mCloseOnFinish = false
     }
@@ -84,7 +83,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
         var success = mResultSet.next()
         if (success) {
           val values = mColumns.mapIndexed { i, column -> column.type.fromResultSet(mResultSet, i+1) }
-          mNextElem = elementFactory.create(mTransaction.connection, mColumns, values)
+          mNextElem = elementFactory.create(mTransaction, mColumns, values)
         }
         if (!success) {
           mFinished = true
@@ -330,7 +329,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
             .SELECT(elementFactory.createColumns)
             .WHERE { elementFactory.filter(this) AND this.selection() }
             .executeList(transaction.connection) { columns, values ->
-        elementFactory.preRemove(transaction.connection, columns, values)
+        elementFactory.preRemove(transaction, columns, values)
       }
     }
 

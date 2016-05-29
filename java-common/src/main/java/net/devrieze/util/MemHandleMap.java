@@ -467,7 +467,6 @@ public class MemHandleMap<V> implements HandleMap<V>, Collection<V> {
   /* (non-Javadoc)
    * @see net.devrieze.util.HandleMap#get(long)
    */
-  @Override
   public V get(final long pHandle) {
     // Split the handle up into generation and index.
     final int generation = (int) (pHandle >> 32);

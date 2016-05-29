@@ -25,7 +25,7 @@ import java.sql.SQLException
 
 interface HMElementFactory<T> : ElementFactory<T> {
   fun getHandleCondition(where: Database._Where,
-                         handle: Handle<out Any>): Database.WhereClause?
+                         handle: Handle<T>): Database.WhereClause?
 
   /**
    * Called before removing an element with the given handle

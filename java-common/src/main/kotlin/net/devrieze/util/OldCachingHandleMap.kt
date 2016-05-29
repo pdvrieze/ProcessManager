@@ -16,10 +16,13 @@
 
 package net.devrieze.util
 
+import net.devrieze.util.db.OldDBHandleMap
+
 import java.io.Closeable
 import java.io.IOException
+import java.lang.ref.WeakReference
 import java.sql.SQLException
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.CopyOnWriteArraySet
 
 
@@ -33,46 +36,22 @@ import java.util.concurrent.CopyOnWriteArraySet
  * *
  * @param  The type of the elements in the map.
  */
-open class CachingHandleMap<V, T : Transaction>(protected open val delegate: TransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+open class OldCachingHandleMap<V, T : Transaction>(protected open val delegate: OldTransactionedHandleMap<V, T>, cacheSize: Int) : AbstractOldTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
 
-  private open inner class WrappingIterator(private val transaction:T, protected open val iterator: Iterator<V>) : AutoCloseableIterator<V> {
+  private inner class WrappingIterator(private val transaction:T, private val iterator: MutableIterator<V>) : AutoCloseableIterator<V> {
     private var last: V? = null
 
-    override final fun hasNext(): Boolean {
+    override fun hasNext(): Boolean {
       return iterator.hasNext()
     }
 
-    override final fun next(): V {
+    override fun next(): V {
       val result = iterator.next()
       putCache(transaction, result)
       last = result
       return result
     }
-
-    @Throws(IOException::class)
-    override fun close() {
-      val it = iterator
-      if (it is AutoCloseable) {
-        try {
-          it.close()
-        } catch (e: IOException) {
-          throw e
-        } catch (e: Exception) {
-          throw RuntimeException(e)
-        }
-
-      }
-    }
-
-    override fun remove() {
-      throw UnsupportedOperationException()
-    }
-  }
-
-  private inner class WrappingMutableIterator(transaction:T, iterator: MutableIterator<V>) : WrappingIterator(transaction, iterator), MutableIterator<V>, AutoCloseableIterator<V> {
-    override protected val iterator:MutableIterator<V> get() = super.iterator as MutableIterator<V>
-    private var last: V? = null
 
     override fun remove() {
       if (last != null) {
@@ -97,10 +76,9 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
 
     @Throws(IOException::class)
     override fun close() {
-      val it = iterator
-      if (it is AutoCloseable) {
+      if (iterator is AutoCloseable) {
         try {
-          it.close()
+          iterator.close()
         } catch (e: IOException) {
           throw e
         } catch (e: Exception) {
@@ -112,7 +90,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
 
   }
 
-  private inner class WrappingIterable(private val transaction:T, private val delegateIterable: Iterable<V>) : Iterable<V> {
+  private inner class WrappingIterable(private val transaction:T, private val delegateIterable: MutableIterable<V>) : MutableIterable<V> {
 
     override fun iterator(): MutableIterator<V> {
       return WrappingIterator(transaction, delegateIterable.iterator())
@@ -174,6 +152,17 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
     }
   }
 
+  @Throws(SQLException::class)
+  @Deprecated("Use the transaction version")
+  fun getFromDelegate(pHandle: Handle<V>): V? {
+    mPendingHandles.add(pHandle) // internal locking so no locking needed here
+    try {
+      return delegate[pHandle]
+    } finally {
+      mPendingHandles.remove(pHandle)
+    }
+  }
+
   private fun getFromCache(handle: Long): V? {
     synchronized (mCacheHandles) {
       for (i in mCacheHandles.indices) {
@@ -212,6 +201,14 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
       return contains(transaction, element as Handle<V>)
     }
     return delegate.contains(transaction, element)
+  }
+
+  override fun getSize(): Int {
+    return delegate.getSize()
+  }
+
+  override fun isEmpty(): Boolean {
+    return delegate.isEmpty()
   }
 
   @Throws(SQLException::class)
@@ -287,7 +284,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
     return WrappingIterator(transaction, delegate.iterator(transaction, readOnly))
   }
 
-  override fun iterable(transaction: T): Iterable<V> {
+  override fun iterable(transaction: T): MutableIterable<V> {
     return WrappingIterable(transaction, delegate.iterable(transaction))
   }
 

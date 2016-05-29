@@ -94,19 +94,6 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     private var mColNoHandle: Int = 0
     private var mColNoRemoteHandle: Int = 0
 
-    @Throws(SQLException::class)
-    override fun initResultSet(metaData: ResultSetMetaData) {
-      val columnCount = metaData.columnCount
-      for (i in 1..columnCount) {
-        val colName = metaData.getColumnName(i)
-        if (COL_HANDLE == colName) {
-          mColNoHandle = i
-        } else if (COL_REMOTEHANDLE == colName) {
-          mColNoRemoteHandle = i
-        } // ignore other columns
-      }
-    }
-
     override val table: Table get() {
       return UserTaskDB.usertasks
     }
@@ -119,7 +106,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       get() = u.taskhandle
 
     // XXX  This needs some serious overhaul
-    override fun create(transaction: DBConnection, columns: List<Column<*, *, *>>, values: List<Any?>): XmlTask {
+    override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): XmlTask {
       val handle = u.taskhandle.value(columns,values)!!
       val remoteHandle = u.remotehandle.value(columns, values)!!
 
@@ -206,16 +193,16 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       return getHandleCondition(where, task.handle)
     }
 
-    override fun getHandleCondition(where: Database._Where, handle: Handle<Any>): Database.WhereClause? {
+    override fun getHandleCondition(where: Database._Where, handle: Handle<XmlTask>): Database.WhereClause? {
       return where.run {
         u.taskhandle eq handle.handleValue
       }
 
     }
 
-    override fun asInstance(o: Any): XmlTask? {
-      if (o is XmlTask) {
-        return o
+    override fun asInstance(value: Any): XmlTask? {
+      if (value is XmlTask) {
+        return value
       }
       return null
     }
@@ -257,9 +244,9 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       preRemove(connection, element!!.handle)
     }
 
-    override fun preRemove(connection: DBConnection, columns: List<Column<*, *, *>>, values: List<Any?>) {
+    override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
       val handleVal = u.taskhandle.value(columns, values)!!
-      preRemove(connection, Handles.handle<XmlTask>(handleVal))
+      preRemove(transaction.connection, Handles.handle<XmlTask>(handleVal))
     }
 
     companion object {

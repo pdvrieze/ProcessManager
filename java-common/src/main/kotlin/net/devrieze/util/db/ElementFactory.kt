@@ -34,18 +34,6 @@ interface ElementFactory<T> {
   fun filter(select: Database._Where): Database.WhereClause?
 
   /**
-   * Called before processing a resultset. This gives the factory the chance to
-   * cache column numbers.
-
-   * @param pMetaData The metadata to use. `null` to force
-   * *          forgetting.
-   * *
-   * @throws SQLException When something goes wrong.
-   */
-  @Throws(SQLException::class)
-  fun initResultSet(pMetaData: ResultSetMetaData)
-
-  /**
    * Get the columns that need to be selected to create an element.
 
    * @return The wanted columns. Note that this could be "*" for any.
@@ -63,7 +51,7 @@ interface ElementFactory<T> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun create(transaction: DBConnection, columns: List<Column<*, *, *>>, values: List<Any?>): T
+  fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): T
 
   /**
    * Hook to allow for subsequent queries
@@ -109,7 +97,7 @@ interface ElementFactory<T> {
    * is particularly designed to support removeAll without creating temporary
    * elements.
 
-   * @param connection The connection to use in the background
+   * @param transaction The connection to use in the background
    *
    * @param columns The columns in the values. This should be the same as the value of [createColumns]
    * @param values The values for the columns
@@ -117,7 +105,7 @@ interface ElementFactory<T> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preRemove(connection: DBConnection, columns:List<Column<*,*,*>>, values: List<Any?>)
+  fun preRemove(transaction: DBTransaction, columns:List<Column<*,*,*>>, values: List<Any?>)
 
   /**
    * This method is clear before the collection is cleared out. This allows

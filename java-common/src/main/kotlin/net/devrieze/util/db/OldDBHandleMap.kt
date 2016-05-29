@@ -73,7 +73,7 @@ open class OldDBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<OldDBTr
     return result
   }
 
-  override fun get(pHandle: Long): V? {
+  fun get(pHandle: Long): V? {
     try {
       transactionFactory.startTransaction().use { transaction ->
         return get(transaction, pHandle)

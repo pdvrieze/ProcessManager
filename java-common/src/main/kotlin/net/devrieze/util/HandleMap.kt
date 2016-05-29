@@ -61,15 +61,6 @@ interface HandleMap<V> {
    */
   fun <W : V> put(value: W): Handle<W>
 
-  /**
-   * Get the element with the given handle.
-
-   * @param handle The handle
-   * *
-   * @return The element corresponding to the given handle.
-   */
-  operator fun get(handle: Long): V?
-
   operator fun get(handle: Handle<out V>): V?
 
   operator fun set(handle: Long, value: V): V?

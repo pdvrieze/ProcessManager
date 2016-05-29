@@ -36,7 +36,7 @@ const val EXTRACONF = "ENGINE=InnoDB CHARSET=utf8"
 
 object ProcessEngineDB : Database(1) {
 
-  object processModelTable : MutableTable("processmodels", EXTRACONF) {
+  object processModel : MutableTable("processmodels", EXTRACONF) {
     val pmhandle by BIGINT("pmhandle") { NOT_NULL; AUTO_INCREMENT }
     val owner by VARCHAR("owner", 30) { NOT_NULL }
     val model by MEDIUMTEXT(name = "model")
@@ -47,81 +47,81 @@ object ProcessEngineDB : Database(1) {
     }
   }
 
-  object pmUsersTable : MutableTable("pmusers", EXTRACONF) {
-    val pmhandle by reference(processModelTable.pmhandle) { NOT_NULL }
+  object pmUsers : MutableTable("pmusers", EXTRACONF) {
+    val pmhandle by reference(processModel.pmhandle) { NOT_NULL }
     val user by VARCHAR("user", 30) { BINARY }
     override fun init() {
       PRIMARY_KEY(pmhandle, user)
-      FOREIGN_KEY (pmhandle).REFERENCES(processModelTable.pmhandle)
+      FOREIGN_KEY (pmhandle).REFERENCES(processModel.pmhandle)
     }
   }
 
-  object pmrolesTable : MutableTable("pmroles", EXTRACONF) {
-    val pmhandle by reference(processModelTable.pmhandle) { NOT_NULL }
+  object pmroles : MutableTable("pmroles", EXTRACONF) {
+    val pmhandle by reference(processModel.pmhandle) { NOT_NULL }
     val role by VARCHAR("role", 30)
     override fun init() {
       PRIMARY_KEY(pmhandle, role)
-      FOREIGN_KEY (pmhandle).REFERENCES(processModelTable.pmhandle)
+      FOREIGN_KEY (pmhandle).REFERENCES(processModel.pmhandle)
     }
 
   }
 
-  object processInstancesTable : MutableTable("processinstances", EXTRACONF) {
+  object processInstances : MutableTable("processinstances", EXTRACONF) {
     val pihandle by BIGINT("pihandle") { NOT_NULL; AUTO_INCREMENT }
     val owner by VARCHAR("owner", 30) { NOT_NULL }
     val name by VARCHAR("name", 50)
-    val pmhandle by reference(processModelTable.pmhandle) { NOT_NULL }
+    val pmhandle by reference(processModel.pmhandle) { NOT_NULL }
     val state by VARCHAR("state", 15)
     val uuid by VARCHAR("uuid", 36) { UNIQUE }
     override fun init() {
       INDEX(owner)
       PRIMARY_KEY(pihandle)
-      FOREIGN_KEY(pmhandle).REFERENCES(processModelTable.pmhandle)
+      FOREIGN_KEY(pmhandle).REFERENCES(processModel.pmhandle)
     }
   }
 
 
-  object processNodeInstancesTable : MutableTable("processinstances", EXTRACONF) {
+  object processNodeInstances : MutableTable("processinstances", EXTRACONF) {
     val pnihandle by BIGINT("pnihandle") { NOT_NULL; AUTO_INCREMENT }
-    val pihandle by reference(processInstancesTable.pihandle) { NOT_NULL }
+    val pihandle by reference(processInstances.pihandle) { NOT_NULL }
     val nodeid by VARCHAR("nodeid", 30) { NOT_NULL }
     val state by VARCHAR("state", 30) { DEFAULT("Sent") }
     override fun init() {
       PRIMARY_KEY(pnihandle)
-      FOREIGN_KEY(pihandle).REFERENCES(processInstancesTable.pihandle)
+      FOREIGN_KEY(pihandle).REFERENCES(processInstances.pihandle)
       UNIQUE(pihandle, nodeid)
     }
   }
 
 
-  object pnipredecessorsTable : MutableTable("pnipredecessors", EXTRACONF) {
-    val pnihandle by reference(processNodeInstancesTable.pnihandle) { NOT_NULL }
-    val predecessor by reference("predecessor", processNodeInstancesTable.pnihandle) { NOT_NULL }
+  object pnipredecessors : MutableTable("pnipredecessors", EXTRACONF) {
+    val pnihandle by reference(processNodeInstances.pnihandle) { NOT_NULL }
+    val predecessor by reference("predecessor", processNodeInstances.pnihandle) { NOT_NULL }
     override fun init() {
       PRIMARY_KEY(pnihandle, predecessor)
-      FOREIGN_KEY(predecessor).REFERENCES(processNodeInstancesTable.pnihandle)
-      FOREIGN_KEY(pnihandle).REFERENCES(processNodeInstancesTable.pnihandle)
+      FOREIGN_KEY(predecessor).REFERENCES(processNodeInstances.pnihandle)
+      FOREIGN_KEY(pnihandle).REFERENCES(processNodeInstances.pnihandle)
     }
   }
 
-  object instancedataTable : MutableTable("instancedata", EXTRACONF) {
+  object instancedata : MutableTable("instancedata", EXTRACONF) {
     val name by VARCHAR("name", 30) { NOT_NULL }
-    val pihandle by reference(processNodeInstancesTable.pihandle) { NOT_NULL }
+    val pihandle by reference(processNodeInstances.pihandle) { NOT_NULL }
     val data by TEXT("data") { NOT_NULL }
     val isoutput by TINYINT("isoutput") { NOT_NULL }
     override fun init() {
       PRIMARY_KEY(name, pihandle, isoutput)
-      FOREIGN_KEY(pihandle).REFERENCES(processInstancesTable.pihandle)
+      FOREIGN_KEY(pihandle).REFERENCES(processInstances.pihandle)
     }
   }
 
-  object nodedataTable : MutableTable("nodedata", EXTRACONF) {
+  object nodedata : MutableTable("nodedata", EXTRACONF) {
     val name by VARCHAR("name", 30) { NOT_NULL }
-    val pnihandle by reference(processNodeInstancesTable.pnihandle) { NOT_NULL }
+    val pnihandle by reference(processNodeInstances.pnihandle) { NOT_NULL }
     val data by TEXT("data") { NOT_NULL }
     override fun init() {
       PRIMARY_KEY(name, pnihandle)
-      FOREIGN_KEY(pnihandle).REFERENCES(processNodeInstancesTable.pnihandle)
+      FOREIGN_KEY(pnihandle).REFERENCES(processNodeInstances.pnihandle)
     }
   }
 
