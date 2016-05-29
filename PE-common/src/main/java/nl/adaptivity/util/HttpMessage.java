@@ -62,8 +62,8 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
   public static class Factory implements XmlDeserializerFactory<HttpMessage> {
 
     @Override
-    public HttpMessage deserialize(final XmlReader in) throws XmlException {
-      return HttpMessage.deserialize(in);
+    public HttpMessage deserialize(final XmlReader reader) throws XmlException {
+      return HttpMessage.deserialize(reader);
     }
   }
 

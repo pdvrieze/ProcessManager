@@ -31,8 +31,8 @@ public final class HProcessInstance extends XmlHandle {
   public static class Factory implements XmlDeserializerFactory<HProcessInstance> {
 
     @Override
-    public HProcessInstance deserialize(final XmlReader in) throws XmlException {
-      return HProcessInstance.deserialize(in);
+    public HProcessInstance deserialize(final XmlReader reader) throws XmlException {
+      return HProcessInstance.deserialize(reader);
     }
   }
 

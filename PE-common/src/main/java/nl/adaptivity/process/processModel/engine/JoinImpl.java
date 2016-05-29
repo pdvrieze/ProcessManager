@@ -44,8 +44,8 @@ public class JoinImpl extends JoinBase<ExecutableProcessNode, ProcessModelImpl> 
 
     @NotNull
     @Override
-    public JoinImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-      return JoinImpl.deserialize(null, in);
+    public JoinImpl deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return JoinImpl.deserialize(null, reader);
     }
   }
 

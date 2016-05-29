@@ -39,8 +39,8 @@ public class SplitImpl extends SplitBase<ExecutableProcessNode, ProcessModelImpl
 
     @NotNull
     @Override
-    public SplitImpl deserialize(final XmlReader in) throws XmlException {
-      return SplitImpl.deserialize(null, in);
+    public SplitImpl deserialize(final XmlReader reader) throws XmlException {
+      return SplitImpl.deserialize(null, reader);
     }
   }
 

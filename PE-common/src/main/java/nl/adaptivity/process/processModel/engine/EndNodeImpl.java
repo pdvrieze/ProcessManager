@@ -37,8 +37,8 @@ public class EndNodeImpl extends EndNodeBase<ExecutableProcessNode, ProcessModel
 
     @NotNull
     @Override
-    public EndNodeImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-      return EndNodeImpl.deserialize(null, in);
+    public EndNodeImpl deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return EndNodeImpl.deserialize(null, reader);
     }
   }
 

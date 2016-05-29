@@ -51,8 +51,8 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
     @NotNull
     @Override
-    public XmlDefineType deserialize(@NotNull final XmlReader in) throws XmlException {
-      return XmlDefineType.deserialize(in);
+    public XmlDefineType deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return XmlDefineType.deserialize(reader);
     }
   }
 

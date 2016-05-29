@@ -17,6 +17,7 @@
 package net.devrieze.util.db
 
 import net.devrieze.util.*
+import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.util.kotlin.sql.use
 
 import java.sql.PreparedStatement
@@ -26,8 +27,8 @@ import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 
-open class DBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<out DBTransaction>, pElementFactory: DBHandleMap.HMElementFactory<V, DBTransaction>) :
-      DbSet<V>(pTransactionFactory, pElementFactory), TransactionedHandleMap<V, DBTransaction> {
+open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTransaction>, database: Database, elementFactory: HMElementFactory<V>) :
+      DbSet<V>(transactionFactory, database, elementFactory), TransactionedHandleMap<V, DBTransaction> {
 
 
   private inner class TransactionIterable(private val mTransaction: DBTransaction) : Iterable<V> {
@@ -38,28 +39,14 @@ open class DBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<out DBTran
 
   }
 
-  interface HMElementFactory<T, TR : Transaction> : ElementFactory<T, TR> {
-    fun getHandleCondition(pElement: Handle<out T>): CharSequence
-
-    @Throws(SQLException::class)
-    fun setHandleParams(pStatement: PreparedStatement, pHandle: Handle<out T>, pOffset: Int): Int
-
-    /**
-     * Called before removing an element with the given handle
-     * @throws SQLException When something goes wrong.
-     */
-    @Throws(SQLException::class)
-    fun preRemove(pConnection: TR, pHandle: Handle<out T>)
-  }
-
   private val mPendingCreates = TreeMap<ComparableHandle<out V>, V>()
 
   protected fun isPending(handle: ComparableHandle<out V>): Boolean {
     return mPendingCreates.containsKey(handle)
   }
 
-  override val elementFactory: HMElementFactory<V, DBTransaction>
-    get() = super.elementFactory as HMElementFactory<V, DBTransaction>
+  override val elementFactory: HMElementFactory<V>
+    get() = super.elementFactory as HMElementFactory<V>
 
   override fun newTransaction(): DBTransaction {
     return transactionFactory.startTransaction()
@@ -82,40 +69,19 @@ open class DBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<out DBTran
     }
 
     val factory = elementFactory
-    val sql = addFilter("SELECT " + factory.createColumns + " FROM " + factory.tableName + " WHERE (" + factory.getHandleCondition(
-          pHandle) + ")", " AND ")
-
-    transaction.connection.rawConnection.prepareStatement(sql,
-                                                          ResultSet.TYPE_FORWARD_ONLY,
-                                                          ResultSet.CONCUR_READ_ONLY).use { statement ->
-      val cnt = factory.setHandleParams(statement, pHandle, 1)
-      setFilterParams(statement, cnt)
-
-      val result = statement.execute()
-      if (!result) {
-        return null
-      }
-      statement.getResultSet().use({ resultset ->
-                                     if (resultset.first()) {
-                                       factory.initResultSet(resultset.getMetaData())
-                                       val `val` = factory.create(transaction, resultset)
-                                       if (`val` == null) {
-                                         remove(transaction, handle)
-                                         return null
-                                       } else {
-                                         mPendingCreates.put(handle, `val`)
-                                         try {
-                                           factory.postCreate(transaction, `val`)
-                                         } finally {
-                                           mPendingCreates.remove(handle)
-                                         }
-                                         return `val`
-                                       }
-                                     } else {
-                                       return null
-                                     }
-                                   })
+    val result = database
+          .SELECT(factory.createColumns)
+          .WHERE { factory.getHandleCondition(this, pHandle) AND factory.filter(this) }
+          .getSingleList(transaction.connection) { columns, values ->
+            elementFactory.create(transaction.connection, columns, values)
+          }
+    mPendingCreates.put(handle, result)
+    try {
+      factory.postCreate(transaction.connection, result)
+    } finally {
+      mPendingCreates.remove(handle)
     }
+    return result
   }
 
   @Throws(SQLException::class)
@@ -135,40 +101,24 @@ open class DBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<out DBTran
   }
 
   @Throws(SQLException::class)
-  protected operator fun set(pTransaction: DBTransaction, pHandle: Handle<out V>, oldValue: V?, pValue: V): V? {
-    if (oldValue == pValue) {
+  protected operator fun set(transaction: DBTransaction, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
+    if (oldValue == newValue) {
       return oldValue
     }
-    val sql = addFilter("UPDATE " + elementFactory.tableName + " SET " + DbSet.join(elementFactory.storeColumns,
-                                                                                         elementFactory.storeParamHolders,
-                                                                                         ", ",
-                                                                                         " = ") + " WHERE (" + elementFactory.getHandleCondition(
-          pHandle) + ")", " AND ")
-    if (pValue is HandleMap.HandleAware<*>) {
-      pValue.setHandleValue(pHandle.handleValue)
-    }
-    try {
-      pTransaction.connection.rawConnection.prepareStatement(sql,
-                                                             ResultSet.TYPE_FORWARD_ONLY,
-                                                             ResultSet.CONCUR_READ_ONLY).use { statement ->
-        var cnt = elementFactory.setStoreParams(statement, pValue, 1)
-        cnt += elementFactory.setHandleParams(statement, pHandle, cnt + 1)
-        setFilterParams(statement, cnt + 1)
 
-        statement.execute()
-        elementFactory.postStore(pTransaction, pHandle, oldValue, pValue)
-        return oldValue
-      }
-    } catch (e: SQLException) {
-      Logger.getAnonymousLogger().log(Level.SEVERE, "Error executing query: " + sql, e)
-      throw e
-    }
+    if (newValue is HandleMap.HandleAware<*>) newValue.setHandleValue(handle.handleValue)
 
+    database
+          .UPDATE { elementFactory.store(this, newValue) }
+          .WHERE { elementFactory.filter(this) AND elementFactory.getHandleCondition(this, handle) }
+          .executeUpdate(transaction.connection)
+    elementFactory.postStore(transaction.connection, handle, oldValue, newValue)
+    return oldValue
   }
 
-  override fun iterator(pTransaction: DBTransaction, pReadOnly: Boolean): AutoCloseableIterator<V> {
+  override fun iterator(transaction: DBTransaction, pReadOnly: Boolean): AutoCloseableIterator<V> {
     try {
-      return super.iterator(pTransaction, pReadOnly)
+      return super.iterator(transaction, pReadOnly)
     } catch (e: SQLException) {
       throw RuntimeException(e)
     }
@@ -199,42 +149,26 @@ open class DBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<out DBTran
 
   @Throws(SQLException::class)
   override fun contains(transaction: DBTransaction, handle: Handle<out V>): Boolean {
-    val sql = addFilter("SELECT COUNT(*) FROM " + elementFactory.tableName + " WHERE (" + elementFactory.getHandleCondition(
-          handle) + ")", " AND ")
+    val query = database
+          .SELECT(database.COUNT(elementFactory.createColumns[0]))
+          .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
 
-    transaction.connection.rawConnection.prepareStatement(sql,
-                                                          ResultSet.TYPE_FORWARD_ONLY,
-                                                          ResultSet.CONCUR_READ_ONLY).use { statement ->
-      val cnt = elementFactory.setHandleParams(statement, handle, 1)
-      setFilterParams(statement, cnt)
-
-      val result = statement.execute()
-      if (!result) {
-        return false
+    try {
+      return query.getSingleList(transaction.connection) { cols, data ->
+        data[0] as Int > 0
       }
-      statement.getResultSet().use({ resultset -> return resultset.next() })
+    } catch (e:RuntimeException) {
+      return false
     }
   }
 
   @Throws(SQLException::class)
   override fun remove(transaction: DBTransaction, handle: Handle<out V>): Boolean {
-    val elementFactory = elementFactory
-    val connection = transaction
-    elementFactory.preRemove(connection, handle)
-    val sql = addFilter("DELETE FROM " + elementFactory.tableName + " WHERE (" + elementFactory.getHandleCondition(
-          handle) + ")", " AND ")
-
-    connection.connection.rawConnection.prepareStatement(sql,
-                                                         ResultSet.TYPE_FORWARD_ONLY,
-                                                         ResultSet.CONCUR_READ_ONLY).use { statement ->
-      val cnt = elementFactory.setHandleParams(statement, handle, 1)
-      setFilterParams(statement, cnt)
-
-      val changecount = statement.executeUpdate()
-      connection.commit()
-      return changecount > 0
-    }
-
+    elementFactory.preRemove(transaction.connection, handle)
+    return database
+          .DELETE_FROM(elementFactory.table)
+          .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
+          .executeUpdate(transaction.connection)>0
   }
 
   override fun invalidateCache(handle: Handle<out V>) {

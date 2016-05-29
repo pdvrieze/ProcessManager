@@ -35,8 +35,8 @@ public class CompactFragment implements XmlSerializable {
   public static class Factory implements XmlDeserializerFactory<CompactFragment> {
 
     @Override
-    public CompactFragment deserialize(final XmlReader in) throws XmlException {
-      return CompactFragment.deserialize(in);
+    public CompactFragment deserialize(final XmlReader reader) throws XmlException {
+      return CompactFragment.deserialize(reader);
     }
   }
 

@@ -47,8 +47,8 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   public static class Factory implements XmlDeserializerFactory<XmlProcessNodeInstance> {
 
     @Override
-    public XmlProcessNodeInstance deserialize(final XmlReader in) throws XmlException {
-      return XmlProcessNodeInstance.deserialize(in);
+    public XmlProcessNodeInstance deserialize(final XmlReader reader) throws XmlException {
+      return XmlProcessNodeInstance.deserialize(reader);
     }
   }
 

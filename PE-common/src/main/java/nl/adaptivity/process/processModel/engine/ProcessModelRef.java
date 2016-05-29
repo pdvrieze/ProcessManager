@@ -37,8 +37,8 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   public static class Factory implements XmlDeserializerFactory<ProcessModelRef<?,?>> {
 
     @Override
-    public ProcessModelRef<?, ?> deserialize(final XmlReader in) throws XmlException {
-      return ProcessModelRef.deserialize(in);
+    public ProcessModelRef<?, ?> deserialize(final XmlReader reader) throws XmlException {
+      return ProcessModelRef.deserialize(reader);
     }
   }
 

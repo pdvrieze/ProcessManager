@@ -50,8 +50,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
     @NotNull
     @Override
-    public XmlResultType deserialize(@NotNull final XmlReader in) throws XmlException {
-      return XmlResultType.deserialize(in);
+    public XmlResultType deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return XmlResultType.deserialize(reader);
     }
 
   }

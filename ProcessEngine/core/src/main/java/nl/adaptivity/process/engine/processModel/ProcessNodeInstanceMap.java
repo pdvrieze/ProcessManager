@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine.processModel;
 
 import net.devrieze.util.*;
-import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.AbstractOldElementFactory;
 import net.devrieze.util.db.OldDBHandleMap;
 import net.devrieze.util.db.OldDBTransaction;
 import net.devrieze.util.security.SecurityProvider;
@@ -50,7 +50,7 @@ public class ProcessNodeInstanceMap extends OldDBHandleMap<ProcessNodeInstance<O
   public static final String TABLE_PREDECESSORS = "pnipredecessors";
   public static final String TABLE_NODEDATA = "nodedata";
 
-  static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance<OldDBTransaction>, OldDBTransaction> {
+  static class ProcessNodeInstanceFactory extends AbstractOldElementFactory<ProcessNodeInstance<OldDBTransaction>, OldDBTransaction> {
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
     private static final String QUERY_PREDECESSOR = "SELECT `"+COL_PREDECESSOR+"` FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;";
@@ -214,8 +214,8 @@ public class ProcessNodeInstanceMap extends OldDBHandleMap<ProcessNodeInstance<O
     }
 
     @Override
-    public void postStore(OldDBTransaction connection, Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle, ProcessNodeInstance<OldDBTransaction> oldValue, ProcessNodeInstance<OldDBTransaction> element) throws SQLException {
-      ProcessNodeInstanceMap.postStore(connection, handle, oldValue, element);
+    public void postStore(OldDBTransaction connection, Handle<? extends ProcessNodeInstance<OldDBTransaction>> handle, ProcessNodeInstance<OldDBTransaction> oldValue, ProcessNodeInstance<OldDBTransaction> newValue) throws SQLException {
+      ProcessNodeInstanceMap.postStore(connection, handle, oldValue, newValue);
     }
 
     @Override

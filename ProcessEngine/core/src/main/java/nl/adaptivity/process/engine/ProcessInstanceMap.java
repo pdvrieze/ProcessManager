@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.TransactionFactory;
-import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.AbstractOldElementFactory;
 import net.devrieze.util.db.OldDBHandleMap;
 import net.devrieze.util.db.OldDBTransaction;
 import net.devrieze.util.security.SecurityProvider;
@@ -83,7 +83,7 @@ public class ProcessInstanceMap extends OldDBHandleMap<ProcessInstance<OldDBTran
   public static final String COL_DATA = "data";
   public static final String COL_ISOUTPUT = "isoutput";
 
-  static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance<OldDBTransaction>, OldDBTransaction> {
+  static class ProcessInstanceElementFactory extends AbstractOldElementFactory<ProcessInstance<OldDBTransaction>, OldDBTransaction> {
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"`, `"+COL_ISOUTPUT+"` FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
 

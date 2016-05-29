@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Handle;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.TransactionFactory;
-import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.AbstractOldElementFactory;
 import net.devrieze.util.db.OldDBHandleMap;
 import net.devrieze.util.db.OldDBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
@@ -52,7 +52,7 @@ public class ProcessModelMap extends OldDBHandleMap<ProcessModelImpl> implements
 
   private static final String COL_MODEL = "model";
 
-  static class ProcessModelFactory extends AbstractElementFactory<ProcessModelImpl, OldDBTransaction> {
+  static class ProcessModelFactory extends AbstractOldElementFactory<ProcessModelImpl, OldDBTransaction> {
 
     private static boolean _supports_set_character_stream = true;
     private int mColNoOwner;

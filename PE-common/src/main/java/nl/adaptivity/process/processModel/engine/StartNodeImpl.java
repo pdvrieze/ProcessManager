@@ -39,8 +39,8 @@ public class StartNodeImpl extends StartNodeBase<ExecutableProcessNode, ProcessM
 
     @NotNull
     @Override
-    public StartNodeImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-      return StartNodeImpl.deserialize(null, in);
+    public StartNodeImpl deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return StartNodeImpl.deserialize(null, reader);
     }
   }
 

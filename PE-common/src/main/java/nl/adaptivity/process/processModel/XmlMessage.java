@@ -70,8 +70,8 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
     @NotNull
     @Override
-    public XmlMessage deserialize(@NotNull final XmlReader in) throws XmlException {
-      return XmlMessage.deserialize(in);
+    public XmlMessage deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return XmlMessage.deserialize(reader);
     }
   }
 

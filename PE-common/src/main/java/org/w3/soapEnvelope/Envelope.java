@@ -75,8 +75,8 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
   public static class Factory implements XmlDeserializerFactory<Envelope> {
 
     @Override
-    public Envelope<?> deserialize(final XmlReader in) throws XmlException {
-      return Envelope.deserialize(in);
+    public Envelope<?> deserialize(final XmlReader reader) throws XmlException {
+      return Envelope.deserialize(reader);
     }
   }
 

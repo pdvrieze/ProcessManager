@@ -24,9 +24,10 @@ import java.util.List;
 
 import net.devrieze.util.Handle;
 import net.devrieze.util.Transaction;
+import uk.ac.bournemouth.kotlinsql.Table;
 
 
-public interface ElementFactory<T, TR extends Transaction> {
+public interface OldElementFactory<T, TR extends Transaction> {
 
   CharSequence getTableName();
 

@@ -76,7 +76,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun updateCredentials(username: String, password: String): Boolean {
     return WebAuthDB.UPDATE { SET(u.password, createPasswordHash(getSalt(username), password)) }
-          .WHERE { u.user eq username  }.execute(connection)!=0
+          .WHERE { u.user eq username  }.executeUpdate(connection)!=0
   }
 
   private fun generateAuthToken() = buildString {
@@ -94,7 +94,7 @@ open class AccountDb(private val connection:DBConnection) {
     val token = generateAuthToken()
     WebAuthDB.INSERT(t.user, t.ip, t.keyid, t.token, t.epoch)
           .VALUES(username, remoteAddr, keyid, token, now)
-          .execute(connection)
+          .executeUpdate(connection)
           .let { if (it==0) throw AuthException("Failure to record the authentication token.") }
     return token
   }
@@ -128,11 +128,7 @@ open class AccountDb(private val connection:DBConnection) {
 
       return WebAuthDB.INSERT(p.user, p.appname, p.pubkey, p.lastUse)
                .VALUES(user, realappname, pubkey, now)
-               .execute(connection) { count, keys ->
-                 if (count==0) throw AuthException("Failure to store the authentication key")
-                 if (!keys.next()) throw AuthException("Failure to store the authentication key")
-                 p.keyid.type.fromResultSet(keys, 1) ?: throw AuthException("Failure to store the authentication key")
-               }
+               .execute(connection, p.keyid) { it!! }.first()
     }
   }
 
@@ -207,7 +203,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun generateResetToken(user:String): String {
     val resetToken = Base64.encoder().encodeToString(random.nextBytes(15))
-    if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(now)) }.WHERE { u.user eq user }.execute(connection)!=1) {
+    if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(now)) }.WHERE { u.user eq user }.executeUpdate(connection)!=1) {
       throw AuthException("Could not store the reset token")
     }
     return resetToken
@@ -218,7 +214,7 @@ open class AccountDb(private val connection:DBConnection) {
     return resetTime.time - now < MAX_RESET_VALIDITY
   }
 
-  fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getSafeList(connection)
+  fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getList(connection).filterNotNull()
 
   fun userFromToken(token: String, remoteAddr: String): String? {
     return WebAuthDB.SELECT(t.user, t.keyid)
@@ -265,24 +261,24 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   private fun updateKeyLastUse(keyId: Int) {
-    WebAuthDB.UPDATE { SET(p.lastUse, now) }.WHERE { p.keyid eq keyId }.execute(connection)
+    WebAuthDB.UPDATE { SET(p.lastUse, now) }.WHERE { p.keyid eq keyId }.executeUpdate(connection)
   }
 
 
   fun logout(authToken: String): Int {
-    return WebAuthDB.DELETE_FROM(t).WHERE{t.token eq authToken}.execute(connection)
+    return WebAuthDB.DELETE_FROM(t).WHERE{t.token eq authToken}.executeUpdate(connection)
   }
 
   fun cleanAuthTokens() {
     if (now-lastTokenClean>60000) {
-      WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (now - MAXTOKENLIFETIME) }.execute(connection)
+      WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (now - MAXTOKENLIFETIME) }.executeUpdate(connection)
       lastTokenClean=now
     }
   }
 
   fun cleanChallenges() {
     val cutoff = now - MAXCHALLENGELIFETIME
-    WebAuthDB.DELETE_FROM(c).WHERE { c.epoch lt cutoff }.execute(connection)
+    WebAuthDB.DELETE_FROM(c).WHERE { c.epoch lt cutoff }.executeUpdate(connection)
   }
 
   fun newChallenge(keyid: Int, requestIp: String): String {
@@ -310,13 +306,13 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   fun createUser(userName: String, fullName:String?=null) {
-    WebAuthDB.INSERT(u.user, u.fullname).VALUES(userName, fullName).execute(connection)
+    WebAuthDB.INSERT(u.user, u.fullname).VALUES(userName, fullName).executeUpdate(connection)
   }
 
   @Deprecated("updateCredentials is the correct way", ReplaceWith("updateCredentials(user, password)"), DeprecationLevel.ERROR)
   fun setPassword(user: String, password: String) {
     val hash = createPasswordHash("", password)
-    WebAuthDB.UPDATE{ SET(u.password, hash) }.WHERE { u.user eq user }.execute(connection)
+    WebAuthDB.UPDATE{ SET(u.password, hash) }.WHERE { u.user eq user }.executeUpdate(connection)
   }
 
   fun ensureTables(): Unit {

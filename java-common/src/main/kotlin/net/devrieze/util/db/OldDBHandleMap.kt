@@ -17,11 +17,7 @@
 package net.devrieze.util.db
 
 import net.devrieze.util.*
-import net.devrieze.util.db.DBHandleMap.HMElementFactory
-import net.devrieze.util.db.DbSet.Companion.join
 import uk.ac.bournemouth.util.kotlin.sql.use
-
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
@@ -29,7 +25,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 @Deprecated("Use DBHandleMap")
-open class OldDBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<OldDBTransaction>, pElementFactory: HMElementFactory<V, OldDBTransaction>) :
+open class OldDBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<OldDBTransaction>, pElementFactory: OldHMElementFactory<V, OldDBTransaction>) :
       OldDbSet<V>(pTransactionFactory, pElementFactory), OldTransactionedHandleMap<V, OldDBTransaction> {
 
 
@@ -47,8 +43,8 @@ open class OldDBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<OldDBTr
     return mPendingCreates.containsKey(handle)
   }
 
-  override val elementFactory:HMElementFactory<V, OldDBTransaction> get() {
-    return super.elementFactory as HMElementFactory<V, OldDBTransaction>
+  override val elementFactory: OldHMElementFactory<V, OldDBTransaction> get() {
+    return super.elementFactory as OldHMElementFactory<V, OldDBTransaction>
   }
 
   override fun newTransaction(): OldDBTransaction {
@@ -179,9 +175,9 @@ open class OldDBHandleMap<V:Any>(pTransactionFactory: TransactionFactory<OldDBTr
       return oldValue
     }
     val sql = addFilter("UPDATE " + elementFactory.tableName + " SET " + DbSet.join(elementFactory.storeColumns,
-                                                                                       elementFactory.storeParamHolders,
-                                                                                       ", ",
-                                                                                       " = ") + " WHERE (" + elementFactory.getHandleCondition(
+                                                                                elementFactory.storeParamHolders,
+                                                                                ", ",
+                                                                                " = ") + " WHERE (" + elementFactory.getHandleCondition(
           pHandle) + ")", " AND ")
     if (pValue is HandleMap.HandleAware<*>) {
       pValue.setHandleValue(pHandle.handleValue)

@@ -89,8 +89,8 @@ public class ActivityResponse<T> implements XmlSerializable, SimpleXmlDeserializ
   public static class Factory implements XmlDeserializerFactory<ActivityResponse<?>>{
 
     @Override
-    public ActivityResponse<?> deserialize(final XmlReader in) throws XmlException {
-      return ActivityResponse.deserialize(in);
+    public ActivityResponse<?> deserialize(final XmlReader reader) throws XmlException {
+      return ActivityResponse.deserialize(reader);
     }
   }
 

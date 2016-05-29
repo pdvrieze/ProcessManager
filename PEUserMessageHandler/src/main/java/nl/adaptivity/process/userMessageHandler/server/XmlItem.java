@@ -36,8 +36,8 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   public class Factory implements XmlDeserializerFactory<XmlItem> {
 
     @Override
-    public XmlItem deserialize(final XmlReader in) throws XmlException {
-      return XmlItem.deserialize(in);
+    public XmlItem deserialize(final XmlReader reader) throws XmlException {
+      return XmlItem.deserialize(reader);
     }
   }
 

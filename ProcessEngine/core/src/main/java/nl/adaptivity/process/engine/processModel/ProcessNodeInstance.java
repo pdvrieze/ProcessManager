@@ -54,8 +54,8 @@ public class ProcessNodeInstance<T extends Transaction> implements IProcessNodeI
   public static class Factory implements XmlDeserializerFactory<XmlProcessNodeInstance> {
 
     @Override
-    public XmlProcessNodeInstance deserialize(final XmlReader in) throws XmlException {
-      return XmlProcessNodeInstance.deserialize(in);
+    public XmlProcessNodeInstance deserialize(final XmlReader reader) throws XmlException {
+      return XmlProcessNodeInstance.deserialize(reader);
     }
   }
 

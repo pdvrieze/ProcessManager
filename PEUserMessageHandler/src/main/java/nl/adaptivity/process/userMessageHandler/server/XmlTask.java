@@ -52,8 +52,8 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   public static class Factory implements XmlDeserializerFactory<XmlTask> {
 
     @Override
-    public XmlTask deserialize(final XmlReader in) throws XmlException {
-      return XmlTask.deserialize(in);
+    public XmlTask deserialize(final XmlReader reader) throws XmlException {
+      return XmlTask.deserialize(reader);
     }
   }
 

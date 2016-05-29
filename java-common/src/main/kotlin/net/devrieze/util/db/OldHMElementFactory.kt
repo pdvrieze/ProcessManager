@@ -14,17 +14,23 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.xml;
+package net.devrieze.util.db
 
-/**
- * Interface that factories need to implement to handle be deserialization in a "shared"
- * non-reflective approach.
+import net.devrieze.util.Handle
+import net.devrieze.util.Transaction
+import java.sql.PreparedStatement
+import java.sql.SQLException
 
- * Created by pdvrieze on 27/08/15.
- */
-public interface XmlDeserializerFactory<T> {
+interface OldHMElementFactory<T, TR : Transaction> : OldElementFactory<T, TR> {
+  fun getHandleCondition(pElement: Handle<out T>): CharSequence
 
-  /** Deserialize the */
-  T deserialize(XmlReader reader) throws XmlException;
+  @Throws(SQLException::class)
+  fun setHandleParams(pStatement: PreparedStatement, pHandle: Handle<out T>, pOffset: Int): Int
 
+  /**
+   * Called before removing an element with the given handle
+   * @throws SQLException When something goes wrong.
+   */
+  @Throws(SQLException::class)
+  fun preRemove(pConnection: TR, pHandle: Handle<out T>)
 }

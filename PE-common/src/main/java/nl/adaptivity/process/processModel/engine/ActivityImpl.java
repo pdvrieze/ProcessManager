@@ -48,8 +48,8 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
 
     @NotNull
     @Override
-    public ActivityImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-      return ActivityImpl.deserialize(null, in);
+    public ActivityImpl deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return ActivityImpl.deserialize(null, reader);
     }
   }
 

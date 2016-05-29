@@ -44,8 +44,8 @@ public class EndpointDescriptorImpl implements EndpointDescriptor, XmlSerializab
   public static class Factory implements XmlDeserializerFactory<EndpointDescriptorImpl> {
 
     @Override
-    public EndpointDescriptorImpl deserialize(final XmlReader in) throws XmlException {
-      return EndpointDescriptorImpl.deserialize(in);
+    public EndpointDescriptorImpl deserialize(final XmlReader reader) throws XmlException {
+      return EndpointDescriptorImpl.deserialize(reader);
     }
   }
 

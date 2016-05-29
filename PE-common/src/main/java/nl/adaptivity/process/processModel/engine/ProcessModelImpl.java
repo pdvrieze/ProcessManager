@@ -58,8 +58,8 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
 
     @NotNull
     @Override
-    public ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-      return ProcessModelImpl.deserialize(in);
+    public ProcessModelImpl deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return ProcessModelImpl.deserialize(reader);
     }
 
     @Override

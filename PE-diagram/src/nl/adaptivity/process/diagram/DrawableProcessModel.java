@@ -36,8 +36,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static class Factory implements DeserializationFactory<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
 
     @Override
-    public DrawableProcessModel deserialize(final XmlReader in) throws XmlException {
-      return DrawableProcessModel.deserialize(this, in);
+    public DrawableProcessModel deserialize(final XmlReader reader) throws XmlException {
+      return DrawableProcessModel.deserialize(this, reader);
     }
 
     @Override
