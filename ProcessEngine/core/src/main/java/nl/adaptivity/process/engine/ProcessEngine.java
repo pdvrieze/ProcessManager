@@ -140,7 +140,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private final StringCache mStringCache = new StringCacheImpl();
   private final TransactionFactory<? extends T> mTransactionFactory;
 
-  private OldTransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
+  private TransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
 
   private TransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
 
@@ -195,7 +195,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private ProcessEngine(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
                         TransactionFactory transactionFactory,
                         IProcessModelMap<T> processModels,
-                        OldTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
+                        TransactionedHandleMap<ProcessInstance<T>, T> processInstances,
                         TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     mMessageService = messageService;
     mProcessModels = processModels;
@@ -219,7 +219,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
                                                                    TransactionFactory transactionFactory,
                                                                    IProcessModelMap<T> processModels,
-                                                                   OldTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
+                                                                   TransactionedHandleMap<ProcessInstance<T>, T> processInstances,
                                                                    TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
@@ -357,7 +357,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return result;
   }
 
-  private OldTransactionedHandleMap<ProcessInstance<T>, T> getInstances() {
+  private TransactionedHandleMap<ProcessInstance<T>, T> getInstances() {
     return mInstanceMap;
   }
 
@@ -500,7 +500,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 //      getNodeInstances().invalidateModelCache(childNode);
 //    }
     // TODO retain instance
-    OldTransactionedHandleMap<ProcessInstance<T>, T> instances = getInstances();
+    TransactionedHandleMap<ProcessInstance<T>, T> instances = getInstances();
     instances.remove(transaction, processInstance.getHandle());
   }
 
@@ -646,6 +646,10 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
       throw new IllegalArgumentException("You can't update storage state of an unregistered node");
     }
     getNodeInstances().set(transaction, handle, processNodeInstance);
+  }
+
+  public boolean removeNodeInstance(@NotNull final T transaction, @NotNull final ComparableHandle<ProcessNodeInstance<T>> handle) throws SQLException {
+    return getNodeInstances().remove(transaction, handle);
   }
 
   public void updateStorage(T transaction, ProcessInstance<T> processInstance) throws SQLException {

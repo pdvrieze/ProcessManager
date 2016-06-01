@@ -176,9 +176,9 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     }
 
     @Throws(SQLException::class)
-    override fun postCreate(connection: DBConnection, element: XmlTask) {
+    override fun postCreate(transaction: DBTransaction, element: XmlTask) {
       if (element==null) throw NullPointerException()
-      UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handleValue }.execute(connection) {
+      UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handleValue }.execute(transaction.connection) {
         name, data ->
         val item = element.getItem(name)
         if (item != null) {
@@ -231,22 +231,22 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     }
 
     @Throws(SQLException::class)
-    override fun preClear(connection: DBConnection) {
-      WebAuthDB.DELETE_FROM(nd).executeUpdate(connection)
+    override fun preClear(transaction: DBTransaction) {
+      WebAuthDB.DELETE_FROM(nd).executeUpdate(transaction.connection)
     }
 
-    override fun preRemove(connection: DBConnection, handle: Handle<XmlTask>) {
-      WebAuthDB.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle.handleValue }.executeUpdate(connection)
+    override fun preRemove(transaction: DBTransaction, handle: Handle<XmlTask>) {
+      WebAuthDB.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle.handleValue }.executeUpdate(transaction.connection)
     }
 
     @Throws(SQLException::class)
-    override fun preRemove(connection: DBConnection, element: XmlTask) {
-      preRemove(connection, element!!.handle)
+    override fun preRemove(transaction: DBTransaction, element: XmlTask) {
+      preRemove(transaction, element!!.handle)
     }
 
     override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
       val handleVal = u.taskhandle.value(columns, values)!!
-      preRemove(transaction.connection, Handles.handle<XmlTask>(handleVal))
+      preRemove(transaction, Handles.handle<XmlTask>(handleVal))
     }
 
     companion object {

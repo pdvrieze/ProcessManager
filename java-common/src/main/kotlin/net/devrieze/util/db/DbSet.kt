@@ -95,7 +95,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
           }
           return false
         }
-        elementFactory.postCreate(mTransaction.connection, mNextElem!!)
+        elementFactory.postCreate(mTransaction, mNextElem!!)
         return true
       } catch (ex: SQLException) {
         closeResultSet(mTransaction, mStatement, mResultSet)
@@ -278,7 +278,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
   @Throws(SQLException::class)
   fun remove(transaction: DBTransaction, value: Any): Boolean {
     elementFactory.asInstance(value)?.let { elem ->
-      elementFactory.preRemove(transaction.connection, elem)
+      elementFactory.preRemove(transaction, elem)
       val delete = database.DELETE_FROM(elementFactory.table).WHERE { elementFactory.getPrimaryKeyCondition(this, elem) }
       return delete.executeUpdate(transaction.connection)>0
     } ?: return false
@@ -286,7 +286,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
 
   @Throws(SQLException::class)
   fun clear(transaction: DBTransaction) {
-    elementFactory.preClear(transaction.connection)
+    elementFactory.preClear(transaction)
     val delete = database
           .DELETE_FROM(elementFactory.table)
           .WHERE { elementFactory.filter(this) }

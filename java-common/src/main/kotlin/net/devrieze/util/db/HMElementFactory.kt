@@ -32,7 +32,7 @@ interface HMElementFactory<T> : ElementFactory<T> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preRemove(connection: DBConnection, handle: Handle<out T>)
+  fun preRemove(transaction: DBTransaction, handle: Handle<out T>)
 
 
 }

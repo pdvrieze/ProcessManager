@@ -108,7 +108,7 @@ object ProcessEngineDB : Database(1) {
     val name by VARCHAR("name", 30) { NOT_NULL }
     val pihandle by reference(processNodeInstances.pihandle) { NOT_NULL }
     val data by TEXT("data") { NOT_NULL }
-    val isoutput by TINYINT("isoutput") { NOT_NULL }
+    val isoutput by BIT("isoutput") { NOT_NULL }
     override fun init() {
       PRIMARY_KEY(name, pihandle, isoutput)
       FOREIGN_KEY(pihandle).REFERENCES(processInstances.pihandle)

@@ -157,8 +157,13 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   private final UUID mUUid;
 
+  @Deprecated
   ProcessInstance(final long handle, final Principal owner, final ProcessModelImpl processModel, final String name, final UUID uUid, final State state, final ProcessEngine engine) {
-    mHandle = handle;
+    this(Handles.<ProcessInstance<T>>handle(handle), owner, processModel, name, uUid, state, engine);
+  }
+
+  ProcessInstance(final Handle<ProcessInstance<T>> handle, final Principal owner, final ProcessModelImpl processModel, final String name, final UUID uUid, final State state, final ProcessEngine engine) {
+    mHandle = handle.getHandleValue();
     mProcessModel = processModel;
     mOwner = owner;
     mUUid = uUid;

@@ -52,7 +52,7 @@ abstract class AbstractElementFactory<T> : HMElementFactory<T> {
   override fun filter(select: Database._Where) = null
 
   @Throws(SQLException::class)
-  override open fun postCreate(connection: DBConnection, element: T) {
+  override open fun postCreate(transaction: DBTransaction, element: T) {
     // Do nothing.
   }
 
@@ -62,21 +62,21 @@ abstract class AbstractElementFactory<T> : HMElementFactory<T> {
   }
 
   @Throws(SQLException::class)
-  override open fun preRemove(connection: DBConnection, handle: Handle<out T>) {
+  override open fun preRemove(transaction: DBTransaction, handle: Handle<out T>) {
     // Don't do anything
   }
 
   @Throws(SQLException::class)
-  override fun preRemove(connection: DBConnection, element: T) {
+  override fun preRemove(transaction: DBTransaction, element: T) {
     // Don't do anything
   }
 
   override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    preRemove(transaction.connection, create(transaction, columns, values))
+    preRemove(transaction, create(transaction, columns, values))
   }
 
   @Throws(SQLException::class)
-  override fun preClear(connection: DBConnection) {
+  override fun preClear(transaction: DBTransaction) {
     // Don't do anything
   }
 

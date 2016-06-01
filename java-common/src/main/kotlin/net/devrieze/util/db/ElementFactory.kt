@@ -55,20 +55,20 @@ interface ElementFactory<T> {
 
   /**
    * Hook to allow for subsequent queries
-   * @param connection The connection to use
+   * @param transaction The connection to use
    * *
    * @param element The element that has been created.
    * *
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun postCreate(connection: DBConnection, element: T)
+  fun postCreate(transaction: DBTransaction, element: T)
 
   /**
    * Get an SQL condition that would select the given object.
-   * @param pObject
+   * @param instance
    */
-  fun getPrimaryKeyCondition(where: Database._Where, pObject: T): Database.WhereClause?
+  fun getPrimaryKeyCondition(where: Database._Where, instance: T): Database.WhereClause?
 
   /**
    * Cast the parameter to the type of elements created by the factory.
@@ -83,14 +83,14 @@ interface ElementFactory<T> {
   /**
    * This method is called before an element is removed. This allows for foreign key
    * constraints to be satisfied by removing elements first.
-   * @param connection The connection to use in the background
+   * @param transaction The connection to use in the background
    * *
    * @param element The element that is going to be removed.
    * *
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preRemove(connection: DBConnection, element: T)
+  fun preRemove(transaction: DBTransaction, element: T)
 
   /**
    * This method is called before an element is removed. This method
@@ -110,12 +110,12 @@ interface ElementFactory<T> {
   /**
    * This method is clear before the collection is cleared out. This allows
    * for foreign key constraints satisfaction.
-   * @param connection The connection to use.
+   * @param transaction The connection to use.
    * *
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preClear(connection: DBConnection)
+  fun preClear(transaction: DBTransaction)
 
   fun insertStatement(value:T): Database.Insert
 

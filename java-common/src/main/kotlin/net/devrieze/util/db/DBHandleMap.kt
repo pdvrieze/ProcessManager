@@ -77,7 +77,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
           }
     mPendingCreates.put(handle, result)
     try {
-      factory.postCreate(transaction.connection, result)
+      factory.postCreate(transaction, result)
     } finally {
       mPendingCreates.remove(handle)
     }
@@ -164,7 +164,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
 
   @Throws(SQLException::class)
   override fun remove(transaction: DBTransaction, handle: Handle<out V>): Boolean {
-    elementFactory.preRemove(transaction.connection, handle)
+    elementFactory.preRemove(transaction, handle)
     return database
           .DELETE_FROM(elementFactory.table)
           .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }

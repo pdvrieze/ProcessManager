@@ -86,7 +86,7 @@ class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>)
     }.apply { handleValue = pnihandle.handleValue }
   }
 
-  override fun postCreate(connection: DBConnection, element: ProcessNodeInstance<DBTransaction>) {
+  override fun postCreate(transaction: DBTransaction, element: ProcessNodeInstance<DBTransaction>) {
     for (handle in element.directPredecessors) {
       element.ensurePredecessor(handle)
     }
@@ -94,7 +94,7 @@ class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>)
     val results = ProcessEngineDB
           .SELECT(nd.name, nd.data)
           .WHERE { nd.pnihandle eq element.handleValue }
-          .getList(connection) { name, data ->
+          .getList(transaction.connection) { name, data ->
             if (ProcessNodeInstanceMap.FAILURE_CAUSE == name && (element.state == IProcessNodeInstance.NodeInstanceState.Failed || element.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
               element.setFailureCause(data)
               null
@@ -166,8 +166,9 @@ class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>)
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
     get() = pni.pnihandle
 
-  override fun preRemove(connection: DBConnection, handle: Handle<ProcessNodeInstance<DBTransaction>>) {
+  override fun preRemove(transaction: DBTransaction, handle: Handle<ProcessNodeInstance<DBTransaction>>) {
 
+    val connection = transaction.connection
     ProcessEngineDB
           .DELETE_FROM(pred)
           .WHERE { pred.pnihandle eq handle.handleValue }
@@ -179,17 +180,19 @@ class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>)
           .executeUpdate(connection)
   }
 
-  override fun preRemove(connection: DBConnection, element: ProcessNodeInstance<DBTransaction>) {
-    preRemove(connection, element.handle)
+  override fun preRemove(transaction: DBTransaction, element: ProcessNodeInstance<DBTransaction>) {
+    preRemove(transaction, element.handle)
   }
 
   override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
     val handle = pni.pnihandle.value(columns, values)!!
-    preRemove(transaction.connection, Handles.handle<ProcessNodeInstance<DBTransaction>>(handle))
+    preRemove(transaction, Handles.handle<ProcessNodeInstance<DBTransaction>>(handle))
   }
 
   @Throws(SQLException::class)
-  override fun preClear(connection: DBConnection) {
+  override fun preClear(transaction: DBTransaction) {
+
+    val connection = transaction.connection
 
     ProcessEngineDB
           .DELETE_FROM(pred)
