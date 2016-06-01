@@ -28,7 +28,7 @@ import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModel
 import java.util.*
 
 
-class ProcessModelMap(transactionFactory: TransactionFactory<DBTransaction>, stringCache: StringCache) : DBHandleMap<ProcessModelImpl>(
+internal class ProcessModelMap(transactionFactory: TransactionFactory<DBTransaction>, stringCache: StringCache) : DBHandleMap<ProcessModelImpl>(
       transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IProcessModelMap<DBTransaction> {
 
   override fun getModelWithUuid(transaction: DBTransaction, uuid: UUID): Handle<ProcessModelImpl>? {
@@ -44,14 +44,6 @@ class ProcessModelMap(transactionFactory: TransactionFactory<DBTransaction>, str
       val candidate:ProcessModelImpl? = get(transaction, it)
       uuid == candidate?.uuid
     }
-  }
-
-  companion object {
-
-
-    private val COL_OWNER = "owner"
-
-    private val COL_MODEL = "model"
   }
 
 }

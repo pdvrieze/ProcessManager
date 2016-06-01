@@ -37,7 +37,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 30/05/16.
  */
-class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DBTransaction>) : AbstractElementFactory<ProcessInstance<DBTransaction>>() {
+internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DBTransaction>) : AbstractElementFactory<ProcessInstance<DBTransaction>>() {
 
   override fun getHandleCondition(where: Database._Where,
                                   handle: Handle<ProcessInstance<DBTransaction>>): Database.WhereClause? {
@@ -168,9 +168,9 @@ class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DB
   }
 
   companion object {
-    val pi = ProcessEngineDB.processInstances
-    val pni = ProcessEngineDB.processNodeInstances
-    val id = ProcessEngineDB.instancedata
+    private val pi = ProcessEngineDB.processInstances
+    private val pni = ProcessEngineDB.processNodeInstances
+    private val id = ProcessEngineDB.instancedata
 
     @JvmStatic
     private fun toState(string: String?): State? {

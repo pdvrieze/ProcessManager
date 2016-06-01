@@ -42,12 +42,12 @@ import java.util.*
  * Created by pdvrieze on 29/05/16.
  */
 
-class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>): AbstractElementFactory<ProcessNodeInstance<DBTransaction>>() {
+internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>): AbstractElementFactory<ProcessNodeInstance<DBTransaction>>() {
 
   companion object {
-    val pni = ProcessEngineDB.processNodeInstances
-    val pred = ProcessEngineDB.pnipredecessors
-    val nd = ProcessEngineDB.nodedata
+    private val pni = ProcessEngineDB.processNodeInstances
+    private val pred = ProcessEngineDB.pnipredecessors
+    private val nd = ProcessEngineDB.nodedata
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<ProcessNodeInstance<DBTransaction>>): Database.WhereClause? {
