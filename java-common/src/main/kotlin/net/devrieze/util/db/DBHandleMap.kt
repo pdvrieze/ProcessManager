@@ -18,14 +18,8 @@ package net.devrieze.util.db
 
 import net.devrieze.util.*
 import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.util.kotlin.sql.use
-
-import java.sql.PreparedStatement
-import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
-import java.util.logging.Level
-import java.util.logging.Logger
 
 open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTransaction>, database: Database, elementFactory: HMElementFactory<V>) :
       DbSet<V>(transactionFactory, database, elementFactory), TransactionedHandleMap<V, DBTransaction> {
@@ -62,30 +56,30 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun get(transaction: DBTransaction, pHandle: Handle<out V>): V? {
-    val handle = Handles.handle(pHandle)
-    if (mPendingCreates.containsKey(handle)) {
-      return mPendingCreates[handle]
+  override fun get(transaction: DBTransaction, handle: Handle<V>): V? {
+    val comparableHandle = Handles.handle(handle)
+    if (mPendingCreates.containsKey(comparableHandle)) {
+      return mPendingCreates[comparableHandle]
     }
 
     val factory = elementFactory
     val result = database
           .SELECT(factory.createColumns)
-          .WHERE { factory.getHandleCondition(this, pHandle) AND factory.filter(this) }
+          .WHERE { factory.getHandleCondition(this, comparableHandle) AND factory.filter(this) }
           .getSingleList(transaction.connection) { columns, values ->
             elementFactory.create(transaction, columns, values)
           }
-    mPendingCreates.put(handle, result)
+    mPendingCreates.put(comparableHandle, result)
     try {
       factory.postCreate(transaction, result)
     } finally {
-      mPendingCreates.remove(handle)
+      mPendingCreates.remove(comparableHandle)
     }
     return result
   }
 
   @Throws(SQLException::class)
-  override fun castOrGet(transaction: DBTransaction, handle: Handle<out V>): V? {
+  override fun castOrGet(transaction: DBTransaction, handle: Handle<V>): V? {
     val element = elementFactory.asInstance(handle)
     if (element != null) {
       return element
@@ -94,14 +88,14 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun set(transaction: DBTransaction, handle: Handle<out V>, value: V): V? {
+  override fun set(transaction: DBTransaction, handle: Handle<V>, value: V): V? {
     val oldValue = get(transaction, handle)
 
     return set(transaction, handle, oldValue, value)
   }
 
   @Throws(SQLException::class)
-  protected operator fun set(transaction: DBTransaction, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
+  protected operator fun set(transaction: DBTransaction, handle: Handle<V>, oldValue: V?, newValue: V): V? {
     if (oldValue == newValue) {
       return oldValue
     }
@@ -116,9 +110,9 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
     return oldValue
   }
 
-  override fun iterator(transaction: DBTransaction, pReadOnly: Boolean): AutoCloseableIterator<V> {
+  override fun iterator(transaction: DBTransaction, readOnly: Boolean): AutoCloseableIterator<V> {
     try {
-      return super.iterator(transaction, pReadOnly)
+      return super.iterator(transaction, readOnly)
     } catch (e: SQLException) {
       throw RuntimeException(e)
     }
@@ -148,7 +142,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: DBTransaction, handle: Handle<out V>): Boolean {
+  override fun contains(transaction: DBTransaction, handle: Handle<V>): Boolean {
     val query = database
           .SELECT(database.COUNT(elementFactory.createColumns[0]))
           .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
@@ -163,7 +157,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun remove(transaction: DBTransaction, handle: Handle<out V>): Boolean {
+  override fun remove(transaction: DBTransaction, handle: Handle<V>): Boolean {
     elementFactory.preRemove(transaction, handle)
     return database
           .DELETE_FROM(elementFactory.table)
@@ -171,7 +165,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
           .executeUpdate(transaction.connection)>0
   }
 
-  override fun invalidateCache(handle: Handle<out V>) {
+  override fun invalidateCache(handle: Handle<V>) {
     // No-op, there is no cache
   }
 

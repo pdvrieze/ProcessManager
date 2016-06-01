@@ -36,7 +36,7 @@ const val EXTRACONF = "ENGINE=InnoDB CHARSET=utf8"
 
 object ProcessEngineDB : Database(1) {
 
-  object processModel : MutableTable("processmodels", EXTRACONF) {
+  object processModels : MutableTable("processmodels", EXTRACONF) {
     val pmhandle by BIGINT("pmhandle") { NOT_NULL; AUTO_INCREMENT }
     val owner by VARCHAR("owner", 30) { NOT_NULL }
     val model by MEDIUMTEXT(name = "model")
@@ -48,20 +48,20 @@ object ProcessEngineDB : Database(1) {
   }
 
   object pmUsers : MutableTable("pmusers", EXTRACONF) {
-    val pmhandle by reference(processModel.pmhandle) { NOT_NULL }
+    val pmhandle by reference(processModels.pmhandle) { NOT_NULL }
     val user by VARCHAR("user", 30) { BINARY }
     override fun init() {
       PRIMARY_KEY(pmhandle, user)
-      FOREIGN_KEY (pmhandle).REFERENCES(processModel.pmhandle)
+      FOREIGN_KEY (pmhandle).REFERENCES(processModels.pmhandle)
     }
   }
 
   object pmroles : MutableTable("pmroles", EXTRACONF) {
-    val pmhandle by reference(processModel.pmhandle) { NOT_NULL }
+    val pmhandle by reference(processModels.pmhandle) { NOT_NULL }
     val role by VARCHAR("role", 30)
     override fun init() {
       PRIMARY_KEY(pmhandle, role)
-      FOREIGN_KEY (pmhandle).REFERENCES(processModel.pmhandle)
+      FOREIGN_KEY (pmhandle).REFERENCES(processModels.pmhandle)
     }
 
   }
@@ -70,13 +70,13 @@ object ProcessEngineDB : Database(1) {
     val pihandle by BIGINT("pihandle") { NOT_NULL; AUTO_INCREMENT }
     val owner by VARCHAR("owner", 30) { NOT_NULL }
     val name by VARCHAR("name", 50)
-    val pmhandle by reference(processModel.pmhandle) { NOT_NULL }
+    val pmhandle by reference(processModels.pmhandle) { NOT_NULL }
     val state by VARCHAR("state", 15)
     val uuid by VARCHAR("uuid", 36) { UNIQUE }
     override fun init() {
       INDEX(owner)
       PRIMARY_KEY(pihandle)
-      FOREIGN_KEY(pmhandle).REFERENCES(processModel.pmhandle)
+      FOREIGN_KEY(pmhandle).REFERENCES(processModels.pmhandle)
     }
   }
 

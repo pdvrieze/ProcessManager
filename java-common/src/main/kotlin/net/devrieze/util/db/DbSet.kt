@@ -202,14 +202,14 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
 
   @SuppressWarnings("resource")
   @Throws(SQLException::class)
-  open fun iterator(transaction: DBTransaction, pReadOnly: Boolean): AutoCloseableIterator<T> {
+  open fun iterator(transaction: DBTransaction, readOnly: Boolean): AutoCloseableIterator<T> {
     try {
       val columns = elementFactory.createColumns
 
       val query = database.SELECT(columns).WHERE { elementFactory.filter(this) }
 
       val statement = query.toSQL().let{ sql:String -> StatementHelper(transaction.connection.rawConnection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY,
-                                                                                                                         if (pReadOnly) ResultSet.CONCUR_READ_ONLY else ResultSet.CONCUR_UPDATABLE), sql) }
+                                                                                                                         if (readOnly) ResultSet.CONCUR_READ_ONLY else ResultSet.CONCUR_UPDATABLE), sql) }
 
       query.setParams(statement)
 
@@ -238,15 +238,15 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
   }
 
   @Throws(SQLException::class)
-  open fun contains(connection: DBTransaction, obj: Any): Boolean {
-    val instance = elementFactory.asInstance(obj) ?: return false
+  open fun contains(transaction: DBTransaction, element: Any): Boolean {
+    val instance = elementFactory.asInstance(element) ?: return false
 
     val query = database
           .SELECT(database.COUNT(elementFactory.createColumns[0]))
           .WHERE { elementFactory.getPrimaryKeyCondition(this, instance) AND elementFactory.filter(this) }
 
     try {
-      return query.getSingleList(connection.connection) { cols, data ->
+      return query.getSingleList(transaction.connection) { cols, data ->
         data[0] as Int > 0
       }
     } catch (e:RuntimeException) {
