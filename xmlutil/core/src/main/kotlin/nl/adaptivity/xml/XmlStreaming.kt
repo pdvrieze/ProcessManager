@@ -21,8 +21,6 @@ import nl.adaptivity.xml.XmlStreaming.EventType
 import nl.adaptivity.xml.XmlStreaming.deSerialize
 import java.io.*
 import java.util.*
-
-import javax.xml.stream.XMLStreamException
 import javax.xml.transform.Result
 import javax.xml.transform.Source
 
@@ -280,6 +278,14 @@ object XmlStreaming {
   @Throws(XmlException::class)
   fun toString(source: Source): String {
     return XmlStreaming.newReader(source).toCharArrayWriter().toString()
+  }
+
+  fun toString(value: XmlSerializable): String {
+    return StringWriter().apply {
+      XmlStreaming.newWriter(this).use { writer ->
+        value.serialize(writer)
+      }
+    }.toString()
   }
 
 }
