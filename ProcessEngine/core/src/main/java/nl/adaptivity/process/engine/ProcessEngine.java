@@ -17,8 +17,8 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.*;
-import net.devrieze.util.db.OldDBTransaction;
-import net.devrieze.util.db.OldDbSet;
+import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
@@ -75,7 +75,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private static final int INSTANCE_CACHE_SIZE = 10;
 
 
-  private static class MyDBTransactionFactory implements TransactionFactory<OldDBTransaction> {
+  private static class MyDBTransactionFactory implements TransactionFactory<DBTransaction> {
     private final Context mContext;
 
     private javax.sql.DataSource mDBResource = null;
@@ -93,21 +93,17 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     private javax.sql.DataSource getDBResource() {
       if (mDBResource ==null) {
         if (mContext!=null) {
-          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         } else {
-          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         }
       }
       return mDBResource;
     }
 
     @Override
-    public OldDBTransaction startTransaction() {
-      try {
-        return new OldDBTransaction(getDBResource(), ProcessEngineDB.INSTANCE);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
+    public DBTransaction startTransaction() {
+      return new DBTransaction(getDBResource(), ProcessEngineDB.INSTANCE);
     }
 
     @Override
@@ -117,7 +113,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
     @Override
     public boolean isValidTransaction(final Transaction transaction) {
-      return transaction instanceof OldDBTransaction && ((OldDBTransaction) transaction).providerEquals(mDBResource);
+      return transaction instanceof DBTransaction;
     }
   }
 
@@ -371,7 +367,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
       // TODO Hack to use the db backed implementation here
       @SuppressWarnings("raw")
-      IProcessModelMap<T> tmp = (IProcessModelMap) new ProcessModelMap(mTransactionFactory, mStringCache);
+      IProcessModelMap<T> tmp = (IProcessModelMap) new ProcessModelMap((TransactionFactory<DBTransaction>) mTransactionFactory, mStringCache);
       mProcessModels = tmp;
     }
     return mProcessModels;

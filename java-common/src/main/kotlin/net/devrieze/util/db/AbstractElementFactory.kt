@@ -17,27 +17,21 @@
 package net.devrieze.util.db
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Transaction
-import net.devrieze.util.db.OldHMElementFactory
 import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.IColumnType
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
 
 /**
- * Abstract baseclass for [OldElementFactory] and [OldHMElementFactory].
+ * Abstract baseclass for [ElementFactory] and [HMElementFactory].
  * This class provides implementations that allow optional extensions for
  * complex datatypes. Simple types do not need factories that override these.
 
  * @author Paul de Vrieze
  * *
- * @param  Type of the element created / handled
+ * @param  T of the element created / handled
  */
 abstract class AbstractElementFactory<T> : HMElementFactory<T> {
 
@@ -57,12 +51,12 @@ abstract class AbstractElementFactory<T> : HMElementFactory<T> {
   }
 
   @Throws(SQLException::class)
-  override open fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T) {
+  override fun postStore(connection: DBConnection, handle: Handle<T>, oldValue: T?, newValue: T) {
     // Simple case, do nothing
   }
 
   @Throws(SQLException::class)
-  override open fun preRemove(transaction: DBTransaction, handle: Handle<out T>) {
+  override fun preRemove(transaction: DBTransaction, handle: Handle<T>) {
     // Don't do anything
   }
 

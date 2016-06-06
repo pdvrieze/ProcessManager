@@ -18,11 +18,8 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
-import net.devrieze.util.StringCache
-import net.devrieze.util.Transaction
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBTransaction
-import net.devrieze.util.db.OldDBTransaction
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngine
@@ -35,8 +32,7 @@ import uk.ac.bournemouth.kotlinsql.ColumnType
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Table
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import java.sql.*
-import java.util.*
+import java.sql.SQLException
 
 /**
  * Created by pdvrieze on 29/05/16.
@@ -48,6 +44,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     private val pni = ProcessEngineDB.processNodeInstances
     private val pred = ProcessEngineDB.pnipredecessors
     private val nd = ProcessEngineDB.nodedata
+    const val FAILURE_CAUSE = "failureCause"
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<ProcessNodeInstance<DBTransaction>>): Database.WhereClause? {
@@ -95,7 +92,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
           .SELECT(nd.name, nd.data)
           .WHERE { nd.pnihandle eq element.handleValue }
           .getList(transaction.connection) { name, data ->
-            if (ProcessNodeInstanceMap.FAILURE_CAUSE == name && (element.state == IProcessNodeInstance.NodeInstanceState.Failed || element.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
+            if (FAILURE_CAUSE == name && (element.state == IProcessNodeInstance.NodeInstanceState.Failed || element.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
               element.setFailureCause(data)
               null
             } else {
@@ -133,10 +130,10 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
 
     if (newValue.directPredecessors.isNotEmpty()) {
       val insert = ProcessEngineDB
-            .INSERT(pred.pnihandle, pred.predecessor)
+            .INSERT_OR_UPDATE(pred.pnihandle, pred.predecessor)
 
       for (predecessor in newValue.directPredecessors) {
-        insert.VALUES(newValue.handleValue, predecessor.handleValue)
+        insert.VALUES(handle.handleValue, predecessor.handleValue)
       }
 
       insert.executeUpdate(connection)
@@ -145,12 +142,12 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     val isFailure = newValue.state == IProcessNodeInstance.NodeInstanceState.Failed || newValue.state == IProcessNodeInstance.NodeInstanceState.FailRetry
     val results = newValue.results
     if (results.isNotEmpty() || (isFailure && newValue.failureCause!=null)) {
-      val insert = ProcessEngineDB.INSERT(nd.pnihandle, nd.name, nd.data)
+      val insert = ProcessEngineDB.INSERT_OR_UPDATE(nd.pnihandle, nd.name, nd.data)
       for(data in results) {
         insert.VALUES(newValue.handleValue, data.name, data.content.contentString)
       }
       if (isFailure && newValue.failureCause!=null) {
-        insert.VALUES(newValue.handleValue, ProcessNodeInstanceMap.FAILURE_CAUSE, newValue.failureCause.message)
+        insert.VALUES(newValue.handleValue, FAILURE_CAUSE, newValue.failureCause.message)
       }
       insert.executeUpdate(connection)
     }

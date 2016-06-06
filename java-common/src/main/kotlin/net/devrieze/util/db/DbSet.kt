@@ -346,6 +346,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
     val stmt = elementFactory.insertStatement(elem)
     return stmt.execute(transaction.connection, elementFactory.keyColumn) {
       it?.let { handle ->
+        if ( elem is HandleMap.HandleAware<*>) elem.setHandleValue(handle)
         Handles.handle<W>(handle).apply {
           elementFactory.postStore(transaction.connection, this, null, elem)
         }

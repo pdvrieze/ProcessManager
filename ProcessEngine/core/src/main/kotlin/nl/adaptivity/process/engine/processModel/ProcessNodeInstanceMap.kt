@@ -32,8 +32,5 @@ import java.sql.Types
 
 class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out DBTransaction>, processEngine: ProcessEngine<DBTransaction>, stringCache: StringCache) :
       DBHandleMap<ProcessNodeInstance<DBTransaction>>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine)) {
-  companion object {
 
-    internal val FAILURE_CAUSE = "failureCause"
-  }
 }
