@@ -16,11 +16,7 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.OldCachingHandleMap;
-import net.devrieze.util.Handle;
-import net.devrieze.util.InputStreamOutputStream;
-import net.devrieze.util.Transaction;
-import net.devrieze.util.OldTransactionedHandleMap;
+import net.devrieze.util.*;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -76,7 +72,7 @@ public class TestProcessEngine {
 
 
     List<IXmlMessage> mMessages=new ArrayList<>();
-    private List<Handle<? extends ProcessNodeInstance>> mMessageNodes = new ArrayList<>();
+    private List<Handle<? extends ProcessNodeInstance<Transaction>>> mMessageNodes = new ArrayList<>();
 
     @Override
     public IXmlMessage createMessage(final IXmlMessage message) {
@@ -107,7 +103,7 @@ public class TestProcessEngine {
 
       ((XmlMessage) processedMessage).setContent(instantiatedContent.getNamespaces(), instantiatedContent.getContent());
       mMessages.add(processedMessage);
-      mMessageNodes.add(new HProcessNodeInstance(instance.getHandle()));
+      mMessageNodes.add(instance.getHandle());
       return true;
     }
   }
@@ -159,8 +155,8 @@ public class TestProcessEngine {
     }
   }
 
-  private static <V> OldTransactionedHandleMap<V,Transaction> cache(OldTransactionedHandleMap<V,Transaction> base, int count) {
-    return new OldCachingHandleMap<>(base, count);
+  private static <V> TransactionedHandleMap<V,Transaction> cache(TransactionedHandleMap<V,Transaction> base, int count) {
+    return new CachingHandleMap<>(base, count);
   }
 
   private static <V> IProcessModelMap<Transaction> cache(IProcessModelMap<Transaction> base, int count) {
@@ -170,7 +166,7 @@ public class TestProcessEngine {
   @BeforeMethod
   public void beforeTest() {
     mStubMessageService.clear();
-    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(),1), cache(new MemTransactionedHandleMap<ProcessInstance>(),1), cache(new MemTransactionedHandleMap<ProcessNodeInstance>(),2));
+    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<Transaction>>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<Transaction>>(), 2));
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {
@@ -228,7 +224,7 @@ public class TestProcessEngine {
     assertEquals(1, processInstance.getActive().size());
     assertEquals(1, processInstance.getFinished().size());
     Handle<? extends ProcessNodeInstance<Transaction>> hfinished = processInstance.getFinished().iterator().next();
-    ProcessNodeInstance finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
+    ProcessNodeInstance<Transaction> finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
     assertTrue(finished.getNode() instanceof StartNodeImpl);
     assertEquals("start", finished.getNode().getId());
 
@@ -237,7 +233,7 @@ public class TestProcessEngine {
     ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
     assertEquals(NodeInstanceState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
 
-    assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, taskNode, null, mPrincipal));
+    assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, hfinished, null, mPrincipal));
     assertEquals(0, processInstance.getActive().size());
     assertEquals(2, processInstance.getFinished().size());
     assertEquals(1, processInstance.getResults().size());
@@ -262,7 +258,7 @@ public class TestProcessEngine {
 
     mStubMessageService.clear(); // (Process the message)
     assertEquals(0, ac1.getResults().size());
-    assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, ac1, getDocument("testModel2_response1.xml"), mPrincipal));
+    assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml"), mPrincipal));
     assertEquals(2, ac1.getResults().size());
     ProcessData result1 = ac1.getResults().get(0);
     ProcessData result2 = ac1.getResults().get(1);

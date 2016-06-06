@@ -166,11 +166,6 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return pe;
   }
 
-  private static <T extends Transaction, V> OldTransactionedHandleMap<V, T> wrapCache(OldTransactionedHandleMap<V,T> base, int cacheSize) {
-    if(cacheSize<=0) { return base; }
-    return new OldCachingHandleMap<V, T>(base, cacheSize);
-  }
-
   private static <T extends Transaction, V> TransactionedHandleMap<V, T> wrapCache(TransactionedHandleMap<V,T> base, int cacheSize) {
     if(cacheSize<=0) { return base; }
     return new CachingHandleMap<V, T>(base, cacheSize);

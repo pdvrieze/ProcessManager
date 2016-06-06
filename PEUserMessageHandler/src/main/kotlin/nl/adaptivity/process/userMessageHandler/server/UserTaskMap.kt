@@ -20,7 +20,6 @@ import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.AbstractElementFactory
-import net.devrieze.util.db.AbstractOldElementFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.security.SecurityProvider

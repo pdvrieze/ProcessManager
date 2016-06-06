@@ -90,7 +90,7 @@ interface OldTransactionedHandleMap<V, T : Transaction> : HandleMap<V> {
 }
 
 /**
- * Interface for handlemaps that support transactions. [OldDBHandleMap] does support this, but
+ * Interface for handlemaps that support transactions. [DBHandleMap] does support this, but
  * the interface is needed for testing without hitting the database.
  * Created by pdvrieze on 18/08/15.
  */

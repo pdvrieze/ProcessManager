@@ -19,7 +19,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 import net.devrieze.util.*;
 import net.devrieze.util.Handle;
 import net.devrieze.util.db.DBTransaction;
-import net.devrieze.util.db.OldDbSet;
+import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.AuthenticationNeededException;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
@@ -57,9 +57,9 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     private javax.sql.DataSource getDBResource() {
       if (mDBResource ==null) {
         if (mContext!=null) {
-          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         } else {
-          mDBResource = OldDbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
         }
       }
       return mDBResource;

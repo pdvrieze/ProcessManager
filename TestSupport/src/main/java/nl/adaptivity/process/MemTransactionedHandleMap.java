@@ -26,7 +26,7 @@ import java.util.Iterator;
 /**
  * Created by pdvrieze on 09/12/15.
  */
-public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.OldTransactionedHandleMap<T, Transaction> {
+public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T, Transaction> {
 
   private static class IteratorWrapper<T> implements AutoCloseableIterator<T> {
 
@@ -66,11 +66,6 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public T get(final Transaction transaction, final long handle) throws SQLException {
-    return get(handle);
-  }
-
-  @Override
   public T get(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
     return get(handle);
   }
@@ -78,11 +73,6 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   @Override
   public T castOrGet(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
     return get(handle);
-  }
-
-  @Override
-  public T set(final Transaction transaction, final long handle, final T value) throws SQLException {
-    return set(handle, value);
   }
 
   @Override
@@ -124,17 +114,7 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public boolean contains(final Transaction transaction, final long handle) throws SQLException {
-    return contains(handle);
-  }
-
-  @Override
   public boolean remove(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
-    return remove(handle);
-  }
-
-  @Override
-  public boolean remove(final Transaction transaction, final long handle) throws SQLException {
     return remove(handle);
   }
 
