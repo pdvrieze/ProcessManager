@@ -165,7 +165,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   private fun <T:Any, S:IColumnType<T,S,C>, C: Column<T, S, C>> getSingle(col:C, user:String):T? {
     return u.let { u ->
-      WebAuthDB.SELECT(col).WHERE { u.user eq user }.getSingle(connection)
+      WebAuthDB.SELECT(col).WHERE { u.user eq user }.getSingleOrNull(connection)
     }
   }
 
@@ -175,7 +175,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun isUserInRole(user: String, role: String) = WebAuthDB.SELECT(r.user)
         .WHERE { (r.user eq user) AND (r.role eq role) }
-        .getSingle(connection) != null
+        .getSingleOrNull(connection) != null
 
   fun fullname(user:String): String? = getSingle(u.fullname, user)
 
@@ -197,7 +197,7 @@ open class AccountDb(private val connection:DBConnection) {
     // TODO use proper salts
     val passwordHash = createPasswordHash(getSalt(username), password)
 
-    return WebAuthDB.SELECT(u.user).WHERE { (u.user eq username) AND (u.password eq passwordHash) }.getSingle(connection)!=null
+    return WebAuthDB.SELECT(u.user).WHERE { (u.user eq username) AND (u.password eq passwordHash) }.getSingleOrNull(connection)!=null
 
   }
 
@@ -210,7 +210,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   fun verifyResetToken(user: String, resetToken: String): Boolean {
-    val resetTime:Timestamp = WebAuthDB.SELECT(u.resettime).WHERE { (u.user eq user) AND (u.resettoken eq resetToken) }.getSingle(connection) ?: return false
+    val resetTime:Timestamp = WebAuthDB.SELECT(u.resettime).WHERE { (u.user eq user) AND (u.resettoken eq resetToken) }.getSingleOrNull(connection) ?: return false
     return resetTime.time - now < MAX_RESET_VALIDITY
   }
 
@@ -241,7 +241,7 @@ open class AccountDb(private val connection:DBConnection) {
     cleanChallenges()
     val challenge = WebAuthDB.SELECT(c.challenge)
                              .WHERE { (c.keyid eq keyId) AND (c.requestip eq requestIp) }
-                             .getSingle(connection)
+                             .getSingleOrNull(connection)
                              ?.let{ Base64.decoder().decode(it)} ?: return null
 
     val (user, encodedpubkey) = WebAuthDB.SELECT(p.user, p.pubkey)
@@ -294,7 +294,7 @@ open class AccountDb(private val connection:DBConnection) {
         }
       }
     } catch (e:SQLException) {
-      if (WebAuthDB.SELECT(p.keyid).WHERE { p.keyid eq keyid }.getSingle(conn) == null) {
+      if (WebAuthDB.SELECT(p.keyid).WHERE { p.keyid eq keyid }.getSingleOrNull(conn) == null) {
         throw AuthException("Unknown or expired key id. Reauthentication required",
                             e,
                             HttpURLConnection.HTTP_NOT_FOUND)

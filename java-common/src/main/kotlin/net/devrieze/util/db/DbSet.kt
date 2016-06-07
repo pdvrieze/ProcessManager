@@ -21,6 +21,7 @@ import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Database.WhereClause
 import uk.ac.bournemouth.kotlinsql.Database._Where
+import uk.ac.bournemouth.kotlinsql.getSingleList
 import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
 import java.io.Closeable
 import java.sql.*

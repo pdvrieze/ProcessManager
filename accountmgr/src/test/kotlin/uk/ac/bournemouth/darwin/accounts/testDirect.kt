@@ -224,7 +224,7 @@ class TestAccountControllerDirect {
     val u = WebAuthDB.users
     accountDb { createUser() }
     WebAuthDB.connect(MyDataSource()) {
-      val hash = WebAuthDB.SELECT(u.password).WHERE { u.user eq testUser }.getSingle(this)
+      val hash = WebAuthDB.SELECT(u.password).WHERE { u.user eq testUser }.getSingleOrNull(this)
       assertNotNull(hash);
       hash!!
 
@@ -233,11 +233,11 @@ class TestAccountControllerDirect {
       assertNotEquals(hash, hashUpper)
       assertNotEquals(hash, hashLower)
 
-      assertNotNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hash) }.getSingle(this))
+      assertNotNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hash) }.getSingleOrNull(this))
 
-      assertNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashLower) }.getSingle(this))
+      assertNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashLower) }.getSingleOrNull(this))
 
-      assertNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashUpper) }.getSingle(this))
+      assertNull(WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashUpper) }.getSingleOrNull(this))
     }
 
   }

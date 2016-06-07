@@ -18,6 +18,8 @@ package net.devrieze.util.db
 
 import net.devrieze.util.*
 import uk.ac.bournemouth.kotlinsql.Database
+import uk.ac.bournemouth.kotlinsql.getSingleList
+import uk.ac.bournemouth.kotlinsql.getSingleListOrNull
 import java.sql.SQLException
 import java.util.*
 
@@ -66,9 +68,9 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
     val result = database
           .SELECT(factory.createColumns)
           .WHERE { factory.getHandleCondition(this, comparableHandle) AND factory.filter(this) }
-          .getSingleList(transaction.connection) { columns, values ->
+          .getSingleListOrNull(transaction.connection) { columns, values ->
             elementFactory.create(transaction, columns, values)
-          }
+          } ?: return null
     mPendingCreates.put(comparableHandle, result)
     try {
       factory.postCreate(transaction, result)
