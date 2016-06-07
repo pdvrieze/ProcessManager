@@ -27,6 +27,7 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
   private double mStrokeWidth;
   private double mFontSize;
   private boolean mItalics;
+  private boolean mBold;
   private TextMeasurer<M> mTextMeasurer;
   private M mTextMeasureInfo;
 
@@ -138,6 +139,15 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
 
   public boolean isTextItalics() {
     return mItalics;
+  }
+
+  @Override
+  public void setTextBold(boolean bold) {
+    mBold = bold;
+  }
+
+  public boolean isTextBold() {
+    return mBold;
   }
 
   @SuppressWarnings("unchecked")

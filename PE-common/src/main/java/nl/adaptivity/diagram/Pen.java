@@ -56,6 +56,12 @@ public interface Pen<PEN_T extends Pen<PEN_T>> {
    */
   double getTextLeading();
 
+  boolean isTextItalics();
+  
   void setTextItalics(boolean italics);
+
+  boolean isTextBold();
+  
+  void setTextBold(boolean bold);
 
 }
