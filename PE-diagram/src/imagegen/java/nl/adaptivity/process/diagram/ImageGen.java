@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.diagram;
 
+import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.svg.JVMTextMeasurer;
 import nl.adaptivity.diagram.svg.JVMTextMeasurer.JvmMeasureInfo;
 import nl.adaptivity.diagram.svg.SVGCanvas;
@@ -48,6 +49,9 @@ public class ImageGen {
     try (final FileWriter fileWriter = new FileWriter(fileName);
          final XmlWriter xmlWriter = XmlStreaming.newWriter(fileWriter)) {
       SVGCanvas<JvmMeasureInfo> canvas = new SVGCanvas<>(new JVMTextMeasurer());
+      Rectangle                 bounds = processNode.getBounds();
+      processNode.setX(bounds.width/2d);
+      processNode.setY(bounds.height/2d);
       processNode.draw(canvas, null);
       canvas.serialize(xmlWriter);
     }
