@@ -172,14 +172,32 @@ public class AndroidPen implements Pen<AndroidPen> {
 
   @Override
   public void setTextItalics(final boolean italics) {
+    updateStyle(italics, Typeface.ITALIC);
+  }
+
+  public void updateStyle(final boolean enabled, final int styleBits) {
+    final int      style;
     final Typeface oldTypeface = mPaint.getTypeface();
-    final int style;
-    if (oldTypeface==null) {
-      style = italics ? Typeface.ITALIC : Typeface.NORMAL;
+    if (oldTypeface == null) {
+      style = enabled ? styleBits : Typeface.NORMAL;
     } else {
-      style = (oldTypeface.getStyle() & ~ Typeface.ITALIC) | (italics ? Typeface.ITALIC : Typeface.NORMAL);
+      style = (oldTypeface.getStyle() & ~styleBits) | (enabled ? styleBits : Typeface.NORMAL);
     }
     mPaint.setTypeface(Typeface.create(oldTypeface,style));
   }
 
+  @Override
+  public boolean isTextItalics() {
+    return mPaint.getTypeface().isItalic();
+  }
+
+  @Override
+  public boolean isTextBold() {
+    return mPaint.getTypeface().isBold();
+  }
+
+  @Override
+  public void setTextBold(final boolean bold) {
+    updateStyle(bold, Typeface.BOLD);
+  }
 }
