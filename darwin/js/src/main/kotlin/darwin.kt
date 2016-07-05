@@ -16,14 +16,11 @@
 
 package nl.adaptivity.darwin.html
 
-import kotlinx.html.TagConsumer
-import kotlinx.html.button
-import kotlinx.html.div
+import kotlinx.html.*
 import kotlinx.html.dom.create
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.span
-import kotlinx.html.span
 import org.w3c.dom.*
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -120,7 +117,7 @@ private val menu: HTMLElement
     return document.getElementById("menu") as HTMLElement
   }
 
-private var context: ServiceContext = JSServiceContext()
+private var context: JSServiceContext = JSServiceContext()
 
 private fun onLoginResult(request: XMLHttpRequest) {
   val text = request.responseText
@@ -186,9 +183,8 @@ private fun onLoginDialogConfirm(event: Event) {
   }
 
   val request = XMLHttpRequest().apply {
-    open("POST", "${context.accountMgrPath}/${LOGIN_LOCATION}")
+    open("POST", "${context.accountMgrPath}${LOGIN_LOCATION}")
     setRequestHeader("Accept", "text/plain")
-    setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
     onload = { onLoginResult(this) }
     onerror = { onLoginError(this) }
   }
@@ -321,22 +317,46 @@ private fun hideBanner() = mBanner?.setAttribute("style", "display:none")
  */
 private fun showBanner() = mBanner?.removeAttribute("style")
 
+class JSContextTagConsumer<T>(context: JSServiceContext, myDelegate: TagConsumer<T>) : ContextTagConsumer<T>(context, myDelegate) {
+  fun darwinDialog(title: String, id: String? = null, positiveButton:JSButton?=JSButton("Ok","btn_dlg_ok", ::dialogCloseHandler), negativeButton:JSButton?=null, vararg otherButtons:JSButton, bodyContent: ContextTagConsumer<*>.() -> Unit = {}):Node {
+    val dialog = document.create.withContext(context).darwinDialog(title, id, positiveButton, negativeButton, *otherButtons, bodyContent = bodyContent)
+    val buttons = (listOf(positiveButton, negativeButton).asSequence() + listOf(*otherButtons).asSequence())
+          .filterNotNull()
+          .associateBy { it.id }
+    dialog.visitDescendants { descendant ->
+      if (descendant is HTMLElement) {
+        descendant.id?.let {
+          buttons[it]
+        }?.let { button ->
+          descendant.onclick = button.handler
+        }
+      }
+    }
+
+    return dialog
+  }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T,C:TagConsumer<out T>> C.withContext(context:JSServiceContext) = JSContextTagConsumer<T>(context, this)
+
+@Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
+inline fun <T: Tag> T.withContext(context:JSServiceContext) = (consumer as TagConsumer<out T>).withContext(context)
+
+class JSButton(label:String, id:String, val handler: (Event)->dynamic):SharedButton(label, id) {}
+
 /**
  * @category ui_elements
  */
 private fun modalDialog(string: String) {
-  dialog("Message") {
+  val okButton = JSButton("Ok", "btn_modal_ok", {dialogCloseHandler(it)})
+  val dialogElement = document.create.withContext(context).darwinDialog("message", positiveButton = okButton) {
     div {
       span { +string }
     }
-    div {
-      style="text-align:center; margin-top: 1ex"
-      button () {
-        onClickFunction = { dialogCloseHandler(it) };
-        +"Ok"
-      }
-    }
   }
+
+  mContentPanel?.appendChild(dialogElement)
 }
 
 /**
@@ -592,7 +612,7 @@ private fun requestRefreshMenu(location: String) {
 
 }
 
-private val LOGIN_LOCATION = "/login"
+private val LOGIN_LOCATION = "login"
 
 private val INLINEPREFIXES = arrayOf("/accounts/chpasswd", "/accounts/myaccount")
 

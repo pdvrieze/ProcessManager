@@ -17,6 +17,7 @@
 package uk.ac.bournemouth.darwin.html.shared
 
 import kotlinx.html.*
+import kotlinx.html.attributes.enumEncode
 import kotlinx.html.stream.appendHTML
 import org.w3c.dom.events.Event
 
@@ -53,7 +54,7 @@ class XMLBody(initialAttributes: Map<String, String>, override val consumer: Tag
 //inline fun ContextHtmlInlineTag.withContext(context:ServiceContext) = ContextHtmlInlineTag(context, this)
 
 
-class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate: TagConsumer<out T>): TagConsumer<T> {
+open class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate: TagConsumer<out T>): TagConsumer<T> {
   @Suppress("NOTHING_TO_INLINE")
   inline final operator fun CharSequence.unaryPlus() = onTagContent(this)
 
@@ -73,6 +74,8 @@ class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate: TagC
 
   override fun onTagStart(tag: Tag) = myDelegate.onTagStart(tag)
 }
+
+open class SharedButton(val label:String, val id:String)
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun <T,C:TagConsumer<out T>> C.withContext(context:ServiceContext) = ContextTagConsumer<T>(context, this)
@@ -96,7 +99,8 @@ class PartialHTML(initialAttributes: Map<String, String>, override val consumer:
 
 fun <T, C : TagConsumer<out T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T = PartialHTML(emptyMap, this).visitAndFinalize(this, block)
 
-fun <T, C : ContextTagConsumer<T>> C.darwinDialog(title: String, id: String? = null, positiveButton:String?="Ok", negativeButton:String?=null, vararg otherButtons:String, bodyContent: ContextTagConsumer<*>.() -> Unit = {}):T {
+fun <T, C : ContextTagConsumer<T>> C.darwinBaseDialog(title: String, id: String? = null,
+                                                      bodyContent: ContextTagConsumer<DIV>.() -> Unit = {}):T {
   return div(classes = "dialog centerContents") {
     if (id != null) {
       this.id = id
@@ -104,30 +108,46 @@ fun <T, C : ContextTagConsumer<T>> C.darwinDialog(title: String, id: String? = n
     div(classes = "dialogOuter") {
       h1(classes = "dlgTitle") { +title }
       div(classes = "dialogInner centerContents") {
-        div(classes = "dlgContent") {
-          withContext(context).bodyContent()
-        }
-        div {
-          div(classes = "dlgButtons") {
-            style = "margin-top: 1em; float: right;"
-            if (negativeButton != null && negativeButton.isNotEmpty()) {
-              input(type = InputType.button, classes = "dialogcancel") {
-                value = negativeButton
-              }
-            }
-            for (otherButton in otherButtons) {
-              input(type = InputType.button, classes = "dialogother") {
-                value = otherButton
-              }
-            }
-            if (positiveButton != null && positiveButton.isNotEmpty()) {
-              input(type = InputType.submit, classes = "dialogconfirm") {
-                value = positiveButton
-              }
-            }
-          }
-        }
+        withContext(context).bodyContent()
+      }
+    }
+  }
+}
 
+fun <T, C : ContextTagConsumer<T>> C.darwinDialog(title: String, id: String? = null, positiveButton:SharedButton?=SharedButton("Ok","btn_dlg_ok"), negativeButton:SharedButton?=null, vararg otherButtons:SharedButton, bodyContent: ContextTagConsumer<*>.() -> Unit = {}):T {
+  return darwinBaseDialog(title, id) {
+    div(classes = "dlgContent") {
+      withContext(context).bodyContent()
+    }
+    dialogButtons(positiveButton, negativeButton, *otherButtons)
+
+  }
+}
+
+private fun ContextTagConsumer<DIV>.dialogButtons(positiveButton: SharedButton?,
+                              negativeButton: SharedButton?,
+                              vararg otherButtons: SharedButton) {
+  div {
+    div(classes = "dlgButtons") {
+      style = "margin-top: 1em; float: right;"
+      if (negativeButton != null && negativeButton.label.isNotEmpty()) {
+        input(type = InputType.button, classes = "dialogcancel") {
+          value = negativeButton.label
+          id = negativeButton.id
+        }
+      }
+      for (otherButton in otherButtons) {
+        input(type = InputType.button, classes = "dialogother") {
+          value = otherButton.label
+          id = otherButton.id
+        }
+      }
+      if (positiveButton != null && positiveButton.label.isNotEmpty()) {
+
+        input(type = InputType.submit, classes = "dialogconfirm") {
+          value = positiveButton.label
+          id = positiveButton.id
+        }
       }
     }
   }
@@ -162,9 +182,7 @@ interface ServiceContext {
 
 
 fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, errorMsg: String? = null, username: String? = null, password: String? = null, redirect: String? = null, cancelEnabled: Boolean = true): T {
-  return darwinDialog(title="Log in",
-                      positiveButton = "Log in",
-                      negativeButton = if (cancelEnabled) "Cancel" else null) {
+  return darwinBaseDialog(title="Log in") {
     div("errorMsg") {
       if (errorMsg==null) style="display:none" else +errorMsg
     }
@@ -202,6 +220,8 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
           }
         }
       } // table
+      dialogButtons(positiveButton = SharedButton("Log in", "btn_login"),
+                    negativeButton = if (cancelEnabled) SharedButton("Cancel","btn_login_cancel") else null)
       div { id="forgotpasswd"
         a(href="${context.accountMgrPath}resetpasswd") { +"Forgot password" }
       }
@@ -209,7 +229,7 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
   }
 }
 
-fun <T, C:ContextTagConsumer<out T>> C.setAliasDialog(oldAlias:String?):T =
+fun <T, C:ContextTagConsumer<T>> C.setAliasDialog(oldAlias:String?):T =
   darwinDialog("Set alias") {
     form(action="${context.accountMgrPath}setAlias") {
       div {
