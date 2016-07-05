@@ -23,6 +23,7 @@ import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.darwin.accounts.*
 import uk.ac.bournemouth.darwin.html.shared.darwinDialog
+import uk.ac.bournemouth.darwin.html.shared.loginDialog
 import uk.ac.bournemouth.darwin.html.shared.setAliasDialog
 import java.net.HttpURLConnection
 import java.net.URI
@@ -38,6 +39,7 @@ import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
 import javax.servlet.ServletConfig
 import javax.servlet.ServletException
+import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -58,6 +60,7 @@ internal fun sha1(src:ByteArray):ByteArray = MessageDigest.getInstance("SHA1").d
 
 const val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
 
+@MultipartConfig
 class AccountController : HttpServlet() {
 
     companion object {
@@ -154,7 +157,7 @@ class AccountController : HttpServlet() {
                                     for(key in keys) {
                                         tr {
                                             td { +(key.appname ?: "<unknown>" )}
-                                            td { +(key.lastUse.let { if (it<10000) "never" else DateFormat.getDateTimeInstance().format(Date(it)) })}
+                                            td { +(key.lastUse.let { it -> if (it<10000) "never" else DateFormat.getDateTimeInstance().format(Date(it)) })}
                                             td { a(href="${context}forget") { onClick="forget(${key.keyId})"; +"forget"} }
                                         }
                                     }
@@ -438,6 +441,8 @@ class AccountController : HttpServlet() {
 
     private fun loginScreen(req: HttpServletRequest, resp: HttpServletResponse, errorMsg:String? = null) {
         resp.darwinResponse(req, "Please log in") {
+            this.loginDialog(context, errorMsg, req.getParameter("username"), null, req.getParameter("redirect"), false)
+/*
             this.darwinDialog("Log in", positiveButton = null) {
                 if (errorMsg!=null) {
                     div("errorMsg") { +errorMsg }
@@ -485,6 +490,7 @@ class AccountController : HttpServlet() {
                     }
                 }
             }
+*/
         }
     }
 
