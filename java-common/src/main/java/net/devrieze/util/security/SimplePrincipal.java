@@ -62,4 +62,8 @@ public class SimplePrincipal implements Principal {
     return true;
   }
 
+  @Override
+  public String toString() {
+    return mName;
+  }
 }

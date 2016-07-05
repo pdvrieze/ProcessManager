@@ -73,7 +73,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
   override fun asInstance(value: Any) = value as? ProcessModelImpl
 
   override fun store(update: Database._UpdateBuilder, value: ProcessModelImpl) {
-    update.SET(pm.owner, value.owner.toString())
+    update.SET(pm.owner, value.owner?.name)
     update.SET(pm.model, XmlStreaming.toString(value))
   }
 
@@ -83,7 +83,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
   override fun insertStatement(value: ProcessModelImpl): Database.Insert {
     return ProcessEngineDB
           .INSERT(pm.owner, pm.model)
-          .VALUES(value.owner?.toString(), XmlStreaming.toString(value))
+          .VALUES(value.owner?.name, XmlStreaming.toString(value))
   }
 
   companion object {
