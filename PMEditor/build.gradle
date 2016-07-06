@@ -106,12 +106,15 @@ android {
     }
 }
 
-task cleanAnnotationsJar(type:Jar) {
-    configurations.cleanedAnnotations.each { f ->
-        project.logger.debug("Found ${f} in cleanedAnnotations")
-        from zipTree(f)
-    }
+task cleanAnnotationsJar(type:Jar, dependsOn:configurations.cleanedAnnotations) {
     archiveName = "annotations-cleaned.jar"
     exclude 'org/jetbrains/annotations/NotNull.class'
     exclude 'org/jetbrains/annotations/Nullable.class'
+
+    doFirst {
+        configurations.cleanedAnnotations.each { f ->
+            project.logger.debug("Found ${f} in cleanedAnnotations")
+            from zipTree(f)
+        }
+    }
 }
