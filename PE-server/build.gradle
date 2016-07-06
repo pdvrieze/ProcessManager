@@ -92,29 +92,40 @@ task assembleExtraBootCp(type: Copy) {
 
 task war(type: War, overwrite:true, dependsOn: configurations.warContents, group:'build') {
     setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-    configurations.warContents.each { File file ->
-        def depPath = file.path
-        if (depPath.endsWith("war")) {
-            into("/") {
-                logger.info("Extracting war ${file}")
-                from zipTree(file.absolutePath)
-                include { innerFile ->
-                    def path = innerFile.path
-                    def name = innerFile.name
-                    def result = name.endsWith(".js") && path.startsWith("META-INF/resources") || !(path.startsWith("META-INF/") || name.endsWith("web.xml"))
-                    result
-                }
-                exclude { f ->
-                    def r = f.name.endsWith(".class") && f.relativePath.segments[0]=="js"
-                    if (r) logger.warn("Skipping inclusion of `$f` into archive (from: ${file}).")
-                    return r
-                }
 
-            }
-        } else if (! (file.name.startsWith("gwt-user-") )){
-            into("/WEB-INF/lib") {
-                logger.info("Adding library $depPath")
-                from file
+    classpath=files()
+
+    exclude { file -> 
+        def r =	file.name.endsWith(".war") 
+	logger.info("Evaluating exclude on $file as $r")
+	r
+    }
+    doFirst {
+        configurations.warContents.each { File file ->
+            def depPath = file.path
+            if (depPath.endsWith(".war")) {
+                into("/") {
+                    logger.info("Extracting war ${file}")
+                    from zipTree(file.absolutePath)
+                    include { innerFile ->
+                        def path = innerFile.path
+                        def name = innerFile.name
+                        def result = name.endsWith(".js") && path.startsWith("META-INF/resources") || !(path.startsWith("META-INF/") || name.endsWith("web.xml"))
+			if (result) logger.info("  Including file $innerFile")
+                        result
+                    }
+                    exclude { f ->
+                        def r = f.name.endsWith(".war")|| (f.name.endsWith(".class") && f.relativePath.segments[0]=="js")
+                        if (r) logger.info("  Skipping inclusion of `$f` into archive (from: ${file}).")
+                        return r
+                    }
+    
+                }
+            } else if (! (file.name.startsWith("gwt-user-") )){
+                into("/WEB-INF/lib") {
+                    logger.info("Adding library $depPath")
+                    from file
+                }
             }
         }
     }
