@@ -45,25 +45,25 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
 
   private operator fun get(pos: Int): T {
     if (!isInRange(pos)) throw IndexOutOfBoundsException("This index is invalid")
-    val offset = (head+pos)%buffer.size
+    val offset = (firstElemIdx +pos)%buffer.size
     return buffer[offset] as T;
   }
 
   private fun isInRange(pos:Int):Boolean {
-    if (head<=tail) {
-      if (pos<head || pos>=tail) return false
-    } else if (pos<head && pos>=tail) {
+    if (firstElemIdx <= nextElemIdx) {
+      if (pos< firstElemIdx || pos>= nextElemIdx) return false
+    } else if (pos< firstElemIdx && pos>= nextElemIdx) {
       return false
     }
     return true
   }
 
   private var buffer = arrayOfNulls<Any?>(Math.max(1,initCapacity))
-  private var head =0
-  private var tail = 0
+  private var firstElemIdx =0
+  private var nextElemIdx = 0
 
   override val size: Int
-    get() = (tail+buffer.size-head)%buffer.size
+    get() = (nextElemIdx +buffer.size- firstElemIdx)%buffer.size
 
   override fun iterator(): MutableIterator<T> {
     return ArraySetIterator()
@@ -74,12 +74,12 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   override fun add(element: T): Boolean {
     if (contains(element)) { return false }
 
-    val space = if (tail<head) (tail+buffer.size-head) else (tail-head)
+    val space = if (nextElemIdx < firstElemIdx) (nextElemIdx +buffer.size- firstElemIdx) else (nextElemIdx - firstElemIdx)
     if (space + 1 >= buffer.size) {
       reserve(space)
     }
-    buffer[tail] = element
-    tail = (tail+1) %buffer.size
+    buffer[nextElemIdx] = element
+    nextElemIdx = (nextElemIdx +1) %buffer.size
     return true
   }
 
@@ -87,14 +87,14 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     if (reservation+1<size) { reserve(size+1) }
     val newBuffer = arrayOfNulls<Any?>(reservation)
 
-    if (head <= tail) {
-      System.arraycopy(buffer, head, newBuffer, 0, tail - head)
-      tail-=head
-      head=0
+    if (firstElemIdx <= nextElemIdx) {
+      System.arraycopy(buffer, firstElemIdx, newBuffer, 0, nextElemIdx - firstElemIdx)
+      nextElemIdx -= firstElemIdx
+      firstElemIdx =0
     } else {
-      System.arraycopy(buffer, head, newBuffer, 0, buffer.size-head)
-      System.arraycopy(buffer, 0, newBuffer, buffer.size-head, tail)
-      tail += buffer.size-head
+      System.arraycopy(buffer, firstElemIdx, newBuffer, 0, buffer.size- firstElemIdx)
+      System.arraycopy(buffer, 0, newBuffer, buffer.size- firstElemIdx, nextElemIdx)
+      nextElemIdx += buffer.size- firstElemIdx
     }
 
   }
@@ -107,42 +107,43 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
   }
 
-  fun remove(index:Int) = removeAtOffset((index+head)%buffer.size)
+  fun remove(index:Int) = removeAtOffset((index+ firstElemIdx)%buffer.size)
 
   private fun removeAtOffset(offset: Int): T {
     val result = this[offset]
 
     val bufferSize = buffer.size
-    if (offset + 1 == tail) { // optimize removing the last element
-      buffer[tail--] = null;
-      if (tail < 0) tail += bufferSize
-    } else if (offset == head) { // optimize removing the first element
-      buffer[head++] = null;
-      if (head >= bufferSize) head -= bufferSize
-    } else if (head < tail) { // Default non-wrapped case, don't attempt to optimize smallest copy ___EEEOEEEE___
-      System.arraycopy(buffer, offset + 1, buffer, offset, head - offset)
-      buffer[tail--] = null
-    } else if (offset < tail && offset < head) { // The offset is wrapped as well  EOE_____EEE
-      System.arraycopy(buffer, offset + 1, buffer, offset, tail - 1)
-      buffer[tail--] = null
+    if (offset + 1 == nextElemIdx) { // optimize removing the last element
+      nextElemIdx--
+      if (nextElemIdx < 0) nextElemIdx += bufferSize
+      buffer[nextElemIdx] = null;
+    } else if (offset == firstElemIdx) { // optimize removing the first element
+      buffer[firstElemIdx++] = null;
+      if (firstElemIdx >= bufferSize) firstElemIdx -= bufferSize
+    } else if (firstElemIdx < nextElemIdx) { // Default non-wrapped case, don't attempt to optimize smallest copy ___EEEOEEEE___
+      System.arraycopy(buffer, offset + 1, buffer, offset, firstElemIdx - offset)
+      buffer[--nextElemIdx] = null
+    } else if (offset < nextElemIdx && offset < firstElemIdx) { // The offset is wrapped as well  EOE_____EEE
+      System.arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx - 1)
+      buffer[--nextElemIdx] = null
     } else { // ofset>tail -> tail wrapped, we are in the head section EEE_____EOE
-      System.arraycopy(buffer, head, buffer, head + 1, offset - head)
-      buffer[head++] = null
+      System.arraycopy(buffer, firstElemIdx, buffer, firstElemIdx + 1, offset - firstElemIdx)
+      buffer[firstElemIdx++] = null
     }
     return result
   }
 
   public fun indexOf(element: T):Int {
-    if(head<=tail) {
-      for(i in head until tail) {
-        if (buffer[i]==element) { return i-head; }
+    if(firstElemIdx <= nextElemIdx) {
+      for(i in firstElemIdx until nextElemIdx) {
+        if (buffer[i]==element) { return i- firstElemIdx; }
       }
     } else {
-      for(i in (head until buffer.size)) {
-        if (buffer[i]==element) { return i-head; }
+      for(i in (firstElemIdx until buffer.size)) {
+        if (buffer[i]==element) { return i- firstElemIdx; }
       }
-      for(i in (0 until tail)) {
-        if (buffer[i]==element) { return i+buffer.size-head; }
+      for(i in (0 until nextElemIdx)) {
+        if (buffer[i]==element) { return i+buffer.size- firstElemIdx; }
       }
     }
     return -1
@@ -150,7 +151,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
 
   override fun clear() {
     buffer.fill(null)
-    head=0
-    tail=0
+    firstElemIdx =0
+    nextElemIdx =0
   }
 }

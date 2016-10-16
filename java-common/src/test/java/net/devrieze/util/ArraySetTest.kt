@@ -41,7 +41,17 @@ class ArraySetTest {
     val set = ArraySet<Int>()
     val elements = arrayOf(7, 2, 8, 1, 5, 6)
     set.addAll(elements)
-    assertEquals(set.asSequence().toList(), listOf(elements))
+    val iterator = set.iterator()
+    assertEquals(iterator.next(), 7)
+    assertEquals(iterator.next(), 2)
+    assertEquals(iterator.next(), 8)
+    assertEquals(iterator.next(), 1)
+    assertEquals(iterator.next(), 5)
+    assertEquals(iterator.next(), 6)
+    assertFalse(iterator.hasNext())
+
+    assertEquals(set.asSequence().toList(), elements.toList())
+
   }
 
   @Test
