@@ -19,6 +19,7 @@ package net.devrieze.util
 import org.testng.annotations.Test
 
 import org.testng.Assert.*
+import java.util.*
 
 
 /**
@@ -85,6 +86,56 @@ class ArraySetTest {
   }
 
   @Test
+  fun testRemoveMiddle() {
+    val set = ArraySet<Char>()
+    set.addAll(arrayOf('7', '2', '8', '1', '5', '6'))
+    assertTrue(set.remove('1'))
+    assertEquals(set.size, 5)
+    assertFalse(set.remove('1'))
+    assertFalse(set.contains(null))
+  }
+
+  @Test
+  fun testRemoveLast() {
+    val set = ArraySet<Char>()
+    set.addAll(arrayOf('7', '2', '8', '1', '5', '6'))
+    assertTrue(set.remove('6'))
+    assertEquals(set.size, 5)
+    assertFalse(set.remove('6'))
+    assertFalse(set.contains(null))
+  }
+
+  @Test
+  fun testRemovePosFirst() {
+    val set = ArraySet<Char>()
+    set.addAll(arrayOf('7', '2', '8', '1', '5', '6'))
+    assertEquals(set.remove(0), '7')
+    assertEquals(set.size, 5)
+    assertFalse(set.remove('7'))
+    assertFalse(set.contains(null))
+  }
+
+  @Test
+  fun testRemovePosMiddle() {
+    val set = ArraySet<Char>()
+    set.addAll(arrayOf('7', '2', '8', '1', '5', '6'))
+    assertEquals(set.remove(3),'1')
+    assertEquals(set.size, 5)
+    assertFalse(set.remove('1'))
+    assertFalse(set.contains(null))
+  }
+
+  @Test
+  fun testRemovePosLast() {
+    val set = ArraySet<Char>()
+    set.addAll(arrayOf('7', '2', '8', '1', '5', '6'))
+    assertEquals(set.remove(5),'6')
+    assertEquals(set.size, 5)
+    assertFalse(set.remove('6'))
+    assertFalse(set.contains(null))
+  }
+
+  @Test
   fun testIndexOf() {
     val set = ArraySet<Char>()
     set.addAll(arrayOf('7', '2', '8', '1', '5', '6'))
@@ -114,6 +165,63 @@ class ArraySetTest {
       assertTrue(set.contains(it))
     }
     assertEquals(set.indexOf('6'), 7)
+
+    val it = set.iterator()
+    assertEquals(it.next(),'7')
+    assertEquals(it.next(),'8')
+    assertEquals(it.next(),'1')
+    assertEquals(it.next(),'2')
+    assertEquals(it.next(),'3')
+    assertEquals(it.next(),'4')
+    assertEquals(it.next(),'5')
+    assertEquals(it.next(),'6')
+    assertFalse(it.hasNext())
+    try {
+      it.next()
+      fail("The iterator should be at the end and throw an exception")
+    } catch (e:NoSuchElementException) {
+      assertEquals(e.message, "The iterator is at the end")
+    }
+  }
+
+  @Test(dependsOnMethods = arrayOf("testWrap"))
+  fun testWrapRemove1() {
+    val set = ArraySet<Char>()
+    val array1 = arrayOf('1', '2', '3', '4', '5', '6')
+    val array2 = arrayOf('7', '8')
+    set.addAll(array1)
+    set.addAll(array2)
+    set.removeAll(array1)
+    set.addAll(array1)
+    assertEquals(set.remove(4),'3')
+    assertFalse(set.contains('3'))
+    assertFalse(set.contains(null))
+    assertEquals(set.size,7)
+
+    assertEquals(set.remove(5), '5')
+    assertFalse(set.contains('5'))
+    assertFalse(set.contains(null))
+    assertEquals(set.size, 6)
+  }
+
+  @Test(dependsOnMethods = arrayOf("testWrap"))
+  fun testWrapRemove2() {
+    val set = ArraySet<Char>()
+    val array1 = arrayOf('1', '2', '3', '4', '5', '6')
+    val array2 = arrayOf('7', '8')
+    set.addAll(array1)
+    set.addAll(array2)
+    set.removeAll(array1)
+    set.addAll(array1)
+    assertEquals(set.remove(3),'2')
+    assertFalse(set.contains('2'))
+    assertFalse(set.contains(null))
+    assertEquals(set.size,7)
+
+    assertEquals(set.remove(2), '1')
+    assertFalse(set.contains('1'))
+    assertFalse(set.contains(null))
+    assertEquals(set.size, 6)
   }
 
 }

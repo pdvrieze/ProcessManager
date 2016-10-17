@@ -32,7 +32,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
 
     override fun next(): T {
-      if (! isInRange(pos)) throw NoSuchElementException("The iterator is at the end")
+      if (pos>=size) throw NoSuchElementException("The iterator is at the end")
       val result = this@ArraySet[pos]
       pos++;
       return result
@@ -43,16 +43,16 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
   }
 
-  private operator fun get(pos: Int): T {
-    if (!isInRange(pos)) throw IndexOutOfBoundsException("This index is invalid")
+  operator fun get(pos: Int): T {
+    if (pos<0 || pos>=size) throw IndexOutOfBoundsException("This index is invalid")
     val offset = (firstElemIdx +pos)%buffer.size
     return buffer[offset] as T;
   }
 
-  private fun isInRange(pos:Int):Boolean {
+  private fun isInRange(offset:Int):Boolean {
     if (firstElemIdx <= nextElemIdx) {
-      if (pos< firstElemIdx || pos>= nextElemIdx) return false
-    } else if (pos< firstElemIdx && pos>= nextElemIdx) {
+      if (offset< firstElemIdx || offset>= nextElemIdx) return false
+    } else if (offset< firstElemIdx && offset>= nextElemIdx) {
       return false
     }
     return true
@@ -110,7 +110,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   fun remove(index:Int) = removeAtOffset((index+ firstElemIdx)%buffer.size)
 
   private fun removeAtOffset(offset: Int): T {
-    val result = this[offset]
+    val result = buffer[offset] as T
 
     val bufferSize = buffer.size
     if (offset + 1 == nextElemIdx) { // optimize removing the last element
@@ -121,10 +121,10 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
       buffer[firstElemIdx++] = null;
       if (firstElemIdx >= bufferSize) firstElemIdx -= bufferSize
     } else if (firstElemIdx < nextElemIdx) { // Default non-wrapped case, don't attempt to optimize smallest copy ___EEEOEEEE___
-      System.arraycopy(buffer, offset + 1, buffer, offset, firstElemIdx - offset)
+      System.arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx - offset -1)
       buffer[--nextElemIdx] = null
     } else if (offset < nextElemIdx && offset < firstElemIdx) { // The offset is wrapped as well  EOE_____EEE
-      System.arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx - 1)
+      System.arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx -offset - 1)
       buffer[--nextElemIdx] = null
     } else { // ofset>tail -> tail wrapped, we are in the head section EEE_____EOE
       System.arraycopy(buffer, firstElemIdx, buffer, firstElemIdx + 1, offset - firstElemIdx)
