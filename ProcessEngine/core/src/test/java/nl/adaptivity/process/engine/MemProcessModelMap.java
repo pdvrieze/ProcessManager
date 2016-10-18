@@ -33,7 +33,7 @@ public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelIm
   public Handle<ProcessModelImpl> getModelWithUuid(final Transaction transaction, final UUID uuid) {
     for(ProcessModelImpl candidate:this) {
       if (uuid.equals(candidate.getUuid())) {
-        return candidate;
+        return candidate.getHandle();
       }
     }
     return null;

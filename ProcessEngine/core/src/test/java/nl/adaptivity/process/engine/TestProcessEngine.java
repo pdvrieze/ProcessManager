@@ -20,21 +20,16 @@ import net.devrieze.util.*;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
-import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.MemTransactionedHandleMap;
 import nl.adaptivity.process.StubTransaction;
 import nl.adaptivity.process.StubTransactionFactory;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
@@ -55,8 +50,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import java.io.*;
 import java.net.URI;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,46 +62,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class TestProcessEngine {
 
-  private class StubMessageService implements IMessageService<IXmlMessage,Transaction, ProcessNodeInstance<Transaction>> {
-
-
-    List<IXmlMessage> mMessages=new ArrayList<>();
-    private List<Handle<? extends ProcessNodeInstance<Transaction>>> mMessageNodes = new ArrayList<>();
-
-    @Override
-    public IXmlMessage createMessage(final IXmlMessage message) {
-      return message;
-    }
-
-    public void clear() {
-      mMessageNodes.clear();
-      mMessages.clear();
-    }
-
-    @Override
-    public EndpointDescriptor getLocalEndpoint() {
-      return mLocalEndpoint;
-    }
-
-    @Override
-    public boolean sendMessage(final Transaction transaction, final IXmlMessage protoMessage, final ProcessNodeInstance instance) throws
-            SQLException {
-      CompactFragment instantiatedContent = null;
-      XmlMessage processedMessage = null;
-      try {
-        instantiatedContent = instance.instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(protoMessage.getMessageBody()), false);
-        processedMessage = new XmlMessage(protoMessage.getService(), protoMessage.getEndpoint(), protoMessage.getOperation(), protoMessage.getUrl(), protoMessage.getMethod(), protoMessage.getContentType(), instantiatedContent);
-      } catch (XmlException e) {
-        throw new RuntimeException(e);
-      }
-
-      ((XmlMessage) processedMessage).setContent(instantiatedContent.getNamespaces(), instantiatedContent.getContent());
-      mMessages.add(processedMessage);
-      mMessageNodes.add(instance.getHandle());
-      return true;
-    }
-  }
-
   private static DocumentBuilder _documentBuilder;
 
   ProcessEngine<Transaction> mProcessEngine;
@@ -117,7 +71,7 @@ public class TestProcessEngine {
   private SimplePrincipal mPrincipal;
 
   public TestProcessEngine() {
-    mStubMessageService = new StubMessageService();
+    mStubMessageService = new StubMessageService(mLocalEndpoint);
     mStubTransactionFactory = new StubTransactionFactory();
     mPrincipal = new SimplePrincipal("pdvrieze");
   }
@@ -166,7 +120,7 @@ public class TestProcessEngine {
   @BeforeMethod
   public void beforeTest() {
     mStubMessageService.clear();
-    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<Transaction>>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<Transaction>>(), 2));
+    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<Transaction>>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<Transaction>>(), 2), true);
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {
@@ -208,15 +162,26 @@ public class TestProcessEngine {
 
     HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
 
-    assertEquals(1, mStubMessageService.mMessages.size());
-    assertEquals(1L, mStubMessageService.mMessageNodes.get(0).getHandleValue());
+    assertEquals(1, mStubMessageService.getMMessages().size());
+    assertEquals(1L, mStubMessageService.getMessageNode(0).getHandleValue());
 
     InputStream expected = getXml("testModel1_task1.xml");
 
-    char[] receivedChars = serializeToXmlCharArray(mStubMessageService.mMessages.get(0));
+    char[] receivedChars = serializeToXmlCharArray(mStubMessageService.getMMessages().get(0));
 
     XMLUnit.setIgnoreWhitespace(true);
-    assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
+    try {
+      assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
+    } catch (AssertionError e) {
+      e.printStackTrace();
+      try {
+        assertEquals(Streams.toString(getXml("testModel1_task1.xml"), Charset.defaultCharset()), new String(receivedChars));
+      } catch (Exception f) {
+        f.initCause(e);
+        throw f;
+      }
+
+    }
 
     ProcessInstance<Transaction> processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
     assertEquals(State.STARTED, processInstance.getState());
@@ -230,7 +195,7 @@ public class TestProcessEngine {
 
     assertEquals(0, processInstance.getResults().size());
 
-    ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
+    ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);
     assertEquals(NodeInstanceState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
 
     assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, hfinished, null, mPrincipal));
@@ -249,11 +214,13 @@ public class TestProcessEngine {
 
     HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
 
-    assertEquals(1, mStubMessageService.mMessages.size());
+    assertEquals(1, mStubMessageService.getMMessages().size());
 
     XMLUnit.setIgnoreWhitespace(true);
-    assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(serializeToXmlCharArray(mStubMessageService.mMessages.get(0))));
-    ProcessNodeInstance<Transaction> ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);// This should be 0 as it's the first activity
+    assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(serializeToXmlCharArray(mStubMessageService
+                                                                                                                              .getMMessages()
+                                                                                                                              .get(0))));
+    ProcessNodeInstance<Transaction> ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);// This should be 0 as it's the first activity
 
 
     mStubMessageService.clear(); // (Process the message)
@@ -267,9 +234,9 @@ public class TestProcessEngine {
     assertEquals("user", result2.getName());
     assertXMLEqual("<user><fullname>Paul</fullname></user>", result2.getContent().getContentString());
 
-    assertEquals(1, mStubMessageService.mMessages.size());
-    assertEquals(2L, mStubMessageService.mMessageNodes.get(0).getHandleValue()); //We should have a new message with the new task (with the data)
-    ProcessNodeInstance ac2=mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
+    assertEquals(1, mStubMessageService.getMMessages().size());
+    assertEquals(2L, mStubMessageService.getMessageNode(0).getHandleValue()); //We should have a new message with the new task (with the data)
+    ProcessNodeInstance ac2=mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);
 
     List<ProcessData> ac2Defines = ac2.getDefines(transaction);
     assertEquals(1, ac2Defines.size());

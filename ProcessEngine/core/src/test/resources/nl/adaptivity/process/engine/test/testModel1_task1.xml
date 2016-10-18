@@ -15,15 +15,15 @@
   ~ see <http://www.gnu.org/licenses/>.
   -->
 
-<message xmlns="http://adaptivity.nl/ProcessEngine/" endpoint="internal" serviceName="userMessageHandler" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" type="application/soap+xml" url="/PEUserMessageHandler/internal">
+<pe:message xmlns:pe="http://adaptivity.nl/ProcessEngine/" endpoint="internal" serviceName="userMessageHandler" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" type="application/soap+xml" url="/PEUserMessageHandler/internal">
     <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope"
                        xmlns="http://www.w3.org/2003/05/soap-envelope"
-                       xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                       xmlns:jbi="http://adaptivity.nl/jbi"
                        xmlns:umh="http://adaptivity.nl/userMessageHandler"
                        encodingStyle="http://www.w3.org/2003/05/soap-encoding">
         <Body>
             <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <repliesParam><endpointDescriptor xmlns="http://adaptivity.nl/jbi" endpointLocation="http://localhost/" endpointName="processEngine" serviceLocalName="processEngine" serviceNS=""/>
+                <repliesParam><jbi:endpointDescriptor endpointLocation="http://localhost/" endpointName="processEngine" serviceLocalName="processEngine" serviceNS=""/>
                 </repliesParam><taskParam><task instancehandle="0" owner="pdvrieze" remotehandle="1" summary="Task Bar"><item type="label" value="Hi! . Welcome!">
                         </item>
                     </task>
@@ -31,4 +31,4 @@
             </umh:postTask>
         </Body>
     </Envelope:Envelope>
-</message>
+</pe:message>
