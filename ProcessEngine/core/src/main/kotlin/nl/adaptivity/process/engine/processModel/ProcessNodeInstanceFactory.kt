@@ -41,37 +41,37 @@ import java.sql.SQLException
 internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>): AbstractElementFactory<ProcessNodeInstance<DBTransaction>>() {
 
   companion object {
-    private val pni = ProcessEngineDB.processNodeInstances
-    private val pred = ProcessEngineDB.pnipredecessors
-    private val nd = ProcessEngineDB.nodedata
+    private val tbl_pni = ProcessEngineDB.processNodeInstances
+    private val tbl_pred = ProcessEngineDB.pnipredecessors
+    private val tbl_nd = ProcessEngineDB.nodedata
     const val FAILURE_CAUSE = "failureCause"
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<ProcessNodeInstance<DBTransaction>>): Database.WhereClause? {
-    return where.run { pni.pnihandle eq handle.handleValue }
+    return where.run { tbl_pni.pnihandle eq handle.handleValue }
   }
 
   override val table: Table
-    get() = pni
+    get() = tbl_pni
 
   override val createColumns: List<Column<*, *, *>>
-    get() = listOf(pni.pnihandle, pni.nodeid, pni.pihandle, pni.state)
+    get() = listOf(tbl_pni.pnihandle, tbl_pni.nodeid, tbl_pni.pihandle, tbl_pni.state)
 
   override fun create(transaction: DBTransaction,
                       columns: List<Column<*, *, *>>,
                       values: List<Any?>): ProcessNodeInstance<DBTransaction> {
-    val pnihandle = Handles.handle<ProcessNodeInstance<DBTransaction>>(pni.pnihandle.value(columns, values)!!)
-    val nodeId = pni.nodeid.value(columns, values)!!
-    val pihandle = Handles.handle<ProcessInstance<DBTransaction>>(pni.pihandle.value(columns, values)!!)
-    val state = pni.state.value(columns, values)!!.let { IProcessNodeInstance.NodeInstanceState.valueOf(it) }
+    val pnihandle = Handles.handle<ProcessNodeInstance<DBTransaction>>(tbl_pni.pnihandle.value(columns, values)!!)
+    val nodeId = tbl_pni.nodeid.value(columns, values)!!
+    val pihandle = Handles.handle<ProcessInstance<DBTransaction>>(tbl_pni.pihandle.value(columns, values)!!)
+    val state = tbl_pni.state.value(columns, values)!!.let { IProcessNodeInstance.NodeInstanceState.valueOf(it) }
 
     val processInstance = processEngine.getProcessInstance(transaction, pihandle, SecurityProvider.SYSTEMPRINCIPAL)
 
     val node = processInstance.processModel.getNode(nodeId)
 
     val predecessors = ProcessEngineDB
-          .SELECT(pred.predecessor)
-          .WHERE { pred.pnihandle eq pnihandle.handleValue }
+          .SELECT(tbl_pred.predecessor)
+          .WHERE { tbl_pred.pnihandle eq pnihandle.handleValue }
           .getList(transaction.connection)
           .map { it?.let { Handles.handle<ProcessNodeInstance<DBTransaction>>(it)} }
           .requireNoNulls()
@@ -89,8 +89,8 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     }
 
     val results = ProcessEngineDB
-          .SELECT(nd.name, nd.data)
-          .WHERE { nd.pnihandle eq element.handleValue }
+          .SELECT(tbl_nd.name, tbl_nd.data)
+          .WHERE { tbl_nd.pnihandle eq element.handleValue }
           .getList(transaction.connection) { name, data ->
             if (FAILURE_CAUSE == name && (element.state == IProcessNodeInstance.NodeInstanceState.Failed || element.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
               element.setFailureCause(data)
@@ -111,9 +111,9 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
 
   override fun store(update: Database._UpdateBuilder, value: ProcessNodeInstance<DBTransaction>) {
     update.run {
-      SET(pni.nodeid, value.node.id)
-      SET(pni.pihandle, value.processInstance.handleValue)
-      SET(pni.state, value.state.name)
+      SET(tbl_pni.nodeid, value.node.id)
+      SET(tbl_pni.pihandle, value.processInstance.handleValue)
+      SET(tbl_pni.state, value.state.name)
     }
   }
 
@@ -123,14 +123,14 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
                          newValue: ProcessNodeInstance<DBTransaction>) {
     if (oldValue != null) { // update
       ProcessEngineDB
-            .DELETE_FROM(pred)
-            .WHERE { pred.pnihandle eq handle.handleValue }
+            .DELETE_FROM(tbl_pred)
+            .WHERE { tbl_pred.pnihandle eq handle.handleValue }
             .executeUpdate(connection)
     }
 
     if (newValue.directPredecessors.isNotEmpty()) {
       val insert = ProcessEngineDB
-            .INSERT_OR_UPDATE(pred.pnihandle, pred.predecessor)
+            .INSERT(tbl_pred.pnihandle, tbl_pred.predecessor)
 
       for (predecessor in newValue.directPredecessors) {
         insert.VALUES(handle.handleValue, predecessor.handleValue)
@@ -142,7 +142,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     val isFailure = newValue.state == IProcessNodeInstance.NodeInstanceState.Failed || newValue.state == IProcessNodeInstance.NodeInstanceState.FailRetry
     val results = newValue.results
     if (results.isNotEmpty() || (isFailure && newValue.failureCause!=null)) {
-      val insert = ProcessEngineDB.INSERT_OR_UPDATE(nd.pnihandle, nd.name, nd.data)
+      val insert = ProcessEngineDB.INSERT_OR_UPDATE(tbl_nd.pnihandle, tbl_nd.name, tbl_nd.data)
       for(data in results) {
         insert.VALUES(newValue.handleValue, data.name, data.content.contentString)
       }
@@ -156,24 +156,24 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
 
   override fun insertStatement(value: ProcessNodeInstance<DBTransaction>): Database.Insert {
     return ProcessEngineDB
-          .INSERT(pni.nodeid, pni.pihandle, pni.state)
+          .INSERT(tbl_pni.nodeid, tbl_pni.pihandle, tbl_pni.state)
           .VALUES(value.node.id, value.processInstance.handleValue, value.state.name)
   }
 
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
-    get() = pni.pnihandle
+    get() = tbl_pni.pnihandle
 
   override fun preRemove(transaction: DBTransaction, handle: Handle<ProcessNodeInstance<DBTransaction>>) {
 
     val connection = transaction.connection
     ProcessEngineDB
-          .DELETE_FROM(pred)
-          .WHERE { pred.pnihandle eq handle.handleValue }
+          .DELETE_FROM(tbl_pred)
+          .WHERE { tbl_pred.pnihandle eq handle.handleValue }
           .executeUpdate(connection)
 
     ProcessEngineDB
-          .DELETE_FROM(nd)
-          .WHERE { nd.pnihandle eq handle.handleValue }
+          .DELETE_FROM(tbl_nd)
+          .WHERE { tbl_nd.pnihandle eq handle.handleValue }
           .executeUpdate(connection)
   }
 
@@ -182,7 +182,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
   }
 
   override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    val handle = pni.pnihandle.value(columns, values)!!
+    val handle = tbl_pni.pnihandle.value(columns, values)!!
     preRemove(transaction, Handles.handle<ProcessNodeInstance<DBTransaction>>(handle))
   }
 
@@ -192,12 +192,12 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     val connection = transaction.connection
 
     ProcessEngineDB
-          .DELETE_FROM(pred)
+          .DELETE_FROM(tbl_pred)
           .WHERE { filter(this) }
           .executeUpdate(connection)
 
     ProcessEngineDB
-          .DELETE_FROM(nd)
+          .DELETE_FROM(tbl_nd)
           .WHERE { filter(this) }
           .executeUpdate(connection)
 
