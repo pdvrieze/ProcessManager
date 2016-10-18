@@ -14,12 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util;
+package net.devrieze.util
 
-import java.io.Closeable;
-import java.util.Iterator;
+import java.io.Closeable
 
 
-public interface AutoCloseableIterator<T> extends AutoCloseable, Closeable, Iterator<T> {
-  // Interface for joint functionality
-}
+interface AutoCloseableIterator<T> : AutoCloseable, Closeable, Iterator<T>// Interface for joint functionality
+
+interface MutableAutoCloseableIterator<T> : AutoCloseableIterator<T>, MutableIterator<T>// Interface for joint functionality

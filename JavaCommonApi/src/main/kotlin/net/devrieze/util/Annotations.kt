@@ -14,35 +14,36 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util;
-
-import java.lang.annotation.Annotation;
+package net.devrieze.util
 
 
-public final class Annotations {
-
-  private Annotations() {} // No instantiation
+object Annotations {
 
   /**
    * Get an annotation from a list of annotations.
-   *
-   * @param <T> The type of the annotation
+
+   * @param  The type of the annotation
+   * *
    * @param annotations The array of the annotations to search.
+   * *
    * @param clazz The type of the annotation
-   * @return <code>null</code> if not found, the annotation otherwise.
+   * *
+   * @return `null` if not found, the annotation otherwise.
    */
-  public static <T> T getAnnotation(final Annotation[] annotations, final Class<T> clazz) {
-    for (final Annotation a : annotations) {
+  @JvmStatic
+  fun <T> getAnnotation(annotations: Array<Annotation>, clazz: Class<T>): T? {
+    for (a in annotations) {
       if (clazz.isInstance(a)) {
-        return clazz.cast(a);
+        return clazz.cast(a)
       }
     }
-    return null;
+    return null
   }
 
-  @Deprecated
-  public static <T> T notNull(T pObject) {
-    return pObject;
+  @JvmStatic
+  @Deprecated("Not needed with Kotlin")
+  fun <T> notNull(pObject: T): T {
+    return pObject
   }
 
-}
+}// No instantiation

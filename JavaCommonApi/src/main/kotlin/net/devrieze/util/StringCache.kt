@@ -14,27 +14,31 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util;
+package net.devrieze.util
 
-public interface StringCache {
+interface StringCache {
 
-  public enum UniqueCaches implements StringCache {
+  enum class UniqueCaches : StringCache {
     NOP;
 
-    @Override
-    public String lookup(String string) {
-      return string;
+    override fun lookup(string: String): String {
+      return string
     }
 
   }
 
-  public static final StringCache NOPCACHE=UniqueCaches.NOP;
-
   /**
    * Look up a string in the cache for string reuse.
-   * @param string <code>null</code> parameters will always return null
+   * @param string `null` parameters will always return null
+   * *
    * @return
    */
-  public String lookup(String string);
+  fun lookup(string: String): String
+
+  companion object {
+
+    val NOPCACHE = StringCache.UniqueCaches.NOP
+
+  }
 
 }

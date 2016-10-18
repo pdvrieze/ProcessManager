@@ -17,6 +17,7 @@
 package net.devrieze.util.db;
 
 import net.devrieze.util.StringCache;
+import net.devrieze.util.StringCache.UniqueCaches;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -553,7 +554,7 @@ public class DBConnection implements AutoCloseable {
   private static final Level DETAIL_LOG_LEVEL = Level.FINE;
   private static final String LOGGER_NAME = "DBHelper";
   @NotNull
-  private static StringCache _stringCache = StringCache.NOPCACHE;
+  private static StringCache _stringCache = UniqueCaches.NOP;
   @Nullable
   private String mErrorMsg;
   @Nullable
