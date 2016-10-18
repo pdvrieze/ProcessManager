@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Handle;
+import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -26,7 +27,7 @@ import nl.adaptivity.xml.XmlReader;
 import javax.xml.namespace.QName;
 
 @XmlDeserializer(HProcessInstance.Factory.class)
-public final class HProcessInstance extends XmlHandle {
+public final class HProcessInstance<T extends Transaction> extends XmlHandle<ProcessInstance<T>> {
 
   public static class Factory implements XmlDeserializerFactory<HProcessInstance> {
 
@@ -43,7 +44,7 @@ public final class HProcessInstance extends XmlHandle {
     super(-1);
   }
 
-  public HProcessInstance(final Handle<? extends ProcessInstance> handle) {
+  public HProcessInstance(final Handle<? extends ProcessInstance<T>> handle) {
     super(handle);
   }
 
