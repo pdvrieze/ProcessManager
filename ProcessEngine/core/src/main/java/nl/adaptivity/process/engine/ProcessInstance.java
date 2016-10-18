@@ -100,6 +100,11 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
       return mHandle;
     }
 
+    @Override
+    public boolean getValid() {
+      return mHandle>=0L;
+    }
+
     public void setProcessModel(final Handle<? extends ProcessModelImpl> processModel) {
       mProcessModel = processModel.getHandleValue();
     }
@@ -404,7 +409,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     try {
       if (node.getNode() instanceof EndNode) {
         mEndResults.add(node.getHandle());
-        mThreads.remove(node);
+        mThreads.remove(node.getHandle());
         finish(transaction);
       } else {
         startSuccessors(transaction, messageService, node);
@@ -425,6 +430,9 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     final List<JoinInstance<T>> joinsToEvaluate = new ArrayList<>();
     for (final Identifiable successorNode : predecessor.getNode().getSuccessors()) {
       final ProcessNodeInstance<T> instance = createProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
+      if (instance.getHandle()==null) {
+        mEngine.registerNodeInstance(transaction, instance);
+      }
       final ComparableHandle<? extends ProcessNodeInstance<T>> instanceHandle = instance.getHandle();
       if (instance instanceof JoinInstance) {
         if (! mThreads.contains(instanceHandle)) { mThreads.add(instanceHandle); }
@@ -433,7 +441,6 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
       } else {
         mThreads.add(instanceHandle);
         startedTasks.add(instance);
-        mEngine.registerNodeInstance(transaction, instance);
       }
     }
     // Commit the registration of the follow up nodes before starting them.

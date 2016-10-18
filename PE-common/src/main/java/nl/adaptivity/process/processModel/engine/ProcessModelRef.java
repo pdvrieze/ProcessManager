@@ -133,6 +133,11 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
     return mHandle;
   }
 
+  @Override
+  public boolean getValid() {
+    return mHandle>=0L;
+  }
+
   @Nullable
   @Override
   public UUID getUuid() {

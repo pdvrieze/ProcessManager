@@ -70,6 +70,11 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
     return mHandle;
   }
 
+  @Override
+  public boolean getValid() {
+    return mHandle>=0L;
+  }
+
   public final void setHandle(final long handle) {
     mHandle = handle;
   }

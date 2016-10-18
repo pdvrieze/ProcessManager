@@ -22,6 +22,7 @@ package net.devrieze.util
 interface Handle<out T> {
 
   val handleValue: Long
+  val valid:Boolean get() = handleValue>=0
 }
 
 interface ComparableHandle<T> : Handle<T>, Comparable<ComparableHandle<T>>// no body needed

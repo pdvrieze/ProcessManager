@@ -150,16 +150,19 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
 
   private fun putCache(transaction: T, pHandle: Handle<V>, pValue: V?) {
     if (pValue != null) { // never store null
-      synchronized (mCacheHandles) {
-        transaction.addRollbackHandler({ invalidateCache(pHandle) })
-        val pos = mCacheHead
-        val handle = pHandle.handleValue
-        if (mCacheHandles[pos] != handle) {
-          removeFromCache(handle)
+      if (pHandle.valid) {
+        synchronized (mCacheHandles) {
+          transaction.addRollbackHandler({ invalidateCache(pHandle) })
+          val pos = mCacheHead
+          val handle = pHandle.handleValue
+          if (mCacheHandles[pos] != handle) {
+            removeFromCache(handle)
+          }
+          mCacheHandles[pos] = handle
+          mCacheValues[pos] = pValue
+          mCacheHead = (pos + 1) % mCacheValues.size
+
         }
-        mCacheHandles[pos] = handle
-        mCacheValues[pos] = pValue
-        mCacheHead = (pos + 1) % mCacheValues.size
       }
     }
   }

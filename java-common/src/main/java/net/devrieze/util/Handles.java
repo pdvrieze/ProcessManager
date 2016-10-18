@@ -33,6 +33,11 @@ public final class Handles {
     }
 
     @Override
+    public boolean getValid() {
+      return mHandle>=0L;
+    }
+
+    @Override
     public long getHandleValue() {
       return mHandle;
     }
