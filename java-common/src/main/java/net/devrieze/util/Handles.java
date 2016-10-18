@@ -76,6 +76,13 @@ public final class Handles {
 
   }
 
+  private static final Handle<?> INVALID = handle(-1L);
+
+  @SuppressWarnings("unchecked")
+  @NotNull public static <T> Handle<T> getInvalid() {
+    return (Handle<T>) INVALID;
+  };
+
   private Handles() { /* Utility class */ }
 
   /**
