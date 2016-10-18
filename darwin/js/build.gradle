@@ -53,6 +53,8 @@ jar {
     from sourceSets.main.allSource
     include "**/*.kt"
 
+    destinationDir = new File(buildDir, "artifacts")
+
     from outDir
     include "**/*"
 
