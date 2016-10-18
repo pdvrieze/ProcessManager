@@ -259,7 +259,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
       mState=State.FINISHED;
       mEngine.updateStorage(transaction, this);
       transaction.commit();
-      mEngine.finishInstance(transaction, this);
+      mEngine.finishInstance(transaction, getHandle());
     }
   }
 

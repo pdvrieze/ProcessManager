@@ -422,7 +422,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException When database operations fail.
    */
-  public HProcessInstance startProcess(T transaction, final Principal user, final ProcessModelImpl model, final String name, final UUID uuid, final Node payload) throws SQLException, FileNotFoundException {
+  private HProcessInstance startProcess(T transaction, final Principal user, final ProcessModelImpl model, final String name, final UUID uuid, final Node payload) throws SQLException, FileNotFoundException {
     if (model==null) throw new FileNotFoundException("The process model does not exist");
     if (user == null) {
       throw new HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes");
@@ -481,14 +481,18 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @throws SQLException
    * @todo evaluate whether this should not retain some results
    */
+  @Deprecated
   public void finishInstance(T transaction, final ProcessInstance<T> processInstance) throws SQLException {
+    finishInstance(transaction, processInstance.getHandle());
+  }
+
+  public void finishInstance(T transaction, final Handle<? extends ProcessInstance<T>> hProcessInstance) throws SQLException {
     // TODO evict these nodes from the cache (not too bad to keep them though)
 //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
 //      getNodeInstances().invalidateModelCache(childNode);
 //    }
     // TODO retain instance
-    TransactionedHandleMap<ProcessInstance<T>, T> instances = getInstances();
-    instances.remove(transaction, processInstance.getHandle());
+    mInstanceMap.remove(transaction, hProcessInstance);
   }
 
   public ProcessInstance cancelInstance(T transaction, Handle<? extends ProcessInstance<T>> handle, Principal user) throws SQLException {
