@@ -149,20 +149,29 @@ public class EndpointServlet extends HttpServlet {
           }
         } catch (@NotNull final MessagingException e) {
           if (e.getCause() instanceof Exception) {
-            getLogger().log(Level.WARNING, "MessagingException "+e.getMessage(), e);
+//            getLogger().log(Level.WARNING, "MessagingException "+e.getMessage(), e);
             throw (Exception) e.getCause();
           } else {
             throw e;
           }
         }
-      } catch (@NotNull final HttpResponseException e) {
-        response.sendError(e.getResponseCode(), e.getMessage());
       } catch (@NotNull final AuthenticationNeededException e) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No authenticated user.");
+        getLogger().log(Level.WARNING, "Access attempted without authentication for "+request.getRequestURI());
       } catch (@NotNull final PermissionDeniedException e) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
+        getLogger().log(Level.WARNING, "Access attempted without authorization by "+request.getUserPrincipal()+" for "+request.getRequestURI(), e);
       } catch (@NotNull final FileNotFoundException e) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "The requested resource is not available.");
+        Logger logger = getLogger();
+        if (logger.isLoggable(Level.FINER)) {
+          getLogger().log(Level.FINER, "Access to an invalid resource attempted: " + request.getRequestURI(), e);
+        } else {
+          getLogger().log(Level.WARNING, "Access to an invalid resource attempted: " + request.getRequestURI());
+        }
+      } catch (@NotNull final HttpResponseException e) {
+        response.sendError(e.getResponseCode(), e.getMessage());
+        getLogger().log(Level.SEVERE, "Error in processing the request for "+request.getRequestURI(), e);
       }
     } catch (@NotNull final Exception e) {
       try {
