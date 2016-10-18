@@ -137,6 +137,7 @@ public class ProcessNodeInstance<T extends Transaction> implements IProcessNodeI
     return result;
   }
 
+  /** Add the node as predecessor if not added yet. */
   public void ensurePredecessor(final ComparableHandle<? extends ProcessNodeInstance<T>> handle) {
     if(! hasDirectPredecessor(handle)) {
       mPredecessors.add(handle);
