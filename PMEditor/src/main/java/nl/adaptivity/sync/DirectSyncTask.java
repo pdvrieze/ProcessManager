@@ -17,12 +17,12 @@
 package nl.adaptivity.sync;
 
 import android.accounts.Account;
-import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import nl.adaptivity.process.tasks.data.TaskProvider;
 
 
 /**
@@ -31,21 +31,29 @@ import android.os.Bundle;
 public class DirectSyncTask extends AsyncTask<String, Void, Void>{
 
   private final LocalSyncAdapter mSyncAdapter;
+  private final Context mContext;
+  private final String mAuthority;
   private Account mAccount;
-  private final ContentProviderClient mProviderClient;
+
   private final Runnable mOnComplete;
 
-  public DirectSyncTask(final LocalSyncAdapter syncAdapter, Account account, ContentProviderClient providerClient, final Runnable onComplete) {
+  public DirectSyncTask(final LocalSyncAdapter syncAdapter, Account account, final Context context, final String authority, final Runnable onComplete) {
     mSyncAdapter = syncAdapter;
     mAccount = account;
-    mProviderClient = providerClient;
+    mContext = context;
+    mAuthority = authority;
     mOnComplete = onComplete;
   }
 
   @Override
   protected Void doInBackground(final String... params) {
-    SyncResult syncResult = new SyncResult();
-    mSyncAdapter.onPerformLocalSync(mAccount, new Bundle(0), params[0], mProviderClient, syncResult);
+    final ContentProviderClient providerClient = mContext.getContentResolver().acquireContentProviderClient(TaskProvider.AUTHORITY);
+    try {
+      SyncResult syncResult = new SyncResult();
+      mSyncAdapter.onPerformLocalSync(mAccount, new Bundle(0), params[0], providerClient, syncResult);
+    } finally {
+      providerClient.release();
+    }
     return null;
   }
 

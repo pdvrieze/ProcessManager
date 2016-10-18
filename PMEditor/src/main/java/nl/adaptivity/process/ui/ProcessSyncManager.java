@@ -98,9 +98,7 @@ public class ProcessSyncManager extends SyncManager {
       if (!isLocalsync() && isSyncable(ProcessModelProvider.AUTHORITY)) {
         ProviderHelper.requestSync(getAccount(), ProcessModelProvider.AUTHORITY, expedited);
       } else {
-        ContentResolver       contentResolver = context.getContentResolver();
-        ContentProviderClient providerClient  = contentResolver.acquireContentProviderClient(ProcessModelProvider.AUTHORITY);
-        DirectSyncTask        syncTask        = new DirectSyncTask(new ProcessSyncAdapter(context), getAccount(), providerClient, ONCOMPLETEPROCESSES);
+        DirectSyncTask        syncTask        = new DirectSyncTask(new ProcessSyncAdapter(context), getAccount(), context, ProcessModelProvider.AUTHORITY, ONCOMPLETEPROCESSES);
         synchronized (this) {
           if (!syncingProcesses) {
             syncingProcesses = true;
@@ -118,9 +116,7 @@ public class ProcessSyncManager extends SyncManager {
       if (!isLocalsync() && isSyncable(TaskProvider.AUTHORITY)) {
         ProviderHelper.requestSync(getAccount(), TaskProvider.AUTHORITY, expedited);
       } else {
-        ContentResolver       contentResolver = context.getContentResolver();
-        ContentProviderClient providerClient  = contentResolver.acquireContentProviderClient(TaskProvider.AUTHORITY);
-        DirectSyncTask        syncTask        = new DirectSyncTask(new TaskSyncAdapter(context), getAccount(), providerClient, ONCOMPLETETASKS);
+        DirectSyncTask        syncTask        = new DirectSyncTask(new TaskSyncAdapter(context), getAccount(), context, TaskProvider.AUTHORITY, ONCOMPLETETASKS);
         synchronized (this) {
           if (!syncingTasks) {
             syncingTasks = true;
