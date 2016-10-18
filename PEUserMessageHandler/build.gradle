@@ -152,8 +152,8 @@ tomcat {
 */
 
 dependencies {
-    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-//    providedCompile "org.apache.tomcat:tomcatservlet-api:${tomcatVersion}"
+//    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     apiCompileOnly project(':DarwinJavaApi')
     apiCompileOnly project(path: ':PE-common', configuration:'compileOnly')
 
