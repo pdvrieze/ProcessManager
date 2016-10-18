@@ -72,7 +72,7 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   public static final int LIST_STATE_EMPTY = 2;
   public static final int LIST_STATE_ERROR = 3;
 
-  @IntDef({LIST_STATE_LOADED, LIST_STATE_LOADED, LIST_STATE_EMPTY, LIST_STATE_ERROR})
+  @IntDef({LIST_STATE_LOADING, LIST_STATE_LOADED, LIST_STATE_EMPTY, LIST_STATE_ERROR})
   @Retention(RetentionPolicy.SOURCE)
   @interface ListState {}
 

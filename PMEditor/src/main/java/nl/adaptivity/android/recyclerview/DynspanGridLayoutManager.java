@@ -72,6 +72,7 @@ public class DynspanGridLayoutManager extends GridLayoutManager {
           break;
         case MeasureSpec.UNSPECIFIED:
           width = Math.max(mMinSpanWidth, getMinimumWidth());
+          break;
       }
       switch (heightMode) {
         case MeasureSpec.AT_MOST:

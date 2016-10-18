@@ -26,6 +26,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION_CODES;
 import android.support.annotation.ColorInt;
+import android.support.annotation.Dimension;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -270,12 +271,12 @@ public class IconButton extends ViewGroup {
       subtitleView = getIfMatches(child, LayoutParams.ROLE_SUBTITLE, subtitleView, "Setting multiple subtitles in an IconButton will not work");
     }
     final boolean ltr =(ViewCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_LTR);
-    int layoutOffsetX = ltr ? ViewCompat.getPaddingStart(this) : (r-l) - ViewCompat.getPaddingStart(this);
+    @Dimension(unit=Dimension.PX)int layoutOffsetX = ltr ? ViewCompat.getPaddingStart(this) : (r-l) - ViewCompat.getPaddingStart(this);
     if (iconView!=null) {
-      final int cl = ltr ? (layoutOffsetX) : layoutOffsetX - iconView.getMeasuredWidth();
-      final int cr = cl + iconView.getMeasuredWidth();
-      final int ct = ((b - t) - iconView.getMeasuredHeight()) / 2;
-      final int cb = ct + iconView.getMeasuredHeight();
+      @Dimension(unit=Dimension.PX) final int cl = ltr ? (layoutOffsetX) : layoutOffsetX - iconView.getMeasuredWidth();
+      @Dimension(unit=Dimension.PX) final int cr = cl + iconView.getMeasuredWidth();
+      @Dimension(unit=Dimension.PX) final int ct = ((b - t) - iconView.getMeasuredHeight()) / 2;
+      @Dimension(unit=Dimension.PX) final int cb = ct + iconView.getMeasuredHeight();
       iconView.layout(cl, ct, cr, cb);
       if (ltr) {
         layoutOffsetX += iconView.getMeasuredWidth() + mIconPadding;
