@@ -16,8 +16,9 @@
 
 package net.devrieze.test;
 
-import java.io.StringWriter;
-import java.util.ArrayList;
+import net.devrieze.util.JAXBCollectionWrapper;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -26,12 +27,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 
-import org.junit.Before;
-import org.junit.Test;
+import java.io.StringWriter;
+import java.util.ArrayList;
 
-import static org.junit.Assert.*;
-
-import net.devrieze.util.JAXBCollectionWrapper;
+import static org.testng.Assert.assertEquals;
 
 
 public class JAXBCollectionWrapperTest {
@@ -69,7 +68,7 @@ public class JAXBCollectionWrapperTest {
 
   private final String mExpectedMarshalling = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><list xmlns=\"http://example.org/test\"><xItem>x</xItem>blabla<yItem>y</yItem></list>";
 
-  @Before
+  @BeforeMethod
   public void setUp() {
     mCollection = new ArrayList<>();
     mCollection.add(new XItem("x"));
@@ -85,7 +84,7 @@ public class JAXBCollectionWrapperTest {
     final JAXBElement<JAXBCollectionWrapper> element = wrapper.getJAXBElement(new QName(NS, "list"));
     final StringWriter out = new StringWriter();
     context.createMarshaller().marshal(element, out);
-    assertEquals(mExpectedMarshalling, out.toString());
+    assertEquals(out.toString(), mExpectedMarshalling);
   }
 
 }

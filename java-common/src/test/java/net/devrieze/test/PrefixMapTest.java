@@ -16,16 +16,16 @@
 
 package net.devrieze.test;
 
-import java.util.*;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
 import net.devrieze.util.PrefixMap;
 import net.devrieze.util.PrefixMap.Entry;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.*;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 
 public class PrefixMapTest {
@@ -98,7 +98,7 @@ public class PrefixMapTest {
 
   private Comparator<Entry<String>> mEntryComparator;
 
-  @Before
+  @BeforeMethod
   public void setUp() {
     mMap = new PrefixMap<>();
     mEntryList = new ArrayList<>();
@@ -127,24 +127,24 @@ public class PrefixMapTest {
   public void testPut() {
     for (final Entry<String> entry : mEntryList) {
       mMap.put(entry.getPrefix(), entry.getValue());
-      assertTrue("Contains " + entry.getPrefix(), mMap.contains(entry));
+      assertTrue(mMap.contains(entry), "Contains " + entry.getPrefix());;
     }
     for (final Entry<String> entry : mEntryList) {
-      assertTrue("Contains " + entry.getPrefix(), mMap.contains(entry));
+      assertTrue(mMap.contains(entry), "Contains " + entry.getPrefix());;
     }
-    assertEquals(EXPECTEDMAPTESTSTRING, mMap.toTestString());
+    assertEquals(mMap.toTestString(), EXPECTEDMAPTESTSTRING);
   }
 
   @Test
   public void testToList() {
     mMap.addAll(mEntryList);
-    assertArrayEquals(mExpected, mMap.toList().toArray());
+    assertEquals(mMap.toList().toArray(), mExpected);;
   }
 
   @Test
   public void testIterator() {
     mMap.addAll(mEntryList);
-    assertArrayEquals(mExpected, new ArrayList<>(mMap).toArray());
+    assertEquals(new ArrayList<>(mMap).toArray(), mExpected);;
   }
 
   @Test
@@ -156,7 +156,7 @@ public class PrefixMapTest {
     final Entry<String>[] expected = new Entry[] { new Entry<>("ba", "ba"), new Entry<>("bb", "bb"),
                                                   new Entry<>("bba", "bba"), };
 
-    assertArrayEquals(expected, result.toArray());
+    assertEquals(result.toArray(), expected);;
 
   }
 
@@ -168,7 +168,7 @@ public class PrefixMapTest {
     @SuppressWarnings("unchecked")
     final Entry<String>[] expected = new Entry[] { new Entry<>("ccc", "ccc"), };
 
-    assertArrayEquals(expected, result.toArray());
+    assertEquals(result.toArray(), expected);;
 
   }
 
@@ -180,7 +180,7 @@ public class PrefixMapTest {
     @SuppressWarnings("unchecked")
     final Entry<String>[] expected = new Entry[] {};
 
-    assertArrayEquals(expected, result.toArray());
+    assertEquals(result.toArray(), expected);;
 
   }
 
@@ -192,55 +192,55 @@ public class PrefixMapTest {
     @SuppressWarnings("unchecked")
     final Entry<String>[] expected = new Entry[] { new Entry<>("bb", "bb"), new Entry<>("bba", "bba"), };
 
-    assertArrayEquals(expected, result.toArray());
+    assertEquals(result.toArray(), expected);;
 
   }
 
   @Test
   public void testPutOthers() {
     mMap.put("/processInstances/", "a");
-    assertEquals("a",first(mMap.get("/processInstances/")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
 
     mMap.put("/processModels", "b");
-    assertEquals("a",first(mMap.get("/processInstances/")));
-    assertEquals("b",first(mMap.get("/processModels")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
+    assertEquals(first(mMap.get("/processModels")), "b");
 
     mMap.put("/processModels/", "c");
-    assertEquals("a",first(mMap.get("/processInstances/")));
-    assertEquals("b",first(mMap.get("/processModels")));
-    assertEquals("c",first(mMap.get("/processModels/")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
+    assertEquals(first(mMap.get("/processModels")), "b");
+    assertEquals(first(mMap.get("/processModels/")), "c");
 
     mMap.put("/processInstances", "d");
-    assertEquals("a",first(mMap.get("/processInstances/")));
-    assertEquals("b",first(mMap.get("/processModels")));
-    assertEquals("c",first(mMap.get("/processModels/")));
-    assertEquals("d",first(mMap.get("/processInstances")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
+    assertEquals(first(mMap.get("/processModels")), "b");
+    assertEquals(first(mMap.get("/processModels/")), "c");
+    assertEquals(first(mMap.get("/processInstances")), "d");
 
     mMap.put("/procvalues/", "e");
-    assertEquals("a",first(mMap.get("/processInstances/")));
-    assertEquals("b",first(mMap.get("/processModels")));
-    assertEquals("c",first(mMap.get("/processModels/")));
-    assertEquals("d",first(mMap.get("/processInstances")));
-    assertEquals("e",first(mMap.get("/procvalues/")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
+    assertEquals(first(mMap.get("/processModels")), "b");
+    assertEquals(first(mMap.get("/processModels/")), "c");
+    assertEquals(first(mMap.get("/processInstances")), "d");
+    assertEquals(first(mMap.get("/procvalues/")), "e");
 
     mMap.put("/procvalues", "f");
-    assertEquals("a",first(mMap.get("/processInstances/")));
-    assertEquals("b",first(mMap.get("/processModels")));
-    assertEquals("c",first(mMap.get("/processModels/")));
-    assertEquals("d",first(mMap.get("/processInstances")));
-    assertEquals("e",first(mMap.get("/procvalues/")));
-    assertEquals("f",first(mMap.get("/procvalues")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
+    assertEquals(first(mMap.get("/processModels")), "b");
+    assertEquals(first(mMap.get("/processModels/")), "c");
+    assertEquals(first(mMap.get("/processInstances")), "d");
+    assertEquals(first(mMap.get("/procvalues/")), "e");
+    assertEquals(first(mMap.get("/procvalues")), "f");
 
     mMap.put("/", "g");
-    assertEquals("a",first(mMap.get("/processInstances/")));
-    assertEquals("b",first(mMap.get("/processModels")));
-    assertEquals("c",first(mMap.get("/processModels/")));
-    assertEquals("d",first(mMap.get("/processInstances")));
-    assertEquals("e",first(mMap.get("/procvalues/")));
-    assertEquals("f",first(mMap.get("/procvalues")));
-    assertEquals("g",first(mMap.get("/")));
+    assertEquals(first(mMap.get("/processInstances/")), "a");
+    assertEquals(first(mMap.get("/processModels")), "b");
+    assertEquals(first(mMap.get("/processModels/")), "c");
+    assertEquals(first(mMap.get("/processInstances")), "d");
+    assertEquals(first(mMap.get("/procvalues/")), "e");
+    assertEquals(first(mMap.get("/procvalues")), "f");
+    assertEquals(first(mMap.get("/")), "g");
 
-    if (mMap.isEmpty()) { assertEquals(OTHERSEXPECTED, mMap.toTestString()); }
+    if (mMap.isEmpty()) { assertEquals(mMap.toTestString(), OTHERSEXPECTED); }
   }
 
   private static String first(Collection<Entry<String>> collection) {
@@ -260,7 +260,7 @@ public class PrefixMapTest {
       assertFalse(mMap.contains(mEntryList.get(index)));
       mEntryList.remove(index);
       Collections.sort(mEntryList, mEntryComparator);
-      assertArrayEquals(mEntryList.toArray(), mMap.toArray());
+      assertEquals(mMap.toArray(), mEntryList.toArray());;
     }
   }
 
@@ -281,7 +281,7 @@ public class PrefixMapTest {
         assertFalse(mMap.contains(entryList.get(index)));
         entryList.remove(index);
         Collections.sort(entryList, mEntryComparator);
-        assertArrayEquals(entryList.toArray(), mMap.toArray());
+        assertEquals(mMap.toArray(), entryList.toArray());;
       }
       assertTrue(mMap.isEmpty());
     }
@@ -292,7 +292,7 @@ public class PrefixMapTest {
     for(String s: new String[] {"a","b","c","d","e","f","g"}) {
       mMap.put(s, s);
     }
-    assertEquals(EXPECTEDBALANCERESULT,mMap.toTestString());
+    assertEquals(mMap.toTestString(), EXPECTEDBALANCERESULT);
   }
 
   @Test
@@ -300,7 +300,7 @@ public class PrefixMapTest {
     for(String s: new String[] {"g","f","e","d","c","b","a"}) {
       mMap.put(s, s);
     }
-    assertEquals(EXPECTEDBALANCERESULT,mMap.toTestString());
+    assertEquals(mMap.toTestString(), EXPECTEDBALANCERESULT);
   }
 
   @Test
@@ -308,7 +308,7 @@ public class PrefixMapTest {
     for(String s: new String[] {"a","f","d","b","g","e","c"}) {
       mMap.put(s, s);
     }
-    assertEquals(EXPECTEDBALANCERESULT,mMap.toTestString());
+    assertEquals(mMap.toTestString(), EXPECTEDBALANCERESULT);
   }
 
 }

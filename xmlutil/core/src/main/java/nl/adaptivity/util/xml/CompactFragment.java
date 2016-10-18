@@ -42,6 +42,10 @@ public class CompactFragment implements XmlSerializable {
 
   public static final Factory FACTORY = new Factory();
 
+  public boolean isEmpty() {
+    return content==null || content.length==0;
+  }
+
   public static CompactFragment deserialize(final XmlReader in) throws XmlException {
     return XmlReaderUtil.siblingsToFragment(in);
   }
@@ -76,7 +80,7 @@ public class CompactFragment implements XmlSerializable {
   }
 
   public char[] getContent() {
-    return content;
+    return content == null ? new char[] {} : content;
   }
 
   @Override

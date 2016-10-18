@@ -16,23 +16,24 @@
 
 package net.devrieze.test;
 
+import net.devrieze.util.Handle;
+import net.devrieze.util.MemHandleMap;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import net.devrieze.util.Handle;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-import net.devrieze.util.MemHandleMap;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 
 public class HandleMapTest {
 
   private MemHandleMap<String> mMap;
 
-  @Before
+  @BeforeMethod
   public void setUp() {
     mMap = new MemHandleMap<>(5);
   }
@@ -41,19 +42,19 @@ public class HandleMapTest {
   public void testPut1() {
     @SuppressWarnings("unused")
     final Handle<String> a = mMap.put("A");
-    assertEquals(1, mMap.size());
+    assertEquals(mMap.size(), 1);
     @SuppressWarnings("unused")
     final Handle<String> b = mMap.put("B");
-    assertEquals(2, mMap.size());
+    assertEquals(mMap.size(), 2);
   }
 
   @Test
   public void testPut2() {
     // This depends on the implementation
     final Handle<String> a = mMap.put("A");
-    assertEquals(0l, a);
+    assertEquals(a.getHandleValue(), 0l);
     final Handle<String> b = mMap.put("B");
-    assertEquals(1l, b);
+    assertEquals(b.getHandleValue(), 1l);
   }
 
   @Test
@@ -62,7 +63,7 @@ public class HandleMapTest {
     final Handle<String> a = mMap.put("A");
     //    assertEquals("A", mMap.get(a));
     final Handle<String> b = mMap.put("B");
-    assertEquals("B", mMap.get(b));
+    assertEquals(mMap.get(b), "B");
   }
 
   @Test
@@ -77,18 +78,18 @@ public class HandleMapTest {
     final Handle<String> h = mMap.put("H");
     final Handle<String> i = mMap.put("I");
     final Handle<String> j = mMap.put("J");
-    assertEquals(10, mMap.size());
+    assertEquals(mMap.size(), 10);
 
-    assertEquals("Result of getting", "A", mMap.get(a));
-    assertEquals("Result of getting", "B", mMap.get(b));
-    assertEquals("Result of getting", "C", mMap.get(c));
-    assertEquals("Result of getting", "D", mMap.get(d));
-    assertEquals("Result of getting", "E", mMap.get(e));
-    assertEquals("Result of getting", "F", mMap.get(f));
-    assertEquals("Result of getting", "G", mMap.get(g));
-    assertEquals("Result of getting", "H", mMap.get(h));
-    assertEquals("Result of getting", "I", mMap.get(i));
-    assertEquals("Result of getting", "J", mMap.get(j));
+    assertEquals(mMap.get(a), "A", "Result of getting");
+    assertEquals(mMap.get(b), "B", "Result of getting");
+    assertEquals(mMap.get(c), "C", "Result of getting");
+    assertEquals(mMap.get(d), "D", "Result of getting");
+    assertEquals(mMap.get(e), "E", "Result of getting");
+    assertEquals(mMap.get(f), "F", "Result of getting");
+    assertEquals(mMap.get(g), "G", "Result of getting");
+    assertEquals(mMap.get(h), "H", "Result of getting");
+    assertEquals(mMap.get(i), "I", "Result of getting");
+    assertEquals(mMap.get(j), "J", "Result of getting");
   }
 
   @Test
@@ -104,8 +105,8 @@ public class HandleMapTest {
     final Handle<String> e = mMap.put("E");
     mMap.remove(a);
     final Handle<String> a2 = mMap.put("A2");
-    assertEquals("A2", mMap.get(a2));
-    assertEquals(5l, a2.getHandleValue());
+    assertEquals(mMap.get(a2), "A2");
+    assertEquals(a2.getHandleValue(), 5l);
   }
 
   @Test
@@ -121,16 +122,16 @@ public class HandleMapTest {
     final Handle<String> a2 = mMap.put("A2");
     final Handle<String> b2 = mMap.put("B2");
     final Handle<String> c2 = mMap.put("C2");
-    assertEquals("A2", mMap.get(a2));
-    assertEquals("B2", mMap.get(b2));
-    assertEquals("C2", mMap.get(c2));
-    assertEquals(5l, a2);
-    assertEquals(6l, b2);
-    assertEquals(7l, c2);
+    assertEquals(mMap.get(a2), "A2");
+    assertEquals(mMap.get(b2), "B2");
+    assertEquals(mMap.get(c2), "C2");
+    assertEquals(a2.getHandleValue(), 5l);
+    assertEquals(b2.getHandleValue(), 6l);
+    assertEquals(c2.getHandleValue(), 7l);
     final Handle<String> f = mMap.put("F");
-    assertEquals("F", mMap.get(f));
-    assertEquals("D", mMap.get(d));
-    assertEquals("E", mMap.get(e));
+    assertEquals(mMap.get(f), "F");
+    assertEquals(mMap.get(d), "D");
+    assertEquals(mMap.get(e), "E");
   }
 
   @Test
@@ -146,16 +147,16 @@ public class HandleMapTest {
     final Handle<String> c2 = mMap.put("C2");
     mMap.remove(a);
     final Handle<String> a2 = mMap.put("A2");
-    assertEquals("A2", mMap.get(a2));
-    assertEquals("B2", mMap.get(b2));
-    assertEquals("C2", mMap.get(c2));
-    assertEquals(5l, a2.getHandleValue());
-    assertEquals(0x100000001l, b2);
-    assertEquals(0x100000002l, c2);
+    assertEquals(mMap.get(a2), "A2");
+    assertEquals(mMap.get(b2), "B2");
+    assertEquals(mMap.get(c2), "C2");
+    assertEquals(a2.getHandleValue(), 5l);
+    assertEquals(b2.getHandleValue(), 0x100000001l);
+    assertEquals(c2.getHandleValue(), 0x100000002l);
     final Handle<String> f = mMap.put("F");
-    assertEquals("F", mMap.get(f));
-    assertEquals("D", mMap.get(d));
-    assertEquals("E", mMap.get(e));
+    assertEquals(mMap.get(f), "F");
+    assertEquals(mMap.get(d), "D");
+    assertEquals(mMap.get(e), "E");
   }
 
   @Test
@@ -170,7 +171,7 @@ public class HandleMapTest {
     mMap.remove(a);
     mMap.remove(e);
     mMap.remove(d);
-    assertEquals(0, mMap.size());
+    assertEquals(mMap.size(), 0);
   }
 
   @Test
@@ -179,7 +180,7 @@ public class HandleMapTest {
     for (final String s : mMap) {
       list.add(s);
     }
-    assertEquals(0, list.size());
+    assertEquals(list.size(), 0);
   }
 
   @Test
@@ -193,12 +194,12 @@ public class HandleMapTest {
     for (final String s : mMap) {
       list.add(s);
     }
-    assertEquals(5, list.size());
-    assertEquals("Result of getting", "A", list.get(0));
-    assertEquals("Result of getting", "B", list.get(1));
-    assertEquals("Result of getting", "C", list.get(2));
-    assertEquals("Result of getting", "D", list.get(3));
-    assertEquals("Result of getting", "E", list.get(4));
+    assertEquals(list.size(), 5);
+    assertEquals(list.get(0), "A", "Result of getting");
+    assertEquals(list.get(1), "B", "Result of getting");
+    assertEquals(list.get(2), "C", "Result of getting");
+    assertEquals(list.get(3), "D", "Result of getting");
+    assertEquals(list.get(4), "E", "Result of getting");
   }
 
   @Test
@@ -209,12 +210,12 @@ public class HandleMapTest {
     mMap.remove(a);
     final Iterator<String> it = mMap.iterator();
 
-    assertEquals(2, mMap.size());
+    assertEquals(mMap.size(), 2);
 
 
-    assertEquals("Result of getting", "B", it.next());
-    assertEquals("Result of getting", "C", it.next());
-    assertFalse("HasNext should not offer more elements", it.hasNext());
+    assertEquals(it.next(), "B", "Result of getting");
+    assertEquals(it.next(), "C", "Result of getting");
+    assertFalse(it.hasNext(), "HasNext should not offer more elements");
   }
 
 }

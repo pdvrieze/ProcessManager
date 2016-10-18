@@ -23,6 +23,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import java.util.*
 
@@ -56,9 +57,11 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
                            protoMessage: IXmlMessage,
                            instance: ProcessNodeInstance<Transaction>): Boolean {
 
-    val instantiatedContent = instance.instantiateXmlPlaceholders(transaction,
-                                                                XMLFragmentStreamReader.from(protoMessage.messageBody),
-                                                                false)
+    val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
+      instance.instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(protoMessage.messageBody), false)
+    } else {
+      CompactFragment(Collections.emptyList(), CharArray(0))
+    }
     val processedMessage = XmlMessage(protoMessage.service,
                                     protoMessage.endpoint,
                                     protoMessage.operation,

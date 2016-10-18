@@ -22,7 +22,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile project(":kotlinsql")
 
-    testCompile 'org.testng:testng:6.9.9'
+    testCompile 'org.testng:testng:6.9.13.8'
     testRuntime 'mysql:mysql-connector-java:5.1.36'
 }
 

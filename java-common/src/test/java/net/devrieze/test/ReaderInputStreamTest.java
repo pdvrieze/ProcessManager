@@ -16,17 +16,17 @@
 
 package net.devrieze.test;
 
+import net.devrieze.util.ReaderInputStream;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-import net.devrieze.util.ReaderInputStream;
+import static java.util.Arrays.copyOf;
+import static org.testng.Assert.assertEquals;
 
 
 public class ReaderInputStreamTest {
@@ -39,7 +39,7 @@ public class ReaderInputStreamTest {
 
   private byte[] mExpected;
 
-  @Before
+  @BeforeMethod
   public void setUp() {
     mResultBuffer = new byte[100];
     mSource = new StringReader("Glückliche gruße øæ mit €uros");
@@ -52,9 +52,9 @@ public class ReaderInputStreamTest {
   @Test
   public void testRead() throws IOException {
     for (int i = 0; i < mExpected.length; ++i) {
-      assertEquals("Read(#" + i + ")", mExpected[i], mStream.read());
+      Assert.assertEquals(mStream.read(), mExpected[i], "Read(#" + i + ")");
     }
-    assertEquals("Reading EOF", -1, mStream.read());
+    Assert.assertEquals(mStream.read(), -1, "Reading EOF");
   }
 
   @Test
@@ -63,13 +63,13 @@ public class ReaderInputStreamTest {
     mResultBuffer[mExpected.length] = -1;
     mResultBuffer[mExpected.length + 1] = -1;
     final int count = mStream.read(mResultBuffer, 1, mResultBuffer.length - 1);
-    assertEquals(mExpected.length, count);
-    assertEquals(-1, mResultBuffer[0]);
-    assertEquals(-1, mResultBuffer[mExpected.length + 1]);
-    assertEquals(mExpected[mExpected.length - 1], mResultBuffer[mExpected.length]);
+    assertEquals(count, mExpected.length);
+    assertEquals(mResultBuffer[0], -1);
+    assertEquals(mResultBuffer[mExpected.length + 1], -1);
+    assertEquals(mResultBuffer[mExpected.length], mExpected[mExpected.length - 1]);
     final byte[] actuals = new byte[count];
     System.arraycopy(mResultBuffer, 1, actuals, 0, count);
-    assertArrayEquals(mExpected, actuals);
+    assertEquals(actuals, mExpected);;
   }
 
   @Test
@@ -79,33 +79,33 @@ public class ReaderInputStreamTest {
     mResultBuffer[testLength] = -1;
     mResultBuffer[testLength + 1] = -1;
     final int count = mStream.read(mResultBuffer, 1, testLength);
-    assertEquals(testLength, count);
-    assertEquals(-1, mResultBuffer[0]);
-    assertEquals(-1, mResultBuffer[testLength + 1]);
-    assertEquals(mExpected[testLength - 1], mResultBuffer[testLength]);
+    assertEquals(count, testLength);
+    assertEquals(mResultBuffer[0], -1);
+    assertEquals(mResultBuffer[testLength + 1], -1);
+    assertEquals(mResultBuffer[testLength], mExpected[testLength - 1]);
     final byte[] actuals = new byte[count];
     System.arraycopy(mResultBuffer, 1, actuals, 0, count);
-    assertArrayEquals(Arrays.copyOf(mExpected, testLength), actuals);
-    assertEquals(mExpected[testLength], mStream.read());
+    assertEquals(actuals, copyOf(mExpected, testLength));;
+    assertEquals(mStream.read(), mExpected[testLength]);
   }
 
   @Test
   public void testReadByteArray3() throws IOException {
-    assertEquals(mExpected[0], mStream.read());
+    assertEquals(mStream.read(), mExpected[0]);
     final int testLength = 16;
     mResultBuffer[0] = -1;
     mResultBuffer[1] = mExpected[0];
     mResultBuffer[testLength + 1] = -1;
     mResultBuffer[testLength + 2] = -1;
     final int count = mStream.read(mResultBuffer, 2, testLength);
-    assertEquals(testLength, count);
-    assertEquals(-1, mResultBuffer[0]);
-    assertEquals(-1, mResultBuffer[testLength + 2]);
-    assertEquals(mExpected[testLength], mResultBuffer[testLength + 1]);
+    assertEquals(count, testLength);
+    assertEquals(mResultBuffer[0], -1);
+    assertEquals(mResultBuffer[testLength + 2], -1);
+    assertEquals(mResultBuffer[testLength + 1], mExpected[testLength]);
     final byte[] actuals = new byte[count];
     System.arraycopy(mResultBuffer, 1, actuals, 0, count);
-    assertArrayEquals(Arrays.copyOf(mExpected, testLength), actuals);
-    assertEquals(mExpected[testLength + 1], mStream.read());
+    assertEquals(actuals, copyOf(mExpected, testLength));;
+    assertEquals(mStream.read(), mExpected[testLength + 1]);
   }
 
 }

@@ -20,12 +20,13 @@
 
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.Handles;
 import net.devrieze.util.ReaderInputStream;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -41,15 +42,17 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 
+import static nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 
 public class TestXmlTask {
 
   private XmlTask mSampleTask;
 
-  @Before
+  @BeforeMethod
   public void before() {
     mSampleTask = new XmlTask();
     mSampleTask.mState= NodeInstanceState.Failed;
@@ -85,33 +88,35 @@ public class TestXmlTask {
   public void testDeserialize() throws XmlException {
     StringReader in = new StringReader("<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />");
     XmlTask result = XmlStreaming.deSerialize(in, XmlTask.class);
-    assertEquals(NodeInstanceState.Complete, result.getState());
-    assertEquals(-1L, result.getHandle());
-    assertEquals(-1L,result.getInstanceHandle());
-    assertEquals(0, result.getItems().size());
-    assertEquals(null,result.getOwnerString());
-    assertEquals(null, result.getSummary());
+    assertEquals(result.getState(), Complete);
+    assertEquals(result.getHandleValue(), -1L);
+    assertEquals(result.getHandle(), null);
+    assertEquals(result.getInstanceHandle(), -1L);
+    assertEquals(result.getItems().size(), 0);
+    assertEquals(result.getOwnerString(), null);
+    assertEquals(result.getSummary(), null);
   }
 
   @Test
   public void testDeserialize2() throws XmlException {
     StringReader in = new StringReader("<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>");
     XmlTask result = XmlStreaming.deSerialize(in, XmlTask.class);
-    assertEquals(NodeInstanceState.Complete, result.getState());
-    assertEquals(1L, result.getHandle());
-    assertEquals(3L,result.getInstanceHandle());
-    assertEquals(1, result.getItems().size());
-    assertEquals(null,result.getOwnerString());
-    assertEquals("bar", result.getSummary());
+    assertEquals(result.getState(), Complete);
+    assertEquals(result.getHandleValue(), 1L);
+    assertEquals(result.getHandle(), Handles.handle(1L));
+    assertEquals(result.getInstanceHandle(), 3L);
+    assertEquals(result.getItems().size(), 1);
+    assertEquals(result.getOwnerString(), null);
+    assertEquals(result.getSummary(), "bar");
     assertNotNull(result.getItems());
     XmlItem item = result.getItem("one");
     assertNotNull(item);
-    assertEquals("label", item.getType());
-    assertEquals("two", item.getValue());
-    assertEquals("one", item.getName());
-    assertEquals(2, item.getOptions().size());
-    assertEquals("three", item.getOptions().get(0));
-    assertEquals("four", item.getOptions().get(1));
+    assertEquals(item.getType(), "label");
+    assertEquals(item.getValue(), "two");
+    assertEquals(item.getName(), "one");
+    assertEquals(item.getOptions().size(), 2);
+    assertEquals(item.getOptions().get(0), "three");
+    assertEquals(item.getOptions().get(1), "four");
   }
 
   @Test
@@ -122,14 +127,15 @@ public class TestXmlTask {
     DocumentBuilder db = dbf.newDocumentBuilder();
     Document doc = db.parse(new ReaderInputStream(Charset.forName("UTF8"), new StringReader(TEXT)));
     Element root = doc.getDocumentElement();
-    assertEquals("task", root.getTagName());
+    assertEquals(root.getTagName(), "task");
 
-    XmlTask result = JAXB.unmarshal(new DOMSource(root), XmlTask.class);
-    assertEquals(NodeInstanceState.Complete, result.getState());
-    assertEquals(-1L, result.getHandle());
-    assertEquals(-1L,result.getInstanceHandle());
-    assertEquals(0, result.getItems().size());
-    assertEquals(null,result.getOwnerString());
-    assertEquals(null, result.getSummary());
+    XmlTask result = XmlStreaming.deSerialize(new DOMSource(root), XmlTask.class);
+    assertEquals(result.getState(), Complete);
+    assertEquals(result.getHandleValue(), -1L);
+    assertEquals(result.getHandle(), null);
+    assertEquals(result.getInstanceHandle(), -1L);
+    assertEquals(result.getItems().size(), 0);
+    assertEquals(result.getOwnerString(), null);
+    assertEquals(result.getSummary(), null);
   }
 }

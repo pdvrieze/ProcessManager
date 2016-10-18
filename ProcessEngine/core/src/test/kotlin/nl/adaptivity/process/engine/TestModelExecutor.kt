@@ -20,6 +20,7 @@ import net.devrieze.util.CachingHandleMap
 import net.devrieze.util.Handle
 import net.devrieze.util.Transaction
 import net.devrieze.util.TransactionedHandleMap
+import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
@@ -61,7 +62,7 @@ class TestModelExecutor(val model: ProcessModelImpl, val focus: NodeWrapper, mod
   val processInstance:ProcessInstance<Transaction>
 
   init {
-    val modelHandle = engine.addProcessModel(transaction, model, null)
+    val modelHandle = engine.addProcessModel(transaction, model, SecurityProvider.SYSTEMPRINCIPAL)
 
     val instanceHandle: HProcessInstance<Transaction> = engine.startProcess(transaction,
                                                   principal,
@@ -75,7 +76,7 @@ class TestModelExecutor(val model: ProcessModelImpl, val focus: NodeWrapper, mod
   }
 
 
-  val  focusInstance: ProcessNodeInstance<StubTransaction>? = focus.instance
+  val  focusInstance: ProcessNodeInstance<StubTransaction>? get() = focus.instance
 
 
 

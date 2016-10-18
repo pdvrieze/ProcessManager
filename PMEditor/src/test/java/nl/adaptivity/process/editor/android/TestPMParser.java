@@ -10,8 +10,9 @@ import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.w3.soapEnvelope.Envelope;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -25,14 +26,17 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 
 /**
  * Created by pdvrieze on 13/11/15.
  */
 public class TestPMParser {
 
-  @Before
+  @BeforeMethod
   public void init() {
     XmlStreaming.setFactory(new AndroidStreamingFactory());
   }
@@ -65,7 +69,7 @@ public class TestPMParser {
     try {
       XMLAssert.assertXMLEqual(expected, out.toString());
     } catch (AssertionError e) {
-      assertEquals(expected, out.toString());
+      assertEquals(out.toString(),expected);
     }
   }
 
@@ -82,7 +86,7 @@ public class TestPMParser {
     try {
       XMLAssert.assertXMLEqual(source, out);
     } catch (AssertionError e) {
-      assertEquals(source, out);
+      assertEquals(out, source);
     }
 
     String bodySource = msg.getMessageBody().getContentString();
@@ -104,7 +108,7 @@ public class TestPMParser {
   private void checkModel1(final DrawableProcessModel model) {
     assertNotNull(model);
 
-    assertEquals("There should be 9 effective elements in the process model (including an introduced split)", 9, model.getChildElements().size());
+    assertEquals(model.getChildElements().size(), 9, "There should be 9 effective elements in the process model (including an introduced split)");
     DrawableStartNode start = (DrawableStartNode) model.getNode("start");
     DrawableActivity ac1 = (DrawableActivity) model.getNode("ac1");
     DrawableActivity ac2 = (DrawableActivity) model.getNode("ac2");
@@ -119,29 +123,29 @@ public class TestPMParser {
     assertEquals(expectedNodes.size(), actualNodes.size());
     assertTrue(actualNodes.containsAll(expectedNodes));
 
-    assertArrayEquals(toArray(), start.getPredecessors().toArray());
-    assertArrayEquals(toArray(ac1), start.getSuccessors().toArray());
+    assertEquals(start.getPredecessors().toArray(), toArray());;
+    assertEquals(start.getSuccessors().toArray(), toArray(ac1));;
 
-    assertArrayEquals(toArray(start), ac1.getPredecessors().toArray());
-    assertArrayEquals(toArray(split), ac1.getSuccessors().toArray());
+    assertEquals(ac1.getPredecessors().toArray(), toArray(start));;
+    assertEquals(ac1.getSuccessors().toArray(), toArray(split));;
 
-    assertArrayEquals(toArray(ac1), split.getPredecessors().toArray());
-    assertArrayEquals(toArray(ac2, ac3), split.getSuccessors().toArray());
+    assertEquals(split.getPredecessors().toArray(), toArray(ac1));;
+    assertEquals(split.getSuccessors().toArray(), toArray(ac2, ac3));;
 
-    assertArrayEquals(toArray(split), ac2.getPredecessors().toArray());
-    assertArrayEquals(toArray(j1), ac2.getSuccessors().toArray());
+    assertEquals(ac2.getPredecessors().toArray(), toArray(split));;
+    assertEquals(ac2.getSuccessors().toArray(), toArray(j1));;
 
-    assertArrayEquals(toArray(split), ac3.getPredecessors().toArray());
-    assertArrayEquals(toArray(ac5), ac3.getSuccessors().toArray());
+    assertEquals(ac3.getPredecessors().toArray(), toArray(split));;
+    assertEquals(ac3.getSuccessors().toArray(), toArray(ac5));;
 
-    assertArrayEquals(toArray(j1), ac4.getPredecessors().toArray());
-    assertArrayEquals(toArray(end), ac4.getSuccessors().toArray());
+    assertEquals(ac4.getPredecessors().toArray(), toArray(j1));;
+    assertEquals(ac4.getSuccessors().toArray(), toArray(end));;
 
-    assertArrayEquals(toArray(ac3), ac5.getPredecessors().toArray());
-    assertArrayEquals(toArray(j1), ac5.getSuccessors().toArray());
+    assertEquals(ac5.getPredecessors().toArray(), toArray(ac3));;
+    assertEquals(ac5.getSuccessors().toArray(), toArray(j1));;
 
-    assertArrayEquals(toArray(ac4), end.getPredecessors().toArray());
-    assertArrayEquals(toArray(), end.getSuccessors().toArray());
+    assertEquals(end.getPredecessors().toArray(), toArray(ac4));;
+    assertEquals(end.getSuccessors().toArray(), toArray());;
   }
 
   @Test
@@ -206,7 +210,7 @@ public class TestPMParser {
     assertNotNull(values);
     int counter = 0;
     for(Object value: values) {
-      assertNotNull("Value #"+counter+" should not be null", value);
+      assertNotNull(value, "Value #"+counter+" should not be null");
       ++counter;
     }
   }

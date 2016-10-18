@@ -42,7 +42,7 @@ task testJar(type: Jar) {
 dependencies {
     testCompile project(path: ':ProcessEngine:core', configuration:"testRuntime")
     testCompile project(':DarwinJavaApi')
-    testCompile 'org.testng:testng:6.9.9'
+    testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'xmlunit:xmlunit:1.6'
     testCompile project(path: ':PE-common', configuration:"testRuntime")
     testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"

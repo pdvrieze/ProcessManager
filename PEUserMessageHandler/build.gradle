@@ -165,7 +165,8 @@ dependencies {
     compile project(':DarwinClients')
     compile project(':darwin-sql')
 
-    testCompile 'org.testng:testng:6.9.9'
+    testCompile 'org.testng:testng:6.9.13.8'
+    testCompile 'junit:junit:4.12'
     testCompile 'xmlunit:xmlunit:1.6'
     testCompile project(path: ':PE-common', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'

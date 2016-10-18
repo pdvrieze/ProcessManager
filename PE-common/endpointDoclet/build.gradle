@@ -26,7 +26,7 @@ dependencies {
     compile project(":PE-common")
     compile project(":DarwinJavaApi")
 
-    testCompile 'org.testng:testng:6.9.9'
+    testCompile 'org.testng:testng:6.9.13.8'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

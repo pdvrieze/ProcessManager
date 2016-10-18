@@ -20,17 +20,15 @@ import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.SimpleNamespaceContext;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.Namespace;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlStreamingFactory;
-import nl.adaptivity.xml.XmlUtil;
 import org.custommonkey.xmlunit.*;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -61,13 +59,15 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static junit.framework.Assert.assertEquals;
+import static nl.adaptivity.xml.SimpleNamespaceContext.Companion;
+import static nl.adaptivity.xml.XmlStreaming.EventType.*;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.*;
-import static org.testng.AssertJUnit.*;
-
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 
 /**
@@ -191,7 +191,7 @@ public class TestProcessData {
     final ProcessData data = new ProcessData("foo", new CompactFragment("Hello"));
     data.serialize(xsw);
     xsw.flush();
-    assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>", caw.toString());
+    Assert.assertEquals(caw.toString(), "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>");
   }
 
   @Test
@@ -202,7 +202,7 @@ public class TestProcessData {
     final ProcessData data = new ProcessData("foo", new CompactFragment("<bar/>"));
     data.serialize(xsw);
     xsw.flush();
-    assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>", caw.toString());
+    assertEquals(caw.toString(), "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>");
   }
 
   @Test
@@ -212,8 +212,8 @@ public class TestProcessData {
     ActivityImpl ac2 = (ActivityImpl) pm.getNode("ac2");
     String serialized = XmlUtil.toString(ac2.getMessage());
     XmlMessage msg2= XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
-    assertEquals(ac2.getMessage().getMessageBody().getContentString(),msg2.getMessageBody().getContentString());
-    assertEquals(ac2.getMessage(), msg2);
+    assertEquals(msg2.getMessageBody().getContentString(), ac2.getMessage().getMessageBody().getContentString());
+    assertEquals(msg2, ac2.getMessage());
   }
 
   @Test
@@ -247,34 +247,34 @@ public class TestProcessData {
     assertNotNull(ac2);
     assertNotNull(end);
 
-    assertEquals("ac1", start.getSuccessors().iterator().next().getId());
+    assertEquals(start.getSuccessors().iterator().next().getId(), "ac1");
 
-    assertEquals("start", ac1.getPredecessor().getId());
-    assertEquals("ac2", ac1.getSuccessors().iterator().next().getId());
+    assertEquals(ac1.getPredecessor().getId(), "start");
+    assertEquals(ac1.getSuccessors().iterator().next().getId(), "ac2");
 
-    assertEquals("ac1", ac2.getPredecessor().getId());
-    assertEquals("end", ac2.getSuccessors().iterator().next().getId());
+    assertEquals(ac2.getPredecessor().getId(), "ac1");
+    assertEquals(ac2.getSuccessors().iterator().next().getId(), "end");
 
-    assertEquals("ac2", end.getPredecessor().getId());
+    assertEquals(end.getPredecessor().getId(), "ac2");
 
-    assertEquals(2, ac1.getResults().size());
+    assertEquals(ac1.getResults().size(), 2);
     final XmlResultType result1 = ac1.getResults().get(0);
-    assertEquals("name", result1.getName());
-    assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath());
+    assertEquals(result1.getName(), "name");
+    assertEquals(result1.getPath(), "/umh:result/umh:value[@name='user']/text()");
     final SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result1.getOriginalNSContext());
-    assertEquals(1, snc1.size());
-    assertEquals("umh", snc1.getPrefix(0));
+    assertEquals(snc1.size(), 1);
+    assertEquals(snc1.getPrefix(0), "umh");
 
     final XmlResultType result2 = ac1.getResults().get(1);
     final SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result2.getOriginalNSContext());
-    assertEquals(1, snc1.size());
-    assertEquals("umh", snc1.getPrefix(0));
+    assertEquals(snc1.size(), 1);
+    assertEquals(snc1.getPrefix(0), "umh");
 
     final Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
 
 
     final CompactFragment result1_apply = result1.apply(testData).getContent();
-    assertEquals("Paul", result1_apply.getContentString());
+    assertEquals(result1_apply.getContentString(), "Paul");
 
     final CompactFragment result2_apply = result2.apply(testData).getContent();
     XMLAssert.assertXMLEqual("<user><fullname>Paul</fullname></user>", result2_apply.getContentString());
@@ -286,7 +286,7 @@ public class TestProcessData {
     final SimpleNamespaceContext nsContext = new SimpleNamespaceContext(new String[]{"umh"}, new String[]{"http://adaptivity.nl/userMessageHandler"});
     final String expression = "/umh:result/umh:value[@name='user']/text()";
     final XmlResultType result = new XmlResultType("foo", expression, (char[]) null, nsContext);
-    assertEquals(1, ((SimpleNamespaceContext) SimpleNamespaceContext.Companion.from(result.getOriginalNSContext())).size());
+    assertEquals(((SimpleNamespaceContext) Companion.from(result.getOriginalNSContext())).size(), 1);
 
     final Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
     final XPath xPath = XPathFactory.newInstance().newXPath();
@@ -295,15 +295,15 @@ public class TestProcessData {
     final NodeList apply2 = (NodeList) pathExpression.evaluate(testData, XPathConstants.NODESET);
     assertNotNull(apply2);
     assertTrue(apply2.item(0) instanceof Text);
-    assertEquals("Paul", apply2.item(0).getTextContent());
+    assertEquals(apply2.item(0).getTextContent(), "Paul");
 
     final Node apply3 = (Node) pathExpression.evaluate(testData, XPathConstants.NODE);
     assertNotNull(apply3);
     assertTrue(apply3 instanceof Text);
-    assertEquals("Paul", apply3.getTextContent());
+    assertEquals(apply3.getTextContent(), "Paul");
 
     final ProcessData apply1 = result.apply(testData);
-    assertEquals("Paul", apply1.getContent().getContentString());
+    assertEquals(apply1.getContent().getContentString(), "Paul");
   }
 
   @NotNull
@@ -330,10 +330,10 @@ public class TestProcessData {
     in.require(EventType.END_ELEMENT, "", "b");
     in.next(); in.require(EventType.END_DOCUMENT, null, null);
 
-    assertEquals(1, fragment.getNamespaces().size());
-    assertEquals("urn:foo", fragment.getNamespaces().getNamespaceURI(0));
-    assertEquals("umh", fragment.getNamespaces().getPrefix(0));
-    assertEquals("<umh:a xpath=\"/umh:value\"/>", fragment.getContentString());
+    assertEquals(fragment.getNamespaces().size(), 1);
+    assertEquals(fragment.getNamespaces().getNamespaceURI(0), "urn:foo");
+    assertEquals(fragment.getNamespaces().getPrefix(0), "umh");
+    assertEquals(fragment.getContentString(), "<umh:a xpath=\"/umh:value\"/>");
   }
 
   @Test
@@ -354,7 +354,7 @@ public class TestProcessData {
       try {
         assertXMLEqual(control, test);
       } catch (@NotNull SAXParseException| AssertionError e) {
-        assertEquals(control, test);
+        assertEquals(test, control);
       }
     }
   }
@@ -374,7 +374,7 @@ public class TestProcessData {
         ac1 = it.next();
       }
 
-      assertEquals("ac1", ac1.getId());
+      assertEquals(ac1.getId(), "ac1");
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
 
       final XmlResultType result = (XmlResultType) ac1Results.get(0);
@@ -391,7 +391,7 @@ public class TestProcessData {
         assertXMLEqual(new DetailedDiff(diff), true);
       } catch (@NotNull final AssertionError e) {
         try {
-          assertEquals(expected, actual);
+          assertEquals(actual, expected);
         } catch (@NotNull final AssertionError f) {
           f.addSuppressed(e);
           throw f;
@@ -408,7 +408,7 @@ public class TestProcessData {
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
       final ExecutableProcessNode ac1 = processModel.getNode("ac1");
-      assertEquals("ac1", ac1.getId());
+      assertEquals(ac1.getId(), "ac1");
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
       final XmlResultType result = (XmlResultType) ac1Results.get(1);
       result.serialize(xsw);
@@ -458,7 +458,7 @@ public class TestProcessData {
     try {
       XMLAssert.assertXMLEqual(control, caw.toString());
     } catch (@NotNull final AssertionError e) {
-      assertEquals(control, caw.toString());
+      assertEquals(caw.toString(), control);
     }
   }
 
@@ -485,7 +485,7 @@ public class TestProcessData {
       XMLUnit.setIgnoreWhitespace(true);
       XMLAssert.assertXMLEqual(control, found);
     } catch (@NotNull final AssertionError e) {
-      assertEquals(control, found);
+      assertEquals(found, control);
     }
   }
 
@@ -537,7 +537,7 @@ public class TestProcessData {
       assertXMLEqual(detailedDiff,true);
     } catch (@NotNull AssertionError | Exception e) {
       e.printStackTrace();
-      assertEquals(expected, caw.toString());
+      assertEquals(caw.toString(), expected);
     }
     return caw.toString();
   }
@@ -546,36 +546,36 @@ public class TestProcessData {
   public void testRead() throws Exception {
     String testData = "Hello<a>who<b>are</b>you</a>";
     XmlReader in = XmlStreaming.newReader(new StringReader("<wrap>"+testData+"</wrap>"));
-    assertEquals(EventType.START_ELEMENT, in.next());
-    assertEquals("wrap", in.getLocalName());
-    assertEquals(EventType.TEXT, in.next());
-    assertEquals("Hello", in.getText());
-    assertEquals(EventType.START_ELEMENT, in.next());
-    assertEquals("a", in.getLocalName());
-    assertEquals(EventType.TEXT, in.next());
-    assertEquals("who", in.getText());
-    assertEquals(EventType.START_ELEMENT, in.next());
-    assertEquals("b", in.getLocalName());
-    assertEquals(EventType.TEXT, in.next());
-    assertEquals("are", in.getText());
-    assertEquals(EventType.END_ELEMENT, in.next());
-    assertEquals("b", in.getLocalName());
-    assertEquals(EventType.TEXT, in.next());
-    assertEquals("you", in.getText());
-    assertEquals(EventType.END_ELEMENT, in.next());
-    assertEquals("a", in.getLocalName());
-    assertEquals(EventType.END_ELEMENT, in.next());
-    assertEquals("wrap", in.getLocalName());
-    assertEquals(EventType.END_DOCUMENT, in.next());
+    assertEquals(in.next(), START_ELEMENT);
+    assertEquals(in.getLocalName(), "wrap");
+    assertEquals(in.next(), TEXT);
+    assertEquals(in.getText(), "Hello");
+    assertEquals(in.next(), START_ELEMENT);
+    assertEquals(in.getLocalName(), "a");
+    assertEquals(in.next(), TEXT);
+    assertEquals(in.getText(), "who");
+    assertEquals(in.next(), START_ELEMENT);
+    assertEquals(in.getLocalName(), "b");
+    assertEquals(in.next(), TEXT);
+    assertEquals(in.getText(), "are");
+    assertEquals(in.next(), END_ELEMENT);
+    assertEquals(in.getLocalName(), "b");
+    assertEquals(in.next(), TEXT);
+    assertEquals(in.getText(), "you");
+    assertEquals(in.next(), END_ELEMENT);
+    assertEquals(in.getLocalName(), "a");
+    assertEquals(in.next(), END_ELEMENT);
+    assertEquals(in.getLocalName(), "wrap");
+    assertEquals(in.next(), END_DOCUMENT);
   }
 
   @Test
   public void testSiblingsToFragmentMock() throws Exception {
     String testData = "Hello<a>who<b>are</b>you</a>";
     XmlReader in = XmlStreaming.newReader(new StringReader("<wrap>"+testData+"</wrap>"));
-    assertEquals(EventType.START_ELEMENT, in.next());
-    assertEquals("wrap", in.getLocalName());
-    assertEquals(EventType.TEXT, in.next());
+    assertEquals(in.next(), START_ELEMENT);
+    assertEquals(in.getLocalName(), "wrap");
+    assertEquals(in.next(), TEXT);
 
     {
       XmlStreamingFactory factory = mock(XmlStreamingFactory.class);
@@ -602,9 +602,9 @@ public class TestProcessData {
       inOrder.verify(mockedWriter).close();
       inOrder.verifyNoMoreInteractions();
     }
-    assertEquals(EventType.END_ELEMENT, in.getEventType());
-    assertEquals("wrap", in.getLocalName());
-    assertEquals(EventType.END_DOCUMENT, in.next());
+    assertEquals(in.getEventType(), END_ELEMENT);
+    assertEquals(in.getLocalName(), "wrap");
+    assertEquals(in.next(), END_DOCUMENT);
   }
 
   @Test
@@ -612,18 +612,18 @@ public class TestProcessData {
     String testData = "Hello<a>who<b>are<c>you</c>.<d>I</d></b>don't</a>know";
     XmlReader in = XmlStreaming.newReader(new StringReader("<wrap>"+testData+"</wrap>"));
 
-    assertEquals(EventType.START_ELEMENT, in.next());
-    assertEquals("wrap", in.getLocalName());
-    assertEquals(EventType.TEXT, in.next());
+    assertEquals(in.next(), START_ELEMENT);
+    assertEquals(in.getLocalName(), "wrap");
+    assertEquals(in.next(), TEXT);
 
     XmlStreaming.setFactory(null); // reset to the default one
     CompactFragment fragment = XmlReaderUtil.siblingsToFragment(in);
 
-    assertEquals(0, fragment.getNamespaces().size());
-    assertEquals(testData, fragment.getContentString());
-    assertEquals(EventType.END_ELEMENT, in.getEventType());
-    assertEquals("wrap", in.getLocalName());
-    assertEquals(EventType.END_DOCUMENT, in.next());
+    assertEquals(fragment.getNamespaces().size(), 0);
+    assertEquals(fragment.getContentString(), testData);
+    assertEquals(in.getEventType(), END_ELEMENT);
+    assertEquals(in.getLocalName(), "wrap");
+    assertEquals(in.next(), END_DOCUMENT);
   }
 
   @Test
@@ -671,17 +671,17 @@ public class TestProcessData {
                        "  </user>\n";
 
     XmlResultType rt = XmlResultType.deserialize(XmlStreaming.newReader(new StringReader(xml)));
-    assertEquals(expectedContent, new String(rt.getContent()));
+    assertEquals(new String(rt.getContent()), expectedContent);
     Iterable<Namespace> namespaces = rt.getOriginalNSContext();
     Iterator<Namespace> it         = namespaces.iterator();
     Namespace           ns         = it.next();
-    assertEquals("", ns.getPrefix());
-    assertEquals("http://adaptivity.nl/ProcessEngine/", ns.getNamespaceURI());
+    assertEquals(ns.getPrefix(), "");
+    assertEquals(ns.getNamespaceURI(), "http://adaptivity.nl/ProcessEngine/");
     ns = it.next();
-    assertEquals("umh", ns.getPrefix());
-    assertEquals("http://adaptivity.nl/userMessageHandler", ns.getNamespaceURI());
+    assertEquals(ns.getPrefix(), "umh");
+    assertEquals(ns.getNamespaceURI(), "http://adaptivity.nl/userMessageHandler");
 
-    assertEquals(false, it.hasNext());
+    assertEquals(it.hasNext(), false);
   }
 
   @Test

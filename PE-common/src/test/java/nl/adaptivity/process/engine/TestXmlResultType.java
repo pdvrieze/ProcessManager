@@ -21,13 +21,9 @@ import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.xml.Namespace;
-import nl.adaptivity.xml.SimpleNamespaceContext;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.Test;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
@@ -50,7 +46,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.junit.Assert.*;
+import static nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS;
+import static nl.adaptivity.xml.SimpleNamespaceContext.Companion;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 
 /**
@@ -63,7 +62,7 @@ public class TestXmlResultType {
   public void testXPath() throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
     final XPathExpression expr = XPathFactory.newInstance().newXPath().compile("/result/value[@name='user']/text()");
     final Document testData = getDB().parse(new InputSource(new StringReader("<result><value name='user'>Paul</value></result>")));
-    assertEquals("Paul", expr.evaluate(testData));
+    assertEquals(expr.evaluate(testData), "Paul");
   }
 
   @Test
@@ -74,7 +73,7 @@ public class TestXmlResultType {
     xPath.setNamespaceContext(new SimpleNamespaceContext(prefixMap));
     final XPathExpression expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()");
     final Document testData = getDB().parse(new InputSource(new StringReader("<umh:result xmlns:umh='"+Constants.USER_MESSAGE_HANDLER_NS+"'><umh:value name='user'>Paul</umh:value></umh:result>")));
-    assertEquals("Paul", expr.evaluate(testData));
+    assertEquals(expr.evaluate(testData), "Paul");
   }
 
   @Test
@@ -87,7 +86,7 @@ public class TestXmlResultType {
     final Document testData = getDB().parse(new InputSource(new StringReader("<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
                                                                              "  <value name=\"user\">Some test value</value>\n" +
                                                                              "</result>")));
-    assertEquals("Some test value", expr.evaluate(testData));
+    assertEquals(expr.evaluate(testData), "Some test value");
   }
 
   private DocumentBuilder getDB() throws ParserConfigurationException {
@@ -104,8 +103,8 @@ public class TestXmlResultType {
     final ProcessData actual = xrt.apply(testData);
 
     final ProcessData expected = new ProcessData("user", new CompactFragment(Collections.<Namespace>emptyList(), "Paul".toCharArray()));
-    assertEquals(expected.getName(), actual.getName());
-    assertEquals(expected.getContent(), actual.getContent());
+    assertEquals(actual.getName(), expected.getName());
+    assertEquals(actual.getContent(), expected.getContent());
 //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
   }
 
@@ -118,15 +117,15 @@ public class TestXmlResultType {
     value.setAttribute("name", "user");
     value.appendChild(testData.createTextNode("Paul"));
 
-    assertEquals("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>", DomUtil.toString(testData));
+    assertEquals(DomUtil.toString(testData), "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>");
 
 
     final XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", (char[]) null, null);
 
     final ProcessData expected = new ProcessData("user", new CompactFragment("Paul"));
     final ProcessData actual = xrt.apply(testData);
-    assertEquals(expected.getName(), actual.getName());
-    assertEquals(expected.getContent(), actual.getContent());
+    assertEquals(actual.getName(), expected.getName());
+    assertEquals(actual.getContent(), expected.getContent());
 //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
   }
 
@@ -139,8 +138,8 @@ public class TestXmlResultType {
     final XmlDefineType testHolder = XmlDefineType.deserialize(in);
 
     assertNotNull(SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext()));
-    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext())
-                                                                                    .getNamespaceURI("umh"));
+    assertEquals(Companion.from(testHolder.getOriginalNSContext())
+                                 .getNamespaceURI("umh"), USER_MESSAGE_HANDLER_NS);
 
   }
 
@@ -155,9 +154,9 @@ public class TestXmlResultType {
     final XmlResultType testHolder = XmlResultType.deserialize(in);
 
     assertNotNull(SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext()));
-    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext())
-                                                                                    .getNamespaceURI("umh"));
-    assertEquals("foo", testHolder.getName());
+    assertEquals(Companion.from(testHolder.getOriginalNSContext())
+                                 .getNamespaceURI("umh"), USER_MESSAGE_HANDLER_NS);
+    assertEquals(testHolder.getName(), "foo");
   }
 
   @Test
@@ -187,7 +186,7 @@ public class TestXmlResultType {
     prefixMap.put("ns1", Constants.USER_MESSAGE_HANDLER_NS);
     xPath.setNamespaceContext(new SimpleNamespaceContext(prefixMap));
     final XPathExpression expr = xPath.compile("./ns1:result/ns1:value[@name='user']/text()");
-    assertEquals("Some test value", expr.evaluate(frag));
+    assertEquals(expr.evaluate(frag), "Some test value");
 
   }
 

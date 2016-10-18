@@ -20,8 +20,7 @@ import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.annotations.Test;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -35,7 +34,8 @@ import java.io.StringReader;
 import java.util.LinkedHashMap;
 
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 
 /**
@@ -115,9 +115,9 @@ public class TestSoapHelper {
                    "  </taskParam>\n" +
                    "</umh:postTask>";
     LinkedHashMap<String, Node> result = SoapHelper.unmarshalWrapper(XmlStreaming.newReader(new StringReader(input)));
-    assertEquals(2, result.size());
-    Assert.assertNotNull(result.get("repliesParam"));
-    Assert.assertNotNull(result.get("taskParam"));
+    assertEquals(result.size(), 2);
+    assertNotNull(result.get("repliesParam"));
+    assertNotNull(result.get("taskParam"));
   }
 
   @Test

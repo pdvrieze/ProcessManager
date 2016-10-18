@@ -16,15 +16,15 @@
 
 package net.devrieze.test.util;
 
-import static org.junit.Assert.*;
+import net.devrieze.util.Types;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 
-import net.devrieze.util.Types;
-
-import org.junit.Test;
+import static org.testng.Assert.assertEquals;
 
 
 public class TypesTest {
@@ -51,9 +51,9 @@ public class TypesTest {
 
     Type[] paramType = Types.getTypeParametersFor(Collection.class, returnType);
 
-    assertEquals(1, paramType.length);
-    assertTrue(paramType[0] instanceof Class);
-    assertEquals(String.class, paramType[0]);
+    assertEquals(paramType.length, 1);
+    Assert.assertTrue(paramType[0] instanceof Class);;
+    assertEquals(paramType[0], String.class);
   }
 
   @Test
@@ -63,24 +63,24 @@ public class TypesTest {
     {
       Type[] paramTypesA = Types.getTypeParametersFor(A.class, returnType);
 
-      assertEquals(3, paramTypesA.length);
-      assertEquals(String.class, paramTypesA[0]);
-      assertEquals(Void.class, paramTypesA[1]);
-      assertEquals(Integer.class, paramTypesA[2]);
+      assertEquals(paramTypesA.length, 3);
+      assertEquals(paramTypesA[0], String.class);
+      assertEquals(paramTypesA[1], Void.class);
+      assertEquals(paramTypesA[2], Integer.class);
     }
 
     {
       Type[] paramTypesB = Types.getTypeParametersFor(B.class, returnType);
-      assertEquals(3, paramTypesB.length);
-      assertEquals(String.class, paramTypesB[0]);
-      assertEquals(Integer.class, paramTypesB[1]);
-      assertEquals(Boolean.class, paramTypesB[2]);
+      assertEquals(paramTypesB.length, 3);
+      assertEquals(paramTypesB[0], String.class);
+      assertEquals(paramTypesB[1], Integer.class);
+      assertEquals(paramTypesB[2], Boolean.class);
     }
 
     {
       Type[] paramTypesCol = Types.getTypeParametersFor(Collection.class, returnType);
-      assertEquals(1, paramTypesCol.length);
-      assertEquals(Integer.class, paramTypesCol[0]);
+      assertEquals(paramTypesCol.length, 1);
+      assertEquals(paramTypesCol[0], Integer.class);
     }
   }
 
