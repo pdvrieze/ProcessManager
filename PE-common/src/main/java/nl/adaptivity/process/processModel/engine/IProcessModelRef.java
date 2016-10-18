@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 
-public interface IProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Handle<ProcessModel<T, M>>{
+public interface IProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Handle<M>{
 
   String getName();
 
