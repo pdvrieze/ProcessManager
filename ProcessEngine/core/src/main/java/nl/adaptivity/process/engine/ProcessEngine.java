@@ -207,11 +207,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     mNodeInstanceMap.invalidateCache(handle);
   }
 
-  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
-                                                                   TransactionFactory transactionFactory,
-                                                                   IProcessModelMap<T> processModels,
-                                                                   TransactionedHandleMap<ProcessInstance<T>, T> processInstances,
-                                                                   TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
+  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService, TransactionFactory transactionFactory, IProcessModelMap<T> processModels, TransactionedHandleMap<ProcessInstance<T>, T> processInstances, TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances, final boolean autoTransition) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
 
@@ -455,7 +451,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException
    */
-  public HProcessInstance startProcess(T transaction, final Principal user, final Handle<? extends ProcessModelImpl> handle, final String name, UUID uuid, final Node payload) throws SQLException, FileNotFoundException {
+  public HProcessInstance<T> startProcess(T transaction, final Principal user, final Handle<? extends ProcessModelImpl> handle, final String name, UUID uuid, final Node payload) throws SQLException, FileNotFoundException {
     ProcessModelImpl processModel = getProcessModels().get(transaction, handle);
     return startProcess(transaction, user, processModel, name, uuid, payload);
   }

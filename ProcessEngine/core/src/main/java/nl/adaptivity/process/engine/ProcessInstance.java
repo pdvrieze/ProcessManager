@@ -16,12 +16,8 @@
 
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.CollectionUtil;
-import net.devrieze.util.ComparableHandle;
-import net.devrieze.util.Handle;
+import net.devrieze.util.*;
 import net.devrieze.util.HandleMap.HandleAware;
-import net.devrieze.util.Handles;
-import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
@@ -35,8 +31,9 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.xml.XmlSerializable;
+import net.devrieze.util.ArraySet;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlWriter;
 import nl.adaptivity.xml.XmlWriterUtil;
 import org.jetbrains.annotations.NotNull;
@@ -133,11 +130,11 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   private final ProcessModelImpl mProcessModel;
 
-  private final Collection<ComparableHandle<? extends ProcessNodeInstance<T>>> mThreads;
+  private final Set<ComparableHandle<? extends ProcessNodeInstance<T>>> mThreads;
 
-  private final Collection<ComparableHandle<? extends ProcessNodeInstance<T>>> mFinishedNodes;
+  private final Set<ComparableHandle<? extends ProcessNodeInstance<T>>> mFinishedNodes;
 
-  private final Collection<ComparableHandle<? extends ProcessNodeInstance<T>>> mEndResults;
+  private final Set<ComparableHandle<? extends ProcessNodeInstance<T>>> mEndResults;
 
   private final HashMap<JoinImpl, ComparableHandle<? extends JoinInstance<T>>> mJoins;
 
@@ -170,10 +167,10 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     mEngine = engine;
     mName =name;
     mState = state==null ? State.NEW : state;
-    mThreads = new LinkedList<>();
+    mThreads = new ArraySet<>();
     mJoins = new HashMap<>();
-    mEndResults = new ArrayList<>();
-    mFinishedNodes = new ArrayList<>();
+    mEndResults = new ArraySet<>();
+    mFinishedNodes = new ArraySet<>();
   }
 
   public ProcessInstance(final Principal owner, final ProcessModelImpl processModel, final String name, final UUID uUid, final State state, final ProcessEngine engine) {
@@ -181,11 +178,11 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     mName = name;
     mUUid = uUid;
     mEngine = engine;
-    mThreads = new LinkedList<>();
+    mThreads = new ArraySet<>();
     mOwner = owner;
     mJoins = new HashMap<>();
-    mEndResults = new ArrayList<>();
-    mFinishedNodes = new ArrayList<>();
+    mEndResults = new ArraySet<>();
+    mFinishedNodes = new ArraySet<>();
     mState = state == null ? State.NEW : state;
   }
 
@@ -422,7 +419,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     if (! mFinishedNodes.contains(predecessor)) {
       mFinishedNodes.add(predecessor.getHandle());
     }
-    mThreads.remove(predecessor);
+    mThreads.remove(predecessor.getHandle());
 
     final List<ProcessNodeInstance<?>> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
     final List<JoinInstance<T>> joinsToEvaluate = new ArrayList<>();
@@ -447,7 +444,9 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     for(final ProcessNodeInstance<T> join:joinsToEvaluate) {
       startTask(transaction, messageService, join);
       if (join.getState().isFinal()) {
-
+        final ComparableHandle<? extends ProcessNodeInstance<T>> joinHandle = join.getHandle();
+        mThreads.remove(joinHandle);
+        mFinishedNodes.add(joinHandle);
       }
     }
   }
