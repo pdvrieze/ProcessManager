@@ -21,7 +21,7 @@
 	xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" name="Simple data processing model">
 	<start id="start" />
 	<activity id="ac1" predecessor="start" name="ac1">
-		<result name="name" path="/values/user/text()" />
+		<result name="name" xpath="/values/user/text()" />
 		<result name="user"><user xmlns=""><fullname xmlns=""><jbi:value xpath="/values/user/text()" /></fullname></user></result>
 		<message serviceNS="http://adaptivity.nl/userMessageHandler"
 			serviceName="userMessageHandler" endpoint="internal" operation="postTask"
