@@ -130,7 +130,9 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     final Iterable<XmlTask> tasks = getTasks().iterable(transaction);
     ArrayList<XmlTask> result = new ArrayList<>();
     for(XmlTask task:tasks) {
-      result.add(task);
+      if (! task.getState().isFinal()) {
+        result.add(task);
+      }
     }
     return result;
   }
