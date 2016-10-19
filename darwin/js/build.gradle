@@ -119,6 +119,7 @@ compileKotlin2Js {
     kotlinOptions.suppressWarnings = true
     kotlinOptions.verbose = true
     kotlinOptions.metaInfo = true
+    kotlinOptions.moduleKind = "umd"
 }
 
 clean.doLast {
