@@ -51,7 +51,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
   }
 
   private inner class ResultSetIterator @Throws(SQLException::class)
-  constructor(private val mTransaction: DBTransaction, private val mStatement: PreparedStatement, private val mColumns:List<Column<*, *, *>>, private val mResultSet: ResultSet) : AutoCloseableIterator<T> {
+  constructor(private val mTransaction: DBTransaction, private val mStatement: PreparedStatement, private val mColumns:List<Column<*, *, *>>, private val mResultSet: ResultSet) : MutableAutoCloseableIterator<T> {
     private var mNextElem: T? = null
     private var mFinished = false
     private val mCloseOnFinish: Boolean
@@ -163,7 +163,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
 
   @Deprecated("")
   @SuppressWarnings("resource")
-  fun unsafeIterator(pReadOnly: Boolean): AutoCloseableIterator<T> {
+  fun unsafeIterator(pReadOnly: Boolean): MutableAutoCloseableIterator<T> {
     val transaction: DBTransaction
     var statement: StatementHelper? = null
     try {
@@ -203,7 +203,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
 
   @SuppressWarnings("resource")
   @Throws(SQLException::class)
-  open fun iterator(transaction: DBTransaction, readOnly: Boolean): AutoCloseableIterator<T> {
+  open fun iterator(transaction: DBTransaction, readOnly: Boolean): MutableAutoCloseableIterator<T> {
     try {
       val columns = elementFactory.createColumns
 

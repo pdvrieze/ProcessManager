@@ -62,7 +62,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
     }
   }
 
-  override fun getHandleCondition(where: Database._Where, handle: Handle<ProcessModelImpl>): Database.WhereClause? {
+  override fun getHandleCondition(where: Database._Where, handle: Handle<out ProcessModelImpl>): Database.WhereClause? {
     return where.run { pm.pmhandle eq handle.handleValue }
   }
 

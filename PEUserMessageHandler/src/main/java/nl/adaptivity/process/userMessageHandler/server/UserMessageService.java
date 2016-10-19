@@ -92,10 +92,10 @@ public class UserMessageService<T extends Transaction> implements CompletionList
 
   }
 
-  private final IUserTaskMap<T> mTasks;
+  private final IMutableUserTaskMap<T> mTasks;
   private final TransactionFactory<T> mTransactionFactory;
 
-  private UserMessageService(TransactionFactory<T> transactionFactory, IUserTaskMap taskMap) {
+  private UserMessageService(TransactionFactory<T> transactionFactory, IMutableUserTaskMap taskMap) {
     mTransactionFactory = transactionFactory;
     mTasks = taskMap;
   }
@@ -105,11 +105,11 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return new UserMessageService<DBTransaction>(transactionFactory, new UserTaskMap(transactionFactory));
   }
 
-  public static <T extends Transaction> UserMessageService<T> newTestInstance(final TransactionFactory<T> transactionFactory, final IUserTaskMap<T> taskMap) {
+  public static <T extends Transaction> UserMessageService<T> newTestInstance(final TransactionFactory<T> transactionFactory, final IMutableUserTaskMap<T> taskMap) {
     return new UserMessageService<>(transactionFactory, taskMap);
   }
 
-  private IUserTaskMap<T> getTasks() {
+  private IMutableUserTaskMap<T> getTasks() {
     return mTasks;
   }
 
@@ -141,7 +141,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return getTasks().get(transaction, handle);
   }
 
-  public NodeInstanceState finishTask(final T transaction, final Handle<XmlTask> taskHandle, final Principal user) throws SQLException {
+  public NodeInstanceState finishTask(final T transaction, final Handle<? extends XmlTask> taskHandle, final Principal user) throws SQLException {
     if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     final XmlTask task = mTasks.get(transaction, taskHandle);
     task.setState(NodeInstanceState.Complete, user);

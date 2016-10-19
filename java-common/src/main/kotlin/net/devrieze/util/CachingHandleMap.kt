@@ -33,10 +33,10 @@ import java.util.concurrent.CopyOnWriteArraySet
  * *
  * @param  The type of the elements in the map.
  */
-open class CachingHandleMap<V, T : Transaction>(protected open val delegate: TransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+open class CachingHandleMap<V, T : Transaction>(protected open val delegate: MutableTransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
 
-  private open inner class WrappingIterator(private val transaction:T, protected open val iterator: Iterator<V>) : AutoCloseableIterator<V> {
+  private open inner class WrappingIterator(private val transaction:T, protected open val iterator: Iterator<V>) : MutableAutoCloseableIterator<V> {
     private var last: V? = null
 
     override final fun hasNext(): Boolean {
@@ -112,7 +112,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
 
   }
 
-  private inner class WrappingIterable(private val transaction:T, private val delegateIterable: Iterable<V>) : Iterable<V> {
+  private inner class WrappingIterable(private val transaction:T, private val delegateIterable: Iterable<V>) : MutableIterable<V> {
 
     override fun iterator(): MutableIterator<V> {
       return WrappingIterator(transaction, delegateIterable.iterator())
@@ -148,7 +148,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
     }
   }
 
-  private fun putCache(transaction: T, pHandle: Handle<V>, pValue: V?) {
+  private fun putCache(transaction: T, pHandle: Handle<out V>, pValue: V?) {
     if (pValue != null) { // never store null
       if (pHandle.valid) {
         synchronized (mCacheHandles) {
@@ -189,7 +189,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
   }
 
   @Throws(SQLException::class)
-  override fun get(transaction: T, handle: Handle<V>): V? {
+  override fun get(transaction: T, handle: Handle<out V>): V? {
     var value: V?
     synchronized (mCacheHandles) {
       value = getFromCache(handle.handleValue)
@@ -202,7 +202,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: T, handle: Handle<V>): Boolean {
+  override fun contains(transaction: T, handle: Handle<out V>): Boolean {
     if (getFromCache(handle.handleValue) != null) {
       return true
     }
@@ -218,13 +218,13 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
   }
 
   @Throws(SQLException::class)
-  override fun set(transaction: T, handle: Handle<V>, value: V): V? {
+  override fun set(transaction: T, handle: Handle<out V>, value: V): V? {
     invalidateCache(handle)
     delegate.set(transaction, handle, value)
     return storeInCache(transaction, handle, value)
   }
 
-  private fun storeInCache(transaction: T, pHandle: Handle<V>, pV: V): V {
+  private fun storeInCache(transaction: T, pHandle: Handle<out V>, pV: V): V {
     if (!isPending(pHandle)) {
       val handle = pHandle.handleValue
       synchronized (mCacheHandles) {
@@ -246,11 +246,11 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
     }
   }
 
-  private fun isPending(handle: Handle<V>): Boolean {
+  private fun isPending(handle: Handle<out V>): Boolean {
     return mPendingHandles.contains(handle)
   }
 
-  override fun invalidateCache(handle: Handle<V>) {
+  override fun invalidateCache(handle: Handle<out V>) {
     removeFromCache(handle.handleValue)
   }
 
@@ -275,7 +275,7 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
   }
 
   @Throws(SQLException::class)
-  override fun remove(transaction: T, handle: Handle<V>): Boolean {
+  override fun remove(transaction: T, handle: Handle<out V>): Boolean {
     removeFromCache(handle.handleValue)
     return delegate.remove(transaction, handle)
   }
@@ -286,11 +286,11 @@ open class CachingHandleMap<V, T : Transaction>(protected open val delegate: Tra
     delegate.clear(transaction)
   }
 
-  override fun iterator(transaction: T, readOnly: Boolean): AutoCloseableIterator<V> {
+  override fun iterator(transaction: T, readOnly: Boolean): MutableAutoCloseableIterator<V> {
     return WrappingIterator(transaction, delegate.iterator(transaction, readOnly))
   }
 
-  override fun iterable(transaction: T): Iterable<V> {
+  override fun iterable(transaction: T): MutableIterable<V> {
     return WrappingIterable(transaction, delegate.iterable(transaction))
   }
 

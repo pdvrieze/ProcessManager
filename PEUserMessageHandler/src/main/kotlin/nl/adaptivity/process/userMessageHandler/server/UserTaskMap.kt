@@ -25,38 +25,30 @@ import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
-import nl.adaptivity.xml.XmlDeserializerFactory
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlStreaming.EventType
 import org.w3.soapEnvelope.Envelope
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB.usertasks
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
-import uk.ac.bournemouth.kotlinsql.*
+import uk.ac.bournemouth.kotlinsql.Column
+import uk.ac.bournemouth.kotlinsql.ColumnType
+import uk.ac.bournemouth.kotlinsql.Database
+import uk.ac.bournemouth.kotlinsql.Table
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-
-import javax.xml.bind.JAXBException
-
 import java.io.FileNotFoundException
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.ResultSetMetaData
 import java.sql.SQLException
-import java.util.Arrays
 import java.util.concurrent.ExecutionException
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import javax.xml.bind.JAXBException
 
 
 class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
-      DBHandleMap<XmlTask>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()), IUserTaskMap<DBTransaction> {
+      DBHandleMap<XmlTask>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()), IMutableUserTaskMap<DBTransaction> {
 
 
   private class PostTaskFactory : XmlDeserializerFactory<XmlTask> {
@@ -192,7 +184,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       return getHandleCondition(where, task.handle)
     }
 
-    override fun getHandleCondition(where: Database._Where, handle: Handle<XmlTask>): Database.WhereClause? {
+    override fun getHandleCondition(where: Database._Where, handle: Handle<out XmlTask>): Database.WhereClause? {
       return where.run {
         u.taskhandle eq handle.handleValue
       }
@@ -215,7 +207,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       update.run { SET(u.remotehandle, value.remoteHandle) }
     }
 
-    override fun postStore(connection: DBConnection, handle: Handle<XmlTask>, oldValue: XmlTask?, newValue: XmlTask) {
+    override fun postStore(connection: DBConnection, handle: Handle<out XmlTask>, oldValue: XmlTask?, newValue: XmlTask) {
       val insert = UserTaskDB.INSERT(nd.taskhandle, nd.name, nd.data)
       for(item in newValue.items) {
         if (item.name!=null && item.type!="label") {
@@ -234,7 +226,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       WebAuthDB.DELETE_FROM(nd).executeUpdate(transaction.connection)
     }
 
-    override fun preRemove(transaction: DBTransaction, handle: Handle<XmlTask>) {
+    override fun preRemove(transaction: DBTransaction, handle: Handle<out XmlTask>) {
       WebAuthDB.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle.handleValue }.executeUpdate(transaction.connection)
     }
 

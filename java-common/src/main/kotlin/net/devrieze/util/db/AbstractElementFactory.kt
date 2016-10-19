@@ -51,12 +51,12 @@ abstract class AbstractElementFactory<T> : HMElementFactory<T> {
   }
 
   @Throws(SQLException::class)
-  override fun postStore(connection: DBConnection, handle: Handle<T>, oldValue: T?, newValue: T) {
+  override fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T) {
     // Simple case, do nothing
   }
 
   @Throws(SQLException::class)
-  override fun preRemove(transaction: DBTransaction, handle: Handle<T>) {
+  override fun preRemove(transaction: DBTransaction, handle: Handle<out T>) {
     // Don't do anything
   }
 

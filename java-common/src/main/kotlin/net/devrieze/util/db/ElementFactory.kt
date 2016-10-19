@@ -134,7 +134,7 @@ interface ElementFactory<T> {
    * @param newValue
    */
   @Throws(SQLException::class)
-  fun postStore(connection: DBConnection, handle: Handle<T>, oldValue: T?, newValue: T)
+  fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T)
 
   val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
 }

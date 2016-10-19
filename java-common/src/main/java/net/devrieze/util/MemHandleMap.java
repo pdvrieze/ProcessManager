@@ -41,7 +41,7 @@ import java.util.Iterator;
  * @author Paul de Vrieze
  * @param <V> The type of object contained in the map.
  */
-public class MemHandleMap<V> implements HandleMap<V>, Collection<V> {
+public class MemHandleMap<V> implements MutableHandleMap<V>, Collection<V> {
 
   static class MapCollection<T> implements Collection<T> {
 

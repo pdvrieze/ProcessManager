@@ -26,9 +26,9 @@ import java.util.Iterator;
 /**
  * Created by pdvrieze on 09/12/15.
  */
-public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T, Transaction> {
+public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.MutableTransactionedHandleMap<T, Transaction> {
 
-  private static class IteratorWrapper<T> implements AutoCloseableIterator<T> {
+  private static class IteratorWrapper<T> implements MutableAutoCloseableIterator<T> {
 
     private final boolean     readOnly;
     private final Iterator<T> delegate;
@@ -86,7 +86,7 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public AutoCloseableIterator<T> iterator(final Transaction transaction, final boolean readOnly) {
+  public MutableAutoCloseableIterator<T> iterator(final Transaction transaction, final boolean readOnly) {
     return new IteratorWrapper(iterator(), readOnly);
   }
 

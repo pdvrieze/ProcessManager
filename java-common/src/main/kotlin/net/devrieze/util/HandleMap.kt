@@ -21,12 +21,10 @@ interface HandleMap<V> {
 
   interface HandleAware<T> {
 
-    val handle: Handle<@JvmWildcard T>
+    val handle: Handle<out @JvmWildcard T>
 
     fun setHandleValue(handleValue: Long)
   }
-
-  operator fun iterator(): Iterator<V>
 
   /**
    * Determine whether the given object is contained in the map. If the object
@@ -38,6 +36,8 @@ interface HandleMap<V> {
    * @return `true` if it does.
    */
   operator fun contains(element: V): Boolean
+
+  operator fun iterator(): Iterator<V>
 
   fun isEmpty(): Boolean
 
@@ -52,6 +52,19 @@ interface HandleMap<V> {
    */
   operator fun contains(handle: Long): Boolean
 
+  operator fun get(handle: Handle<out V>): V?
+
+  fun getSize():Int
+
+  companion object {
+
+    const val NULL_HANDLE: Long = 0
+  }
+
+}
+
+interface MutableHandleMap<V>: HandleMap<V> {
+  override operator fun iterator(): MutableIterator<V>
   /**
    * Put a new walue into the map. This is thread safe.
 
@@ -61,19 +74,8 @@ interface HandleMap<V> {
    */
   fun <W : V> put(value: W): Handle<W>
 
-  operator fun get(handle: Handle<out V>): V?
-
   operator fun set(handle: Long, value: V): V?
-
   operator fun set(handle: Handle<out V>, value: V): V?
-
-  fun getSize():Int
-
   fun remove(handle: Handle<out V>): Boolean
-
-  companion object {
-
-    const val NULL_HANDLE: Long = 0
-  }
 
 }

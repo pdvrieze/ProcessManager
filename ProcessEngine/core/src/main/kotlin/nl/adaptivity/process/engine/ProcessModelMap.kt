@@ -29,7 +29,7 @@ import java.util.*
 
 
 internal class ProcessModelMap(transactionFactory: TransactionFactory<DBTransaction>, stringCache: StringCache) : DBHandleMap<ProcessModelImpl>(
-      transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IProcessModelMap<DBTransaction> {
+      transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<DBTransaction> {
 
   override fun getModelWithUuid(transaction: DBTransaction, uuid: UUID): Handle<ProcessModelImpl>? {
     val candidates = ProcessEngineDB

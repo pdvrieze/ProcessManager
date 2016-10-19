@@ -136,11 +136,11 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   private final StringCache mStringCache = new StringCacheImpl();
   private final TransactionFactory<? extends T> mTransactionFactory;
 
-  private TransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
+  private MutableTransactionedHandleMap<ProcessInstance<T>, T> mInstanceMap;
 
-  private TransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
+  private MutableTransactionedHandleMap<ProcessNodeInstance<T>, T> mNodeInstanceMap = null;
 
-  private IProcessModelMap<T> mProcessModels = null;
+  private IMutableProcessModelMap<T> mProcessModels = null;
 
   private final IMessageService<?,T, ProcessNodeInstance<T>> mMessageService;
 
@@ -166,12 +166,12 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return pe;
   }
 
-  private static <T extends Transaction, V> TransactionedHandleMap<V, T> wrapCache(TransactionedHandleMap<V,T> base, int cacheSize) {
+  private static <T extends Transaction, V> MutableTransactionedHandleMap<V, T> wrapCache(MutableTransactionedHandleMap<V,T> base, int cacheSize) {
     if(cacheSize<=0) { return base; }
     return new CachingHandleMap<V, T>(base, cacheSize);
   }
 
-  private static <T extends Transaction, V> IProcessModelMap<T> wrapCache(IProcessModelMap<T> base, int cacheSize) {
+  private static <T extends Transaction, V> IMutableProcessModelMap<T> wrapCache(IMutableProcessModelMap<T> base, int cacheSize) {
     if(cacheSize<=0) { return base; }
     return new CachingProcessModelMap<T>(base, cacheSize);
   }
@@ -185,9 +185,9 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    */
   private ProcessEngine(final IMessageService<?, T, ProcessNodeInstance<T>> messageService,
                         TransactionFactory transactionFactory,
-                        IProcessModelMap<T> processModels,
-                        TransactionedHandleMap<ProcessInstance<T>, T> processInstances,
-                        TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
+                        IMutableProcessModelMap<T> processModels,
+                        MutableTransactionedHandleMap<ProcessInstance<T>, T> processInstances,
+                        MutableTransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances) {
     mMessageService = messageService;
     mProcessModels = processModels;
     mTransactionFactory = transactionFactory;
@@ -207,7 +207,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     mNodeInstanceMap.invalidateCache(handle);
   }
 
-  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService, TransactionFactory transactionFactory, IProcessModelMap<T> processModels, TransactionedHandleMap<ProcessInstance<T>, T> processInstances, TransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances, final boolean autoTransition) {
+  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, T, ProcessNodeInstance<T>> messageService, TransactionFactory transactionFactory, IMutableProcessModelMap<T> processModels, MutableTransactionedHandleMap<ProcessInstance<T>, T> processInstances, MutableTransactionedHandleMap<ProcessNodeInstance<T>, T> processNodeInstances, final boolean autoTransition) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
 
@@ -314,7 +314,14 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     ProcessModelImpl oldModel = getProcessModels().get(transaction, handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, user, oldModel);
 
-    if (getProcessModels().remove(transaction, handle)) {
+    if (mProcessModels ==null) {
+
+      // TODO Hack to use the db backed implementation here
+      @SuppressWarnings("raw")
+      IMutableProcessModelMap<T> tmp = (IMutableProcessModelMap) new ProcessModelMap((TransactionFactory<DBTransaction>) mTransactionFactory, mStringCache);
+      mProcessModels = tmp;
+    }
+    if (mProcessModels.remove(transaction, handle)) {
       transaction.commit();
       return true;
     }
@@ -344,21 +351,21 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return result;
   }
 
-  private TransactionedHandleMap<ProcessInstance<T>, T> getInstances() {
+  private MutableTransactionedHandleMap<ProcessInstance<T>, T> getInstances() {
     return mInstanceMap;
   }
 
-  private TransactionedHandleMap<ProcessNodeInstance<T>, T> getNodeInstances() {
+  private MutableTransactionedHandleMap<ProcessNodeInstance<T>, T> getNodeInstances() {
     return mNodeInstanceMap;
   }
 
 
-  private IProcessModelMap<T> getProcessModels() {
+  private IMutableProcessModelMap<T> getProcessModels() {
     if (mProcessModels ==null) {
 
       // TODO Hack to use the db backed implementation here
       @SuppressWarnings("raw")
-      IProcessModelMap<T> tmp = (IProcessModelMap) new ProcessModelMap((TransactionFactory<DBTransaction>) mTransactionFactory, mStringCache);
+      IMutableProcessModelMap<T> tmp = (IMutableProcessModelMap) new ProcessModelMap((TransactionFactory<DBTransaction>) mTransactionFactory, mStringCache);
       mProcessModels = tmp;
     }
     return mProcessModels;
@@ -501,7 +508,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     try {
       // Should be removed internally to the map.
 //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
-      if(getInstances().remove(transaction, result.getHandle())) {
+      if(mInstanceMap.remove(transaction, result.getHandle())) {
         return result;
       }
       throw new ProcessException("The instance could not be cancelled");
@@ -640,7 +647,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
   public boolean removeNodeInstance(@NotNull final T transaction, @NotNull final ComparableHandle<ProcessNodeInstance<T>> handle) throws SQLException {
-    return getNodeInstances().remove(transaction, handle);
+    return mNodeInstanceMap.remove(transaction, handle);
   }
 
   public void updateStorage(T transaction, ProcessInstance<T> processInstance) throws SQLException {

@@ -24,12 +24,12 @@ import java.sql.SQLException
 import java.util.*
 
 open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTransaction>, database: Database, elementFactory: HMElementFactory<V>) :
-      DbSet<V>(transactionFactory, database, elementFactory), TransactionedHandleMap<V, DBTransaction> {
+      DbSet<V>(transactionFactory, database, elementFactory), MutableTransactionedHandleMap<V, DBTransaction> {
 
 
-  private inner class TransactionIterable(private val mTransaction: DBTransaction) : Iterable<V> {
+  private inner class TransactionIterable(private val mTransaction: DBTransaction) : MutableIterable<V> {
 
-    override fun iterator(): Iterator<V> {
+    override fun iterator(): MutableIterator<V> {
       return this@DBHandleMap.iterator(mTransaction, false)
     }
 
@@ -58,7 +58,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun get(transaction: DBTransaction, handle: Handle<V>): V? {
+  override fun get(transaction: DBTransaction, handle: Handle<out V>): V? {
     val comparableHandle = Handles.handle(handle)
     if (mPendingCreates.containsKey(comparableHandle)) {
       return mPendingCreates[comparableHandle]
@@ -81,7 +81,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun castOrGet(transaction: DBTransaction, handle: Handle<V>): V? {
+  override fun castOrGet(transaction: DBTransaction, handle: Handle<out V>): V? {
     val element = elementFactory.asInstance(handle)
     if (element != null) {
       return element
@@ -90,14 +90,14 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun set(transaction: DBTransaction, handle: Handle<V>, value: V): V? {
+  override fun set(transaction: DBTransaction, handle: Handle<out V>, value: V): V? {
     val oldValue = get(transaction, handle)
 
     return set(transaction, handle, oldValue, value)
   }
 
   @Throws(SQLException::class)
-  protected operator fun set(transaction: DBTransaction, handle: Handle<V>, oldValue: V?, newValue: V): V? {
+  protected operator fun set(transaction: DBTransaction, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
     if (oldValue == newValue) {
       return oldValue
     }
@@ -112,7 +112,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
     return oldValue
   }
 
-  override fun iterator(transaction: DBTransaction, readOnly: Boolean): AutoCloseableIterator<V> {
+  override fun iterator(transaction: DBTransaction, readOnly: Boolean): MutableAutoCloseableIterator<V> {
     try {
       return super.iterator(transaction, readOnly)
     } catch (e: SQLException) {
@@ -121,7 +121,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
 
   }
 
-  override fun iterable(transaction: DBTransaction): Iterable<V> {
+  override fun iterable(transaction: DBTransaction): MutableIterable<V> {
     return TransactionIterable(transaction)
   }
 
@@ -144,7 +144,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: DBTransaction, handle: Handle<V>): Boolean {
+  override fun contains(transaction: DBTransaction, handle: Handle<out V>): Boolean {
     val query = database
           .SELECT(database.COUNT(elementFactory.createColumns[0]))
           .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
@@ -159,7 +159,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun remove(transaction: DBTransaction, handle: Handle<V>): Boolean {
+  override fun remove(transaction: DBTransaction, handle: Handle<out V>): Boolean {
     elementFactory.preRemove(transaction, handle)
     return database
           .DELETE_FROM(elementFactory.table)
@@ -167,7 +167,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
           .executeUpdate(transaction.connection)>0
   }
 
-  override fun invalidateCache(handle: Handle<V>) {
+  override fun invalidateCache(handle: Handle<out V>) {
     // No-op, there is no cache
   }
 

@@ -29,20 +29,20 @@ import java.util.UUID;
  * Extension to cachingHandleMap that handles the uuids needed for process models.
  * Created by pdvrieze on 20/05/16.
  */
-public class CachingProcessModelMap<T extends Transaction> extends CachingHandleMap<ProcessModelImpl, T> implements IProcessModelMap<T> {
+public class CachingProcessModelMap<T extends Transaction> extends CachingHandleMap<ProcessModelImpl, T> implements IMutableProcessModelMap<T> {
 
-  public CachingProcessModelMap(final IProcessModelMap<T> base, final int cacheSize) {
+  public CachingProcessModelMap(final IMutableProcessModelMap<T> base, final int cacheSize) {
     super(base, cacheSize);
   }
 
   @Override
-  protected IProcessModelMap<T> getDelegate() {
-    return (IProcessModelMap<T>) super.getDelegate();
+  protected IMutableProcessModelMap<T> getDelegate() {
+    return (IMutableProcessModelMap<T>) super.getDelegate();
   }
 
   @Override
-  public Handle<? extends ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException {
-    Handle<? extends ProcessModelImpl> modelWithUuid = getDelegate().getModelWithUuid(transaction, uuid);
+  public Handle<ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException {
+    Handle<ProcessModelImpl> modelWithUuid = getDelegate().getModelWithUuid(transaction, uuid);
     if (modelWithUuid instanceof ProcessModelImpl) {
       putCache(transaction, (ProcessModelImpl) modelWithUuid);
     }

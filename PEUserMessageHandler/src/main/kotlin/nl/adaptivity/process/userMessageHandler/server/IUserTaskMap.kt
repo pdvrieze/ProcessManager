@@ -14,22 +14,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine;
+package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.Handle;
-import net.devrieze.util.Transaction;
-import net.devrieze.util.OldTransactionedHandleMap;
-import net.devrieze.util.TransactionedHandleMap;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import net.devrieze.util.Handle
+import net.devrieze.util.MutableTransactionedHandleMap
+import net.devrieze.util.Transaction
+import net.devrieze.util.TransactionedHandleMap
 
-import java.sql.SQLException;
-import java.util.UUID;
+import java.sql.SQLException
 
 
 /**
- * Created by pdvrieze on 07/05/16.
+ * Interface with some specific bets for user tasks
+ * Created by pdvrieze on 02/05/16.
  */
-public interface IProcessModelMap<T extends Transaction> extends TransactionedHandleMap<ProcessModelImpl, T> {
+interface IUserTaskMap<T : Transaction> : TransactionedHandleMap<XmlTask, T> {
 
-  Handle<? extends ProcessModelImpl> getModelWithUuid(final T transaction, final UUID uuid) throws SQLException;
+  @Throws(SQLException::class)
+  fun containsRemoteHandle(transaction: T, remoteHandle: Long): Handle<XmlTask>?
 }
+
+interface IMutableUserTaskMap<T : Transaction> : IUserTaskMap<T>, MutableTransactionedHandleMap<XmlTask, T>

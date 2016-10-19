@@ -40,7 +40,7 @@ import java.util.*
 internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DBTransaction>) : AbstractElementFactory<ProcessInstance<DBTransaction>>() {
 
   override fun getHandleCondition(where: Database._Where,
-                                  handle: Handle<ProcessInstance<DBTransaction>>): Database.WhereClause? {
+                                  handle: Handle<out ProcessInstance<DBTransaction>>): Database.WhereClause? {
     return where.run { pi.pihandle eq handle.handleValue }
   }
 
@@ -115,7 +115,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     preRemove(transaction, handle)
   }
 
-  override fun preRemove(transaction: DBTransaction, handle: Handle<ProcessInstance<DBTransaction>>) {
+  override fun preRemove(transaction: DBTransaction, handle: Handle<out ProcessInstance<DBTransaction>>) {
     ProcessEngineDB
           .DELETE_FROM(id)
           .WHERE { id.pihandle eq handle.handleValue }

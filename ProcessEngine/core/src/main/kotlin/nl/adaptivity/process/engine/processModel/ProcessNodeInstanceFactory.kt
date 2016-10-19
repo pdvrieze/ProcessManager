@@ -47,7 +47,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     const val FAILURE_CAUSE = "failureCause"
   }
 
-  override fun getHandleCondition(where: Database._Where, handle: Handle<ProcessNodeInstance<DBTransaction>>): Database.WhereClause? {
+  override fun getHandleCondition(where: Database._Where, handle: Handle<out ProcessNodeInstance<DBTransaction>>): Database.WhereClause? {
     return where.run { tbl_pni.pnihandle eq handle.handleValue }
   }
 
@@ -118,7 +118,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
   }
 
   override fun postStore(connection: DBConnection,
-                         handle: Handle<ProcessNodeInstance<DBTransaction>>,
+                         handle: Handle<out ProcessNodeInstance<DBTransaction>>,
                          oldValue: ProcessNodeInstance<DBTransaction>?,
                          newValue: ProcessNodeInstance<DBTransaction>) {
     if (oldValue != null) { // update
@@ -163,7 +163,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
     get() = tbl_pni.pnihandle
 
-  override fun preRemove(transaction: DBTransaction, handle: Handle<ProcessNodeInstance<DBTransaction>>) {
+  override fun preRemove(transaction: DBTransaction, handle: Handle<out ProcessNodeInstance<DBTransaction>>) {
 
     val connection = transaction.connection
     ProcessEngineDB

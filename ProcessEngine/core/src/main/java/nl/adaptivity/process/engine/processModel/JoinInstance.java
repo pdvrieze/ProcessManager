@@ -57,9 +57,9 @@ public class JoinInstance<T extends Transaction> extends ProcessNodeInstance<T> 
   }
 
   @Override
-  public ComparableHandle<? extends JoinInstance<T>> getHandle() {
+  public ComparableHandle<JoinInstance<T>> getHandle() {
     //noinspection unchecked
-    return (ComparableHandle<? extends JoinInstance<T>>) super.getHandle();
+    return (ComparableHandle<JoinInstance<T>>) super.getHandle();
   }
 
   public boolean addPredecessor(T transaction, final ComparableHandle<? extends ProcessNodeInstance<T>> predecessor) throws SQLException {

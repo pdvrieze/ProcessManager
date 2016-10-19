@@ -14,25 +14,27 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.db
+package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
+import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.Transaction
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import java.sql.PreparedStatement
+import net.devrieze.util.TransactionedHandleMap
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl
+
 import java.sql.SQLException
+import java.util.UUID
 
-interface HMElementFactory<T> : ElementFactory<T> {
-  fun getHandleCondition(where: Database._Where,
-                         handle: Handle<out T>): Database.WhereClause?
 
-  /**
-   * Called before removing an element with the given handle
-   * @throws SQLException When something goes wrong.
-   */
+/**
+ * Created by pdvrieze on 07/05/16.
+ */
+interface IProcessModelMap<T : Transaction> : TransactionedHandleMap<ProcessModelImpl, T> {
+
   @Throws(SQLException::class)
-  fun preRemove(transaction: DBTransaction, handle: Handle<out T>)
+  fun getModelWithUuid(transaction: T, uuid: UUID): Handle<ProcessModelImpl>?
+}
 
+interface IMutableProcessModelMap<T : Transaction> : MutableTransactionedHandleMap<ProcessModelImpl, T>, IProcessModelMap<T> {
 
 }
