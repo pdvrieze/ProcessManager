@@ -40,13 +40,14 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import javax.naming.InitialContext
 import javax.naming.NamingException
-import javax.servlet.ServletException
+import javax.servlet.*
+import javax.servlet.annotation.WebFilter
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletResponse
 import javax.sql.DataSource
 import javax.naming.Context as NamingContext
 
-
+//@WebFilter(description = "Authentication filter for the darwin system", asyncSupported = true)
 class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
     private enum class AuthResult {
@@ -184,7 +185,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         }
     }
 
-    private fun requestLogin(request: Request, response: Response) {
+    private fun requestLogin(request: Request, response: HttpServletResponse) {
         val loginPage = this.loginPage
         val decodedRequestURI: String? = request.decodedRequestURI
         if (loginPage != null && decodedRequestURI!=null) {
@@ -246,7 +247,10 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         val authResult = authenticateHelper(dataSource, request, response)
         when (authResult) {
             AuthResult.AUTHENTICATED -> return true
-            else -> return false
+            else -> {
+                requestLogin(request, response)
+                return false
+            } // We have sent the correct message
         }
     }
 
