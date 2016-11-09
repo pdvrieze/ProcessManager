@@ -36,6 +36,8 @@ import java.io.IOException
 import java.io.PrintStream
 import java.net.URLEncoder
 import java.security.Principal
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.servlet.ServletException
@@ -57,6 +59,8 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
     var resourceName:String = DEFAULTDBRESOURCE
 
+    var loginPage: String? = "/accountmgr/login"
+
     private var container_:Container? = null
 
     override fun getContainer() = container_
@@ -64,10 +68,15 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         container_ = container
     }
 
+    override fun initInternal() {
+        super.initInternal()
+        log.info("Initialising DarwinAuthenticator")
+    }
+
     fun NamingContext.print(out:PrintStream, name:String, indent:Int = 0) {
         for( binding in listBindings(name)) {
             out.print(" ".repeat(indent))
-            out.println("${binding.name}")
+            out.println(binding.name)
             val value = binding.`object`
             if (value is NamingContext) {
                 value.print(out, binding.name, indent+4)
@@ -91,16 +100,17 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
     }
 
 
-    var loginPage: String? = "/accounts/login"
-
 
     private inline fun invokeNext(request: Request, response: Response) {
         next.invoke(request, response)
-        (request.getNote(DARWINCOOKIENAME) as? String)?.let { token -> response.addCookie(createAuthCookie(token, request.isSecure))}
+        val cookieNote = request.getNote(DARWINCOOKIENAME)
+        if (cookieNote != null) { log.finer("Found a cookie note on the request") }
+        (cookieNote as? String)?.let { token -> response.addCookie(createAuthCookie(token, request.isSecure))}
     }
 
     @Throws(IOException::class, ServletException::class)
     override fun invoke(request: Request, response: Response) {
+        log.info("Invoking DarwinAuthenticator for ${request.method} request ${request.requestURI}")
         val container = container_!!
 
         val authresult = lazy { authenticateHelper(dataSource, request, response) }
@@ -113,10 +123,10 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
         val realm = container.realm
         if (realm != null) {
-            log.trace("This context has an authentication realm, enforce the constraints")
+            log.info("DarwinAuthenticator: this context has an authentication realm, enforce the constraints")
             val constraints = (container as? Context)?.let { realm.findSecurityConstraints(request, it) }
             if (constraints == null) {
-                log.trace("Realm has no constraints, calling next in chain")
+                log.fine ("Realm has no constraints, calling next in chain")
                 // Unconstrained
                 invokeNext(request, response)
                 return
@@ -168,6 +178,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             }
 
         } else {
+            log.info("No realm set for the request")
             // No realm, no authentication required.
             invokeNext(request, response)
         }
@@ -190,6 +201,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
      * don't carry passwords around.
      */
     override fun login(userName: String, password: String, request: Request) {
+        log.info("Login requested for ${request.requestURI}. Passing to realm")
         val principal = container_!!.realm.authenticate(userName, password) ?: throw ServletException("Invalid credentials")
 
         accountDb(dataSource) {
@@ -197,15 +209,17 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
             val response = request.getNote("response") as? Response
             if (response!=null) {
+                log.log(Level.FINE, "Setting a cookie on the response")
                 response.addCookie(createAuthCookie(authtoken, request.isSecure))
             } else {
+                log.info("Setting a note for the cookie as there is no recorded response")
                 request.setNote(DARWINCOOKIENAME, authtoken)
             }
         }
 
-        if (log.isDebugEnabled) {
+        if (log.isLoggable(Level.FINER)) {
             val name = if (principal == null) "none" else principal.name
-            log.debug("Authenticated '$name' with type '${AUTHTYPE}'")
+            log.finer("Authenticated '$name' with type '${AUTHTYPE}'")
         }
 
         // Set the user into the request
@@ -247,13 +261,13 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
         val DEFAULTDBRESOURCE = "webauthadm"
 
-        private val log = LogFactory.getLog(DarwinAuthenticator::class.java)
+        private val log = Logger.getLogger(DarwinAuthenticator::class.java.name)
 
         fun Principal.asDarwinPrincipal(dataSource: DataSource): DarwinPrincipal {
             try {
                 return toDarwinPrincipal(dataSource, this)
             } catch (e: NamingException) {
-                log.warn("Failure to connect to database", e)
+                log.log(Level.WARNING, "Failure to connect to database", e)
                 throw e
             }
 
@@ -278,17 +292,17 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
             val authToken: String = request.getHeader(DARWINCOOKIENAME) ?:
                     request.cookies?.find ({ it.name == DARWINCOOKIENAME })?.let { it.value } ?:
-                    return AuthResult.LOGIN_NEEDED
+                    return AuthResult.LOGIN_NEEDED.apply { log.info("authenticateHelper: No user found") }
 
             if (origPrincipal != null) {
                 if (origPrincipal !is DarwinUserPrincipal) {
-                    log.trace("Found preexisting principal, converted to darwinprincipal: ${origPrincipal.name}")
+                    log.info("Found preexisting principal, converted to darwinprincipal: ${origPrincipal.name}")
                     request.authType = AUTHTYPE
                     request.userPrincipal = origPrincipal.asDarwinPrincipal(dataSource)
                 }
-                if (authToken!= null) response.addCookie(createAuthCookie(authToken, request.isSecure))
+                response.addCookie(createAuthCookie(authToken, request.isSecure))
 
-                return AuthResult.AUTHENTICATED
+                return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: shortcut authenticated as ${request.userPrincipal.name}") }
             }
 
             try {
@@ -299,13 +313,13 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                         request.userPrincipal = DarwinUserPrincipalImpl(dataSource, user, getUserRoles(user))
                         response.addCookie(createAuthCookie(authToken, request.isSecure))
 
-                        return AuthResult.AUTHENTICATED
+                        return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: authenticated as ${request.userPrincipal.name}") }
                     }
                 }
-                return AuthResult.LOGIN_NEEDED
+                return AuthResult.LOGIN_NEEDED.apply { log.info("authenticateHelper: cookie no longer valid (${authToken})") }
 
             } catch (e: Exception) {
-                log.warn("Failure in verifying user", e)
+                log.log(Level.WARNING, "Failure in verifying user", e)
                 return AuthResult.ERROR
             }
 

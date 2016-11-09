@@ -28,6 +28,7 @@ import uk.ac.bournemouth.darwin.accounts.AccountDb
 import uk.ac.bournemouth.darwin.accounts.DBRESOURCE
 import uk.ac.bournemouth.darwin.accounts.accountDb
 import java.security.Principal
+import java.util.logging.Logger
 import javax.naming.Context
 import javax.naming.NamingException
 import javax.sql.DataSource
@@ -38,6 +39,8 @@ class DarwinRealm : RealmBase(), Lifecycle {
     var resourceName:String = DBRESOURCE
     var globalResource:Boolean = true
 
+    private val log = Logger.getLogger(DarwinRealm.javaClass.name)
+
     val dataSource by lazy {
         val context: Context = if (globalResource) server.globalNamingContext else ContextBindings.getClassLoader().lookup("java:comp/env/") as Context
 
@@ -45,6 +48,7 @@ class DarwinRealm : RealmBase(), Lifecycle {
     }
 
     override fun authenticate(username: String, credentials: String): Principal? {
+        log.fine("Authentication requested for username ${username}")
         accountDb(dataSource) {
             if (verifyCredentials(username, credentials)) {
                 return getDarwinPrincipal(this, username)
@@ -55,6 +59,10 @@ class DarwinRealm : RealmBase(), Lifecycle {
         }
     }
 
+    override fun initInternal() {
+        super.initInternal()
+        log.info("Initialising Darwin Realm")
+    }
 
     override fun authenticate(username: String, digest: String, nonce: String, nc: String, cnonce: String, qop: String, realm: String, md5a2: String): Principal? {
         return null
