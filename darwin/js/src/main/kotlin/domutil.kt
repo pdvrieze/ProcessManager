@@ -22,12 +22,10 @@
 package uk.ac.bournemouth.darwin.util
 
 import kotlinx.html.TagConsumer
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.Node
-import org.w3c.dom.NodeFilter
+import org.w3c.dom.*
 import kotlin.dom.childElements
 import kotlin.dom.children
+import kotlin.dom.clear
 import kotlin.dom.removeFromParent
 import kotlinx.html.dom.append as kotlinxAppend
 
@@ -48,6 +46,25 @@ inline fun Element.removeChildIf(predicate:(Node)-> Boolean) {
     if(predicate(childNode)) {
       childNode.removeFromParent()
     }
+  }
+}
+
+inline fun NodeList.forEach(visitor: (Node)->Unit) {
+  var i=0
+  val len = this.length
+  while(i<len) {
+    visitor(this[i]!!)
+    i+=1
+  }
+}
+
+fun Element.setChildren(children:NodeList?, alternative: () -> Node? = {null}) {
+  this.clear()
+  val elem = this
+  if (children==null) {
+    alternative()?.let { elem.appendChild(it) }
+  } else {
+    while(children.length>0) { elem.appendChild(children.item(0)!!) }
   }
 }
 

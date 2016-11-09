@@ -35,8 +35,9 @@ import kotlin.dom.appendText
 import kotlin.dom.clear
 import kotlin.dom.hasClass
 
+const val accountsLoc = "/accountmgr/"
+
 class JSServiceContext: ServiceContext {
-  private val accountsLoc = "/accounts/"
   override val accountMgrPath: String
     get() = accountsLoc
   override val assetPath: String

@@ -16,24 +16,21 @@
 
 package nl.adaptivity.darwin.html
 
-import kotlinx.html.*
+import kotlinx.html.Tag
+import kotlinx.html.TagConsumer
+import kotlinx.html.div
 import kotlinx.html.dom.create
-import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.span
+import kotlinx.html.span
 import org.w3c.dom.*
-import org.w3c.dom.HTMLAnchorElement
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLFormElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
 import org.w3c.xhr.FormData
 import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.html.JSServiceContext
 import uk.ac.bournemouth.darwin.html.LoginDialog
+import uk.ac.bournemouth.darwin.html.accountsLoc
 import uk.ac.bournemouth.darwin.html.shared.*
 import uk.ac.bournemouth.darwin.util.*
 import java.io.Closeable
@@ -73,35 +70,37 @@ private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
   }
   mContentPanel!!.clear()
   hideBanner()
-  val root = request.responseXML?.documentElement
+  val root:Element? = request.responseXML?.documentElement
   if (root != null) {
     var windowtitle: String? = null
-    var pagetitle: NodeList? = null
-    var body: NodeList? = null
-    for (childElement in root.elements()) {
-      when (childElement.nodeName) {
-        "title" -> if (windowtitle == null) {
-          windowtitle = childElement.getAttribute("windowtitle") ?: childElement.textContent
-          pagetitle = document.importNode(childElement, true).childNodes
+    var pagetitle: String = "Darwin"
+    var body: String = ""
+    root.childNodes.forEach { childNode ->
+      if (childNode is Element) {
+        val childElement = childNode
+        when (childElement.nodeName) {
+          "title" -> if (windowtitle == null) {
+            windowtitle = childElement.getAttribute("windowtitle") ?: childElement.textContent
+            pagetitle = childElement.innerHTML
+          }
+          "body"  -> if (body.size==0) {
+            body = childElement.innerHTML
+          } else error("unexpected child in dynamic content: ${childElement.nodeName}")
         }
-        "body" -> if (body == null) {
-          body = document.importNode(childElement, true).childNodes
-        } else error("unexpected child in dynamic content: ${childElement.nodeName}")
       }
     }
 
     windowtitle?.let { document.title = it }
     window.history.pushState(data = location, title = "location", url = location)
 
-    if (pagetitle != null) {
-      val onPageTitle = document.getElementById("title")
-      onPageTitle?.let {
-        it.append(pagetitle)
-      }
+    val pageTitleElement = document.getElementById("title")
+    if (pagetitle==null) {
+      pageTitleElement?.textContent = "Darwin"
+    } else {
+      pageTitleElement?.let { it.innerHTML = pagetitle }
     }
-    if (body != null) {
-      mContentPanel!!.append(body)
-    }
+
+    mContentPanel?.let { it.innerHTML = body }
   }
 }
 
@@ -122,7 +121,14 @@ private var context: JSServiceContext = JSServiceContext()
 private fun onLoginResult(request: XMLHttpRequest) {
   val text = request.responseText
   val cpos = text.indexOf(':')
-  val eolpos = text.indexOf('\n', cpos)
+
+  val eolpos:Int = run {
+    val lfpos = text.indexOf('\n', cpos)
+    val crpos = text.indexOf('\r', cpos)
+    if (lfpos >= 0) {
+      if (crpos>=0 && crpos<lfpos) crpos else lfpos
+    } else crpos
+  }
   val result: String
   val payload: String?
   if (cpos >= 0) {
@@ -133,19 +139,17 @@ private fun onLoginResult(request: XMLHttpRequest) {
       payload = text.substring(cpos + 1)
     }
   } else {
-    result = text
+    result = if (eolpos>0) text.substring(0, eolpos) else text
     payload = null
   }
 
-  val dialog = mLoginDialog!!
-
   if ("login" == result && payload != null) {
-    mUsername = payload
+    mLoggedInUser = payload
     closeDialogs()
     updateLoginPanel()
     requestRefreshMenu(mLocation!!)
   } else if ("logout" == result) {
-    mUsername = null
+    mLoggedInUser = null
     closeDialogs()
     updateLoginPanel()
     requestRefreshMenu(mLocation!!)
@@ -154,8 +158,14 @@ private fun onLoginResult(request: XMLHttpRequest) {
     closeDialogs()
     error("Error validating login: " + payload!!, null)
   } else if ("invalid" == result) {
-    dialog.errorMsg = "Credentials invalid"
-    dialog.password = null
+    val dialog = mLoginDialog
+    if (dialog ==null) {
+      error("Login dialog missing")
+    } else {
+
+      dialog.errorMsg = "Credentials invalid"
+      dialog.password = null
+    }
   } else {
     closeDialogs()
     error("Invalid response received from login form (${text}) : ${request.statusText} (${request.status})", null)
@@ -207,13 +217,13 @@ private fun onLoginDialogConfirm(event: Event) {
 private fun dialogCloseHandler(event: Event) = closeDialogs(event)
 
 private fun onLoginOutClicked(event: MouseEvent) {
-  val username = mUsername
+  val username = document.getElementById("username")?.textContent
   if (username.isNullOrEmpty()) {
     loginDialog()
     // Login
   } else {
     val request = XMLHttpRequest().apply {
-      open("GET", "/accounts/logout")
+      open("GET", "${accountsLoc}logout")
       setRequestHeader("Accept", "application/binary")
       onload = { onLoginResult(this) }
       onerror = { error("Error logging out: ${statusText} (${status})") }
@@ -259,8 +269,10 @@ private var mLocation: String? = null
 
 private var mLoginDialog: LoginDialog? = null
 
-private var mUsername: String? = null
-private var mPassword: String? = null
+private var mUsernameFromManager: String? = null
+private var mPasswordFromManager: String? = null
+
+private var mLoggedInUser: String? = document.getElementById("username")?.textContent
 
 private var mContentPanel: HTMLElement? = null
 
@@ -275,12 +287,9 @@ private var mBanner: Element? = null
 fun main(args: Array<String>) {
   val newLocation = window.location.hash.let { if (it.isNullOrBlank()) window.location.pathname else it }
 
-  //    val newLocation = History.getToken()
-  val usernameSpan = document.getElementById("username")
-
   (document.getElementById("xloginform") as? HTMLFormElement)?.let { form ->
-    mUsername = (form["username"] as? HTMLInputElement)?.value
-    mPassword = (form["password"] as? HTMLInputElement)?.value
+    mUsernameFromManager = (form["username"] as? HTMLInputElement)?.value
+    mPasswordFromManager = (form["password"] as? HTMLInputElement)?.value
     form.removeFromParent() // No longer needed
   }
 
@@ -378,7 +387,7 @@ private fun loginDialog() {
 
   val setCancelFunction: (HTMLElement) -> Unit = { it.onclick = ::closeDialogs }
 
-  val loginDialog = LoginDialog(context, username = mUsername, password = mPassword, visitConfirm = setConfirmFunction, visitCancel = setCancelFunction)
+  val loginDialog = LoginDialog(context, username = mUsernameFromManager, password = mPasswordFromManager, visitConfirm = setConfirmFunction, visitCancel = setCancelFunction)
   mLoginDialog = loginDialog
 
   mContentPanel!!.appendChild(loginDialog.element)
@@ -418,7 +427,7 @@ fun navigateTo(locationParam: String?, addHistory: Boolean, doRedirect: Boolean)
   val newLocation = locationParam?.let { if (it[0] == '#') it.substring(1) else it } ?: "/"
 
   if (location == null && newLocation != null || location != null && location != newLocation) {
-    if (location != null && location.startsWith("/accounts/myaccount")) {
+    if (location != null && location.startsWith("${accountsLoc}myaccount")) {
       location = newLocation
       updateLoginPanel()
     } else {
@@ -577,7 +586,7 @@ private fun setAboutPanel() {
 
 private fun registerLoginPanel() {
   mLoginoutRegistration = document.getElementById("logout")?.let { it.removeAttribute("href"); it.onClick { ev -> onLoginOutClicked(ev) } }
-  mUsernameRegistration = document.getElementById("username")?.let { it.removeAttribute("href"); it.onClick { ev -> onLinkClick(ev) } }
+  mUsernameRegistration = document.getElementById("username")?.let { /*it.removeAttribute("href");*/ it.onClick { ev -> onLinkClick(ev) } }
 }
 
 private fun unregisterLoginPanel() {
@@ -593,7 +602,7 @@ private fun updateLoginPanel() {
 
   val loginPanel = document.getElementById("login") as HTMLDivElement
   loginPanel.clear()
-  loginPanel.appendHtml.loginPanelContent(context, mUsername)
+  loginPanel.appendHtml.loginPanelContent(context, mLoggedInUser)
   registerLoginPanel()
 }
 
@@ -614,7 +623,7 @@ private fun requestRefreshMenu(location: String) {
 
 private val LOGIN_LOCATION = "login"
 
-private val INLINEPREFIXES = arrayOf("/accounts/chpasswd", "/accounts/myaccount")
+private val INLINEPREFIXES = arrayOf("${accountsLoc}chpasswd", "${accountsLoc}myaccount")
 
 private fun asInlineLocation(location: String): String? {
   for (prefix in INLINEPREFIXES) {
