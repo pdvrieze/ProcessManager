@@ -32,6 +32,8 @@ import java.security.MessageDigest
 import java.security.Principal
 import java.text.DateFormat
 import java.util.*
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.mail.Message
 import javax.mail.Session
 import javax.mail.Transport
@@ -83,21 +85,25 @@ class AccountController : HttpServlet() {
 
     private inline fun <R> accountDb(block: AccountDb.()->R): R = accountDb(DBRESOURCE, block)
 
+    private val logger = Logger.getLogger(AccountController::class.java.name)
+
     override fun init(config: ServletConfig?) {
         super.init(config)
+        logger.info("Initialising AccountController (ensuring that the required database tables are available)")
         accountDb { this.ensureTables() }
     }
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
             "/login" -> tryLogin(req, resp)
+            "/logout" -> logout(req, resp)
             "/challenge" -> challenge(req, resp)
             "/chpasswd" -> chpasswd(req, resp)
             "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
-            "/myaccount" -> myAccount(req, resp)
+            "/", null, "/myaccount" -> myAccount(req, resp)
             "/setAliasForm" -> setAliasForm(req, resp)
             "/resetpasswd" -> resetPassword(req, resp)
-            else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
+            else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo?:""} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
     }
 
@@ -204,6 +210,7 @@ class AccountController : HttpServlet() {
     }
 
     private fun tryCredentials(req: HttpServletRequest, resp: HttpServletResponse) {
+        logger.info("Received username and password for login")
         val username = req.getParameter(FIELD_USERNAME)
         val password = req.getParameter(FIELD_PASSWORD)
         val redirect = req.getParameter(FIELD_REDIRECT)
@@ -211,7 +218,13 @@ class AccountController : HttpServlet() {
             tryLogin(req, resp)
         } else {
             try {
-                req.login(username, password)
+                if (req.authType!=null || req.remoteUser!=null || req.userPrincipal!=null){
+                    // already authenticated
+                    req.logout() // first log out. Then log in again
+                }
+
+                req.login(username, password) // this throws on failure
+                logger.fine("Login successful")
                 accountDb {
                     if (redirect != null) {
                         resp.sendRedirect(resp.encodeRedirectURL(redirect))
@@ -224,7 +237,7 @@ class AccountController : HttpServlet() {
                     }
                 }
             } catch (e: ServletException) {
-                log("Failure in authentication", e)
+                logger.log(Level.WARNING, "Failure in authentication", e)
                 invalidCredentials(req, resp)
             }
         }
@@ -256,6 +269,16 @@ class AccountController : HttpServlet() {
                     loginSuccess(req, resp)
                 }
             }
+        }
+    }
+
+    private fun logout(req: HttpServletRequest, resp: HttpServletResponse) {
+        req.logout()
+        if (req.htmlAccepted) {
+            loginScreen(req, resp)
+        } else {
+            resp.contentType("text/plain")
+            resp.writer.use { it.appendln("logout") }
         }
     }
 
@@ -440,8 +463,9 @@ class AccountController : HttpServlet() {
     }
 
     private fun loginScreen(req: HttpServletRequest, resp: HttpServletResponse, errorMsg:String? = null) {
+        val redirect = req.getParameter("redirect") ?: if (req.pathInfo=="/login") null else req.requestURL.toString()
         resp.darwinResponse(req, "Please log in") {
-            this.loginDialog(context, errorMsg, req.getParameter("username"), null, req.getParameter("redirect"), false)
+            this.loginDialog(context, errorMsg, req.getParameter("username"), null, redirect, false)
 /*
             this.darwinDialog("Log in", positiveButton = null) {
                 if (errorMsg!=null) {
