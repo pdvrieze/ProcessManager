@@ -32,6 +32,5 @@ dependencies {
     compile project(':DarwinJavaApi')
     compile project(':DarwinCommon')
     compile project(':accountcommon')
-    compile project(path: ':DarwinCommon', configuration:'compileOnly')
-
+    compile project(path: ':DarwinCommon', configuration:'compile')
 }
