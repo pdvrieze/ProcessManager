@@ -57,6 +57,9 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         LOGIN_NEEDED
     }
 
+    init {
+      asyncSupported = true
+    }
 
     var resourceName:String = DEFAULTDBRESOURCE
 
@@ -71,7 +74,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
     override fun initInternal() {
         super.initInternal()
-        log.info("Initialising DarwinAuthenticator")
+        log.info("Initialising DarwinAuthenticatorValve")
     }
 
     fun NamingContext.print(out:PrintStream, name:String, indent:Int = 0) {
@@ -236,9 +239,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             it.value = ""
             it.maxAge = 0
             val response = request.getNote("response") as? Response
-            if (response!=null) {
-                response.addCookie(Cookie(DARWINCOOKIENAME,"").apply { maxAge=0 })
-            }
+            response?.addCookie(Cookie(DARWINCOOKIENAME,"").apply { maxAge=0 })
         }
         request.userPrincipal = null
     }
