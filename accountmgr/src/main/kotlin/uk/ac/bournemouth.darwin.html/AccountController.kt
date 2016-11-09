@@ -247,7 +247,7 @@ class AccountController : HttpServlet() {
     private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).let { it.maxAge = MAXTOKENLIFETIME; it.path="/"; it }
 
     private fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, condition: (HttpServletRequest)->Boolean = { true }, block: ()->Unit) {
-        if (req.authenticate(resp) && req.userPrincipal!=null && condition(req)) {
+        if (req.pathInfo!="/login" && req.authenticate(resp) && req.userPrincipal!=null && condition(req)) {
             block()
         } else {
             if (req.htmlAccepted) {
