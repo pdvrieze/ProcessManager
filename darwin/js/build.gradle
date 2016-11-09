@@ -120,6 +120,7 @@ compileKotlin2Js {
     kotlinOptions.verbose = true
     kotlinOptions.metaInfo = true
     kotlinOptions.moduleKind = "umd"
+    kotlinOptions.main = "call"
 }
 
 clean.doLast {

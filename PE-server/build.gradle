@@ -47,7 +47,7 @@ dependencies {
     extraBootCp project(':JavaCommonApi')
     extraBootCp project(':DarwinRealm')
     // Todo dynamically determine version needed from -api version
-    extraBootCp 'org.slf4j:slf4j-simple:1.7.12'
+    extraBootCp 'org.slf4j:slf4j-simple:1.7.16'
 //    extraBootCp dbcpSpec
 
     tomcat 'mysql:mysql-connector-java:5.1.36'
