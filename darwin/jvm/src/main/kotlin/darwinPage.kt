@@ -49,7 +49,9 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
     result.append("<?xml version=\"1.0\" ?>\n")
     result.appendXML().partialHTML {
       title(windowTitle, pageTitle)
-      body() { bodyContent }
+      body() {
+        withContext(context).bodyContent()
+      }
     }
   } else {
     contentType("text/html")
@@ -201,7 +203,7 @@ fun ContextTagConsumer<out HtmlBlockTag>.darwinDialog(title: String, id: String?
 
 class RequestServiceContext(private val request: HttpServletRequest) : ServiceContext {
   override val accountMgrPath: String
-    get() = "/accounts/"
+    get() = "/accountmgr/"
   override val assetPath: String
     get() = "/assets/"
   override val cssPath: String
