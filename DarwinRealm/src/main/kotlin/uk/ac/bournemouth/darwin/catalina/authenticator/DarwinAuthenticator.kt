@@ -24,7 +24,6 @@ import org.apache.catalina.connector.Request
 import org.apache.catalina.connector.Response
 import org.apache.catalina.deploy.LoginConfig
 import org.apache.catalina.valves.ValveBase
-import org.apache.juli.logging.LogFactory
 import org.apache.naming.ContextBindings
 import uk.ac.bournemouth.darwin.accounts.DARWINCOOKIENAME
 import uk.ac.bournemouth.darwin.accounts.MAXTOKENLIFETIME
@@ -38,10 +37,8 @@ import java.net.URLEncoder
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.naming.InitialContext
 import javax.naming.NamingException
-import javax.servlet.*
-import javax.servlet.annotation.WebFilter
+import javax.servlet.ServletException
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletResponse
 import javax.sql.DataSource
@@ -232,15 +229,11 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
     @Throws(ServletException::class)
     override fun logout(request: Request) {
-        request.cookies.find({ it.name == DARWINCOOKIENAME })?.let {
-            accountDb(dataSource) {
-                logout(it.value!!)
-            }
-            it.value = ""
-            it.maxAge = 0
-            val response = request.getNote("response") as? Response
-            response?.addCookie(Cookie(DARWINCOOKIENAME,"").apply { maxAge=0 })
+        log.fine("Logging out")
+        (request.getNote("response") as? HttpServletResponse) ?.let { response ->
+            clearCookies(request, response)
         }
+
         request.userPrincipal = null
     }
 
@@ -292,11 +285,26 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             version=1
         }
 
+        private fun clearCookies(request: Request, response:HttpServletResponse) {
+            request.removeNote(DARWINCOOKIENAME)
+            request.cookies?.asSequence()?.filter ({ it.name == DARWINCOOKIENAME })?.forEach { staleCookie ->
+                staleCookie.maxAge = 0
+                staleCookie.value = ""
+                staleCookie.path="/"
+                staleCookie.secure = request.isSecure
+                response.addCookie(staleCookie)
+            }
+
+        }
+
         private fun authenticateHelper(dataSource: DataSource, request: Request, response: HttpServletResponse): AuthResult {
             val origPrincipal: Principal? = request.userPrincipal
 
-            val authToken: String = request.getHeader(DARWINCOOKIENAME) ?:
-                    request.cookies?.find ({ it.name == DARWINCOOKIENAME })?.let { it.value } ?:
+            val authTokens: List<String> =
+                  ((request.getHeader(DARWINCOOKIENAME)?.let{ listOf(it) }?: emptyList()).asSequence() +
+                  (request.cookies?.asSequence()?.filter ({ it.name == DARWINCOOKIENAME })?.map { it.value }?: emptySequence())).toList()
+
+            if (authTokens.isEmpty())
                     return AuthResult.LOGIN_NEEDED.apply { log.info("authenticateHelper: No user found") }
 
             if (origPrincipal != null) {
@@ -305,23 +313,34 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                     request.authType = AUTHTYPE
                     request.userPrincipal = origPrincipal.asDarwinPrincipal(dataSource)
                 }
-                response.addCookie(createAuthCookie(authToken, request.isSecure))
 
-                return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: shortcut authenticated as ${request.userPrincipal.name}") }
+                return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: previously authenticated as ${request.userPrincipal.name}") }
             }
 
             try {
+
                 accountDb(dataSource) {
                     cleanAuthTokens() // First get rid of no longer needed tokens
-                    val user = userFromToken(authToken, request.remoteAddr)
-                    if (user != null) {
+
+                    // Try all cookies, not the first
+                    val userInfo = authTokens.asSequence().map { authToken ->
+                        userFromToken(authToken, request.remoteAddr)?.let { user -> authToken to user }
+                    }.filterNotNull().firstOrNull()
+
+                    if (userInfo != null) {
+                        val user = userInfo.second
+                        val authToken = userInfo.first
                         request.userPrincipal = DarwinUserPrincipalImpl(dataSource, user, getUserRoles(user))
-                        response.addCookie(createAuthCookie(authToken, request.isSecure))
+                        // Set the cookie as a note so it can be removed for example in logout
+                        request.setNote(DARWINCOOKIENAME, authToken)
 
                         return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: authenticated as ${request.userPrincipal.name}") }
                     }
                 }
-                return AuthResult.LOGIN_NEEDED.apply { log.info("authenticateHelper: cookie no longer valid (${authToken})") }
+                // invalidate all old cookies
+                clearCookies(request, response)
+
+                return AuthResult.LOGIN_NEEDED.apply { log.info("authenticateHelper: cookie no longer valid (${authTokens.first()})") }
 
             } catch (e: Exception) {
                 log.log(Level.WARNING, "Failure in verifying user", e)
