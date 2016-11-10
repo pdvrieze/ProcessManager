@@ -33,6 +33,7 @@ import java.sql.SQLException
 import java.sql.SQLWarning
 import java.sql.Timestamp
 import java.util.*
+`import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
@@ -56,6 +57,7 @@ const val KEY_ALGORITHM = "RSA"
 
 private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).apply { nextBytes(this) }
 
+
 open class AccountDb(private val connection:DBConnection) {
 
   companion object {
@@ -63,6 +65,9 @@ open class AccountDb(private val connection:DBConnection) {
     private var lastTokenClean:Long = 0
 
     val random: SecureRandom by lazy { SecureRandom() }
+
+    @JvmStatic
+    val logger = Logger.getLogger(AccountDb::class.java.name)
 
   }
 
@@ -183,7 +188,17 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun lastReset(user:String): Timestamp? = getSingle(u.resettime, user)
 
-  fun keyInfo(user:String) = WebAuthDB.SELECT(p.keyid, p.appname, p.lastUse).WHERE { p.user eq user }.getList(connection) { p1, p2, p3 -> KeyInfo(p1!!, p2, p3!!)}
+  fun keyInfo(user:String): List<KeyInfo> {
+    logger.fine("Getting key information for ${user}")
+    return WebAuthDB
+          .SELECT(p.keyid, p.appname, p.lastUse)
+          .WHERE { p.user eq user }
+          .getList(connection) {
+            keyId, appName, lastUse ->
+            logger.fine("Found key information (${keyId}, ${appName}, ${lastUse})")
+            KeyInfo(keyId ?: throw NullPointerException("Keyid should never be null"), appName, lastUse?: -1L)
+          }
+  }
 
   private fun getSalt(username: String): String {
     return ""
