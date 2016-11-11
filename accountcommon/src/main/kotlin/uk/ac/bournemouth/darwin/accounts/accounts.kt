@@ -33,7 +33,7 @@ import java.sql.SQLException
 import java.sql.SQLWarning
 import java.sql.Timestamp
 import java.util.*
-`import java.util.logging.Logger
+import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
@@ -135,6 +135,11 @@ open class AccountDb(private val connection:DBConnection) {
                .VALUES(user, realappname, pubkey, now)
                .execute(connection, p.keyid) { it!! }.first()
     }
+  }
+
+  fun forgetKey(user:String, keyId: Int) {
+    val changeCount = WebAuthDB.DELETE_FROM(p).WHERE { (p.user eq user) AND (p.keyid eq keyId) }.executeUpdate(connection)
+    if (changeCount==0) { throw IllegalArgumentException("The key is not owned by the given user") }
   }
 
   internal inline fun updateTokenEpoch(token: String, remoteAddr: String) {
