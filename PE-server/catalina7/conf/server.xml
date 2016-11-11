@@ -150,9 +150,6 @@
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
 
-        <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"
-               resourceName="jdbc/webauth"/>
-
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html
              Note: The pattern used is equivalent to using pattern="common" -->
