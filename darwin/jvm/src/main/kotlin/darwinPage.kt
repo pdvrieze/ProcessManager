@@ -181,7 +181,7 @@ fun <T, C : TagConsumer<T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T
 
 val HttpServletRequest.htmlAccepted: Boolean
   get() {
-    return getHeader("Accept")?.contains("text/html") ?: false
+    return getHeader("Accept")?.let { it.contains("text/html") || it.contains("application/nochrome")} ?: false
   }
 
 fun ContextTagConsumer<out HtmlBlockTag>.darwinDialog(title: String, id: String? = null, bodyContent: FlowContent.() -> Unit = {}) {

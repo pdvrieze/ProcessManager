@@ -485,8 +485,8 @@ private fun navigateToImpl(locationParam: String?, addHistory: Boolean, doRedire
         }
 
         val request = XMLHttpRequest().apply {
-          open("GET", inlineLocation)
-          setRequestHeader("Accept", "text/html")
+          open("GET", "$inlineLocation?nochrome")
+          setRequestHeader("Accept", "application/nochrome")
           setRequestHeader("X-Darwin", "nochrome")
         }
         effectiveAddHistory = false // don't add history here.
