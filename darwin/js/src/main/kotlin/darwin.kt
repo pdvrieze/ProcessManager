@@ -116,7 +116,7 @@ private val menu: HTMLElement
     return document.getElementById("menu") as HTMLElement
   }
 
-private var context: JSServiceContext = JSServiceContext()
+val context: JSServiceContext = JSServiceContext()
 
 private fun onLoginResult(request: XMLHttpRequest) {
   val text = request.responseText
@@ -359,13 +359,13 @@ class JSButton(label:String, id:String, val handler: (Event)->dynamic):SharedBut
  */
 private fun modalDialog(string: String) {
   val okButton = JSButton("Ok", "btn_modal_ok", {dialogCloseHandler(it)})
-  val dialogElement = document.create.withContext(context).darwinDialog("message", positiveButton = okButton) {
-    div {
-      span { +string }
+  appendContent {
+    darwinDialog("message", positiveButton = okButton) {
+      div {
+        span { +string }
+      }
     }
   }
-
-  mContentPanel?.appendChild(dialogElement)
 }
 
 /**
@@ -404,7 +404,11 @@ private fun updateDialogTitle(string: String) {
  * @category ui_elements
  */
 private fun dialog(title: String, id: String? = null, content: ContextTagConsumer<*>.() -> Unit) {
-  mContentPanel!!.appendHtml.withContext(context).darwinDialog(title = title, id = id, bodyContent = content)
+  appendContent { darwinDialog(title = title, id = id, bodyContent = content) }
+}
+
+fun <T> appendContent(content: ContextTagConsumer<*>.() -> T):T {
+  return mContentPanel!!.appendHtml.withContext(context).content()
 }
 
 private fun closeDialogs(event: dynamic = null) {
