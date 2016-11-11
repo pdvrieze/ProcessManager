@@ -54,6 +54,7 @@ compileKotlin2Js {
     kotlinOptions.sourceMap = true
     kotlinOptions.suppressWarnings = true
     kotlinOptions.verbose = true
+    kotlinOptions.kjsm = false
 }
 
 idea {

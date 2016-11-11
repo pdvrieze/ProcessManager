@@ -17,18 +17,43 @@
 /**
  * Created by pdvrieze on 26/03/16.
  */
-package accountmgr
+import org.w3c.dom.Element
+import org.w3c.dom.events.MouseEvent
+import org.w3c.xhr.XMLHttpRequest
+import uk.ac.bournemouth.darwin.sharedhtml.FIELD_KEYID
+import uk.ac.bournemouth.darwin.util.encodeURI
 
-import kotlin.browser.document
+@Suppress("UnsafeCastFromDynamic")
+val html:nl.adaptivity.darwin.html get() = js("darwin.nl.adaptivity.darwin.html")
 
+object accountmgr {
 
-fun main(args: Array<String>) {
-  val el = document.createElement("div")
-  el.appendChild(document.createTextNode("Hello!"))
-  document.body!!.appendChild(el)
+  @JsName("setAliasForm")
+  fun setAliasForm(oldName: String) {
+    html.appendContent { html.shared.setAliasDialog(this, oldName) }
+  }
 
-  val counterDiv = document.createElement("div")
-  val counterText = document.createTextNode("Counter!")
-  counterDiv.appendChild(counterText)
-  document.body!!.appendChild(counterDiv)
+  val accountsLoc = html.context.accountMgrPath
+
+  /**
+   * Forget the key with the given id.
+   */
+  @JsName("forget")
+  fun forget(event: MouseEvent, keyId: Int) {
+    event.preventDefault()
+    event.stopPropagation()
+    val request = XMLHttpRequest().apply {
+      open("GET", "${accountsLoc}/forget?keyid=${encodeURI(keyId.toString())}")
+      onload = {
+        (event.target as Element).parentElement?.parentElement?.remove()
+      }
+      onerror = { html.error("Could forget authorization: ${statusText} ($status)") }
+    }
+    try {
+      request.send()
+    } catch (e: Exception) {
+      console.warn("Could not update menu", e)
+    }
+
+  }
 }

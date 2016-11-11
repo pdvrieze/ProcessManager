@@ -18,7 +18,7 @@ package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
-import uk.ac.bournemouth.darwin.html.shared.*
+import uk.ac.bournemouth.darwin.sharedhtml.*
 import java.net.URI
 import java.security.Principal
 import java.util.*

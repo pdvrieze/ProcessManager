@@ -201,7 +201,8 @@ open class AccountDb(private val connection:DBConnection) {
           .getList(connection) {
             keyId, appName, lastUse ->
             logger.fine("Found key information (${keyId}, ${appName}, ${lastUse})")
-            KeyInfo(keyId ?: throw NullPointerException("Keyid should never be null"), appName, lastUse?: -1L)
+            KeyInfo(keyId ?: throw NullPointerException("Keyid should never be null"), appName,
+                    lastUse?.let { if(it>10000) Date(it*1000) else null })
           }
   }
 
@@ -342,7 +343,7 @@ open class AccountDb(private val connection:DBConnection) {
 
 }
 
-class KeyInfo(val keyId:Int, val appname:String?, val lastUse: Long)
+class KeyInfo(val keyId:Int, val appname:String?, val lastUse: Date?)
 
 class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=HttpURLConnection.HTTP_INTERNAL_ERROR) : RuntimeException(msg, cause) {
   override val message: String

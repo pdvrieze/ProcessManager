@@ -22,9 +22,10 @@ import net.devrieze.util.overrideIf
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.darwin.accounts.*
-import uk.ac.bournemouth.darwin.html.shared.darwinDialog
-import uk.ac.bournemouth.darwin.html.shared.loginDialog
-import uk.ac.bournemouth.darwin.html.shared.setAliasDialog
+import uk.ac.bournemouth.darwin.sharedhtml.darwinDialog
+import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
+import uk.ac.bournemouth.darwin.sharedhtml.setAliasDialog
+import uk.ac.bournemouth.darwin.sharedhtml.shared.setAliasDialog
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
@@ -71,11 +72,14 @@ class AccountController : HttpServlet() {
         const val FIELD_PUBKEY = "pubkey"
         const val FIELD_REDIRECT = "redirect"
         const val FIELD_KEYID = "keyid"
+        const val FIELD_ALIAS = "alias"
         const val FIELD_APPNAME = "app"
         const val FIELD_RESPONSE = "response"
         const val FIELD_RESETTOKEN = "resettoken"
         const val FIELD_NEWPASSWORD1 = "newpassword1"
         const val FIELD_NEWPASSWORD2 = "newpassword2"
+
+        const val SC_UNPROCESSIBLE_ENTITY = 422
 
         const val CHALLENGE_VERSION = "2"
         const val HEADER_CHALLENGE_VERSION = "X-Challenge-version"
@@ -100,6 +104,7 @@ class AccountController : HttpServlet() {
             "/challenge" -> challenge(req, resp)
             "/chpasswd" -> chpasswd(req, resp)
             "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
+            "/forget" -> forgetKey(req, resp)
             "/", null, "/myaccount" -> myAccount(req, resp)
             "/setAliasForm" -> setAliasForm(req, resp)
             "/resetpasswd" -> resetPassword(req, resp)
@@ -113,6 +118,7 @@ class AccountController : HttpServlet() {
             "/challenge" -> challenge(req, resp)
             "/chpasswd" -> chpasswd(req, resp)
             "/regkey" -> registerkey(req, resp)
+            "/forget" -> forgetKey(req, resp)
             else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
 
@@ -121,7 +127,7 @@ class AccountController : HttpServlet() {
     private fun setAliasForm(req: HttpServletRequest, resp: HttpServletResponse) {
         authenticatedResponse(req, resp) {
             val user:String = req.userPrincipal.name
-            val oldAlias:String? = req.getParameter("alias").nullIfNot { length>0 }
+            val oldAlias:String? = req.getParameter(FIELD_ALIAS).nullIfNot { length>0 }
             val displayName:String = oldAlias.overrideIf { isBlank() } by user
             resp.darwinResponse(req, "My Account", "My Account - $displayName") {
                 setAliasDialog(oldAlias)
@@ -143,10 +149,10 @@ class AccountController : HttpServlet() {
                         p {
                             if (alias == null) {
                                 val encodedDisplayName = URLEncoder.encode(displayName, "UTF-8")
-                                a(href = "${context.accountMgrPath}setAliasForm?alias=${encodedDisplayName}") { onClick = "setAlias(\"${displayName}\")"; +"Set alias" }
+                                a(href = "${context.accountMgrPath}setAliasForm?$FIELD_ALIAS=$encodedDisplayName") { onClick = "accountmgr.accountmgr.setAliasForm(\"$displayName\")"; +"Set alias" }
                             } else {
                                 +"Alias: ${alias} "
-                                a { onClick = "setAlias(\"${alias}\")"; +"change" }
+                                a { onClick = "accountMgr.setAliasForm(\"$alias\")"; +"change" }
                             }
                         }
                         if (isLocalAccount(user)) p { a(href = "chpasswd") { +"change password" } }
@@ -162,15 +168,17 @@ class AccountController : HttpServlet() {
                                 tbody {
                                     for(key in keys) {
                                         tr {
+                                            classes+="authkey"
                                             td { +(key.appname ?: "<unknown>" )}
-                                            td { +(key.lastUse.let { it -> if (it<10000) "never" else DateFormat.getDateTimeInstance().format(Date(it)) })}
-                                            td { a(href="${context}forget") { onClick="forget(${key.keyId})"; +"forget"} }
+                                            td { +(key.lastUse?.let { DateFormat.getDateTimeInstance().format(it) }?: "never")}
+                                            td { a(href=""/*"${context.accountMgrPath}forget?$FIELD_KEYID=${key.keyId}"*/) { onClick="accountmgr.accountmgr.forget(event, ${key.keyId})"; +"forget"} }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                    script(type=ScriptType.textJavaScript, src="${context.accountMgrPath}/js/accountmgr.js") {}
 
                 }
 
@@ -207,6 +215,32 @@ class AccountController : HttpServlet() {
                 }
             }
         }
+    }
+
+    private fun forgetKey(req: HttpServletRequest, resp: HttpServletResponse) {
+        authenticatedResponse(req, resp) {
+            val user = req.userPrincipal.name
+            val keyid:Int = try { req.getParameter(FIELD_KEYID)?.toInt() ?: throw NumberFormatException("Missing keyId") } catch (e: NumberFormatException) {
+                resp.darwinError(req, "Invalid or missing key id (id:${req.getParameter(FIELD_KEYID)}, error:${e.message})", SC_UNPROCESSIBLE_ENTITY, "UNPROCESSIBEL ENTITY")
+                return
+            }
+            try {
+                accountDb {
+                        this.forgetKey(user, keyid)
+                }
+
+            } catch (e:IllegalArgumentException) {
+                resp.darwinError(req, "Key not owned", HttpServletResponse.SC_FORBIDDEN, "FORBIDDEN", e)
+                return
+            }
+            if (req.htmlAccepted) { // Just display the account manager dialog
+                resp.sendRedirect("${RequestServiceContext(req).accountMgrPath}/myaccount")
+            } else {
+                resp.status = HttpServletResponse.SC_NO_CONTENT
+                resp.writer.close()
+            }
+        }
+
     }
 
     private fun tryCredentials(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -246,8 +280,21 @@ class AccountController : HttpServlet() {
 
     private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).let { it.maxAge = MAXTOKENLIFETIME; it.path="/"; it }
 
-    private fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, condition: (HttpServletRequest)->Boolean = { true }, block: ()->Unit) {
-        if (req.pathInfo!="/login" && req.authenticate(resp) && req.userPrincipal!=null && condition(req)) {
+    private inline fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, block: ()->Unit) {
+        if (req.pathInfo!="/login" && (req.userPrincipal!=null || (req.authenticate(resp) && req.userPrincipal!=null))) {
+            block()
+        } else {
+            if (req.htmlAccepted) {
+                loginScreen(req, resp)
+            } else {
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
+                resp.writer.use { it.appendln("error:Login is required\n") }
+            }
+        }
+    }
+
+    private inline fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, condition: (HttpServletRequest)->Boolean, block: ()->Unit) {
+        if (req.pathInfo!="/login" && (req.userPrincipal!=null || (req.authenticate(resp) && req.userPrincipal!=null)) && condition(req)) {
             block()
         } else {
             if (req.htmlAccepted) {

@@ -18,7 +18,7 @@
  * Created by pdvrieze on 27/03/16.
  */
 
-package uk.ac.bournemouth.darwin.html
+package uk.ac.bournemouth.darwin
 
 import kotlinx.html.dom.create
 import org.w3c.dom.*
@@ -26,9 +26,9 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.NodeFilter
-import uk.ac.bournemouth.darwin.html.shared.ServiceContext
-import uk.ac.bournemouth.darwin.html.shared.loginDialog
-import uk.ac.bournemouth.darwin.html.shared.withContext
+import uk.ac.bournemouth.darwin.sharedhtml.ServiceContext
+import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
+import uk.ac.bournemouth.darwin.sharedhtml.withContext
 import uk.ac.bournemouth.darwin.util.visitDescendants
 import kotlin.browser.document
 import kotlin.dom.appendText

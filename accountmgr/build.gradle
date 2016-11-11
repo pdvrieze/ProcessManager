@@ -34,7 +34,7 @@ dependencies {
     testCompile 'org.testng:testng:6.9.13.8'
     testRuntime 'mysql:mysql-connector-java:5.1.36'
 
-//    javascript project(':accountmgr:accountmgrjs')
+    javascript project(':accountmgr:js')
 }
 
 test {

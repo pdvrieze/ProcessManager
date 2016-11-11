@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.bournemouth.darwin.html.shared
+package uk.ac.bournemouth.darwin.sharedhtml
 
 import kotlinx.html.*
 import kotlinx.html.attributes.enumEncode
@@ -230,14 +230,20 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
 }
 
 fun <T, C:ContextTagConsumer<T>> C.setAliasDialog(oldAlias:String?):T =
-  darwinDialog("Set alias") {
-    form(action="${context.accountMgrPath}setAlias") {
-      div {
-        label { for_= "#alias"; +"Alias" }
-        input(type= InputType.text, name="alias") {
-          placeholder="Alias"
-          oldAlias?.let { value=oldAlias }
+      darwinDialog("Set alias") {
+        form(action="${context.accountMgrPath}setAlias") {
+          div {
+            label { for_= "#alias"; +"Alias" }
+            input(type= InputType.text, name="alias") {
+              placeholder="Alias"
+              oldAlias?.let { value=oldAlias }
+            }
+          }
         }
       }
-    }
+
+object shared {
+  fun <T, C:ContextTagConsumer<T>> setAliasDialog(consumer: C, oldAlias:String?):T {
+    return consumer.setAliasDialog(oldAlias)
   }
+}
