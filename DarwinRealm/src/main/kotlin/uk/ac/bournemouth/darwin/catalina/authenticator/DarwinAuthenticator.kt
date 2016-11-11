@@ -33,6 +33,7 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl
 import java.io.IOException
 import java.io.PrintStream
+import java.net.URI
 import java.net.URLEncoder
 import java.security.Principal
 import java.util.logging.Level
@@ -114,12 +115,21 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         log.info("Invoking DarwinAuthenticator for ${request.method} request ${request.requestURI}")
         val container = container_!!
 
+        // First do any handling of already present authentication information
         val authresult = lazy { authenticateHelper(dataSource, request, response) }
         request.setNote("response", response)
         run {
             if ((container is Context && container.preemptiveAuthentication) || (request.cookies?.any { c -> c.name==DARWINCOOKIENAME } ?: false)) { authresult.value }
             // If the context wants us to do preemptive authentication, make sure to get the authentication result.
             // That has side-effects that will register the principal.
+        }
+
+        loginPage?.let { // If the target is the login page, now just go there.
+            val loginPageUrl = URI.create(it)
+            if (request.requestURI==loginPageUrl.path) {
+                invokeNext(request, response)
+                return
+            }
         }
 
         val realm = container.realm
