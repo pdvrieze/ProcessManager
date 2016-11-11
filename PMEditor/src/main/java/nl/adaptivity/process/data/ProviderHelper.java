@@ -104,6 +104,9 @@ public final class ProviderHelper {
 
           @Override
           public void startSelectAccountActivity(final Intent selectAccount) { }
+
+          @Override
+          public void onDownloadCancelled() { }
         };
       }
 

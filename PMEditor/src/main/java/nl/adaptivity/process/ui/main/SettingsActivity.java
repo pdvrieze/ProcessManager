@@ -162,6 +162,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   }
 
   @Override
+  public void onDownloadCancelled() {
+    // Ignore
+  }
+
+  @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     switch (requestCode) {
       case UIConstants.REQUEST_SELECT_ACCOUNT: {

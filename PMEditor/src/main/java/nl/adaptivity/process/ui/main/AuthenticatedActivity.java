@@ -64,6 +64,11 @@ public abstract class AuthenticatedActivity extends AppCompatActivity implements
   }
 
   @Override
+  public void onDownloadCancelled() {
+    // Do nothing. This is a hook to allow notification
+  }
+
+  @Override
   public void startSelectAccountActivity(final Intent selectAccount) {
     startActivityForResult(selectAccount, UIConstants.REQUEST_SELECT_ACCOUNT);
   }
