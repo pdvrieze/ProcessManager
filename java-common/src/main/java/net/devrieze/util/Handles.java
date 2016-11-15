@@ -76,11 +76,11 @@ public final class Handles {
 
   }
 
-  private static final Handle<?> INVALID = handle(-1L);
+  private static final ComparableHandle<?> INVALID = new SimpleHandle<>(-1L);
 
   @SuppressWarnings("unchecked")
-  @NotNull public static <T> Handle<T> getInvalid() {
-    return (Handle<T>) INVALID;
+  @NotNull public static <T> ComparableHandle<T> getInvalid() {
+    return (ComparableHandle<T>) INVALID;
   };
 
   private Handles() { /* Utility class */ }
@@ -93,7 +93,7 @@ public final class Handles {
    */
   @NotNull
   public static @Nullable <T> ComparableHandle<T> handle(final long pHandle) {
-    return pHandle<0 ? null : new SimpleHandle<T>(pHandle);
+    return pHandle<0 ? Handles.<T>getInvalid() : new SimpleHandle<T>(pHandle);
   }
 
   public static <T> ComparableHandle<T> handle(final Handle<T> pHandle) {

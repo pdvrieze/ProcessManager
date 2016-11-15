@@ -70,7 +70,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
     return getHandleCondition(where, instance.handle)
   }
 
-  override fun asInstance(value: Any) = value as? ProcessModelImpl
+  override fun asInstance(obj: Any) = obj as? ProcessModelImpl
 
   override fun store(update: Database._UpdateBuilder, value: ProcessModelImpl) {
     update.SET(pm.owner, value.owner?.name)

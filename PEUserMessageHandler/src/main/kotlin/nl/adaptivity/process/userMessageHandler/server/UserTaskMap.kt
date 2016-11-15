@@ -146,7 +146,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
           val reader = XMLFragmentStreamReader.from(instance.body)
           val env = Envelope.deserialize(reader, PostTaskFactory())
           val task = env.body.bodyContent
-          task.handleValue = handle
+          task.setHandleValue(handle)
           task.remoteHandle = remoteHandle
           task.state = instance.state
           return task
@@ -168,52 +168,39 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
     @Throws(SQLException::class)
     override fun postCreate(transaction: DBTransaction, element: XmlTask) {
-      if (element==null) throw NullPointerException()
       UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handleValue }.execute(transaction.connection) {
         name, data ->
-        val item = element.getItem(name)
-        if (item != null) {
-          item.value = data
+        if (name!=null) {
+          element[name]?.let { it.value = data }
         }
       }
     }
 
-    override fun getPrimaryKeyCondition(where: Database._Where,
-                                        task: XmlTask): Database.WhereClause? {
-      if (task ==null) throw NullPointerException()
-      return getHandleCondition(where, task.handle)
+    override fun getPrimaryKeyCondition(where: Database._Where, instance: XmlTask) =
+          getHandleCondition(where, instance.handle)
+
+    override fun getHandleCondition(where: Database._Where, handle: Handle<out XmlTask>) = where.run {
+      u.taskhandle eq handle.handleValue
     }
 
-    override fun getHandleCondition(where: Database._Where, handle: Handle<out XmlTask>): Database.WhereClause? {
-      return where.run {
-        u.taskhandle eq handle.handleValue
-      }
-
-    }
-
-    override fun asInstance(value: Any): XmlTask? {
-      if (value is XmlTask) {
-        return value
-      }
-      return null
-    }
+    override fun asInstance(obj: Any) = obj as? XmlTask
 
     override fun insertStatement(value: XmlTask): Database.Insert {
       return UserTaskDB.INSERT(u.remotehandle).VALUES(value.remoteHandle)
     }
 
     override fun store(update: Database._UpdateBuilder, value: XmlTask) {
-      if (value==null) throw NullPointerException()
       update.run { SET(u.remotehandle, value.remoteHandle) }
     }
 
     override fun postStore(connection: DBConnection, handle: Handle<out XmlTask>, oldValue: XmlTask?, newValue: XmlTask) {
       val insert = UserTaskDB.INSERT(nd.taskhandle, nd.name, nd.data)
       for(item in newValue.items) {
-        if (item.name!=null && item.type!="label") {
-          oldValue?.getItem(item.name)?.let { oldItem ->
-            if (!((oldItem == null || oldItem.value == null) && item.value == null)) {
-              insert.VALUES(handle.handleValue, item.name, item.value)
+        val itemName = item.name
+        if (itemName !=null && item.type!="label") {
+          oldValue?.getItem(itemName)?.let { oldItem ->
+            if (!(oldItem.value == null && item.value == null)) {
+              insert.VALUES(handle.handleValue, itemName, item.value)
             }
           }
         }
@@ -232,7 +219,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
     @Throws(SQLException::class)
     override fun preRemove(transaction: DBTransaction, element: XmlTask) {
-      preRemove(transaction, element!!.handle)
+      preRemove(transaction, element.handle)
     }
 
     override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
@@ -241,17 +228,14 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     }
 
     companion object {
-
-
-      private val TASK_LOOKUP_TIMEOUT_MILIS = 1
-      private val QUERY_GET_DATA_FOR_TASK = "SELECT $COL_NAME, $COL_DATA FROM $TABLEDATA WHERE $COL_HANDLE = ?"
+      private val TASK_LOOKUP_TIMEOUT_MILIS = 5
     }
 
   }
 
   @Throws(SQLException::class)
-  override fun containsRemoteHandle(connection: DBTransaction, remoteHandle: Long): Handle<XmlTask>? {
-    connection.connection.prepareStatement("SELECT $COL_HANDLE FROM $TABLE WHERE $COL_REMOTEHANDLE = ?") {
+  override fun containsRemoteHandle(transaction: DBTransaction, remoteHandle: Long): Handle<XmlTask>? {
+    transaction.connection.prepareStatement("SELECT $COL_HANDLE FROM $TABLE WHERE $COL_REMOTEHANDLE = ?") {
       setLong(1, remoteHandle)
       execute { rs ->
         if (!rs.next()) {

@@ -14,14 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Created by pdvrieze on 16/08/15.
- */
-
 package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.Handles;
 import net.devrieze.util.ReaderInputStream;
+import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
@@ -55,8 +52,8 @@ public class TestXmlTask {
   @BeforeMethod
   public void before() {
     mSampleTask = new XmlTask();
-    mSampleTask.mState= NodeInstanceState.Failed;
-    mSampleTask.setOwnerString("pdvrieze");
+    mSampleTask.setState(NodeInstanceState.Failed);
+    mSampleTask.setOwner(new SimplePrincipal("pdvrieze"));
     mSampleTask.setRemoteHandle(-1L);
   }
 
@@ -90,10 +87,10 @@ public class TestXmlTask {
     XmlTask result = XmlStreaming.deSerialize(in, XmlTask.class);
     assertEquals(result.getState(), Complete);
     assertEquals(result.getHandleValue(), -1L);
-    assertEquals(result.getHandle(), null);
+    assertEquals(result.getHandle(), Handles.getInvalid());
     assertEquals(result.getInstanceHandle(), -1L);
     assertEquals(result.getItems().size(), 0);
-    assertEquals(result.getOwnerString(), null);
+    assertEquals(result.getOwner(), null);
     assertEquals(result.getSummary(), null);
   }
 
@@ -106,7 +103,7 @@ public class TestXmlTask {
     assertEquals(result.getHandle(), Handles.handle(1L));
     assertEquals(result.getInstanceHandle(), 3L);
     assertEquals(result.getItems().size(), 1);
-    assertEquals(result.getOwnerString(), null);
+    assertEquals(result.getOwner(), null);
     assertEquals(result.getSummary(), "bar");
     assertNotNull(result.getItems());
     XmlItem item = result.getItem("one");
@@ -132,10 +129,10 @@ public class TestXmlTask {
     XmlTask result = XmlStreaming.deSerialize(new DOMSource(root), XmlTask.class);
     assertEquals(result.getState(), Complete);
     assertEquals(result.getHandleValue(), -1L);
-    assertEquals(result.getHandle(), null);
+    assertEquals(result.getHandle(), Handles.getInvalid());
     assertEquals(result.getInstanceHandle(), -1L);
     assertEquals(result.getItems().size(), 0);
-    assertEquals(result.getOwnerString(), null);
+    assertEquals(result.getOwner(), null);
     assertEquals(result.getSummary(), null);
   }
 }

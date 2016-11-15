@@ -107,7 +107,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     return getHandleCondition(where, instance.handle);
   }
 
-  override fun asInstance(value: Any) = value as? ProcessNodeInstance<DBTransaction>
+  override fun asInstance(obj: Any) = obj as? ProcessNodeInstance<DBTransaction>
 
   override fun store(update: Database._UpdateBuilder, value: ProcessNodeInstance<DBTransaction>) {
     update.run {
