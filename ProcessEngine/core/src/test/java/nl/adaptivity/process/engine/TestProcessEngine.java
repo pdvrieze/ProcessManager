@@ -112,11 +112,11 @@ public class TestProcessEngine {
     }
   }
 
-  private static <V> TransactionedHandleMap<V,Transaction> cache(TransactionedHandleMap<V,Transaction> base, int count) {
+  private static <V> MutableTransactionedHandleMap<V,Transaction> cache(MutableTransactionedHandleMap<V,Transaction> base, int count) {
     return new CachingHandleMap<>(base, count);
   }
 
-  private static <V> IProcessModelMap<Transaction> cache(IProcessModelMap<Transaction> base, int count) {
+  private static <V> IMutableProcessModelMap<Transaction> cache(IMutableProcessModelMap<Transaction> base, int count) {
     return new CachingProcessModelMap<>(base, count);
   }
 
