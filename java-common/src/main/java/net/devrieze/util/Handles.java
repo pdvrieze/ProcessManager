@@ -91,8 +91,7 @@ public final class Handles {
    * @param pHandle The handle
    * @return a Handle<T> object corresponding to the handle.
    */
-  @NotNull
-  public static @Nullable <T> ComparableHandle<T> handle(final long pHandle) {
+  public static @NotNull <T> ComparableHandle<T> handle(final long pHandle) {
     return pHandle<0 ? Handles.<T>getInvalid() : new SimpleHandle<T>(pHandle);
   }
 

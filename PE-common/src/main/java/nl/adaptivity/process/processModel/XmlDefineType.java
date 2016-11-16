@@ -152,7 +152,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     return new XmlDefineType(export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.getContent(), export.getOriginalNSContext());
   }
 
-  @Nullable
+  @NotNull
   @Override
   public <T extends Transaction, V extends IProcessNodeInstance<T, V>> ProcessData apply(final T transaction, @NotNull final IProcessNodeInstance<T, V> node) throws SQLException {
     final ProcessData processData;
@@ -173,7 +173,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
         }
       }
     } else {
-      processData = null;
+      processData = new ProcessData(getName(), new CompactFragment(""));
     }
     final char[] content = getContent();
     if (getContent()!=null && getContent().length>0) {
