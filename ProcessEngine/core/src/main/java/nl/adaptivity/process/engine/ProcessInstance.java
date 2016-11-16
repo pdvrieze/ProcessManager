@@ -59,7 +59,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   public static class ProcessInstanceRef implements Handle<ProcessInstance>, XmlSerializable {
 
-    private long mHandle;
+    private long mHandle = -1L;
 
     private long mProcessModel;
 
@@ -143,7 +143,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
 
   private final HashMap<JoinImpl, ComparableHandle<? extends JoinInstance<T>>> mJoins;
 
-  private long mHandle;
+  private long mHandle = -1L;
 
   private final ProcessEngine<T> mEngine;// XXX actually introduce a generic parameter for transactions
 
@@ -375,6 +375,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
   }
 
   public synchronized void provideTask(T transaction, final IMessageService<?, T, ProcessNodeInstance<T>> messageService, final ProcessNodeInstance node) throws SQLException {
+    assert node.getHandle().getValid();
     if (node.provideTask(transaction, messageService)) {
       takeTask(transaction, messageService, node);
     }
@@ -430,7 +431,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     final List<JoinInstance<T>> joinsToEvaluate = new ArrayList<>();
     for (final Identifiable successorNode : predecessor.getNode().getSuccessors()) {
       final ProcessNodeInstance<T> instance = createProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
-      if (instance.getHandle()==null) {
+      if (!instance.getHandle().getValid()) {
         mEngine.registerNodeInstance(transaction, instance);
       }
       final ComparableHandle<? extends ProcessNodeInstance<T>> instanceHandle = instance.getHandle();
