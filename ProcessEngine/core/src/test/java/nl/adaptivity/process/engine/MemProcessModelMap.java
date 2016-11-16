@@ -27,7 +27,7 @@ import java.util.UUID;
 /**
  * Created by pdvrieze on 07/05/16.
  */
-public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelImpl> implements IProcessModelMap<Transaction> {
+public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelImpl> implements IMutableProcessModelMap<Transaction> {
 
   @Override
   public Handle<ProcessModelImpl> getModelWithUuid(final Transaction transaction, final UUID uuid) {
