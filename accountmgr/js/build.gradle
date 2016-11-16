@@ -55,6 +55,7 @@ compileKotlin2Js {
     kotlinOptions.suppressWarnings = true
     kotlinOptions.verbose = true
     kotlinOptions.kjsm = false
+    kotlinOptions.moduleKind = "umd"
 }
 
 idea {
