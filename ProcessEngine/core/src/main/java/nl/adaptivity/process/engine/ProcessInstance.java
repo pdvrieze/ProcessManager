@@ -37,6 +37,7 @@ import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlWriter;
 import nl.adaptivity.xml.XmlWriterUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import java.security.Principal;
@@ -263,6 +264,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     }
   }
 
+  @Nullable
   public synchronized ProcessNodeInstance<T> getNodeInstance(final T transaction, final Identifiable identifiable) throws SQLException {
     for (Handle<? extends ProcessNodeInstance<T>> handle: CollectionUtil.combine(mEndResults, mFinishedNodes, mThreads)) {
       ProcessNodeInstance<T> instance = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
