@@ -19,9 +19,9 @@ package uk.ac.bournemouth.darwin.accounts
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.kotlinsql.Column
+import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.IColumnType
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
 import java.math.BigInteger
 import java.net.HttpURLConnection
 import java.security.KeyFactory
@@ -30,7 +30,6 @@ import java.security.SecureRandom
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPublicKeySpec
 import java.sql.SQLException
-import java.sql.SQLWarning
 import java.sql.Timestamp
 import java.util.*
 import java.util.logging.Logger
@@ -106,14 +105,14 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
 
-  fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null):Int {
+  fun registerkey(user: String, pubkey: String, appname: String?, keyid: Int? = null):Int {
 
-    // Helper function for the shared code that determines the application name to use
-    fun realAppname(sql:String, setparamsFun: StatementHelper.(String) -> Unit) : String? {
+    // Helper function for the shared code that determines the application name to use. It avoids duplicates
+    fun realAppname(whereClauseFactory: Database._Where.(String) -> Database.WhereClause?) : String? {
       var result= appname ?: return null
 
       var idx =1
-      while (connection.prepareStatement(sql) { this.setparamsFun(result); executeHasRows() }) {
+      while ( WebAuthDB.SELECT(p.appname).WHERE{whereClauseFactory (result) }.hasRows(connection)) {
         result="${appname} ${idx}"
         idx++
       }
@@ -122,15 +121,17 @@ open class AccountDb(private val connection:DBConnection) {
     }
 
     if (keyid != null) {
-      var realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=? AND keyid!=?") { it-> params(user) + it + keyid}
+      val realappname = realAppname({ candidateName -> (p.user eq user) AND (p.appname eq candidateName) AND (p.keyid ne keyid) })
 
-      connection.prepareStatement("UPDATE `pubkeys` SET pubkey=?, appname=? WHERE `keyid`=? AND `user`=?") {
-        params(pubkey) +realappname+ keyid + user
-        if (executeUpdate()==0) throw AuthException("Failure to update the authentication key")
-      }
-      return keyid.toInt()
+      val updateCount = WebAuthDB
+            .UPDATE { SET(p.pubkey, pubkey); SET (p.appname, realappname) }
+            .WHERE { (p.keyid eq keyid) AND (p.user eq user) }
+            .executeUpdate(connection)
+
+      if (updateCount==0) throw AuthException("Failure to update the authentication key")
+      return keyid
     } else {
-      val realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=?") { it-> params(user) + it }
+      val realappname = realAppname { (p.user eq user) AND (p.appname eq it)  }
 
       return WebAuthDB.INSERT(p.user, p.appname, p.pubkey, p.lastUse)
                .VALUES(user, realappname, pubkey, nowSeconds)
@@ -143,12 +144,13 @@ open class AccountDb(private val connection:DBConnection) {
     if (changeCount==0) { throw IllegalArgumentException("The key is not owned by the given user") }
   }
 
-  internal inline fun updateTokenEpoch(token: String, remoteAddr: String) {
-    connection.prepareStatement("UPDATE tokens SET epoch=? WHERE token=? and ip=?") {
-      params(nowSeconds) + token + remoteAddr
-      if (executeUpdate() == 0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
+  internal fun updateTokenEpoch(token: String, remoteAddr: String) {
+    if(WebAuthDB
+          .UPDATE { SET(t.epoch, nowSeconds) }
+          .WHERE { (t.token eq  token) AND (t.ip eq remoteAddr) }
+          .executeUpdate(connection)==0) {
+      throw AuthException("Failure to update the authentication token".appendWarnings())
     }
-
   }
 
   /**
@@ -157,16 +159,19 @@ open class AccountDb(private val connection:DBConnection) {
    * @return The relevant authToken.
    */
   fun updateAuthToken(username: String, token: String, remoteAddr: String): String {
-    connection.prepareStatement("UPDATE `tokens` SET `epoch`= ? WHERE user = ? and token=? and ip=?") {
-      params(nowSeconds) + username + token + remoteAddr
-      if (executeUpdate() == 0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
+    if(WebAuthDB
+          .UPDATE { SET(t.epoch, nowSeconds) }
+          .WHERE { (t.user eq username) AND (t.token eq token) AND (t.ip eq remoteAddr)}
+          .executeUpdate(connection)==0) {
+      throw AuthException("Failure to update the authentication token".appendWarnings())
     }
     return token
   }
 
-  fun String.appendWarnings(warnings: Iterator<SQLWarning>): String {
+  fun String.appendWarnings(): String {
     return buildString {
       append(this@appendWarnings)
+      val warnings = connection.warningsIt
       if (warnings.hasNext()) {
         append(" - \n    ")
         warnings.asSequence().map { "${it.errorCode}: ${it.message}" }.joinTo(this, ",\n    ")
@@ -307,14 +312,11 @@ open class AccountDb(private val connection:DBConnection) {
     val conn = connection
     val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
     try {
-      return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
-        params(keyid) + requestIp + challenge + nowSeconds + challenge + nowSeconds
-        if (executeUpdate()!=0) {
-          challenge
-        } else {
-          throw AuthException("Could not store challenge".appendWarnings(warningsIt))
-        }
-      }
+      return if (WebAuthDB
+            .INSERT_OR_UPDATE(c.keyid, c.requestip, c.challenge, c.epoch)
+            .VALUES(keyid, requestIp, challenge, nowSeconds)
+            .executeUpdate(connection)!=0) { challenge }
+        else throw AuthException("Could not store challenge".appendWarnings())
     } catch (e:SQLException) {
       if (WebAuthDB.SELECT(p.keyid).WHERE { p.keyid eq keyid }.getSingleOrNull(conn) == null) {
         throw AuthException("Unknown or expired key id. Reauthentication required",

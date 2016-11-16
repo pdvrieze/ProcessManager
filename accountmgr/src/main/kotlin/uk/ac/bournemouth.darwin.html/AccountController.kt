@@ -205,9 +205,13 @@ class AccountController : HttpServlet() {
                             it.append("authenticated:").appendln(username)
                         }
                     } else {
-                        val newKeyId = registerkey(username, pubkey, appname, keyid?.toLong())
-                        resp.contentType("text/plain")
-                        resp.writer.use { it.append("key:").appendln(newKeyId.toString())}
+                        try {
+                            val newKeyId = registerkey(username, pubkey, appname, keyid?.toInt())
+                            resp.contentType("text/plain")
+                            resp.writer.use { it.append("key:").appendln(newKeyId.toString()) }
+                        } catch (e:NumberFormatException) {
+                            resp.darwinError(req, "Invalid key format", SC_UNPROCESSIBLE_ENTITY, "UNPROCESSIBLE ENTITY", e)
+                        }
                     }
 
                 } else {
