@@ -39,6 +39,7 @@ interface HandleMap<V> {
 
   operator fun iterator(): Iterator<V>
 
+  @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
   fun isEmpty(): Boolean
 
   fun containsHandle(handle: Handle<out V>): Boolean
@@ -50,10 +51,12 @@ interface HandleMap<V> {
    * *
    * @return `true` if it does.
    */
+  @Deprecated("Don't use untyped handles", ReplaceWith("contains(Handles.handle(handle))", "net.devrieze.util.Handles"))
   operator fun contains(handle: Long): Boolean
 
   operator fun get(handle: Handle<out V>): V?
 
+  @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
   fun getSize():Int
 
   companion object {
@@ -74,8 +77,11 @@ interface MutableHandleMap<V>: HandleMap<V> {
    */
   fun <W : V> put(value: W): Handle<W>
 
+  @Deprecated("Don't use untyped handles", ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles"))
   operator fun set(handle: Long, value: V): V?
+
   operator fun set(handle: Handle<out V>, value: V): V?
+
   fun remove(handle: Handle<out V>): Boolean
 
 }
