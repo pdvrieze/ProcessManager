@@ -77,7 +77,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
 
   private           IdentifyableSet<T> mProcessNodes;
   private           String             mName;
-  private           long               mHandle;
+  private           long               mHandle = -1L;
   @Nullable private Principal          mOwner;
   private           Set<String>        mRoles;
   @Nullable private UUID               mUuid;
