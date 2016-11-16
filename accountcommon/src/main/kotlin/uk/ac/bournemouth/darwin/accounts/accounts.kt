@@ -77,7 +77,8 @@ open class AccountDb(private val connection:DBConnection) {
   private val r: WebAuthDB.user_roles get() = WebAuthDB.user_roles
   private val p: WebAuthDB.pubkeys get() = WebAuthDB.pubkeys
 
-  val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
+  val nowSeconds: Long by lazy { System.currentTimeMillis() / 1000 }
+  val nowMillis: Long get() = nowSeconds*1000 // Current time in milliseconds since epoch (1-1-1970 UTC)
 
   fun updateCredentials(username: String, password: String): Boolean {
     return WebAuthDB.UPDATE { SET(u.password, createPasswordHash(getSalt(username), password)) }
@@ -98,7 +99,7 @@ open class AccountDb(private val connection:DBConnection) {
   fun createAuthtoken(username: String, remoteAddr: String, keyid: Int? = null): String {
     val token = generateAuthToken()
     WebAuthDB.INSERT(t.user, t.ip, t.keyid, t.token, t.epoch)
-          .VALUES(username, remoteAddr, keyid, token, now)
+          .VALUES(username, remoteAddr, keyid, token, nowSeconds)
           .executeUpdate(connection)
           .let { if (it==0) throw AuthException("Failure to record the authentication token.") }
     return token
@@ -132,7 +133,7 @@ open class AccountDb(private val connection:DBConnection) {
       val realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=?") { it-> params(user) + it }
 
       return WebAuthDB.INSERT(p.user, p.appname, p.pubkey, p.lastUse)
-               .VALUES(user, realappname, pubkey, now)
+               .VALUES(user, realappname, pubkey, nowSeconds)
                .execute(connection, p.keyid) { it!! }.first()
     }
   }
@@ -144,7 +145,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   internal inline fun updateTokenEpoch(token: String, remoteAddr: String) {
     connection.prepareStatement("UPDATE tokens SET epoch=? WHERE token=? and ip=?") {
-      params(now) + token + remoteAddr
+      params(nowSeconds) + token + remoteAddr
       if (executeUpdate() == 0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
     }
 
@@ -157,7 +158,7 @@ open class AccountDb(private val connection:DBConnection) {
    */
   fun updateAuthToken(username: String, token: String, remoteAddr: String): String {
     connection.prepareStatement("UPDATE `tokens` SET `epoch`= ? WHERE user = ? and token=? and ip=?") {
-      params(now) + username + token + remoteAddr
+      params(nowSeconds) + username + token + remoteAddr
       if (executeUpdate() == 0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
     }
     return token
@@ -224,7 +225,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun generateResetToken(user:String): String {
     val resetToken = Base64.encoder().encodeToString(random.nextBytes(15))
-    if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(now)) }.WHERE { u.user eq user }.executeUpdate(connection)!=1) {
+    if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(nowSeconds)) }.WHERE { u.user eq user }.executeUpdate(connection)!=1) {
       throw AuthException("Could not store the reset token")
     }
     return resetToken
@@ -232,7 +233,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun verifyResetToken(user: String, resetToken: String): Boolean {
     val resetTime:Timestamp = WebAuthDB.SELECT(u.resettime).WHERE { (u.user eq user) AND (u.resettoken eq resetToken) }.getSingleOrNull(connection) ?: return false
-    return resetTime.time - now < MAX_RESET_VALIDITY
+    return resetTime.time - nowSeconds < MAX_RESET_VALIDITY
   }
 
   fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getList(connection).filterNotNull()
@@ -282,7 +283,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   private fun updateKeyLastUse(keyId: Int) {
-    WebAuthDB.UPDATE { SET(p.lastUse, now) }.WHERE { p.keyid eq keyId }.executeUpdate(connection)
+    WebAuthDB.UPDATE { SET(p.lastUse, nowSeconds) }.WHERE { p.keyid eq keyId }.executeUpdate(connection)
   }
 
 
@@ -291,14 +292,14 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   fun cleanAuthTokens() {
-    if (now-lastTokenClean>60000) {
-      WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (now - MAXTOKENLIFETIME) }.executeUpdate(connection)
-      lastTokenClean=now
+    if (nowSeconds-lastTokenClean>60000) {
+      WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (nowSeconds - MAXTOKENLIFETIME) }.executeUpdate(connection)
+      lastTokenClean=nowSeconds
     }
   }
 
   fun cleanChallenges() {
-    val cutoff = now - MAXCHALLENGELIFETIME
+    val cutoff = nowSeconds - MAXCHALLENGELIFETIME
     WebAuthDB.DELETE_FROM(c).WHERE { c.epoch lt cutoff }.executeUpdate(connection)
   }
 
@@ -307,7 +308,7 @@ open class AccountDb(private val connection:DBConnection) {
     val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
     try {
       return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
-        params(keyid) + requestIp + challenge + now + challenge + now
+        params(keyid) + requestIp + challenge + nowSeconds + challenge + nowSeconds
         if (executeUpdate()!=0) {
           challenge
         } else {

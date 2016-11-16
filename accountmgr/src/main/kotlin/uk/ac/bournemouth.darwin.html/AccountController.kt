@@ -574,7 +574,7 @@ class AccountController : HttpServlet() {
             accountDb {
                 if (!isUser(user)) throw AuthException("Unable to reset", errorCode = HttpServletResponse.SC_BAD_REQUEST)
                 val lastReset = lastReset(user)?.time ?: 0
-                if (now- lastReset <MIN_RESET_DELAY) throw AuthException("Too many reset attempts, try later", errorCode = 429)
+                if (nowSeconds- lastReset <MIN_RESET_DELAY) throw AuthException("Too many reset attempts, try later", errorCode = 429)
 
                 val resetToken = generateResetToken(user)
                 val mailSession = Session.getDefaultInstance(mailProperties)

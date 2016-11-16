@@ -308,7 +308,7 @@ class TestAccountControllerDirect {
 
   @Test(dependsOnMethods = arrayOf("testKeyPairs"))
   fun testRegisterKey() {
-    val now = System.currentTimeMillis() /1000
+    val nowMillis = (System.currentTimeMillis()/1000)*1000 // The system only uses second accuracy
     val keyId = accountDb {
       doCreateUser()
       registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
@@ -328,7 +328,7 @@ class TestAccountControllerDirect {
     val key = keyInfo.get(0)
     assertEquals(key.appname, "Test system")
     assertEquals(key.keyId, keyId)
-    assertTrue(key.lastUse>=now, "Last use should be set to a value after the initial value (${key.lastUse}>=$now)")
+    assertTrue((key.lastUse?.time ?: Long.MIN_VALUE) >=nowMillis, "Last use should be set to a value after the initial value (${key.lastUse}>=${Date(nowMillis)})")
   }
 
   @Test
@@ -343,14 +343,14 @@ class TestAccountControllerDirect {
     accountDb {
       val origUse = keyInfo(testUser).single { it.keyId == keyid }.lastUse
       assertNotEquals(origUse, 0)
-      assertNotEquals(origUse, now)
+      assertNotEquals(origUse, nowMillis)
       assertNull(userFromToken(token, "127.0.0.2"))
       val useAfterInvalid = keyInfo(testUser).single { it.keyId == keyid }.lastUse
       assertEquals(useAfterInvalid, origUse)
       assertEquals(userFromToken(token, "127.0.0.1"), testUser)
       val useAfterTokenUse = keyInfo(testUser).single { it.keyId == keyid }.lastUse
       assertNotEquals(useAfterTokenUse, origUse)
-      assertEquals(useAfterTokenUse, now)
+      assertEquals(useAfterTokenUse, Date((nowMillis/1000)*1000))
     }
   }
 
@@ -388,8 +388,8 @@ class TestAccountControllerDirect {
       keyInfo(testUser).single { it.keyId == keyid }
     }
 
-    val now = System.currentTimeMillis() / 1000
-    assertTrue(oldKeyInfo.lastUse <= now, "Key last used before now")
+    val nowMillis = System.currentTimeMillis()
+    assertTrue(oldKeyInfo.lastUse?.time ?: Long.MIN_VALUE <= nowMillis, "Key last used before now")
     Thread.sleep(2000) /* sleep a second to get a new timestamp*/
 
     accountDb {
@@ -398,8 +398,8 @@ class TestAccountControllerDirect {
 
       assertEquals(userFromChallengeResponse(keyid, "127.0.0.1", response), testUser)
       val newKeyInfo = keyInfo(testUser).single {it.keyId==keyid }
-      assertTrue(newKeyInfo.lastUse>now, "LastUse should be later than now (${newKeyInfo.lastUse}>$now)")
-      assertTrue(newKeyInfo.lastUse>oldKeyInfo.lastUse, "LastUse should be updated (${newKeyInfo.lastUse}>$now)")
+      assertTrue(newKeyInfo.lastUse?.time ?: Long.MIN_VALUE > nowMillis, "LastUse should be later than now (${newKeyInfo.lastUse}>$nowMillis)")
+      assertTrue((newKeyInfo.lastUse?:Date(Long.MIN_VALUE))>oldKeyInfo.lastUse?: Date(Long.MAX_VALUE), "LastUse should be updated (${newKeyInfo.lastUse}>$nowMillis)")
 
       rsaEnc.init(Cipher.ENCRYPT_MODE, testPrivateKey)
       val invalidResponse = rsaEnc.doFinal(testPassword1.toByteArray())
