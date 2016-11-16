@@ -23,7 +23,7 @@ import java.sql.SQLException
  * the interface is needed for testing without hitting the database.
  * Created by pdvrieze on 18/08/15.
  */
-interface TransactionedHandleMap<V, T : Transaction> {
+interface TransactionedHandleMap<V: Any, T : Transaction> {
 
   @Throws(SQLException::class)
   fun <W : V> put(transaction: T, value: W): ComparableHandle<W>
@@ -52,9 +52,17 @@ interface TransactionedHandleMap<V, T : Transaction> {
   fun iterator(transaction: T, readOnly: Boolean): AutoCloseableIterator<V>
 
   fun newTransaction(): T
+
+  fun withTransaction(transaction:T):HandleMap<V> = HandleMapForwarder(transaction, this)
 }
 
-interface MutableTransactionedHandleMap<V, T:Transaction> : TransactionedHandleMap<V, T> {
+
+inline fun <T:Transaction, V: Any, R> TransactionedHandleMap<V,T>.inTransaction(transaction: T, body: HandleMap<V>.()->R):R {
+  return withTransaction(transaction).body()
+}
+
+
+interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHandleMap<V, T> {
 
   override fun iterator(transaction: T, readOnly: Boolean): MutableAutoCloseableIterator<V>
 
@@ -74,4 +82,36 @@ interface MutableTransactionedHandleMap<V, T:Transaction> : TransactionedHandleM
   @Throws(SQLException::class)
   fun clear(transaction: T)
 
+  override fun withTransaction(transaction: T): MutableHandleMap<V> = MutableHandleMapForwarder(transaction, this)
+
+}
+
+open class  HandleMapForwarder<V: Any, T:Transaction>(val transaction: T, open val delegate: TransactionedHandleMap<V, T>) : HandleMap<V> {
+  override fun contains(element: V) = delegate.contains(transaction, element)
+
+  override fun iterator() = delegate.iterator(transaction, true)
+
+  override fun isEmpty():Boolean { throw UnsupportedOperationException("Not available") }
+
+  override fun containsHandle(handle: Handle<out V>) = delegate.contains(transaction, handle)
+
+  override fun contains(handle: Long) = delegate.contains(transaction, Handles.handle(handle))
+
+  override fun get(handle: Handle<out V>) = delegate.get(transaction, handle)
+
+  override fun getSize(): Int { throw UnsupportedOperationException("Not available") }
+
+}
+
+class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, override val delegate: MutableTransactionedHandleMap<V, T>) : HandleMapForwarder<V,T>(transaction, delegate), MutableHandleMap<V> {
+
+  override fun iterator() = delegate.iterator(transaction, false)
+
+  override fun <W : V> put(value: W) = delegate.put(transaction, value)
+
+  override fun set(handle: Long, value: V) = delegate.set(transaction, Handles.handle(handle), value)
+
+  override fun set(handle: Handle<out V>, value: V) = delegate.set(transaction, handle, value)
+
+  override fun remove(handle: Handle<out V>) = delegate.remove(transaction, handle)
 }
