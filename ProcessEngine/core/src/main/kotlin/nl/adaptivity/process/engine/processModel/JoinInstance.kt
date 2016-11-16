@@ -30,11 +30,8 @@ import java.util.*
 
 class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
 
-  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) : super(
-        node,
-        predecessors,
-        processInstance,
-        state) {
+  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) :
+        super(node, predecessors, processInstance, state) {
   }
 
   @Throws(SQLException::class)
@@ -62,7 +59,8 @@ class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
     get() = super.node as JoinImpl
 
   @Suppress("UNCHECKED_CAST")
-  override fun getHandle() = super.getHandle() as ComparableHandle<JoinInstance<T>>
+  override val handle: ComparableHandle<out JoinInstance<T>>
+    get() = super.handle as ComparableHandle<out JoinInstance<T>>
 
   @Throws(SQLException::class)
   fun addPredecessor(transaction: T, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): Boolean {
@@ -144,10 +142,10 @@ class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
     val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
     var canAdd = false
     for (hDirectSuccessor in directSuccessors) {
-      val directSuccessor = processInstance.engine.getNodeInstance(transaction,
-                                                                   hDirectSuccessor,
-                                                                   SecurityProvider.SYSTEMPRINCIPAL)
-      if (directSuccessor!!.state == IProcessNodeInstance.NodeInstanceState.Started || directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Complete) {
+      val directSuccessor: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, hDirectSuccessor,
+                                                                                           SecurityProvider.SYSTEMPRINCIPAL)
+          ?: throw NullPointerException("The successor handle could not be resolved")
+      if (directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Started || directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Complete) {
         canAdd = false
         break
       }
@@ -169,7 +167,7 @@ class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
     for (missingIdentifier in missingIdentifiers) {
       val candidate: ProcessNodeInstance<T>? = processInstance.getNodeInstance(transaction, missingIdentifier)
       if (candidate != null) {
-        addPredecessor(transaction, candidate.getHandle())
+        addPredecessor(transaction, candidate.handle)
       }
     }
     if (updateTaskState(transaction) && state != IProcessNodeInstance.NodeInstanceState.Complete) {
@@ -185,10 +183,10 @@ class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
     val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
     var canAdd = false
     for (hDirectSuccessor in directSuccessors) {
-      val directSuccessor = processInstance.engine.getNodeInstance(transaction,
+      val directSuccessor:ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction,
                                                                    hDirectSuccessor,
-                                                                   SecurityProvider.SYSTEMPRINCIPAL)
-      if (directSuccessor!!.state == IProcessNodeInstance.NodeInstanceState.Started || directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Complete) {
+                                                                   SecurityProvider.SYSTEMPRINCIPAL) ?: throw NullPointerException("Successor not resolved")
+      if (directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Started || directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Complete) {
         canAdd = false
         break
       }

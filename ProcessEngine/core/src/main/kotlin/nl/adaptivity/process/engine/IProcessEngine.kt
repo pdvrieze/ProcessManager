@@ -14,12 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine;
-
-import org.w3c.dom.Node;
-
-import nl.adaptivity.process.processModel.ProcessModel;
+package nl.adaptivity.process.engine
 
 
-public interface IProcessEngine {
-}
+interface IProcessEngine

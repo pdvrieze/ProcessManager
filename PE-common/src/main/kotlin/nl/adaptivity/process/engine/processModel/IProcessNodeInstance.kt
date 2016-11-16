@@ -14,39 +14,41 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.processModel;
+package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.HandleMap.HandleAware;
-import net.devrieze.util.StringUtil;
-import net.devrieze.util.Transaction;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
-import org.w3c.dom.Node;
+import net.devrieze.util.HandleMap.HandleAware
+import net.devrieze.util.StringUtil
+import net.devrieze.util.Transaction
+import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlWriter
+import org.w3c.dom.Node
 
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlRootElement
 
-import java.sql.SQLException;
+import java.sql.SQLException
 
 
 /**
  * Class representing the instantiation of an executable process node.
- *
- * @author Paul de Vrieze
- * @param <V> The actual type of the implementing class.
- */
-public interface IProcessNodeInstance<T extends Transaction, V extends IProcessNodeInstance<T, V>> extends HandleAware<V> {
 
-  void serialize(T transaction, XmlWriter out) throws XmlException;
+ * @author Paul de Vrieze
+ * *
+ * @param <V> The actual type of the implementing class.
+</V> */
+interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> : HandleAware<V> {
+
+  @Throws(XmlException::class)
+  fun serialize(transaction: T, out: XmlWriter)
 
   /**
    * Enumeration representing the various states a task can be in.
-   *
+
    * @author Paul de Vrieze
    */
   @XmlRootElement(name = "taskState", namespace = "http://adaptivity.nl/userMessageHandler")
-  enum NodeInstanceState {
+  enum class NodeInstanceState private constructor(val isFinal: Boolean) {
     /**
      * Initial task state. The instance has been created, but has not been successfully sent to a receiver.
      */
@@ -54,7 +56,8 @@ public interface IProcessNodeInstance<T extends Transaction, V extends IProcessN
     /**
      * Signifies that the task has failed to be created, a new attempt should be made.
      */
-    FailRetry(false), /**
+    FailRetry(false),
+    /**
      * Indicates that the task has been communicated to a
      * handler, but receipt has not been acknowledged.
      */
@@ -89,106 +92,117 @@ public interface IProcessNodeInstance<T extends Transaction, V extends IProcessN
      */
     Cancelled(true);
 
-    NodeInstanceState(boolean pFinal) {
-      mFinal = pFinal;
-    }
 
-    private final boolean mFinal;
+    companion object {
 
-    public boolean isFinal() {
-      return mFinal;
-    }
-
-    public static NodeInstanceState fromString(CharSequence string) {
-      String lowerCase = StringUtil.toLowerCase(string);
-      for(NodeInstanceState candidate: values()) {
-        if (lowerCase.equals(candidate.name().toLowerCase())) {
-          return candidate;
+      @JvmStatic
+      fun fromString(string: CharSequence): NodeInstanceState? {
+        val lowerCase = StringUtil.toLowerCase(string)
+        for (candidate in values()) {
+          if (lowerCase == candidate.name.toLowerCase()) {
+            return candidate
+          }
         }
+        return null
       }
-      return null;
     }
   }
 
   /**
    * Get the state of the task.
-   *
+
    * @return the state.
    */
-  NodeInstanceState getState();
+  val state: NodeInstanceState
 
   /**
    * Set the state of the task.
-   *
+
    * @param transaction
+   * *
    * @param newState The new state of the task.
    */
-  void setState(T transaction, NodeInstanceState newState) throws SQLException;
+  @Throws(SQLException::class)
+  fun setState(transaction: T, newState: NodeInstanceState)
 
   /**
    * Called by the processEngine so indicate starting of the task.
-   *
-   * @param messageService Service to use for communication of change of state.
-   * @return <code>true</code> if this stage is complete and the engine should
-   *         progress to {
-   * @throws SQLException @link #takeTask(IMessageService)
 
+   * @param messageService Service to use for communication of change of state.
+   * *
+   * @return `true` if this stage is complete and the engine should
+   * *         progress to {
+   * *
+   * @throws SQLException @link #takeTask(IMessageService)
    */
-  <U> boolean provideTask(T transaction, IMessageService<U, T, V> messageService) throws SQLException;
+  @Throws(SQLException::class)
+  fun <U> provideTask(transaction: T, messageService: IMessageService<U, T, V>): Boolean
 
   /**
    * Called by the processEngine to let the task be taken.
-   *
+
    * @param messageService Service to use for communication of change of state.
-   * @return <code>true</code> if this stage has completed and the task should
-   *         be {@link #startTask(Transaction, IMessageService) started}.
+   * *
+   * @return `true` if this stage has completed and the task should
+   * *         be [started][.startTask].
    */
-  <U> boolean takeTask(T transaction, IMessageService<U, T, V> messageService) throws SQLException;
+  @Throws(SQLException::class)
+  fun <U> takeTask(transaction: T, messageService: IMessageService<U, T, V>): Boolean
 
   /**
    * Called by the processEngine to let the system start the task.
-   *
+
    * @param messageService Service to use for communication of change of state.
-   * @return <code>true</code> if the task has completed and
-   *         {@link #finishTask(Transaction, Node)}  should be called.
+   * *
+   * @return `true` if the task has completed and
+   * *         [.finishTask]  should be called.
    */
-  <U> boolean startTask(T transaction, IMessageService<U, T, V> messageService) throws SQLException;
+  @Throws(SQLException::class)
+  fun <U> startTask(transaction: T, messageService: IMessageService<U, T, V>): Boolean
 
   /**
    * Called by the processEngine to signify to the task that it is finished
    * (with the given payload).
-   *
+
    * @param payload The payload which is the result of the processing.
    */
-  void finishTask(T transaction, Node payload) throws SQLException;
+  @Throws(SQLException::class)
+  fun finishTask(transaction: T, payload: Node?)
 
   /**
    * Called to signify that this task has failed.
    */
-  void failTask(T transaction, Throwable cause) throws SQLException;
+  @Throws(SQLException::class)
+  fun failTask(transaction: T, cause: Throwable)
 
   /**
    * Called to signify that creating this task has failed, a retry would be expected.
    */
-  void failTaskCreation(T transaction, Throwable cause) throws SQLException;
+  @Throws(SQLException::class)
+  fun failTaskCreation(transaction: T, cause: Throwable)
 
   /**
    * Called to signify that this task has been cancelled.
    * @throws SQLException
    */
-  void cancelTask(T transaction) throws SQLException;
+  @Throws(SQLException::class)
+  fun cancelTask(transaction: T)
 
   /**
    * Called to attempt to cancel the task if that is semantically valid.
    * @throws SQLException
    */
-  void tryCancelTask(T transaction) throws SQLException;
+  @Throws(SQLException::class)
+  fun tryCancelTask(transaction: T)
 
   /** Get the predecessor instance with the given node name.
    * @throws SQLException
-   * */
-  V resolvePredecessor(T transaction, String nodeName) throws SQLException;
+   * *
+   */
+  @Throws(SQLException::class)
+  fun resolvePredecessor(transaction: T, nodeName: String): V?
 
-  /** Get the result instance with the given data name. */
-  ProcessData getResult(T transaction, String name) throws SQLException;
+  /** Get the result instance with the given data name.  */
+  @Throws(SQLException::class)
+  fun getResult(transaction: T, name: String): ProcessData?
 }

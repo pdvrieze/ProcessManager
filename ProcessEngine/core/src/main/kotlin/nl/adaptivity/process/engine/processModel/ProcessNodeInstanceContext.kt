@@ -30,7 +30,7 @@ class ProcessNodeInstanceContext(private val mProcessNodeInstance: ProcessNodeIn
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
       "handle"         -> return ProcessData(valueName,
-                                             CompactFragment(java.lang.Long.toString(mProcessNodeInstance.handleValue)))
+                                             CompactFragment(java.lang.Long.toString(mProcessNodeInstance.getHandleValue())))
       "instancehandle" -> return ProcessData(valueName,
                                              CompactFragment(java.lang.Long.toString(mProcessNodeInstance.processInstance.handleValue)))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())

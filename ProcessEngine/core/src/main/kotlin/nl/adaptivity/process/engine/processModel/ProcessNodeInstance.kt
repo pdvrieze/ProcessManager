@@ -27,23 +27,20 @@ import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.xml.*
+import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.Namespace
 import org.w3c.dom.Node
-
-import javax.xml.transform.Result
-import javax.xml.transform.Source
-
 import java.io.CharArrayWriter
 import java.sql.SQLException
-import java.util.ArrayList
-import java.util.Collections
+import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.xml.transform.Result
+import javax.xml.transform.Source
 
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
 open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject {
@@ -63,18 +60,28 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
 
   private var mPredecessors: MutableList<ComparableHandle<out ProcessNodeInstance<T>>>
 
-  private var mState: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending
+  override final var state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending
+    private set
 
   private var mHandle: Long = -1
 
   private val mProcessInstance: ProcessInstance<T>
 
+  val results: List<ProcessData>
+    get() = mResults
+
   var failureCause: Throwable? = null
     private set
 
-  constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<out ProcessNodeInstance<T>>?, processInstance: ProcessInstance<T>) : super() {
+  val directPredecessors: MutableCollection<ComparableHandle<out ProcessNodeInstance<T>>>
+    get() = mPredecessors
+
+  val processInstance: ProcessInstance<T>
+    get() = mProcessInstance
+
+  constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<ProcessNodeInstance<T>>, processInstance: ProcessInstance<T>) : super() {
     this.node = node
-    if (predecessor == null) {
+    if (!predecessor.valid) {
       if (node is StartNode<*, *>) {
         mPredecessors = ArrayList<ComparableHandle<out ProcessNodeInstance<T>>>()
       } else {
@@ -84,12 +91,9 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
       mPredecessors = mutableListOf(predecessor)
     }
     mProcessInstance = processInstance
-    if (predecessor == null && node !is StartNode<*, *>) {
-      throw NullPointerException()
-    }
   }
 
-  protected constructor(node: ExecutableProcessNode, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>) : super() {
+  internal constructor(node: ExecutableProcessNode, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>) : super() {
     this.node = node
     mPredecessors = ArrayList(predecessors)
     mProcessInstance = processInstance
@@ -98,11 +102,11 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     }
   }
 
-  protected constructor(node: ExecutableProcessNode, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) : super() {
+  internal constructor(node: ExecutableProcessNode, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) : super() {
     this.node = node
     mPredecessors = ArrayList(predecessors)
     mProcessInstance = processInstance
-    mState = state
+    this.state = state
     if ((mPredecessors == null || mPredecessors.size == 0) && node !is StartNode<*, *>) {
       throw NullPointerException("Non-start-node process node instances need predecessors")
     }
@@ -112,7 +116,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
   internal constructor(transaction: T, node: ExecutableProcessNode, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) {
     this.node = node
     mProcessInstance = processInstance
-    mState = state
+    this.state = state
     mPredecessors = resolvePredecessors(transaction, processInstance, node)
     if ((mPredecessors == null || mPredecessors.size == 0) && node !is StartNode<*, *>) {
       throw NullPointerException("Non-start-node process node instances need predecessors")
@@ -138,7 +142,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     for (pred in node.predecessors) {
       val nodeInstance: ProcessNodeInstance<T>? = processInstance.getNodeInstance(transaction, pred)
       if (nodeInstance != null) {
-        result.add(nodeInstance.getHandle())
+        result.add(nodeInstance.handle)
       }
     }
     return result
@@ -151,7 +155,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     }
   }
 
-  fun setFailureCause(failureCause: String) {
+  fun setFailureCause(failureCause: String?) {
     this.failureCause = Exception(failureCause).apply {
       (this as java.lang.Throwable).stackTrace = arrayOfNulls<StackTraceElement>(0)
       // wipe the stacktrace, it is irrelevant
@@ -169,17 +173,9 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     }// ignore
   }
 
-  val results: List<ProcessData>
-    get() = mResults
-
   @Throws(SQLException::class)
   override fun getResult(transaction: T, name: String): ProcessData? {
-    for (result in results) {
-      if (name == result.name) {
-        return result
-      }
-    }
-    return null
+    return results.firstOrNull { name == it.name }
   }
 
   @Throws(SQLException::class)
@@ -200,9 +196,6 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     return false
   }
 
-  val directPredecessors: MutableCollection<ComparableHandle<out ProcessNodeInstance<T>>>
-    get() = mPredecessors
-
   @Throws(SQLException::class)
   fun resolvePredecessors(transaction: T): Collection<ProcessNodeInstance<T>> {
     val result = ArrayList<ProcessNodeInstance<T>>(mPredecessors.size)
@@ -210,7 +203,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
       val nodeInstance: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, mPredecessors[i], SecurityProvider.SYSTEMPRINCIPAL)
             ?: throw NullPointerException("Missing predecessor")
 
-      mPredecessors[i] = nodeInstance.getHandle()
+      mPredecessors[i] = nodeInstance.handle
       result.add(nodeInstance)
     }
     return result
@@ -234,7 +227,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
             ?: throw NullPointerException("Missing predecessor for node")
 
       if (nodeName == instance.node.id) {
-        return instance.getHandle()
+        return instance.handle
       } else {
         val result = instance.getPredecessor(transaction, nodeName)
         if (result != null) {
@@ -251,16 +244,12 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     return processInstance.engine.getNodeInstance(transaction, handle!!, SecurityProvider.SYSTEMPRINCIPAL)
   }
 
-  override fun getState(): IProcessNodeInstance.NodeInstanceState {
-    return mState
-  }
-
   @Throws(SQLException::class)
   override fun setState(transaction: T, newState: IProcessNodeInstance.NodeInstanceState) {
-    if (mState.compareTo(newState) > 0) {
-      throw IllegalArgumentException("State can only be increased (was:$mState new:$newState")
+    if (state > newState) {
+      throw IllegalArgumentException("State can only be increased (was:$state new:$newState")
     }
-    mState = newState
+    state = newState
     mProcessInstance.engine.updateStorage(transaction, this)
   }
 
@@ -268,23 +257,24 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     return mHandle
   }
 
-  /*override*/ fun setHandleValue(handleValue: Long) {
+  override fun setHandleValue(handleValue: Long) {
     mHandle = handleValue
   }
 
-  /*override*/ open fun getHandle(): ComparableHandle<out ProcessNodeInstance<T>> = Handles.handle<ProcessNodeInstance<T>>(mHandle)
+  override val handle: ComparableHandle<out @JvmWildcard ProcessNodeInstance<T>>
+    get() = Handles.handle<ProcessNodeInstance<T>>(mHandle)
 
   @Throws(SQLException::class)
   override fun <U> provideTask(transaction: T, messageService: IMessageService<U, T, ProcessNodeInstance<T>>): Boolean {
     try {
-      val result = node!!.provideTask(transaction, messageService, this)
+      val result = node.provideTask(transaction, messageService, this)
       if (result) { // the task must be automatically taken. Mostly this is false and we don't set the state.
         setState(transaction, IProcessNodeInstance.NodeInstanceState.Sent)
       }
       return result
     } catch (e: RuntimeException) {
       // TODO later move failretry to fail
-      //      if (mState!=TaskState.FailRetry) {
+      //      if (state!=TaskState.FailRetry) {
       failTaskCreation(transaction, e)
       //      }
       throw e
@@ -294,20 +284,20 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
 
   @Throws(SQLException::class)
   override fun <U> takeTask(transaction: T, messageService: IMessageService<U, T, ProcessNodeInstance<T>>): Boolean {
-    val result = node!!.takeTask(messageService, this)
+    val result = node.takeTask(messageService, this)
     setState(transaction, IProcessNodeInstance.NodeInstanceState.Taken)
     return result
   }
 
   @Throws(SQLException::class)
   override fun <U> startTask(transaction: T, messageService: IMessageService<U, T, ProcessNodeInstance<T>>): Boolean {
-    val startTask = node!!.startTask(messageService, this)
+    val startTask = node.startTask(messageService, this)
     setState(transaction, IProcessNodeInstance.NodeInstanceState.Started)
     return startTask
   }
 
   @Throws(SQLException::class)
-  override fun finishTask(transaction: T, resultPayload: Node) {
+  override fun finishTask(transaction: T, resultPayload: Node?) {
     for (resultType in node.getResults()) {
       mResults.add(resultType.apply(resultPayload))
     } //TODO ensure this is stored
@@ -331,17 +321,14 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
   }
 
   override fun toString(): String {
-    return node!!.javaClass.simpleName + " (" + mState + ")"
+    return node.javaClass.simpleName + " (" + state + ")"
   }
-
-  val processInstance: ProcessInstance<T>
-    get() = mProcessInstance
 
   @Throws(SQLException::class)
   override fun failTask(transaction: T, cause: Throwable) {
     failureCause = cause
     setState(transaction,
-             if (mState == IProcessNodeInstance.NodeInstanceState.Pending) IProcessNodeInstance.NodeInstanceState.FailRetry else IProcessNodeInstance.NodeInstanceState.Failed)
+             if (state == IProcessNodeInstance.NodeInstanceState.Pending) IProcessNodeInstance.NodeInstanceState.FailRetry else IProcessNodeInstance.NodeInstanceState.Failed)
   }
 
   @Throws(SQLException::class)
@@ -369,7 +356,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
     val defines = getDefines(transaction)
     val transformer = PETransformer.create(ProcessNodeInstanceContext(this,
                                                                       defines,
-                                                                      mState == IProcessNodeInstance.NodeInstanceState.Complete),
+                                                                      state == IProcessNodeInstance.NodeInstanceState.Complete),
                                            removeWhitespace)
     transformer.transform(`in`, out.filterSubstream())
   }
@@ -393,7 +380,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
   @Throws(SQLException::class, XmlException::class)
   fun toSerializable(transaction: T): XmlProcessNodeInstance {
     val xmlNodeInst = XmlProcessNodeInstance()
-    xmlNodeInst.state = mState
+    xmlNodeInst.state = state
     xmlNodeInst.handle = mHandle
 
     if (node is Activity<*, *>) {
@@ -411,9 +398,9 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
 
     xmlNodeInst.processInstance = mProcessInstance.handleValue
 
-    xmlNodeInst.nodeId = node!!.id
+    xmlNodeInst.nodeId = node.id
 
-    if (mPredecessors != null && mPredecessors.size > 0) {
+    if (mPredecessors.size > 0) {
       val predecessors = xmlNodeInst.predecessors
       predecessors.addAll(mPredecessors)
     }
@@ -426,12 +413,10 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
   @Throws(XmlException::class)
   override fun serialize(transaction: T, out: XmlWriter) {
     out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME)
-    if (mState != null) {
-      out.writeAttribute("state", mState!!.name)
-    }
-    if (mProcessInstance != null) {
-      out.writeAttribute("processinstance", mProcessInstance.handleValue)
-    }
+    out.writeAttribute("state", state.name)
+
+    out.writeAttribute("processinstance", mProcessInstance.handleValue)
+
     if (mHandle != -1L) {
       out.writeAttribute("handle", mHandle)
     }

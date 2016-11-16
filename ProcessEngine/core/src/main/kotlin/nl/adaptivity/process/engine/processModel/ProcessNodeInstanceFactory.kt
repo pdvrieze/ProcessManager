@@ -67,7 +67,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
 
     val processInstance = processEngine.getProcessInstance(transaction, pihandle, SecurityProvider.SYSTEMPRINCIPAL)
 
-    val node = processInstance.processModel.getNode(nodeId)
+    val node = processInstance.processModel.getNode(nodeId) ?: throw SQLException("Missing node")
 
     val predecessors = ProcessEngineDB
           .SELECT(tbl_pred.predecessor)
@@ -80,7 +80,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
       JoinInstance(node, predecessors, processInstance, state)
     } else {
       ProcessNodeInstance(node, predecessors, processInstance, state)
-    }.apply { handleValue = pnihandle.handleValue }
+    }.apply { setHandleValue(pnihandle.handleValue) }
   }
 
   override fun postCreate(transaction: DBTransaction, element: ProcessNodeInstance<DBTransaction>) {
@@ -90,7 +90,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
 
     val results = ProcessEngineDB
           .SELECT(tbl_nd.name, tbl_nd.data)
-          .WHERE { tbl_nd.pnihandle eq element.handleValue }
+          .WHERE { tbl_nd.pnihandle eq element.getHandleValue() }
           .getList(transaction.connection) { name, data ->
             if (FAILURE_CAUSE == name && (element.state == IProcessNodeInstance.NodeInstanceState.Failed || element.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
               element.setFailureCause(data)
@@ -144,10 +144,12 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     if (results.isNotEmpty() || (isFailure && newValue.failureCause!=null)) {
       val insert = ProcessEngineDB.INSERT_OR_UPDATE(tbl_nd.pnihandle, tbl_nd.name, tbl_nd.data)
       for(data in results) {
-        insert.VALUES(newValue.handleValue, data.name, data.content.contentString)
+        insert.VALUES(newValue.getHandleValue(), data.name, data.content.contentString)
       }
-      if (isFailure && newValue.failureCause!=null) {
-        insert.VALUES(newValue.handleValue, FAILURE_CAUSE, newValue.failureCause.message)
+      if (isFailure) {
+        newValue.failureCause?.let { cause ->
+          insert.VALUES(newValue.getHandleValue(), FAILURE_CAUSE, cause.message)
+        }
       }
       insert.executeUpdate(connection)
     }

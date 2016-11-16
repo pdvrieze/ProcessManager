@@ -244,7 +244,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
       throw new IllegalStateException("The instance already appears to be initialised");
     }
     for (final StartNodeImpl node : mProcessModel.getStartNodes()) {
-      final ProcessNodeInstance<T> instance = new ProcessNodeInstance<T>(node, null, this);
+      final ProcessNodeInstance<T> instance = new ProcessNodeInstance<T>(node, Handles.<ProcessNodeInstance<T>>getInvalid(), this);
       ComparableHandle<? extends ProcessNodeInstance<T>>  handle   = mEngine.registerNodeInstance(transaction, instance);
       if (handle==null) { throw new NullPointerException(); }
       mThreads.add(handle);
