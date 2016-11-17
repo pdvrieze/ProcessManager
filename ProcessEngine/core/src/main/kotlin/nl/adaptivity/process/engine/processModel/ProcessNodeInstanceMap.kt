@@ -30,7 +30,5 @@ import java.sql.*
 import java.sql.Types
 
 
-class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out DBTransaction>, processEngine: ProcessEngine<DBTransaction>, stringCache: StringCache) :
-      DBHandleMap<ProcessNodeInstance<DBTransaction>>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine)) {
-
-}
+class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out DBTransaction>, processEngine: ProcessEngine<DBTransaction>) :
+      DBHandleMap<ProcessNodeInstance<DBTransaction>>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))

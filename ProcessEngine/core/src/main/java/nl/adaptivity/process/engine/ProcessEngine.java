@@ -161,7 +161,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     final MyDBTransactionFactory       transactionFactory = new MyDBTransactionFactory();
     final ProcessEngine<DBTransaction> pe                 = new ProcessEngine<>(messageService, transactionFactory);
     pe.mInstanceMap = wrapCache(new ProcessInstanceMap(transactionFactory, pe), INSTANCE_CACHE_SIZE);
-    pe.mNodeInstanceMap = wrapCache(new ProcessNodeInstanceMap(transactionFactory, pe, pe.mStringCache), NODE_CACHE_SIZE);
+    pe.mNodeInstanceMap = wrapCache(new ProcessNodeInstanceMap(transactionFactory, pe), NODE_CACHE_SIZE);
     pe.mProcessModels = wrapCache(new ProcessModelMap(transactionFactory, pe.mStringCache), MODEL_CACHE_SIZE);
     return pe;
   }

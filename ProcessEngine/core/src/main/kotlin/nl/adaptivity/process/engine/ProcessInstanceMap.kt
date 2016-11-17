@@ -14,18 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine;
+package nl.adaptivity.process.engine
 
-import net.devrieze.util.TransactionFactory;
-import net.devrieze.util.db.DBHandleMap;
-import net.devrieze.util.db.DBTransaction;
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB;
+import net.devrieze.util.TransactionFactory
+import net.devrieze.util.db.DBHandleMap
+import net.devrieze.util.db.DBTransaction
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 
 
-public class ProcessInstanceMap extends DBHandleMap<ProcessInstance<DBTransaction>> {
-
-  public ProcessInstanceMap(TransactionFactory<DBTransaction> transactionFactory, ProcessEngine<DBTransaction> processEngine) {
-    super(transactionFactory, ProcessEngineDB.INSTANCE, new ProcessInstanceElementFactory(processEngine));
-  }
-
-}
+internal class ProcessInstanceMap(transactionFactory: TransactionFactory<DBTransaction>, processEngine: ProcessEngine<DBTransaction>) :
+      DBHandleMap<ProcessInstance<DBTransaction>>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))
