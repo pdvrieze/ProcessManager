@@ -103,7 +103,7 @@ open class  HandleMapForwarder<V: Any, T:Transaction>(val transaction: T, open v
 
 }
 
-class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, override val delegate: MutableTransactionedHandleMap<V, T>) : HandleMapForwarder<V,T>(transaction, delegate), MutableHandleMap<V> {
+open class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, override val delegate: MutableTransactionedHandleMap<V, T>) : HandleMapForwarder<V,T>(transaction, delegate), MutableHandleMap<V> {
 
   override fun iterator() = delegate.iterator(transaction, false)
 

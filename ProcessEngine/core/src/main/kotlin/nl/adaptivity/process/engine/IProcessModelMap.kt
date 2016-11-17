@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
-import net.devrieze.util.MutableTransactionedHandleMap
-import net.devrieze.util.Transaction
-import net.devrieze.util.TransactionedHandleMap
+import net.devrieze.util.*
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 
 import java.sql.SQLException
@@ -31,10 +28,44 @@ import java.util.UUID
  */
 interface IProcessModelMap<T : Transaction> : TransactionedHandleMap<ProcessModelImpl, T> {
 
-  @Throws(SQLException::class)
   fun getModelWithUuid(transaction: T, uuid: UUID): Handle<ProcessModelImpl>?
+
+  override fun withTransaction(transaction: T): IProcessModelMapAccess {
+    return ProcessModelMapForwarder(transaction, this as IMutableProcessModelMap<T>)
+  }
 }
 
 interface IMutableProcessModelMap<T : Transaction> : MutableTransactionedHandleMap<ProcessModelImpl, T>, IProcessModelMap<T> {
 
+  override fun withTransaction(transaction: T): IMutableProcessModelMapAccess {
+    return MutableProcessModelMapForwarder(transaction, this as IMutableProcessModelMap<T>)
+  }
+}
+
+interface IProcessModelMapAccess : HandleMap<ProcessModelImpl> {
+  fun getModelWithUuid(uuid: UUID): Handle<ProcessModelImpl>?
+
+  operator fun get(uuid:UUID) = getModelWithUuid(uuid)
+}
+
+interface IMutableProcessModelMapAccess : MutableHandleMap<ProcessModelImpl>, IProcessModelMapAccess
+
+inline fun <T:Transaction, R> IProcessModelMap<T>.inTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
+  return withTransaction(transaction).body()
+}
+
+private class ProcessModelMapForwarder<T:Transaction>(transaction: T, override val delegate:IProcessModelMap<T>)
+  : HandleMapForwarder<ProcessModelImpl, T>(transaction, delegate), IProcessModelMapAccess {
+
+  override fun getModelWithUuid(uuid: UUID): Handle<ProcessModelImpl>? {
+    return delegate.getModelWithUuid(transaction, uuid)
+  }
+}
+
+private class MutableProcessModelMapForwarder<T:Transaction>(transaction: T, override val delegate:IMutableProcessModelMap<T>)
+  : MutableHandleMapForwarder<ProcessModelImpl, T>(transaction, delegate), IMutableProcessModelMapAccess {
+
+  override fun getModelWithUuid(uuid: UUID): Handle<ProcessModelImpl>? {
+    return delegate.getModelWithUuid(transaction, uuid)
+  }
 }
