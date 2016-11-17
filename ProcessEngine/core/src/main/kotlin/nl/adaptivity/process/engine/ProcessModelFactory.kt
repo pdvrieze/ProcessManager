@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.Factory
@@ -33,7 +34,7 @@ import java.io.StringReader
 
 
 /**
- * Created by pdvrieze on 01/06/16.
+ * A factory to create process models from the database.
  */
 internal class ProcessModelFactory(private val mStringCache: StringCache) : AbstractElementFactory<ProcessModelImpl>() {
   private var mColNoOwner: Int = 0
@@ -54,10 +55,10 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
           ?.apply {
       handleValue = handle
       cacheStrings(mStringCache)
-      if (this.owner==null) { this.owner = owner }
+      if (this.owner==SecurityProvider.SYSTEMPRINCIPAL) { this.setOwner(owner) }
 
     } ?: ProcessModelImpl(emptyList()).apply {
-      this.owner = owner
+      this.setOwner(owner)
       handleValue = handle
     }
   }
@@ -73,7 +74,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
   override fun asInstance(obj: Any) = obj as? ProcessModelImpl
 
   override fun store(update: Database._UpdateBuilder, value: ProcessModelImpl) {
-    update.SET(pm.owner, value.owner?.name)
+    update.SET(pm.owner, value.owner.name)
     update.SET(pm.model, XmlStreaming.toString(value))
   }
 
@@ -83,7 +84,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
   override fun insertStatement(value: ProcessModelImpl): Database.Insert {
     return ProcessEngineDB
           .INSERT(pm.owner, pm.model)
-          .VALUES(value.owner?.name, XmlStreaming.toString(value))
+          .VALUES(value.owner.name, XmlStreaming.toString(value))
   }
 
   companion object {

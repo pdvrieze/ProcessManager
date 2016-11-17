@@ -97,7 +97,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
   val name: String?
 
-  val owner: Principal
+  override val owner: Principal
 
   var state: State? = null
     private set

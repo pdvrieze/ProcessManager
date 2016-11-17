@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.util.Identifiable;
@@ -29,7 +30,7 @@ import java.util.UUID;
 
 
 @XmlDeserializer(ProcessModelImpl.Factory.class)
-public interface ProcessModel<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> {
+public interface ProcessModel<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends SecureObject {
 
   /**
    * Get the UUID for this process model.

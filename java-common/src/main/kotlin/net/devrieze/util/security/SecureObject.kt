@@ -14,24 +14,25 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security;
+package net.devrieze.util.security
 
-import net.devrieze.util.security.SecurityProvider.Permission;
-import org.jetbrains.annotations.Nullable;
+import net.devrieze.util.security.SecurityProvider.Permission
 
-import java.security.Principal;
+import java.security.Principal
 
 
-public interface SecureObject {
+interface SecureObject {
 
-  public enum Permissions implements Permission {
+  enum class Permissions : Permission {
     READ,
     RENAME,
     UPDATE,
-    DELETE, ;
-
+    DELETE
   }
 
-  @Nullable public Principal getOwner();
+  /**
+   * The owner of the object. Null values are not allowed. All unowned objects can have [SecurityProvider.SYSTEMPRINCIPAL] as owner.
+   */
+  val owner: Principal
 
 }

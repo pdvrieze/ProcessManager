@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
-import net.devrieze.util.security.PermissiveProvider
+import net.devrieze.util.security.OwnerOnlySecurityProvider
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.messaging.EndpointDescriptor
@@ -32,39 +32,31 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
-import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessModelBase
-import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
-import nl.adaptivity.process.processModel.engine.ProcessModelRef.get
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl.ExecutableSplitFactory
-import org.w3c.dom.Document
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
-
-import javax.activation.DataSource
-import javax.naming.Context
-import javax.naming.InitialContext
-import javax.naming.NamingException
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.parsers.ParserConfigurationException
-
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.security.Principal
 import java.sql.Connection
 import java.sql.SQLException
-import java.util.ArrayList
-import java.util.UUID
+import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.activation.DataSource
+import javax.naming.Context
+import javax.naming.InitialContext
+import javax.naming.NamingException
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.parsers.ParserConfigurationException
 
 
 /**
@@ -129,11 +121,11 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
 
   private lateinit var nodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>
 
-  private lateinit var mProcessModels: IMutableProcessModelMap<T>
+  private lateinit var processModels: IMutableProcessModelMap<T>
 
   private val mMessageService: IMessageService<*, T, ProcessNodeInstance<T>>
 
-  private var mSecurityProvider: SecurityProvider = PermissiveProvider()
+  private var mSecurityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
 
   /**
    * Create a new process engine.
@@ -162,22 +154,22 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
                       processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>,
                       processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>) {
     mMessageService = messageService
-    mProcessModels = processModels
+    this.processModels = processModels
     mTransactionFactory = transactionFactory
     instances = processInstances
     nodeInstances = processNodeInstances
   }
 
   fun invalidateModelCache(handle: Handle<out ProcessModelImpl>) {
-    mProcessModels!!.invalidateCache(handle)
+    processModels.invalidateCache(handle)
   }
 
   fun invalidateInstanceCache(handle: Handle<out ProcessInstance<T>>) {
-    instances!!.invalidateCache(handle)
+    instances.invalidateCache(handle)
   }
 
   fun invalidateNodeCache(handle: Handle<out ProcessNodeInstance<T>>) {
-    nodeInstances!!.invalidateCache(handle)
+    nodeInstances.invalidateCache(handle)
   }
 
   /**
@@ -216,7 +208,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
       }
     } ?: UUID.randomUUID().apply { basepm.setUuid(this) }
 
-    basepm.getOwner()?.let { baseOwner ->
+    basepm.owner.let { baseOwner ->
       mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
     } ?: user.apply { basepm.setOwner(this) }
 
@@ -280,9 +272,9 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
       mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel)
       mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
 
-      if (processModel.getOwner() == null) { // If no owner was set, use the old one.
+      if (processModel.owner == SecurityProvider.SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
         processModel.setOwner(oldModelOwner)
-      } else if (oldModelOwner.name != processModel.getOwner()!!.name) {
+      } else if (oldModelOwner.name != processModel.owner.name) {
         mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
       }
       if (!processModels.contains(transaction, handle)) {
@@ -297,19 +289,17 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
 
   @Throws(SQLException::class)
   fun removeProcessModel(transaction: T, handle: Handle<out ProcessModelImpl>, user: Principal): Boolean {
-    val oldModel = processModels[transaction, handle]
+    val oldModel = processModels[transaction, handle].shouldExist(handle)
     mSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, user, oldModel)
 
+
+    // TODO Hack to use the db backed implementation here
     @Suppress("UNCHECKED_CAST")
-    if (mProcessModels == null) {
+    val transactionFactory = mTransactionFactory as TransactionFactory<DBTransaction>
+    @Suppress("UNCHECKED_CAST")
+    processModels = ProcessModelMap(transactionFactory, mStringCache) as IMutableProcessModelMap<T>
 
-      // TODO Hack to use the db backed implementation here
-      val transactionFactory = mTransactionFactory as TransactionFactory<DBTransaction>
-      val map = ProcessModelMap(transactionFactory, mStringCache) as IMutableProcessModelMap<T>
-      mProcessModels = map
-    }
-
-    if (mProcessModels!!.remove(transaction, handle)) {
+    if (processModels.remove(transaction, handle)) {
       transaction.commit()
       return true
     }
@@ -331,18 +321,11 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
   fun getOwnedProcessInstances(transaction: T, user: Principal?): Iterable<ProcessInstance<*>> {
     mSecurityProvider.ensurePermission(Permissions.LIST_INSTANCES, user)
     // If security allows this, return an empty list.
-    return instances?.inTransaction(transaction) {
-        this.iterator().asSequence().filter { instance -> instance.owner.name==user?.name }.toList()
-    } ?: emptyList()
+    return instances.inTransaction(transaction) {
+      this.iterator().asSequence().filter { instance -> instance.owner.name==user?.name }.toList()
+    }
   }
 
-
-  private // TODO Hack to use the db backed implementation here
-  val processModels: IMutableProcessModelMap<T>
-    get() {
-      return mProcessModels?: (ProcessModelMap(mTransactionFactory as TransactionFactory<DBTransaction>, mStringCache) as IMutableProcessModelMap<T>)
-            .apply { mProcessModels = this }
-    }
 
   /**
    * Get all process instances visible to the user.
@@ -353,7 +336,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
    * @return All instances.
    */
   fun getVisibleProcessInstances(transaction: T, user: Principal): Iterable<ProcessInstance<*>> {
-    return instances?.iterable(transaction)?.filter { mSecurityProvider.hasPermission(SecureObject.Permissions.READ, user, it) } ?: emptyList()
+    return instances.iterable(transaction).filter { mSecurityProvider.hasPermission(SecureObject.Permissions.READ, user, it) }
   }
 
   @Throws(SQLException::class)
@@ -382,14 +365,11 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
   @Throws(SQLException::class, FileNotFoundException::class)
   fun tickleNode(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, user: Principal) {
     nodeInstances.invalidateCache(handle)
-    val nodeInstance = nodeInstances.get(transaction, handle)
+    val nodeInstance = nodeInstances.get(transaction, handle).shouldExist(handle)
     mSecurityProvider.ensurePermission(Permissions.TICKLE_NODE, user, nodeInstance)
-    if (nodeInstance == null) {
-      throw FileNotFoundException("The node instance with the given handle does not exist")
-    }
-    for (hPredecessor in nodeInstance.directPredecessors) {
-      tickleNode(transaction, hPredecessor, user)
-    }
+
+    nodeInstance.directPredecessors.forEach { hPredecessor -> tickleNode(transaction, hPredecessor, user) }
+
     nodeInstance.tickle(transaction, mMessageService)
     nodeInstances.invalidateCache(handle)
   }
@@ -481,7 +461,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
   fun getNodeInstance(transaction: T,
                       handle: Handle<out ProcessNodeInstance<T>>,
                       user: Principal): ProcessNodeInstance<T>? {
-    val result = nodeInstances.get(transaction, handle)
+    val result = nodeInstances.get(transaction, handle).shouldExist(handle)
     mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, result)
     return result
   }
@@ -511,17 +491,17 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
     //      getNodeInstances().invalidateModelCache(childNode);
     //    }
     // TODO retain instance
-    instances!!.remove(transaction, hProcessInstance)
+    instances.remove(transaction, hProcessInstance)
   }
 
   @Throws(SQLException::class)
   fun cancelInstance(transaction: T, handle: Handle<out ProcessInstance<T>>, user: Principal): ProcessInstance<*> {
-    val result = instances.get(transaction, handle)
+    val result = instances.get(transaction, handle).shouldExist(handle)
     mSecurityProvider.ensurePermission(Permissions.CANCEL, user, result)
     try {
       // Should be removed internally to the map.
       //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
-      if (instances!!.remove(transaction, result!!.handle)) {
+      if (instances.remove(transaction, result.handle)) {
         return result
       }
       throw ProcessException("The instance could not be cancelled")
@@ -580,9 +560,9 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
 
   @Throws(SQLException::class)
   fun finishTask(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, payload: Node?, user: Principal): NodeInstanceState {
-    val task = nodeInstances.get(transaction, handle)
+    val task = nodeInstances.get(transaction, handle).shouldExist(handle)
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task)
-    val pi = task!!.processInstance
+    val pi = task.processInstance
     try {
       synchronized(pi) {
         pi.finishTask(transaction, mMessageService, task, payload)
@@ -669,7 +649,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
 
   @Throws(SQLException::class)
   fun removeNodeInstance(transaction: T, handle: ComparableHandle<ProcessNodeInstance<T>>): Boolean {
-    return nodeInstances!!.remove(transaction, handle)
+    return nodeInstances.remove(transaction, handle)
   }
 
   @Throws(SQLException::class)
@@ -705,8 +685,8 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
       val pe = ProcessEngine(messageService, transactionFactory)
       pe.instances = wrapCache(ProcessInstanceMap(transactionFactory, pe), INSTANCE_CACHE_SIZE)
       pe.nodeInstances = wrapCache(ProcessNodeInstanceMap(transactionFactory, pe), NODE_CACHE_SIZE)
-      pe.mProcessModels = wrapCache<DBTransaction, Any>(ProcessModelMap(transactionFactory, pe.mStringCache),
-                                                        MODEL_CACHE_SIZE)
+      pe.processModels = wrapCache<DBTransaction, Any>(ProcessModelMap(transactionFactory, pe.mStringCache),
+                                                       MODEL_CACHE_SIZE)
       return pe
     }
 

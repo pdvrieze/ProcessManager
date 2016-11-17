@@ -20,6 +20,7 @@ import net.devrieze.util.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.Handles;
 import net.devrieze.util.StringUtil;
+import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
@@ -78,7 +79,7 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
   private           IdentifyableSet<T> mProcessNodes;
   private           String             mName;
   private           long               mHandle = -1L;
-  @Nullable private Principal          mOwner;
+  @NotNull private Principal          mOwner = SecurityProvider.SYSTEMPRINCIPAL;
   private           Set<String>        mRoles;
   @Nullable private UUID               mUuid;
   @NotNull private List<XmlResultType> mImports = new ArrayList<>();
@@ -292,7 +293,7 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
     mHandle = handleValue;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public Principal getOwner() {
     return mOwner;
