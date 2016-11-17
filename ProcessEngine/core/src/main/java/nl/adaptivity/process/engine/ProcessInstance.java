@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
+import java.io.FileNotFoundException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.*;
@@ -655,11 +656,11 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
    * @param transaction The database transaction to use
    * @param messageService The message service to use for messenging.
    */
-  public void tickle(T transaction, IMessageService<?, T, ProcessNodeInstance<T>> messageService) {
+  public void tickle(T transaction, IMessageService<?, T, ProcessNodeInstance<T>> messageService) throws FileNotFoundException {
     List<ComparableHandle<? extends ProcessNodeInstance<T>>> threads = new ArrayList<>(mThreads); // make a copy as the list may be changed due to tickling.
     for(Handle<? extends ProcessNodeInstance<T>> handle: threads) {
       try {
-        getEngine().tickleNode(transaction, handle, user);
+        getEngine().tickleNode(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
         ProcessNodeInstance<T> instance = getEngine().getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
         final NodeInstanceState instanceState   = instance.getState();
         if (instanceState.isFinal()) {

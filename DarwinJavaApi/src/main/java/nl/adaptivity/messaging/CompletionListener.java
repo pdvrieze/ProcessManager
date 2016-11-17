@@ -16,6 +16,7 @@
 
 package nl.adaptivity.messaging;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.Future;
 
 

@@ -37,9 +37,12 @@ interface IProcessModelMap<T : Transaction> : TransactionedHandleMap<ProcessMode
 
 interface IMutableProcessModelMap<T : Transaction> : MutableTransactionedHandleMap<ProcessModelImpl, T>, IProcessModelMap<T> {
 
-  override fun withTransaction(transaction: T): IMutableProcessModelMapAccess {
-    return MutableProcessModelMapForwarder(transaction, this as IMutableProcessModelMap<T>)
-  }
+  override fun withTransaction(transaction: T) = defaultWithTransaction(this, transaction)
+
+}
+
+fun <T:Transaction> defaultWithTransaction(map: IMutableProcessModelMap<T>, transaction: T):IMutableProcessModelMapAccess {
+  return MutableProcessModelMapForwarder(transaction, map)
 }
 
 interface IProcessModelMapAccess : HandleMap<ProcessModelImpl> {

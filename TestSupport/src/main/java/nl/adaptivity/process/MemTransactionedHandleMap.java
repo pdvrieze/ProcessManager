@@ -17,6 +17,7 @@
 package nl.adaptivity.process;
 
 import net.devrieze.util.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -127,5 +128,11 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   @Override
   public void clear(final Transaction transaction) throws SQLException {
     clear();
+  }
+
+  @NotNull
+  @Override
+  public MutableHandleMap<T> withTransaction(@NotNull final Transaction transaction) {
+    return new MutableHandleMapForwarder(transaction, this);
   }
 }

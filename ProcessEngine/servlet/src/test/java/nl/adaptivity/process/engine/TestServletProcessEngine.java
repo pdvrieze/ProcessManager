@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.MemTransactionedHandleMap;
 import nl.adaptivity.process.StubTransactionFactory;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -34,14 +35,15 @@ public class TestServletProcessEngine extends ServletProcessEngine {
   private final MemProcessModelMap mProcessModels;
   private final MemTransactionedHandleMap<ProcessInstance<Transaction>> mProcessInstances;
   private final MemTransactionedHandleMap<ProcessNodeInstance<Transaction>> mProcessNodeInstances;
-  private TransactionFactory mTransactionFactory;
+  private TransactionFactory<Transaction> mTransactionFactory;
 
-  public TestServletProcessEngine() {
+  public TestServletProcessEngine(final EndpointDescriptorImpl localURL) {
     mTransactionFactory = new StubTransactionFactory();
     mProcessModels = new MemProcessModelMap();
     mProcessInstances = new MemTransactionedHandleMap<>();
     mProcessNodeInstances = new MemTransactionedHandleMap<>();
-    ProcessEngine<Transaction> engine = ProcessEngine.<Transaction>newTestInstance(this, mTransactionFactory, mProcessModels, mProcessInstances, mProcessNodeInstances, false);
+    MessageService             messageService = new MessageService(localURL);
+    ProcessEngine<Transaction> engine         = ProcessEngine.newTestInstance(messageService, mTransactionFactory, mProcessModels, mProcessInstances, mProcessNodeInstances, false);
     init(engine);
   }
 

@@ -23,7 +23,7 @@ import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import java.sql.PreparedStatement
 import java.sql.SQLException
 
-interface HMElementFactory<T> : ElementFactory<T> {
+interface HMElementFactory<T:Any> : ElementFactory<T> {
   fun getHandleCondition(where: Database._Where,
                          handle: Handle<out T>): Database.WhereClause?
 

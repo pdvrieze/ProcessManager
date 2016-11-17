@@ -398,12 +398,11 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return instance;
   }
 
-  public boolean tickleInstance(final T transaction, final long handle, final Principal user) throws SQLException {
+  public boolean tickleInstance(final T transaction, final long handle, final Principal user) throws SQLException, FileNotFoundException {
     return tickleInstance(transaction, Handles.<ProcessInstance<T>>handle(handle), user);
   }
 
-  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance<T>> handle, final Principal user) throws
-          SQLException {
+  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance<T>> handle, final Principal user) throws SQLException, FileNotFoundException {
     getProcessModels().invalidateCache(); // TODO be more specific
     getNodeInstances().invalidateCache(); // TODO be more specific
     getInstances().invalidateCache(handle);
@@ -545,7 +544,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return
    * @throws SQLException
    */
-  public NodeInstanceState updateTaskState(final T transaction, final Handle<ProcessNodeInstance<T>> handle, final NodeInstanceState newState, final Principal user) throws SQLException, FileNotFoundException {
+  public NodeInstanceState updateTaskState(final T transaction, final Handle<? extends ProcessNodeInstance<T>> handle, final NodeInstanceState newState, final Principal user) throws SQLException, FileNotFoundException {
     final ProcessNodeInstance<T> task = getNodeInstances().get(transaction, handle);
     if (task==null) { throw new FileNotFoundException("The given instance does not exist"); }
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
@@ -638,11 +637,11 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @param handle
    * @throws SQLException
    */
-  public void cancelledTask(final T transaction, final Handle<ProcessNodeInstance<T>> handle, final Principal user) throws SQLException, FileNotFoundException {
+  public void cancelledTask(final T transaction, final Handle<? extends ProcessNodeInstance<T>> handle, final Principal user) throws SQLException, FileNotFoundException {
     updateTaskState(transaction, handle, NodeInstanceState.Cancelled, user);
   }
 
-  public void errorTask(final T transaction, final Handle<ProcessNodeInstance<T>> handle, final Throwable cause, final Principal user) throws SQLException, FileNotFoundException {
+  public void errorTask(final T transaction, final Handle<? extends ProcessNodeInstance<T>> handle, final Throwable cause, final Principal user) throws SQLException, FileNotFoundException {
     final ProcessNodeInstance<T> task = getNodeInstances().get(transaction, handle);
     if (task==null) { throw new FileNotFoundException("The given node instance does not exist"); }
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);

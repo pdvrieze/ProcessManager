@@ -22,7 +22,7 @@ import java.sql.SQLException
 /**
  * Created by pdvrieze on 19/05/16.
  */
-abstract class AbstractTransactionedHandleMap<V, T : Transaction> : MutableTransactionedHandleMap<V, T> {
+abstract class AbstractTransactionedHandleMap<V:Any, T : Transaction> : MutableTransactionedHandleMap<V, T> {
 
   @Throws(SQLException::class)
   override fun castOrGet(transaction: T, handle: Handle<out V>): V? {

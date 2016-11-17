@@ -27,7 +27,7 @@ import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
 
-interface ElementFactory<T> {
+interface ElementFactory<T:Any> {
 
   val table: Table
 

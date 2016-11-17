@@ -33,7 +33,7 @@ import java.util.concurrent.CopyOnWriteArraySet
  * *
  * @param  The type of the elements in the map.
  */
-open class CachingHandleMap<V, T : Transaction>(protected open val delegate: MutableTransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate: MutableTransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
 
   private open inner class WrappingIterator(private val transaction:T, protected open val iterator: Iterator<V>) : MutableAutoCloseableIterator<V> {

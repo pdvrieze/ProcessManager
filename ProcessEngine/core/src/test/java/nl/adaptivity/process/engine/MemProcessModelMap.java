@@ -17,9 +17,13 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Handle;
+import net.devrieze.util.MutableHandleMap;
+import net.devrieze.util.MutableHandleMapForwarder;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.MemTransactionedHandleMap;
+import nl.adaptivity.process.engine.IMutableProcessModelMap.DefaultImpls;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -38,4 +42,12 @@ public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelIm
     }
     return null;
   }
+
+
+  @NotNull
+  @Override
+  public IMutableProcessModelMapAccess withTransaction(@NotNull final Transaction transaction) {
+    return IProcessModelMapKt.defaultWithTransaction(this, transaction);
+  }
+
 }

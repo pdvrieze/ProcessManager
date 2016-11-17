@@ -33,7 +33,7 @@ import java.sql.SQLException
  * *
  * @param  T of the element created / handled
  */
-abstract class AbstractElementFactory<T> : HMElementFactory<T> {
+abstract class AbstractElementFactory<T:Any> : HMElementFactory<T> {
 
   companion object {
 

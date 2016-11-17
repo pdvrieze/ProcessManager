@@ -17,9 +17,9 @@
 package net.devrieze.util
 
 
-interface HandleMap<V> {
+interface HandleMap<V:Any> {
 
-  interface HandleAware<T> {
+  interface HandleAware<T:Any> {
 
     val handle: Handle<out @JvmWildcard T>
 
@@ -66,7 +66,7 @@ interface HandleMap<V> {
 
 }
 
-interface MutableHandleMap<V>: HandleMap<V> {
+interface MutableHandleMap<V:Any>: HandleMap<V> {
   override operator fun iterator(): MutableIterator<V>
   /**
    * Put a new walue into the map. This is thread safe.
