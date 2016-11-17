@@ -57,7 +57,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val instancename = pi.name.value(columns, values)
     val piHandle = Handles.handle<ProcessInstance<DBTransaction>>(pi.pihandle.value(columns, values)!!)
     val state = toState(pi.state.value(columns, values))
-    val uuid = toUUID(pi.uuid.value(columns, values))
+    val uuid = toUUID(pi.uuid.value(columns, values)) ?: throw IllegalStateException("Missing UUID")
 
     val result = ProcessInstance(piHandle, owner, processModel, instancename, uuid, state, mProcessEngine)
     return result
@@ -100,7 +100,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
                 inputs.add(procdata)
               }
             }
-      element.setInputs(inputs)
+      element.inputs = inputs
       element.setOutputs(outputs)
     }
     element.reinitialize(transaction)

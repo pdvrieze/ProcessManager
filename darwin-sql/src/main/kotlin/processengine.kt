@@ -72,7 +72,7 @@ object ProcessEngineDB : Database(1) {
     val name by VARCHAR("name", 50)
     val pmhandle by reference(processModels.pmhandle) { NOT_NULL }
     val state by VARCHAR("state", 15)
-    val uuid by VARCHAR("uuid", 36) { UNIQUE }
+    val uuid by VARCHAR("uuid", 36) { UNIQUE; NOT_NULL }
     override fun init() {
       INDEX(owner)
       PRIMARY_KEY(pihandle)
