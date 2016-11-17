@@ -123,7 +123,7 @@ public class TestProcessEngine {
   @BeforeMethod
   public void beforeTest() {
     mStubMessageService.clear();
-    mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<Transaction>>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<Transaction>>(), 2), true);
+    mProcessEngine = ProcessEngine.Companion.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<Transaction>>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<Transaction>>(), 2), true);
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {

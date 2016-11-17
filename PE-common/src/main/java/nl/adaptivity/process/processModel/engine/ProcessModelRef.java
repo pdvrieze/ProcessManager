@@ -66,9 +66,9 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @NotNull
-  public static ProcessModelRef<?,?> get(final IProcessModelRef<?, ?> src) {
-    if (src instanceof ProcessModelRef) { return (ProcessModelRef) src; }
-    return new ProcessModelRef(src);
+  public static <T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> get(final IProcessModelRef<T, M> src) {
+    if (src instanceof ProcessModelRef) { return (ProcessModelRef<T,M>) src; }
+    return new ProcessModelRef<>(src);
   }
 
   public static <T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> deserialize(final XmlReader in) throws XmlException {

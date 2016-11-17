@@ -57,6 +57,10 @@ inline fun <T:Transaction, R> IProcessModelMap<T>.inTransaction(transaction: T, 
   return withTransaction(transaction).body()
 }
 
+inline fun <T:Transaction, R> IMutableProcessModelMap<T>.inMutableTransaction(transaction: T, body: IMutableProcessModelMapAccess.()->R):R {
+  return withTransaction(transaction).body()
+}
+
 private class ProcessModelMapForwarder<T:Transaction>(transaction: T, override val delegate:IProcessModelMap<T>)
   : HandleMapForwarder<ProcessModelImpl, T>(transaction, delegate), IProcessModelMapAccess {
 

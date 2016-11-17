@@ -19,10 +19,12 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.Transaction
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.ProcessNode
 import java.io.FileNotFoundException
 
 /**
- * Created by pdvrieze on 17/11/16.
+ * Utilities for handling process things
  */
 
 /**
@@ -38,3 +40,31 @@ fun <T: Transaction> ProcessNodeInstance<T>?.mustExist(handle: Handle<out Proces
  * @throws FileNotFoundException If it doesn't.
  */
 fun <T: Transaction> ProcessNodeInstance<T>?.shouldExist(handle: Handle<out ProcessNodeInstance<T>>): ProcessNodeInstance<T> = this ?: throw FileNotFoundException("Node instance missing: $handle")
+
+/**
+ * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * @return The node
+ * @throws IllegalStateException If it doesn't
+ */
+fun <T: Transaction> ProcessInstance<T>?.mustExist(handle: Handle<out ProcessInstance<T>>): ProcessInstance<T> = this ?: throw IllegalStateException("Node instance missing: $handle")
+
+/**
+ * Verify that the node exists. Non-existance could be user errror.
+ * @return The node
+ * @throws FileNotFoundException If it doesn't.
+ */
+fun <T: Transaction> ProcessInstance<T>?.shouldExist(handle: Handle<out ProcessInstance<T>>): ProcessInstance<T> = this ?: throw FileNotFoundException("Node instance missing: $handle")
+
+/**
+ * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * @return The node
+ * @throws IllegalStateException If it doesn't
+ */
+fun <N: ProcessNode<N, M>, M: ProcessModel<N,M>> M?.mustExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+
+/**
+ * Verify that the node exists. Non-existance could be user errror.
+ * @return The node
+ * @throws FileNotFoundException If it doesn't.
+ */
+fun <N: ProcessNode<N, M>, M: ProcessModel<N,M>> ProcessModel<N,M>?.shouldExist(handle: Handle<out ProcessModel<N,M>>): ProcessModel<N,M> = this ?: throw FileNotFoundException("Node instance missing: $handle")

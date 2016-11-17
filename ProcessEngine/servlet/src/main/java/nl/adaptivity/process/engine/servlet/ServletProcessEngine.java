@@ -38,6 +38,8 @@ import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Constants;
@@ -500,7 +502,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
     mMessageService = new MessageService(asEndpoint(localURL));
     //noinspection unchecked
-    mProcessEngine = ProcessEngine.newInstance((IMessageService)mMessageService);
+    mProcessEngine = ProcessEngine.Companion.newInstance((IMessageService)mMessageService);
 
     MessagingRegistry.getMessenger().registerEndpoint(this);
   }
@@ -529,7 +531,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
       final ArrayList<ProcessModelRef<?,?>> list = new ArrayList<>();
       for (final ProcessModelImpl pm : processModels) {
-        list.add(ProcessModelRef.get(pm.getRef()));
+        final IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> ref = pm.getRef();
+        list.add(ProcessModelRef.get(ref));
       }
       return transaction.commit(new SerializableList<>(REFS_TAG, list));
     } catch (SQLException e) {
@@ -580,17 +583,15 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    * @param processModel The actual new model
    * @param user The user performing the update. This will be verified against ownership and permissions
    * @return A reference to the model. This may include a newly generated uuid if not was provided.
-   * @throws IOException
-   * @throws XmlException
    */
   @WebMethod(operationName = "updateProcessModel")
-  public ProcessModelRef updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
+  public ProcessModelRef<ExecutableProcessNode, ProcessModelImpl> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
     if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
       processModel.setHandleValue(handle);
 
       try (T transaction = mProcessEngine.startTransaction()){
-        return transaction.commit(mProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), processModel, user));
+        return transaction.commit(ProcessModelRef.get(mProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), processModel, user)));
       } catch (SQLException e) {
         getLogger().log(Level.WARNING, "Error updating process model", e);
         throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -604,8 +605,6 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    * @param attachment The process model to add.
    * @param owner The creator/owner of the model.
    * @return A reference to the model with handle and a new uuid if none was provided.
-   * @throws IOException
-   * @throws XmlException
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
   public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
@@ -618,8 +617,6 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    * @param processModel The process model to add.
    * @param owner The creator/owner of the model.
    * @return A reference to the model with handle and a new uuid if none was provided.
-   * @throws IOException
-   * @throws XmlException
    */
   @WebMethod(operationName = "postProcessModel")
   public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
@@ -645,7 +642,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "name", type = ParamType.QUERY) final String name, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
-    mProcessEngine.renameProcessModel(user, Handles.<ProcessModelImpl>handle(handle), name);
+    mProcessEngine.renameProcessModel(user, Handles.handle(handle), name);
   }
 
   /**
@@ -656,7 +653,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
   public void deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (T transaction = mProcessEngine.startTransaction()){
-      if (! mProcessEngine.removeProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), user)) {
+      if (! mProcessEngine.removeProcessModel(transaction, Handles.handle(handle), user)) {
         throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
       }
       transaction.commit();
@@ -684,7 +681,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
          @WebParam(name="uuid") @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
          @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws FileNotFoundException {
     try (T transaction = mProcessEngine.startTransaction()){
-      UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
+      final UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
       return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ProcessModelImpl>handle(handle), name, uuid, null));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error starting process", e);
@@ -705,9 +702,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
     try (T transaction = mProcessEngine.startTransaction()){
-      final Iterable<ProcessInstance> processInstances = mProcessEngine.getOwnedProcessInstances(transaction, owner);
       final List<ProcessInstanceRef> list = new ArrayList<>();
-      for (final ProcessInstance pi : processInstances) {
+      for (final ProcessInstance pi : mProcessEngine.getOwnedProcessInstances(transaction, owner)) {
         list.add(pi.getRef());
       }
       return transaction.commit(new SerializableList<ProcessInstanceRef>(INSTANCEREFS_TAG, list));

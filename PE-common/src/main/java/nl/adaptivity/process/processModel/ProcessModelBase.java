@@ -42,9 +42,9 @@ import java.util.*;
 /**
  * Created by pdvrieze on 21/11/15.
  */
-public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, HandleAware<M>, XmlSerializable {
+public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, HandleAware<M>, XmlSerializable {
 
-  protected interface DeserializationFactory<U extends ProcessNode<? extends U, M>, M extends ProcessModelBase<U, M>> {
+  protected interface DeserializationFactory<U extends ProcessNode<U, M>, M extends ProcessModelBase<U, M>> {
 
     EndNode<? extends U, M> deserializeEndNode(M ownerModel, XmlReader in) throws XmlException;
 
@@ -57,7 +57,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
     Split<? extends U, M> deserializeSplit(M ownerModel, XmlReader in) throws XmlException;
   }
 
-  public interface SplitFactory<U extends ProcessNode<? extends U, M>, M extends ProcessModel<U, M>> {
+  public interface SplitFactory<U extends ProcessNode<U, M>, M extends ProcessModel<U, M>> {
 
     /**
      * Create a new join node. This must register the node with the owner, and mark the join as successor to
@@ -321,9 +321,9 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
      */
-  @Nullable
+  @NotNull
   @Override
-  public IProcessModelRef<? extends T, M> getRef() {
+  public IProcessModelRef<T, M> getRef() {
     return new ProcessModelRef(getName(), this.getHandle(), getUuid());
   }
 

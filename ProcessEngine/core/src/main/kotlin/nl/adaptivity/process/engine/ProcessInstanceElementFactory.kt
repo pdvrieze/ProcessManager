@@ -53,7 +53,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance<DBTransaction> {
     val owner = SimplePrincipal(pi.owner.value(columns, values))
     val hProcessModel = Handles.handle<ProcessModelImpl>(pi.pmhandle.value(columns, values)!!)
-    val processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL)
+    val processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
     val instancename = pi.name.value(columns, values)
     val piHandle = Handles.handle<ProcessInstance<DBTransaction>>(pi.pihandle.value(columns, values)!!)
     val state = toState(pi.state.value(columns, values))
