@@ -659,7 +659,7 @@ public class ProcessInstance<T extends Transaction> implements HandleAware<Proce
     List<ComparableHandle<? extends ProcessNodeInstance<T>>> threads = new ArrayList<>(mThreads); // make a copy as the list may be changed due to tickling.
     for(Handle<? extends ProcessNodeInstance<T>> handle: threads) {
       try {
-        getEngine().tickleNode(transaction, handle);
+        getEngine().tickleNode(transaction, handle, user);
         ProcessNodeInstance<T> instance = getEngine().getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
         final NodeInstanceState instanceState   = instance.getState();
         if (instanceState.isFinal()) {

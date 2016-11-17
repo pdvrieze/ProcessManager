@@ -728,7 +728,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}", query= {"op=tickle"} )
   public String tickleProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()) {
-      transaction.commit(mProcessEngine.tickleInstance(transaction, handle));
+      transaction.commit(mProcessEngine.tickleInstance(transaction, handle, user));
       return "success";
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failure", e);
