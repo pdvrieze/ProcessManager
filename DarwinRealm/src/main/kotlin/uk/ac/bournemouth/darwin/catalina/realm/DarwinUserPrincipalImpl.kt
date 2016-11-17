@@ -57,12 +57,9 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
         }
     }
 
-    override fun hasRole(role: String?): Boolean {
+    override fun hasRole(role: String): Boolean {
         if ("*" == role) {
             return true
-        }
-        if (role == null) {
-            return false
         }
         refreshIfNeeded()
         return roles.contains(role)
