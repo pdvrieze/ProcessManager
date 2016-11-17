@@ -24,6 +24,8 @@ import java.security.Principal
  */
 class OwnerOnlySecurityProvider(val adminRoles:Set<String>) : BaseSecurityProvider() {
 
+  constructor(vararg adminRoles: String): this(setOf(*adminRoles))
+
   override fun getPermission(permission: SecurityProvider.Permission, subject: Principal?, secureObject: SecureObject): PermissionResult {
     if (subject==null) return PermissionResult.UNAUTHENTICATED
     if (subject== SecurityProvider.SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
