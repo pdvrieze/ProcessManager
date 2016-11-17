@@ -224,7 +224,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   /* (non-Javadoc)
        * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
        */
-  @Nullable
+  @NotNull
   @Override
   public final IdentifyableSet<? extends Identifiable> getPredecessors() {
     if (mPredecessors == null) {

@@ -79,7 +79,7 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
   val processInstance: ProcessInstance<T>
     get() = mProcessInstance
 
-  constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<ProcessNodeInstance<T>>, processInstance: ProcessInstance<T>) : super() {
+  constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<out ProcessNodeInstance<T>>, processInstance: ProcessInstance<T>) : super() {
     this.node = node
     if (!predecessor.valid) {
       if (node is StartNode<*, *>) {
