@@ -23,10 +23,7 @@ import net.devrieze.util.Transaction
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.PETransformer
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -68,25 +65,25 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
     }
   }
 
+  @Suppress("CanBePrimaryConstructorProperty")
   open val node: ExecutableProcessNode = node
-
-  private val mResults = ArrayList<ProcessData>()
-
-  private val mPredecessors: MutableList<ComparableHandle<out ProcessNodeInstance<T>>> = predecessors.asSequence().filter { it.valid }.toMutableList()
 
   override final var state: IProcessNodeInstance.NodeInstanceState = state
     private set
 
   private var _handleValue: Long = -1
 
+  private val _results: MutableList<ProcessData> = ArrayList()
   val results: List<ProcessData>
-    get() = mResults
+    get() = _results
 
   var failureCause: Throwable? = null
     private set
 
-  val directPredecessors: MutableCollection<ComparableHandle<out ProcessNodeInstance<T>>>
-    get() = mPredecessors
+  protected val _directPredecessors: MutableList<ComparableHandle<out ProcessNodeInstance<T>>> = predecessors.asSequence().filter { it.valid }.toMutableList()
+
+  val directPredecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>
+    get() = _directPredecessors
 
   override val owner: Principal
     get() = processInstance.owner
@@ -115,7 +112,7 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
   /** Add the node as predecessor if not added yet.  */
   fun ensurePredecessor(handle: ComparableHandle<out ProcessNodeInstance<T>>) {
     if (!hasDirectPredecessor(handle)) {
-      mPredecessors.add(handle)
+      _directPredecessors.add(handle)
     }
   }
 
@@ -152,7 +149,7 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
   }
 
   private fun hasDirectPredecessor(handle: Handle<out ProcessNodeInstance<*>>): Boolean {
-    for (pred in mPredecessors) {
+    for (pred in _directPredecessors) {
       if (pred.handleValue == handle.handleValue) {
         return true
       }
@@ -162,23 +159,17 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
 
   @Throws(SQLException::class)
   fun resolvePredecessors(transaction: T): Collection<ProcessNodeInstance<T>> {
-    val result = ArrayList<ProcessNodeInstance<T>>(mPredecessors.size)
-    for (i in mPredecessors.indices) {
-      val nodeInstance: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, mPredecessors[i], SecurityProvider.SYSTEMPRINCIPAL)
-            ?: throw NullPointerException("Missing predecessor")
-
-      mPredecessors[i] = nodeInstance.handle
-      result.add(nodeInstance)
-    }
-    return result
+    return _directPredecessors.asSequence().map {
+            processInstance.engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it)
+          }.toList()
   }
 
   @Throws(SQLException::class)
   fun setDirectPredecessors(transaction: T, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>?) {
     if (predecessors == null || predecessors.isEmpty()) {
-      mPredecessors.clear()
+      _directPredecessors.clear()
     } else {
-      mPredecessors.apply { clear() }.addAll(predecessors)
+      _directPredecessors.apply { clear() }.addAll(predecessors)
     }
     processInstance.engine.updateStorage(transaction, this)
   }
@@ -186,7 +177,7 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
   @Throws(SQLException::class)
   fun getPredecessor(transaction: T, nodeName: String): Handle<out ProcessNodeInstance<T>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
-    for (hpred in mPredecessors) {
+    for (hpred in _directPredecessors) {
       val instance: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, hpred, SecurityProvider.SYSTEMPRINCIPAL)
             ?: throw NullPointerException("Missing predecessor for node")
 
@@ -260,7 +251,7 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
   @Throws(SQLException::class)
   override fun finishTask(transaction: T, resultPayload: Node?) {
     for (resultType in node.getResults()) {
-      mResults.add(resultType.apply(resultPayload))
+      _results.add(resultType.apply(resultPayload))
     } //TODO ensure this is stored
     setState(transaction,
              IProcessNodeInstance.NodeInstanceState.Complete)// This triggers a database store. So do it after setting the results
@@ -303,8 +294,8 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
    * @param results the new results.
    */
   internal fun setResult(results: List<ProcessData>) {
-    mResults.clear()
-    mResults.addAll(results)
+    _results.clear()
+    _results.addAll(results)
   }
 
   @Throws(SQLException::class, XmlException::class)
@@ -361,8 +352,8 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
 
       nodeId = node.id
 
-      if (mPredecessors.size > 0) {
-        this.predecessors.addAll(mPredecessors)
+      if (_directPredecessors.size > 0) {
+        this.predecessors.addAll(_directPredecessors)
       }
 
       this.results = results
@@ -379,9 +370,9 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
 
       writeAttribute("nodeid", node.id)
 
-      mPredecessors.forEach { writeSimpleElement(XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, it.handleValue.toString()) }
+      _directPredecessors.forEach { writeSimpleElement(XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, it.handleValue.toString()) }
 
-      serializeAll(mResults)
+      serializeAll(_results)
 
       (node as? Activity<*,*>)?.getMessage()?.messageBody?.let { body ->
         instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true)

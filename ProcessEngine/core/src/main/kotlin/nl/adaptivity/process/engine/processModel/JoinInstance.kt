@@ -64,7 +64,7 @@ class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
 
   @Throws(SQLException::class)
   fun addPredecessor(transaction: T, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): Boolean {
-    if (canAddNode(transaction) && directPredecessors.add(predecessor)) {
+    if (canAddNode(transaction) && _directPredecessors.add(predecessor)) {
       processInstance.engine.updateStorage(transaction, this)
       return true
     }
