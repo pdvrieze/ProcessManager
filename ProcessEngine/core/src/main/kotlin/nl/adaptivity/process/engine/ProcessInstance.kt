@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.JoinImpl
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
@@ -51,53 +52,28 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     CANCELLED
   }
 
-  class ProcessInstanceRef : Handle<ProcessInstance<*>>, XmlSerializable {
+  class ProcessInstanceRef(processInstance: ProcessInstance<*>) : Handle<ProcessInstance<*>>, XmlSerializable {
 
-    override var handleValue = -1L
-      private set(value: Long) {
-        field = value
-      }
+    override val handleValue = processInstance.handleValue
 
-    var processModel: Long = 0
-      private set
+    val processModel: Handle<out ProcessModel<*,*>> = processInstance.processModel.handle
 
-    var name: String? = null
+    var name: String = processInstance.name.let { if (it.isNullOrBlank()) "${processInstance.processModel.name} instance $handleValue" else it!! }
 
-    var uuid: String? = null
-
-    constructor() {
-      // empty constructor;
-    }
-
-    constructor(processInstance: ProcessInstance<*>) {
-      setHandle(processInstance.handleValue)
-      setProcessModel(processInstance.processModel.handle)
-      name = processInstance.name.let { if (it.isNullOrBlank()) "${processInstance.processModel.name} instance $handleValue" else it }
-      uuid = processInstance.uuid?.toString()
-    }
+    var uuid: UUID = processInstance.uuid
 
     @Throws(XmlException::class)
     override fun serialize(out: XmlWriter) {
-      out.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX)
-      if (handleValue >= 0) {
-        out.attribute("", "handle", "", java.lang.Long.toString(handleValue))
+      out.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
+        if (handleValue >= 0) writeAttribute("handle", java.lang.Long.toString(handleValue))
+        writeAttribute("processModel", processModel)
+        writeAttribute("name", name)
+        writeAttribute("uuid", uuid)
       }
-      out.writeAttribute("processModel", processModel)
-      out.writeAttribute("name", name)
-      out.writeAttribute("uuid", uuid)
-      out.endTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX)
-    }
-
-    fun setHandle(handle: Long) {
-      handleValue = handle
     }
 
     override val valid: Boolean
       get() = handleValue >= 0L
-
-    fun setProcessModel(processModel: Handle<out ProcessModelImpl>) {
-      this.processModel = processModel.handleValue
-    }
 
   }
 
@@ -111,7 +87,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
   private val mJoins: HashMap<JoinImpl, ComparableHandle<out JoinInstance<T>>>
 
-  private var mHandle = -1L
+  private var mHandleValue = -1L
 
   val engine: ProcessEngine<T>// XXX actually introduce a generic parameter for transactions
 
@@ -126,7 +102,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
   var state: State? = null
     private set
 
-  val uuid: UUID?
+  val uuid: UUID
 
   @Deprecated("")
   internal constructor(handle: Long, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State, engine: ProcessEngine<T>) : this(
@@ -140,7 +116,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
   }
 
   internal constructor(handle: Handle<ProcessInstance<T>>, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State?, engine: ProcessEngine<T>) {
-    mHandle = handle.handleValue
+    mHandleValue = handle.handleValue
     this.processModel = processModel
     this.owner = owner
     uuid = uUid
@@ -173,44 +149,37 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     mFinishedNodes.clear()
     mEndResults.clear()
 
-    val nodes = ArrayList<ProcessNodeInstance<T>>()
     val threads = TreeSet<ComparableHandle<out ProcessNodeInstance<T>>>()
 
-    for (handle in children) {
-      val inst = engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle)
-      nodes.add(inst)
-      threads.add(Handles.handle(handle))
-      if (inst is JoinInstance<*>) {
-        val joinInst = inst as JoinInstance<T>?
-        mJoins.put(joinInst!!.node, joinInst.handle)
-      }
-    }
+    val nodes = children
+          .map { handle ->
+            engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle).apply {
+              val h = if (this is JoinInstance) { val h2 = this.handle
+                mJoins.put(this.node, h2)
+                h2} else { this.handle }
+              threads.add(h)
+            }
+          }
 
-    for (instance in nodes) {
-
+    nodes.forEach { instance ->
       if (instance.node is EndNode<*, *>) {
-        val handle = instance.handle
-        mEndResults.add(handle)
-        threads.remove(handle)
-      }
-
-      val preds = instance.directPredecessors
-      for (pred in preds) {
-        if (threads.contains(pred)) {
-          mFinishedNodes.add(pred)
-          threads.remove(pred)
+        instance.handle.let { handle ->
+          mEndResults.add(handle)
+          threads.remove(handle)
         }
       }
 
+      instance.directPredecessors.forEach { pred ->
+        if (threads.remove(pred)) {
+          mFinishedNodes.add(pred)
+        }
+      }
     }
     mThreads.addAll(threads)
   }
 
   @Synchronized @Throws(SQLException::class)
   internal fun setThreads(transaction: T, threads: Collection<ComparableHandle<out ProcessNodeInstance<T>>>) {
-    if (!CollectionUtil.hasNull(threads)) {
-      throw NullPointerException()
-    }
     mThreads.addAll(threads)
   }
 
@@ -219,11 +188,11 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     if (state != State.NEW || mThreads.size > 0) {
       throw IllegalStateException("The instance already appears to be initialised")
     }
-    for (node in processModel.startNodes) {
-      val instance = ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance<T>>(), this)
-      val handle = engine.registerNodeInstance(transaction, instance) ?: throw NullPointerException()
-      mThreads.add(handle)
+
+    processModel.startNodes.forEach { node ->
+      mThreads.add(engine.registerNodeInstance(transaction, ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance<T>>(), this)))
     }
+
     state = State.INITIALIZED
     engine.updateStorage(transaction, this)
   }
@@ -242,43 +211,29 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
   @Synchronized @Throws(SQLException::class)
   fun getNodeInstance(transaction: T, identifiable: Identifiable): ProcessNodeInstance<T>? {
-    for (handle in CollectionUtil.combine(mEndResults, mFinishedNodes, mThreads)) {
-      val instance = engine.getNodeInstance(transaction,
-                                            handle,
-                                            SecurityProvider.SYSTEMPRINCIPAL) ?: throw IllegalStateException("Member node $handle could not be found")
+    return (mEndResults.asSequence() + mFinishedNodes.asSequence() + mThreads.asSequence()).map { handle ->
+      val instance = engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle)
       if (identifiable.id == instance.node.id) {
-        return instance
+        instance
+      } else {
+        instance.getPredecessor(transaction, identifiable.id)?.let {engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL)}
       }
-      val result = instance.getPredecessor(transaction, identifiable.id)
-      if (result != null) {
-        return engine.getNodeInstance(transaction, result, SecurityProvider.SYSTEMPRINCIPAL)
-      }
-    }
-    return null
+    }.firstOrNull()
   }
 
   private val finishedCount: Int
     get() = mEndResults.size
 
   @Synchronized @Throws(SQLException::class)
-  fun getJoinInstance(transaction: T,
-                      join: JoinImpl,
-                      predecessor: ComparableHandle<out ProcessNodeInstance<T>>): JoinInstance<T> {
+  fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): JoinInstance<T> {
     synchronized(mJoins) {
-      val joinHandle = mJoins[join]
-      var result: JoinInstance<T>? = if (joinHandle == null) null else engine.getNodeInstance(transaction,
-                                                                                              joinHandle,
-                                                                                              SecurityProvider.SYSTEMPRINCIPAL) as JoinInstance<T>?
-      if (result == null) {
-        val predecessors = ArrayList<ComparableHandle<out ProcessNodeInstance<T>>>(join.predecessors.size)
-        predecessors.add(predecessor)
-        result = JoinInstance(transaction, join, predecessors, this)
-        val resultHandle = engine.registerNodeInstance<JoinInstance<T>>(transaction, result)
-        mJoins.put(join, resultHandle)
-      } else {
-        result.addPredecessor(transaction, predecessor)
+      return mJoins[join]?.let {
+        engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL) as JoinInstance<T>?
+      }?.apply { addPredecessor(transaction, predecessor) } ?: run {
+        return JoinInstance(transaction, join, listOf(predecessor), this).apply {
+          mJoins.put(join, engine.registerNodeInstance<JoinInstance<T>>(transaction, this))
+        }
       }
-      return result
     }
   }
 
@@ -287,14 +242,14 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
   }
 
   @get:Synchronized val handleValue: Long get() {
-    return mHandle
+    return mHandleValue
   }
 
   override val handle: Handle<out ProcessInstance<T>>
-    @Synchronized get() = Handles.handle(mHandle)
+    @Synchronized get() = Handles.handle(mHandleValue)
 
   @Synchronized override fun setHandleValue(handleValue: Long) {
-    mHandle = handleValue
+    mHandleValue = handleValue
   }
 
   val ref: ProcessInstanceRef
@@ -312,19 +267,23 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     }
 
   @Synchronized @Throws(SQLException::class)
-  fun start(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>, payload: Node) {
+  fun start(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>, payload: Node?) {
     if (state == null) {
       initialize(transaction)
     }
-    val threads = ArrayList(mThreads)
-    if (threads.size == 0) {
-      throw IllegalStateException("No starting nodes in process")
+
+    mThreads.let { threads ->
+
+      if (threads.isEmpty()) {
+        throw IllegalStateException("No starting nodes in process")
+      }
+
+      threads.asSequence()
+            .map { engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it) }
+            .forEach { provideTask(transaction, messageService, it) }
     }
+
     mInputs = processModel.toInputs(payload)
-    for (hnode in threads) {
-      val node = engine.getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hnode)
-      provideTask(transaction, messageService, node)
-    }
     state = State.STARTED
     engine.updateStorage(transaction, this)
   }
@@ -413,29 +372,34 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
     val startedTasks = ArrayList<ProcessNodeInstance<T>>(predecessor.node.successors.size)
     val joinsToEvaluate = ArrayList<JoinInstance<T>>()
-    for (successorNode in predecessor.node.successors) {
-      val instance = createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorNode))
+
+    predecessor.node.successors.asSequence()
+          .map { successorId -> createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorId)) }
+          .forEach { instance ->
+
       if (!instance.handle.valid) {
         engine.registerNodeInstance(transaction, instance)
       }
+
       val instanceHandle = instance.handle
-      if (instance is JoinInstance<*>) {
+      if (instance is JoinInstance) {
         if (!mThreads.contains(instanceHandle)) {
           mThreads.add(instanceHandle)
         }
-        joinsToEvaluate.add(instance as JoinInstance<T>)
+        joinsToEvaluate.add(instance)
       } else {
         mThreads.add(instanceHandle)
         startedTasks.add(instance)
       }
     }
+
     // Commit the registration of the follow up nodes before starting them.
     transaction.commit()
-    for (task in startedTasks) {
-      provideTask(transaction, messageService, task)
-    }
-    for (join in joinsToEvaluate) {
+    startedTasks.forEach { task -> provideTask(transaction, messageService, task) }
+
+    joinsToEvaluate.forEach { join ->
       startTask(transaction, messageService, join)
+
       if (join.state.isFinal) {
         val joinHandle = join.handle
         mThreads.remove(joinHandle)
@@ -472,46 +436,40 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
   @Synchronized @Throws(SQLException::class)
   fun getActivePredecessorsFor(transaction: T, join: JoinImpl): Collection<ProcessNodeInstance<T>> {
-    val activePredecesors = ArrayList<ProcessNodeInstance<T>>(Math.min(join.predecessors.size, mThreads.size))
-    for (hnode in mThreads) {
-      val node = engine.getNodeInstance(transaction,
-                                        hnode,
-                                        SecurityProvider.SYSTEMPRINCIPAL) ?: throw IllegalStateException("Missing node " + hnode)
-      if (node.node.isPredecessorOf(join)) {
-        activePredecesors.add(node)
-      }
-    }
-    return activePredecesors
+    return mThreads.asSequence()
+          .map { engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it) }
+          .filter { it.node.isPredecessorOf(join) }
+          .toList()
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getDirectSuccessors(transaction: T,
-                          predecessor: ProcessNodeInstance<T>): Collection<Handle<out ProcessNodeInstance<T>>> {
+  fun getDirectSuccessors(transaction: T, predecessor: ProcessNodeInstance<T>): Collection<Handle<out ProcessNodeInstance<T>>> {
+
     val result = ArrayList<Handle<out ProcessNodeInstance<T>>>(predecessor.node.successors.size)
-    for (hcandidate in mThreads) {
-      val candidate = engine.getNodeInstance(transaction, hcandidate, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hcandidate)
-      addDirectSuccessor(transaction, result, candidate, predecessor.handle)
-    }
-    return result
-  }
 
-  @Synchronized @Throws(SQLException::class)
-  private fun addDirectSuccessor(transaction: T,
-                                 result: ArrayList<Handle<out ProcessNodeInstance<T>>>,
-                                 candidate: ProcessNodeInstance<T>,
-                                 predecessor: Handle<out ProcessNodeInstance<T>>) {
-    // First look for this node, before diving into it's children
-    for (node in candidate.directPredecessors) {
-      if (node.handleValue == predecessor.handleValue) {
-        result.add(candidate.handle)
-        return  // Assume that there is no further "successor" down the chain
+    fun addDirectSuccessor(candidate: ProcessNodeInstance<T>,
+                            predecessor: Handle<out ProcessNodeInstance<T>>) {
+
+      // First look for this node, before diving into it's children
+      candidate.directPredecessors.asSequence()
+            .filter { it.handleValue == predecessor.handleValue }
+            .forEach { node ->
+              result.add(candidate.handle)
+              return  // Assume that there is no further "successor" down the chain
+            }
+      for (hnode in candidate.directPredecessors) {
+        // Use the fact that we start with a proper node to get the engine and get the actual node based on the handle (which might be a node itself)
+        val node = candidate.processInstance.engine.getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hnode)
+        addDirectSuccessor(node, predecessor)
       }
     }
-    for (hnode in candidate.directPredecessors) {
-      // Use the fact that we start with a proper node to get the engine and get the actual node based on the handle (which might be a node itself)
-      val node = candidate.processInstance.engine.getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hnode)
-      addDirectSuccessor(transaction, result, node, predecessor)
-    }
+
+
+    mThreads.asSequence()
+          .map { engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it) }
+          .forEach { addDirectSuccessor(it, predecessor.handle) }
+
+    return result
   }
 
   val active: Collection<Handle<out ProcessNodeInstance<T>>>
@@ -526,109 +484,62 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
   @Synchronized @Throws(XmlException::class)
   override fun serialize(writer: XmlWriter) {
     //
-    writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX)
-    try {
-      writer.writeAttribute("handle", if (mHandle < 0) null else java.lang.Long.toString(mHandle))
-      writer.writeAttribute("name", name)
-      writer.writeAttribute("processModel", java.lang.Long.toString(processModel.handleValue))
-      writer.writeAttribute("owner", owner.name)
-      writer.writeAttribute("state", state!!.name)
+    writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
+      writeAttribute("handle", if (mHandleValue < 0) null else java.lang.Long.toString(mHandleValue))
+      writeAttribute("name", name)
+      writeAttribute("processModel", java.lang.Long.toString(processModel.handleValue))
+      writeAttribute("owner", owner.name)
+      writeAttribute("state", state!!.name)
 
-      writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "inputs", null)
-      try {
-        for (input in mInputs) {
-          input.serialize(writer)
-        }
-      } finally {
-        writer.endTag(Constants.PROCESS_ENGINE_NS, "inputs", null)
+      smartStartTag(Constants.PROCESS_ENGINE_NS, "inputs") {
+        mInputs.forEach { it.serialize(this) }
       }
 
-      writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "outputs", null)
-      try {
-        for (output in mOutputs) {
-          output.serialize(writer)
-        }
-      } finally {
-        writer.endTag(Constants.PROCESS_ENGINE_NS, "outputs", null)
+      writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "outputs") {
+        mOutputs.forEach { it.serialize(this) }
       }
 
       try {
         engine.startTransaction().use { transaction ->
 
-          if (mThreads.size > 0) {
-            try {
-              writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "active", null)
-              for (active in mThreads) {
-                writeActiveNodeRef(transaction, writer, active)
-              }
-            } finally {
-              writer.endTag(Constants.PROCESS_ENGINE_NS, "active", null)
-            }
+          writeListIfNotEmpty(mThreads, Constants.PROCESS_ENGINE_NS, "active") {
+            writeActiveNodeRef(transaction, it)
           }
-          if (mFinishedNodes.size > 0) {
-            try {
-              writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "finished", null)
-              for (finished in mFinishedNodes) {
-                writeActiveNodeRef(transaction, writer, finished)
-              }
-            } finally {
-              writer.endTag(Constants.PROCESS_ENGINE_NS, "finished", null)
-            }
+
+          writeListIfNotEmpty(mFinishedNodes, Constants.PROCESS_ENGINE_NS, "finished") {
+            writeActiveNodeRef(transaction, it)
           }
-          if (mEndResults.size > 0) {
-            try {
-              writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "endresults", null)
-              for (result in mEndResults) {
-                writeResultNodeRef(transaction, writer, result)
-              }
-            } finally {
-              writer.endTag(Constants.PROCESS_ENGINE_NS, "endresults", null)
-            }
+
+          writeListIfNotEmpty(mEndResults, Constants.PROCESS_ENGINE_NS, "endresults") {
+            writeResultNodeRef(transaction, it)
           }
+
           transaction.commit()
         }
       } catch (e: SQLException) {
         throw XmlException(e)
       }
-
-    } finally {
-      writer.endTag(Constants.PROCESS_ENGINE_NS, "processInstance", null)
     }
-
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun writeActiveNodeRef(transaction: T, out: XmlWriter, handleNodeInstance: Handle<out ProcessNodeInstance<T>>) {
+  private fun XmlWriter.writeActiveNodeRef(transaction: T, handleNodeInstance: Handle<out ProcessNodeInstance<T>>) {
     val nodeInstance = engine.getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handleNodeInstance)
-    out.startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null)
-    try {
-      writeNodeRefCommon(out, nodeInstance)
-    } finally {
-      out.endTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null)
+    startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
+      writeNodeRefCommon(nodeInstance)
     }
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun writeResultNodeRef(transaction: T,
-                                 out: XmlWriter,
-                                 handleNodeInstance: Handle<out ProcessNodeInstance<T>>) {
-    val nodeInstance = engine.getNodeInstance(transaction,
-                                              handleNodeInstance,
+  private fun XmlWriter.writeResultNodeRef(transaction: T, handleNodeInstance: Handle<out ProcessNodeInstance<T>>) {
+    val nodeInstance = engine.getNodeInstance(transaction, handleNodeInstance,
                                               SecurityProvider.SYSTEMPRINCIPAL) ?: throw IllegalStateException("Missing node " + handleNodeInstance)
-    out.startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null)
-    try {
-      writeNodeRefCommon(out, nodeInstance)
-      out.startTag(Constants.PROCESS_ENGINE_NS, "results", null)
-      try {
-        val results = nodeInstance.results
-        for (result in results) {
-          result.serialize(out)
-        }
-      } finally {
-        out.endTag(Constants.PROCESS_ENGINE_NS, "results", null)
+    startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
+      writeNodeRefCommon(nodeInstance)
+
+      startTag(Constants.PROCESS_ENGINE_NS, "results") {
+        nodeInstance.results.forEach { it.serialize(this) }
       }
-    } finally {
-      out.endTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null)
     }
   }
 
@@ -678,14 +589,14 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     private val serialVersionUID = 1145452195455018306L
 
     @Throws(XmlException::class)
-    private fun writeNodeRefCommon(out: XmlWriter, nodeInstance: ProcessNodeInstance<*>) {
-      out.attribute(null, "nodeid", null, nodeInstance.node.id)
-      out.attribute(null, "handle", null, java.lang.Long.toString(nodeInstance.getHandleValue()))
-      out.attribute(null, "state", null, nodeInstance.state.toString())
+    private fun XmlWriter.writeNodeRefCommon(nodeInstance: ProcessNodeInstance<*>) {
+      attribute(null, "nodeid", null, nodeInstance.node.id)
+      attribute(null, "handle", null, java.lang.Long.toString(nodeInstance.getHandleValue()))
+      attribute(null, "state", null, nodeInstance.state.toString())
       if (nodeInstance.state === NodeInstanceState.Failed) {
         val failureCause = nodeInstance.failureCause
         val value = if (failureCause == null) "<unknown>" else failureCause.javaClass.name + ": " + failureCause.message
-        out.attribute(null, "failureCause", null, value)
+        attribute(null, "failureCause", null, value)
       }
 
     }

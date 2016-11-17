@@ -622,6 +622,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   }
 
+  @NotNull
   public <N extends ProcessNodeInstance<T>> ComparableHandle<N> registerNodeInstance(final T transaction, final N instance) throws SQLException {
     if (instance.getHandleValue() >= 0) {
       throw new IllegalArgumentException("Process node already registered ("+instance+")");

@@ -352,111 +352,87 @@ open class ProcessNodeInstance<T : Transaction> : IProcessNodeInstance<T, Proces
   }
 
   @Throws(XmlException::class, SQLException::class)
-  fun instantiateXmlPlaceholders(transaction: T, `in`: XmlReader, out: XmlWriter, removeWhitespace: Boolean) {
+  fun instantiateXmlPlaceholders(transaction: T, xmlReader: XmlReader, out: XmlWriter, removeWhitespace: Boolean) {
     val defines = getDefines(transaction)
     val transformer = PETransformer.create(ProcessNodeInstanceContext(this,
                                                                       defines,
                                                                       state == IProcessNodeInstance.NodeInstanceState.Complete),
                                            removeWhitespace)
-    transformer.transform(`in`, out.filterSubstream())
+    transformer.transform(xmlReader, out.filterSubstream())
   }
 
   @Throws(SQLException::class, XmlException::class)
   fun instantiateXmlPlaceholders(transaction: T, source: Source, removeWhitespace: Boolean): CompactFragment {
-    val `in` = XmlStreaming.newReader(source)
-    return instantiateXmlPlaceholders(transaction, `in`, removeWhitespace)
+    val xmlReader = XmlStreaming.newReader(source)
+    return instantiateXmlPlaceholders(transaction, xmlReader, removeWhitespace)
   }
 
   @Throws(XmlException::class, SQLException::class)
-  fun instantiateXmlPlaceholders(transaction: T, `in`: XmlReader, removeWhitespace: Boolean): WritableCompactFragment {
+  fun instantiateXmlPlaceholders(transaction: T, xmlReader: XmlReader, removeWhitespace: Boolean): WritableCompactFragment {
     val caw = CharArrayWriter()
 
     val writer = XmlStreaming.newWriter(caw, true)
-    instantiateXmlPlaceholders(transaction, `in`, writer, removeWhitespace)
+    instantiateXmlPlaceholders(transaction, xmlReader, writer, removeWhitespace)
     writer.close()
     return WritableCompactFragment(emptyList<Namespace>(), caw.toCharArray())
   }
 
   @Throws(SQLException::class, XmlException::class)
   fun toSerializable(transaction: T): XmlProcessNodeInstance {
-    val xmlNodeInst = XmlProcessNodeInstance()
-    xmlNodeInst.state = state
-    xmlNodeInst.handle = mHandle
+    return XmlProcessNodeInstance().apply {
+      this.setState(this@ProcessNodeInstance.state)
+      handle = this@ProcessNodeInstance.mHandle
 
-    if (node is Activity<*, *>) {
-      val act = node as Activity<*, *>?
-      val message = act!!.getMessage()
-      try {
-        val `in` = XMLFragmentStreamReader.from(message.messageBody)
-        xmlNodeInst.body = instantiateXmlPlaceholders(transaction, `in`, true)
-      } catch (e: XmlException) {
-        logger.log(Level.WARNING, "Error processing body", e)
-        throw RuntimeException(e)
+      if (node is Activity<*, *>) {
+        val act = node as Activity<*, *>?
+        val message = act!!.getMessage()
+        try {
+          val xmlReader = XMLFragmentStreamReader.from(message.messageBody)
+          body = instantiateXmlPlaceholders(transaction, xmlReader, true)
+        } catch (e: XmlException) {
+          logger.log(Level.WARNING, "Error processing body", e)
+          throw e
+        }
+
       }
 
+      processInstance = mProcessInstance.handleValue
+
+      nodeId = node.id
+
+      if (mPredecessors.size > 0) {
+        this.predecessors.addAll(mPredecessors)
+      }
+
+      this.results = results
     }
-
-    xmlNodeInst.processInstance = mProcessInstance.handleValue
-
-    xmlNodeInst.nodeId = node.id
-
-    if (mPredecessors.size > 0) {
-      val predecessors = xmlNodeInst.predecessors
-      predecessors.addAll(mPredecessors)
-    }
-
-    xmlNodeInst.results = results
-
-    return xmlNodeInst
   }
 
   @Throws(XmlException::class)
   override fun serialize(transaction: T, out: XmlWriter) {
-    out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME)
-    out.writeAttribute("state", state.name)
+    out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
+      writeAttribute("state", state.name)
+      writeAttribute("processinstance", mProcessInstance.handleValue)
 
-    out.writeAttribute("processinstance", mProcessInstance.handleValue)
+      if (mHandle != -1L) writeAttribute("handle", mHandle)
 
-    if (mHandle != -1L) {
-      out.writeAttribute("handle", mHandle)
-    }
-    out.writeAttribute("nodeid", node.id)
-    for (predecessor in mPredecessors) {
-      out.writeSimpleElement(XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME,
-                             java.lang.Long.toString(predecessor.handleValue))
-    }
+      writeAttribute("nodeid", node.id)
 
-    for (result in mResults) {
-      result.serialize(out)
-    }
+      mPredecessors.forEach { writeSimpleElement(XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, it.handleValue.toString()) }
 
-    if (node is Activity<*, *>) {
-      out.smartStartTag(XmlProcessNodeInstance.BODY_ELEMENTNAME)
-      val `in` = XMLFragmentStreamReader.from((node as Activity<*, *>).getMessage().messageBody)
-      try {
-        instantiateXmlPlaceholders(transaction, `in`, out, true)
-      } catch (e: SQLException) {
-        throw RuntimeException(e)
+      serializeAll(mResults)
+
+      (node as? Activity<*,*>)?.getMessage()?.messageBody?.let { body ->
+        instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true)
       }
-
-      out.endTag(XmlProcessNodeInstance.BODY_ELEMENTNAME)
     }
-    out.endTag(XmlProcessNodeInstance.ELEMENTNAME)
   }
 
   companion object {
 
     @Throws(XmlException::class)
-    fun <T: Transaction> deserialize(transaction: T,
-                    processEngine: ProcessEngine<T>,
-                    `in`: XmlReader): ProcessNodeInstance<*> {
-      try {
-        return ProcessNodeInstance(transaction, processEngine, XmlProcessNodeInstance.deserialize(`in`))
-      } catch (e: SQLException) {
-        throw RuntimeException(e)
-      }
-
-    }
+    fun <T: Transaction> deserialize(transaction: T, processEngine: ProcessEngine<T>, xmlReader: XmlReader)
+          = ProcessNodeInstance(transaction, processEngine, XmlProcessNodeInstance.deserialize(xmlReader))
 
     private val logger by lazy { Logger.getLogger(ProcessNodeInstance::class.java.getName()) }
 

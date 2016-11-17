@@ -242,6 +242,39 @@ fun XmlWriter.smartStartTag(nsUri:CharSequence?, localName: CharSequence, prefix
   }
 }
 
+inline fun XmlWriter.smartStartTag(nsUri:CharSequence?, localName: CharSequence, prefix: CharSequence?=null, body: XmlWriter.()->Unit) {
+  smartStartTag(nsUri, localName, prefix)
+  body()
+  endTag(nsUri, localName, prefix)
+}
+
+
+inline fun <T> XmlWriter.writeListIfNotEmpty(iterable:Iterable<T>, nsUri:CharSequence?, localName: CharSequence, prefix: CharSequence?=null, body: XmlWriter.(T)->Unit) {
+  val it = iterable.iterator()
+  if (it.hasNext()) {
+    smartStartTag(nsUri, localName, prefix)
+    while (it.hasNext()) { body(it.next()) }
+    endTag(nsUri, localName, prefix)
+  }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T:XmlSerializable> XmlWriter.serializeAll(iterable: Iterable<T>) = iterable.forEach { it.serialize(this) }
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T:XmlSerializable> XmlWriter.serializeAll(sequence: Sequence<T>) = sequence.forEach { it.serialize(this) }
+
+
+inline fun XmlWriter.smartStartTag(qName: QName, body: XmlWriter.()->Unit) {
+  smartStartTag(qName.namespaceURI, qName.localPart, qName.prefix, body)
+}
+
+inline fun XmlWriter.startTag(nsUri:CharSequence?, localName: CharSequence, prefix: CharSequence?=null, body: XmlWriter.()->Unit) {
+  startTag(nsUri, localName, prefix)
+  body()
+  endTag(nsUri, localName, prefix)
+}
+
 @Throws(XmlException::class)
 fun XmlWriter.writeSimpleElement(qName: QName, value: CharSequence?) {
   writeSimpleElement(qName.namespaceURI, qName.localPart, qName.prefix, value)
