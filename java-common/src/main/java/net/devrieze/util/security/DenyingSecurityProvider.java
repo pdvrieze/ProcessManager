@@ -16,27 +16,26 @@
 
 package net.devrieze.util.security;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.security.Principal;
 
 
 public final class DenyingSecurityProvider extends BaseSecurityProvider {
 
   @Override
-  public boolean hasPermission(final Permission pPermission, final Principal pUser, final SecureObject pObject) {
-    if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return true; }
-    return false;
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+    return subject==SYSTEMPRINCIPAL ? PermissionResult.GRANTED : subject==null ? PermissionResult.UNAUTHENTICATED : PermissionResult.DENIED;
   }
 
   @Override
-  public boolean hasPermission(final Permission pPermission, final Principal pUser) {
-    if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return true; }
-    return false;
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject) {
+    return subject==SYSTEMPRINCIPAL ? PermissionResult.GRANTED : subject==null ? PermissionResult.UNAUTHENTICATED : PermissionResult.DENIED;
   }
 
   @Override
-  public boolean hasPermission(final Permission pPermission, final Principal pUser, final Principal pObject) {
-    if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return true; }
-    return false;
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final Principal objectPrincipal) {
+    return subject==SYSTEMPRINCIPAL ? PermissionResult.GRANTED : subject==null ? PermissionResult.UNAUTHENTICATED : PermissionResult.DENIED;
   }
 
 }

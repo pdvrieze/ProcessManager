@@ -16,6 +16,8 @@
 
 package net.devrieze.util.security;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.security.Principal;
 
 
@@ -27,33 +29,47 @@ import java.security.Principal;
 public abstract class BaseSecurityProvider implements SecurityProvider {
 
   @Override
-  public final void ensurePermission(final Permission pPermission, final Principal pUser) {
-    if (pUser==null) { throw new AuthenticationNeededException("For permissions to be available, authentication is needed"); }
-    if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return; }
-    if (!hasPermission(pPermission, pUser)) {
-      throw new PermissionDeniedException(getClass().getSimpleName() + " denied permission to " + pUser.getName() + ". to perform "
-          + pPermission + " To allow this set a security provider.");
+  public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject) {
+    return ensurePermission(getPermission(permission, subject), " denied permission to " + subject.getName() + ". to perform "
+                                                                + permission + " To allow this set a security provider.");
+  }
+
+  private PermissionResult ensurePermission(final PermissionResult permissionResult, final String deniedMessage) {
+    switch (permissionResult) {
+      case GRANTED:
+        return PermissionResult.GRANTED;
+      case DENIED:
+        throw new PermissionDeniedException(getClass().getSimpleName() + deniedMessage);
+      case UNAUTHENTICATED:
+        throw new AuthenticationNeededException("For permissions to be available, authentication is needed");
     }
+    return permissionResult;
   }
 
   @Override
-  public final void ensurePermission(final Permission pPermission, final Principal pUser, final Principal pObject) {
-    if (pUser==null) { throw new AuthenticationNeededException("For permissions to be available, authentication is needed"); }
-    if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return; }
-    if (!hasPermission(pPermission, pUser, pObject)) {
-      throw new PermissionDeniedException(getClass().getSimpleName() + " denied permission to " + pUser.getName() + " to perform "
-          + pPermission + "on " + pObject.getName() + ". To allow this set a security provider.");
-    }
+  public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject, @NotNull final Principal objectPrincipal) {
+    return ensurePermission(getPermission(permission, subject, objectPrincipal)," denied permission to " + subject.getName() + " to perform "
+                                          + permission + "on " + objectPrincipal.getName() + ". To allow this set a security provider.");
   }
 
   @Override
-  public final void ensurePermission(final Permission pPermission, final Principal pUser, final SecureObject pObject) {
-    if (pUser==null) { throw new AuthenticationNeededException("For permissions to be available, authentication is needed"); }
-    if (pUser==SecurityProvider.SYSTEMPRINCIPAL) { return; }
-    if (!hasPermission(pPermission, pUser, pObject)) {
-      throw new PermissionDeniedException(getClass().getSimpleName() + " denied permission to " + pUser.getName() + " to perform "
-          + pPermission + "on " + pObject + ". To allow this set a security provider.");
-    }
+  public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+    return ensurePermission(getPermission(permission, subject, secureObject), " denied permission to " + subject.getName() + " to perform "
+                                          + permission + "on " + secureObject + ". To allow this set a security provider.");
   }
 
+  @Override
+  public final boolean hasPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+    return getPermission(permission, subject, secureObject)==PermissionResult.GRANTED;
+  }
+
+  @Override
+  public final boolean hasPermission(@NotNull final Permission permission, final Principal subject) {
+    return getPermission(permission, subject) == PermissionResult.GRANTED;
+  }
+
+  @Override
+  public final boolean hasPermission(@NotNull final Permission permission, final Principal subject, @NotNull final Principal objectPrincipal) {
+    return getPermission(permission, subject, objectPrincipal)==PermissionResult.GRANTED;
+  }
 }

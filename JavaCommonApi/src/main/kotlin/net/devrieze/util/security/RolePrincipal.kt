@@ -14,24 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security;
+package net.devrieze.util.security
 
-import net.devrieze.util.security.SecurityProvider.Permission;
-import org.jetbrains.annotations.Nullable;
+import java.security.Principal
 
-import java.security.Principal;
-
-
-public interface SecureObject {
-
-  public enum Permissions implements Permission {
-    READ,
-    RENAME,
-    UPDATE,
-    DELETE, ;
-
-  }
-
-  @Nullable public Principal getOwner();
-
+interface RolePrincipal : Principal {
+  fun hasRole(role: String): Boolean
 }

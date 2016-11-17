@@ -16,6 +16,8 @@
 
 package net.devrieze.util.security;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.security.Principal;
 
 
@@ -27,18 +29,18 @@ import java.security.Principal;
 public class PermissiveProvider extends BaseSecurityProvider {
 
   @Override
-  public boolean hasPermission(final Permission pPermission, final Principal pUser, final SecureObject pObject) {
-    return true;
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+    return PermissionResult.GRANTED;
   }
 
   @Override
-  public boolean hasPermission(final Permission pPermission, final Principal pUser) {
-    return true;
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject) {
+    return PermissionResult.GRANTED;
   }
 
   @Override
-  public boolean hasPermission(final Permission pPermission, final Principal pUser, final Principal pObject) {
-    return true;
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final Principal objectPrincipal) {
+    return PermissionResult.GRANTED;
   }
 
 }

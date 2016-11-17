@@ -16,76 +16,132 @@
 
 package net.devrieze.util.security;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.security.Principal;
 
 
 public interface SecurityProvider {
 
-  public static final Principal SYSTEMPRINCIPAL= new SimplePrincipal("<SYSTEM PRINCIPAL>");
+  /**
+   * Special principal that represents the system.
+   */
+  RolePrincipal SYSTEMPRINCIPAL= new RolePrincipal() {
+    @Override
+    public boolean hasRole(@NotNull final String role) {
+      return true;
+    }
 
+    @Override
+    public String getName() {
+      return "<SYSTEM PRINCIPAL>";
+    }
+
+    @Override
+    public String toString() {
+      return getName();
+    }
+  };
+
+  /**
+   * Simple marker interface to represent a permission.
+   */
   public interface Permission {
     // marker interface
   }
 
   /**
+   * The result of a permission request. A separate type to encourage permanent permissions.
+   */
+  enum PermissionResult {
+    /**
+     * Permission has been granted.
+     */
+    GRANTED,
+    /**
+     * The user does not have permission for this operation.
+     */
+    DENIED,
+    /**
+     * There is no authenticated user.
+     */
+    UNAUTHENTICATED
+  }
+
+  /**
    * Ensure that the user has the given permission.
    *
-   * @param pPermission The permission to verify.
-   * @param pUser The user to check the permission against.
+   * @param permission The permission to verify.
+   * @param subject The user to check the permission against.
    * @throws PermissionDeniedException Thrown if the permission is denied.
+   * @throws AuthenticationNeededException Thrown if the user has no permission.
+   * @return The result. This should always be {@link PermissionResult#GRANTED}.
    */
-  void ensurePermission(Permission pPermission, Principal pUser);
+  PermissionResult ensurePermission(@NotNull Permission permission, @Nullable Principal subject);
 
   /**
    * Ensure that the user has the given permission in relation to another user.
    *
-   * @param pPermission The permission to verify.
-   * @param pUser The user to check the permission against.
-   * @param pObject The principal that represents other part of
+   * @param permission The permission to verify.
+   * @param subject The user to check the permission against.
+   * @param objectPrincipal The principal that represents other part of the equation.
    * @throws PermissionDeniedException Thrown if the permission is denied.
+   * @throws AuthenticationNeededException Thrown if the user has no permission.
+   * @return The result. This should always be {@link PermissionResult#GRANTED}.
    */
-  void ensurePermission(Permission pPermission, Principal pUser, Principal pObject);
+  PermissionResult ensurePermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull Principal objectPrincipal);
 
   /**
    * Ensure that the user has the given permission in relation to a given
    * object.
    *
-   * @param pPermission The permission to verify.
-   * @param pUser The user to verify the permission for.
-   * @param pObject The object the permission applies to
+   * @param permission The permission to verify.
+   * @param subject The user to verify the permission for.
+   * @param secureObject The object the permission applies to
+   * @throws PermissionDeniedException Thrown if the permission is denied.
+   * @throws AuthenticationNeededException Thrown if the user has no permission.
+   * @return The result. This should always be {@link PermissionResult#GRANTED}.
    */
-  void ensurePermission(Permission pPermission, Principal pUser, SecureObject pObject);
+  PermissionResult ensurePermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject secureObject);
 
   /**
    * Determine whether the user has the permission given
    *
-   * @param pPermission The permission to check
-   * @param pUser The user
-   * @param pObject The object of the activity
+   * @param permission The permission to check
+   * @param subject The user
+   * @param secureObject The object of the activity
    * @return <code>true</code> if the user has the permission,
    *         <code>false</code> if not.
    */
-  boolean hasPermission(Permission pPermission, Principal pUser, SecureObject pObject);
+  boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject secureObject);
+
+  PermissionResult getPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject secureObject);
 
   /**
    * Determine whether the user has the given permission.
    *
-   * @param pPermission The permission to verify.
-   * @param pUser The user to check the permission against.
+   * @param permission The permission to verify.
+   * @param subject The user to check the permission against.
    * @return <code>true</code> if the user has the permission,
    *         <code>false</code> if not.
    */
-  boolean hasPermission(Permission pPermission, Principal pUser);
+  boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject);
+
+  PermissionResult getPermission(@NotNull Permission permission, @Nullable Principal subject);
 
   /**
    * Determine whether the user has the given permission in relation to another
    * user.
    *
-   * @param pPermission The permission to verify.
-   * @param pUser The user to check the permission against.
+   * @param permission The permission to verify.
+   * @param subject The user to check the permission against.
+   * @param objectPrincipal The principal that represents other part of the equation.
    * @return <code>true</code> if the user has the permission,
    *         <code>false</code> if not.
    */
-  boolean hasPermission(Permission pPermission, Principal pUser, Principal pObject);
+  boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull Principal objectPrincipal);
+
+  PermissionResult getPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull Principal objectPrincipal);
 
 }

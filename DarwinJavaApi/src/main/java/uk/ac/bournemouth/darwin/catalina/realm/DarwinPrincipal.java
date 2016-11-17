@@ -17,6 +17,7 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
 import net.devrieze.util.StringCache;
+import net.devrieze.util.security.RolePrincipal;
 
 import java.security.Principal;
 import java.util.Set;
@@ -27,7 +28,7 @@ import java.util.Set;
  *
  * @author Paul de Vrieze
  */
-public interface DarwinPrincipal extends Principal {
+public interface DarwinPrincipal extends RolePrincipal {
 
   /**
    * Determine whether the user has overall admin rights.
