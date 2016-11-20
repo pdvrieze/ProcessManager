@@ -37,7 +37,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 30/05/16.
  */
-internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DBTransaction>) : AbstractElementFactory<ProcessInstance<DBTransaction>>() {
+internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DBTransaction>) : AbstractElementFactory<ProcessInstance.Builder<DBTransaction>, ProcessInstance<DBTransaction>>() {
 
   override fun getHandleCondition(where: Database._Where,
                                   handle: Handle<out ProcessInstance<DBTransaction>>): Database.WhereClause? {
@@ -50,7 +50,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   override val createColumns: List<Column<*, *, *>>
     get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid)
 
-  override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance<DBTransaction> {
+  override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.Builder<DBTransaction> {
     val owner = SimplePrincipal(pi.owner.value(columns, values))
     val hProcessModel = Handles.handle<ProcessModelImpl>(pi.pmhandle.value(columns, values)!!)
     val processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
@@ -59,8 +59,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val state = toState(pi.state.value(columns, values))
     val uuid = toUUID(pi.uuid.value(columns, values)) ?: throw IllegalStateException("Missing UUID")
 
-    val result = ProcessInstance(piHandle, owner, processModel, instancename, uuid, state, mProcessEngine)
-    return result
+    return ProcessInstance.Builder<DBTransaction>(piHandle, owner, processModel, instancename, uuid, state)
   }
 
   private fun toUUID(string: String?): UUID? {
@@ -70,28 +69,24 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     return UUID.fromString(string)
   }
 
-  override fun postCreate(transaction: DBTransaction, element: ProcessInstance<DBTransaction>) {
-    run {
-      val handles = ProcessEngineDB
-            .SELECT(pni.pnihandle)
-            .WHERE { pni.pihandle eq element.handleValue }
-            .getList(transaction.connection)
-            .asSequence()
-            .filterNotNull()
-            .map { Handles.handle<ProcessNodeInstance<DBTransaction>>(it) }
-            .toList()
-
-      element.setChildren(transaction, handles)
-    }
+  override fun postCreate(transaction: DBTransaction, builder: ProcessInstance.Builder<DBTransaction>):ProcessInstance<DBTransaction> {
+    val handleValue = builder.handle.handleValue
+    ProcessEngineDB
+          .SELECT(pni.pnihandle)
+          .WHERE { pni.pihandle eq handleValue }
+          .getList(transaction.connection)
+          .asSequence()
+          .filterNotNull()
+          .mapTo(builder.children.apply { clear() }) {Handles.handle<ProcessNodeInstance<DBTransaction>>(it) }
 
     run {
 
-      val inputs = ArrayList<ProcessData>()
-      val outputs = ArrayList<ProcessData>()
+      val inputs = builder.inputs.apply { clear() }
+      val outputs = builder.outputs.apply { clear() }
 
       ProcessEngineDB
             .SELECT(id.name, id.data, id.isoutput)
-            .WHERE { id.pihandle eq element.handleValue }
+            .WHERE { id.pihandle eq handleValue }
             .execute(transaction.connection) { name, data, isoutput ->
               val procdata = ProcessData(name, CompactFragment(data!!))
               if (isoutput ?: false) {
@@ -100,10 +95,8 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
                 inputs.add(procdata)
               }
             }
-      element.inputs = inputs
-      element.setOutputs(outputs)
     }
-    element.reinitialize(transaction)
+    return builder.build(transaction, mProcessEngine)
   }
 
   override fun preRemove(transaction: DBTransaction, element: ProcessInstance<DBTransaction>) {
@@ -173,11 +166,8 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     private val id = ProcessEngineDB.instancedata
 
     @JvmStatic
-    private fun toState(string: String?): State? {
-      if (string == null) {
-        return null
-      }
-      return State.valueOf(string)
+    private fun toState(string: String?): State {
+      return State.valueOf(string?: throw NullPointerException("Missing state"))
     }
   }
 

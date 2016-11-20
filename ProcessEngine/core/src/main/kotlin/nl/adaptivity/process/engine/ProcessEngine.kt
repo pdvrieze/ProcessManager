@@ -450,10 +450,10 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
                            payload: Node?): HProcessInstance<T> {
 
     if (user == null) {
-      throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN,
-                                  "Annonymous users are not allowed to start processes")
+      throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes")
     }
     mSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, user)
+
     val instance = ProcessInstance(user, model, name, uuid, State.NEW, this)
 
     engineData.inWriteTransaction(transaction) {

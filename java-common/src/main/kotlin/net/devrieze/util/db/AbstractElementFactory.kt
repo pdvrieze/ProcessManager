@@ -33,7 +33,7 @@ import java.sql.SQLException
  * *
  * @param  T of the element created / handled
  */
-abstract class AbstractElementFactory<T:Any> : HMElementFactory<T> {
+abstract class AbstractElementFactory<BUILDER, T:Any> : HMElementFactory<BUILDER, T> {
 
   companion object {
 
@@ -44,11 +44,6 @@ abstract class AbstractElementFactory<T:Any> : HMElementFactory<T> {
   }
 
   override fun filter(select: Database._Where) = null
-
-  @Throws(SQLException::class)
-  override open fun postCreate(transaction: DBTransaction, element: T) {
-    // Do nothing.
-  }
 
   @Throws(SQLException::class)
   override fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T) {
@@ -66,7 +61,7 @@ abstract class AbstractElementFactory<T:Any> : HMElementFactory<T> {
   }
 
   override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    preRemove(transaction, create(transaction, columns, values))
+    // Don't do anything
   }
 
   @Throws(SQLException::class)

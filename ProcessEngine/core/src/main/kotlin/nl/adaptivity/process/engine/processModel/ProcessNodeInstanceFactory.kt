@@ -38,7 +38,7 @@ import java.sql.SQLException
  * Created by pdvrieze on 29/05/16.
  */
 
-internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>): AbstractElementFactory<ProcessNodeInstance<DBTransaction>>() {
+internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTransaction>): AbstractElementFactory<ProcessNodeInstance<DBTransaction>, ProcessNodeInstance<DBTransaction>>() {
 
   companion object {
     private val tbl_pni = ProcessEngineDB.processNodeInstances
@@ -83,23 +83,24 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     }.apply { setHandleValue(pnihandle.handleValue) }
   }
 
-  override fun postCreate(transaction: DBTransaction, element: ProcessNodeInstance<DBTransaction>) {
-    for (handle in element.directPredecessors) {
-      element.ensurePredecessor(handle)
+  override fun postCreate(transaction: DBTransaction, builder: ProcessNodeInstance<DBTransaction>): ProcessNodeInstance<DBTransaction> {
+    for (handle in builder.directPredecessors) {
+      builder.ensurePredecessor(handle)
     }
 
     val results = ProcessEngineDB
           .SELECT(tbl_nd.name, tbl_nd.data)
-          .WHERE { tbl_nd.pnihandle eq element.getHandleValue() }
+          .WHERE { tbl_nd.pnihandle eq builder.getHandleValue() }
           .getList(transaction.connection) { name, data ->
-            if (FAILURE_CAUSE == name && (element.state == IProcessNodeInstance.NodeInstanceState.Failed || element.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
-              element.setFailureCause(data)
+            if (FAILURE_CAUSE == name && (builder.state == IProcessNodeInstance.NodeInstanceState.Failed || builder.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
+              builder.setFailureCause(data)
               null
             } else {
               ProcessData(name, CompactFragment(data!!))
             }
           }.filterNotNull()
-    element.setResult(results)
+    builder.setResult(results)
+    return builder
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where,
@@ -107,6 +108,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<DBTran
     return getHandleCondition(where, instance.handle);
   }
 
+  @Suppress("UNCHECKED_CAST")
   override fun asInstance(obj: Any) = obj as? ProcessNodeInstance<DBTransaction>
 
   override fun store(update: Database._UpdateBuilder, value: ProcessNodeInstance<DBTransaction>) {

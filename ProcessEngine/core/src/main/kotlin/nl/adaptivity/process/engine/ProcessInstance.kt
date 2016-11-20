@@ -18,8 +18,10 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
 import net.devrieze.util.HandleMap.HandleAware
+import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
@@ -42,6 +44,15 @@ import java.util.logging.Logger
 
 
 class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>>, XmlSerializable {
+
+  data class Builder<T: Transaction>(var handle: ComparableHandle<ProcessInstance<T>>, var owner: SimplePrincipal, var processModel: ProcessModelImpl, var instancename: String?, var uuid: UUID, var state: State) {
+    val children = mutableListOf<Handle<ProcessNodeInstance<T>>>()
+    val   inputs = mutableListOf<ProcessData>()
+    val  outputs = mutableListOf<ProcessData>()
+    fun build(transaction: T, engine: ProcessEngine<T>): ProcessInstance<T> {
+      return ProcessInstance<T>(transaction, engine, this)
+    }
+  }
 
   enum class State {
     NEW,
@@ -92,7 +103,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
   @Deprecated("This should be a parameter only")
   val engine: ProcessEngine<T>// XXX actually introduce a generic parameter for transactions
 
-  private var mInputs: MutableList<ProcessData> = ArrayList()
+  private val mInputs: MutableList<ProcessData> = ArrayList()
 
   private val mOutputs = ArrayList<ProcessData>()
 
@@ -104,6 +115,13 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     private set
 
   val uuid: UUID
+
+  private constructor(transaction: T, engine: ProcessEngine<T>, builder:Builder<T>):
+        this(builder.handle, builder.owner, builder.processModel, builder.instancename, builder.uuid, builder.state, engine) {
+    setChildren(transaction, builder.children)
+    mInputs.addAll(builder.inputs)
+    mOutputs.addAll(builder.outputs)
+  }
 
   @Deprecated("")
   internal constructor(handle: Long, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State, engine: ProcessEngine<T>) : this(
@@ -286,7 +304,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
             .forEach { provideTask(transaction, messageService, it) }
     }
 
-    mInputs = processModel.toInputs(payload)
+    mInputs.apply { clear() }.addAll(processModel.toInputs(payload))
     state = State.STARTED
     engine.updateStorage(transaction, this)
   }

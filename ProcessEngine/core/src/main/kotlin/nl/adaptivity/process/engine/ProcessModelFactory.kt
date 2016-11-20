@@ -36,7 +36,7 @@ import java.io.StringReader
 /**
  * A factory to create process models from the database.
  */
-internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl>() {
+internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl, ProcessModelImpl>() {
   private var mColNoOwner: Int = 0
   private var mColNoModel: Int = 0
   private var mColNoHandle: Int = 0
@@ -61,6 +61,10 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
       this.setOwner(owner)
       handleValue = handle
     }
+  }
+
+  override fun postCreate(transaction: DBTransaction, builder: ProcessModelImpl): ProcessModelImpl {
+    return builder
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<out ProcessModelImpl>): Database.WhereClause? {

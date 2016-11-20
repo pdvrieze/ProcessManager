@@ -23,8 +23,8 @@ import uk.ac.bournemouth.kotlinsql.getSingleListOrNull
 import java.sql.SQLException
 import java.util.*
 
-open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTransaction>, database: Database, elementFactory: HMElementFactory<V>) :
-      DbSet<V>(transactionFactory, database, elementFactory), MutableTransactionedHandleMap<V, DBTransaction> {
+open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DBTransaction>, database: Database, elementFactory: HMElementFactory<TMP, V>) :
+      DbSet<TMP, V>(transactionFactory, database, elementFactory), MutableTransactionedHandleMap<V, DBTransaction> {
 
 
   private inner class TransactionIterable(private val mTransaction: DBTransaction) : MutableIterable<V> {
@@ -35,14 +35,14 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
 
   }
 
-  private val mPendingCreates = TreeMap<ComparableHandle<out V>, V>()
+  private val mPendingCreates = TreeMap<ComparableHandle<out V>, TMP>()
 
   protected fun isPending(handle: ComparableHandle<out V>): Boolean {
     return mPendingCreates.containsKey(handle)
   }
 
-  override val elementFactory: HMElementFactory<V>
-    get() = super.elementFactory as HMElementFactory<V>
+  override val elementFactory: HMElementFactory<TMP, V>
+    get() = super.elementFactory as HMElementFactory<TMP, V>
 
   override fun newTransaction(): DBTransaction {
     return transactionFactory.startTransaction()
@@ -61,7 +61,8 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   override fun get(transaction: DBTransaction, handle: Handle<out V>): V? {
     val comparableHandle = Handles.handle(handle)
     if (mPendingCreates.containsKey(comparableHandle)) {
-      return mPendingCreates[comparableHandle]
+      throw IllegalArgumentException("Pending create") // XXX This is not the best way
+//      return mPendingCreates[comparableHandle]
     }
 
     val factory = elementFactory
@@ -73,11 +74,10 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
           } ?: return null
     mPendingCreates.put(comparableHandle, result)
     try {
-      factory.postCreate(transaction, result)
+      return factory.postCreate(transaction, result)
     } finally {
       mPendingCreates.remove(comparableHandle)
     }
-    return result
   }
 
   @Throws(SQLException::class)

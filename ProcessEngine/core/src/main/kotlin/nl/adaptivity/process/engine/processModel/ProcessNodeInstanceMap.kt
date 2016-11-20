@@ -16,19 +16,12 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.*
-import net.devrieze.util.db.*
-import nl.adaptivity.process.engine.ProcessData
+import net.devrieze.util.TransactionFactory
+import net.devrieze.util.db.DBHandleMap
+import net.devrieze.util.db.DBTransaction
 import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.nodedata
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.pnipredecessors
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processNodeInstances
-
-import java.sql.*
-import java.sql.Types
 
 
 class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out DBTransaction>, processEngine: ProcessEngine<DBTransaction>) :
-      DBHandleMap<ProcessNodeInstance<DBTransaction>>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))
+      DBHandleMap<ProcessNodeInstance<DBTransaction>, ProcessNodeInstance<DBTransaction>>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))

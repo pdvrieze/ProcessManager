@@ -48,7 +48,7 @@ import javax.xml.bind.JAXBException
 
 
 class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
-      DBHandleMap<XmlTask>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()), IMutableUserTaskMap<DBTransaction> {
+      DBHandleMap<XmlTask, XmlTask>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()), IMutableUserTaskMap<DBTransaction> {
 
 
   private class PostTaskFactory : XmlDeserializerFactory<XmlTask> {
@@ -81,7 +81,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
   }
 
 
-  private class UserTaskFactory : AbstractElementFactory<XmlTask>() {
+  private class UserTaskFactory : AbstractElementFactory<XmlTask, XmlTask>() {
     private var mColNoHandle: Int = 0
     private var mColNoRemoteHandle: Int = 0
 
@@ -167,13 +167,14 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     }
 
     @Throws(SQLException::class)
-    override fun postCreate(transaction: DBTransaction, element: XmlTask) {
+    override fun postCreate(transaction: DBTransaction, element: XmlTask): XmlTask {
       UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handleValue }.execute(transaction.connection) {
         name, data ->
         if (name!=null) {
           element[name]?.let { it.value = data }
         }
       }
+      return element
     }
 
     override fun getPrimaryKeyCondition(where: Database._Where, instance: XmlTask) =

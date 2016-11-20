@@ -27,7 +27,7 @@ import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
 
-interface ElementFactory<T:Any> {
+interface ElementFactory<BUILDER, T:Any> {
 
   val table: Table
 
@@ -51,18 +51,18 @@ interface ElementFactory<T:Any> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): T
+  fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): BUILDER
 
   /**
    * Hook to allow for subsequent queries
    * @param transaction The connection to use
    * *
-   * @param element The element that has been created.
+   * @param builder The element that has been created.
    * *
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun postCreate(transaction: DBTransaction, element: T)
+  fun postCreate(transaction: DBTransaction, builder: BUILDER): T
 
   /**
    * Get an SQL condition that would select the given object.

@@ -31,7 +31,7 @@ import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.sql.DataSource
 
-open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransaction>, val database: Database, protected open val elementFactory: ElementFactory<T>) : AutoCloseable, Closeable {
+open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTransaction>, val database: Database, protected open val elementFactory: ElementFactory<TMP, T>) : AutoCloseable, Closeable {
 
 
   /**
@@ -81,12 +81,11 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
       }
 
       try {
-        var success = mResultSet.next()
-        if (success) {
+
+        val nextTmp = if (mResultSet.next()) {
           val values = mColumns.mapIndexed { i, column -> column.type.fromResultSet(mResultSet, i+1) }
-          mNextElem = elementFactory.create(mTransaction, mColumns, values)
-        }
-        if (!success) {
+          elementFactory.create(mTransaction, mColumns, values)
+        } else {
           mFinished = true
           mTransaction.commit()
           if (mCloseOnFinish) {
@@ -96,7 +95,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
           }
           return false
         }
-        elementFactory.postCreate(mTransaction, mNextElem!!)
+        mNextElem = elementFactory.postCreate(mTransaction, nextTmp)
         return true
       } catch (ex: SQLException) {
         closeResultSet(mTransaction, mStatement, mResultSet)
@@ -320,7 +319,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
 
   @Throws(SQLException::class)
   fun isEmpty(pTransaction: DBTransaction): Boolean {
-    (iterator(pTransaction, true) as ResultSetIterator).use { it -> return it.hasNext() }
+    (iterator(pTransaction, true) as DbSet<TMP, T>.ResultSetIterator).use { it -> return it.hasNext() }
   }
 
   @Throws(SQLException::class)
@@ -371,7 +370,7 @@ open class DbSet<T:Any>(pTransactionFactory: TransactionFactory<out DBTransactio
 
     @Deprecated("Kotlin does it better", ReplaceWith("pList.joinToString(pSeparator)"), DeprecationLevel.ERROR)
     fun join(pList: List<CharSequence>?, pSeparator: CharSequence): CharSequence? {
-      return pList?.joinToString(pSeparator)?: null
+      return pList?.joinToString(pSeparator)
     }
 
     @JvmName("joinNotNull")
