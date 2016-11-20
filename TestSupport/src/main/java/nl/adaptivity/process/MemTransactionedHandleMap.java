@@ -94,7 +94,7 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   @Override
   public boolean containsAll(final Transaction transaction, final Collection<?> c) throws SQLException {
     for(Object o: c) {
-      if (! contains(o)) { return false; }
+      if (! containsElement(o)) { return false; }
     }
     return true;
   }
@@ -105,8 +105,8 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public boolean contains(final Transaction transaction, final Object element) throws SQLException {
-    return contains(element);
+  public boolean containsElement(final Transaction transaction, final Object element) throws SQLException {
+    return containsElement(element);
   }
 
   @Override

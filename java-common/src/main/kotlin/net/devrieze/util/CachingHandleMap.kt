@@ -210,11 +210,11 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: T, element: Any): Boolean {
+  override fun containsElement(transaction: T, element: Any): Boolean {
     if (element is Handle<*>) {
       return contains(transaction, element as Handle<V>)
     }
-    return delegate.contains(transaction, element)
+    return delegate.containsElement(transaction, element)
   }
 
   @Throws(SQLException::class)

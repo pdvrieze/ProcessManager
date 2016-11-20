@@ -89,6 +89,7 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
   private var mHandleValue = -1L
 
+  @Deprecated("This should be a parameter only")
   val engine: ProcessEngine<T>// XXX actually introduce a generic parameter for transactions
 
   private var mInputs: MutableList<ProcessData> = ArrayList()

@@ -126,9 +126,9 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: DBTransaction, element: Any): Boolean {
+  override fun containsElement(transaction: DBTransaction, element: Any): Boolean {
     if (element is Handle<*>) {
-      return contains(transaction, element.handleValue)
+      return containsElement(transaction, element.handleValue)
     }
     return super.contains(transaction, element)
   }
@@ -136,7 +136,7 @@ open class DBHandleMap<V:Any>(transactionFactory: TransactionFactory<out DBTrans
   @Throws(SQLException::class)
   override fun containsAll(transaction: DBTransaction, c: Collection<*>): Boolean {
     for (o in c) {
-      if (o==null || !contains(transaction, o)) {
+      if (o==null || !containsElement(transaction, o)) {
         return false
       }
     }

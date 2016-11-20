@@ -32,7 +32,7 @@ abstract class AbstractTransactionedHandleMap<V:Any, T : Transaction> : MutableT
   override fun containsAll(transaction: T, c: Collection<*>): Boolean {
     for (o in c) {
       if (o==null) return false
-      if (!contains(transaction, o)) {
+      if (!containsElement(transaction, o)) {
         return false
       }
     }

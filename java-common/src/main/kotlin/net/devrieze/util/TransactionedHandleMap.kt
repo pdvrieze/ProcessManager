@@ -37,7 +37,7 @@ interface TransactionedHandleMap<V: Any, T : Transaction> {
   fun iterable(transaction: T): Iterable<V>
 
   @Throws(SQLException::class)
-  fun contains(transaction: T, element: Any): Boolean
+  fun containsElement(transaction: T, element: Any): Boolean
 
   @Throws(SQLException::class)
   fun contains(transaction: T, handle: Handle<out V>): Boolean
@@ -87,13 +87,13 @@ interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHa
 }
 
 open class  HandleMapForwarder<V: Any, T:Transaction>(val transaction: T, open val delegate: TransactionedHandleMap<V, T>) : HandleMap<V> {
-  override fun contains(element: V) = delegate.contains(transaction, element)
+  override fun containsElement(element: V) = delegate.containsElement(transaction, element)
 
   override fun iterator() = delegate.iterator(transaction, true)
 
   override fun isEmpty():Boolean { throw UnsupportedOperationException("Not available") }
 
-  override fun containsHandle(handle: Handle<out V>) = delegate.contains(transaction, handle)
+  override fun contains(handle: Handle<out V>) = delegate.contains(transaction, handle)
 
   override fun contains(handle: Long) = delegate.contains(transaction, Handles.handle(handle))
 
@@ -114,4 +114,6 @@ open class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, over
   override fun set(handle: Handle<out V>, value: V) = delegate.set(transaction, handle, value)
 
   override fun remove(handle: Handle<out V>) = delegate.remove(transaction, handle)
+
+  override fun clear() = delegate.clear(transaction)
 }

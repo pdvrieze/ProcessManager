@@ -17,7 +17,7 @@
 package net.devrieze.util
 
 
-interface HandleMap<V:Any> {
+interface HandleMap<V:Any> : Iterable<V> {
 
   interface HandleAware<T:Any> {
 
@@ -35,14 +35,14 @@ interface HandleMap<V:Any> {
    * *
    * @return `true` if it does.
    */
-  operator fun contains(element: V): Boolean
+  fun containsElement(element: V): Boolean
 
-  operator fun iterator(): Iterator<V>
+  override operator fun iterator(): Iterator<V>
 
   @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
   fun isEmpty(): Boolean
 
-  fun containsHandle(handle: Handle<out V>): Boolean
+  operator fun contains(handle: Handle<out V>): Boolean
 
   /**
    * Determine whether the given handle is contained in the map.
@@ -66,7 +66,7 @@ interface HandleMap<V:Any> {
 
 }
 
-interface MutableHandleMap<V:Any>: HandleMap<V> {
+interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
   override operator fun iterator(): MutableIterator<V>
   /**
    * Put a new walue into the map. This is thread safe.
@@ -83,5 +83,8 @@ interface MutableHandleMap<V:Any>: HandleMap<V> {
   operator fun set(handle: Handle<out V>, value: V): V?
 
   fun remove(handle: Handle<out V>): Boolean
+
+  /** Remove all elements */
+  fun clear()
 
 }

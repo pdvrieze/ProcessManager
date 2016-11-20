@@ -16,6 +16,8 @@
 
 package net.devrieze.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -63,7 +65,7 @@ public class MemHandleMap<V> implements MutableHandleMap<V>, Collection<V> {
 
     @Override
     public boolean contains(final Object pObject) {
-      return mHandleMap.contains((T)pObject);
+      return mHandleMap.containsElement((T)pObject);
     }
 
     @Override
@@ -379,11 +381,17 @@ public class MemHandleMap<V> implements MutableHandleMap<V>, Collection<V> {
     }
   }
 
-  /* (non-Javadoc)
-   * @see net.devrieze.util.HandleMap#contains(java.lang.Object)
-   */
+
   @Override
-  public boolean contains(final Object element) {
+  public boolean contains(final Object o) {
+    return containsElement(o);
+  }
+
+  /* (non-Javadoc)
+     * @see net.devrieze.util.HandleMap#contains(java.lang.Object)
+     */
+  @Override
+  public boolean containsElement(@NotNull final Object element) {
     if (element instanceof Handle) {
       final long candidateHandle = ((Handle<?>) element).getHandleValue();
       return contains(candidateHandle);
@@ -400,7 +408,7 @@ public class MemHandleMap<V> implements MutableHandleMap<V>, Collection<V> {
   }
 
   @Override
-  public boolean containsHandle(Handle<? extends V> handle) {
+  public boolean contains(Handle<? extends V> handle) {
     return contains(handle.getHandleValue());
   }
 
@@ -746,7 +754,7 @@ public class MemHandleMap<V> implements MutableHandleMap<V>, Collection<V> {
   public boolean containsAll(final Collection<?> pC) {
     synchronized (this) {
       for (final Object elem : pC) {
-        if (!contains(elem)) {
+        if (!containsElement(elem)) {
           return false;
         }
       }

@@ -53,11 +53,11 @@ interface IProcessModelMapAccess : HandleMap<ProcessModelImpl> {
 
 interface IMutableProcessModelMapAccess : MutableHandleMap<ProcessModelImpl>, IProcessModelMapAccess
 
-inline fun <T:Transaction, R> IProcessModelMap<T>.inTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
+inline fun <T:Transaction, R> IProcessModelMap<T>.inReadonlyTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
   return withTransaction(transaction).body()
 }
 
-inline fun <T:Transaction, R> IMutableProcessModelMap<T>.inMutableTransaction(transaction: T, body: IMutableProcessModelMapAccess.()->R):R {
+inline fun <T:Transaction, R> IMutableProcessModelMap<T>.inWriteTransaction(transaction: T, body: IMutableProcessModelMapAccess.()->R):R {
   return withTransaction(transaction).body()
 }
 
