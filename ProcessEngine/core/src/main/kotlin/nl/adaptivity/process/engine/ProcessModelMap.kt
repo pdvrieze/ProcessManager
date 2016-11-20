@@ -16,12 +16,10 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
-import net.devrieze.util.Handles
-import net.devrieze.util.StringCache
-import net.devrieze.util.TransactionFactory
+import net.devrieze.util.*
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.db.HMElementFactory
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModels
@@ -46,4 +44,11 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<DBTransact
     }
   }
 
+  override val elementFactory: ProcessModelFactory
+    get() = super.elementFactory as ProcessModelFactory
+
+  override fun <W : ProcessModelImpl> put(transaction: DBTransaction, value: W): ComparableHandle<W> {
+    value.cacheStrings(elementFactory.stringCache)
+    return super.put(transaction, value)
+  }
 }

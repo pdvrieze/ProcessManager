@@ -172,9 +172,6 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
     TICKLE_NODE
   }
 
-  private val mStringCache = StringCacheImpl()
-  private val mTransactionFactory: TransactionFactory<T>
-
   private val engineData:IProcessEngineData<T>
 
   private val messageService: IMessageService<*, T, ProcessNodeInstance<T>>
@@ -189,7 +186,6 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
    */
   protected constructor(messageService: IMessageService<*, T, ProcessNodeInstance<T>>, engineData: IProcessEngineData<T>, transactionFactory: TransactionFactory<T>) {
     this.messageService = messageService
-    mTransactionFactory = transactionFactory
     this.engineData = engineData
   }
 
@@ -210,7 +206,6 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
                       processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>, processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>) {
     this.messageService = messageService
     this.engineData = engineData
-    mTransactionFactory = transactionFactory
   }
 
   fun invalidateModelCache(handle: Handle<out ProcessModelImpl>) {
@@ -238,14 +233,12 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
 
   /**
    * Add a process model to the engine.
-
-
    * @param transaction
-   * *
+   *
    * @param basepm The process model to add.
-   * *
+   *
    * @return The processModel to add.
-   * *
+   *
    * @throws SQLException
    */
   @Throws(SQLException::class)
@@ -266,7 +259,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
           mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
         } ?: user.apply { basepm.setOwner(this) }
 
-        val pm = ProcessModelImpl.from(basepm).apply { cacheStrings(mStringCache) }
+        val pm = ProcessModelImpl.from(basepm)
 
         ProcessModelRef(pm.name, processModels.put(pm), uuid)
       }
@@ -744,7 +737,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
   }
 
   fun startTransaction(): T {
-    return mTransactionFactory.startTransaction()
+    return engineData.startTransaction()
   }
 
   val localEndpoint: EndpointDescriptor

@@ -36,7 +36,7 @@ import java.io.StringReader
 /**
  * A factory to create process models from the database.
  */
-internal class ProcessModelFactory(private val mStringCache: StringCache) : AbstractElementFactory<ProcessModelImpl>() {
+internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl>() {
   private var mColNoOwner: Int = 0
   private var mColNoModel: Int = 0
   private var mColNoHandle: Int = 0
@@ -54,7 +54,7 @@ internal class ProcessModelFactory(private val mStringCache: StringCache) : Abst
           ?.let { ProcessModelImpl.deserialize(Factory(), XmlStreaming.newReader(StringReader(it)))}
           ?.apply {
       handleValue = handle
-      cacheStrings(mStringCache)
+      cacheStrings(stringCache)
       if (this.owner==SecurityProvider.SYSTEMPRINCIPAL) { this.setOwner(owner) }
 
     } ?: ProcessModelImpl(emptyList()).apply {
