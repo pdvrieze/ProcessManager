@@ -23,11 +23,11 @@ import uk.ac.bournemouth.kotlinsql.getSingleListOrNull
 import java.sql.SQLException
 import java.util.*
 
-open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DBTransaction>, database: Database, elementFactory: HMElementFactory<TMP, V>) :
-      DbSet<TMP, V>(transactionFactory, database, elementFactory), MutableTransactionedHandleMap<V, DBTransaction> {
+open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(transactionFactory: TransactionFactory<out TR>, database: Database, elementFactory: HMElementFactory<TMP, V, TR>) :
+      DbSet<TMP, V, TR>(transactionFactory, database, elementFactory), MutableTransactionedHandleMap<V, TR> {
 
 
-  private inner class TransactionIterable(private val mTransaction: DBTransaction) : MutableIterable<V> {
+  private inner class TransactionIterable(private val mTransaction: TR) : MutableIterable<V> {
 
     override fun iterator(): MutableIterator<V> {
       return this@DBHandleMap.iterator(mTransaction, false)
@@ -41,15 +41,11 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
     return mPendingCreates.containsKey(handle)
   }
 
-  override val elementFactory: HMElementFactory<TMP, V>
-    get() = super.elementFactory as HMElementFactory<TMP, V>
-
-  override fun newTransaction(): DBTransaction {
-    return transactionFactory.startTransaction()
-  }
+  override val elementFactory: HMElementFactory<TMP, V, TR>
+    get() = super.elementFactory as HMElementFactory<TMP, V, TR>
 
   @Throws(SQLException::class)
-  override fun <W : V> put(transaction: DBTransaction, value: W): ComparableHandle<W> {
+  override fun <W : V> put(transaction: TR, value: W): ComparableHandle<W> {
     val result = addWithKey(transaction, value) ?: throw RuntimeException("Adding element $value failed")
     if (value is HandleMap.HandleAware<*>) {
       value.setHandleValue(result.handleValue)
@@ -58,7 +54,7 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
   }
 
   @Throws(SQLException::class)
-  override fun get(transaction: DBTransaction, handle: Handle<out V>): V? {
+  override fun get(transaction: TR, handle: Handle<out V>): V? {
     val comparableHandle = Handles.handle(handle)
     if (mPendingCreates.containsKey(comparableHandle)) {
       throw IllegalArgumentException("Pending create") // XXX This is not the best way
@@ -81,7 +77,7 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
   }
 
   @Throws(SQLException::class)
-  override fun castOrGet(transaction: DBTransaction, handle: Handle<out V>): V? {
+  override fun castOrGet(transaction: TR, handle: Handle<out V>): V? {
     val element = elementFactory.asInstance(handle)
     if (element != null) {
       return element
@@ -90,14 +86,14 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
   }
 
   @Throws(SQLException::class)
-  override fun set(transaction: DBTransaction, handle: Handle<out V>, value: V): V? {
+  override fun set(transaction: TR, handle: Handle<out V>, value: V): V? {
     val oldValue = get(transaction, handle)
 
     return set(transaction, handle, oldValue, value)
   }
 
   @Throws(SQLException::class)
-  protected operator fun set(transaction: DBTransaction, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
+  protected operator fun set(transaction: TR, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
     if (oldValue == newValue) {
       return oldValue
     }
@@ -112,7 +108,7 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
     return oldValue
   }
 
-  override fun iterator(transaction: DBTransaction, readOnly: Boolean): MutableAutoCloseableIterator<V> {
+  override fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<V> {
     try {
       return super.iterator(transaction, readOnly)
     } catch (e: SQLException) {
@@ -121,12 +117,12 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
 
   }
 
-  override fun iterable(transaction: DBTransaction): MutableIterable<V> {
+  override fun iterable(transaction: TR): MutableIterable<V> {
     return TransactionIterable(transaction)
   }
 
   @Throws(SQLException::class)
-  override fun containsElement(transaction: DBTransaction, element: Any): Boolean {
+  override fun containsElement(transaction: TR, element: Any): Boolean {
     if (element is Handle<*>) {
       return containsElement(transaction, element.handleValue)
     }
@@ -134,7 +130,7 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
   }
 
   @Throws(SQLException::class)
-  override fun containsAll(transaction: DBTransaction, c: Collection<*>): Boolean {
+  override fun containsAll(transaction: TR, c: Collection<*>): Boolean {
     for (o in c) {
       if (o==null || !containsElement(transaction, o)) {
         return false
@@ -144,7 +140,7 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: DBTransaction, handle: Handle<out V>): Boolean {
+  override fun contains(transaction: TR, handle: Handle<out V>): Boolean {
     val query = database
           .SELECT(database.COUNT(elementFactory.createColumns[0]))
           .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
@@ -159,7 +155,7 @@ open class DBHandleMap<TMP, V:Any>(transactionFactory: TransactionFactory<out DB
   }
 
   @Throws(SQLException::class)
-  override fun remove(transaction: DBTransaction, handle: Handle<out V>): Boolean {
+  override fun remove(transaction: TR, handle: Handle<out V>): Boolean {
     elementFactory.preRemove(transaction, handle)
     return database
           .DELETE_FROM(elementFactory.table)

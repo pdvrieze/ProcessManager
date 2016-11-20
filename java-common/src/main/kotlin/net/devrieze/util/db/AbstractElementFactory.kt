@@ -33,7 +33,7 @@ import java.sql.SQLException
  * *
  * @param  T of the element created / handled
  */
-abstract class AbstractElementFactory<BUILDER, T:Any> : HMElementFactory<BUILDER, T> {
+abstract class AbstractElementFactory<BUILDER, T:Any, TR:DBTransaction> : HMElementFactory<BUILDER, T, TR> {
 
   companion object {
 
@@ -51,21 +51,21 @@ abstract class AbstractElementFactory<BUILDER, T:Any> : HMElementFactory<BUILDER
   }
 
   @Throws(SQLException::class)
-  override fun preRemove(transaction: DBTransaction, handle: Handle<out T>) {
+  override fun preRemove(transaction: TR, handle: Handle<out T>) {
     // Don't do anything
   }
 
   @Throws(SQLException::class)
-  override fun preRemove(transaction: DBTransaction, element: T) {
+  override fun preRemove(transaction: TR, element: T) {
     // Don't do anything
   }
 
-  override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
+  override fun preRemove(transaction: TR, columns: List<Column<*, *, *>>, values: List<Any?>) {
     // Don't do anything
   }
 
   @Throws(SQLException::class)
-  override fun preClear(transaction: DBTransaction) {
+  override fun preClear(transaction: TR) {
     // Don't do anything
   }
 

@@ -22,7 +22,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 import java.security.Principal
 
-abstract class IProcessEngineData<T:Transaction> : TransactionFactory<T> {
+abstract class IProcessEngineData<T:ProcessTransaction<T>> : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
   protected abstract val processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>
   protected abstract val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>
@@ -76,7 +76,7 @@ abstract class IProcessEngineData<T:Transaction> : TransactionFactory<T> {
 
 }
 
-interface ProcessEngineDataAccess<T:Transaction> {
+interface ProcessEngineDataAccess<T:ProcessTransaction<T>> {
   val instances: HandleMap<ProcessInstance<T>>
 
   val nodeInstances: HandleMap<ProcessNodeInstance<T>>
@@ -84,7 +84,7 @@ interface ProcessEngineDataAccess<T:Transaction> {
   val processModels: IProcessModelMapAccess
 }
 
-interface MutableProcessEngineDataAccess<T:Transaction> : ProcessEngineDataAccess<T> {
+interface MutableProcessEngineDataAccess<T:ProcessTransaction<T>> : ProcessEngineDataAccess<T> {
   override val instances: MutableHandleMap<ProcessInstance<T>>
 
   override val nodeInstances: MutableHandleMap<ProcessNodeInstance<T>>

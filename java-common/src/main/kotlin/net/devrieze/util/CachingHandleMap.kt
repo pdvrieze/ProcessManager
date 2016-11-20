@@ -129,10 +129,6 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
     mCacheValues = arrayOfNulls<Any>(cacheSize) as Array<V?>
   }
 
-  override fun newTransaction(): T {
-    return delegate.newTransaction()
-  }
-
   @Throws(SQLException::class)
   override fun <W : V> put(transaction: T, value: W): ComparableHandle<W> {
     val handle = delegate.put(transaction, value)

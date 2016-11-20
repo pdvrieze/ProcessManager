@@ -51,8 +51,6 @@ interface TransactionedHandleMap<V: Any, T : Transaction> {
 
   fun iterator(transaction: T, readOnly: Boolean): AutoCloseableIterator<V>
 
-  fun newTransaction(): T
-
   fun withTransaction(transaction:T):HandleMap<V> = HandleMapForwarder(transaction, this)
 }
 

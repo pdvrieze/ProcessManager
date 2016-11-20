@@ -31,10 +31,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, Transaction, ProcessNodeInstance<Transaction>> {
+class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, T, ProcessNodeInstance<T>> {
 
   var mMessages: MutableList<IXmlMessage> = ArrayList()
-  private val mMessageNodes = ArrayList<Handle<out ProcessNodeInstance<Transaction>>>()
+  private val mMessageNodes = ArrayList<Handle<out ProcessNodeInstance<T>>>()
 
   override fun createMessage(message: IXmlMessage): IXmlMessage {
     return message
@@ -45,7 +45,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     mMessages.clear()
   }
 
-  fun getMessageNode(i: Int): Handle<out ProcessNodeInstance<Transaction>> {
+  fun getMessageNode(i: Int): Handle<out ProcessNodeInstance<T>> {
     return mMessageNodes[i]
   }
 
@@ -53,9 +53,9 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     return mLocalEndpoint
   }
 
-  override fun sendMessage(transaction: Transaction,
+  override fun sendMessage(transaction: T,
                            protoMessage: IXmlMessage,
-                           instance: ProcessNodeInstance<Transaction>): Boolean {
+                           instance: ProcessNodeInstance<T>): Boolean {
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       instance.instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(protoMessage.messageBody), false)

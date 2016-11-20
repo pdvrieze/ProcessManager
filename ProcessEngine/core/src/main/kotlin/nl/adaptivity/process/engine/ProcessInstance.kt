@@ -43,9 +43,9 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>>, XmlSerializable {
+class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>>, XmlSerializable {
 
-  data class Builder<T: Transaction>(var handle: ComparableHandle<ProcessInstance<T>>, var owner: SimplePrincipal, var processModel: ProcessModelImpl, var instancename: String?, var uuid: UUID, var state: State) {
+  data class Builder<T: ProcessTransaction<T>>(var handle: ComparableHandle<ProcessInstance<T>>, var owner: SimplePrincipal, var processModel: ProcessModelImpl, var instancename: String?, var uuid: UUID, var state: State) {
     val children = mutableListOf<Handle<ProcessNodeInstance<T>>>()
     val   inputs = mutableListOf<ProcessData>()
     val  outputs = mutableListOf<ProcessData>()
@@ -118,7 +118,35 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
 
   private constructor(transaction: T, engine: ProcessEngine<T>, builder:Builder<T>):
         this(builder.handle, builder.owner, builder.processModel, builder.instancename, builder.uuid, builder.state, engine) {
-    setChildren(transaction, builder.children)
+
+    val threads = TreeSet<ComparableHandle<out ProcessNodeInstance<T>>>()
+
+    val nodes = builder.children
+          .map { handle ->
+            engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle).apply {
+              if (this is JoinInstance) {
+                mJoins.put(this.node, this.handle)
+              }
+              threads.add(this.handle)
+            }
+          }
+
+    nodes.forEach { instance ->
+      if (instance.node is EndNode<*, *>) {
+        instance.handle.let { handle ->
+          mEndResults.add(handle)
+          threads.remove(handle)
+        }
+      }
+
+      instance.directPredecessors.forEach { pred ->
+        if (threads.remove(pred)) {
+          mFinishedNodes.add(pred)
+        }
+      }
+    }
+    mThreads.addAll(threads)
+
     mInputs.addAll(builder.inputs)
     mOutputs.addAll(builder.outputs)
   }
@@ -162,42 +190,6 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
   }
 
   override fun withPermission() = this
-
-  @Synchronized @Throws(SQLException::class)
-  internal fun setChildren(transaction: T, children: Collection<Handle<out ProcessNodeInstance<T>>>) {
-    mJoins.clear() // TODO proper synchronization
-    mThreads.clear()
-    mFinishedNodes.clear()
-    mEndResults.clear()
-
-    val threads = TreeSet<ComparableHandle<out ProcessNodeInstance<T>>>()
-
-    val nodes = children
-          .map { handle ->
-            engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle).apply {
-              val h = if (this is JoinInstance) { val h2 = this.handle
-                mJoins.put(this.node, h2)
-                h2} else { this.handle }
-              threads.add(h)
-            }
-          }
-
-    nodes.forEach { instance ->
-      if (instance.node is EndNode<*, *>) {
-        instance.handle.let { handle ->
-          mEndResults.add(handle)
-          threads.remove(handle)
-        }
-      }
-
-      instance.directPredecessors.forEach { pred ->
-        if (threads.remove(pred)) {
-          mFinishedNodes.add(pred)
-        }
-      }
-    }
-    mThreads.addAll(threads)
-  }
 
   @Synchronized @Throws(SQLException::class)
   internal fun setThreads(transaction: T, threads: Collection<ComparableHandle<out ProcessNodeInstance<T>>>) {

@@ -48,7 +48,7 @@ import javax.xml.bind.JAXBException
 
 
 class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
-      DBHandleMap<XmlTask, XmlTask>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()), IMutableUserTaskMap<DBTransaction> {
+      DBHandleMap<XmlTask, XmlTask, DBTransaction>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()), IMutableUserTaskMap<DBTransaction> {
 
 
   private class PostTaskFactory : XmlDeserializerFactory<XmlTask> {
@@ -81,7 +81,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
   }
 
 
-  private class UserTaskFactory : AbstractElementFactory<XmlTask, XmlTask>() {
+  private class UserTaskFactory : AbstractElementFactory<XmlTask, XmlTask, DBTransaction>() {
     private var mColNoHandle: Int = 0
     private var mColNoRemoteHandle: Int = 0
 

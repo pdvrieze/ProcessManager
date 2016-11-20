@@ -42,7 +42,7 @@ import javax.xml.transform.Result
 import javax.xml.transform.Source
 
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
-open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
+open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProcessNode,
                                                 predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>,
                                                 val processInstance: ProcessInstance<T>,
                                                 state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>> {
@@ -385,13 +385,13 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
   companion object {
 
     @Throws(XmlException::class)
-    fun <T: Transaction> deserialize(transaction: T, processEngine: ProcessEngine<T>, xmlReader: XmlReader)
+    fun <T: ProcessTransaction<T>> deserialize(transaction: T, processEngine: ProcessEngine<T>, xmlReader: XmlReader)
           = ProcessNodeInstance(transaction, processEngine, XmlProcessNodeInstance.deserialize(xmlReader))
 
     private val logger by lazy { Logger.getLogger(ProcessNodeInstance::class.java.getName()) }
 
     @Throws(SQLException::class)
-    private fun <T:Transaction> resolvePredecessors(transaction: T,
+    private fun <T:ProcessTransaction<T>> resolvePredecessors(transaction: T,
                                     processInstance: ProcessInstance<T>,
                                     node: ExecutableProcessNode): MutableList<ComparableHandle<out ProcessNodeInstance<T>>> {
       val result = ArrayList<ComparableHandle<out ProcessNodeInstance<T>>>()

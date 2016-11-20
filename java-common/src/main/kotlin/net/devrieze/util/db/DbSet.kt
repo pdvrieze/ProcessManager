@@ -31,7 +31,7 @@ import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.sql.DataSource
 
-open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTransaction>, val database: Database, protected open val elementFactory: ElementFactory<TMP, T>) : AutoCloseable, Closeable {
+open class DbSet<TMP, T:Any, TR: DBTransaction>(pTransactionFactory: TransactionFactory<out TR>, val database: Database, protected open val elementFactory: ElementFactory<TMP, T, TR>) : AutoCloseable, Closeable {
 
 
   /**
@@ -51,7 +51,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   }
 
   private inner class ResultSetIterator @Throws(SQLException::class)
-  constructor(private val mTransaction: DBTransaction, private val mStatement: PreparedStatement, private val mColumns:List<Column<*, *, *>>, private val mResultSet: ResultSet) : MutableAutoCloseableIterator<T> {
+  constructor(private val mTransaction: TR, private val mStatement: PreparedStatement, private val mColumns:List<Column<*, *, *>>, private val mResultSet: ResultSet) : MutableAutoCloseableIterator<T> {
     private var mNextElem: T? = null
     private var mFinished = false
     private val mCloseOnFinish: Boolean
@@ -148,7 +148,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   }
 
 
-  protected val transactionFactory: TransactionFactory<out DBTransaction>
+  protected val transactionFactory: TransactionFactory<out TR>
 
   private val mIterators = ArrayList<ResultSetIterator>()
 
@@ -163,7 +163,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   @Deprecated("")
   @SuppressWarnings("resource")
   fun unsafeIterator(pReadOnly: Boolean): MutableAutoCloseableIterator<T> {
-    val transaction: DBTransaction
+    val transaction: TR
     var statement: StatementHelper? = null
     try {
       transaction = transactionFactory.startTransaction()
@@ -202,7 +202,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
 
   @SuppressWarnings("resource")
   @Throws(SQLException::class)
-  open fun iterator(transaction: DBTransaction, readOnly: Boolean): MutableAutoCloseableIterator<T> {
+  open fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<T> {
     try {
       val columns = elementFactory.createColumns
 
@@ -276,7 +276,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  fun remove(transaction: DBTransaction, value: Any): Boolean {
+  fun remove(transaction: TR, value: Any): Boolean {
     elementFactory.asInstance(value)?.let { elem ->
       elementFactory.preRemove(transaction, elem)
       val delete = database.DELETE_FROM(elementFactory.table).WHERE { elementFactory.getPrimaryKeyCondition(this, elem) }
@@ -285,7 +285,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  fun clear(transaction: DBTransaction) {
+  fun clear(transaction: TR) {
     elementFactory.preClear(transaction)
     val delete = database
           .DELETE_FROM(elementFactory.table)
@@ -318,12 +318,12 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  fun isEmpty(pTransaction: DBTransaction): Boolean {
-    (iterator(pTransaction, true) as DbSet<TMP, T>.ResultSetIterator).use { it -> return it.hasNext() }
+  fun isEmpty(pTransaction: TR): Boolean {
+    (iterator(pTransaction, true) as DbSet<TMP, T, TR>.ResultSetIterator).use { it -> return it.hasNext() }
   }
 
   @Throws(SQLException::class)
-  fun removeAll(transaction: DBTransaction, selection: _Where.()-> WhereClause?): Boolean {
+  fun removeAll(transaction: TR, selection: _Where.()-> WhereClause?): Boolean {
     run {
       database
             .SELECT(elementFactory.createColumns)
@@ -342,7 +342,7 @@ open class DbSet<TMP, T:Any>(pTransactionFactory: TransactionFactory<out DBTrans
   }
 
   @Throws(SQLException::class)
-  protected fun <W : T> addWithKey(transaction: DBTransaction, elem: W): ComparableHandle<W>? {
+  protected fun <W : T> addWithKey(transaction: TR, elem: W): ComparableHandle<W>? {
     val stmt = elementFactory.insertStatement(elem)
     return stmt.execute(transaction.connection, elementFactory.keyColumn) {
       it?.let { handle ->

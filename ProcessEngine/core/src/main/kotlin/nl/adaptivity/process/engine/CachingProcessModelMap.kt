@@ -27,7 +27,7 @@ import java.util.UUID
  * Extension to cachingHandleMap that handles the uuids needed for process models.
  * Created by pdvrieze on 20/05/16.
  */
-class CachingProcessModelMap<T : Transaction>(base: IMutableProcessModelMap<T>, cacheSize: Int) : CachingHandleMap<ProcessModelImpl, T>(
+class CachingProcessModelMap<T : ProcessTransaction<T>>(base: IMutableProcessModelMap<T>, cacheSize: Int) : CachingHandleMap<ProcessModelImpl, T>(
       base,
       cacheSize), IMutableProcessModelMap<T> {
 

@@ -27,7 +27,11 @@ import java.util.Iterator;
 /**
  * Created by pdvrieze on 09/12/15.
  */
-public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.MutableTransactionedHandleMap<T, Transaction> {
+public class MemTransactionedHandleMap<T, TR extends StubTransaction> extends MemHandleMap<T> implements net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
+
+  public interface TransactionFactory<TR extends StubTransaction> {
+    TR newTransaction();
+  }
 
   private static class IteratorWrapper<T> implements MutableAutoCloseableIterator<T> {
 
@@ -61,38 +65,38 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public <W extends T> ComparableHandle<W> put(final Transaction transaction, final W value) throws SQLException {
+  public <W extends T> ComparableHandle<W> put(final TR transaction, final W value) throws SQLException {
     final Handle<W> put = put(value);
     return Handles.<W>handle(put);
   }
 
   @Override
-  public T get(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
+  public T get(final TR transaction, final Handle<? extends T> handle) throws SQLException {
     return get(handle);
   }
 
   @Override
-  public T castOrGet(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
+  public T castOrGet(final TR transaction, final Handle<? extends T> handle) throws SQLException {
     return get(handle);
   }
 
   @Override
-  public T set(final Transaction transaction, final Handle<? extends T> handle, final T value) throws SQLException {
+  public T set(final TR transaction, final Handle<? extends T> handle, final T value) throws SQLException {
     return set(handle, value);
   }
 
   @Override
-  public Iterable<T> iterable(final Transaction transaction) {
+  public Iterable<T> iterable(final TR transaction) {
     return this;
   }
 
   @Override
-  public MutableAutoCloseableIterator<T> iterator(final Transaction transaction, final boolean readOnly) {
+  public MutableAutoCloseableIterator<T> iterator(final TR transaction, final boolean readOnly) {
     return new IteratorWrapper(iterator(), readOnly);
   }
 
   @Override
-  public boolean containsAll(final Transaction transaction, final Collection<?> c) throws SQLException {
+  public boolean containsAll(final TR transaction, final Collection<?> c) throws SQLException {
     for(Object o: c) {
       if (! containsElement(o)) { return false; }
     }
@@ -100,22 +104,17 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   }
 
   @Override
-  public Transaction newTransaction() {
-    return new StubTransaction();
-  }
-
-  @Override
-  public boolean containsElement(final Transaction transaction, final Object element) throws SQLException {
+  public boolean containsElement(final TR transaction, final Object element) throws SQLException {
     return containsElement(element);
   }
 
   @Override
-  public boolean contains(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
+  public boolean contains(final TR transaction, final Handle<? extends T> handle) throws SQLException {
     return contains(handle);
   }
 
   @Override
-  public boolean remove(final Transaction transaction, final Handle<? extends T> handle) throws SQLException {
+  public boolean remove(final TR transaction, final Handle<? extends T> handle) throws SQLException {
     return remove(handle);
   }
 
@@ -126,13 +125,13 @@ public class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net
   public void invalidateCache() { /* No-op */ }
 
   @Override
-  public void clear(final Transaction transaction) throws SQLException {
+  public void clear(final TR transaction) throws SQLException {
     clear();
   }
 
   @NotNull
   @Override
-  public MutableHandleMap<T> withTransaction(@NotNull final Transaction transaction) {
+  public MutableHandleMap<T> withTransaction(@NotNull final TR transaction) {
     return new MutableHandleMapForwarder(transaction, this);
   }
 }

@@ -26,10 +26,10 @@ import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModel
 import java.util.*
 
 
-internal class ProcessModelMap(transactionFactory: TransactionFactory<DBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ProcessModelImpl, ProcessModelImpl>(
-      transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<DBTransaction> {
+internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ProcessModelImpl, ProcessModelImpl, ProcessDBTransaction>(
+      transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<ProcessDBTransaction> {
 
-  override fun getModelWithUuid(transaction: DBTransaction, uuid: UUID): Handle<ProcessModelImpl>? {
+  override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<ProcessModelImpl>? {
     val candidates = ProcessEngineDB
           .SELECT(processModels.pmhandle)
           .WHERE { processModels.model LIKE "%${uuid.toString()}%" }
@@ -47,7 +47,7 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<DBTransact
   override val elementFactory: ProcessModelFactory
     get() = super.elementFactory as ProcessModelFactory
 
-  override fun <W : ProcessModelImpl> put(transaction: DBTransaction, value: W): ComparableHandle<W> {
+  override fun <W : ProcessModelImpl> put(transaction: ProcessDBTransaction, value: W): ComparableHandle<W> {
     value.cacheStrings(elementFactory.stringCache)
     return super.put(transaction, value)
   }

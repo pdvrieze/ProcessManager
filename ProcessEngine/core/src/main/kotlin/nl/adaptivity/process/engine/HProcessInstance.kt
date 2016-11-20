@@ -25,7 +25,7 @@ import nl.adaptivity.xml.*
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessInstance.Factory::class)
-class HProcessInstance<T : Transaction>(handle: Handle<ProcessInstance<T>>) : XmlHandle<ProcessInstance<T>>(handle) {
+class HProcessInstance<T : ProcessTransaction<T>>(handle: Handle<ProcessInstance<T>>) : XmlHandle<ProcessInstance<T>>(handle) {
 
   class Factory : XmlDeserializerFactory<HProcessInstance<*>> {
 
@@ -57,7 +57,8 @@ class HProcessInstance<T : Transaction>(handle: Handle<ProcessInstance<T>>) : Xm
 
     @Throws(XmlException::class)
     private fun deserialize(xmlReader: XmlReader): HProcessInstance<*> {
-      return HProcessInstance<Transaction>().deserializeHelper(xmlReader)
+      // For some reason a transactiontype is needed here even though it is dropped
+      return HProcessInstance<ProcessDBTransaction>().deserializeHelper(xmlReader)
     }
   }
 

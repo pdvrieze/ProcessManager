@@ -17,11 +17,7 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Handle;
-import net.devrieze.util.MutableHandleMap;
-import net.devrieze.util.MutableHandleMapForwarder;
-import net.devrieze.util.Transaction;
 import nl.adaptivity.process.MemTransactionedHandleMap;
-import nl.adaptivity.process.engine.IMutableProcessModelMap.DefaultImpls;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,10 +27,14 @@ import java.util.UUID;
 /**
  * Created by pdvrieze on 07/05/16.
  */
-public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelImpl> implements IMutableProcessModelMap<Transaction> {
+public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelImpl, StubProcessTransaction> implements IMutableProcessModelMap<StubProcessTransaction> {
+
+  public MemProcessModelMap() {
+    super();
+  }
 
   @Override
-  public Handle<ProcessModelImpl> getModelWithUuid(final Transaction transaction, final UUID uuid) {
+  public Handle<ProcessModelImpl> getModelWithUuid(final StubProcessTransaction transaction, final UUID uuid) {
     for(ProcessModelImpl candidate:this) {
       if (uuid.equals(candidate.getUuid())) {
         return candidate.getHandle();
@@ -46,7 +46,7 @@ public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelIm
 
   @NotNull
   @Override
-  public IMutableProcessModelMapAccess withTransaction(@NotNull final Transaction transaction) {
+  public IMutableProcessModelMapAccess withTransaction(@NotNull final StubProcessTransaction transaction) {
     return IProcessModelMapKt.defaultWithTransaction(this, transaction);
   }
 

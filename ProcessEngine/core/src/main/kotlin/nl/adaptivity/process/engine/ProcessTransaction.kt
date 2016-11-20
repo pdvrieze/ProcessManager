@@ -14,25 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.db
+package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
 import net.devrieze.util.Transaction
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import java.sql.PreparedStatement
-import java.sql.SQLException
 
-interface HMElementFactory<BUILDER, T:Any, TR:DBTransaction> : ElementFactory<BUILDER, T, TR> {
-  fun getHandleCondition(where: Database._Where,
-                         handle: Handle<out T>): Database.WhereClause?
+/**
+ * Created by pdvrieze on 20/11/16.
+ */
+interface ProcessTransaction<T: ProcessTransaction<T>> : Transaction {
+  val readableEngineData: ProcessEngineDataAccess<T>
+  val writableEngineData: MutableProcessEngineDataAccess<T>
+}
 
-  /**
-   * Called before removing an element with the given handle
-   * @throws SQLException When something goes wrong.
-   */
-  @Throws(SQLException::class)
-  fun preRemove(transaction: TR, handle: Handle<out T>)
-
-
+interface ProcessTransactionFactory<T: ProcessTransaction<T>> {
+  fun startTransaction(engineData: IProcessEngineData<T>): T;
 }

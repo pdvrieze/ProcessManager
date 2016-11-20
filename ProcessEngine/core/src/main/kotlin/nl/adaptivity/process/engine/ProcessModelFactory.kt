@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
 import net.devrieze.util.db.AbstractElementFactory
-import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
@@ -36,7 +35,7 @@ import java.io.StringReader
 /**
  * A factory to create process models from the database.
  */
-internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl, ProcessModelImpl>() {
+internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl, ProcessModelImpl, ProcessDBTransaction>() {
   private var mColNoOwner: Int = 0
   private var mColNoModel: Int = 0
   private var mColNoHandle: Int = 0
@@ -47,7 +46,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   override val createColumns: List<Column<*, *, *>>
     get() = listOf(pm.pmhandle, pm.owner, pm.model)
 
-  override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessModelImpl {
+  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessModelImpl {
     val owner = pm.owner.value(columns, values)?.let { SimplePrincipal(it) }
     val handle = pm.pmhandle.value(columns, values)!!
     return pm.model.value(columns, values)
@@ -63,7 +62,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     }
   }
 
-  override fun postCreate(transaction: DBTransaction, builder: ProcessModelImpl): ProcessModelImpl {
+  override fun postCreate(transaction: ProcessDBTransaction, builder: ProcessModelImpl): ProcessModelImpl {
     return builder
   }
 

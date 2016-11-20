@@ -22,13 +22,14 @@ import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.processModel.engine.JoinImpl
 import nl.adaptivity.process.util.Identifiable
 import java.sql.SQLException
 import java.util.*
 
 
-class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
+class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
   constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) :
         super(node, predecessors, processInstance, state) {

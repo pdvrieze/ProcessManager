@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
-import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.OwnerOnlySecurityProvider
 import net.devrieze.util.security.SecureObject
@@ -63,7 +62,7 @@ private const val NODE_CACHE_SIZE = 100
 private const val INSTANCE_CACHE_SIZE = 10
 
 
-private fun <T : Transaction, V:Any> wrapCache(base: MutableTransactionedHandleMap<V, T>,
+private fun <T : ProcessTransaction<T>, V:Any> wrapCache(base: MutableTransactionedHandleMap<V, T>,
                                                cacheSize: Int): MutableTransactionedHandleMap<V, T> {
   if (cacheSize <= 0) {
     return base
@@ -71,7 +70,7 @@ private fun <T : Transaction, V:Any> wrapCache(base: MutableTransactionedHandleM
   return CachingHandleMap<V, T>(base, cacheSize)
 }
 
-private fun <T : Transaction, V:Any> wrapCache(base: IMutableProcessModelMap<T>,
+private fun <T : ProcessTransaction<T>, V:Any> wrapCache(base: IMutableProcessModelMap<T>,
                                                cacheSize: Int): IMutableProcessModelMap<T> {
   if (cacheSize <= 0) {
     return base
@@ -83,13 +82,13 @@ private fun <T : Transaction, V:Any> wrapCache(base: IMutableProcessModelMap<T>,
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
+class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
 
-  class DelegateProcessEngineData<T: Transaction>(
-        private val transactionFactory: TransactionFactory<T>,
+  class DelegateProcessEngineData<T: ProcessTransaction<T>>(
+        private val transactionFactory: ProcessTransactionFactory<T>,
         override val processModels: IMutableProcessModelMap<T>,
         override val processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>,
-        override val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>) : IProcessEngineData<T>(), TransactionFactory<T> by transactionFactory{
+        override val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
 
     private inner class DelegateEngineDataAccess(private val transaction: T) : MutableProcessEngineDataAccess<T> {
       override val instances: MutableHandleMap<ProcessInstance<T>>
@@ -105,15 +104,25 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
     }
 
     override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<T> = DelegateEngineDataAccess(transaction)
+
+    override fun startTransaction(): T = transactionFactory.startTransaction(this)
+
+    override fun getConnection(): Connection {
+      throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun isValidTransaction(pTransaction: Transaction?): Boolean {
+      return pTransaction is ProcessTransaction<*> && pTransaction.readableEngineData==this
+    }
   }
 
-  class DBProcessEngineData : IProcessEngineData<DBTransaction>() {
+  class DBProcessEngineData : IProcessEngineData<ProcessDBTransaction>() {
 
 
-    private inner class DBEngineDataAccess(private val transaction: DBTransaction) : MutableProcessEngineDataAccess<DBTransaction> {
-      override val instances: MutableHandleMap<ProcessInstance<DBTransaction>>
+    private inner class DBEngineDataAccess(private val transaction: ProcessDBTransaction) : MutableProcessEngineDataAccess<ProcessDBTransaction> {
+      override val instances: MutableHandleMap<ProcessInstance<ProcessDBTransaction>>
         get() = this@DBProcessEngineData.processInstances.withTransaction(transaction)
-      override val nodeInstances: MutableHandleMap<ProcessNodeInstance<DBTransaction>>
+      override val nodeInstances: MutableHandleMap<ProcessNodeInstance<ProcessDBTransaction>>
         get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
@@ -129,20 +138,20 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
       DbSet.resourceNameToDataSource(context, DB_RESOURCE)
     }
 
-    lateinit var engine : ProcessEngine<DBTransaction>
+    lateinit var engine : ProcessEngine<ProcessDBTransaction>
 
     override val processInstances by lazy { wrapCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE) }
 
     override val processNodeInstances by lazy { wrapCache(ProcessNodeInstanceMap(this, engine), NODE_CACHE_SIZE) }
 
-    override val processModels = wrapCache<DBTransaction, Any>(ProcessModelMap(this), MODEL_CACHE_SIZE)
+    override val processModels = wrapCache<ProcessDBTransaction, Any>(ProcessModelMap(this), MODEL_CACHE_SIZE)
 
-    override fun createWriteDelegate(transaction: DBTransaction): MutableProcessEngineDataAccess<DBTransaction> {
+    override fun createWriteDelegate(transaction: ProcessDBTransaction): MutableProcessEngineDataAccess<ProcessDBTransaction> {
       return DBEngineDataAccess(transaction)
     }
 
-    override fun startTransaction(): DBTransaction {
-      return DBTransaction(dbResource, ProcessEngineDB)
+    override fun startTransaction(): ProcessDBTransaction {
+      return ProcessDBTransaction(dbResource, ProcessEngineDB, this)
     }
 
     @Throws(SQLException::class)
@@ -151,7 +160,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
     }
 
     override fun isValidTransaction(transaction: Transaction): Boolean {
-      return transaction is DBTransaction
+      return transaction is ProcessDBTransaction
     }
   }
 
@@ -754,7 +763,7 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
     val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
     @JvmStatic
-    fun newInstance(messageService: IMessageService<*, DBTransaction, ProcessNodeInstance<DBTransaction>>): ProcessEngine<*> {
+    fun newInstance(messageService: IMessageService<*, ProcessDBTransaction, ProcessNodeInstance<ProcessDBTransaction>>): ProcessEngine<*> {
       // TODO enable optional caching
       val engineData = DBProcessEngineData()
       val pe = ProcessEngine(messageService, engineData, engineData)
@@ -764,8 +773,8 @@ class ProcessEngine<T : Transaction> /* implements IProcessEngine */ {
 
     @JvmStatic
     @JvmName("newTestInstance")
-    internal fun <T : Transaction> newTestInstance(messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                                                   transactionFactory: TransactionFactory<T>,
+    internal fun <T : ProcessTransaction<T>> newTestInstance(messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
+                                                   transactionFactory: ProcessTransactionFactory<T>,
                                                    processModels: IMutableProcessModelMap<T>,
                                                    processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>,
                                                    processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>,

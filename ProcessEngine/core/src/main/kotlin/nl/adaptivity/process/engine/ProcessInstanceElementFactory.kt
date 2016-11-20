@@ -37,10 +37,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 30/05/16.
  */
-internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<DBTransaction>) : AbstractElementFactory<ProcessInstance.Builder<DBTransaction>, ProcessInstance<DBTransaction>>() {
+internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.Builder<ProcessDBTransaction>, ProcessInstance<ProcessDBTransaction>, ProcessDBTransaction>() {
 
   override fun getHandleCondition(where: Database._Where,
-                                  handle: Handle<out ProcessInstance<DBTransaction>>): Database.WhereClause? {
+                                  handle: Handle<out ProcessInstance<ProcessDBTransaction>>): Database.WhereClause? {
     return where.run { pi.pihandle eq handle.handleValue }
   }
 
@@ -50,16 +50,16 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   override val createColumns: List<Column<*, *, *>>
     get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid)
 
-  override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.Builder<DBTransaction> {
+  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.Builder<ProcessDBTransaction> {
     val owner = SimplePrincipal(pi.owner.value(columns, values))
     val hProcessModel = Handles.handle<ProcessModelImpl>(pi.pmhandle.value(columns, values)!!)
-    val processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
+    val processModel = mProcessEngine.getProcessModel(transaction as ProcessDBTransaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
     val instancename = pi.name.value(columns, values)
-    val piHandle = Handles.handle<ProcessInstance<DBTransaction>>(pi.pihandle.value(columns, values)!!)
+    val piHandle = Handles.handle<ProcessInstance<ProcessDBTransaction>>(pi.pihandle.value(columns, values)!!)
     val state = toState(pi.state.value(columns, values))
     val uuid = toUUID(pi.uuid.value(columns, values)) ?: throw IllegalStateException("Missing UUID")
 
-    return ProcessInstance.Builder<DBTransaction>(piHandle, owner, processModel, instancename, uuid, state)
+    return ProcessInstance.Builder<ProcessDBTransaction>(piHandle, owner, processModel, instancename, uuid, state)
   }
 
   private fun toUUID(string: String?): UUID? {
@@ -69,7 +69,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     return UUID.fromString(string)
   }
 
-  override fun postCreate(transaction: DBTransaction, builder: ProcessInstance.Builder<DBTransaction>):ProcessInstance<DBTransaction> {
+  override fun postCreate(transaction: ProcessDBTransaction, builder: ProcessInstance.Builder<ProcessDBTransaction>):ProcessInstance<ProcessDBTransaction> {
     val handleValue = builder.handle.handleValue
     ProcessEngineDB
           .SELECT(pni.pnihandle)
@@ -77,7 +77,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .mapTo(builder.children.apply { clear() }) {Handles.handle<ProcessNodeInstance<DBTransaction>>(it) }
+          .mapTo(builder.children.apply { clear() }) {Handles.handle<ProcessNodeInstance<ProcessDBTransaction>>(it) }
 
     run {
 
@@ -99,16 +99,15 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     return builder.build(transaction, mProcessEngine)
   }
 
-  override fun preRemove(transaction: DBTransaction, element: ProcessInstance<DBTransaction>) {
+  override fun preRemove(transaction: ProcessDBTransaction, element: ProcessInstance<ProcessDBTransaction>) {
     preRemove(transaction, element.handle)
   }
 
-  override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    val handle = Handles.handle<ProcessInstance<DBTransaction>>(pi.pihandle.value(columns, values)!!)
-    preRemove(transaction, handle)
+  override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
+    preRemove(transaction, Handles.handle(pi.pihandle.value(columns, values)!!))
   }
 
-  override fun preRemove(transaction: DBTransaction, handle: Handle<out ProcessInstance<DBTransaction>>) {
+  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out ProcessInstance<ProcessDBTransaction>>) {
     ProcessEngineDB
           .DELETE_FROM(id)
           .WHERE { id.pihandle eq handle.handleValue }
@@ -120,37 +119,37 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .map { Handles.handle<ProcessNodeInstance<DBTransaction>>(it) }
+          .map { Handles.handle<ProcessNodeInstance<ProcessDBTransaction>>(it) }
 
     for (node in nodes) { // Delete through the process engine so caches get invalidated.
       mProcessEngine.removeNodeInstance(transaction, node)
     }
   }
 
-  override fun preClear(transaction: DBTransaction) {
+  override fun preClear(transaction: ProcessDBTransaction) {
     throw UnsupportedOperationException("Clearing the instance database is not supported at this point")
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where,
-                                      instance: ProcessInstance<DBTransaction>): Database.WhereClause? {
+                                      instance: ProcessInstance<ProcessDBTransaction>): Database.WhereClause? {
     return getHandleCondition(where, instance.handle)
   }
 
-  override fun asInstance(obj: Any): ProcessInstance<DBTransaction>? {
+  override fun asInstance(obj: Any): ProcessInstance<ProcessDBTransaction>? {
     @Suppress("UNCHECKED_CAST")
-    return obj as? ProcessInstance<DBTransaction>
+    return obj as? ProcessInstance<ProcessDBTransaction>
   }
 
-  override fun insertStatement(value: ProcessInstance<DBTransaction>): Database.Insert {
+  override fun insertStatement(value: ProcessInstance<ProcessDBTransaction>): Database.Insert {
     return ProcessEngineDB
           .INSERT(pi.pmhandle, pi.name, pi.owner, pi.state, pi.uuid)
-          .VALUES(value.processModel.handleValue, value.name, value.owner.name, value.state?.name, value.uuid?.toString())
+          .VALUES(value.processModel.handleValue, value.name, value.owner.name, value.state?.name, value.uuid.toString())
   }
 
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
     get() = pi.pihandle
 
-  override fun store(update: Database._UpdateBuilder, value: ProcessInstance<DBTransaction>) {
+  override fun store(update: Database._UpdateBuilder, value: ProcessInstance<ProcessDBTransaction>) {
     update.run {
       SET(pi.pmhandle, value.processModel.handleValue)
       SET(pi.name, value.name)

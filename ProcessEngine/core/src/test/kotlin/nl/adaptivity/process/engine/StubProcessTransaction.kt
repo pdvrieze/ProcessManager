@@ -16,11 +16,14 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.TransactionFactory
-import net.devrieze.util.db.DBHandleMap
-import net.devrieze.util.db.DBTransaction
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
+import nl.adaptivity.process.StubTransaction
 
-
-internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessInstance.Builder<ProcessDBTransaction>, ProcessInstance<ProcessDBTransaction>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))
+/**
+ * Created by pdvrieze on 20/11/16.
+ */
+class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction>) : StubTransaction(), ProcessTransaction<StubProcessTransaction> {
+  override val readableEngineData: ProcessEngineDataAccess<StubProcessTransaction>
+    get() = engineData.createReadDelegate(this)
+  override val writableEngineData: MutableProcessEngineDataAccess<StubProcessTransaction>
+    get() = engineData.createWriteDelegate(this)
+}

@@ -21,8 +21,9 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.MemTransactionedHandleMap;
-import nl.adaptivity.process.StubTransaction;
 import nl.adaptivity.process.StubTransactionFactory;
+import nl.adaptivity.process.engine.ProcessEngine.Companion;
+import nl.adaptivity.process.engine.ProcessEngine.DelegateProcessEngineData;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -32,6 +33,7 @@ import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
+import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -67,15 +69,21 @@ public class TestProcessEngine {
 
   private static DocumentBuilder _documentBuilder;
 
-  ProcessEngine<Transaction> mProcessEngine;
+  ProcessEngine<StubProcessTransaction> mProcessEngine;
   private StubMessageService mStubMessageService;
   private final EndpointDescriptor mLocalEndpoint = new EndpointDescriptorImpl(QName.valueOf("processEngine"),"processEngine", URI.create("http://localhost/"));
-  private StubTransactionFactory mStubTransactionFactory;
+  private ProcessTransactionFactory<StubProcessTransaction> mStubTransactionFactory;
   private SimplePrincipal mPrincipal;
 
   public TestProcessEngine() {
     mStubMessageService = new StubMessageService(mLocalEndpoint);
-    mStubTransactionFactory = new StubTransactionFactory();
+    mStubTransactionFactory = new ProcessTransactionFactory<StubProcessTransaction>() {
+      @NotNull
+      @Override
+      public StubProcessTransaction startTransaction(@NotNull final IProcessEngineData<StubProcessTransaction> engineData) {
+        return new StubProcessTransaction(engineData);
+      }
+    };
     mPrincipal = new SimplePrincipal("pdvrieze");
   }
 
@@ -112,18 +120,24 @@ public class TestProcessEngine {
     }
   }
 
-  private static <V> MutableTransactionedHandleMap<V,Transaction> cache(MutableTransactionedHandleMap<V,Transaction> base, int count) {
+  private static <V> MutableTransactionedHandleMap<V,StubProcessTransaction> cache(MutableTransactionedHandleMap<V,StubProcessTransaction> base, int count) {
     return new CachingHandleMap<>(base, count);
   }
 
-  private static <V> IMutableProcessModelMap<Transaction> cache(IMutableProcessModelMap<Transaction> base, int count) {
+  private static <V> IMutableProcessModelMap<StubProcessTransaction> cache(IMutableProcessModelMap<StubProcessTransaction> base, int count) {
     return new CachingProcessModelMap<>(base, count);
   }
 
   @BeforeMethod
   public void beforeTest() {
     mStubMessageService.clear();
-    mProcessEngine = ProcessEngine.Companion.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<Transaction>>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<Transaction>>(), 2), true);
+//    DelegateProcessEngineData<StubProcessTransaction> engineData =
+//            new DelegateProcessEngineData<>(mStubTransactionFactory,
+//                                            cache(new MemProcessModelMap(), 1),
+//                                            cache(new MemTransactionedHandleMap<>(), 1),
+//                                            cache(new MemTransactionedHandleMap<>(), 2));
+
+    mProcessEngine = ProcessEngine.Companion.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<StubProcessTransaction>, StubProcessTransaction>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<StubProcessTransaction>, StubProcessTransaction>(), 2), true);
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {
@@ -160,7 +174,7 @@ public class TestProcessEngine {
   @Test
   public void testExecuteSingleActivity() throws Exception {
     ProcessModelImpl model = getProcessModel("testModel1.xml");
-    StubTransaction transaction = mStubTransactionFactory.startTransaction();
+    StubProcessTransaction transaction = mProcessEngine.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
     HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
@@ -186,13 +200,13 @@ public class TestProcessEngine {
 
     }
 
-    ProcessInstance<Transaction> processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
+    ProcessInstance<StubProcessTransaction> processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
     assertEquals(processInstance.getState(), STARTED);
 
     assertEquals(processInstance.getActive().size(), 1);
     assertEquals(processInstance.getFinished().size(), 1);
-    Handle<? extends ProcessNodeInstance<Transaction>> hfinished = processInstance.getFinished().iterator().next();
-    ProcessNodeInstance<Transaction> finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
+    Handle<? extends ProcessNodeInstance<StubProcessTransaction>> hfinished = processInstance.getFinished().iterator().next();
+    ProcessNodeInstance<StubProcessTransaction> finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
     assertTrue(finished.getNode() instanceof StartNodeImpl);;
     assertEquals(finished.getNode().getId(), "start");
 
@@ -212,7 +226,7 @@ public class TestProcessEngine {
   @Test
   public void testGetDataFromTask() throws Exception {
     ProcessModelImpl model = getProcessModel("testModel2.xml");
-    StubTransaction transaction = mStubTransactionFactory.startTransaction();
+    StubProcessTransaction transaction = mProcessEngine.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
     HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
@@ -223,7 +237,7 @@ public class TestProcessEngine {
     assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(serializeToXmlCharArray(mStubMessageService
                                                                                                                               .getMMessages()
                                                                                                                               .get(0))));
-    ProcessNodeInstance<Transaction> ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);// This should be 0 as it's the first activity
+    ProcessNodeInstance<StubProcessTransaction> ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);// This should be 0 as it's the first activity
 
 
     mStubMessageService.clear(); // (Process the message)

@@ -25,11 +25,8 @@ import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.MessagingFormatException;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
-import nl.adaptivity.process.engine.XmlHandle;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
@@ -99,7 +96,7 @@ import java.util.logging.Logger;
 //             interfaceLocalname = "soap",
 //             interfacePrefix = "pe",
 //             serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
-public class ServletProcessEngine<T extends Transaction> extends EndpointServlet implements GenericEndpoint {
+public class ServletProcessEngine<T extends ProcessTransaction<T>> extends EndpointServlet implements GenericEndpoint {
 
   public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage, T, ProcessNodeInstance<T>> {
 
@@ -429,7 +426,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     }
 
 
-    public void setHandle(Transaction transaction, final ProcessNodeInstance nodeInstance) throws SQLException {
+    public <T extends ProcessTransaction<T>> void setHandle(T transaction, final ProcessNodeInstance<T> nodeInstance) throws SQLException {
       mNodeInstance = nodeInstance;
 
       try {

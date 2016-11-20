@@ -27,7 +27,7 @@ import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
 
-interface ElementFactory<BUILDER, T:Any> {
+interface ElementFactory<BUILDER, T:Any, TR: DBTransaction> {
 
   val table: Table
 
@@ -51,7 +51,7 @@ interface ElementFactory<BUILDER, T:Any> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): BUILDER
+  fun create(transaction: TR, columns: List<Column<*, *, *>>, values: List<Any?>): BUILDER
 
   /**
    * Hook to allow for subsequent queries
@@ -62,7 +62,7 @@ interface ElementFactory<BUILDER, T:Any> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun postCreate(transaction: DBTransaction, builder: BUILDER): T
+  fun postCreate(transaction: TR, builder: BUILDER): T
 
   /**
    * Get an SQL condition that would select the given object.
@@ -90,7 +90,7 @@ interface ElementFactory<BUILDER, T:Any> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preRemove(transaction: DBTransaction, element: T)
+  fun preRemove(transaction: TR, element: T)
 
   /**
    * This method is called before an element is removed. This method
@@ -105,7 +105,7 @@ interface ElementFactory<BUILDER, T:Any> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preRemove(transaction: DBTransaction, columns:List<Column<*,*,*>>, values: List<Any?>)
+  fun preRemove(transaction: TR, columns:List<Column<*,*,*>>, values: List<Any?>)
 
   /**
    * This method is clear before the collection is cleared out. This allows
@@ -115,7 +115,7 @@ interface ElementFactory<BUILDER, T:Any> {
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preClear(transaction: DBTransaction)
+  fun preClear(transaction: TR)
 
   fun insertStatement(value:T): Database.Insert
 
