@@ -34,12 +34,8 @@ class JoinInstance<T : Transaction> : ProcessNodeInstance<T> {
         super(node, predecessors, processInstance, state) {
   }
 
-  @Throws(SQLException::class)
-  constructor(transaction: T, node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>) : super(
-        node,
-        predecessors,
-        processInstance) {
-  }
+  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>)
+        : super(node, predecessors, processInstance)
 
   /**
    * Constructor for ProcessNodeInstanceMap.

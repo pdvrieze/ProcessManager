@@ -228,12 +228,12 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     get() = mEndResults.size
 
   @Synchronized @Throws(SQLException::class)
-  fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): JoinInstance<T> {
+  private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): JoinInstance<T> {
     synchronized(mJoins) {
       return mJoins[join]?.let {
         engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL) as JoinInstance<T>?
       }?.apply { addPredecessor(transaction, predecessor) } ?: run {
-        return JoinInstance(transaction, join, listOf(predecessor), this).apply {
+        return JoinInstance(join, listOf(predecessor), this).apply {
           mJoins.put(join, engine.registerNodeInstance<JoinInstance<T>>(transaction, this))
         }
       }
