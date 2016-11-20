@@ -105,6 +105,12 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
     setExports(basepm.getExports());
   }
 
+  @NotNull
+  @Override
+  public M withPermission() {
+    return asM();
+  }
+
   public boolean deserializeChild(final DeserializationFactory<T, M> factory, @NotNull final XmlReader in) throws XmlException {
     if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {

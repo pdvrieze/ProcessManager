@@ -45,7 +45,7 @@ import javax.xml.transform.Source
 open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
                                                 predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>,
                                                 val processInstance: ProcessInstance<T>,
-                                                state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject {
+                                                state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>> {
 
   class Factory : XmlDeserializerFactory<XmlProcessNodeInstance> {
 
@@ -108,6 +108,8 @@ open class ProcessNodeInstance<T : Transaction>(node: ExecutableProcessNode,
                                               SecurityProvider.SYSTEMPRINCIPAL),
              nodeInstance.state ?: throw NullPointerException("Missing state")) {
   }
+
+  override fun withPermission() = this
 
   /** Add the node as predecessor if not added yet.  */
   fun ensurePredecessor(handle: ComparableHandle<out ProcessNodeInstance<T>>) {

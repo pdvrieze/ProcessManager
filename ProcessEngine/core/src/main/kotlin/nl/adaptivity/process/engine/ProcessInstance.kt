@@ -41,7 +41,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, SecureObject, XmlSerializable {
+class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>>, XmlSerializable {
 
   enum class State {
     NEW,
@@ -142,6 +142,8 @@ class ProcessInstance<T : Transaction> : HandleAware<ProcessInstance<T>>, Secure
     mFinishedNodes = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
     this.state = state ?: State.NEW
   }
+
+  override fun withPermission() = this
 
   @Synchronized @Throws(SQLException::class)
   internal fun setChildren(transaction: T, children: Collection<Handle<out ProcessNodeInstance<T>>>) {

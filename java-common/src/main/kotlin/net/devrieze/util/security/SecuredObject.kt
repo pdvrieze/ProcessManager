@@ -16,23 +16,18 @@
 
 package net.devrieze.util.security
 
-import net.devrieze.util.security.SecurityProvider.Permission
-
 import java.security.Principal
 
+/**
+ * Interface for objects that will provide interface access with a permission.
+ */
 
-interface SecureObject<T:Any> :SecuredObject<T> {
+interface SecuredObject<T:Any> {
+  fun withPermission():T
+}
 
-  enum class Permissions : Permission {
-    READ,
-    RENAME,
-    UPDATE,
-    DELETE
-  }
-
-  /**
-   * The owner of the object. Null values are not allowed. All unowned objects can have [SecurityProvider.SYSTEMPRINCIPAL] as owner.
-   */
-  val owner: Principal
-
+fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: SecurityProvider.Permission, subject:Principal, body: (T)->R):R {
+  val o = withPermission()
+  securityProvider.ensurePermission(permission, subject, o)
+  return body(o)
 }

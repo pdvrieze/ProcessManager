@@ -48,7 +48,7 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, ProcessModelImpl> implements HandleAware<ProcessModelImpl>, SecureObject {
+public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, ProcessModelImpl> implements HandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
 
   public enum Permissions implements SecurityProvider.Permission {
     INSTANTIATE

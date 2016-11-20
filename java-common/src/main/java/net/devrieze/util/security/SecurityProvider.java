@@ -114,9 +114,9 @@ public interface SecurityProvider {
    * @return <code>true</code> if the user has the permission,
    *         <code>false</code> if not.
    */
-  boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject secureObject);
+  boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject<?> secureObject);
 
-  PermissionResult getPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject secureObject);
+  PermissionResult getPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject<?> secureObject);
 
   /**
    * Determine whether the user has the given permission.

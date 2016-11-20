@@ -24,7 +24,7 @@ import java.security.Principal;
 public final class DenyingSecurityProvider extends BaseSecurityProvider {
 
   @Override
-  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject<?> secureObject) {
     return subject==SYSTEMPRINCIPAL ? PermissionResult.GRANTED : subject==null ? PermissionResult.UNAUTHENTICATED : PermissionResult.DENIED;
   }
 

@@ -30,7 +30,7 @@ import java.util.UUID;
 
 
 @XmlDeserializer(ProcessModelImpl.Factory.class)
-public interface ProcessModel<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends SecureObject {
+public interface ProcessModel<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends SecureObject<M> {
 
   /**
    * Get the UUID for this process model.

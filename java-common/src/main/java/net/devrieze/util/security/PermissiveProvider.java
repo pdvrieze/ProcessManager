@@ -29,7 +29,7 @@ import java.security.Principal;
 public class PermissiveProvider extends BaseSecurityProvider {
 
   @Override
-  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+  public PermissionResult getPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject<?> secureObject) {
     return PermissionResult.GRANTED;
   }
 
