@@ -16,9 +16,11 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.*
+import net.devrieze.util.ArraySet
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.HandleMap.HandleAware
-import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.Handles
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -119,7 +121,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   private constructor(transaction: T, engine: ProcessEngine<T>, builder:Builder<T>):
         this(builder.handle, builder.owner, builder.processModel, builder.instancename, builder.uuid, builder.state, engine) {
 
-    val threads = TreeSet<ComparableHandle<out ProcessNodeInstance<T>>>()
+    val threads = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>()
 
     val nodes = builder.children
           .map { handle ->
@@ -238,7 +240,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     get() = mEndResults.size
 
   @Synchronized @Throws(SQLException::class)
-  private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): JoinInstance<T> {
+  private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): JoinInstance<T> {
     synchronized(mJoins) {
       return mJoins[join]?.let {
         engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL) as JoinInstance<T>?
@@ -456,12 +458,12 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getDirectSuccessors(transaction: T, predecessor: ProcessNodeInstance<T>): Collection<Handle<out ProcessNodeInstance<T>>> {
+  fun getDirectSuccessors(transaction: T, predecessor: ProcessNodeInstance<T>): Collection<Handle<out SecureObject<ProcessNodeInstance<T>>>> {
 
-    val result = ArrayList<Handle<out ProcessNodeInstance<T>>>(predecessor.node.successors.size)
+    val result = ArrayList<Handle<out SecureObject<ProcessNodeInstance<T>>>>(predecessor.node.successors.size)
 
     fun addDirectSuccessor(candidate: ProcessNodeInstance<T>,
-                            predecessor: Handle<out ProcessNodeInstance<T>>) {
+                            predecessor: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
 
       // First look for this node, before diving into it's children
       candidate.directPredecessors.asSequence()
@@ -478,8 +480,9 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     }
 
 
+    val nodeInstances = transaction.readableEngineData.nodeInstances
     mThreads.asSequence()
-          .map { engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it) }
+          .map { nodeInstances[it].mustExist(it).withPermission() }
           .forEach { addDirectSuccessor(it, predecessor.handle) }
 
     return result
@@ -537,7 +540,8 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
 
   @Throws(XmlException::class, SQLException::class)
   private fun XmlWriter.writeActiveNodeRef(transaction: T, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
-    val nodeInstance = engine.getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handleNodeInstance)
+
+    val nodeInstance = transaction.readableEngineData.nodeInstances[handleNodeInstance].mustExist(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)
     }
@@ -545,8 +549,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
 
   @Throws(XmlException::class, SQLException::class)
   private fun XmlWriter.writeResultNodeRef(transaction: T, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
-    val nodeInstance = engine.getNodeInstance(transaction, handleNodeInstance,
-                                              SecurityProvider.SYSTEMPRINCIPAL) ?: throw IllegalStateException("Missing node " + handleNodeInstance)
+    val nodeInstance = transaction.readableEngineData.nodeInstances[handleNodeInstance].mustExist(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)
 

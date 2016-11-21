@@ -603,7 +603,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
   }
 
   @Throws(SQLException::class)
-  fun finishTask(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, payload: Node?, user: Principal): NodeInstanceState {
+  fun finishTask(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, payload: Node?, user: Principal): NodeInstanceState {
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
         val pi = task.processInstance

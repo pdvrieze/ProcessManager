@@ -52,6 +52,7 @@ import nl.adaptivity.xml.SerializableList;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 import org.w3.soapEnvelope.Envelope;
@@ -115,7 +116,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
 
     @Override
     public boolean sendMessage(T transaction, final NewServletMessage message, final ProcessNodeInstance<T> instance) throws SQLException {
-      final Handle<? extends ProcessNodeInstance<T>> nodeHandle = instance.getHandle();
+      final Handle<? extends SecureObject<ProcessNodeInstance<T>>> nodeHandle = instance.getHandle();
 
       message.setHandle(transaction, instance);
 
@@ -796,7 +797,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
     try (T transaction = mProcessEngine.startTransaction()){
-      final ProcessNodeInstance result = mProcessEngine.getNodeInstance(transaction, Handles.handle(handle), user);
+      final ProcessNodeInstance<T> result = mProcessEngine.getNodeInstance(transaction, Handles.handle(handle), user);
       if (result==null) { throw new FileNotFoundException(); }
       return transaction.commit(result.toSerializable(transaction));
     }

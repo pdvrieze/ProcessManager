@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Transaction
+import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessException
@@ -31,7 +32,7 @@ import java.util.*
 
 class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
-  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) :
+  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) :
         super(node, predecessors, processInstance, state) {
   }
 
@@ -54,7 +55,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     get() = super.handle as ComparableHandle<out JoinInstance<T>>
 
   @Throws(SQLException::class)
-  fun addPredecessor(transaction: T, predecessor: ComparableHandle<out ProcessNodeInstance<T>>): Boolean {
+  fun addPredecessor(transaction: T, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): Boolean {
     if (canAddNode(transaction) && _directPredecessors.add(predecessor)) {
       processInstance.engine.updateStorage(transaction, this)
       return true

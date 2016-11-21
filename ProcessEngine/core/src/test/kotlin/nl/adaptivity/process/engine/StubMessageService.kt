@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Transaction
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -34,7 +34,7 @@ import java.util.*
 class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, T, ProcessNodeInstance<T>> {
 
   var mMessages: MutableList<IXmlMessage> = ArrayList()
-  private val mMessageNodes = ArrayList<Handle<out ProcessNodeInstance<T>>>()
+  private val mMessageNodes = ArrayList<Handle<out SecureObject<ProcessNodeInstance<T>>>>()
 
   override fun createMessage(message: IXmlMessage): IXmlMessage {
     return message
@@ -45,7 +45,7 @@ class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: En
     mMessages.clear()
   }
 
-  fun getMessageNode(i: Int): Handle<out ProcessNodeInstance<T>> {
+  fun getMessageNode(i: Int): Handle<out SecureObject<ProcessNodeInstance<T>>> {
     return mMessageNodes[i]
   }
 

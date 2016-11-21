@@ -103,64 +103,52 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
       val instance: XmlProcessNodeInstance?
       try {
-        try {
-          val future = ServletProcessEngineClient
-                .getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL,
-                                        null, XmlTask::class.java, Envelope::class.java)
-          instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
-          if (instance == null) {
-            throw RuntimeException("No instance could be looked up")
-          }
-        } catch (e: ExecutionException) {
-
-          var f:Throwable = e
-          while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
-            f = f.cause!!
-          }
-          if (f.cause is FileNotFoundException) {
-            throw f.cause as Throwable
-          } else if (f.cause is RuntimeException) {
-            throw f.cause as Throwable
-          } else if (f is ExecutionException || f is MessagingException) {
-            throw f
-          }
-          throw e
-        } catch (e: MessagingException) {
-          var f:Throwable = e
-          while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
-            f = f.cause!!
-          }
-          if (f.cause is FileNotFoundException) {
-            throw f.cause as FileNotFoundException
-          } else if (f.cause is RuntimeException) {
-            throw f.cause as RuntimeException
-          } else if (f is ExecutionException) {
-            throw f
-          } else if (f is MessagingException) {
-            throw f
-          }
-          throw e
+        val future = ServletProcessEngineClient
+              .getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL,
+                                      null, XmlTask::class.java, Envelope::class.java)
+        instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
+        if (instance == null) {
+          throw RuntimeException("No instance could be looked up")
         }
-
-        if (instance.body != null) {
-          val reader = XMLFragmentStreamReader.from(instance.body)
-          val env = Envelope.deserialize(reader, PostTaskFactory())
-          val task = env.body.bodyContent
-          task.setHandleValue(handle)
-          task.remoteHandle = remoteHandle
-          task.state = instance.state
-          return task
-        }
-      } catch (e: JAXBException) {
-        throw RuntimeException(e)
-      } catch (e: InterruptedException) {
-        throw RuntimeException(e)
       } catch (e: ExecutionException) {
-        throw RuntimeException(e)
-      } catch (e: TimeoutException) {
-        throw RuntimeException(e)
-      } catch (e: XmlException) {
-        throw RuntimeException(e)
+
+        var f:Throwable = e
+        while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
+          f = f.cause!!
+        }
+        if (f.cause is FileNotFoundException) {
+          throw f.cause as Throwable
+        } else if (f.cause is RuntimeException) {
+          throw f.cause as Throwable
+        } else if (f is ExecutionException || f is MessagingException) {
+          throw f
+        }
+        throw e
+      } catch (e: MessagingException) {
+        var f:Throwable = e
+        while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
+          f = f.cause!!
+        }
+        if (f.cause is FileNotFoundException) {
+          throw f.cause as FileNotFoundException
+        } else if (f.cause is RuntimeException) {
+          throw f.cause as RuntimeException
+        } else if (f is ExecutionException) {
+          throw f
+        } else if (f is MessagingException) {
+          throw f
+        }
+        throw e
+      }
+
+      instance.body?.let { body ->
+        val reader = XMLFragmentStreamReader.from(body)
+        val env = Envelope.deserialize(reader, PostTaskFactory())
+        val task = env.body.bodyContent
+        task.setHandleValue(handle)
+        task.remoteHandle = remoteHandle
+        task.state = instance.state
+        return task
       }
 
       throw RuntimeException("This code should be unreachable")
