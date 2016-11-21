@@ -45,7 +45,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>>, XmlSerializable {
+class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>> {
 
   data class Builder<T: ProcessTransaction<T>>(var handle: ComparableHandle<ProcessInstance<T>>, var owner: SimplePrincipal, var processModel: ProcessModelImpl, var instancename: String?, var uuid: UUID, var state: State) {
     val children = mutableListOf<Handle<ProcessNodeInstance<T>>>()
@@ -498,7 +498,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     @Synchronized get() = ArrayList(mEndResults)
 
   @Synchronized @Throws(XmlException::class)
-  override fun serialize(writer: XmlWriter) {
+  fun serialize(transaction: T, writer: XmlWriter) {
     //
     writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
       writeAttribute("handle", if (mHandleValue < 0) null else java.lang.Long.toString(mHandleValue))
@@ -515,25 +515,16 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
         mOutputs.forEach { it.serialize(this) }
       }
 
-      try {
-        engine.startTransaction().use { transaction ->
+      writeListIfNotEmpty(mThreads, Constants.PROCESS_ENGINE_NS, "active") {
+        writeActiveNodeRef(transaction, it)
+      }
 
-          writeListIfNotEmpty(mThreads, Constants.PROCESS_ENGINE_NS, "active") {
-            writeActiveNodeRef(transaction, it)
-          }
+      writeListIfNotEmpty(mFinishedNodes, Constants.PROCESS_ENGINE_NS, "finished") {
+        writeActiveNodeRef(transaction, it)
+      }
 
-          writeListIfNotEmpty(mFinishedNodes, Constants.PROCESS_ENGINE_NS, "finished") {
-            writeActiveNodeRef(transaction, it)
-          }
-
-          writeListIfNotEmpty(mEndResults, Constants.PROCESS_ENGINE_NS, "endresults") {
-            writeResultNodeRef(transaction, it)
-          }
-
-          transaction.commit()
-        }
-      } catch (e: SQLException) {
-        throw XmlException(e)
+      writeListIfNotEmpty(mEndResults, Constants.PROCESS_ENGINE_NS, "endresults") {
+        writeResultNodeRef(transaction, it)
       }
     }
   }
