@@ -16,12 +16,14 @@
 
 package nl.adaptivity.util.xml;
 
+import kotlin.collections.CollectionsKt;
 import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.CharArrayWriter;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -66,6 +68,13 @@ public class CompactFragment implements XmlSerializable {
   public CompactFragment(final CompactFragment orig) {
     namespaces = SimpleNamespaceContext.Companion.from(orig.namespaces);
     content = orig.content;
+  }
+
+  public CompactFragment(final XmlSerializable content) throws XmlException {
+    CharArrayWriter caw = new CharArrayWriter();
+    content.serialize(XmlStreaming.newWriter(caw));
+    namespaces = new SimpleNamespaceContext(Collections.<Namespace>emptyList());
+    this.content = caw.toCharArray();
   }
 
   @Override
