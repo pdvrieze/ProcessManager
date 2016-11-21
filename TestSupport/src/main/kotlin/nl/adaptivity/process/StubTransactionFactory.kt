@@ -32,11 +32,6 @@ class StubTransactionFactory : net.devrieze.util.TransactionFactory<StubTransact
   override fun startTransaction() = transaction
 
 
-  @Throws(SQLException::class)
-  override fun getConnection(): Connection {
-    throw UnsupportedOperationException("No connections in the stub")
-  }
-
   override fun isValidTransaction(transaction: Transaction): Boolean {
     return this.transaction === transaction
   }

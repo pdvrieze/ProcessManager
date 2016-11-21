@@ -27,8 +27,5 @@ public interface TransactionFactory<T extends Transaction> {
 
   T startTransaction();
 
-  @Deprecated
-  Connection getConnection() throws SQLException;
-
   boolean isValidTransaction(Transaction pTransaction);
 }

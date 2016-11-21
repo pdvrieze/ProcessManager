@@ -76,11 +76,6 @@ class UserMessageService<T : Transaction> private constructor(private val transa
       return DBTransaction(dbResource, UserTaskDB)
     }
 
-    @Throws(SQLException::class)
-    override fun getConnection(): Connection {
-      return mDBResource!!.connection
-    }
-
     override fun isValidTransaction(transaction: Transaction): Boolean {
       return transaction is DBTransaction && transaction.connection.db === UserTaskDB
     }

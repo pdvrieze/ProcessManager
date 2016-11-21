@@ -101,10 +101,6 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
     override fun startTransaction(): T = transactionFactory.startTransaction(this)
 
-    override fun getConnection(): Connection {
-      throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun isValidTransaction(pTransaction: Transaction?): Boolean {
       return pTransaction is ProcessTransaction<*> && pTransaction.readableEngineData==this
     }
@@ -142,11 +138,6 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
     override fun startTransaction(): ProcessDBTransaction {
       return ProcessDBTransaction(dbResource, ProcessEngineDB, this)
-    }
-
-    @Throws(SQLException::class)
-    override fun getConnection(): Connection {
-      return dbResource.connection
     }
 
     override fun isValidTransaction(transaction: Transaction): Boolean {
