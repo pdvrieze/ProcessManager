@@ -90,11 +90,11 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
 
   val processModel: ProcessModelImpl
 
-  private val mThreads: MutableSet<ComparableHandle<out ProcessNodeInstance<T>>>
+  private val mThreads: MutableSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
-  private val mFinishedNodes: MutableSet<ComparableHandle<out ProcessNodeInstance<T>>>
+  private val mFinishedNodes: MutableSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
-  private val mEndResults: MutableSet<ComparableHandle<out ProcessNodeInstance<T>>>
+  private val mEndResults: MutableSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
   private val mJoins: HashMap<JoinImpl, ComparableHandle<out JoinInstance<T>>>
 
@@ -170,10 +170,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     this.engine = engine
     this.name = name
     this.state = state ?: State.NEW
-    mThreads = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
-    mJoins = HashMap<JoinImpl, ComparableHandle<out JoinInstance<T>>>()
-    mEndResults = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
-    mFinishedNodes = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
+    mThreads = ArraySet()
+    mJoins = HashMap()
+    mEndResults = ArraySet()
+    mFinishedNodes = ArraySet()
   }
 
   constructor(owner: Principal, processModel: ProcessModelImpl, name: String, uUid: UUID, state: State?, engine: ProcessEngine<T>) {
@@ -181,11 +181,11 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     this.name = name
     uuid = uUid
     this.engine = engine
-    mThreads = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
+    mThreads = ArraySet()
     this.owner = owner
-    mJoins = HashMap<JoinImpl, ComparableHandle<out JoinInstance<T>>>()
-    mEndResults = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
-    mFinishedNodes = ArraySet<ComparableHandle<out ProcessNodeInstance<T>>>()
+    mJoins = HashMap()
+    mEndResults = ArraySet()
+    mFinishedNodes = ArraySet()
     this.state = state ?: State.NEW
   }
 
@@ -485,13 +485,13 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     return result
   }
 
-  val active: Collection<Handle<out ProcessNodeInstance<T>>>
+  val active: Collection<Handle<out SecureObject<ProcessNodeInstance<T>>>>
     @Synchronized get() = ArrayList(mThreads)
 
-  val finished: Collection<Handle<out ProcessNodeInstance<T>>>
+  val finished: Collection<Handle<out SecureObject<ProcessNodeInstance<T>>>>
     @Synchronized get() = ArrayList(mFinishedNodes)
 
-  val results: Collection<Handle<out ProcessNodeInstance<T>>>
+  val results: Collection<Handle<out SecureObject<ProcessNodeInstance<T>>>>
     @Synchronized get() = ArrayList(mEndResults)
 
   @Synchronized @Throws(XmlException::class)
@@ -536,7 +536,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun XmlWriter.writeActiveNodeRef(transaction: T, handleNodeInstance: Handle<out ProcessNodeInstance<T>>) {
+  private fun XmlWriter.writeActiveNodeRef(transaction: T, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
     val nodeInstance = engine.getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handleNodeInstance)
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)
@@ -544,7 +544,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun XmlWriter.writeResultNodeRef(transaction: T, handleNodeInstance: Handle<out ProcessNodeInstance<T>>) {
+  private fun XmlWriter.writeResultNodeRef(transaction: T, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
     val nodeInstance = engine.getNodeInstance(transaction, handleNodeInstance,
                                               SecurityProvider.SYSTEMPRINCIPAL) ?: throw IllegalStateException("Missing node " + handleNodeInstance)
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {

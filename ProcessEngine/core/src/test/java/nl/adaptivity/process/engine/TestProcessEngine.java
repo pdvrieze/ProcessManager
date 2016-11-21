@@ -212,7 +212,7 @@ public class TestProcessEngine {
 
     assertEquals(processInstance.getActive().size(), 1);
     assertEquals(processInstance.getFinished().size(), 1);
-    Handle<? extends ProcessNodeInstance<StubProcessTransaction>> hfinished = processInstance.getFinished().iterator().next();
+    Handle<? extends SecureObject<ProcessNodeInstance<StubProcessTransaction>>> hfinished = processInstance.getFinished().iterator().next();
     ProcessNodeInstance<StubProcessTransaction> finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
     assertTrue(finished.getNode() instanceof StartNodeImpl);;
     assertEquals(finished.getNode().getId(), "start");

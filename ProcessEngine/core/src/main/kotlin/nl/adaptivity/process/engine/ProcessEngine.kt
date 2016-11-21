@@ -391,7 +391,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun tickleNode(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, user: Principal) {
+  fun tickleNode(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, user: Principal) {
     engineData.invalidateCachePNI(handle)
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.TICKLE_NODE, user) { nodeInstance ->

@@ -31,12 +31,9 @@ import java.util.*
 
 class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
-  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) :
+  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) :
         super(node, predecessors, processInstance, state) {
   }
-
-  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>)
-        : super(node, predecessors, processInstance)
 
   /**
    * Constructor for ProcessNodeInstanceMap.
@@ -45,11 +42,8 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
    * @param processInstance
    */
   @Throws(SQLException::class)
-  internal constructor(transaction: T, node: JoinImpl, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState) : super(
-        transaction,
-        node,
-        processInstance,
-        state) {
+  internal constructor(transaction: T, node: JoinImpl, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState)
+        : super(transaction, node, processInstance, state) {
   }
 
   override val node: JoinImpl

@@ -43,7 +43,7 @@ import javax.xml.transform.Source
 
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
 open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProcessNode,
-                                                predecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>,
+                                                predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
                                                 val processInstance: ProcessInstance<T>,
                                                 state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>> {
 
@@ -80,9 +80,9 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   var failureCause: Throwable? = null
     private set
 
-  protected val _directPredecessors: MutableList<ComparableHandle<out ProcessNodeInstance<T>>> = predecessors.asSequence().filter { it.valid }.toMutableList()
+  protected val _directPredecessors: MutableList<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>> = predecessors.asSequence().filter { it.valid }.toMutableList()
 
-  val directPredecessors: Collection<ComparableHandle<out ProcessNodeInstance<T>>>
+  val directPredecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
     get() = _directPredecessors
 
   override val owner: Principal
@@ -96,7 +96,8 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<out ProcessNodeInstance<T>>, processInstance: ProcessInstance<T>) : this(node, listOf(predecessor), processInstance)
 
   @Throws(SQLException::class)
-  internal constructor(transaction: T, node: ExecutableProcessNode, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState): this(node, resolvePredecessors(transaction, processInstance, node), processInstance, state)
+  internal constructor(transaction: T, node: ExecutableProcessNode, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState)
+        : this(node, resolvePredecessors(transaction, processInstance, node), processInstance, state)
 
   @Throws(SQLException::class)
   constructor(transaction: T, processEngine: ProcessEngine<T>, nodeInstance: XmlProcessNodeInstance) :
@@ -112,7 +113,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   override fun withPermission() = this
 
   /** Add the node as predecessor if not added yet.  */
-  fun ensurePredecessor(handle: ComparableHandle<out ProcessNodeInstance<T>>) {
+  fun ensurePredecessor(handle: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>) {
     if (!hasDirectPredecessor(handle)) {
       _directPredecessors.add(handle)
     }
@@ -150,7 +151,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     return result
   }
 
-  private fun hasDirectPredecessor(handle: Handle<out ProcessNodeInstance<*>>): Boolean {
+  private fun hasDirectPredecessor(handle: Handle<out SecureObject<ProcessNodeInstance<T>>>): Boolean {
     for (pred in _directPredecessors) {
       if (pred.handleValue == handle.handleValue) {
         return true
@@ -354,9 +355,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
 
       nodeId = node.id
 
-      if (_directPredecessors.size > 0) {
-        this.predecessors.addAll(_directPredecessors)
-      }
+      _directPredecessors.mapTo(this.predecessors) { Handles.handle(it.handleValue) }
 
       this.results = results
     }
