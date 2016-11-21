@@ -18,9 +18,7 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
 import net.devrieze.util.db.DbSet
-import net.devrieze.util.security.OwnerOnlySecurityProvider
-import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SecurityProvider
+import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.HttpResponseException
 import nl.adaptivity.messaging.MessagingException
@@ -41,6 +39,7 @@ import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processInstances.uuid
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -82,18 +81,18 @@ private fun <T : ProcessTransaction<T>, V:Any> wrapCache(base: IMutableProcessMo
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
+class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMessageService<*, T, ProcessNodeInstance<T>>, private val engineData: IProcessEngineData<T>) /* implements IProcessEngine */ {
 
   class DelegateProcessEngineData<T: ProcessTransaction<T>>(
         private val transactionFactory: ProcessTransactionFactory<T>,
         override val processModels: IMutableProcessModelMap<T>,
-        override val processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>,
-        override val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
+        override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<T>>, T>,
+        override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
 
     private inner class DelegateEngineDataAccess(private val transaction: T) : MutableProcessEngineDataAccess<T> {
-      override val instances: MutableHandleMap<ProcessInstance<T>>
+      override val instances: MutableHandleMap<SecureObject<ProcessInstance<T>>>
         get() = this@DelegateProcessEngineData.processInstances.withTransaction(transaction)
-      override val nodeInstances: MutableHandleMap<ProcessNodeInstance<T>>
+      override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<T>>>
         get() = this@DelegateProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
@@ -120,9 +119,9 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
 
 
     private inner class DBEngineDataAccess(private val transaction: ProcessDBTransaction) : MutableProcessEngineDataAccess<ProcessDBTransaction> {
-      override val instances: MutableHandleMap<ProcessInstance<ProcessDBTransaction>>
+      override val instances: MutableHandleMap<SecureObject<ProcessInstance<ProcessDBTransaction>>>
         get() = this@DBProcessEngineData.processInstances.withTransaction(transaction)
-      override val nodeInstances: MutableHandleMap<ProcessNodeInstance<ProcessDBTransaction>>
+      override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<ProcessDBTransaction>>>
         get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
@@ -178,44 +177,11 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
     CANCEL,
     LIST_INSTANCES,
     TICKLE_INSTANCE,
-    TICKLE_NODE
+    TICKLE_NODE,
+    START_PROCESS;
   }
-
-  private val engineData:IProcessEngineData<T>
-
-  private val messageService: IMessageService<*, T, ProcessNodeInstance<T>>
 
   private var mSecurityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
-
-  /**
-   * Create a new process engine.
-
-   * @param messageService The service to use for actual sending of messages by
-   * *          activities.
-   */
-  protected constructor(messageService: IMessageService<*, T, ProcessNodeInstance<T>>, engineData: IProcessEngineData<T>, transactionFactory: TransactionFactory<T>) {
-    this.messageService = messageService
-    this.engineData = engineData
-  }
-
-  /**
-   * Testing constructor that does not need database access
-   * @param messageService
-   * *
-   * @param processModels
-   * *
-   * @param processInstances
-   * *
-   * @param processNodeInstances
-   */
-  private constructor(messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                      engineData: IProcessEngineData<T>,
-                      transactionFactory: TransactionFactory<T>,
-                      processModels: IMutableProcessModelMap<T>,
-                      processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>, processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>) {
-    this.messageService = messageService
-    this.engineData = engineData
-  }
 
   fun invalidateModelCache(handle: Handle<out ProcessModelImpl>) {
     engineData.invalidateCachePM(handle)
@@ -231,12 +197,12 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
 
   /**
    * Get all process models loaded into the engine.
-
+   *
    * @return The list of process models.
    * *
    * @param transaction
    */
-  fun getProcessModels(transaction: T): Iterable<ProcessModelImpl> {
+  fun getProcessModels(transaction: T): Iterable<SecuredObject<ProcessModelImpl>> {
     return engineData.inReadonlyTransaction(transaction) { processModels }
   }
 
@@ -279,23 +245,25 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
 
   /**
    * Get the process model with the given handle.
-
+   *
    * @param handle The handle to the process model.
-   * *
+   *
    * @return The processModel.
-   * *
+   *
    * @throws SQLException
    */
   @Throws(SQLException::class)
   fun getProcessModel(transaction: T, handle: Handle<out ProcessModelImpl>, user: Principal): ProcessModelImpl? {
     return engineData.inWriteTransaction(transaction) {
-      processModels[handle]?.apply {
-        mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, this)
-        normalize(ExecutableSplitFactory())
-        if (uuid == null) {
-          setUuid(UUID.randomUUID())
-          processModels[handle] = this
+      processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
+        processModel.apply {
+          normalize(ExecutableSplitFactory())
+          if (uuid == null) {
+            uuid = UUID.randomUUID()
+            processModels[handle] = this
+          }
         }
+
       }
     }
   }
@@ -310,15 +278,16 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   @Throws(FileNotFoundException::class)
   fun renameProcessModel(user: Principal, handle: Handle<out ProcessModelImpl>, newName: String) {
     engineData.inWriteTransaction(user, mSecurityProvider.ensurePermission(Permissions.FIND_MODEL, user)) {
-      val pm = processModels[handle].shouldExist(handle) ?: throw FileNotFoundException("The process model with the handle $handle does not exist")
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, user, pm)
-      pm.name = newName
-      processModels[handle]= pm // set it to ensure update on the database
+      processModels[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.RENAME, user) { pm->
+        mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, user, pm)
+        pm.name = newName
+        processModels[handle]= pm // set it to ensure update on the database
+      }
     }
   }
 
   @Throws(FileNotFoundException::class, SQLException::class)
-  fun updateProcessModel(transaction: T, handle: Handle<out ProcessModelImpl>, processModel: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> {
+  fun updateProcessModel(transaction: T, handle: Handle<out SecureObject<ProcessModelImpl>>, processModel: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> {
     engineData.inWriteTransaction(transaction) {
       val oldModel = processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
 
@@ -368,11 +337,13 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
    * *
    * @return All instances.
    */
-  fun getOwnedProcessInstances(transaction: T, user: Principal?): Iterable<ProcessInstance<*>> {
+  fun getOwnedProcessInstances(transaction: T, user: Principal): Iterable<ProcessInstance<*>> {
     mSecurityProvider.ensurePermission(Permissions.LIST_INSTANCES, user)
     // If security allows this, return an empty list.
     engineData.inReadonlyTransaction(transaction){
-      return instances.filter { instance -> instance.owner.name==user?.name }
+      return instances.map {
+        it.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { it }
+      }.filter { instance -> instance.owner.name== user.name }
     }
   }
 
@@ -387,15 +358,15 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
    */
   fun getVisibleProcessInstances(transaction: T, user: Principal): Iterable<ProcessInstance<*>> {
     engineData.inReadonlyTransaction(transaction) {
-      return instances.filter { mSecurityProvider.hasPermission(SecureObject.Permissions.READ, user, it) }
+      return instances.map { it.withPermission() }.filter { mSecurityProvider.hasPermission(SecureObject.Permissions.READ, user, it) }
     }
   }
 
   @Throws(SQLException::class)
   fun getProcessInstance(transaction: T, handle: Handle<out ProcessInstance<T>>, user: Principal): ProcessInstance<T> {
     return engineData.inReadonlyTransaction(transaction) {
-      instances[handle].shouldExist(handle).apply {
-        mSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, user, this)
+      instances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.VIEW_INSTANCE, user) {
+        it
       }
     }
   }
@@ -412,11 +383,10 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
     engineData.invalidateCachePNI(Handles.getInvalid())
 
     engineData.inWriteTransaction(transaction) {
-      val instance = instances[handle] ?: return false
-      mSecurityProvider.ensurePermission(Permissions.TICKLE_INSTANCE, user, instance)
-      instance.tickle(transaction, messageService)
-      return true
-
+      (instances[handle] ?: return false).withPermission(mSecurityProvider, Permissions.TICKLE_INSTANCE, user) {
+        it.tickle(transaction, messageService)
+        return true
+      }
     }
   }
 
@@ -424,12 +394,11 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   fun tickleNode(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, user: Principal) {
     engineData.invalidateCachePNI(handle)
     engineData.inWriteTransaction(transaction) {
-      val nodeInstance = nodeInstances[handle].shouldExist(handle)
-      mSecurityProvider.ensurePermission(Permissions.TICKLE_NODE, user, nodeInstance)
+      nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.TICKLE_NODE, user) { nodeInstance ->
+        nodeInstance.directPredecessors.forEach { hPredecessor -> tickleNode(transaction, hPredecessor, user) }
 
-      nodeInstance.directPredecessors.forEach { hPredecessor -> tickleNode(transaction, hPredecessor, user) }
-
-      nodeInstance.tickle(transaction, messageService)
+        nodeInstance.tickle(transaction, messageService)
+      }
     }
     engineData.invalidateCachePNI(handle)
   }
@@ -453,7 +422,7 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   @Throws(SQLException::class, FileNotFoundException::class)
   private fun startProcess(transaction: T,
                            user: Principal?,
-                           model: ProcessModelImpl,
+                           model: SecureObject<ProcessModelImpl>,
                            name: String,
                            uuid: UUID,
                            payload: Node?): HProcessInstance<T> {
@@ -461,9 +430,9 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
     if (user == null) {
       throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes")
     }
-    mSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, user)
-
-    val instance = ProcessInstance(user, model, name, uuid, State.NEW, this)
+    val instance = model.withPermission(mSecurityProvider, ProcessModelImpl.Permissions.INSTANTIATE, user) {
+      ProcessInstance(user, it, name, uuid, State.NEW, this)
+    }
 
     engineData.inWriteTransaction(transaction) {
       val result = instances.put(instance).apply {
@@ -500,12 +469,15 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   @Throws(SQLException::class, FileNotFoundException::class)
   fun startProcess(transaction: T,
                    user: Principal,
-                   handle: Handle<out ProcessModelImpl>,
+                   handle: Handle<out SecureObject<ProcessModelImpl>>,
                    name: String,
                    uuid: UUID,
                    payload: Node?): HProcessInstance<T> {
-    val processModel = engineData.inWriteTransaction(transaction) {  processModels[handle].shouldExist(handle) }
-    return startProcess(transaction, user, processModel, name, uuid, payload)
+    engineData.inWriteTransaction(transaction) {
+      processModels[handle].shouldExist(handle)
+    }.let { processModel ->
+      return startProcess(transaction, user, processModel, name, uuid, payload)
+    }
   }
 
   /**
@@ -524,25 +496,24 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
    */
   @Throws(SQLException::class)
   fun getNodeInstance(transaction: T,
-                      handle: Handle<out ProcessNodeInstance<T>>,
+                      handle: Handle<out SecureObject<ProcessNodeInstance<T>>>,
                       user: Principal): ProcessNodeInstance<T>? {
     engineData.inReadonlyTransaction(transaction) {
-      return nodeInstances[handle].shouldExist(handle).apply {
-        mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, this)
+      return nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) {
+        it
       }
     }
   }
 
   /**
    * Finish the process instance.
-
-
+   *
    * @param transaction
-   * *
+   *
    * @param processInstance The process instance to finish.
-   * *
+   *
    * @throws SQLException
-   * *
+   *
    * @todo evaluate whether this should not retain some results
    */
   @Deprecated("")
@@ -563,19 +534,19 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   }
 
   @Throws(SQLException::class)
-  fun cancelInstance(transaction: T, handle: Handle<out ProcessInstance<T>>, user: Principal): ProcessInstance<*> {
+  fun cancelInstance(transaction: T, handle: Handle<out SecureObject<ProcessInstance<T>>>, user: Principal): ProcessInstance<*> {
     engineData.inWriteTransaction(transaction) {
-      val instance = instances.get(handle).shouldExist(handle)
-      mSecurityProvider.ensurePermission(Permissions.CANCEL, user, instance)
-      try {
-        // Should be removed internally to the map.
-        //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
-        if (instances.remove(instance.handle)) {
-          return instance
+      instances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, Permissions.CANCEL, user) { instance ->
+        try {
+          // Should be removed internally to the map.
+          //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
+          if (instances.remove(instance.handle)) {
+            return instance
+          }
+          throw ProcessException("The instance could not be cancelled")
+        } catch (e: SQLException) {
+          throw ProcessException("The instance could not be cancelled", e)
         }
-        throw ProcessException("The instance could not be cancelled")
-      } catch (e: SQLException) {
-        throw ProcessException("The instance could not be cancelled", e)
       }
     }
   }
@@ -609,27 +580,24 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   fun updateTaskState(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, newState: NodeInstanceState, user: Principal): NodeInstanceState {
     engineData.inWriteTransaction(transaction) {
 
-      val task = nodeInstances[handle].shouldExist(handle)
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task)
-      val pi = task.processInstance
+      nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
 
-      synchronized(pi) {
-        when (newState) {
-          Sent                                             -> throw IllegalArgumentException("Updating task state to initial state not possible")
-          Acknowledged                                     -> task.setState(transaction,
-                                                                            newState) // Record the state, do nothing else.
-          Taken                                            -> pi.takeTask(transaction, messageService, task)
-          IProcessNodeInstance.NodeInstanceState.Started   -> pi.startTask(transaction, messageService, task)
-          IProcessNodeInstance.NodeInstanceState.Complete  -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
-        // TODO don't just make up a failure cause
-          IProcessNodeInstance.NodeInstanceState.Failed    -> pi.failTask(transaction,
-                                                                          messageService,
-                                                                          task,
-                                                                          IllegalArgumentException("Missing failure cause"))
-          IProcessNodeInstance.NodeInstanceState.Cancelled -> pi.cancelTask(transaction, messageService, task)
-          else                                             -> throw IllegalArgumentException("Unsupported state :" + newState)
+        val pi = task.processInstance
+
+        synchronized(pi) {
+          when (newState) {
+            Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
+            Acknowledged -> task.setState(transaction,     newState) // Record the state, do nothing else.
+            Taken        -> pi.takeTask(transaction, messageService, task)
+            Started      -> pi.startTask(transaction, messageService, task)
+            Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
+          // TODO don't just make up a failure cause
+            Failed       -> pi.failTask(transaction, messageService, task, IllegalArgumentException("Missing failure cause"))
+            Cancelled -> pi.cancelTask(transaction, messageService, task)
+            else                                             -> throw IllegalArgumentException("Unsupported state :" + newState)
+          }
+          return task.state
         }
-        return task.state
       }
     }
   }
@@ -637,18 +605,18 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
   @Throws(SQLException::class)
   fun finishTask(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, payload: Node?, user: Principal): NodeInstanceState {
     engineData.inWriteTransaction(transaction) {
-      val task = nodeInstances[handle].shouldExist(handle)
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task)
-      val pi = task.processInstance
-      try {
-        synchronized(pi) {
-          pi.finishTask(transaction, messageService, task, payload)
-          return task.state
+      nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
+        val pi = task.processInstance
+        try {
+          synchronized(pi) {
+            pi.finishTask(transaction, messageService, task, payload)
+            return task.state
+          }
+        } catch (e: Exception) {
+          engineData.invalidateCachePNI(handle)
+          engineData.invalidateCachePI(pi.handle)
+          throw e
         }
-      } catch (e: Exception) {
-        engineData.invalidateCachePNI(handle)
-        engineData.invalidateCachePI(pi.handle)
-        throw e
       }
 
     }
@@ -695,8 +663,7 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
 
   /**
    * Handle the fact that this task has been cancelled.
-
-
+   *
    * @param transaction
    * *
    * @param handle
@@ -705,16 +672,15 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
    */
   @Throws(SQLException::class, FileNotFoundException::class)
   fun cancelledTask(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, user: Principal) {
-    updateTaskState(transaction, handle, NodeInstanceState.Cancelled, user)
+    updateTaskState(transaction, handle, Cancelled, user)
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
   fun errorTask(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, cause: Throwable, user: Principal) {
     engineData.inWriteTransaction(transaction) {
-      val task = nodeInstances.get(handle).shouldExist(handle)
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task)
-      val pi = task.processInstance
-      pi.failTask(transaction, messageService, task, cause)
+      nodeInstances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
+        task.processInstance.failTask(transaction, messageService, task, cause)
+      }
     }
   }
 
@@ -766,7 +732,7 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
     fun newInstance(messageService: IMessageService<*, ProcessDBTransaction, ProcessNodeInstance<ProcessDBTransaction>>): ProcessEngine<*> {
       // TODO enable optional caching
       val engineData = DBProcessEngineData()
-      val pe = ProcessEngine(messageService, engineData, engineData)
+      val pe = ProcessEngine(messageService, engineData)
       engineData.engine = pe // STILL NEEDED to initialize the engine as the factories require the engine
       return pe
     }
@@ -776,13 +742,13 @@ class ProcessEngine<T : ProcessTransaction<T>> /* implements IProcessEngine */ {
     internal fun <T : ProcessTransaction<T>> newTestInstance(messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
                                                    transactionFactory: ProcessTransactionFactory<T>,
                                                    processModels: IMutableProcessModelMap<T>,
-                                                   processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>,
-                                                   processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>,
+                                                   processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<T>>, T>,
+                                                   processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>,
                                                    autoTransition: Boolean): ProcessEngine<T> {
 
       val engineData = ProcessEngine.DelegateProcessEngineData<T>(transactionFactory, processModels, processInstances, processNodeInstances)
 
-      return ProcessEngine(messageService, engineData, engineData, processModels, processInstances, processNodeInstances)
+      return ProcessEngine(messageService, engineData)
     }
   }
 

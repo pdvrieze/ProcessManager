@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
@@ -37,10 +38,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 30/05/16.
  */
-internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.Builder<ProcessDBTransaction>, ProcessInstance<ProcessDBTransaction>, ProcessDBTransaction>() {
+internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.Builder<ProcessDBTransaction>, SecureObject<ProcessInstance<ProcessDBTransaction>>, ProcessDBTransaction>() {
 
   override fun getHandleCondition(where: Database._Where,
-                                  handle: Handle<out ProcessInstance<ProcessDBTransaction>>): Database.WhereClause? {
+                                  handle: Handle<out SecureObject<ProcessInstance<ProcessDBTransaction>>>): Database.WhereClause? {
     return where.run { pi.pihandle eq handle.handleValue }
   }
 
@@ -99,15 +100,15 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     return builder.build(transaction, mProcessEngine)
   }
 
-  override fun preRemove(transaction: ProcessDBTransaction, element: ProcessInstance<ProcessDBTransaction>) {
-    preRemove(transaction, element.handle)
+  override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessInstance<ProcessDBTransaction>>) {
+    preRemove(transaction, element.withPermission().handle)
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
     preRemove(transaction, Handles.handle(pi.pihandle.value(columns, values)!!))
   }
 
-  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out ProcessInstance<ProcessDBTransaction>>) {
+  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out SecureObject<ProcessInstance<ProcessDBTransaction>>>) {
     ProcessEngineDB
           .DELETE_FROM(id)
           .WHERE { id.pihandle eq handle.handleValue }
@@ -131,8 +132,8 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where,
-                                      instance: ProcessInstance<ProcessDBTransaction>): Database.WhereClause? {
-    return getHandleCondition(where, instance.handle)
+                                      instance: SecureObject<ProcessInstance<ProcessDBTransaction>>): Database.WhereClause? {
+    return getHandleCondition(where, instance.withPermission().handle)
   }
 
   override fun asInstance(obj: Any): ProcessInstance<ProcessDBTransaction>? {
@@ -140,22 +141,23 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     return obj as? ProcessInstance<ProcessDBTransaction>
   }
 
-  override fun insertStatement(value: ProcessInstance<ProcessDBTransaction>): Database.Insert {
-    return ProcessEngineDB
+  override fun insertStatement(value: SecureObject<ProcessInstance<ProcessDBTransaction>>): Database.Insert {
+    return value.withPermission().let { value -> ProcessEngineDB
           .INSERT(pi.pmhandle, pi.name, pi.owner, pi.state, pi.uuid)
-          .VALUES(value.processModel.handleValue, value.name, value.owner.name, value.state?.name, value.uuid.toString())
+          .VALUES(value.processModel.handleValue, value.name, value.owner.name, value.state?.name, value.uuid.toString()) }
   }
 
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
     get() = pi.pihandle
 
-  override fun store(update: Database._UpdateBuilder, value: ProcessInstance<ProcessDBTransaction>) {
-    update.run {
-      SET(pi.pmhandle, value.processModel.handleValue)
-      SET(pi.name, value.name)
-      SET(pi.owner, value.owner.name)
-      SET(pi.state, value.state?.name)
-      SET(pi.uuid, value.uuid?.toString())
+  override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessInstance<ProcessDBTransaction>>) {
+    update.run { value.withPermission().let { value ->
+        SET(pi.pmhandle, value.processModel.handleValue)
+        SET(pi.name, value.name)
+        SET(pi.owner, value.owner.name)
+        SET(pi.state, value.state?.name)
+        SET(pi.uuid, value.uuid.toString())
+      }
     }
   }
 

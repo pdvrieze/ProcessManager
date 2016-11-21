@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Handle;
+import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.process.MemTransactionedHandleMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import org.jetbrains.annotations.NotNull;
@@ -27,15 +28,16 @@ import java.util.UUID;
 /**
  * Created by pdvrieze on 07/05/16.
  */
-public class MemProcessModelMap extends MemTransactionedHandleMap<ProcessModelImpl, StubProcessTransaction> implements IMutableProcessModelMap<StubProcessTransaction> {
+public class MemProcessModelMap extends MemTransactionedHandleMap<SecureObject<ProcessModelImpl>, StubProcessTransaction> implements IMutableProcessModelMap<StubProcessTransaction> {
 
   public MemProcessModelMap() {
     super();
   }
 
   @Override
-  public Handle<ProcessModelImpl> getModelWithUuid(final StubProcessTransaction transaction, final UUID uuid) {
-    for(ProcessModelImpl candidate:this) {
+  public Handle<? extends SecureObject<ProcessModelImpl>> getModelWithUuid(final StubProcessTransaction transaction, final UUID uuid) {
+    for(SecureObject<ProcessModelImpl> c:this) {
+      ProcessModelImpl candidate = c.withPermission();
       if (uuid.equals(candidate.getUuid())) {
         return candidate.getHandle();
       }

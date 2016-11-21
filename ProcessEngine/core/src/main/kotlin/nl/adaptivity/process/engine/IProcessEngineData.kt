@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
+import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
@@ -24,8 +25,8 @@ import java.security.Principal
 
 abstract class IProcessEngineData<T:ProcessTransaction<T>> : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
-  protected abstract val processInstances: MutableTransactionedHandleMap<ProcessInstance<T>, T>
-  protected abstract val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance<T>, T>
+  protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<T>>, T>
+  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>
 
 
   fun invalidateCachePM(handle: Handle<out ProcessModelImpl>) {
@@ -77,17 +78,17 @@ abstract class IProcessEngineData<T:ProcessTransaction<T>> : TransactionFactory<
 }
 
 interface ProcessEngineDataAccess<T:ProcessTransaction<T>> {
-  val instances: HandleMap<ProcessInstance<T>>
+  val instances: HandleMap<SecureObject<ProcessInstance<T>>>
 
-  val nodeInstances: HandleMap<ProcessNodeInstance<T>>
+  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<T>>>
 
   val processModels: IProcessModelMapAccess
 }
 
 interface MutableProcessEngineDataAccess<T:ProcessTransaction<T>> : ProcessEngineDataAccess<T> {
-  override val instances: MutableHandleMap<ProcessInstance<T>>
+  override val instances: MutableHandleMap<SecureObject<ProcessInstance<T>>>
 
-  override val nodeInstances: MutableHandleMap<ProcessNodeInstance<T>>
+  override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<T>>>
 
   override val processModels: IMutableProcessModelMapAccess
 

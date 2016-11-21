@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
 import net.devrieze.util.db.AbstractElementFactory
+import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
@@ -35,7 +36,7 @@ import java.io.StringReader
 /**
  * A factory to create process models from the database.
  */
-internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl, ProcessModelImpl, ProcessDBTransaction>() {
+internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ProcessModelImpl, SecureObject<ProcessModelImpl>, ProcessDBTransaction>() {
   private var mColNoOwner: Int = 0
   private var mColNoModel: Int = 0
   private var mColNoHandle: Int = 0
@@ -66,28 +67,32 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     return builder
   }
 
-  override fun getHandleCondition(where: Database._Where, handle: Handle<out ProcessModelImpl>): Database.WhereClause? {
+  override fun getHandleCondition(where: Database._Where, handle: Handle<out SecureObject<ProcessModelImpl>>): Database.WhereClause? {
     return where.run { pm.pmhandle eq handle.handleValue }
   }
 
-  override fun getPrimaryKeyCondition(where: Database._Where, instance: ProcessModelImpl): Database.WhereClause? {
-    return getHandleCondition(where, instance.handle)
+  override fun getPrimaryKeyCondition(where: Database._Where, instance: SecureObject<ProcessModelImpl>): Database.WhereClause? {
+    return getHandleCondition(where, instance.withPermission().handle)
   }
 
   override fun asInstance(obj: Any) = obj as? ProcessModelImpl
 
-  override fun store(update: Database._UpdateBuilder, value: ProcessModelImpl) {
-    update.SET(pm.owner, value.owner.name)
-    update.SET(pm.model, XmlStreaming.toString(value))
+  override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessModelImpl>) {
+    value.withPermission().let { processModel ->
+      update.SET(pm.owner, processModel.owner.name)
+      update.SET(pm.model, XmlStreaming.toString(processModel))
+    }
   }
 
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
     get() = pm.pmhandle
 
-  override fun insertStatement(value: ProcessModelImpl): Database.Insert {
-    return ProcessEngineDB
-          .INSERT(pm.owner, pm.model)
-          .VALUES(value.owner.name, XmlStreaming.toString(value))
+  override fun insertStatement(value: SecureObject<ProcessModelImpl>): Database.Insert {
+    return value.withPermission().let { processModel ->
+      ProcessEngineDB
+            .INSERT(pm.owner, pm.model)
+            .VALUES(processModel.owner.name, XmlStreaming.toString(processModel))
+    }
   }
 
   companion object {

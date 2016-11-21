@@ -19,8 +19,9 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.security.SecureObject
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 
 
 internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessInstance.Builder<ProcessDBTransaction>, ProcessInstance<ProcessDBTransaction>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))
+      DBHandleMap<ProcessInstance.Builder<ProcessDBTransaction>, SecureObject<ProcessInstance<ProcessDBTransaction>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))

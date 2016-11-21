@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
 import net.devrieze.util.Transaction
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
@@ -40,6 +41,20 @@ fun <T: ProcessTransaction<T>, N:ProcessNodeInstance<T>> N?.mustExist(handle: Ha
  * @throws FileNotFoundException If it doesn't.
  */
 fun <T: ProcessTransaction<T>, N:ProcessNodeInstance<T>> N?.shouldExist(handle: Handle<out ProcessNodeInstance<T>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+
+/**
+ * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * @return The node
+ * @throws IllegalStateException If it doesn't
+ */
+fun <N:SecureObject<V>, V:Any> N?.mustExist(handle: Handle<out SecureObject<V>>): N = this ?: throw IllegalStateException("Process engine element missing: $handle")
+
+/**
+ * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * @return The node
+ * @throws IllegalStateException If it doesn't
+ */
+fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<out SecureObject<V>>): N = this ?: throw FileNotFoundException("Process engine element missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

@@ -20,6 +20,8 @@ import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.AuthenticationNeededException;
+import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecuredObject;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
@@ -520,15 +522,17 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
   /**
    * Get the list of all process models in the engine. This will be limited to user owned ones. The list will contain only
    * a summary of each model including name, id and uuid, not the content.
+   *
+   * XXX check security properly.
    */
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public SerializableList<ProcessModelRef> getProcesModelRefs() {
     try (T transaction = mProcessEngine.startTransaction()){
-      final Iterable<? extends ProcessModelImpl> processModels = mProcessEngine.getProcessModels(transaction);
+      final Iterable<? extends SecuredObject<ProcessModelImpl>> processModels = mProcessEngine.getProcessModels(transaction);
 
       final ArrayList<ProcessModelRef<?,?>> list = new ArrayList<>();
-      for (final ProcessModelImpl pm : processModels) {
-        final IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> ref = pm.getRef();
+      for (final SecuredObject<ProcessModelImpl> pm : processModels) {
+        final IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> ref = pm.withPermission().getRef();
         list.add(ProcessModelRef.get(ref));
       }
       return transaction.commit(new SerializableList<>(REFS_TAG, list));

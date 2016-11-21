@@ -17,10 +17,12 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.*;
+import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.MemTransactionedHandleMap;
+import nl.adaptivity.process.StubTransaction;
 import nl.adaptivity.process.StubTransactionFactory;
 import nl.adaptivity.process.engine.ProcessEngine.Companion;
 import nl.adaptivity.process.engine.ProcessEngine.DelegateProcessEngineData;
@@ -137,7 +139,12 @@ public class TestProcessEngine {
 //                                            cache(new MemTransactionedHandleMap<>(), 1),
 //                                            cache(new MemTransactionedHandleMap<>(), 2));
 
-    mProcessEngine = ProcessEngine.Companion.newTestInstance(mStubMessageService, mStubTransactionFactory, cache(new MemProcessModelMap(), 1), cache(new MemTransactionedHandleMap<ProcessInstance<StubProcessTransaction>, StubProcessTransaction>(), 1), cache(new MemTransactionedHandleMap<ProcessNodeInstance<StubProcessTransaction>, StubProcessTransaction>(), 2), true);
+    mProcessEngine = ProcessEngine.Companion.newTestInstance(
+            mStubMessageService,
+            mStubTransactionFactory,
+            cache(new MemProcessModelMap(), 1),
+            cache(new MemTransactionedHandleMap<SecureObject<ProcessInstance<StubProcessTransaction>>, StubProcessTransaction>(), 1),
+            cache(new MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<StubProcessTransaction>>, StubProcessTransaction>(), 2), true);
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {

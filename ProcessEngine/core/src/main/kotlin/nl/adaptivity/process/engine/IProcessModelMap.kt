@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 
 import java.sql.SQLException
@@ -26,16 +27,16 @@ import java.util.UUID
 /**
  * Created by pdvrieze on 07/05/16.
  */
-interface IProcessModelMap<T : ProcessTransaction<T>> : TransactionedHandleMap<ProcessModelImpl, T> {
+interface IProcessModelMap<T : ProcessTransaction<T>> : TransactionedHandleMap<SecureObject<ProcessModelImpl>, T> {
 
-  fun getModelWithUuid(transaction: T, uuid: UUID): Handle<ProcessModelImpl>?
+  fun getModelWithUuid(transaction: T, uuid: UUID): Handle<out SecureObject<ProcessModelImpl>>?
 
   override fun withTransaction(transaction: T): IProcessModelMapAccess {
     return ProcessModelMapForwarder(transaction, this as IMutableProcessModelMap<T>)
   }
 }
 
-interface IMutableProcessModelMap<T : ProcessTransaction<T>> : MutableTransactionedHandleMap<ProcessModelImpl, T>, IProcessModelMap<T> {
+interface IMutableProcessModelMap<T : ProcessTransaction<T>> : MutableTransactionedHandleMap<SecureObject<ProcessModelImpl>, T>, IProcessModelMap<T> {
 
   override fun withTransaction(transaction: T) = defaultWithTransaction(this, transaction)
 
@@ -45,13 +46,13 @@ fun <T:ProcessTransaction<T>> defaultWithTransaction(map: IMutableProcessModelMa
   return MutableProcessModelMapForwarder(transaction, map)
 }
 
-interface IProcessModelMapAccess : HandleMap<ProcessModelImpl> {
-  fun getModelWithUuid(uuid: UUID): Handle<ProcessModelImpl>?
+interface IProcessModelMapAccess : HandleMap<SecureObject<ProcessModelImpl>> {
+  fun getModelWithUuid(uuid: UUID): Handle<out SecureObject<ProcessModelImpl>>?
 
   operator fun get(uuid:UUID) = getModelWithUuid(uuid)
 }
 
-interface IMutableProcessModelMapAccess : MutableHandleMap<ProcessModelImpl>, IProcessModelMapAccess
+interface IMutableProcessModelMapAccess : MutableHandleMap<SecureObject<ProcessModelImpl>>, IProcessModelMapAccess
 
 inline fun <T:ProcessTransaction<T>, R> IProcessModelMap<T>.inReadonlyTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
   return withTransaction(transaction).body()
@@ -62,17 +63,17 @@ inline fun <T:ProcessTransaction<T>, R> IMutableProcessModelMap<T>.inWriteTransa
 }
 
 private class ProcessModelMapForwarder<T:ProcessTransaction<T>>(transaction: T, override val delegate:IProcessModelMap<T>)
-  : HandleMapForwarder<ProcessModelImpl, T>(transaction, delegate), IProcessModelMapAccess {
+  : HandleMapForwarder<SecureObject<ProcessModelImpl>, T>(transaction, delegate), IProcessModelMapAccess {
 
-  override fun getModelWithUuid(uuid: UUID): Handle<ProcessModelImpl>? {
+  override fun getModelWithUuid(uuid: UUID): Handle<out SecureObject<ProcessModelImpl>>? {
     return delegate.getModelWithUuid(transaction, uuid)
   }
 }
 
 private class MutableProcessModelMapForwarder<T:ProcessTransaction<T>>(transaction: T, override val delegate:IMutableProcessModelMap<T>)
-  : MutableHandleMapForwarder<ProcessModelImpl, T>(transaction, delegate), IMutableProcessModelMapAccess {
+  : MutableHandleMapForwarder<SecureObject<ProcessModelImpl>, T>(transaction, delegate), IMutableProcessModelMapAccess {
 
-  override fun getModelWithUuid(uuid: UUID): Handle<ProcessModelImpl>? {
+  override fun getModelWithUuid(uuid: UUID): Handle<out SecureObject<ProcessModelImpl>>? {
     return delegate.getModelWithUuid(transaction, uuid)
   }
 }

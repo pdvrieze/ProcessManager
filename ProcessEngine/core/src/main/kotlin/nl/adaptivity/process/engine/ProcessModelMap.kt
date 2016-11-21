@@ -20,13 +20,14 @@ import net.devrieze.util.*
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.HMElementFactory
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModels
 import java.util.*
 
 
-internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ProcessModelImpl, ProcessModelImpl, ProcessDBTransaction>(
+internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ProcessModelImpl, SecureObject<ProcessModelImpl>, ProcessDBTransaction>(
       transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<ProcessDBTransaction> {
 
   override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<ProcessModelImpl>? {
@@ -39,7 +40,7 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
           .filterNotNull()
           .map { Handles.handle<ProcessModelImpl>(it) }
           .firstOrNull {
-      val candidate:ProcessModelImpl? = get(transaction, it)
+      val candidate:ProcessModelImpl? = get(transaction, it)?.withPermission()
       uuid == candidate?.uuid
     }
   }
@@ -47,8 +48,8 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
   override val elementFactory: ProcessModelFactory
     get() = super.elementFactory as ProcessModelFactory
 
-  override fun <W : ProcessModelImpl> put(transaction: ProcessDBTransaction, value: W): ComparableHandle<W> {
-    value.cacheStrings(elementFactory.stringCache)
+  override fun <W : SecureObject<ProcessModelImpl>> put(transaction: ProcessDBTransaction, value: W): ComparableHandle<W> {
+    value.withPermission().cacheStrings(elementFactory.stringCache)
     return super.put(transaction, value)
   }
 }

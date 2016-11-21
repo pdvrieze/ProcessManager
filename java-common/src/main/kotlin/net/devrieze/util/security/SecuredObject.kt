@@ -22,11 +22,11 @@ import java.security.Principal
  * Interface for objects that will provide interface access with a permission.
  */
 
-interface SecuredObject<T:Any> {
+interface SecuredObject<out T:Any> {
   fun withPermission():T
 }
 
-fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: SecurityProvider.Permission, subject:Principal, body: (T)->R):R {
+inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: SecurityProvider.Permission, subject:Principal, body: (T)->R):R {
   val o = withPermission()
   securityProvider.ensurePermission(permission, subject, o)
   return body(o)
