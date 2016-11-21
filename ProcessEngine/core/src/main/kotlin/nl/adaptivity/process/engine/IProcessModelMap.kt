@@ -38,7 +38,7 @@ interface IProcessModelMap<T : ProcessTransaction<T>> : TransactionedHandleMap<S
 
 interface IMutableProcessModelMap<T : ProcessTransaction<T>> : MutableTransactionedHandleMap<SecureObject<ProcessModelImpl>, T>, IProcessModelMap<T> {
 
-  override fun withTransaction(transaction: T) = defaultWithTransaction(this, transaction)
+  override fun withTransaction(transaction: T): IMutableProcessModelMapAccess = defaultWithTransaction(this, transaction)
 
 }
 

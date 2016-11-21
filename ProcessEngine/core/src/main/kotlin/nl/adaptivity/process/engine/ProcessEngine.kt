@@ -24,7 +24,7 @@ import nl.adaptivity.messaging.HttpResponseException
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstance.State
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.AbstractProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -39,7 +39,6 @@ import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processInstances.uuid
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -89,17 +88,13 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
         override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<T>>, T>,
         override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
 
-    private inner class DelegateEngineDataAccess(private val transaction: T) : MutableProcessEngineDataAccess<T> {
+    private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
       override val instances: MutableHandleMap<SecureObject<ProcessInstance<T>>>
         get() = this@DelegateProcessEngineData.processInstances.withTransaction(transaction)
       override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<T>>>
         get() = this@DelegateProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
-
-      override fun commit() = transaction.commit()
-
-      override fun rollback() = transaction.rollback()
     }
 
     override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<T> = DelegateEngineDataAccess(transaction)
@@ -118,17 +113,13 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
   class DBProcessEngineData : IProcessEngineData<ProcessDBTransaction>() {
 
 
-    private inner class DBEngineDataAccess(private val transaction: ProcessDBTransaction) : MutableProcessEngineDataAccess<ProcessDBTransaction> {
+    private inner class DBEngineDataAccess(transaction: ProcessDBTransaction) : AbstractProcessEngineDataAccess<ProcessDBTransaction>(transaction) {
       override val instances: MutableHandleMap<SecureObject<ProcessInstance<ProcessDBTransaction>>>
         get() = this@DBProcessEngineData.processInstances.withTransaction(transaction)
       override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<ProcessDBTransaction>>>
         get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
-
-      override fun commit() = transaction.commit()
-
-      override fun rollback() = transaction.rollback()
 
     }
 

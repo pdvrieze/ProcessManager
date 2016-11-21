@@ -14,36 +14,30 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process;
+package nl.adaptivity.process
 
-import net.devrieze.util.Transaction;
+import net.devrieze.util.Transaction
 
-import java.sql.SQLException;
+import java.sql.Connection
+import java.sql.SQLException
 
 
 /**
  * Created by pdvrieze on 09/12/15.
  */
-public class StubTransaction implements Transaction {
+class StubTransactionFactory : net.devrieze.util.TransactionFactory<StubTransaction> {
 
-  @Override
-  public void close() { }
+  private val transaction = StubTransaction()
 
-  @Override
-  public void commit() throws SQLException { }
+  override fun startTransaction() = transaction
 
-  @Override
-  public void rollback() throws SQLException {
-    System.err.println("Rollback needed (but not supported on the stub");
+
+  @Throws(SQLException::class)
+  override fun getConnection(): Connection {
+    throw UnsupportedOperationException("No connections in the stub")
   }
 
-  @Override
-  public <T> T commit(final T value) throws SQLException {
-    return value;
-  }
-
-  @Override
-  public void addRollbackHandler(final Runnable runnable) {
-    // Do nothing
+  override fun isValidTransaction(transaction: Transaction): Boolean {
+    return this.transaction === transaction
   }
 }

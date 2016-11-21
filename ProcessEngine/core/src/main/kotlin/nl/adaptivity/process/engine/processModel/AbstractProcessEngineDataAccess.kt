@@ -14,34 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process;
+package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.Transaction;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-
+import net.devrieze.util.Handle
+import net.devrieze.util.MutableHandleMap
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.*
 
 /**
- * Created by pdvrieze on 09/12/15.
+ * Created by pdvrieze on 21/11/16.
  */
-public class StubTransactionFactory implements net.devrieze.util.TransactionFactory {
+abstract class AbstractProcessEngineDataAccess<T:ProcessTransaction<T>>(protected val transaction: T) : MutableProcessEngineDataAccess<T> {
 
-  private StubTransaction mTransaction = new StubTransaction();
+  override final fun commit() = transaction.commit()
 
-  @Override
-  public StubTransaction startTransaction() {
-    return mTransaction;
-  }
+  override final fun rollback() = transaction.rollback()
 
-
-  @Override
-  public Connection getConnection() throws SQLException {
-    throw new UnsupportedOperationException("No connections in the stub");
-  }
-
-  @Override
-  public boolean isValidTransaction(final Transaction transaction) {
-    return mTransaction == transaction;
-  }
 }

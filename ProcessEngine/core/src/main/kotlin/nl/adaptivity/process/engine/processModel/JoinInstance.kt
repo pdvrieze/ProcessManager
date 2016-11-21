@@ -51,8 +51,8 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     get() = super.node as JoinImpl
 
   @Suppress("UNCHECKED_CAST")
-  override val handle: ComparableHandle<out JoinInstance<T>>
-    get() = super.handle as ComparableHandle<out JoinInstance<T>>
+  override val handle: ComparableHandle<out SecureObject<JoinInstance<T>>>
+    get() = super.handle as ComparableHandle<out SecureObject<JoinInstance<T>>>
 
   @Throws(SQLException::class)
   fun addPredecessor(transaction: T, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): Boolean {

@@ -98,7 +98,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
 
   private val mEndResults: MutableSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
-  private val mJoins: HashMap<JoinImpl, ComparableHandle<out JoinInstance<T>>>
+  private val mJoins: HashMap<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>
 
   private var mHandleValue = -1L
 
@@ -153,17 +153,6 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     mOutputs.addAll(builder.outputs)
   }
 
-  @Deprecated("")
-  internal constructor(handle: Long, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State, engine: ProcessEngine<T>) : this(
-        Handles.handle<ProcessInstance<T>>(handle),
-        owner,
-        processModel,
-        name,
-        uUid,
-        state,
-        engine) {
-  }
-
   internal constructor(handle: Handle<ProcessInstance<T>>, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State?, engine: ProcessEngine<T>) {
     mHandleValue = handle.handleValue
     this.processModel = processModel
@@ -194,22 +183,19 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   override fun withPermission() = this
 
   @Synchronized @Throws(SQLException::class)
-  internal fun setThreads(transaction: T, threads: Collection<ComparableHandle<out ProcessNodeInstance<T>>>) {
-    mThreads.addAll(threads)
-  }
-
-  @Synchronized @Throws(SQLException::class)
   fun initialize(transaction: T) {
     if (state != State.NEW || mThreads.size > 0) {
       throw IllegalStateException("The instance already appears to be initialised")
     }
 
     processModel.startNodes.forEach { node ->
-      mThreads.add(engine.registerNodeInstance(transaction, ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance<T>>(), this)))
+      val nodeInstance = ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance<T>>(), this)
+      val handle = transaction.writableEngineData.nodeInstances.put(nodeInstance)
+      mThreads.add(Handles.handle(handle)) // function needed to make the handle comparable
     }
 
     state = State.INITIALIZED
-    engine.updateStorage(transaction, this)
+    transaction.writableEngineData.instances[handle] = this
   }
 
   @Synchronized @Throws(SQLException::class)
@@ -218,22 +204,23 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     if (mFinished >= processModel.endNodeCount) {
       // TODO mark and store results
       state = State.FINISHED
-      engine.updateStorage(transaction, this)
+      transaction.writableEngineData.instances[handle] = this
       transaction.commit()
-      engine.finishInstance(transaction, handle)
+      transaction.writableEngineData.instances.remove(handle)
     }
   }
 
   @Synchronized @Throws(SQLException::class)
   fun getNodeInstance(transaction: T, identifiable: Identifiable): ProcessNodeInstance<T>? {
     return (mEndResults.asSequence() + mFinishedNodes.asSequence() + mThreads.asSequence()).map { handle ->
-      val instance = engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle)
+      val nodeInstances = transaction.readableEngineData.nodeInstances
+      val instance = nodeInstances[handle].mustExist(handle).withPermission()
       if (identifiable.id == instance.node.id) {
         instance
       } else {
-        instance.getPredecessor(transaction, identifiable.id)?.let {engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL)}
+        instance.getPredecessor(transaction, identifiable.id)?.let { nodeInstances[it].mustExist(it).withPermission() }
       }
-    }.firstOrNull()
+    }.filterNotNull().firstOrNull()
   }
 
   private val finishedCount: Int
@@ -242,11 +229,13 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   @Synchronized @Throws(SQLException::class)
   private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): JoinInstance<T> {
     synchronized(mJoins) {
+      val nodeInstances = transaction.writableEngineData.nodeInstances
       return mJoins[join]?.let {
-        engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL) as JoinInstance<T>?
+        nodeInstances[it]?.withPermission() as JoinInstance<T>?
       }?.apply { addPredecessor(transaction, predecessor) } ?: run {
         return JoinInstance(join, listOf(predecessor), this).apply {
-          mJoins.put(join, engine.registerNodeInstance<JoinInstance<T>>(transaction, this))
+          // A bit of a hack to ensure typing
+          mJoins.put(join, Handles.handle(nodeInstances.put(this).handleValue))
         }
       }
     }
@@ -286,21 +275,22 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
     if (state == null) {
       initialize(transaction)
     }
+    transaction.writableEngineData.let { engineData ->
+      mThreads.let { threads ->
 
-    mThreads.let { threads ->
+        if (threads.isEmpty()) {
+          throw IllegalStateException("No starting nodes in process")
+        }
 
-      if (threads.isEmpty()) {
-        throw IllegalStateException("No starting nodes in process")
+        threads.asSequence()
+              .map { engineData.nodeInstances[it].mustExist(it).withPermission() }
+              .forEach { provideTask(transaction, messageService, it) }
       }
 
-      threads.asSequence()
-            .map { engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it) }
-            .forEach { provideTask(transaction, messageService, it) }
+      mInputs.apply { clear() }.addAll(processModel.toInputs(payload))
+      state = State.STARTED
+      engineData.instances[handle] = this
     }
-
-    mInputs.apply { clear() }.addAll(processModel.toInputs(payload))
-    state = State.STARTED
-    engine.updateStorage(transaction, this)
   }
 
   /** Method called when the instance is loaded from the server. This should reinitialise the instance.  */

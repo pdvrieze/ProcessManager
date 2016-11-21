@@ -14,25 +14,31 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package nl.adaptivity.process
 
-import net.devrieze.util.security.SecurityProvider.Permission
+import net.devrieze.util.Transaction
 
-import java.security.Principal
+import java.sql.SQLException
 
 
-interface SecureObject<out T:Any> :SecuredObject<T> {
+/**
+ * Created by pdvrieze on 09/12/15.
+ */
+open class StubTransaction : Transaction {
 
-  enum class Permissions : Permission {
-    READ,
-    RENAME,
-    UPDATE,
-    DELETE
+  override fun close() = Unit
+
+  @Throws(SQLException::class)
+  override fun commit() = Unit
+
+  @Throws(SQLException::class)
+  override fun rollback() {
+    System.err.println("Rollback needed (but not supported on the stub")
   }
 
-  /**
-   * The owner of the object. Null values are not allowed. All unowned objects can have [SecurityProvider.SYSTEMPRINCIPAL] as owner.
-   */
-  val owner: Principal
+  @Throws(SQLException::class)
+  override fun <T> commit(value: T) = value
 
+  override fun addRollbackHandler(runnable: Runnable) = // Do nothing
+        Unit
 }
