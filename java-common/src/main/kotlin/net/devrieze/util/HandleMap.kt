@@ -35,7 +35,7 @@ interface HandleMap<V:Any> : Iterable<V> {
    * *
    * @return `true` if it does.
    */
-  fun containsElement(element: V): Boolean
+  fun containsElement(element: @UnsafeVariance V): Boolean
 
   override operator fun iterator(): Iterator<V>
 

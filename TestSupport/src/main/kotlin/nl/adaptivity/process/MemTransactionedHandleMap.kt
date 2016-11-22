@@ -80,11 +80,11 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction> : MemHandleMa
 
   @Throws(SQLException::class)
   override fun containsAll(transaction: TR, c: Collection<*>) =
-        c.all { it !=null && containsElement(it) }
+        c.all { it !=null && contains(it) }
 
   @Throws(SQLException::class)
   override fun containsElement(transaction: TR, element: Any): Boolean {
-    return containsElement(element)
+    return contains(element)
   }
 
   @Throws(SQLException::class)
