@@ -155,3 +155,26 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     nextElemIdx =0
   }
 }
+
+
+/**
+ * Returns a mutable set containing all distinct elements from the given sequence.
+ *
+ * The returned set preserves the element iteration order of the original sequence.
+ */
+fun <T> Sequence<T>.toMutableArraySet(): MutableSet<T> {
+  return ArraySet<T>().apply {
+    for (item in this) add(item)
+  }
+}
+
+inline fun <T> Sequence<T>.toArraySet(): Set<T> = toMutableArraySet()
+
+
+fun <T> Iterable<T>.toMutableArraySet(): MutableSet<T> {
+  return ArraySet<T>().apply {
+    for(item in this) add(item)
+  }
+}
+
+inline fun <T> Iterable<T>.toArraySet(): Set<T> = toMutableArraySet()
