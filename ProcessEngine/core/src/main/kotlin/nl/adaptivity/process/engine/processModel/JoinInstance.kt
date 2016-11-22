@@ -16,14 +16,15 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Transaction
+import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.JoinImpl
 import nl.adaptivity.process.util.Identifiable
 import java.sql.SQLException
@@ -32,9 +33,41 @@ import java.util.*
 
 class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
-  constructor(node: JoinImpl, predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending) :
-        super(node, predecessors, processInstance, state) {
+  interface Builder<T: ProcessTransaction<T>> : ProcessNodeInstance.Builder<T, JoinImpl>
+
+  class ExtBuilder<T : ProcessTransaction<T>>(instance:JoinInstance<T>) : ProcessNodeInstance.ExtBuilderBase<T, JoinImpl>(instance), Builder<T> {
+    override var node: JoinImpl by overlay { instance.node }
   }
+
+  class BaseBuilder<T : ProcessTransaction<T>>(
+        node: JoinImpl,
+        predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
+        processInstance: ProcessInstance<T>,
+        handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
+        state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending)
+    : ProcessNodeInstance.BaseBuilder<T, JoinImpl>(node, predecessors, processInstance, handle, state), Builder<T>
+
+  override val node: JoinImpl
+    get() = super.node as JoinImpl
+
+  @Suppress("UNCHECKED_CAST")
+  override val handle: ComparableHandle<out SecureObject<JoinInstance<T>>>
+    get() = super.handle as ComparableHandle<out SecureObject<JoinInstance<T>>>
+
+
+  val isFinished: Boolean
+    get() = state == IProcessNodeInstance.NodeInstanceState.Complete || state == IProcessNodeInstance.NodeInstanceState.Failed
+
+  constructor(node: JoinImpl,
+              predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
+              processInstance: ProcessInstance<T>,
+              handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
+              state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending,
+              results: Iterable<ProcessData> = emptyList()) :
+        super(node, predecessors, processInstance, handle, state, results) {
+  }
+
+  constructor(builder:Builder<T>): this(builder.node, builder.predecessors, builder.processInstance, builder.handle, builder.state, builder.results)
 
   /**
    * Constructor for ProcessNodeInstanceMap.
@@ -47,12 +80,19 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
         : super(transaction, node, processInstance, state) {
   }
 
-  override val node: JoinImpl
-    get() = super.node as JoinImpl
+  fun updateJoin(transaction: T, body: Builder<T>.() -> Unit):ProcessNodeInstance<T> {
+    val origHandle = handle
+    return ProcessNodeInstance(ExtBuilder(this).apply { body() }).apply {
+      if (origHandle.valid)
+        if (handle.valid)
+          transaction.writableEngineData.nodeInstances[handle] = this
+    }
+  }
 
-  @Suppress("UNCHECKED_CAST")
-  override val handle: ComparableHandle<out SecureObject<JoinInstance<T>>>
-    get() = super.handle as ComparableHandle<out SecureObject<JoinInstance<T>>>
+  override fun update(transaction: T,
+                      body: ProcessNodeInstance.Builder<T, out ExecutableProcessNode>.() -> Unit): ProcessNodeInstance<T> {
+    return updateJoin(transaction) { body() }
+  }
 
   @Throws(SQLException::class)
   fun addPredecessor(transaction: T, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): Boolean {
@@ -62,9 +102,6 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     }
     return false
   }
-
-  val isFinished: Boolean
-    get() = state == IProcessNodeInstance.NodeInstanceState.Complete || state == IProcessNodeInstance.NodeInstanceState.Failed
 
   @Throws(SQLException::class)
   override fun <V> startTask(transaction: T, messageService: IMessageService<V, T, ProcessNodeInstance<T>>): Boolean {
