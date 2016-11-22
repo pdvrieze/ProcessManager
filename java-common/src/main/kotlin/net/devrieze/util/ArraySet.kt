@@ -164,7 +164,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
  */
 fun <T> Sequence<T>.toMutableArraySet(): MutableSet<T> {
   return ArraySet<T>().apply {
-    for (item in this) add(item)
+    for (item in this@toMutableArraySet) add(item)
   }
 }
 
@@ -173,7 +173,7 @@ inline fun <T> Sequence<T>.toArraySet(): Set<T> = toMutableArraySet()
 
 fun <T> Iterable<T>.toMutableArraySet(): MutableSet<T> {
   return ArraySet<T>().apply {
-    for(item in this) add(item)
+    for(item in this@toMutableArraySet) add(item)
   }
 }
 
