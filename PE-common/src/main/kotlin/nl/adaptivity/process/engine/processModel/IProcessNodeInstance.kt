@@ -137,7 +137,7 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * @throws SQLException @link #takeTask(IMessageService)
    */
   @Throws(SQLException::class)
-  fun <U> provideTask(transaction: T, messageService: IMessageService<U, T, V>): Boolean
+  fun <U> provideTask(transaction: T, messageService: IMessageService<U, T, V>): V
 
   /**
    * Called by the processEngine to let the task be taken.
@@ -148,7 +148,7 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * *         be [started][.startTask].
    */
   @Throws(SQLException::class)
-  fun <U> takeTask(transaction: T, messageService: IMessageService<U, T, V>): Boolean
+  fun <U> takeTask(transaction: T, messageService: IMessageService<U, T, V>): V
 
   /**
    * Called by the processEngine to let the system start the task.
@@ -159,7 +159,7 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * *         [.finishTask]  should be called.
    */
   @Throws(SQLException::class)
-  fun <U> startTask(transaction: T, messageService: IMessageService<U, T, V>): Boolean
+  fun <U> startTask(transaction: T, messageService: IMessageService<U, T, V>): V
 
   /**
    * Called by the processEngine to signify to the task that it is finished
@@ -168,13 +168,13 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * @param payload The payload which is the result of the processing.
    */
   @Throws(SQLException::class)
-  fun finishTask(transaction: T, payload: Node?)
+  fun finishTask(transaction: T, payload: Node? = null): V
 
   /**
    * Called to signify that this task has failed.
    */
   @Throws(SQLException::class)
-  fun failTask(transaction: T, cause: Throwable)
+  fun failTask(transaction: T, cause: Throwable): V
 
   /**
    * Called to signify that creating this task has failed, a retry would be expected.
@@ -187,14 +187,14 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun cancelTask(transaction: T)
+  fun cancelTask(transaction: T): V
 
   /**
    * Called to attempt to cancel the task if that is semantically valid.
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun tryCancelTask(transaction: T)
+  fun tryCancelTask(transaction: T): V
 
   /** Get the predecessor instance with the given node name.
    * @throws SQLException

@@ -280,6 +280,8 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
       initialize(transaction)
     }
     transaction.writableEngineData.let { engineData ->
+      mInputs.apply { clear() }.addAll(processModel.toInputs(payload))
+
       mThreads.let { threads ->
 
         if (threads.isEmpty()) {
@@ -288,10 +290,9 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
 
         threads.asSequence()
               .map { engineData.nodeInstances[it].mustExist(it).withPermission() }
-              .forEach { provideTask(transaction, messageService, it) }
+              .forEach { it.provideTask(transaction, messageService) }
       }
 
-      mInputs.apply { clear() }.addAll(processModel.toInputs(payload))
       state = State.STARTED
       engineData.instances[handle] = this
     }
@@ -304,46 +305,44 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   }
 
   @Synchronized @Throws(SQLException::class)
+  @Deprecated("Not needed", ReplaceWith("node.provideTask(transaction, messageService)"))
   fun provideTask(transaction: T,
                   messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                  node: ProcessNodeInstance<T>) {
-    assert(node.handle.valid)
-    if (node.provideTask(transaction, messageService)) {
-      takeTask(transaction, messageService, node)
-    }
+                  node: ProcessNodeInstance<T>):ProcessNodeInstance<T> {
+    assert(node.handle.valid) { "The handle is not valid: ${node.handle}" }
+    return node.provideTask(transaction, messageService)
   }
 
   @Synchronized @Throws(SQLException::class)
+  @Deprecated("Not needed", ReplaceWith("node.takeTask(transaction, messageService)"))
   fun takeTask(transaction: T,
                messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-               node: ProcessNodeInstance<T>) {
-    if (node.takeTask(transaction, messageService)) {
-      startTask(transaction, messageService, node)
-    }
+               node: ProcessNodeInstance<T>): ProcessNodeInstance<T> {
+    return node.takeTask(transaction, messageService)
   }
 
   @Synchronized @Throws(SQLException::class)
+  @Deprecated("Not needed", ReplaceWith("node.startTask<*>(transaction, messageService)"))
   fun startTask(transaction: T,
                 messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                node: ProcessNodeInstance<T>) {
-    if (node.startTask(transaction, messageService)) {
-      finishTask(transaction, messageService, node, null)
-    }
+                node: ProcessNodeInstance<T>): ProcessNodeInstance<T> {
+    return node.startTask(transaction, messageService)
   }
 
   @Synchronized @Throws(SQLException::class)
   fun finishTask(transaction: T,
                  messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
                  node: ProcessNodeInstance<T>,
-                 resultPayload: Node?) {
+                 resultPayload: Node?): ProcessNodeInstance<T> {
     if (node.state === NodeInstanceState.Complete) {
       throw IllegalStateException("Task was already complete")
     }
-    node.finishTask(transaction, resultPayload)
     // Make sure the finish is recorded.
-    transaction.commit()
+    val newNodeState = transaction.commit(node.finishTask(transaction, resultPayload))
 
-    handleFinishedState(transaction, messageService, node)
+    handleFinishedState(transaction, messageService, newNodeState)
+
+    return newNodeState
 
   }
 
@@ -404,10 +403,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
 
     // Commit the registration of the follow up nodes before starting them.
     transaction.commit()
-    startedTasks.forEach { task -> provideTask(transaction, messageService, task) }
+    startedTasks.forEach { task -> task.provideTask(transaction, messageService) }
 
     joinsToEvaluate.forEach { join ->
-      startTask(transaction, messageService, join)
+      join.startTask(transaction, messageService)
 
       if (join.state.isFinal) {
         val joinHandle = join.handle
@@ -429,6 +428,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   }
 
   @Synchronized @Throws(SQLException::class)
+  @Deprecated("Not needed", ReplaceWith("node.failTask<*>(transaction, messageService)"))
   fun failTask(transaction: T,
                messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
                node: ProcessNodeInstance<T>,
@@ -437,6 +437,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   }
 
   @Synchronized @Throws(SQLException::class)
+  @Deprecated("Not needed", ReplaceWith("node.cancelTask<*>(transaction, messageService)"))
   fun cancelTask(transaction: T,
                  messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
                  node: ProcessNodeInstance<T>) {
@@ -446,7 +447,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   @Synchronized @Throws(SQLException::class)
   fun getActivePredecessorsFor(transaction: T, join: JoinImpl): Collection<ProcessNodeInstance<T>> {
     return mThreads.asSequence()
-          .map { engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it) }
+          .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
           .filter { it.node.isPredecessorOf(join) }
           .toList()
   }
@@ -468,7 +469,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
             }
       for (hnode in candidate.directPredecessors) {
         // Use the fact that we start with a proper node to get the engine and get the actual node based on the handle (which might be a node itself)
-        val node = candidate.processInstance.engine.getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hnode)
+        val node = transaction.readableEngineData.nodeInstances[hnode].mustExist(hnode).withPermission()
         addDirectSuccessor(node, predecessor)
       }
     }

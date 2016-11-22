@@ -222,7 +222,7 @@ public class TestProcessEngine {
     ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);
     assertEquals(taskNode.getState(), Pending); // Our messenger does not do delivery notification
 
-    assertEquals(mProcessEngine.finishTask(transaction, taskNode.getHandle(), null, mPrincipal), Complete);
+    assertEquals(mProcessEngine.finishTask(transaction, taskNode.getHandle(), null, mPrincipal).getState(), Complete);
     assertEquals(processInstance.getActive().size(), 0);
     assertEquals(processInstance.getFinished().size(), 2);
     assertEquals(processInstance.getResults().size(), 1);
@@ -249,7 +249,9 @@ public class TestProcessEngine {
 
     mStubMessageService.clear(); // (Process the message)
     assertEquals(ac1.getResults().size(), 0);
-    assertEquals(mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml"), mPrincipal), Complete);
+    ac1 = mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml"), mPrincipal);
+    assertEquals(ac1.getState(), Complete);
+    ac1 = mProcessEngine.getNodeInstance(transaction, ac1.getHandle(), mPrincipal);
     assertEquals(ac1.getResults().size(), 2);
     ProcessData result1 = ac1.getResults().get(0);
     ProcessData result2 = ac1.getResults().get(1);

@@ -374,7 +374,8 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
   @Throws(SQLException::class, FileNotFoundException::class)
   fun tickleNode(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, user: Principal) {
-    engineData.invalidateCachePNI(handle)
+    @Suppress("UNCHECKED_CAST")
+    (transaction.readableEngineData.nodeInstances as? CachingHandleMap<SecureObject<ProcessNodeInstance<T>>, T>)?.invalidateCache(handle)
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.TICKLE_NODE, user) { nodeInstance ->
         nodeInstance.directPredecessors.forEach { hPredecessor -> tickleNode(transaction, hPredecessor, user) }
@@ -585,14 +586,13 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
   }
 
   @Throws(SQLException::class)
-  fun finishTask(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, payload: Node?, user: Principal): NodeInstanceState {
+  fun finishTask(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, payload: Node?, user: Principal): ProcessNodeInstance<T> {
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
         val pi = task.processInstance
         try {
           synchronized(pi) {
-            pi.finishTask(transaction, messageService, task, payload)
-            return task.state
+            return pi.finishTask(transaction, messageService, task, payload)
           }
         } catch (e: Exception) {
           engineData.invalidateCachePNI(handle)

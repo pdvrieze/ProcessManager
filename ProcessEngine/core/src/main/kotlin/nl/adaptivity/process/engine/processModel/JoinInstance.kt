@@ -20,13 +20,12 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.ProcessTransaction
+import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.JoinImpl
 import nl.adaptivity.process.util.Identifiable
+import org.w3c.dom.Node
 import java.sql.SQLException
 import java.util.*
 
@@ -47,7 +46,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
         predecessors: Iterable<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
         processInstance: ProcessInstance<T>,
         handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
-        state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending)
+        state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<T, JoinImpl>(node, predecessors, processInstance, handle, state), Builder<T> {
     override fun build() = JoinInstance(this)
   }
@@ -61,13 +60,13 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
 
   val isFinished: Boolean
-    get() = state == IProcessNodeInstance.NodeInstanceState.Complete || state == IProcessNodeInstance.NodeInstanceState.Failed
+    get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
   constructor(node: JoinImpl,
               predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
               processInstance: ProcessInstance<T>,
               handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
-              state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending,
+              state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, processInstance, handle, state, results) {
   }
@@ -81,7 +80,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
    * @param processInstance
    */
   @Throws(SQLException::class)
-  internal constructor(transaction: T, node: JoinImpl, processInstance: ProcessInstance<T>, state: IProcessNodeInstance.NodeInstanceState)
+  internal constructor(transaction: T, node: JoinImpl, processInstance: ProcessInstance<T>, state: NodeInstanceState)
         : super(transaction, node, processInstance, state) {
   }
 
@@ -112,12 +111,30 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
   }
 
   @Throws(SQLException::class)
-  override fun <V> startTask(transaction: T, messageService: IMessageService<V, T, ProcessNodeInstance<T>>): Boolean {
+  override fun <V> startTask(transaction: T, messageService: IMessageService<V, T, ProcessNodeInstance<T>>): ProcessNodeInstance<T> {
     if (node.startTask(messageService, this)) {
       return updateTaskState(transaction)
     }
-    return false
+    return this
   }
+
+  override fun finishTask(transaction: T, resultPayload: Node?)
+        = super.finishTask(transaction, resultPayload) as JoinInstance<T>
+
+  override fun <U> takeTask(transaction: T, messageService: IMessageService<U, T, ProcessNodeInstance<T>>)
+        = super.takeTask(transaction, messageService) as JoinInstance<T>
+
+  override fun cancelTask(transaction: T)
+        = super.cancelTask(transaction) as JoinInstance<T>
+
+  override fun tryCancelTask(transaction: T)
+        = super.tryCancelTask(transaction) as JoinInstance<T>
+
+  override fun failTask(transaction: T, cause: Throwable)
+        = super.failTask(transaction, cause) as JoinInstance<T>
+
+  override fun failTaskCreation(transaction: T, cause: Throwable)
+        = super.failTaskCreation(transaction, cause) as JoinInstance<T>
 
   /**
    * Update the state of the task, based on the predecessors
@@ -128,39 +145,39 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  private fun updateTaskState(transaction: T): Boolean {
-    if (state == IProcessNodeInstance.NodeInstanceState.Complete) return false // Don't update if we're already complete
+  private fun updateTaskState(transaction: T): JoinInstance<T> {
+
+    fun next() = updateJoin(transaction) { state = NodeInstanceState.Started }.finishTask(transaction, null)
+
+    if (state == NodeInstanceState.Complete) return this // Don't update if we're already complete
 
     val join = node
-    val totalPossiblePredecessors = join.predecessors!!.size
+    val totalPossiblePredecessors = join.predecessors.size
     val realizedPredecessors = directPredecessors.size
 
     if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
-      return true
+      return next()
     }
 
     var complete = 0
     var skipped = 0
     for (predecessor in resolvePredecessors(transaction)) {
       when (predecessor.state) {
-        IProcessNodeInstance.NodeInstanceState.Complete                                                 -> complete += 1
-        IProcessNodeInstance.NodeInstanceState.Cancelled, IProcessNodeInstance.NodeInstanceState.Failed -> skipped += 1
+        NodeInstanceState.Complete                            -> complete += 1
+        NodeInstanceState.Cancelled, NodeInstanceState.Failed -> skipped += 1
       }// do nothing
     }
     if (totalPossiblePredecessors - skipped < join.min) {
-      failTask(transaction, ProcessException("Too many predecessors have failed"))
       cancelNoncompletedPredecessors(transaction)
-      return false
+      return failTask(transaction, ProcessException("Too many predecessors have failed"))
     }
 
     if (complete >= join.min) {
-      if (complete >= join.max) {
-        return true
+      if (complete >= join.max || processInstance.getActivePredecessorsFor(transaction, join).isEmpty()) {
+        return next()
       }
-      // XXX todo if we skipped/failed too many predecessors to ever be able to finish,
-      return processInstance.getActivePredecessorsFor(transaction, join).size == 0
     }
-    return false
+    return this
   }
 
   @Throws(SQLException::class)
@@ -172,27 +189,27 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
   }
 
   @Throws(SQLException::class)
-  override fun <V> provideTask(transaction: T, messageService: IMessageService<V, T, ProcessNodeInstance<T>>): Boolean {
+  override fun <V> provideTask(transaction: T, messageService: IMessageService<V, T, ProcessNodeInstance<T>>): ProcessNodeInstance<T> {
     if (!isFinished) {
-      return node.provideTask(transaction, messageService, this)
-    }
-    val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
-    var canAdd = false
-    for (hDirectSuccessor in directSuccessors) {
-      val directSuccessor: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, hDirectSuccessor,
-                                                                                           SecurityProvider.SYSTEMPRINCIPAL)
-          ?: throw NullPointerException("The successor handle could not be resolved")
-      if (directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Started || directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Complete) {
-        canAdd = false
-        break
+      val shouldProgress = node.provideTask(transaction, messageService, this)
+      if (shouldProgress) {
+        val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
+        val canAdd = directSuccessors
+              .asSequence()
+              .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+              .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
+        if (canAdd) {
+          return updateJoin(transaction) { state = NodeInstanceState.Sent }.takeTask(transaction, messageService)
+        }
+        return this // no need to update as the initial state is already pending.
       }
-      canAdd = true
+
     }
-    return canAdd
+    return this
   }
 
   @Throws(SQLException::class)
-  override fun tickle(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>) {
+  override fun tickle(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>): JoinInstance<T> {
     super.tickle(transaction, messageService)
     val missingIdentifiers = TreeSet<Identifiable>()
     missingIdentifiers.addAll(node.predecessors!!)
@@ -207,8 +224,11 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
         addPredecessor(transaction, candidate.handle)
       }
     }
-    if (updateTaskState(transaction) && state != IProcessNodeInstance.NodeInstanceState.Complete) {
-      processInstance.finishTask(transaction, messageService, this, null)
+    val updatedInstance = updateTaskState(transaction)
+    if (updatedInstance.state==NodeInstanceState.Started) {
+      return updatedInstance.finishTask(transaction)
+    } else {
+      return updatedInstance
     }
   }
 
@@ -223,7 +243,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
       val directSuccessor:ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction,
                                                                    hDirectSuccessor,
                                                                    SecurityProvider.SYSTEMPRINCIPAL) ?: throw NullPointerException("Successor not resolved")
-      if (directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Started || directSuccessor.state == IProcessNodeInstance.NodeInstanceState.Complete) {
+      if (directSuccessor.state == NodeInstanceState.Started || directSuccessor.state == NodeInstanceState.Complete) {
         canAdd = false
         break
       }
@@ -237,7 +257,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
                                         predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
                                         processInstance: ProcessInstance<T>,
                                         handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
-                                        state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending,
+                                        state: NodeInstanceState = NodeInstanceState.Pending,
                                         body: Builder<T>.() -> Unit):JoinInstance<T> {
       return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance, handle, state).apply(body))
     }

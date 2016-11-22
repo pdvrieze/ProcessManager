@@ -851,7 +851,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         final Principal user) {
     try (T transaction = mProcessEngine.startTransaction()){
-      return transaction.commit(mProcessEngine.finishTask(transaction, Handles.handle(handle), payload, user));
+      return transaction.commit(mProcessEngine.finishTask(transaction, Handles.handle(handle), payload, user).getState());
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
