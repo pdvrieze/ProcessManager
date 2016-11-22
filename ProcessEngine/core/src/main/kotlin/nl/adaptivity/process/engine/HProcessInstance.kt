@@ -25,7 +25,7 @@ import nl.adaptivity.xml.*
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessInstance.Factory::class)
-class HProcessInstance<T : ProcessTransaction<T>>(handle: Handle<ProcessInstance<T>>) : XmlHandle<ProcessInstance<T>>(handle) {
+class HProcessInstance<T : ProcessTransaction<T>>(handle: Handle<out ProcessInstance<T>>) : XmlHandle<ProcessInstance<T>>(handle) {
 
   class Factory : XmlDeserializerFactory<HProcessInstance<*>> {
 

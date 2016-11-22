@@ -230,12 +230,16 @@ class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T
   private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): JoinInstance<T> {
     synchronized(mJoins) {
       val nodeInstances = transaction.writableEngineData.nodeInstances
-      return mJoins[join]?.let {
-        nodeInstances[it]?.withPermission() as JoinInstance<T>?
-      }?.apply { addPredecessor(transaction, predecessor) } ?: run {
-        return JoinInstance(join, listOf(predecessor), this).apply {
-          // A bit of a hack to ensure typing
-          mJoins.put(join, Handles.handle(nodeInstances.put(this).handleValue))
+
+      val joinInstance = mJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance<T> }
+      if (joinInstance==null) {
+        val joinHandle= nodeInstances.put(JoinInstance(join, listOf(predecessor), this))
+
+        mJoins[join] = Handles.handle(joinHandle.handleValue)
+        return nodeInstances[joinHandle] as JoinInstance<T>
+      } else {
+        return joinInstance.updateJoin(transaction) {
+          predecessors.add(predecessor)
         }
       }
     }

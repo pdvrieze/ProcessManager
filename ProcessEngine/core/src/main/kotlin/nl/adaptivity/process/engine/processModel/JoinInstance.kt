@@ -33,19 +33,24 @@ import java.util.*
 
 class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
-  interface Builder<T: ProcessTransaction<T>> : ProcessNodeInstance.Builder<T, JoinImpl>
+  interface Builder<T: ProcessTransaction<T>> : ProcessNodeInstance.Builder<T, JoinImpl> {
+    override fun build(): JoinInstance<T>
+  }
 
   class ExtBuilder<T : ProcessTransaction<T>>(instance:JoinInstance<T>) : ProcessNodeInstance.ExtBuilderBase<T, JoinImpl>(instance), Builder<T> {
     override var node: JoinImpl by overlay { instance.node }
+    override fun build() = JoinInstance(this)
   }
 
   class BaseBuilder<T : ProcessTransaction<T>>(
         node: JoinImpl,
-        predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
+        predecessors: Iterable<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
         processInstance: ProcessInstance<T>,
         handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
         state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending)
-    : ProcessNodeInstance.BaseBuilder<T, JoinImpl>(node, predecessors, processInstance, handle, state), Builder<T>
+    : ProcessNodeInstance.BaseBuilder<T, JoinImpl>(node, predecessors, processInstance, handle, state), Builder<T> {
+    override fun build() = JoinInstance(this)
+  }
 
   override val node: JoinImpl
     get() = super.node as JoinImpl
@@ -80,27 +85,30 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
         : super(transaction, node, processInstance, state) {
   }
 
-  fun updateJoin(transaction: T, body: Builder<T>.() -> Unit):ProcessNodeInstance<T> {
+  fun updateJoin(transaction: T, body: Builder<T>.() -> Unit):JoinInstance<T> {
     val origHandle = handle
-    return ProcessNodeInstance(ExtBuilder(this).apply { body() }).apply {
+    return JoinInstance(ExtBuilder(this).apply { body() }).apply {
       if (origHandle.valid)
         if (handle.valid)
           transaction.writableEngineData.nodeInstances[handle] = this
     }
   }
 
+  @Deprecated("Use updateJoin when using this function directly.", ReplaceWith("updateJoin(transaction, body)"))
   override fun update(transaction: T,
                       body: ProcessNodeInstance.Builder<T, out ExecutableProcessNode>.() -> Unit): ProcessNodeInstance<T> {
     return updateJoin(transaction) { body() }
   }
 
   @Throws(SQLException::class)
-  fun addPredecessor(transaction: T, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): Boolean {
-    if (canAddNode(transaction) && _directPredecessors.add(predecessor)) {
-      processInstance.engine.updateStorage(transaction, this)
-      return true
+  fun addPredecessor(transaction: T, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): JoinInstance<T>? {
+
+    if (canAddNode(transaction) && predecessor !in directPredecessors) {
+      return updateJoin(transaction) {
+        predecessors.add(predecessor)
+      }
     }
-    return false
+    return null
   }
 
   @Throws(SQLException::class)
@@ -222,6 +230,17 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
       canAdd = true
     }
     return canAdd
+  }
+
+  companion object {
+    fun <T:ProcessTransaction<T>> build(joinImpl: JoinImpl,
+                                        predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
+                                        processInstance: ProcessInstance<T>,
+                                        handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
+                                        state: IProcessNodeInstance.NodeInstanceState = IProcessNodeInstance.NodeInstanceState.Pending,
+                                        body: Builder<T>.() -> Unit):JoinInstance<T> {
+      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance, handle, state).apply(body))
+    }
   }
 
 }

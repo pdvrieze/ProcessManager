@@ -22,8 +22,9 @@ import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessDBTransaction
 import nl.adaptivity.process.engine.ProcessEngine
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 
 
 class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessNodeInstance<ProcessDBTransaction>, SecureObject<ProcessNodeInstance<ProcessDBTransaction>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))
+      DBHandleMap<ProcessNodeInstance.Builder<ProcessDBTransaction, out ExecutableProcessNode>, SecureObject<ProcessNodeInstance<ProcessDBTransaction>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))

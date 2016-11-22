@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.ProcessDBTransaction
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.JoinImpl
 import nl.adaptivity.util.xml.CompactFragment
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
@@ -39,7 +40,7 @@ import java.sql.SQLException
  * Created by pdvrieze on 29/05/16.
  */
 
-internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<ProcessDBTransaction>): AbstractElementFactory<ProcessNodeInstance<ProcessDBTransaction>, SecureObject<ProcessNodeInstance<ProcessDBTransaction>>, ProcessDBTransaction>() {
+internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<ProcessDBTransaction>): AbstractElementFactory<ProcessNodeInstance.Builder<ProcessDBTransaction, out ExecutableProcessNode>, SecureObject<ProcessNodeInstance<ProcessDBTransaction>>, ProcessDBTransaction>() {
 
   companion object {
     private val tbl_pni = ProcessEngineDB.processNodeInstances
@@ -60,7 +61,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
   override fun create(transaction: ProcessDBTransaction,
              columns: List<Column<*, *, *>>,
-             values: List<Any?>): ProcessNodeInstance<ProcessDBTransaction> {
+             values: List<Any?>): ProcessNodeInstance.Builder<ProcessDBTransaction, out ExecutableProcessNode> {
     val pnihandle = Handles.handle<ProcessNodeInstance<ProcessDBTransaction>>(tbl_pni.pnihandle.value(columns, values)!!)
     val nodeId = tbl_pni.nodeid.value(columns, values)!!
     val pihandle = Handles.handle<ProcessInstance<ProcessDBTransaction>>(tbl_pni.pihandle.value(columns, values)!!)
@@ -78,31 +79,28 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .requireNoNulls()
 
     return if (node is JoinImpl) {
-      JoinInstance(node, predecessors, processInstance, state)
+      JoinInstance.BaseBuilder<ProcessDBTransaction>(node, predecessors, processInstance, Handles.handle(pnihandle.handleValue), state)
     } else {
-      ProcessNodeInstance(node, predecessors, processInstance, state)
-    }.apply { setHandleValue(pnihandle.handleValue) }
+      ProcessNodeInstance.BaseBuilder<ProcessDBTransaction, ExecutableProcessNode>(node, predecessors, processInstance, Handles.handle(pnihandle.handleValue), state)
+    }
   }
 
   override fun postCreate(transaction: ProcessDBTransaction,
-                          builder: ProcessNodeInstance<ProcessDBTransaction>): ProcessNodeInstance<ProcessDBTransaction> {
-    for (handle in builder.directPredecessors) {
-      builder.ensurePredecessor(handle)
-    }
+                          builder: ProcessNodeInstance.Builder<ProcessDBTransaction, out ExecutableProcessNode>): ProcessNodeInstance<ProcessDBTransaction> {
 
     val results = ProcessEngineDB
           .SELECT(tbl_nd.name, tbl_nd.data)
-          .WHERE { tbl_nd.pnihandle eq builder.getHandleValue() }
+          .WHERE { tbl_nd.pnihandle eq builder.handle.handleValue }
           .getList(transaction.connection) { name, data ->
             if (FAILURE_CAUSE == name && (builder.state == IProcessNodeInstance.NodeInstanceState.Failed || builder.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
-              builder.setFailureCause(data)
+              builder.failureCause = Exception(data)
               null
             } else {
               ProcessData(name, CompactFragment(data!!))
             }
           }.filterNotNull()
-    builder.setResult(results)
-    return builder
+    builder.results.apply {clear(); }.addAll(results)
+    return builder.build()
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where,

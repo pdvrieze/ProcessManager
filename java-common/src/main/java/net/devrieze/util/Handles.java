@@ -95,8 +95,9 @@ public final class Handles {
     return pHandle<0 ? Handles.<T>getInvalid() : new SimpleHandle<T>(pHandle);
   }
 
-  public static <T> ComparableHandle<T> handle(final Handle<T> pHandle) {
-    if (pHandle instanceof ComparableHandle) { return (ComparableHandle<T>) pHandle; }
+  public static <T> ComparableHandle<T> handle(final Handle<? extends T> pHandle) {
+    if (pHandle instanceof ComparableHandle) { //noinspection unchecked
+      return (ComparableHandle<T>) pHandle; }
     return new SimpleHandle<>(pHandle.getHandleValue());
   }
 
