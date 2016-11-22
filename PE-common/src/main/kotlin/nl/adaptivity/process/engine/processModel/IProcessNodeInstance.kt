@@ -180,7 +180,7 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * Called to signify that creating this task has failed, a retry would be expected.
    */
   @Throws(SQLException::class)
-  fun failTaskCreation(transaction: T, cause: Throwable)
+  fun failTaskCreation(transaction: T, cause: Throwable): V
 
   /**
    * Called to signify that this task has been cancelled.

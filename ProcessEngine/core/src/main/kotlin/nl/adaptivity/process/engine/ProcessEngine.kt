@@ -560,16 +560,16 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
    */
   @Throws(SQLException::class, FileNotFoundException::class)
   fun updateTaskState(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, newState: NodeInstanceState, user: Principal): NodeInstanceState {
-    engineData.inWriteTransaction(transaction) {
+    transaction.writableEngineData.run {
 
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
 
         val pi = task.processInstance
 
-        synchronized(pi) {
+        synchronized(pi) { // XXX Should not be needed if pi is immutable
           when (newState) {
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
-            Acknowledged -> task.setState(transaction,     newState) // Record the state, do nothing else.
+            Acknowledged -> return task.update(transaction) { state = newState }.state // Record the state, do nothing else.
             Taken        -> pi.takeTask(transaction, messageService, task)
             Started      -> pi.startTask(transaction, messageService, task)
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")

@@ -331,9 +331,11 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   }
 
   @Throws(SQLException::class)
-  override fun failTaskCreation(transaction: T, cause: Throwable) {
-    failureCause = cause
-    setState(transaction, IProcessNodeInstance.NodeInstanceState.FailRetry)
+  override fun failTaskCreation(transaction: T, cause: Throwable): ProcessNodeInstance<T> {
+    return transaction.commit(update(transaction) {
+      failureCause = cause
+      state = IProcessNodeInstance.NodeInstanceState.FailRetry
+    })
   }
 
   /** package internal method for use when retrieving from the database.
