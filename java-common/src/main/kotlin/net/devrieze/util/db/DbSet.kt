@@ -31,7 +31,11 @@ import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.sql.DataSource
 
-open class DbSet<TMP, T:Any, TR: DBTransaction>(pTransactionFactory: TransactionFactory<out TR>, val database: Database, protected open val elementFactory: ElementFactory<TMP, T, TR>) : AutoCloseable, Closeable {
+open class DbSet<TMP, T:Any, TR: DBTransaction>(
+      transactionFactory: TransactionFactory<out TR>,
+      val database: Database,
+      protected open val elementFactory: ElementFactory<TMP, T, TR>,
+      val handleAssigner: (T, Long)->T = ::HANDLE_AWARE_ASSIGNER) : AutoCloseable, Closeable {
 
 
   /**
@@ -153,7 +157,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(pTransactionFactory: Transaction
   private val mIterators = ArrayList<ResultSetIterator>()
 
   init {
-    transactionFactory = pTransactionFactory
+    this.transactionFactory = transactionFactory
   }
 
   fun closingIterable(): ClosingIterable {
@@ -260,7 +264,8 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(pTransactionFactory: Transaction
     val stmt = elementFactory.insertStatement(elem)
     return stmt.execute(transaction.connection, elementFactory.keyColumn) { handle ->
       if (handle!=null) {
-        elementFactory.postStore(transaction.connection, Handles.handle<T>(handle), null, elem)
+        val newElem = handleAssigner(elem, handle)
+        elementFactory.postStore(transaction.connection, Handles.handle<T>(handle), null, newElem)
         true
       } else false
     }.let { it.isNotEmpty() && it.all { it } }
@@ -346,9 +351,9 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(pTransactionFactory: Transaction
     val stmt = elementFactory.insertStatement(elem)
     return stmt.execute(transaction.connection, elementFactory.keyColumn) {
       it?.let { handle ->
-        if ( elem is HandleMap.HandleAware<*>) elem.setHandleValue(handle)
+        val newElem = handleAssigner(elem, handle)
         Handles.handle<W>(handle).apply {
-          elementFactory.postStore(transaction.connection, this, null, elem)
+          elementFactory.postStore(transaction.connection, this, null, newElem)
         }
       }
     }.firstOrNull()

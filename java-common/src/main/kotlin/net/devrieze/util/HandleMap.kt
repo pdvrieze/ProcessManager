@@ -16,14 +16,20 @@
 
 package net.devrieze.util
 
+import net.devrieze.util.HandleMap.MutableHandleAware
+
 
 interface HandleMap<V:Any> : Iterable<V> {
 
-  interface HandleAware<T:Any> {
+  interface ReadableHandleAware<out T:Any> {
 
     val handle: Handle<out @JvmWildcard T>
+  }
+
+  interface MutableHandleAware<out T:Any> : ReadableHandleAware<T> {
 
     fun setHandleValue(handleValue: Long)
+
   }
 
   /**
@@ -87,4 +93,9 @@ interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
   /** Remove all elements */
   fun clear()
 
+}
+
+fun <T> HANDLE_AWARE_ASSIGNER(it:T, handle: Long):T {
+  (it as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle) }} ;
+  return it
 }

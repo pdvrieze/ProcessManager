@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.ArraySet
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
-import net.devrieze.util.HandleMap.HandleAware
+import net.devrieze.util.HandleMap.MutableHandleAware
 import net.devrieze.util.Handles
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
@@ -45,7 +45,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class ProcessInstance<T : ProcessTransaction<T>> : HandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>> {
+class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>> {
 
   data class Builder<T: ProcessTransaction<T>>(var handle: ComparableHandle<ProcessInstance<T>>, var owner: SimplePrincipal, var processModel: ProcessModelImpl, var instancename: String?, var uuid: UUID, var state: State) {
     val children = mutableListOf<Handle<ProcessNodeInstance<T>>>()

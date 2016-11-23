@@ -56,7 +56,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     get() = handle.handleValue
 
   override fun setHandleValue(handleValue: Long) {
-    if (handleValue<0) { handle = Handles.getInvalid() } else { handle = Handles.handle(handleValue) }
+    if (handle.handleValue!=handleValue) this.handle = Handles.handle(handleValue)
   }
 
   override var remoteHandle = -1L

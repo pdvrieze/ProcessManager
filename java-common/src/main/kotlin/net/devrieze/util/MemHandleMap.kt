@@ -49,7 +49,8 @@ import java.util.ConcurrentModificationException
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 open class MemHandleMap<V:Any>
 @JvmOverloads constructor(pCapacity: Int = MemHandleMap._DEFAULT_CAPACITY,
-                          pLoadFactor: Float = MemHandleMap._DEFAULT_LOADFACTOR) : MutableHandleMap<V>, MutableIterable<V> {
+                          pLoadFactor: Float = MemHandleMap._DEFAULT_LOADFACTOR,
+                          val handleAssigner: (V, Long)->V = ::HANDLE_AWARE_ASSIGNER) : MutableHandleMap<V>, MutableIterable<V> {
 
   internal class MapCollection<T:Any>(private val handleMap: MemHandleMap<T>) : MutableCollection<T> {
 
@@ -112,7 +113,7 @@ open class MemHandleMap<V:Any>
     }
 
     override fun remove(element: T): Boolean {
-      if (element is HandleMap.HandleAware<*>) {
+      if (element is HandleMap.ReadableHandleAware<*>) {
         return handleMap.remove(element.handle)
       }
       synchronized(handleMap) {
@@ -386,14 +387,14 @@ open class MemHandleMap<V:Any>
           generation = Math.max(generations[index], mStartGeneration)
         }
       }
-      values[index] = value
+      val h = (generation.toLong() shl 32) + handleFromIndex(index)
+      val updatedValue = handleAssigner(value, h)
+
+      values[index] = updatedValue
       generations[index] = generation
       size++
 
-      (generation.toLong() shl 32) + handleFromIndex(index)
-    }
-    if (value is HandleMap.HandleAware<*>) {
-      value.setHandleValue(handle)
+      h
     }
     return Handles.handle<W>(handle)
   }
@@ -443,11 +444,10 @@ open class MemHandleMap<V:Any>
         throw ArrayIndexOutOfBoundsException("Generation mismatch" + generation)
       }
 
+      val updatedValue = handleAssigner(value, handle)
+
       // Just get the element out of the map.
-      values[index] = value
-      if (value is HandleMap.HandleAware<*>) {
-        value.setHandleValue(handle)
-      }
+      values[index] = updatedValue
       return values[index]
     }
   }

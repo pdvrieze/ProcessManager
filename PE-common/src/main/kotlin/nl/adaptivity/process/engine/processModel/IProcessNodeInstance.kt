@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.HandleMap.HandleAware
+import net.devrieze.util.HandleMap
 import net.devrieze.util.StringUtil
 import net.devrieze.util.Transaction
 import net.devrieze.util.security.SecureObject
@@ -25,10 +25,8 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlWriter
 import org.w3c.dom.Node
-
-import javax.xml.bind.annotation.XmlRootElement
-
 import java.sql.SQLException
+import javax.xml.bind.annotation.XmlRootElement
 
 
 /**
@@ -38,7 +36,7 @@ import java.sql.SQLException
  * *
  * @param <V> The actual type of the implementing class.
 </V> */
-interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> : HandleAware<SecureObject<V>> {
+interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> : HandleMap.ReadableHandleAware<SecureObject<V>> {
 
   @Throws(XmlException::class)
   fun serialize(transaction: T, out: XmlWriter)

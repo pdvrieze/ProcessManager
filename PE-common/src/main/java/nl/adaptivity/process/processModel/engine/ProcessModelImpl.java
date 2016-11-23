@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.CollectionUtil;
-import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.HandleMap.MutableHandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
@@ -48,7 +48,7 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, ProcessModelImpl> implements HandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
+public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, ProcessModelImpl> implements MutableHandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
 
   public enum Permissions implements SecurityProvider.Permission {
     INSTANTIATE

@@ -33,8 +33,13 @@ import java.util.concurrent.CopyOnWriteArraySet
  * *
  * @param  The type of the elements in the map.
  */
-open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate: MutableTransactionedHandleMap<V, T>, cacheSize: Int) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+open class CachingHandleMap<V:Any, T : Transaction>(
+      protected open val delegate: MutableTransactionedHandleMap<V, T>,
+      cacheSize: Int,
+      val handleAssigner: (V, Long)->V) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
+  constructor(delegate: MutableTransactionedHandleMap<V, T>,
+              cacheSize: Int): this(delegate, cacheSize, { v, h -> HANDLE_AWARE_ASSIGNER(v,h) })
 
   private open inner class WrappingIterator(private val transaction:T, protected open val iterator: Iterator<V>) : MutableAutoCloseableIterator<V> {
     private var last: V? = null
@@ -76,16 +81,16 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
 
     override fun remove() {
       if (last != null) {
-        synchronized (mCacheHandles) {
+        synchronized (cacheHandles) {
           val last = last
           if (last is Handle<*>) {
             invalidateCache(last as Handle<V>)
           } else {
-            for (i in mCacheHandles.indices) {
-              val value = mCacheValues[i]
+            for (i in cacheHandles.indices) {
+              val value = cacheValues[i]
               if (value != null && value == last) {
-                mCacheHandles[i] = -1
-                mCacheValues[i] = null
+                cacheHandles[i] = -1
+                cacheValues[i] = null
                 break
               }
             }
@@ -119,14 +124,15 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
     }
   }
 
-  internal var mCacheHead = 0
-  internal val mCacheHandles: LongArray
-  internal val mCacheValues: Array<V?>
-  internal val mPendingHandles = CopyOnWriteArraySet<Handle<V>>()
+  internal var cacheHead = 0
+  internal val cacheHandles: LongArray
+  internal val cacheValues: Array<V?>
+  internal val pendingHandles = CopyOnWriteArraySet<Handle<V>>()
 
   init {
-    mCacheHandles = LongArray(cacheSize)
-    mCacheValues = arrayOfNulls<Any>(cacheSize) as Array<V?>
+    cacheHandles = LongArray(cacheSize)
+    @Suppress("UNCHECKED_CAST")
+    cacheValues = arrayOfNulls<Any>(cacheSize) as Array<V?>
   }
 
   @Throws(SQLException::class)
@@ -136,27 +142,33 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
     return handle
   }
 
+  @Suppress("UNCHECKED_CAST")
   protected fun putCache(transaction: T, pValue: V) {
     if (pValue is Handle<*>) {
       putCache(transaction, pValue as Handle<V>, pValue)
-    } else if (pValue is HandleMap.HandleAware<*>) {
-      putCache(transaction, (pValue as HandleMap.HandleAware<V>).handle, pValue)
+    } else if (pValue is HandleMap.ReadableHandleAware<*>) {
+      putCache(transaction, (pValue as HandleMap.ReadableHandleAware<V>).handle, pValue)
     }
   }
 
-  private fun putCache(transaction: T, pHandle: Handle<out V>, pValue: V?) {
-    if (pValue != null) { // never store null
-      if (pHandle.valid) {
-        synchronized (mCacheHandles) {
-          transaction.addRollbackHandler({ invalidateCache(pHandle) })
-          val pos = mCacheHead
-          val handle = pHandle.handleValue
-          if (mCacheHandles[pos] != handle) {
+  private fun putCache(transaction: T, handle: Handle<out V>, nonUpdatedValue: V?) {
+    if (nonUpdatedValue != null) { // never store null
+      if (handle.valid) {
+        val updatedValue = handleAssigner(nonUpdatedValue, handle.handleValue)
+
+        // Don't cache if the updated value has a handle that does not match
+        if (updatedValue is HandleMap.ReadableHandleAware<*> && updatedValue.handle!=handle) return
+
+        synchronized (cacheHandles) {
+          transaction.addRollbackHandler({ invalidateCache(handle) })
+          val pos = cacheHead
+          val handle = handle.handleValue
+          if (cacheHandles[pos] != handle) {
             removeFromCache(handle)
           }
-          mCacheHandles[pos] = handle
-          mCacheValues[pos] = pValue
-          mCacheHead = (pos + 1) % mCacheValues.size
+          cacheHandles[pos] = handle
+          cacheValues[pos] = updatedValue
+          cacheHead = (pos + 1) % cacheValues.size
 
         }
       }
@@ -165,19 +177,19 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
 
   @Throws(SQLException::class)
   fun getFromDelegate(transaction: T, pHandle: Handle<V>): V? {
-    mPendingHandles.add(pHandle) // internal locking so no locking needed here
+    pendingHandles.add(pHandle) // internal locking so no locking needed here
     try {
       return delegate[transaction, pHandle]
     } finally {
-      mPendingHandles.remove(pHandle)
+      pendingHandles.remove(pHandle)
     }
   }
 
   private fun getFromCache(handle: Long): V? {
-    synchronized (mCacheHandles) {
-      for (i in mCacheHandles.indices) {
-        if (mCacheHandles[i] == handle) {
-          return mCacheValues[i]
+    synchronized (cacheHandles) {
+      for (i in cacheHandles.indices) {
+        if (cacheHandles[i] == handle) {
+          return cacheValues[i]
         }
       }
       return null
@@ -187,7 +199,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   @Throws(SQLException::class)
   override fun get(transaction: T, handle: Handle<out V>): V? {
     var value: V?
-    synchronized (mCacheHandles) {
+    synchronized (cacheHandles) {
       value = getFromCache(handle.handleValue)
       if (value != null) {
         return value
@@ -208,6 +220,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   @Throws(SQLException::class)
   override fun containsElement(transaction: T, element: Any): Boolean {
     if (element is Handle<*>) {
+      @Suppress("UNCHECKED_CAST")
       return contains(transaction, element as Handle<V>)
     }
     return delegate.containsElement(transaction, element)
@@ -223,7 +236,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   private fun storeInCache(transaction: T, pHandle: Handle<out V>, pV: V): V {
     if (!isPending(pHandle)) {
       val handle = pHandle.handleValue
-      synchronized (mCacheHandles) {
+      synchronized (cacheHandles) {
         removeFromCache(handle) // remove whatever old value was there
         putCache(transaction, pHandle, pV)
       }
@@ -232,10 +245,10 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   }
 
   private fun removeFromCache(handle: Long) {
-    for (i in mCacheHandles.indices) {
-      if (mCacheHandles[i] == handle) {
-        mCacheHandles[i] = -1
-        mCacheValues[i] = null
+    for (i in cacheHandles.indices) {
+      if (cacheHandles[i] == handle) {
+        cacheHandles[i] = -1
+        cacheValues[i] = null
         assert(getFromCache(handle) == null)
         return
       }
@@ -243,7 +256,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   }
 
   private fun isPending(handle: Handle<out V>): Boolean {
-    return mPendingHandles.contains(handle)
+    return pendingHandles.contains(handle)
   }
 
   override fun invalidateCache(handle: Handle<out V>) {
@@ -251,10 +264,10 @@ open class CachingHandleMap<V:Any, T : Transaction>(protected open val delegate:
   }
 
   override fun invalidateCache() {
-    synchronized (mCacheHandles) {
-      Arrays.fill(mCacheHandles, -1)
-      Arrays.fill(mCacheValues, null)
-      mCacheHead = 0
+    synchronized (cacheHandles) {
+      Arrays.fill(cacheHandles, -1)
+      Arrays.fill(cacheValues, null)
+      cacheHead = 0
     }
   }
 

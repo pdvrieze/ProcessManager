@@ -23,8 +23,12 @@ import uk.ac.bournemouth.kotlinsql.getSingleListOrNull
 import java.sql.SQLException
 import java.util.*
 
-open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(transactionFactory: TransactionFactory<out TR>, database: Database, elementFactory: HMElementFactory<TMP, V, TR>) :
-      DbSet<TMP, V, TR>(transactionFactory, database, elementFactory), MutableTransactionedHandleMap<V, TR> {
+open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
+      transactionFactory: TransactionFactory<out TR>,
+      database: Database,
+      elementFactory: HMElementFactory<TMP, V, TR>,
+      handleAssigner: (V, Long)->V = ::HANDLE_AWARE_ASSIGNER) :
+      DbSet<TMP, V, TR>(transactionFactory, database, elementFactory, handleAssigner), MutableTransactionedHandleMap<V, TR> {
 
 
   private inner class TransactionIterable(private val mTransaction: TR) : MutableIterable<V> {
@@ -46,11 +50,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(transactionFactory: Transac
 
   @Throws(SQLException::class)
   override fun <W : V> put(transaction: TR, value: W): ComparableHandle<W> {
-    val result = addWithKey(transaction, value) ?: throw RuntimeException("Adding element $value failed")
-    if (value is HandleMap.HandleAware<*>) {
-      value.setHandleValue(result.handleValue)
-    }
-    return result
+    return addWithKey(transaction, value) ?: throw RuntimeException("Adding element $value failed")
   }
 
   @Throws(SQLException::class)
@@ -98,13 +98,13 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(transactionFactory: Transac
       return oldValue
     }
 
-    if (newValue is HandleMap.HandleAware<*>) newValue.setHandleValue(handle.handleValue)
+    val newValueWithHandle = handleAssigner(newValue, handle.handleValue)
 
     database
-          .UPDATE { elementFactory.store(this, newValue) }
+          .UPDATE { elementFactory.store(this, newValueWithHandle) }
           .WHERE { elementFactory.filter(this) AND elementFactory.getHandleCondition(this, handle) }
           .executeUpdate(transaction.connection)
-    elementFactory.postStore(transaction.connection, handle, oldValue, newValue)
+    elementFactory.postStore(transaction.connection, handle, oldValue, newValueWithHandle)
     return oldValue
   }
 

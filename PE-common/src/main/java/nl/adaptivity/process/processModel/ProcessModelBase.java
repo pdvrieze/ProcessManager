@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.Handle;
-import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.HandleMap.MutableHandleAware;
 import net.devrieze.util.Handles;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SecurityProvider;
@@ -43,7 +43,7 @@ import java.util.*;
 /**
  * Created by pdvrieze on 21/11/15.
  */
-public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, HandleAware<M>, XmlSerializable {
+public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
 
   protected interface DeserializationFactory<U extends ProcessNode<U, M>, M extends ProcessModelBase<U, M>> {
 

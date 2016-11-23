@@ -46,7 +46,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
                                                           handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
                                                           state: NodeInstanceState = NodeInstanceState.Pending,
                                                           results: Iterable<ProcessData> = emptyList(),
-                                                          failureCause: Throwable? = null) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>> {
+                                                          failureCause: Throwable? = null) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>>, HandleMap.MutableHandleAware<SecureObject<ProcessNodeInstance<T>>> {
 
   interface Builder<T:ProcessTransaction<T>, N:ExecutableProcessNode> {
     var node: N
@@ -137,15 +137,15 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     get() = _handle
 
   override final fun setHandleValue(handleValue: Long) {
-    _handle = Handles.handle(handleValue)
+    if (_handle.handleValue!= handleValue)
+      _handle = Handles.handle(handleValue)
   }
 
   private val _results: MutableList<ProcessData> = results.toMutableList()
   val results: List<ProcessData>
     get() = _results
 
-  var failureCause: Throwable? = null
-    private set
+  var failureCause: Throwable? = failureCause
 
   val directPredecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
 
