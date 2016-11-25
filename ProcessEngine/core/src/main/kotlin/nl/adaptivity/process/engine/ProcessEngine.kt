@@ -60,7 +60,7 @@ private const val NODE_CACHE_SIZE = 100
 private const val INSTANCE_CACHE_SIZE = 10
 
 
-private fun <T : ProcessTransaction<T>, V:Any> wrapCache(base: MutableTransactionedHandleMap<V, T>,
+private fun <T : ProcessTransaction<T>, V:Any> wrapInstanceCache(base: MutableTransactionedHandleMap<V, T>,
                                                cacheSize: Int): MutableTransactionedHandleMap<V, T> {
   if (cacheSize <= 0) {
     return base
@@ -68,8 +68,16 @@ private fun <T : ProcessTransaction<T>, V:Any> wrapCache(base: MutableTransactio
   return CachingHandleMap<V, T>(base, cacheSize)
 }
 
-private fun <T : ProcessTransaction<T>, V:Any> wrapCache(base: IMutableProcessModelMap<T>,
-                                               cacheSize: Int): IMutableProcessModelMap<T> {
+private fun <T : ProcessTransaction<T>> wrapNodeCache(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>,
+                                                         cacheSize: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T> {
+  if (cacheSize <= 0) {
+    return base
+  }
+  return CachingHandleMap<SecureObject<ProcessNodeInstance<T>>, T>(base, cacheSize, { pni, handle -> if (pni.withPermission().getHandleValue()==handle) pni else pni.withPermission().builder().apply{ this.handle = Handles.handle(handle)}.build() })
+}
+
+private fun <T : ProcessTransaction<T>, V:Any> wrapModelCache(base: IMutableProcessModelMap<T>,
+                                                              cacheSize: Int): IMutableProcessModelMap<T> {
   if (cacheSize <= 0) {
     return base
   }
@@ -126,11 +134,11 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
     lateinit var engine : ProcessEngine<ProcessDBTransaction>
 
-    override val processInstances by lazy { wrapCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE) }
+    override val processInstances by lazy { wrapInstanceCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE) }
 
-    override val processNodeInstances by lazy { wrapCache(ProcessNodeInstanceMap(this, engine), NODE_CACHE_SIZE) }
+    override val processNodeInstances by lazy { wrapNodeCache(ProcessNodeInstanceMap(this, engine), NODE_CACHE_SIZE) }
 
-    override val processModels = wrapCache<ProcessDBTransaction, Any>(ProcessModelMap(this), MODEL_CACHE_SIZE)
+    override val processModels = wrapModelCache<ProcessDBTransaction, Any>(ProcessModelMap(this), MODEL_CACHE_SIZE)
 
     override fun createWriteDelegate(transaction: ProcessDBTransaction): MutableProcessEngineDataAccess<ProcessDBTransaction> {
       return DBEngineDataAccess(transaction)
@@ -418,19 +426,20 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
     }
 
     engineData.inWriteTransaction(transaction) {
-      val result = instances.put(instance).apply {
+      val resultHandle = instances.put(instance)
+      instances[resultHandle].mustExist(resultHandle).withPermission().let { instance ->
         instance.initialize(transaction)
         commit()
+
+        try {
+          instance.start(transaction, messageService, payload)
+        } catch (e: Exception) {
+          Logger.getLogger(javaClass.name).log(Level.WARNING, "Error starting instance (it is already stored)", e)
+          throw e
+        }
       }
 
-      try {
-        instance.start(transaction, messageService, payload)
-      } catch (e: Exception) {
-        Logger.getLogger(javaClass.name).log(Level.WARNING, "Error starting instance (it is already stored)", e)
-        throw e
-      }
-
-      return HProcessInstance(result)
+      return HProcessInstance(resultHandle)
     }
   }
 

@@ -93,10 +93,12 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     }
   }
 
+  override fun builder(): Builder<T> = ExtBuilder(this)
+
   @Deprecated("Use updateJoin when using this function directly.", ReplaceWith("updateJoin(transaction, body)"))
   override fun update(transaction: T,
                       body: ProcessNodeInstance.Builder<T, out ExecutableProcessNode>.() -> Unit): ProcessNodeInstance<T> {
-    return updateJoin(transaction) { body() }
+    return super.update(transaction, body)
   }
 
   @Throws(SQLException::class)

@@ -46,7 +46,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
                                                           handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
                                                           state: NodeInstanceState = NodeInstanceState.Pending,
                                                           results: Iterable<ProcessData> = emptyList(),
-                                                          failureCause: Throwable? = null) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>>, HandleMap.MutableHandleAware<SecureObject<ProcessNodeInstance<T>>> {
+                                                          failureCause: Throwable? = null) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>>, HandleMap.ReadableHandleAware<SecureObject<ProcessNodeInstance<T>>> {
 
   interface Builder<T:ProcessTransaction<T>, N:ExecutableProcessNode> {
     var node: N
@@ -136,7 +136,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   override val handle: ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance<T>>>
     get() = _handle
 
-  override final fun setHandleValue(handleValue: Long) {
+  final fun setHandleValue(handleValue: Long) {
     if (_handle.handleValue!= handleValue)
       _handle = Handles.handle(handleValue)
   }
@@ -175,9 +175,14 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
 
   override fun withPermission() = this
 
+  open fun builder(): Builder<T, out ExecutableProcessNode> = ExtBuilder(this)
+
+  /** Update the node. This will store the update based on the transaction. It will return the new object. The old object
+   *  may be invalid afterwards.
+   */
   open fun update(transaction: T, body: Builder<T, out ExecutableProcessNode>.() -> Unit):ProcessNodeInstance<T> {
     val origHandle = handle
-    return ProcessNodeInstance(ExtBuilder(this).apply { body() }).apply {
+    return builder().apply { body() }.build().apply {
       if (origHandle.valid)
       if (handle.valid)
         transaction.writableEngineData.nodeInstances[handle] = this

@@ -381,24 +381,26 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     val startedTasks = ArrayList<ProcessNodeInstance<T>>(predecessor.node.successors.size)
     val joinsToEvaluate = ArrayList<JoinInstance<T>>()
 
+    val nodeInstances = transaction.writableEngineData.nodeInstances
     predecessor.node.successors.asSequence()
-          .map { successorId -> createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorId)) }
-          .forEach { instance ->
+          .map { successorId ->
+            val pni = createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorId))
+            Handles.handle(nodeInstances.put(pni))
+          }.forEach { instanceHandle ->
+            run {
+              nodeInstances[instanceHandle].mustExist(instanceHandle).withPermission()
+            }.let { instance ->
 
-      if (!instance.handle.valid) {
-        engine.registerNodeInstance(transaction, instance)
-      }
-
-      val instanceHandle = instance.handle
-      if (instance is JoinInstance) {
-        if (!mThreads.contains(instanceHandle)) {
-          mThreads.add(instanceHandle)
-        }
-        joinsToEvaluate.add(instance)
-      } else {
-        mThreads.add(instanceHandle)
-        startedTasks.add(instance)
-      }
+              if (instance is JoinInstance) {
+                if (!mThreads.contains(instanceHandle)) {
+                  mThreads.add(instanceHandle)
+                }
+                joinsToEvaluate.add(instance)
+              } else {
+                mThreads.add(instanceHandle)
+                startedTasks.add(instance)
+              }
+            }
     }
 
     // Commit the registration of the follow up nodes before starting them.
@@ -406,13 +408,14 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     startedTasks.forEach { task -> task.provideTask(transaction, messageService) }
 
     joinsToEvaluate.forEach { join ->
-      join.startTask(transaction, messageService)
-
-      if (join.state.isFinal) {
-        val joinHandle = join.handle
-        mThreads.remove(joinHandle)
-        mFinishedNodes.add(joinHandle)
+      join.startTask(transaction, messageService).let { join ->
+        if (join.state.isFinal) {
+          val joinHandle = join.handle
+          mThreads.remove(joinHandle)
+          mFinishedNodes.add(joinHandle)
+        }
       }
+
     }
   }
 
