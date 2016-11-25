@@ -31,6 +31,7 @@ import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
@@ -879,7 +880,12 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
             ProcessNodeInstance inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
             assert inst.getState() == NodeInstanceState.Pending;
             if (inst.getState() == NodeInstanceState.Pending) {
-              inst.setState(transaction, NodeInstanceState.Sent);
+              final Builder builder = inst.builder();
+              builder.setState(NodeInstanceState.Sent);
+
+              // TODO in Kotlin this could use the update closure that would update by itself.
+              inst = builder.build();
+              transaction.getWritableEngineData().getNodeInstances().set(inst.getHandle(), inst);
             }
             transaction.commit();
           }

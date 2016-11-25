@@ -123,8 +123,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   @Suppress("CanBePrimaryConstructorProperty")
   open val node: ExecutableProcessNode = node
 
-  override final var state: NodeInstanceState = state
-    private set
+  override final val state: NodeInstanceState = state
 
   private var _handle: ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance<T>>> = Handles.handle(handle)
     set(value) {
@@ -261,15 +260,6 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   override fun resolvePredecessor(transaction: T, nodeName: String): ProcessNodeInstance<T>? {
     val handle = getPredecessor(transaction, nodeName) ?: throw NullPointerException("Missing predecessor with name ${nodeName} referenced from node ${node.id}")
     return transaction.readableEngineData.nodeInstances[handle]?.withPermission()
-  }
-
-  @Throws(SQLException::class)
-  override fun setState(transaction: T, newState: NodeInstanceState) {
-    if (state > newState) {
-      throw IllegalArgumentException("State can only be increased (was:$state new:$newState")
-    }
-    state = newState
-    processInstance.engine.updateStorage(transaction, this)
   }
 
   fun getHandleValue(): Long {

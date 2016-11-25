@@ -115,16 +115,6 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
   val state: NodeInstanceState
 
   /**
-   * Set the state of the task.
-
-   * @param transaction
-   * *
-   * @param newState The new state of the task.
-   */
-  @Throws(SQLException::class)
-  fun setState(transaction: T, newState: NodeInstanceState)
-
-  /**
    * Called by the processEngine so indicate starting of the task.
 
    * @param messageService Service to use for communication of change of state.
