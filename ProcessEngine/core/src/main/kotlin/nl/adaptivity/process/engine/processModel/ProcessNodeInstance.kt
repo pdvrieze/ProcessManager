@@ -44,9 +44,23 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
                                                           predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
                                                           val processInstance: ProcessInstance<T>,
                                                           handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
-                                                          state: NodeInstanceState = NodeInstanceState.Pending,
+                                                          override final val state: NodeInstanceState = NodeInstanceState.Pending,
                                                           results: Iterable<ProcessData> = emptyList(),
-                                                          failureCause: Throwable? = null) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>>, HandleMap.ReadableHandleAware<SecureObject<ProcessNodeInstance<T>>> {
+                                                          val failureCause: Throwable? = null) : IProcessNodeInstance<T, ProcessNodeInstance<T>>, SecureObject<ProcessNodeInstance<T>>, HandleMap.ReadableHandleAware<SecureObject<ProcessNodeInstance<T>>> {
+
+
+  @Suppress("CanBePrimaryConstructorProperty")
+  open val node: ExecutableProcessNode = node
+
+  override val handle: ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance<T>>> = Handles.handle(handle)
+
+  val results: List<ProcessData> = results.toList()
+
+  val directPredecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
+
+  override val owner: Principal
+    get() = processInstance.owner
+
 
   interface Builder<T:ProcessTransaction<T>, N:ExecutableProcessNode> {
     var node: N
@@ -120,37 +134,6 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     }
   }
 
-  @Suppress("CanBePrimaryConstructorProperty")
-  open val node: ExecutableProcessNode = node
-
-  override final val state: NodeInstanceState = state
-
-  private var _handle: ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance<T>>> = Handles.handle(handle)
-    set(value) {
-      if (field!=value) {
-        if (field.valid) throw IllegalStateException("The handle for an object cannot be changed from $field to $value")
-        field = value
-      }
-    }
-  override val handle: ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance<T>>>
-    get() = _handle
-
-  final fun setHandleValue(handleValue: Long) {
-    if (_handle.handleValue!= handleValue)
-      _handle = Handles.handle(handleValue)
-  }
-
-  private val _results: MutableList<ProcessData> = results.toMutableList()
-  val results: List<ProcessData>
-    get() = _results
-
-  var failureCause: Throwable? = failureCause
-
-  val directPredecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
-
-  override val owner: Principal
-    get() = processInstance.owner
-
   constructor(node: StartNodeImpl, processInstance: ProcessInstance<T>) : this(node, emptyList(), processInstance)
 
   constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance)
@@ -188,21 +171,11 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     }
   }
 
-  fun setFailureCause(failureCause: String?) {
-    this.failureCause = Exception(failureCause).apply {
-      (this as java.lang.Throwable).stackTrace = arrayOfNulls<StackTraceElement>(0)
-      // wipe the stacktrace, it is irrelevant
-    }
-  }
-
   @Throws(SQLException::class)
   open fun tickle(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>): ProcessNodeInstance<T> {
     return when (state) {
       NodeInstanceState.FailRetry,
-      NodeInstanceState.Pending -> processInstance.provideTask(
-            transaction,
-            messageService,
-            this)
+      NodeInstanceState.Pending -> provideTask(transaction, messageService)
       else -> this
     }// ignore
   }
@@ -233,26 +206,26 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   @Throws(SQLException::class)
   fun resolvePredecessors(transaction: T): Collection<ProcessNodeInstance<T>> {
     return directPredecessors.asSequence().map {
-            processInstance.engine.getNodeInstance(transaction, it, SecurityProvider.SYSTEMPRINCIPAL).mustExist(it)
+            transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission()
           }.toList()
   }
 
   @Throws(SQLException::class)
   fun getPredecessor(transaction: T, nodeName: String): Handle<out SecureObject<ProcessNodeInstance<T>>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
-    for (hpred in directPredecessors) {
-      val instance: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, hpred, SecurityProvider.SYSTEMPRINCIPAL)
-            ?: throw NullPointerException("Missing predecessor for node")
-
-      if (nodeName == instance.node.id) {
-        return instance.handle
-      } else {
-        val result = instance.getPredecessor(transaction, nodeName)
-        if (result != null) {
-          return result
-        }
-      }
-    }
+    directPredecessors
+          .asSequence()
+          .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+          .forEach {
+            if (nodeName == it.node.id) {
+              return it.handle
+            } else {
+              val result = it.getPredecessor(transaction, nodeName)
+              if (result != null) {
+                return result
+              }
+            }
+          }
     return null
   }
 
@@ -343,15 +316,6 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     })
   }
 
-  /** package internal method for use when retrieving from the database.
-   * Note that this method does not store the results into the database.
-   * @param results the new results.
-   */
-  internal fun setResult(results: List<ProcessData>) {
-    _results.clear()
-    _results.addAll(results)
-  }
-
   @Throws(SQLException::class, XmlException::class)
   fun instantiateXmlPlaceholders(transaction: T, source: Source, result: Result) {
     instantiateXmlPlaceholders(transaction, source, true)
@@ -412,7 +376,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
 
       directPredecessors.forEach { writeSimpleElement(XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, it.handleValue.toString()) }
 
-      serializeAll(_results)
+      serializeAll(results)
 
       (node as? Activity<*,*>)?.getMessage()?.messageBody?.let { body ->
         instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true)
