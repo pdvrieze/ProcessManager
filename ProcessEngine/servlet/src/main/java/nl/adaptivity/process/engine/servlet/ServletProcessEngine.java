@@ -240,7 +240,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
     }
 
 
-    public static void fillInActivityMessage(Source messageBody, final Result result, ProcessNodeInstance nodeInstance) throws FactoryConfigurationError, XMLStreamException {
+    public static void fillInActivityMessage(Source messageBody, final Result result, ProcessNodeInstance nodeInstance, final EndpointDescriptor localEndpoint) throws FactoryConfigurationError, XMLStreamException {
       final XMLInputFactory xif = XMLInputFactory.newInstance();
       final XMLOutputFactory xof = XMLOutputFactory.newInstance();
       final XMLEventReader xer = xif.createXMLEventReader(messageBody);
@@ -257,7 +257,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
             if (eName.getLocalPart().equals("attribute")) {
               writeAttribute(nodeInstance, xer, attributes, xew);
             } else if (eName.getLocalPart().equals("element")) {
-              writeElement(nodeInstance, xer, attributes, xew);
+              writeElement(nodeInstance, xer, attributes, xew, localEndpoint);
             } else {
 //                baos.reset(); baos.close();
               throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
@@ -306,7 +306,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
       }
     }
 
-    private static void writeElement(ProcessNodeInstance nodeInstance, final XMLEventReader in, final Iterator<Attribute> attributes, final XMLEventWriter out) throws XMLStreamException {
+    private static void writeElement(ProcessNodeInstance nodeInstance, final XMLEventReader in, final Iterator<Attribute> attributes, final XMLEventWriter out, final EndpointDescriptor localEndpoint) throws XMLStreamException {
       String valueName = null;
       {
         while (attributes.hasNext()) {
@@ -344,7 +344,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {
-            EndpointDescriptor localEndpoint = nodeInstance.getProcessInstance().getEngine().getLocalEndpoint();
+//            EndpointDescriptor localEndpoint = nodeInstance.getProcessInstance().getEngine().getLocalEndpoint();
             out.add(xef.createAttribute("serviceNS", localEndpoint.getServiceName().getNamespaceURI()));
             out.add(xef.createAttribute("serviceLocalName", localEndpoint.getServiceName().getLocalPart()));
             out.add(xef.createAttribute("endpointName", localEndpoint.getEndpointName()));
@@ -435,7 +435,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
 
       try {
 
-        mData = mNodeInstance.instantiateXmlPlaceholders(transaction, getSource(), false);
+        mData = mNodeInstance.instantiateXmlPlaceholders(transaction, getSource(), false, mLocalEndpoint);
 
       } catch (final FactoryConfigurationError | XmlException e) {
         throw new MessagingException(e);
@@ -797,11 +797,10 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
               final long handle,
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
-    try (T transaction = mProcessEngine.startTransaction()){
-      final ProcessNodeInstance<T> result = mProcessEngine.getNodeInstance(transaction, Handles.handle(handle), user);
-      if (result==null) { throw new FileNotFoundException(); }
-      return transaction.commit(result.toSerializable(transaction));
-    }
+    final T                      transaction = mProcessEngine.startTransaction();
+    final ProcessNodeInstance<T> result      = mProcessEngine.getNodeInstance(transaction, Handles.handle(handle), user);
+    if (result==null) { throw new FileNotFoundException(); }
+    return transaction.commit(result.toSerializable(transaction, mMessageService.getLocalEndpoint()));
   }
 
   /**

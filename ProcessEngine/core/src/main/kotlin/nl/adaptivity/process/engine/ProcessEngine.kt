@@ -103,6 +103,20 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
         get() = this@DelegateProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
+
+
+      override fun invalidateCachePM(handle: Handle<out SecureObject<ProcessModelImpl>>) {
+        this@DelegateProcessEngineData.invalidateCachePM(handle)
+      }
+
+      override fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance<T>>>) {
+        this@DelegateProcessEngineData.invalidateCachePI(handle)
+      }
+
+      override fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
+        this@DelegateProcessEngineData.invalidateCachePNI(handle)
+      }
+
     }
 
     override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<T> = DelegateEngineDataAccess(transaction)
@@ -125,6 +139,17 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
 
+      override fun invalidateCachePM(handle: Handle<out SecureObject<ProcessModelImpl>>) {
+        this@DBProcessEngineData.invalidateCachePM(handle)
+      }
+
+      override fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance<ProcessDBTransaction>>>) {
+        this@DBProcessEngineData.invalidateCachePI(handle)
+      }
+
+      override fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance<ProcessDBTransaction>>>) {
+        this@DBProcessEngineData.invalidateCachePNI(handle)
+      }
     }
 
     private val dbResource: javax.sql.DataSource by lazy {
@@ -368,46 +393,35 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
   @Throws(SQLException::class, FileNotFoundException::class)
   fun tickleInstance(transaction: T, handle: Handle<out ProcessInstance<T>>, user: Principal): Boolean {
-    engineData.invalidateCachePM(Handles.getInvalid())
-    engineData.invalidateCachePI(Handles.getInvalid())
-    engineData.invalidateCachePNI(Handles.getInvalid())
+    transaction.writableEngineData.run {
+      invalidateCachePM(Handles.getInvalid())
+      invalidateCachePI(Handles.getInvalid())
+      invalidateCachePNI(Handles.getInvalid())
 
-    engineData.inWriteTransaction(transaction) {
       (instances[handle] ?: return false).withPermission(mSecurityProvider, Permissions.TICKLE_INSTANCE, user) {
+
         it.tickle(transaction, messageService)
+
         return true
       }
-    }
-  }
 
-  @Throws(SQLException::class, FileNotFoundException::class)
-  fun tickleNode(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, user: Principal) {
-    @Suppress("UNCHECKED_CAST")
-    (transaction.readableEngineData.nodeInstances as? CachingHandleMap<SecureObject<ProcessNodeInstance<T>>, T>)?.invalidateCache(handle)
-    engineData.inWriteTransaction(transaction) {
-      nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.TICKLE_NODE, user) { nodeInstance ->
-        nodeInstance.directPredecessors.forEach { hPredecessor -> tickleNode(transaction, hPredecessor, user) }
-
-        nodeInstance.tickle(transaction, messageService)
-      }
     }
-    engineData.invalidateCachePNI(handle)
+
   }
 
   /**
    * Create a new process instance started by this process.
-
-
+   *
    * @param transaction
-   * *
+   *
    * @param model The model to create and start an instance of.
-   * *
+   *
    * @param name The name of the new instance.
-   * *
+   *
    * @param payload The payload representing the parameters for the process.
-   * *
+   *
    * @return A Handle to the [ProcessInstance].
-   * *
+   *
    * @throws SQLException When database operations fail.
    */
   @Throws(SQLException::class, FileNotFoundException::class)
@@ -422,7 +436,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
       throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes")
     }
     val instance = model.withPermission(mSecurityProvider, ProcessModelImpl.Permissions.INSTANTIATE, user) {
-      ProcessInstance(user, it, name, uuid, State.NEW, this)
+      ProcessInstance<T>(user, it, name, uuid, State.NEW)
     }
 
     engineData.inWriteTransaction(transaction) {

@@ -20,6 +20,7 @@ import net.devrieze.util.HandleMap
 import net.devrieze.util.StringUtil
 import net.devrieze.util.Transaction
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xml.XmlException
@@ -39,7 +40,9 @@ import javax.xml.bind.annotation.XmlRootElement
 interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> : HandleMap.ReadableHandleAware<SecureObject<V>> {
 
   @Throws(XmlException::class)
-  fun serialize(transaction: T, out: XmlWriter)
+  fun serialize(transaction: T,
+                out: XmlWriter,
+                localEndpoint: EndpointDescriptor)
 
   /**
    * Enumeration representing the various states a task can be in.

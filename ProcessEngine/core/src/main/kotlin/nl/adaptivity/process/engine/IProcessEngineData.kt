@@ -92,6 +92,12 @@ interface MutableProcessEngineDataAccess<T:ProcessTransaction<T>> : ProcessEngin
 
   override val processModels: IMutableProcessModelMapAccess
 
+  fun invalidateCachePM(handle: Handle<out SecureObject<ProcessModelImpl>>)
+
+  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance<T>>>)
+
+  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance<T>>>)
+
   fun commit()
 
   fun rollback()

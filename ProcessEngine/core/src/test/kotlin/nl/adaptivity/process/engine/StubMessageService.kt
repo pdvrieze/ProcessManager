@@ -58,7 +58,10 @@ class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: En
                            instance: ProcessNodeInstance<T>): Boolean {
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
-      instance.instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(protoMessage.messageBody), false)
+      instance.instantiateXmlPlaceholders(transaction,
+                                          XMLFragmentStreamReader.from(protoMessage.messageBody),
+                                          false,
+                                          localEndpoint)
     } else {
       CompactFragment(Collections.emptyList(), CharArray(0))
     }

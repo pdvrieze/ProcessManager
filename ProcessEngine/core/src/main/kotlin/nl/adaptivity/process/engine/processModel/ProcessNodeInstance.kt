@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
+import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -317,44 +318,57 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   }
 
   @Throws(SQLException::class, XmlException::class)
-  fun instantiateXmlPlaceholders(transaction: T, source: Source, result: Result) {
-    instantiateXmlPlaceholders(transaction, source, true)
+  fun instantiateXmlPlaceholders(transaction: T,
+                                 source: Source,
+                                 result: Result,
+                                 localEndpoint: EndpointDescriptor) {
+    instantiateXmlPlaceholders(transaction, source, true, localEndpoint)
   }
 
   @Throws(XmlException::class, SQLException::class)
-  fun instantiateXmlPlaceholders(transaction: T, xmlReader: XmlReader, out: XmlWriter, removeWhitespace: Boolean) {
+  fun instantiateXmlPlaceholders(transaction: T,
+                                 xmlReader: XmlReader,
+                                 out: XmlWriter,
+                                 removeWhitespace: Boolean,
+                                 localEndpoint: EndpointDescriptor) {
     val defines = getDefines(transaction)
     val transformer = PETransformer.create(ProcessNodeInstanceContext(this,
                                                                       defines,
-                                                                      state == NodeInstanceState.Complete),
+                                                                      state == NodeInstanceState.Complete, localEndpoint),
                                            removeWhitespace)
     transformer.transform(xmlReader, out.filterSubstream())
   }
 
   @Throws(SQLException::class, XmlException::class)
-  fun instantiateXmlPlaceholders(transaction: T, source: Source, removeWhitespace: Boolean): CompactFragment {
+  fun instantiateXmlPlaceholders(transaction: T,
+                                 source: Source,
+                                 removeWhitespace: Boolean,
+                                 localEndpoint: EndpointDescriptor): CompactFragment {
     val xmlReader = XmlStreaming.newReader(source)
-    return instantiateXmlPlaceholders(transaction, xmlReader, removeWhitespace)
+    return instantiateXmlPlaceholders(transaction, xmlReader, removeWhitespace, localEndpoint)
   }
 
   @Throws(XmlException::class, SQLException::class)
-  fun instantiateXmlPlaceholders(transaction: T, xmlReader: XmlReader, removeWhitespace: Boolean): WritableCompactFragment {
+  fun instantiateXmlPlaceholders(transaction: T,
+                                 xmlReader: XmlReader,
+                                 removeWhitespace: Boolean,
+                                 localEndpoint: EndpointDescriptor): WritableCompactFragment {
     val caw = CharArrayWriter()
 
     val writer = XmlStreaming.newWriter(caw, true)
-    instantiateXmlPlaceholders(transaction, xmlReader, writer, removeWhitespace)
+    instantiateXmlPlaceholders(transaction, xmlReader, writer, removeWhitespace, localEndpoint)
     writer.close()
     return WritableCompactFragment(emptyList<Namespace>(), caw.toCharArray())
   }
 
   @Throws(SQLException::class, XmlException::class)
-  fun toSerializable(transaction: T): XmlProcessNodeInstance {
+  fun toSerializable(transaction: T, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
     val builder = ExtBuilder(this)
 
     val body:CompactFragment? = (node as? Activity<*,*>)?.let { act ->
       try {
         val xmlReader = XMLFragmentStreamReader.from(act.getMessage().messageBody)
-        instantiateXmlPlaceholders(transaction, xmlReader, true)
+        instantiateXmlPlaceholders(transaction, xmlReader, true, localEndpoint)
       } catch (e: XmlException) {
         logger.log(Level.WARNING, "Error processing body", e)
         throw e
@@ -365,7 +379,9 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   }
 
   @Throws(XmlException::class)
-  override fun serialize(transaction: T, out: XmlWriter) {
+  override fun serialize(transaction: T,
+                         out: XmlWriter,
+                         localEndpoint: EndpointDescriptor) {
     out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
       writeAttribute("state", state.name)
       writeAttribute("processinstance", processInstance.handleValue)
@@ -379,7 +395,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
       serializeAll(results)
 
       (node as? Activity<*,*>)?.getMessage()?.messageBody?.let { body ->
-        instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true)
+        instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true, localEndpoint)
       }
     }
   }

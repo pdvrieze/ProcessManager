@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
+import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
@@ -25,17 +26,17 @@ import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.XmlEvent
 import java.util.*
 
-class ProcessNodeInstanceContext(private val mProcessNodeInstance: ProcessNodeInstance<*>, private val mDefines: List<ProcessData>, private val mProvideResults: Boolean) : AbstractDataContext() {
+class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance<*>, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
       "handle"         -> return ProcessData(valueName,
-                                             CompactFragment(java.lang.Long.toString(mProcessNodeInstance.getHandleValue())))
+                                             CompactFragment(java.lang.Long.toString(processNodeInstance.getHandleValue())))
       "instancehandle" -> return ProcessData(valueName,
-                                             CompactFragment(java.lang.Long.toString(mProcessNodeInstance.processInstance.handleValue)))
+                                             CompactFragment(java.lang.Long.toString(processNodeInstance.processInstance.handleValue)))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())
       "owner"          -> return ProcessData(valueName,
-                                             CompactFragment(mProcessNodeInstance.processInstance.owner.name))
+                                             CompactFragment(processNodeInstance.processInstance.owner.name))
     }
 
     for (define in mDefines) {
@@ -44,22 +45,22 @@ class ProcessNodeInstanceContext(private val mProcessNodeInstance: ProcessNodeIn
       }
     }
 
-    if (mProvideResults) {
-      for (result in mProcessNodeInstance.results) {
+    if (provideResults) {
+      for (result in processNodeInstance.results) {
         if (valueName == result.name) {
           return result
         }
       }
     }
     // allow for missing values in the database. If they were "defined" treat is as an empty value.
-    for (resultDef in mProcessNodeInstance.node.defines) {
+    for (resultDef in processNodeInstance.node.defines) {
       if (valueName == resultDef.name) {
         return ProcessData(valueName, EMPTY_FRAGMENT)
       }
     }
-    if (mProvideResults) {
+    if (provideResults) {
       // allow for missing values in the database. If they were "defined" treat is as an empty value.
-      for (resultDef in mProcessNodeInstance.node.results) {
+      for (resultDef in processNodeInstance.node.results) {
         if (valueName == resultDef.name) {
           return ProcessData(valueName, EMPTY_FRAGMENT)
         }
@@ -73,7 +74,6 @@ class ProcessNodeInstanceContext(private val mProcessNodeInstance: ProcessNodeIn
     val content = StringBuilder()
     content.append("<jbi:endpointDescriptor")
 
-    val localEndpoint = mProcessNodeInstance.processInstance.engine.localEndpoint
     content.append(" endpointLocation=\"").append(localEndpoint.endpointLocation.toString()).append('"')
     content.append(" endpointName=\"").append(localEndpoint.endpointName).append('"')
     content.append(" serviceLocalName=\"").append(localEndpoint.serviceName.localPart).append('"')

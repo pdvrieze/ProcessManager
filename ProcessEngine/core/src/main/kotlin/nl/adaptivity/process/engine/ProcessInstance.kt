@@ -22,7 +22,6 @@ import net.devrieze.util.Handle
 import net.devrieze.util.HandleMap.MutableHandleAware
 import net.devrieze.util.Handles
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -52,7 +51,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     val   inputs = mutableListOf<ProcessData>()
     val  outputs = mutableListOf<ProcessData>()
     fun build(transaction: T, engine: ProcessEngine<T>): ProcessInstance<T> {
-      return ProcessInstance<T>(transaction, engine, this)
+      return ProcessInstance<T>(transaction, this)
     }
   }
 
@@ -102,9 +101,6 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   private var mHandleValue = -1L
 
-  @Deprecated("This should be a parameter only")
-  val engine: ProcessEngine<T>// XXX actually introduce a generic parameter for transactions
-
   private val mInputs: MutableList<ProcessData> = ArrayList()
 
   private val mOutputs = ArrayList<ProcessData>()
@@ -118,27 +114,24 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   val uuid: UUID
 
-  private constructor(transaction: T, engine: ProcessEngine<T>, builder:Builder<T>):
-        this(builder.handle, builder.owner, builder.processModel, builder.instancename, builder.uuid, builder.state, engine) {
+  private constructor(transaction: T, builder:Builder<T>):
+        this(builder.handle, builder.owner, builder.processModel, builder.instancename, builder.uuid, builder.state) {
 
     val threads = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>()
 
+    val data = transaction.readableEngineData
     val nodes = builder.children
-          .map { handle ->
-            engine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL).mustExist(handle).apply {
-              if (this is JoinInstance) {
-                mJoins.put(this.node, this.handle)
-              }
-              threads.add(this.handle)
-            }
-          }
+          .map { data.nodeInstances[it].mustExist(it).withPermission() }
 
     nodes.forEach { instance ->
+      if (instance is JoinInstance) {
+        mJoins.put(instance.node, instance.handle)
+      }
+
       if (instance.node is EndNode<*, *>) {
-        instance.handle.let { handle ->
-          mEndResults.add(handle)
-          threads.remove(handle)
-        }
+        mEndResults.add(instance.handle)
+      } else {
+        threads.add(instance.handle)
       }
 
       instance.directPredecessors.forEach { pred ->
@@ -153,12 +146,11 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     mOutputs.addAll(builder.outputs)
   }
 
-  internal constructor(handle: Handle<ProcessInstance<T>>, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State?, engine: ProcessEngine<T>) {
+  internal constructor(handle: Handle<ProcessInstance<T>>, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State?) {
     mHandleValue = handle.handleValue
     this.processModel = processModel
     this.owner = owner
     uuid = uUid
-    this.engine = engine
     this.name = name
     this.state = state ?: State.NEW
     mThreads = ArraySet()
@@ -167,11 +159,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     mFinishedNodes = ArraySet()
   }
 
-  constructor(owner: Principal, processModel: ProcessModelImpl, name: String, uUid: UUID, state: State?, engine: ProcessEngine<T>) {
+  constructor(owner: Principal, processModel: ProcessModelImpl, name: String, uUid: UUID, state: State?) {
     this.processModel = processModel
     this.name = name
     uuid = uUid
-    this.engine = engine
     mThreads = ArraySet()
     this.owner = owner
     mJoins = HashMap()
@@ -561,17 +552,30 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
    */
   @Throws(FileNotFoundException::class)
   fun tickle(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>) {
+
+    fun tickePredecessors(successor: ProcessNodeInstance<T>) {
+      successor.directPredecessors.asSequence()
+            .map { transaction.writableEngineData.nodeInstances[it]?.withPermission() }
+            .filterNotNull()
+            .forEach {
+              tickePredecessors(it);
+              it.tickle(transaction, messageService)
+            }
+    }
+
     val threads = ArrayList(mThreads) // make a copy as the list may be changed due to tickling.
     for (handle in threads) {
       try {
-        engine.tickleNode(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL)
-        val instance = engine.getNodeInstance(transaction,
-                                              handle,
-                                              SecurityProvider.SYSTEMPRINCIPAL) ?: throw IllegalStateException("Missing Node Instance " + handle)
-        val instanceState = instance.state
-        if (instanceState.isFinal) {
-          handleFinishedState(transaction, messageService, instance)
+        transaction.writableEngineData.run {
+          invalidateCachePNI(handle)
+          val instance = nodeInstances[handle].mustExist(handle).withPermission()
+          tickePredecessors(instance)
+          val instanceState = instance.state
+          if (instanceState.isFinal) {
+            handleFinishedState(transaction, messageService, instance)
+          }
         }
+
       } catch (e: SQLException) {
         Logger.getLogger(javaClass.name).log(Level.WARNING, "Error when tickling process instance", e)
       }

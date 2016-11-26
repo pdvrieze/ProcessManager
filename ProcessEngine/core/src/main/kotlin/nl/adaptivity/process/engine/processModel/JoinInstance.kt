@@ -213,24 +213,25 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
   @Throws(SQLException::class)
   override fun tickle(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>): JoinInstance<T> {
     super.tickle(transaction, messageService)
-    val missingIdentifiers = TreeSet<Identifiable>()
-    missingIdentifiers.addAll(node.predecessors!!)
-    for (predDef in directPredecessors) {
-      val pred: ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction, predDef, SecurityProvider.SYSTEMPRINCIPAL)
-          ?: throw NullPointerException("No predecessor instance could be found")
-      missingIdentifiers.remove(pred.node)
-    }
-    for (missingIdentifier in missingIdentifiers) {
-      val candidate: ProcessNodeInstance<T>? = processInstance.getNodeInstance(transaction, missingIdentifier)
-      if (candidate != null) {
-        addPredecessor(transaction, candidate.handle)
+    val missingIdentifiers = TreeSet<Identifiable>(node.predecessors)
+    val data = transaction.readableEngineData
+
+    directPredecessors
+          .forEach { missingIdentifiers
+                .remove(data.nodeInstances[it].mustExist(it).withPermission().node) }
+
+    return updateJoin(transaction) {
+      missingIdentifiers.asSequence()
+            .mapNotNull { processInstance.getNodeInstance(transaction, it) }
+            .forEach { predecessors.add(it.handle) }
+    }.let { updated ->
+      updateTaskState(transaction)
+    }.let { updated ->
+      if (updated.state==NodeInstanceState.Started) {
+        updated.finishTask(transaction)
+      } else {
+        updated
       }
-    }
-    val updatedInstance = updateTaskState(transaction)
-    if (updatedInstance.state==NodeInstanceState.Started) {
-      return updatedInstance.finishTask(transaction)
-    } else {
-      return updatedInstance
     }
   }
 
@@ -240,18 +241,11 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
       return true
     }
     val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
-    var canAdd = false
-    for (hDirectSuccessor in directSuccessors) {
-      val directSuccessor:ProcessNodeInstance<T> = processInstance.engine.getNodeInstance(transaction,
-                                                                   hDirectSuccessor,
-                                                                   SecurityProvider.SYSTEMPRINCIPAL) ?: throw NullPointerException("Successor not resolved")
-      if (directSuccessor.state == NodeInstanceState.Started || directSuccessor.state == NodeInstanceState.Complete) {
-        canAdd = false
-        break
-      }
-      canAdd = true
-    }
-    return canAdd
+
+    return directSuccessors.asSequence()
+          .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+          .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
+
   }
 
   companion object {
