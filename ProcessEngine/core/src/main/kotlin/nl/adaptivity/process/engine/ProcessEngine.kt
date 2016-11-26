@@ -449,7 +449,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
     engineData.inWriteTransaction(transaction) {
       val resultHandle = instances.put(instance)
       instances[resultHandle].mustExist(resultHandle).withPermission().let { instance ->
-        assert(instance.handleValue==resultHandle.handleValue)
+        assert(instance.handle.handleValue==resultHandle.handleValue)
         instance.initialize(transaction)
       }.let { instance ->
         commit()

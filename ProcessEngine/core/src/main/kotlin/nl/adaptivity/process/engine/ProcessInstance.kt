@@ -73,8 +73,8 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     override var uuid by overlay { base.uuid }
     override var state by overlay { base.state }
     override val children by lazy { base.children.toMutableList() }
-    override val inputs by lazy { base.mInputs.toMutableList() }
-    override val outputs by lazy { base.mOutputs.toMutableList() }
+    override val inputs by lazy { base.inputs.toMutableList() }
+    override val outputs by lazy { base.outputs.toMutableList() }
 
     override fun build(data: ProcessEngineDataAccess<T>): ProcessInstance<T> {
       return ProcessInstance(data, this)
@@ -92,7 +92,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   class ProcessInstanceRef(processInstance: ProcessInstance<*>) : Handle<ProcessInstance<*>>, XmlSerializable {
 
-    override val handleValue = processInstance.handleValue
+    override val handleValue = processInstance.handle.handleValue
 
     val processModel: Handle<out ProcessModel<*,*>> = processInstance.processModel.handle
 
@@ -119,65 +119,41 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
     get() {
-      return (mThreads.asSequence() + mFinishedNodes.asSequence() + mEndResults.asSequence())
+      return (active.asSequence() + finished.asSequence() + results.asSequence())
     }
 
-  private val mThreads: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
-
   val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
-    @Synchronized get() = mThreads.toList()
-
-  private val mFinishedNodes: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
   val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
-    @Synchronized get() = mFinishedNodes.toList()
 
   private val finishedCount: Int
-    get() = mEndResults.size
-
-  private val mEndResults: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+    get() = results.size
 
   val results: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
-    @Synchronized get() = mEndResults.toList()
 
   private val mJoins: HashMap<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>
 
-
-  private var _handle: ComparableHandle<out ProcessInstance<T>>
-
-  @get:Synchronized val handleValue: Long get() {
-    return _handle.handleValue
-  }
-
-  override val handle: ComparableHandle<out ProcessInstance<T>>
-    @Synchronized get() = _handle
-
-  private val mInputs: MutableList<ProcessData> = ArrayList()
-
-  private val mOutputs = ArrayList<ProcessData>()
-
-  val name: String?
-
-  override val owner: Principal
-
-  var state: State? = null
+  override var handle: ComparableHandle<out ProcessInstance<T>>
     private set
-
-  val uuid: UUID
-
-  val ref: ProcessInstanceRef
-    get() = ProcessInstanceRef(this)
 
   /**
    * Get the payload that was passed to start the instance.
    * @return The process initial payload.
    */
-  var inputs: List<ProcessData>
-    @Synchronized get() = mInputs
-    internal set(inputs) {
-      mInputs.clear()
-      mInputs.addAll(inputs)
-    }
+  val inputs: List<ProcessData>
+
+  val outputs: List<ProcessData>
+
+  val name: String?
+
+  override val owner: Principal
+
+  val state: State?
+
+  val uuid: UUID
+
+  val ref: ProcessInstanceRef
+    get() = ProcessInstanceRef(this)
 
   private constructor(data: ProcessEngineDataAccess<T>, builder: Builder<T>) {
     name = builder.instancename
@@ -185,7 +161,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     uuid = builder.uuid
     processModel = builder.processModel
     state = builder.state
-    _handle = Handles.handle(builder.handle)
+    handle = Handles.handle(builder.handle)
 
     val joins = hashMapOf<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>()
 
@@ -218,39 +194,43 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
       }
     }
 
-    mThreads = threads
-    mEndResults = endResults
-    mFinishedNodes = finishedNodes
+    active = threads
+    results = endResults
+    finished = finishedNodes
 
     mJoins = joins
-    mInputs.addAll(builder.inputs)
-    mOutputs.addAll(builder.outputs)
+    inputs = builder.inputs.toList()
+    outputs = builder.outputs.toList()
   }
 
   internal constructor(handle: Handle<ProcessInstance<T>>, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State?) {
-    _handle = Handles.handle(handle)
+    this.handle = Handles.handle(handle)
     this.processModel = processModel
     this.owner = owner
     uuid = uUid
     this.name = name
     this.state = state ?: State.NEW
-    mThreads = ArraySet()
-    mEndResults = ArraySet()
-    mFinishedNodes = ArraySet()
+    active = ArraySet()
+    results = ArraySet()
+    finished = ArraySet()
     mJoins = HashMap()
+    inputs = emptyList()
+    outputs = emptyList()
   }
 
   constructor(owner: Principal, processModel: ProcessModelImpl, name: String, uUid: UUID, state: State?) {
     this.processModel = processModel
     this.name = name
-    _handle = Handles.getInvalid()
+    handle = Handles.getInvalid()
     uuid = uUid
     this.owner = owner
     mJoins = HashMap()
-    mThreads = ArraySet()
-    mEndResults = ArraySet()
-    mFinishedNodes = ArraySet()
+    active = ArraySet()
+    results = ArraySet()
+    finished = ArraySet()
     this.state = state ?: State.NEW
+    inputs = emptyList()
+    outputs = emptyList()
   }
 
   override fun withPermission() = this
@@ -305,7 +285,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   @Synchronized @Throws(SQLException::class)
   fun getNodeInstance(transaction: T, identifiable: Identifiable): ProcessNodeInstance<T>? {
-    return (mEndResults.asSequence() + mFinishedNodes.asSequence() + active.asSequence()).map { handle ->
+    return children.map { handle ->
       val nodeInstances = transaction.readableEngineData.nodeInstances
       val instance = nodeInstances[handle].mustExist(handle).withPermission()
       if (identifiable.id == instance.node.id) {
@@ -340,10 +320,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized override fun setHandleValue(handleValue: Long) {
-    if (_handle.handleValue!=handleValue) {
+    if (handle.handleValue!=handleValue) {
       if (handleValue==-1L) { throw IllegalArgumentException("Setting the handle to invalid is not allowed") }
-      if (_handle.valid) throw IllegalStateException("Handles are not allowed to change")
-      _handle = Handles.handle(handleValue)
+      if (handle.valid) throw IllegalStateException("Handles are not allowed to change")
+      handle = Handles.handle(handleValue)
     }
   }
 
@@ -366,12 +346,6 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
       }
     }
-  }
-
-  /** Method called when the instance is loaded from the server. This should reinitialise the instance.  */
-  fun reinitialize(transaction: T) {
-    // TODO Auto-generated method stub
-
   }
 
   @Synchronized @Throws(SQLException::class)
@@ -549,18 +523,18 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   fun serialize(transaction: T, writer: XmlWriter) {
     //
     writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
-      writeAttribute("handle", if (!handle.valid) null else java.lang.Long.toString(handleValue))
+      writeAttribute("handle", if (!handle.valid) null else java.lang.Long.toString(handle.handleValue))
       writeAttribute("name", name)
       writeAttribute("processModel", java.lang.Long.toString(processModel.handleValue))
       writeAttribute("owner", owner.name)
       writeAttribute("state", state!!.name)
 
       smartStartTag(Constants.PROCESS_ENGINE_NS, "inputs") {
-        mInputs.forEach { it.serialize(this) }
+        inputs.forEach { it.serialize(this) }
       }
 
       writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "outputs") {
-        mOutputs.forEach { it.serialize(this) }
+        outputs.forEach { it.serialize(this) }
       }
 
       writeListIfNotEmpty(active, Constants.PROCESS_ENGINE_NS, "active") {
@@ -596,11 +570,6 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
         nodeInstance.results.forEach { it.serialize(this) }
       }
     }
-  }
-
-  fun setOutputs(outputs: List<ProcessData>) {
-    mOutputs.clear()
-    mOutputs.addAll(outputs)
   }
 
   /**
