@@ -24,4 +24,4 @@ import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 
 
 internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessInstance.Builder<ProcessDBTransaction>, SecureObject<ProcessInstance<ProcessDBTransaction>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))
+      DBHandleMap<ProcessInstance.BaseBuilder<ProcessDBTransaction>, SecureObject<ProcessInstance<ProcessDBTransaction>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))

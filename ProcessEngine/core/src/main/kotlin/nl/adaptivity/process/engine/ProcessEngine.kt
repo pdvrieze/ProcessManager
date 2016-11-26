@@ -69,7 +69,7 @@ private fun <T : ProcessTransaction<T>, V:Any> wrapInstanceCache(base: MutableTr
 }
 
 private fun <T : ProcessTransaction<T>> wrapNodeCache(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>,
-                                                         cacheSize: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T> {
+                                                      cacheSize: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T> {
   if (cacheSize <= 0) {
     return base
   }
@@ -117,6 +117,9 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
         this@DelegateProcessEngineData.invalidateCachePNI(handle)
       }
 
+      override fun handleFinishedInstance(handle: ComparableHandle<out ProcessInstance<T>>) {
+        // Ignore the completion for now. Just keep it in the engine.
+      }
     }
 
     override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<T> = DelegateEngineDataAccess(transaction)
@@ -149,6 +152,10 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
       override fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance<ProcessDBTransaction>>>) {
         this@DBProcessEngineData.invalidateCachePNI(handle)
+      }
+
+      override fun handleFinishedInstance(handle: ComparableHandle<out ProcessInstance<ProcessDBTransaction>>) {
+        // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
       }
     }
 
@@ -442,7 +449,9 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
     engineData.inWriteTransaction(transaction) {
       val resultHandle = instances.put(instance)
       instances[resultHandle].mustExist(resultHandle).withPermission().let { instance ->
+        assert(instance.handleValue==resultHandle.handleValue)
         instance.initialize(transaction)
+      }.let { instance ->
         commit()
 
         try {
@@ -588,7 +597,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
 
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
 
-        val pi = task.processInstance
+        val pi = instances[task.hProcessInstance].mustExist(task.hProcessInstance).withPermission()
 
         synchronized(pi) { // XXX Should not be needed if pi is immutable
           when (newState) {
@@ -612,7 +621,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
   fun finishTask(transaction: T, handle: Handle<out SecureObject<ProcessNodeInstance<T>>>, payload: Node?, user: Principal): ProcessNodeInstance<T> {
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
-        val pi = task.processInstance
+        val pi = instances[task.hProcessInstance].mustExist(task.hProcessInstance).withPermission()
         try {
           synchronized(pi) {
             return pi.finishTask(transaction, messageService, task, payload)
@@ -684,7 +693,7 @@ class ProcessEngine<T : ProcessTransaction<T>>(private val messageService: IMess
   fun errorTask(transaction: T, handle: Handle<out ProcessNodeInstance<T>>, cause: Throwable, user: Principal) {
     engineData.inWriteTransaction(transaction) {
       nodeInstances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
-        task.processInstance.failTask(transaction, messageService, task, cause)
+        task.failTask(transaction, cause)
       }
     }
   }

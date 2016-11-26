@@ -79,9 +79,9 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .requireNoNulls()
 
     return if (node is JoinImpl) {
-      JoinInstance.BaseBuilder<ProcessDBTransaction>(node, predecessors, processInstance, Handles.handle(pnihandle.handleValue), state)
+      JoinInstance.BaseBuilder<ProcessDBTransaction>(node, predecessors, processInstance.handle, processInstance.owner, Handles.handle(pnihandle.handleValue), state)
     } else {
-      ProcessNodeInstance.BaseBuilder<ProcessDBTransaction, ExecutableProcessNode>(node, predecessors, processInstance, Handles.handle(pnihandle.handleValue), state)
+      ProcessNodeInstance.BaseBuilder<ProcessDBTransaction, ExecutableProcessNode>(node, predecessors, processInstance.handle, processInstance.owner, Handles.handle(pnihandle.handleValue), state)
     }
   }
 
@@ -115,7 +115,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
     update.run {
       value.withPermission().let { value ->
         SET(tbl_pni.nodeid, value.node.id)
-        SET(tbl_pni.pihandle, value.processInstance.handleValue)
+        SET(tbl_pni.pihandle, value.hProcessInstance.handleValue)
         SET(tbl_pni.state, value.state.name)
       }
     }
@@ -164,7 +164,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
     return value.withPermission().let { value ->
       ProcessEngineDB
             .INSERT(tbl_pni.nodeid, tbl_pni.pihandle, tbl_pni.state)
-            .VALUES(value.node.id, value.processInstance.handleValue, value.state.name)
+            .VALUES(value.node.id, value.hProcessInstance.handleValue, value.state.name)
     }
   }
 

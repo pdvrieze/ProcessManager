@@ -43,7 +43,8 @@ import javax.xml.transform.Source
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
 open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProcessNode,
                                                           predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
-                                                          val processInstance: ProcessInstance<T>,
+                                                          val hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance<T>>>,
+                                                          owner: Principal,
                                                           handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
                                                           override final val state: NodeInstanceState = NodeInstanceState.Pending,
                                                           results: Iterable<ProcessData> = emptyList(),
@@ -59,14 +60,13 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
 
   val directPredecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
 
-  override val owner: Principal
-    get() = processInstance.owner
-
+  override val owner: Principal = owner
 
   interface Builder<T:ProcessTransaction<T>, N:ExecutableProcessNode> {
     var node: N
     var predecessors: MutableSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
-    var processInstance: ProcessInstance<T>
+    var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance<T>>>
+    var owner: Principal
     var handle: Handle<out SecureObject<ProcessNodeInstance<T>>>
     var state: NodeInstanceState
     val results:MutableList<ProcessData>
@@ -80,7 +80,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     override fun toXmlInstance(body: CompactFragment?):XmlProcessNodeInstance {
       return XmlProcessNodeInstance(nodeId= node.id,
                                     predecessors = predecessors.map { Handles.handle<IProcessNodeInstance<*,*>>(it.handleValue) },
-                                    processInstance = processInstance.handleValue,
+                                    processInstance = hProcessInstance.handleValue,
                                     handle = Handles.handle(handle.handleValue),
                                     state = state,
                                     results = results,
@@ -92,7 +92,8 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
 
   abstract class ExtBuilderBase<T:ProcessTransaction<T>, N:ExecutableProcessNode>(base:ProcessNodeInstance<T>) : AbstractBuilder<T, N>() {
     override var predecessors = base.directPredecessors.toMutableArraySet()
-    override var processInstance by overlay { base.processInstance }
+    override var hProcessInstance by overlay { base.hProcessInstance }
+    override var owner by overlay { base.owner }
     override var handle: Handle<out SecureObject<ProcessNodeInstance<T>>> by overlay { base.handle }
     override var state by overlay { base.state }
     override var results = base.results.toMutableList()
@@ -106,7 +107,8 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   open class BaseBuilder<T:ProcessTransaction<T>, N:ExecutableProcessNode>(
         override var node: N,
         predecessors: Iterable<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
-        override var processInstance: ProcessInstance<T>,
+        override var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance<T>>>,
+        override var owner: Principal,
         override var handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
         override var state: NodeInstanceState = NodeInstanceState.Pending) : AbstractBuilder<T, N>() {
 
@@ -135,15 +137,15 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
     }
   }
 
-  constructor(node: StartNodeImpl, processInstance: ProcessInstance<T>) : this(node, emptyList(), processInstance)
+  constructor(node: StartNodeImpl, processInstance: ProcessInstance<T>) : this(node, emptyList(), processInstance.handle, processInstance.owner)
 
-  constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance)
+  constructor(node: ExecutableProcessNode, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>, processInstance: ProcessInstance<T>) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.handle, processInstance.owner)
 
-  constructor(builder:Builder<T, out ExecutableProcessNode>): this(builder.node, builder.predecessors, builder.processInstance, builder.handle, builder.state, builder.results, builder.failureCause)
+  constructor(builder:Builder<T, out ExecutableProcessNode>): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.failureCause)
 
   @Throws(SQLException::class)
   internal constructor(transaction: T, node: ExecutableProcessNode, processInstance: ProcessInstance<T>, state: NodeInstanceState)
-        : this(node, resolvePredecessors(transaction, processInstance, node), processInstance, state=state)
+        : this(node, resolvePredecessors(transaction, processInstance, node), processInstance.handle, processInstance.owner, state=state)
 
   @Throws(SQLException::class)
   constructor(transaction: T, processEngine: ProcessEngine<T>, nodeInstance: XmlProcessNodeInstance) :
@@ -271,7 +273,10 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
   override fun <U> startTask(transaction: T, messageService: IMessageService<U, T, ProcessNodeInstance<T>>): ProcessNodeInstance<T> {
     val startNext = node.startTask(messageService, this)
     val updatedInstance = update(transaction) { state = NodeInstanceState.Started }
-    return if (startNext) processInstance.finishTask(transaction, messageService, updatedInstance, null) else updatedInstance
+    return if (startNext) {
+      val pi = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+      pi.finishTask(transaction, messageService, updatedInstance, null)
+    }else updatedInstance
   }
 
   @Throws(SQLException::class)
@@ -384,7 +389,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
                          localEndpoint: EndpointDescriptor) {
     out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
       writeAttribute("state", state.name)
-      writeAttribute("processinstance", processInstance.handleValue)
+      writeAttribute("processinstance", hProcessInstance.handleValue)
 
       if (handle.valid) writeAttribute("handle", handle.handleValue)
 
@@ -426,7 +431,7 @@ open class ProcessNodeInstance<T : ProcessTransaction<T>>(node: ExecutableProces
                                         handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
                                         state: NodeInstanceState = NodeInstanceState.Pending,
                                         body: Builder<T, ExecutableProcessNode>.() -> Unit):ProcessNodeInstance<T> {
-      return ProcessNodeInstance(BaseBuilder(node, predecessors, processInstance, handle, state).apply(body))
+      return ProcessNodeInstance(BaseBuilder(node, predecessors, processInstance.handle, processInstance.owner, handle, state).apply(body))
     }
 
 

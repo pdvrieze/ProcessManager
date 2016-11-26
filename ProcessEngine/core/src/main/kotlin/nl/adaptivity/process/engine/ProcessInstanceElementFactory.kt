@@ -38,7 +38,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 30/05/16.
  */
-internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.Builder<ProcessDBTransaction>, SecureObject<ProcessInstance<ProcessDBTransaction>>, ProcessDBTransaction>() {
+internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.BaseBuilder<ProcessDBTransaction>, SecureObject<ProcessInstance<ProcessDBTransaction>>, ProcessDBTransaction>() {
 
   override fun getHandleCondition(where: Database._Where,
                                   handle: Handle<out SecureObject<ProcessInstance<ProcessDBTransaction>>>): Database.WhereClause? {
@@ -51,7 +51,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   override val createColumns: List<Column<*, *, *>>
     get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid)
 
-  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.Builder<ProcessDBTransaction> {
+  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.BaseBuilder<ProcessDBTransaction> {
     val owner = SimplePrincipal(pi.owner.value(columns, values))
     val hProcessModel = Handles.handle<ProcessModelImpl>(pi.pmhandle.value(columns, values)!!)
     val processModel = mProcessEngine.getProcessModel(transaction as ProcessDBTransaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
@@ -60,7 +60,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val state = toState(pi.state.value(columns, values))
     val uuid = toUUID(pi.uuid.value(columns, values)) ?: throw IllegalStateException("Missing UUID")
 
-    return ProcessInstance.Builder<ProcessDBTransaction>(piHandle, owner, processModel, instancename, uuid, state)
+    return ProcessInstance.BaseBuilder<ProcessDBTransaction>(piHandle, owner, processModel, instancename, uuid, state)
   }
 
   private fun toUUID(string: String?): UUID? {
@@ -70,7 +70,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     return UUID.fromString(string)
   }
 
-  override fun postCreate(transaction: ProcessDBTransaction, builder: ProcessInstance.Builder<ProcessDBTransaction>):ProcessInstance<ProcessDBTransaction> {
+  override fun postCreate(transaction: ProcessDBTransaction, builder: ProcessInstance.BaseBuilder<ProcessDBTransaction>):ProcessInstance<ProcessDBTransaction> {
     val handleValue = builder.handle.handleValue
     ProcessEngineDB
           .SELECT(pni.pnihandle)
@@ -97,7 +97,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
               }
             }
     }
-    return builder.build(transaction, mProcessEngine)
+    return builder.build(transaction.readableEngineData)
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessInstance<ProcessDBTransaction>>) {

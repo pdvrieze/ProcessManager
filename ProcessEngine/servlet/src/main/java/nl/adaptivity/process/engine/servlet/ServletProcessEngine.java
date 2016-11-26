@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine.servlet;
 
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
-import net.devrieze.util.Transaction;
 import net.devrieze.util.security.AuthenticationNeededException;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecuredObject;
@@ -53,7 +52,6 @@ import nl.adaptivity.xml.SerializableList;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 import org.w3.soapEnvelope.Envelope;
@@ -193,7 +191,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
 
 
     private Principal getOwner() {
-      return mNodeInstance.getProcessInstance().getOwner();
+      return mNodeInstance.getOwner();
     }
 
     @Override
@@ -407,17 +405,17 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
         } else if ("owner".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, nodeInstance.getProcessInstance().getOwner().getName());
+            attr = xef.createAttribute(paramName, nodeInstance.getOwner().getName());
           } else {
-            attr = xef.createAttribute("owner", nodeInstance.getProcessInstance().getOwner().getName());
+            attr = xef.createAttribute("owner", nodeInstance.getOwner().getName());
           }
           out.add(attr);
         } else if ("instancehandle".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, nodeInstance.getProcessInstance().getOwner().getName());
+            attr = xef.createAttribute(paramName, nodeInstance.getOwner().getName());
           } else {
-            attr = xef.createAttribute("instancehandle", nodeInstance.getProcessInstance().getOwner().getName());
+            attr = xef.createAttribute("instancehandle", nodeInstance.getOwner().getName());
           }
           out.add(attr);
         }

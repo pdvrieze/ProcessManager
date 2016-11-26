@@ -30,13 +30,10 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
-      "handle"         -> return ProcessData(valueName,
-                                             CompactFragment(java.lang.Long.toString(processNodeInstance.getHandleValue())))
-      "instancehandle" -> return ProcessData(valueName,
-                                             CompactFragment(java.lang.Long.toString(processNodeInstance.processInstance.handleValue)))
+      "handle"         -> return ProcessData(valueName, CompactFragment(java.lang.Long.toString(processNodeInstance.getHandleValue())))
+      "instancehandle" -> return ProcessData(valueName, CompactFragment(java.lang.Long.toString(processNodeInstance.hProcessInstance.handleValue)))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())
-      "owner"          -> return ProcessData(valueName,
-                                             CompactFragment(processNodeInstance.processInstance.owner.name))
+      "owner"          -> return ProcessData(valueName, CompactFragment(processNodeInstance.owner.name))
     }
 
     for (define in mDefines) {

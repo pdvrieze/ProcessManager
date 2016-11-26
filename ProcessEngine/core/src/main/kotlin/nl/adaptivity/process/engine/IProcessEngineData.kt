@@ -101,4 +101,7 @@ interface MutableProcessEngineDataAccess<T:ProcessTransaction<T>> : ProcessEngin
   fun commit()
 
   fun rollback()
+
+  /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
+  fun  handleFinishedInstance(handle: ComparableHandle<out ProcessInstance<T>>)
 }

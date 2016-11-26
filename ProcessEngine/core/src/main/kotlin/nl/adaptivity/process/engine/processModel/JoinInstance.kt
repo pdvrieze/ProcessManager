@@ -16,9 +16,11 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.*
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
+import net.devrieze.util.Handles
+import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -26,6 +28,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.JoinImpl
 import nl.adaptivity.process.util.Identifiable
 import org.w3c.dom.Node
+import java.security.Principal
 import java.sql.SQLException
 import java.util.*
 
@@ -44,10 +47,11 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
   class BaseBuilder<T : ProcessTransaction<T>>(
         node: JoinImpl,
         predecessors: Iterable<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
-        processInstance: ProcessInstance<T>,
+        hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance<T>>>,
+        owner: Principal,
         handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
         state: NodeInstanceState = NodeInstanceState.Pending)
-    : ProcessNodeInstance.BaseBuilder<T, JoinImpl>(node, predecessors, processInstance, handle, state), Builder<T> {
+    : ProcessNodeInstance.BaseBuilder<T, JoinImpl>(node, predecessors, hProcessInstance, owner, handle, state), Builder<T> {
     override fun build() = JoinInstance(this)
   }
 
@@ -64,14 +68,15 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
   constructor(node: JoinImpl,
               predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
-              processInstance: ProcessInstance<T>,
+              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance<T>>>,
+              owner: Principal,
               handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
-        super(node, predecessors, processInstance, handle, state, results) {
+        super(node, predecessors, hProcessInstance, owner, handle, state, results) {
   }
 
-  constructor(builder:Builder<T>): this(builder.node, builder.predecessors, builder.processInstance, builder.handle, builder.state, builder.results)
+  constructor(builder:Builder<T>): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results)
 
   /**
    * Constructor for ProcessNodeInstanceMap.
@@ -175,6 +180,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     }
 
     if (complete >= join.min) {
+      val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
       if (complete >= join.max || processInstance.getActivePredecessorsFor(transaction, join).isEmpty()) {
         return next()
       }
@@ -184,6 +190,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
 
   @Throws(SQLException::class)
   private fun cancelNoncompletedPredecessors(transaction: T) {
+    val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
     val preds = processInstance.getActivePredecessorsFor(transaction, node)
     for (pred in preds) {
       pred.tryCancelTask(transaction)
@@ -195,6 +202,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     if (!isFinished) {
       val shouldProgress = node.provideTask(transaction, messageService, this)
       if (shouldProgress) {
+        val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
         val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
         val canAdd = directSuccessors
               .asSequence()
@@ -221,6 +229,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
                 .remove(data.nodeInstances[it].mustExist(it).withPermission().node) }
 
     return updateJoin(transaction) {
+      val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
       missingIdentifiers.asSequence()
             .mapNotNull { processInstance.getNodeInstance(transaction, it) }
             .forEach { predecessors.add(it.handle) }
@@ -240,6 +249,7 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
     if (!isFinished) {
       return true
     }
+    val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
     val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
 
     return directSuccessors.asSequence()
@@ -251,11 +261,21 @@ class JoinInstance<T : ProcessTransaction<T>> : ProcessNodeInstance<T> {
   companion object {
     fun <T:ProcessTransaction<T>> build(joinImpl: JoinImpl,
                                         predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
+                                        hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance<T>>>,
+                                        owner: Principal,
+                                        handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
+                                        state: NodeInstanceState = NodeInstanceState.Pending,
+                                        body: Builder<T>.() -> Unit):JoinInstance<T> {
+      return JoinInstance(BaseBuilder(joinImpl, predecessors, hProcessInstance, owner, handle, state).apply(body))
+    }
+
+    fun <T:ProcessTransaction<T>> build(joinImpl: JoinImpl,
+                                        predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>,
                                         processInstance: ProcessInstance<T>,
                                         handle: Handle<out SecureObject<ProcessNodeInstance<T>>> = Handles.getInvalid(),
                                         state: NodeInstanceState = NodeInstanceState.Pending,
                                         body: Builder<T>.() -> Unit):JoinInstance<T> {
-      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance, handle, state).apply(body))
+      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance.handle, processInstance.owner, handle, state).apply(body))
     }
   }
 
