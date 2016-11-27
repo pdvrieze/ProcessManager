@@ -137,7 +137,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   private void writeDefines(final Parcel dest) {
-    final List<XmlDefineType> defines = getDefines();
+    final List<? extends XmlDefineType> defines = getDefines();
     dest.writeInt(defines.size());
     for(final XmlDefineType define:defines) {
       dest.writeString(nl.adaptivity.xml.XmlUtil.toString(define));

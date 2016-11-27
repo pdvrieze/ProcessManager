@@ -31,7 +31,7 @@ import java.util.Collection;
 /**
  * Created by pdvrieze on 25/11/15.
  */
-public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T,M> implements JoinSplit<T, M>, SimpleXmlDeserializable {
+public abstract class JoinSplitBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T,M> implements JoinSplit<T, M>, SimpleXmlDeserializable {
 
   protected int mMin = -1;
   protected int mMax = -1;

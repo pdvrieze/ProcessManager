@@ -24,15 +24,12 @@ import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import org.w3c.dom.Node
-
-import java.lang.reflect.Method
 import java.security.Principal
 import java.util.*
 
@@ -266,29 +263,19 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 }
 
 
-private fun toExecutableNodes(modelNodes: Collection<ProcessNode<*, *>>): Collection<ExecutableProcessNode> {
+private fun toExecutableNodes(modelNodes: Collection<MutableProcessNode<*, *>>): Collection<ExecutableProcessNode> {
 
   return modelNodes.map { node ->
     node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
-      override fun visitStartNode(startNode: StartNode<*, *>): ExecutableProcessNode {
-        return ExecutableStartNode(startNode)
-      }
+      override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode)
 
-      override fun visitActivity(activity: Activity<*, *>): ExecutableProcessNode {
-        return ExecutableActivity(activity)
-      }
+      override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity)
 
-      override fun visitSplit(split: Split<*, *>): ExecutableProcessNode {
-        return ExecutableSplit(split)
-      }
+      override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split)
 
-      override fun visitJoin(join: Join<*, *>): ExecutableProcessNode {
-        return ExecutableJoin(join)
-      }
+      override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join)
 
-      override fun visitEndNode(endNode: EndNode<*, *>): ExecutableProcessNode {
-        return ExecutableEndNode(endNode)
-      }
+      override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode)
     })
   }
 }

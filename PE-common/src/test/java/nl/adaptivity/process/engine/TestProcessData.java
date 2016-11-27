@@ -20,7 +20,6 @@ import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
@@ -447,8 +446,8 @@ public class TestProcessData {
 
     final XmlResultType result;
     {
-      Collection<? extends ProcessNode<?, ?>> modelNodes = pm.getModelNodes();
-      Iterator<? extends ProcessNode<?, ?>> it = modelNodes.iterator();
+      Collection<? extends ProcessNode<?,?>> modelNodes = pm.getModelNodes();
+      Iterator<? extends ProcessNode<?,?>>   it         = modelNodes.iterator();
       it.next();
       result = (XmlResultType) it.next().getResults().iterator().next();
     }

@@ -18,13 +18,13 @@ package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.Handle;
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.MutableProcessNode;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 
-public interface IProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Handle<M>{
+public interface IProcessModelRef<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> extends Handle<M>{
 
   String getName();
 

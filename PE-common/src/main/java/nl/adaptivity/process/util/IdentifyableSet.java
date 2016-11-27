@@ -324,6 +324,11 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     }
 
     @Override
+    public void add(final int index, final V element) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    @Override
     public int size() {
       return 0;
     }

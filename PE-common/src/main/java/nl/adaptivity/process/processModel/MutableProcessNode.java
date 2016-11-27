@@ -22,51 +22,32 @@ import nl.adaptivity.xml.XmlSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 
-/**
- * Created by pdvrieze on 27/11/16.
- */
-public interface ProcessNode<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> extends Positioned, Identifiable, XmlSerializable {
+public interface MutableProcessNode<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T, M> {
 
-  interface Visitor<R> {
-    R visitStartNode(StartNode<?, ?> startNode);
-    R visitActivity(Activity<?, ?> activity);
-    R visitSplit(Split<?, ?> split);
-    R visitJoin(Join<?, ?> join);
-    R visitEndNode(EndNode<?, ?> endNode);
-  }
+  void setId(String id);
 
-  T asT();
+  void setOwnerModel(@NotNull M ownerModel);
 
-  boolean isPredecessorOf(T node);
+  /**
+   * Make all references (predecessors successors) directly reference nodes. Not names.
+   */
+  void resolveRefs();
 
-  <R> R visit(Visitor<R> visitor);
+  void setPredecessors(Collection<? extends Identifiable> predecessors);
 
-  XmlResultType getResult(String name);
+  void removePredecessor(Identifiable node);
 
-  XmlDefineType getDefine(String name);
+  void addPredecessor(Identifiable node);
 
-  @Nullable
-  M getOwnerModel();
+  void addSuccessor(Identifiable node);
 
-  @NotNull
-  Set<? extends Identifiable> getPredecessors();
+  void removeSuccessor(Identifiable node);
 
-  @NotNull
-  Set<? extends Identifiable> getSuccessors();
+  void setSuccessors(Collection<? extends Identifiable> successors);
 
-  int getMaxSuccessorCount();
-
-  int getMaxPredecessorCount();
-
-  String getLabel();
-
-  List<? extends IXmlResultType> getResults();
-
-  List<? extends IXmlDefineType> getDefines();
-
-  String getIdBase();
 }

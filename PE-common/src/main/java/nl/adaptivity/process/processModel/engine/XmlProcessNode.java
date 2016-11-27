@@ -16,13 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.XmlProcessModel;
+import nl.adaptivity.process.processModel.MutableProcessNode;
 
 
 /**
  * Created by pdvrieze on 27/11/16.
  */
-public interface XmlProcessNode extends ProcessNode<XmlProcessNode, ProcessModelImpl>{
+public interface XmlProcessNode extends MutableProcessNode<XmlProcessNode, ProcessModelImpl> {
 
 }

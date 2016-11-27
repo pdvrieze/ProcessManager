@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public interface Activity<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T, M> {
+public interface Activity<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> extends MutableProcessNode<T, M> {
 
   /** The name of the XML element. */
   String ELEMENTLOCALNAME = "activity";

@@ -20,7 +20,6 @@ import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.MutableHandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
-import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;

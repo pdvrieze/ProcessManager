@@ -33,43 +33,65 @@ import java.util.*;
  * A base class for process nodes. Works like {@link ProcessModelBase}
  * Created by pdvrieze on 23/11/15.
  */
-public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessNode<T, M>, XmlDeserializable {
+public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements MutableProcessNode<T, M>, XmlDeserializable {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   @Nullable private M                             mOwnerModel;
   @Nullable private IdentifyableSet<Identifiable> mPredecessors;
-  @Nullable private IdentifyableSet<Identifiable> mSuccessors = null;
+  @Nullable private IdentifyableSet<Identifiable> mSuccessors;
   private String mId;
   private String mLabel;
   private double mX=Double.NaN;
   private double mY=Double.NaN;
-  @Nullable private List<XmlDefineType> mDefines;
-  @Nullable private List<XmlResultType> mResults;
+  @NotNull private List<XmlDefineType> mDefines;
+  @NotNull private List<XmlResultType> mResults;
   private int mHashCode = 0;
 
   public ProcessNodeBase(@Nullable final M ownerModel) {
+    this(ownerModel,
+         null,
+         null,
+         null,
+         null,
+         Double.NaN,
+         Double.NaN,
+         new ArrayList<IXmlDefineType>(),
+         new ArrayList<IXmlResultType>());
+  }
+
+  public ProcessNodeBase(final M ownerModel, final IdentifyableSet<Identifiable> predecessors, final IdentifyableSet<Identifiable> successors, final String id, final String label, final double x, final double y, final Collection<? extends IXmlDefineType> defines, final Collection<? extends IXmlResultType> results) {
+    mOwnerModel = ownerModel;
+    mPredecessors = predecessors;
+    mSuccessors = successors;
+    mId = id;
+    mLabel = label;
+    mX = x;
+    mY = y;
+    mDefines = toExportableDefines(defines);
+    mResults = toExportableResults(results);
     if (ownerModel!=null) {
-      mOwnerModel = ownerModel;
-      mOwnerModel.addNode(this.asT());
+      ownerModel.addNode(this.asT());
     }
+
   }
 
   /**
    * Copy constructor
    * @param orig Original
    */
-  public ProcessNodeBase(final ProcessNode<?, ?> orig) {
-    mPredecessors = toIdentifiers(orig.getPredecessors(), getMaxPredecessorCount());
-    mSuccessors = toIdentifiers(orig.getSuccessors(), getMaxSuccessorCount());
-    setId(orig.getId());
-    setLabel(orig.getLabel());
-    setX(orig.getX());
-    setY(orig.getY());
-    setDefines(orig.getDefines());
-    setResults(orig.getResults());
+  public ProcessNodeBase(final ProcessNode<?,?> orig) {
+    this(null,
+         toIdentifiers(orig.getPredecessors(), orig.getMaxPredecessorCount()),
+         toIdentifiers(orig.getSuccessors(), orig.getMaxSuccessorCount()),
+         orig.getId(),
+         orig.getLabel(),
+         orig.getX(),
+         orig.getY(),
+         orig.getDefines(),
+         orig.getResults());
   }
 
-  private IdentifyableSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> identifiables, int maxSize) {
+  private static IdentifyableSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> identifiables, int maxSize) {
     if (identifiables==null) { return null; }
     final IdentifyableSet<Identifiable> result;
     switch (maxSize) {
@@ -154,9 +176,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     if (mPredecessors.add(predId)) {
       M ownerModel = getOwnerModel();
 
-      ProcessNode node = null;
-      if (predId instanceof ProcessNode) {
-        node = (ProcessNode) predId;
+      MutableProcessNode node = null;
+      if (predId instanceof MutableProcessNode) {
+        node = (MutableProcessNode) predId;
       } else if (ownerModel != null) {
         node = ownerModel.getNode(predId);
       }
@@ -196,12 +218,12 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     }
     mSuccessors.add(nodeId);
 
-    ProcessModelBase<T, M> owner = mOwnerModel;
-    ProcessNode<?, M> node = null;
+    ProcessModelBase<T, M>   owner = mOwnerModel;
+    MutableProcessNode<?, M> node  = null;
     if (owner!=null) {
       node = owner.getNode(nodeId);
-    } else if (nodeId instanceof ProcessNode){
-      node = (ProcessNode<?, M>) nodeId;
+    } else if (nodeId instanceof MutableProcessNode){
+      node = (MutableProcessNode<?, M>) nodeId;
     }
     if (node!=null) {
       Set<? extends Identifiable> predecessors = node.getPredecessors();
@@ -215,7 +237,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   public final void removeSuccessor(final Identifiable node) {
     if (mSuccessors.remove(node)) {
       mHashCode = 0;
-      ProcessNode successorNode = node instanceof ProcessNode ? (ProcessNode) node : (mOwnerModel == null ? null : mOwnerModel.getNode(node));
+      MutableProcessNode successorNode = node instanceof MutableProcessNode ? (MutableProcessNode) node : (mOwnerModel == null ? null : mOwnerModel.getNode(node));
       if (successorNode!=null) { successorNode.removePredecessor(this.asT()); }
     }
   }
@@ -460,7 +482,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
       if (getId()!=null && getId().equals(pred.getId())) {
         return true;
       }
-      if (pred instanceof ProcessNode) {
+      if (pred instanceof MutableProcessNode) {
         return (isPredecessorOf((T)pred));
       } else if (isPredecessorOf(getOwnerModel().getNode(pred))) {
         return true;

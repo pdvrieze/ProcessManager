@@ -67,7 +67,7 @@ public class XmlProcessModel {
   }
 
   public XmlProcessModel(@NotNull final ProcessModel<? extends ProcessNode<?,?>, ? extends ProcessModel<?,?>> m) {
-    nodes = (List) filter(CollectionUtil.<Object>copy(m.getModelNodes()), ProcessNode.class);
+    nodes = (List) filter(CollectionUtil.<Object>copy(m.getModelNodes()), MutableProcessNode.class);
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
     roles = m.getRoles();
@@ -104,7 +104,7 @@ public class XmlProcessModel {
    */
   public List<? extends ProcessNode<?,?>> getNodes() {
     if (nodes == null) {
-      nodes = (List) XmlProcessModel.filter(new ArrayList<>(), ProcessNode.class);
+      nodes = (List) XmlProcessModel.filter(new ArrayList<>(), MutableProcessNode.class);
     }
     return this.nodes;
   }

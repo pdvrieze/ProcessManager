@@ -21,7 +21,7 @@ import net.devrieze.util.Transaction
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.MutableProcessNode
 import java.io.FileNotFoundException
 
 /**
@@ -75,11 +75,11 @@ fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: Handle<out
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N: ProcessNode<N, M>, M: ProcessModel<N,M>> M?.mustExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <N: MutableProcessNode<N, M>, M: ProcessModel<N,M>> M?.mustExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <N: ProcessNode<N, M>, M: ProcessModel<N,M>> M?.shouldExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <N: MutableProcessNode<N, M>, M: ProcessModel<N,M>> M?.shouldExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")

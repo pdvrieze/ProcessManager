@@ -37,11 +37,9 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     }
   }
 
-  constructor(orig: StartNode<*, *>) : super(orig) {
-  }
+  constructor(orig: StartNode<*, *>) : super(orig)
 
-  constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel) {
-  }
+  constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
 
   constructor(ownerModel: ExecutableProcessModel?, imports: List<XmlResultType>) : super(ownerModel) {
     setResults(imports)

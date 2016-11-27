@@ -139,7 +139,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return (DrawableProcessModel) ProcessModelBase.deserialize(factory, new DrawableProcessModel(), in).normalize(factory);
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?, ?>, ?> original) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?,?>, ?> original) {
     final Map<String,DrawableProcessNode> cache = new HashMap<>(original.getModelNodes().size());
     return cloneNodes(original, cache, original.getModelNodes());
   }
@@ -149,8 +149,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     for(final Identifiable origId: nodes) {
       final DrawableProcessNode val = cache.get(origId.getId());
       if (val==null) {
-        final ProcessNode orig = source.getNode(origId);
-        final DrawableProcessNode cpy = toDrawableNode(orig);
+        final ProcessNode         orig = source.getNode(origId);
+        final DrawableProcessNode cpy  = toDrawableNode(orig);
         result.add(cpy);
         cache.put(cpy.getId(), cpy);
         cpy.setSuccessors(Collections.<DrawableProcessNode>emptyList());
@@ -187,7 +187,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 	return new DrawableProcessModel(this);
   }
 
-  private static DrawableProcessNode toDrawableNode(final ProcessNode<?, ?> elem) {
+  private static DrawableProcessNode toDrawableNode(final ProcessNode<?,?> elem) {
     return elem.visit(new Visitor<DrawableProcessNode>() {
 
       @Override
@@ -385,7 +385,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return getModelNodes();
   }
 
-  static void copyProcessNodeAttrs(final ProcessNode<?, ?> from, final DrawableProcessNode to) {
+  static void copyProcessNodeAttrs(final ProcessNode<?,?> from, final DrawableProcessNode to) {
     to.setId(from.getId());
     to.setX(from.getX());
     to.setY(from.getY());

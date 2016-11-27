@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 
-public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ProcessNode<T, M> {
+public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends MutableProcessNode<T, M> {
 
   boolean isCompat();
 

@@ -33,7 +33,7 @@ import java.util.Collections;
 /**
  * Created by pdvrieze on 26/11/15.
  */
-public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends JoinSplitBase<T, M> implements Split<T, M> {
+public class SplitBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends JoinSplitBase<T, M> implements Split<T, M> {
 
   public SplitBase(final M ownerModel, final Collection<? extends Identifiable> predecessors, final int max, final int min) {super(ownerModel, predecessors, max, min);}
 

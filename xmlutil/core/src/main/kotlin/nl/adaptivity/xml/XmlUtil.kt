@@ -21,13 +21,13 @@
 @file:JvmMultifileClass
 package nl.adaptivity.xml
 
-import javax.xml.XMLConstants
-import javax.xml.namespace.QName
 import net.devrieze.util.kotlin.asString
 import nl.adaptivity.xml.XmlStreaming.EventType
 import java.util.*
-import javax.xml.XMLConstants.*
+import javax.xml.XMLConstants.DEFAULT_NS_PREFIX
+import javax.xml.XMLConstants.NULL_NS_URI
 import javax.xml.namespace.NamespaceContext
+import javax.xml.namespace.QName
 import javax.xml.transform.Result
 import javax.xml.transform.Source
 

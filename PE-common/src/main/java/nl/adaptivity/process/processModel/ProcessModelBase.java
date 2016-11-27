@@ -43,9 +43,9 @@ import java.util.*;
 /**
  * Created by pdvrieze on 21/11/15.
  */
-public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
+public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
 
-  protected interface DeserializationFactory<U extends ProcessNode<U, M>, M extends ProcessModelBase<U, M>> {
+  protected interface DeserializationFactory<U extends MutableProcessNode<U, M>, M extends ProcessModelBase<U, M>> {
 
     EndNode<? extends U, M> deserializeEndNode(M ownerModel, XmlReader in) throws XmlException;
 
@@ -58,7 +58,7 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
     Split<? extends U, M> deserializeSplit(M ownerModel, XmlReader in) throws XmlException;
   }
 
-  public interface SplitFactory<U extends ProcessNode<U, M>, M extends ProcessModel<U, M>> {
+  public interface SplitFactory<U extends MutableProcessNode<U, M>, M extends ProcessModel<U, M>> {
 
     /**
      * Create a new join node. This must register the node with the owner, and mark the join as successor to
@@ -162,18 +162,19 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
   }
 
   public void ensureIds() {
-    Set<String> ids = new HashSet<>();
-    List<ProcessNode<?,?>> unnamedNodes = new ArrayList<>();
+    Set<String>            ids          = new HashSet<>();
+    List<MutableProcessNode<?,?>> unnamedNodes = new ArrayList<>();
     for(ProcessNode<?,?> node: getModelNodes()) {
       String id = node.getId();
-      if (id==null) {
-        unnamedNodes.add(node);
+      // XXX this is rather much of a hack that should happen through updates.
+      if (id==null && node instanceof MutableProcessNode) {
+        unnamedNodes.add((MutableProcessNode<?, ?>) node);
       } else {
         ids.add(id);
       }
     }
     Map<String, Integer> startCounts = new HashMap<>();
-    for(ProcessNode<?,?> unnamed: unnamedNodes) {
+    for(MutableProcessNode<?,?> unnamed: unnamedNodes) {
       String idBase = unnamed.getIdBase();
       int startCount = getOrDefault(startCounts, idBase, 1);
       for(String id=idBase+Integer.toString(startCount);
@@ -212,7 +213,7 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
     return false;
   }
 
-  public static <T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> M deserialize(final DeserializationFactory<T, M> factory, final M processModel, final XmlReader in) throws
+  public static <T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> M deserialize(final DeserializationFactory<T, M> factory, final M processModel, final XmlReader in) throws
           XmlException {
 
     XmlReaderUtil.skipPreamble(in);
@@ -385,7 +386,7 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
      */
   @Override
   public final T getNode(final Identifiable nodeId) {
-    if (nodeId instanceof ProcessNode) { return (T) nodeId; }
+    if (nodeId instanceof MutableProcessNode) { return (T) nodeId; }
     return mProcessNodes.get(nodeId);
   }
 
@@ -432,7 +433,7 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
       ArrayList<Identifiable> successors = new ArrayList<>(childNode.getSuccessors());
       if (successors.size()>1 && ! (childNode instanceof Split)) {
         for(Identifiable suc2: successors) { // Remove the current node as predecessor.
-          ProcessNode<?, ?> suc = (ProcessNode) suc2;
+          MutableProcessNode<?, ?> suc = (MutableProcessNode) suc2;
           suc.removePredecessor(childNode);
           childNode.removeSuccessor(suc); // remove the predecessor from the current node
         }

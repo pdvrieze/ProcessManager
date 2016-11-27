@@ -36,7 +36,7 @@ import java.util.List;
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements Activity<T, M>, SimpleXmlDeserializable {
+public abstract class ActivityBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements Activity<T, M>, SimpleXmlDeserializable {
 
   @Nullable private XmlMessage mMessage;
 

@@ -29,7 +29,7 @@ import java.util.Collection;
 /**
  * Created by pdvrieze on 26/11/15.
  */
-public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends JoinSplitBase<T, M> implements Join<T, M> {
+public class JoinBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends JoinSplitBase<T, M> implements Join<T, M> {
 
   public static final String IDBASE = "join";
 
