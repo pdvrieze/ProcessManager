@@ -18,6 +18,10 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.JoinBase;
+import nl.adaptivity.process.util.Identifiable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 
 public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinBase<T, M> implements ClientProcessNode<T, M> {
@@ -49,4 +53,45 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
   public boolean isCompat() {
     return mCompat;
   }
+
+  @Override
+  public void setOwnerModel(@NotNull final M ownerModel) {
+    super.setOwnerModel(ownerModel);
+  }
+
+  @Override
+  public void resolveRefs() {
+    super.resolveRefs();
+  }
+
+  @Override
+  public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
+    super.setPredecessors(predecessors);
+  }
+
+  @Override
+  public void removePredecessor(final Identifiable node) {
+    super.removePredecessor(node);
+  }
+
+  @Override
+  public void addPredecessor(final Identifiable node) {
+    super.addPredecessor(node);
+  }
+
+  @Override
+  public void addSuccessor(final Identifiable node) {
+    super.addSuccessor(node);
+  }
+
+  @Override
+  public void removeSuccessor(final Identifiable node) {
+    super.removeSuccessor(node);
+  }
+
+  @Override
+  public void setSuccessors(final Collection<? extends Identifiable> successors) {
+    super.setSuccessors(successors);
+  }
+
 }

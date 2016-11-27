@@ -22,7 +22,9 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
@@ -66,6 +68,33 @@ public abstract class ClientProcessModel<T extends ClientProcessNode<T, M>, M ex
   }
 
   public abstract T asNode(final Identifiable id);
+
+  /**
+   * Normalize the process model. By default this may do nothing.
+   * @return The model (this).
+   */
+  public M normalize(SplitFactory<? extends T, M> splitFactory) {
+    ensureIds();
+    // Make all nodes directly refer to other nodes.
+    for(T childNode: getModelNodes()) {
+      childNode.resolveRefs();
+    }
+    for(T childNode: getModelNodes()) {
+      // Create a copy as we are actually going to remove all successors, but need to keep the list
+      ArrayList<Identifiable> successors = new ArrayList<>(childNode.getSuccessors());
+      if (successors.size()>1 && ! (childNode instanceof Split)) {
+        for(Identifiable suc2: successors) { // Remove the current node as predecessor.
+          MutableProcessNode<?, ?> suc = (MutableProcessNode) suc2;
+          suc.removePredecessor(childNode);
+          childNode.removeSuccessor(suc); // remove the predecessor from the current node
+        }
+        // create a new join, this should
+        Split<? extends T, M> newSplit = splitFactory.createSplit(asM(), successors);
+        childNode.addSuccessor(newSplit);
+      }
+    }
+    return this.asM();
+  }
 
   public void setNodes(final Collection<? extends T> nodes) {
     super.setModelNodes(IdentifyableSet.processNodeSet(nodes));
@@ -239,6 +268,25 @@ public abstract class ClientProcessModel<T extends ClientProcessNode<T, M>, M ex
       return true;
     }
     return false;
+  }
+
+  @Override
+  public T setNode(final int pos, final T newValue) {
+    final T oldValue = super.setNode(pos, newValue);
+
+    newValue.setOwnerModel(asM());
+    oldValue.setSuccessors(Collections.<Identifiable>emptySet());
+    oldValue.setPredecessors(Collections.<Identifiable>emptySet());
+    oldValue.setOwnerModel(null);
+    newValue.resolveRefs();
+    for(Identifiable pred: newValue.getPredecessors()) {
+      getNode(pred).addSuccessor(newValue);
+    }
+    for(Identifiable suc: newValue.getSuccessors()) {
+      getNode(suc).addPredecessor(newValue);
+    }
+
+    return oldValue;
   }
 
   public T removeNode(int nodePos) {

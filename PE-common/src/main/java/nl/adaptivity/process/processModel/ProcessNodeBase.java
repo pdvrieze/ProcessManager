@@ -33,7 +33,7 @@ import java.util.*;
  * A base class for process nodes. Works like {@link ProcessModelBase}
  * Created by pdvrieze on 23/11/15.
  */
-public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements MutableProcessNode<T, M>, XmlDeserializable {
+public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessNode<T, M>, XmlDeserializable {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   @Nullable private M                             mOwnerModel;
@@ -159,8 +159,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
     setPredecessors(tmp);
   }
 
-  @Override
-  public void addPredecessor(@NotNull final Identifiable predId) {
+  protected void addPredecessor(@NotNull final Identifiable predId) {
     mHashCode = 0;
     if (predId==this) { throw new IllegalArgumentException(); }
     if (mPredecessors!=null) {
@@ -180,7 +179,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
       if (predId instanceof MutableProcessNode) {
         node = (MutableProcessNode) predId;
       } else if (ownerModel != null) {
-        node = ownerModel.getNode(predId);
+        node = (MutableProcessNode) ownerModel.getNode(predId);
       }
       if (node!=null) {
         node.addSuccessor(this);
@@ -189,21 +188,19 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
 
   }
 
-  @Override
-  public final void removePredecessor(final Identifiable predecessorId) {
+  protected void removePredecessor(final Identifiable predecessorId) {
     mHashCode = 0;
     if (mPredecessors.remove(predecessorId)) {
       M owner = mOwnerModel;
       T predecessor;
       if (owner!=null && (predecessor = owner.getNode(predecessorId))!=null) {
-        predecessor.removeSuccessor(this.asT()); }
+        ((MutableProcessNode)predecessor).removeSuccessor(this.asT()); }
     }
 
     // TODO perhaps make this reciprocal
   }
 
-  @Override
-  public final void addSuccessor(@Nullable final Identifiable nodeId) {
+  protected void addSuccessor(@Nullable final Identifiable nodeId) {
     if (nodeId == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
@@ -221,7 +218,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
     ProcessModelBase<T, M>   owner = mOwnerModel;
     MutableProcessNode<?, M> node  = null;
     if (owner!=null) {
-      node = owner.getNode(nodeId);
+      node = (MutableProcessNode<?, M>) owner.getNode(nodeId);
     } else if (nodeId instanceof MutableProcessNode){
       node = (MutableProcessNode<?, M>) nodeId;
     }
@@ -233,11 +230,10 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
     }
   }
 
-  @Override
-  public final void removeSuccessor(final Identifiable node) {
+  protected void removeSuccessor(final Identifiable node) {
     if (mSuccessors.remove(node)) {
       mHashCode = 0;
-      MutableProcessNode successorNode = node instanceof MutableProcessNode ? (MutableProcessNode) node : (mOwnerModel == null ? null : mOwnerModel.getNode(node));
+      MutableProcessNode successorNode = node instanceof MutableProcessNode ? (MutableProcessNode) node : (mOwnerModel == null ? null : (MutableProcessNode) mOwnerModel.getNode(node));
       if (successorNode!=null) { successorNode.removePredecessor(this.asT()); }
     }
   }
@@ -262,8 +258,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
      */
-  @Override
-  public final void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
+  protected void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     if (predecessors.size()>getMaxPredecessorCount()) {
       throw new IllegalArgumentException();
     }
@@ -308,8 +303,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
     return result;
   }
 
-  @Override
-  public final void setSuccessors(@NotNull final Collection<? extends Identifiable> successors) {
+  protected void setSuccessors(@NotNull final Collection<? extends Identifiable> successors) {
     if (successors.size()>getMaxSuccessorCount()) {
       throw new IllegalArgumentException();
     }
@@ -363,8 +357,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
     return 1;
   }
 
-  @Override
-  public final void resolveRefs() {
+  protected void resolveRefs() {
     ProcessModelBase<T, M> ownerModel = getOwnerModel();
     if (mPredecessors!=null) mPredecessors.resolve(ownerModel);
     if (mSuccessors!=null) mSuccessors.resolve(ownerModel);
@@ -381,8 +374,7 @@ public abstract class ProcessNodeBase<T extends MutableProcessNode<T, M>, M exte
     return mOwnerModel;
   }
 
-  @Override
-  public final void setOwnerModel(@Nullable final M ownerModel) {
+  protected void setOwnerModel(@Nullable final M ownerModel) {
     if (mOwnerModel!=ownerModel) {
       mHashCode = 0;
       T thisT = this.asT();

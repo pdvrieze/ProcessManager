@@ -29,7 +29,7 @@ import java.util.Set;
 /**
  * Created by pdvrieze on 27/11/16.
  */
-public interface ProcessNode<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> extends Positioned, Identifiable, XmlSerializable {
+public interface ProcessNode<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Positioned, Identifiable, XmlSerializable {
 
   interface Visitor<R> {
     R visitStartNode(StartNode<?, ?> startNode);

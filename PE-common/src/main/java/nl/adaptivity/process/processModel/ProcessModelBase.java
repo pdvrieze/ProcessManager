@@ -43,9 +43,9 @@ import java.util.*;
 /**
  * Created by pdvrieze on 21/11/15.
  */
-public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
+public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
 
-  protected interface DeserializationFactory<U extends MutableProcessNode<U, M>, M extends ProcessModelBase<U, M>> {
+  protected interface DeserializationFactory<U extends ProcessNode<U, M>, M extends ProcessModelBase<U, M>> {
 
     EndNode<? extends U, M> deserializeEndNode(M ownerModel, XmlReader in) throws XmlException;
 
@@ -58,7 +58,7 @@ public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends Proc
     Split<? extends U, M> deserializeSplit(M ownerModel, XmlReader in) throws XmlException;
   }
 
-  public interface SplitFactory<U extends MutableProcessNode<U, M>, M extends ProcessModel<U, M>> {
+  public interface SplitFactory<U extends ProcessNode<U, M>, M extends ProcessModel<U, M>> {
 
     /**
      * Create a new join node. This must register the node with the owner, and mark the join as successor to
@@ -95,14 +95,14 @@ public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends Proc
    * @param modelNodes The "converted" model nodes.
    */
   protected ProcessModelBase(final ProcessModelBase<?, ?> basepm, final Collection<? extends T> modelNodes) {
-    setModelNodes(modelNodes);
-    setName(basepm.getName());
-    setHandleValue(basepm.getHandle().getHandleValue());
-    setOwner(basepm.getOwner());
-    setRoles(basepm.getRoles());
-    setUuid(basepm.getUuid());
-    setImports(basepm.getImports());
-    setExports(basepm.getExports());
+    mProcessNodes = IdentifyableSet.processNodeSet(modelNodes);
+    mName = basepm.getName();
+    mHandle = basepm.getHandle().getHandleValue();
+    mOwner = basepm.getOwner();
+    mRoles = new HashSet<>(basepm.getRoles());
+    mUuid = basepm.getUuid();
+    mImports = ProcessNodeBase.toExportableResults(basepm.getImports());
+    mExports = ProcessNodeBase.toExportableDefines(basepm.getExports());
   }
 
   @NotNull
@@ -371,7 +371,6 @@ public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends Proc
 
   public boolean addNode(T node) {
     if(mProcessNodes.add(node)) {
-      node.setOwnerModel(this.asM());
       return true;
     }
     return false;
@@ -395,19 +394,7 @@ public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends Proc
   }
 
   public T setNode(final int pos, final T newValue) {
-    final T oldValue = mProcessNodes.set(pos, newValue);
-    newValue.setOwnerModel(asM());
-    oldValue.setSuccessors(Collections.<Identifiable>emptySet());
-    oldValue.setPredecessors(Collections.<Identifiable>emptySet());
-    oldValue.setOwnerModel(null);
-    newValue.resolveRefs();
-    for(Identifiable pred: newValue.getPredecessors()) {
-      getNode(pred).addSuccessor(newValue);
-    }
-    for(Identifiable suc: newValue.getSuccessors()) {
-      getNode(suc).addPredecessor(newValue);
-    }
-    return oldValue;
+    return mProcessNodes.set(pos, newValue);
   }
 
   /**
@@ -416,33 +403,6 @@ public class ProcessModelBase<T extends MutableProcessNode<T, M>, M extends Proc
    */
   public void notifyNodeChanged(T node) {
     // no implementation here
-  }
-
-  /**
-   * Normalize the process model. By default this may do nothing.
-   * @return The model (this).
-   */
-  public M normalize(SplitFactory<? extends T, M> splitFactory) {
-    ensureIds();
-    // Make all nodes directly refer to other nodes.
-    for(T childNode: mProcessNodes) {
-      childNode.resolveRefs();
-    }
-    for(T childNode: mProcessNodes) {
-      // Create a copy as we are actually going to remove all successors, but need to keep the list
-      ArrayList<Identifiable> successors = new ArrayList<>(childNode.getSuccessors());
-      if (successors.size()>1 && ! (childNode instanceof Split)) {
-        for(Identifiable suc2: successors) { // Remove the current node as predecessor.
-          MutableProcessNode<?, ?> suc = (MutableProcessNode) suc2;
-          suc.removePredecessor(childNode);
-          childNode.removeSuccessor(suc); // remove the predecessor from the current node
-        }
-        // create a new join, this should
-        Split<? extends T, M> newSplit = splitFactory.createSplit(asM(), successors);
-        childNode.addSuccessor(newSplit);
-      }
-    }
-    return this.asM();
   }
 
   @SuppressWarnings("unchecked")

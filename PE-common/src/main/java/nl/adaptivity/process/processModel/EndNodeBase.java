@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by pdvrieze on 24/11/15.
  */
-public abstract class EndNodeBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements EndNode<T, M>, SimpleXmlDeserializable {
+public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements EndNode<T, M>, SimpleXmlDeserializable {
 
   public EndNodeBase(@Nullable final M ownerModel) {
     super(ownerModel);

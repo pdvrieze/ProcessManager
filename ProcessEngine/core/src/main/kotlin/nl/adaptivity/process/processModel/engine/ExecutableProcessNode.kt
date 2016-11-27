@@ -20,6 +20,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.processModel.MutableProcessNode
+import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import java.sql.SQLException
@@ -28,7 +29,7 @@ import java.sql.SQLException
 /**
  * Created by pdvrieze on 23/11/15.
  */
-interface ExecutableProcessNode : MutableProcessNode<ExecutableProcessNode, ExecutableProcessModel> {
+interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel> {
 
   /**
    * Should this node be able to be provided?
@@ -79,7 +80,5 @@ interface ExecutableProcessNode : MutableProcessNode<ExecutableProcessNode, Exec
   override fun getResults(): List<XmlResultType>
 
   override fun getDefines(): List<XmlDefineType>
-
-  override fun setId(s: String)
 }
 

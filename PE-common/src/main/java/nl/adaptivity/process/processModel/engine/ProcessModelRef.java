@@ -20,6 +20,7 @@ import net.devrieze.util.Handle;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.MutableProcessNode;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlUtil;
@@ -32,7 +33,7 @@ import javax.xml.namespace.QName;
 import java.util.UUID;
 
 @XmlDeserializer(ProcessModelRef.Factory.class)
-public class ProcessModelRef<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> implements IProcessModelRef<T, M>, XmlSerializable, SimpleXmlDeserializable {
+public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> implements IProcessModelRef<T, M>, XmlSerializable, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory<ProcessModelRef<?,?>> {
 
@@ -66,12 +67,12 @@ public class ProcessModelRef<T extends MutableProcessNode<T, M>, M extends Proce
   }
 
   @NotNull
-  public static <T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> get(final IProcessModelRef<T, M> src) {
+  public static <T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> get(final IProcessModelRef<T, M> src) {
     if (src instanceof ProcessModelRef) { return (ProcessModelRef<T,M>) src; }
     return new ProcessModelRef<>(src);
   }
 
-  public static <T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> deserialize(final XmlReader in) throws XmlException {
+  public static <T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> ProcessModelRef<T,M> deserialize(final XmlReader in) throws XmlException {
     return XmlUtil.<ProcessModelRef<T,M>>deserializeHelper(new ProcessModelRef<T, M>(), in);
   }
 

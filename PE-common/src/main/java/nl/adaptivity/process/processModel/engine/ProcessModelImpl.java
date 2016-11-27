@@ -23,6 +23,7 @@ import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializer;
@@ -89,14 +90,74 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
 
   private volatile int mEndNodeCount = -1;
 
-  public ProcessModelImpl(final ProcessModelBase<?, ?> basepm, final Collection<? extends XmlProcessNode> modelNodes) {
-    super(basepm, modelNodes);
+  public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
+    super(basepm, toXmlNodes(basepm.getModelNodes()));
   }
 
+  private static Collection<? extends XmlProcessNode> toXmlNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
+    List<XmlProcessNode> result = new ArrayList<>(modelNodes.size());
 
+    for(ProcessNode<?, ?> node: modelNodes) {
+      result.add(node.visit(new Visitor<XmlProcessNode>() {
+        @Override
+        public XmlStartNode visitStartNode(final StartNode<?, ?> startNode) {
+          return new XmlStartNode(startNode);
+        }
+
+        @Override
+        public XmlActivity visitActivity(final Activity<?, ?> activity) {
+          return new XmlActivity(activity);
+        }
+
+        @Override
+        public XmlSplit visitSplit(final Split<?, ?> split) {
+          return new XmlSplit(split);
+        }
+
+        @Override
+        public XmlJoin visitJoin(final Join<?, ?> join) {
+          return new XmlJoin(join);
+        }
+
+        @Override
+        public XmlProcessNode visitEndNode(final EndNode<?, ?> endNode) {
+          return new XmlEndNode(endNode);
+        }
+      }));
+    }
+
+    return result;
+  }
+
+  /**
+   * Normalize the process model. By default this may do nothing.
+   * @return The model (this).
+   */
+  public ProcessModelImpl normalize(SplitFactory<? extends XmlProcessNode, ProcessModelImpl> splitFactory) {
+    ensureIds();
+    // Make all nodes directly refer to other nodes.
+    for(XmlProcessNode childNode: getModelNodes()) {
+      childNode.resolveRefs();
+    }
+    for(XmlProcessNode childNode: getModelNodes()) {
+      // Create a copy as we are actually going to remove all successors, but need to keep the list
+      ArrayList<Identifiable> successors = new ArrayList<>(childNode.getSuccessors());
+      if (successors.size()>1 && ! (childNode instanceof Split)) {
+        for(Identifiable suc2: successors) { // Remove the current node as predecessor.
+          MutableProcessNode<?, ?> suc = (MutableProcessNode) suc2;
+          suc.removePredecessor(childNode);
+          childNode.removeSuccessor(suc); // remove the predecessor from the current node
+        }
+        // create a new join, this should
+        Split<? extends XmlProcessNode, ProcessModelImpl> newSplit = splitFactory.createSplit(asM(), successors);
+        childNode.addSuccessor(newSplit);
+      }
+    }
+    return this.asM();
+  }
 
   public static ProcessModelImpl from(final ProcessModelBase<?, ? extends ProcessNode<?,?>> basepm) {
-    return new ProcessModelImpl(basepm, new ArrayList(basepm.getModelNodes()));
+    return new ProcessModelImpl(basepm);
   }
 
   @NotNull

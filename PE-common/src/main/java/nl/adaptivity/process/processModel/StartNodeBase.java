@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 /**
  * Created by pdvrieze on 26/11/15.
  */
-public abstract class StartNodeBase<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends ProcessNodeBase<T,M> implements StartNode<T,M>, SimpleXmlDeserializable {
+public abstract class StartNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends ProcessNodeBase<T,M> implements StartNode<T,M>, SimpleXmlDeserializable {
 
   public StartNodeBase(@Nullable final M ownerModel) {
     super(ownerModel);

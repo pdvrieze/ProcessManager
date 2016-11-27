@@ -51,7 +51,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     val owner = pm.owner.value(columns, values)?.let { SimplePrincipal(it) }
     val handle = pm.pmhandle.value(columns, values)!!
     return pm.model.value(columns, values)
-          ?.let { ExecutableProcessModel.deserialize(Factory(), XmlStreaming.newReader(StringReader(it)))}
+          ?.let { ExecutableProcessModel.deserialize(XmlStreaming.newReader(StringReader(it)))}
           ?.apply {
       handleValue = handle
       cacheStrings(stringCache)

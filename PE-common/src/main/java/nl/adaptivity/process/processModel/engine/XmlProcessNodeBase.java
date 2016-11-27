@@ -87,5 +87,43 @@ public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode,
     return result.toString();
   }
 
+  @Override
+  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+    super.setOwnerModel(ownerModel);
+  }
 
+  @Override
+  public void resolveRefs() {
+    super.resolveRefs();
+  }
+
+  @Override
+  public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
+    super.setPredecessors(predecessors);
+  }
+
+  @Override
+  public void removePredecessor(final Identifiable node) {
+    super.removePredecessor(node);
+  }
+
+  @Override
+  public void addPredecessor(final Identifiable node) {
+    super.addPredecessor(node);
+  }
+
+  @Override
+  public void addSuccessor(final Identifiable node) {
+    super.addSuccessor(node);
+  }
+
+  @Override
+  public void removeSuccessor(final Identifiable node) {
+    super.removeSuccessor(node);
+  }
+
+  @Override
+  public void setSuccessors(final Collection<? extends Identifiable> successors) {
+    super.setSuccessors(successors);
+  }
 }

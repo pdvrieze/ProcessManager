@@ -96,11 +96,15 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
    * @param processNode
    */
   override fun addNode(processNode: ExecutableProcessNode): Boolean {
+    throw UnsupportedOperationException("Editing not supported")
+/*
     if (super.addNode(processNode)) {
       processNode.setOwnerModel(this)
       return true
     }
     return false
+*/
+    // XXX Remove
   }
 
   override fun removeNode(processNode: ExecutableProcessNode): Boolean {
@@ -136,7 +140,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
       if (mEndNodeCount < 0) {
         var endNodeCount = 0
         for (node in modelNodes) {
-          node.setOwnerModel(this)
+//          node.setOwnerModel(this)
           if (node is ExecutableEndNode) {
             ++endNodeCount
           }
@@ -213,13 +217,8 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     @Throws(XmlException::class)
     @JvmStatic
     fun deserialize(reader: XmlReader): ExecutableProcessModel {
-      return deserialize(Factory(), reader)
-    }
-
-    @Throws(XmlException::class)
-    @JvmStatic
-    fun deserialize(factory: Factory, reader: XmlReader): ExecutableProcessModel {
-      return ProcessModelBase.deserialize(factory, ExecutableProcessModel(emptyList<ExecutableProcessNode>()), reader)
+      val processModelImpl = ProcessModelImpl.deserialize(reader)
+      return ExecutableProcessModel(processModelImpl)
     }
 
     /**
@@ -263,7 +262,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 }
 
 
-private fun toExecutableNodes(modelNodes: Collection<MutableProcessNode<*, *>>): Collection<ExecutableProcessNode> {
+fun toExecutableNodes(modelNodes: Collection<ProcessNode<*, *>>): Collection<ExecutableProcessNode> {
 
   return modelNodes.map { node ->
     node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
