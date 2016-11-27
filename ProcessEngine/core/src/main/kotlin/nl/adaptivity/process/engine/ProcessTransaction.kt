@@ -21,11 +21,11 @@ import net.devrieze.util.Transaction
 /**
  * Created by pdvrieze on 20/11/16.
  */
-interface ProcessTransaction<T: ProcessTransaction<T>> : Transaction {
-  val readableEngineData: ProcessEngineDataAccess<T>
-  val writableEngineData: MutableProcessEngineDataAccess<T>
+interface ProcessTransaction : Transaction {
+  val readableEngineData: ProcessEngineDataAccess
+  val writableEngineData: MutableProcessEngineDataAccess
 }
 
-interface ProcessTransactionFactory<T: ProcessTransaction<T>> {
+interface ProcessTransactionFactory<T: ProcessTransaction> {
   fun startTransaction(engineData: IProcessEngineData<T>): T;
 }

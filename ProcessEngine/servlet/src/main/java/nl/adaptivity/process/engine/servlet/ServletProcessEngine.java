@@ -37,9 +37,9 @@ import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
@@ -98,9 +98,9 @@ import java.util.logging.Logger;
 //             interfaceLocalname = "soap",
 //             interfacePrefix = "pe",
 //             serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
-public class ServletProcessEngine<T extends ProcessTransaction<T>> extends EndpointServlet implements GenericEndpoint {
+public class ServletProcessEngine<T extends ProcessTransaction> extends EndpointServlet implements GenericEndpoint {
 
-  public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage, T, ProcessNodeInstance<T>> {
+  public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage, T, ProcessNodeInstance> {
 
     private EndpointDescriptorImpl mLocalEndPoint;
 
@@ -114,8 +114,8 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
     }
 
     @Override
-    public boolean sendMessage(T transaction, final NewServletMessage message, final ProcessNodeInstance<T> instance) throws SQLException {
-      final Handle<? extends SecureObject<ProcessNodeInstance<T>>> nodeHandle = instance.getHandle();
+    public boolean sendMessage(T transaction, final NewServletMessage message, final ProcessNodeInstance instance) throws SQLException {
+      final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instance.getHandle();
 
       message.setHandle(transaction, instance);
 
@@ -151,11 +151,11 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
 
   private class MessagingCompletionListener implements CompletionListener<DataSource> {
 
-    private final Handle<? extends ProcessNodeInstance<T>> mHandle;
+    private final Handle<? extends ProcessNodeInstance> mHandle;
 
     private final Principal mOwner;
 
-    public MessagingCompletionListener(final Handle<? extends ProcessNodeInstance<T>> handle, final Principal owner) {
+    public MessagingCompletionListener(final Handle<? extends ProcessNodeInstance> handle, final Principal owner) {
       mHandle = handle;
       mOwner = owner;
     }
@@ -428,7 +428,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
     }
 
 
-    public <T extends ProcessTransaction<T>> void setHandle(T transaction, final ProcessNodeInstance<T> nodeInstance) throws SQLException {
+    public <T extends ProcessTransaction> void setHandle(T transaction, final ProcessNodeInstance nodeInstance) throws SQLException {
       mNodeInstance = nodeInstance;
 
       try {
@@ -528,11 +528,11 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public SerializableList<ProcessModelRef> getProcesModelRefs() {
     try (T transaction = mProcessEngine.startTransaction()){
-      final Iterable<? extends SecuredObject<ProcessModelImpl>> processModels = mProcessEngine.getProcessModels(transaction);
+      final Iterable<? extends SecuredObject<ExecutableProcessModel>> processModels = mProcessEngine.getProcessModels(transaction);
 
       final ArrayList<ProcessModelRef<?,?>> list = new ArrayList<>();
-      for (final SecuredObject<ProcessModelImpl> pm : processModels) {
-        final IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> ref = pm.withPermission().getRef();
+      for (final SecuredObject<ExecutableProcessModel> pm : processModels) {
+        final IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> ref = pm.withPermission().getRef();
         list.add(ProcessModelRef.get(ref));
       }
       return transaction.commit(new SerializableList<>(REFS_TAG, list));
@@ -550,9 +550,9 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
    * @throws FileNotFoundException When the model does not exist. This is translated to a 404 error in http.
    */
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
-  public ProcessModelImpl getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
+  public ExecutableProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
     try (T transaction = mProcessEngine.startTransaction()){
-      final Handle<ProcessModelImpl> handle1 = Handles.handle(handle);
+      final Handle<ExecutableProcessModel> handle1 = Handles.handle(handle);
       mProcessEngine.invalidateModelCache(handle1);
       return transaction.commit(mProcessEngine.getProcessModel(transaction, handle1, user));
     } catch (final NullPointerException e) {
@@ -573,8 +573,8 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
    * @throws XmlException
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
-  public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
-    ProcessModelImpl processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+  public ProcessModelRef<?,?> updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
+    ExecutableProcessModel processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ExecutableProcessModel.class);
     return updateProcessModel(handle, processModel, user);
   }
 
@@ -586,13 +586,13 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
    * @return A reference to the model. This may include a newly generated uuid if not was provided.
    */
   @WebMethod(operationName = "updateProcessModel")
-  public ProcessModelRef<ExecutableProcessNode, ProcessModelImpl> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
+  public ProcessModelRef<?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
     if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
       processModel.setHandleValue(handle);
 
       try (T transaction = mProcessEngine.startTransaction()){
-        return transaction.commit(ProcessModelRef.get(mProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), processModel, user)));
+        return transaction.commit(ProcessModelRef.get(mProcessEngine.updateProcessModel(transaction, Handles.<ExecutableProcessModel>handle(handle), processModel, user)));
       } catch (SQLException e) {
         getLogger().log(Level.WARNING, "Error updating process model", e);
         throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -609,7 +609,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
   public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
-    ProcessModelImpl processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+    ExecutableProcessModel processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ExecutableProcessModel.class);
     return postProcessModel(processModel, owner);
   }
 
@@ -683,7 +683,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
          @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws FileNotFoundException {
     try (T transaction = mProcessEngine.startTransaction()){
       final UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
-      return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ProcessModelImpl>handle(handle), name, uuid, null));
+      return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ExecutableProcessModel>handle(handle), name, uuid, null));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error starting process", e);
       throw new HttpResponseException(500, e);
@@ -795,8 +795,8 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
               final long handle,
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
-    final T                      transaction = mProcessEngine.startTransaction();
-    final ProcessNodeInstance<T> result      = mProcessEngine.getNodeInstance(transaction, Handles.handle(handle), user);
+    final T                   transaction = mProcessEngine.startTransaction();
+    final ProcessNodeInstance result      = mProcessEngine.getNodeInstance(transaction, Handles.handle(handle), user);
     if (result==null) { throw new FileNotFoundException(); }
     return transaction.commit(result.toSerializable(transaction, mMessageService.getLocalEndpoint()));
   }
@@ -862,7 +862,7 @@ public class ServletProcessEngine<T extends ProcessTransaction<T>> extends Endpo
    * specially.
    * @throws SQLException
    */
-  public void onMessageCompletion(final Future<? extends DataSource> future, final Handle<? extends ProcessNodeInstance<T>> handle, final Principal owner) throws FileNotFoundException {
+  public void onMessageCompletion(final Future<? extends DataSource> future, final Handle<? extends ProcessNodeInstance> handle, final Principal owner) throws FileNotFoundException {
     // XXX do this better
     try {
       if (future.isCancelled()) {

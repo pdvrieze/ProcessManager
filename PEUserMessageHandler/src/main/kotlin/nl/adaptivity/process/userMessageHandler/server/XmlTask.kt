@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
@@ -50,7 +51,9 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     }
   }
 
-  override var handle = Handles.getInvalid<XmlTask>()
+  private var handle = Handles.getInvalid<XmlTask>()
+
+  override fun getHandle() = handle
 
   override val handleValue: Long
     get() = handle.handleValue

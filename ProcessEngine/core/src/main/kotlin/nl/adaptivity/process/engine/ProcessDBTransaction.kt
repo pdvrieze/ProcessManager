@@ -25,9 +25,9 @@ import javax.sql.DataSource
  */
 class ProcessDBTransaction(dataSource: DataSource,
                            db: Database, private val engineData: IProcessEngineData<ProcessDBTransaction>)
-  : DBTransaction(dataSource, db), ProcessTransaction<ProcessDBTransaction> {
-  override val readableEngineData: ProcessEngineDataAccess<ProcessDBTransaction>
+  : DBTransaction(dataSource, db), ProcessTransaction {
+  override val readableEngineData: ProcessEngineDataAccess
     get() = engineData.createReadDelegate(this)
-  override val writableEngineData: MutableProcessEngineDataAccess<ProcessDBTransaction>
+  override val writableEngineData: MutableProcessEngineDataAccess
     get() = engineData.createWriteDelegate(this)
 }

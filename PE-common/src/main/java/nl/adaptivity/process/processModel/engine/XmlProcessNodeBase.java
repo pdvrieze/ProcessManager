@@ -24,13 +24,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 
-public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
+public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode {
 
-  public static class ExecutableSplitFactory implements ProcessModelBase.SplitFactory<ExecutableProcessNode, ProcessModelImpl> {
+  public static class XmlSplitFactory implements ProcessModelBase.SplitFactory<XmlProcessNode, ProcessModelImpl> {
 
     @Override
-    public Split<? extends ExecutableProcessNode, ProcessModelImpl> createSplit(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> successors) {
-      SplitImpl result = new SplitImpl(ownerModel);
+    public Split<XmlProcessNode, ProcessModelImpl> createSplit(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> successors) {
+      XmlSplit result = new XmlSplit(ownerModel);
       result.setSuccessors(successors);
       return result;
     }
@@ -40,12 +40,12 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
 //
 //  private Collection<? extends IXmlExportType> mExports;
 
-  protected ProcessNodeImpl(@Nullable final ProcessModelImpl ownerModel) {
+  protected XmlProcessNodeBase(@Nullable final ProcessModelImpl ownerModel) {
     super(ownerModel);
   }
 
 
-  public ProcessNodeImpl(final ProcessModelImpl ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
+  public XmlProcessNodeBase(final ProcessModelImpl ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
     this(ownerModel);
     if ((predecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
@@ -63,7 +63,7 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
   }
 
   @NotNull
-  protected static String toString(final ProcessNodeImpl obj) {
+  protected static String toString(final XmlProcessNode obj) {
     final StringBuilder result = new StringBuilder();
     result.append(obj.getClass().getSimpleName()).append(" (").append(obj.getId());
     if ((obj.getPredecessors() == null) || (obj.getMaxPredecessorCount()==0)) {

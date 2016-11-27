@@ -33,7 +33,7 @@ import nl.adaptivity.process.processModel.IXmlMessage;
  * @param <U> The task that the message corresponds to. This allows for messages
  *          to be linked to tasks.
  */
-public interface IMessageService<T, TR extends Transaction,  U extends IProcessNodeInstance<TR, U>> {
+public interface IMessageService<T, TR extends Transaction,  U extends IProcessNodeInstance<U>> {
 
   /**
    * Create a message.

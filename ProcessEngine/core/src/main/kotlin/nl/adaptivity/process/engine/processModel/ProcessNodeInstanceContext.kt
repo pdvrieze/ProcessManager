@@ -26,7 +26,7 @@ import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.XmlEvent
 import java.util.*
 
-class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance<*>, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
+class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {

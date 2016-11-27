@@ -33,14 +33,14 @@ import java.io.FileNotFoundException
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction<T>, N:ProcessNodeInstance<T>> N?.mustExist(handle: Handle<out ProcessNodeInstance<T>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.mustExist(handle: Handle<out ProcessNodeInstance>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction<T>, N:ProcessNodeInstance<T>> N?.shouldExist(handle: Handle<out ProcessNodeInstance<T>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.shouldExist(handle: Handle<out ProcessNodeInstance>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
@@ -61,14 +61,14 @@ fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<out SecureObject<V>
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction<T>, I:ProcessInstance<T>> I?.mustExist(handle: Handle<out ProcessInstance<T>>): I = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, I:ProcessInstance> I?.mustExist(handle: Handle<out ProcessInstance>): I = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction<T>, I:ProcessInstance<T>> I?.shouldExist(handle: Handle<out ProcessInstance<T>>): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: Handle<out ProcessInstance>): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

@@ -27,8 +27,6 @@ import nl.adaptivity.process.engine.XmlHandle;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessModelBase;
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.xml.XmlException;
@@ -88,7 +86,7 @@ public class ServletProcessEngineClient {
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, XmlHandle.class, jaxbcontext);
   }
 
-  public static Future<ProcessModelRef<ExecutableProcessNode,ProcessModelImpl>> updateProcessModel(long handle, ProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
+  public static Future<ProcessModelRef<?,?>> updateProcessModel(long handle, ProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
     final Tripple<String, Class<ProcessModelBase>, ProcessModelBase> param1 = Tripple.<String, Class<ProcessModelBase>, ProcessModelBase>tripple("processModel", ProcessModelBase.class, processModel);
 

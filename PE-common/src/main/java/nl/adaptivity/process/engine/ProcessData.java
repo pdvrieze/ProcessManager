@@ -73,6 +73,10 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
 
   private ProcessData() {}
 
+  public static ProcessData missingData(String name) {
+    return new ProcessData(name, (CompactFragment) null);
+  }
+
   // Object Initialization end
   public static ProcessData deserialize(final XmlReader in) throws XmlException {
     return XmlUtil.<ProcessData>deserializeHelper(new ProcessData(), in);

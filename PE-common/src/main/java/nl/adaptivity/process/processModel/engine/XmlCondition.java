@@ -17,9 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.StringUtil;
-import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +30,11 @@ import javax.xml.namespace.QName;
  *
  * @author Paul de Vrieze
  */
-public class ConditionImpl implements XmlSerializable, Condition {
+public class XmlCondition implements XmlSerializable, Condition {
 
   private final String mCondition;
 
-  public ConditionImpl(final String condition) {
+  public XmlCondition(final String condition) {
     mCondition = condition;
   }
 
@@ -46,9 +44,9 @@ public class ConditionImpl implements XmlSerializable, Condition {
   }
 
   @NotNull
-  public static ConditionImpl deserialize(@NotNull final XmlReader in) throws XmlException {
+  public static XmlCondition deserialize(@NotNull final XmlReader in) throws XmlException {
     final CharSequence condition = XmlReaderUtil.readSimpleElement(in);
-    return new ConditionImpl(StringUtil.toString(condition));
+    return new XmlCondition(StringUtil.toString(condition));
   }
 
   /* (non-Javadoc)
@@ -57,18 +55,6 @@ public class ConditionImpl implements XmlSerializable, Condition {
   @Override
   public String getCondition() {
     return mCondition;
-  }
-
-  /**
-   * Evaluate the condition.
-   *
-   * @param transaction The transaction to use for reading state
-   * @param instance The instance to use to evaluate against.
-   * @return <code>true</code> if the condition holds, <code>false</code> if not
-   */
-  public <T extends Transaction> boolean eval(final T transaction, final IProcessNodeInstance<T, ?> instance) {
-    // TODO process the condition as xpath, expose the node's defines as variables
-    return true;
   }
 
 }

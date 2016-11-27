@@ -19,18 +19,17 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.MemTransactionedHandleMap
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl
-
-import java.util.UUID
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import java.util.*
 
 
 /**
  * Created by pdvrieze on 07/05/16.
  */
-class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ProcessModelImpl>, StubProcessTransaction>(), IMutableProcessModelMap<StubProcessTransaction> {
+class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ExecutableProcessModel>, StubProcessTransaction>(), IMutableProcessModelMap<StubProcessTransaction> {
 
   override fun getModelWithUuid(transaction: StubProcessTransaction,
-                                uuid: UUID): Handle<out SecureObject<ProcessModelImpl>>? {
+                                uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
     for (c in this) {
       val candidate = c.withPermission()
       if (uuid == candidate.uuid) {

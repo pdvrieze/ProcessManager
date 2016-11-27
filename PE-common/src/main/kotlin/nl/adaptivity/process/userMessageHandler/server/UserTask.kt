@@ -17,12 +17,13 @@
 package nl.adaptivity.process.userMessageHandler.server
 
 import net.devrieze.util.HandleMap
+import net.devrieze.util.MutableHandleAware
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import java.security.Principal
 
 
-interface UserTask<T : UserTask<T>> : HandleMap.MutableHandleAware<T> {
+interface UserTask<T : UserTask<T>> : MutableHandleAware<T> {
 
 
   interface TaskItem {

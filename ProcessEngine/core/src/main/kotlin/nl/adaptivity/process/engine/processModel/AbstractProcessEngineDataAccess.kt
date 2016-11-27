@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.*
 /**
  * Created by pdvrieze on 21/11/16.
  */
-abstract class AbstractProcessEngineDataAccess<T:ProcessTransaction<T>>(protected val transaction: T) : MutableProcessEngineDataAccess<T> {
+abstract class AbstractProcessEngineDataAccess<T:ProcessTransaction>(protected val transaction: T) : MutableProcessEngineDataAccess {
 
   override final fun commit() = transaction.commit()
 

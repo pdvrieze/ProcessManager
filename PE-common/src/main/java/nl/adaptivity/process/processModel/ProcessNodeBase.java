@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.process.util.IdentifyableSet;
@@ -126,13 +125,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   }
 
   @Deprecated
-  protected final void swapPredecessors(@NotNull final Collection<?> predecessors) {
+  protected final void swapPredecessors(@NotNull final Collection<? extends T> predecessors) {
     mHashCode = 0;
     mPredecessors=null;
-    final List<ExecutableProcessNode> tmp = new ArrayList<>(predecessors.size());
-    for(final Object pred:predecessors) {
-      if (pred instanceof ExecutableProcessNode) {
-        tmp.add((ExecutableProcessNode) pred);
+    final List<T> tmp = new ArrayList<>(predecessors.size());
+    for(final T pred:predecessors) {
+      if (pred != null) {
+        tmp.add(pred);
       }
     }
     setPredecessors(tmp);
@@ -492,7 +491,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
 
   @Override
-  public final List<XmlDefineType> getDefines() {
+  public List<? extends XmlDefineType> getDefines() {
     if (mDefines==null) {
       mHashCode = 0;
       mDefines = new ArrayList<>();

@@ -31,10 +31,10 @@ import java.net.URI;
  */
 public class TestServletProcessEngine extends ServletProcessEngine {
 
-  private final MemProcessModelMap                     mProcessModels;
-  private final MemTransactionedHandleMap<SecureObject<ProcessInstance<StubProcessTransaction>>, StubProcessTransaction> mProcessInstances;
-  private final MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<StubProcessTransaction>>, StubProcessTransaction> mProcessNodeInstances;
-  private ProcessTransactionFactory<StubProcessTransaction> mTransactionFactory;
+  private final MemProcessModelMap                                                                   mProcessModels;
+  private final MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>     mProcessInstances;
+  private final MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction> mProcessNodeInstances;
+  private ProcessTransactionFactory<StubProcessTransaction>                                          mTransactionFactory;
 
   public TestServletProcessEngine(final EndpointDescriptorImpl localURL) {
     mTransactionFactory = new ProcessTransactionFactory<StubProcessTransaction>() {

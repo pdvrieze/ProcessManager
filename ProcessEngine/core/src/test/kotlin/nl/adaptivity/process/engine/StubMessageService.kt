@@ -31,10 +31,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, T, ProcessNodeInstance<T>> {
+class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, T, ProcessNodeInstance> {
 
   var mMessages: MutableList<IXmlMessage> = ArrayList()
-  private val mMessageNodes = ArrayList<Handle<out SecureObject<ProcessNodeInstance<T>>>>()
+  private val mMessageNodes = ArrayList<Handle<out SecureObject<ProcessNodeInstance>>>()
 
   override fun createMessage(message: IXmlMessage): IXmlMessage {
     return message
@@ -45,7 +45,7 @@ class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: En
     mMessages.clear()
   }
 
-  fun getMessageNode(i: Int): Handle<out SecureObject<ProcessNodeInstance<T>>> {
+  fun getMessageNode(i: Int): Handle<out SecureObject<ProcessNodeInstance>> {
     return mMessageNodes[i]
   }
 
@@ -55,7 +55,7 @@ class StubMessageService<T:ProcessTransaction<T>>(private val mLocalEndpoint: En
 
   override fun sendMessage(transaction: T,
                            protoMessage: IXmlMessage,
-                           instance: ProcessNodeInstance<T>): Boolean {
+                           instance: ProcessNodeInstance): Boolean {
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       instance.instantiateXmlPlaceholders(transaction,

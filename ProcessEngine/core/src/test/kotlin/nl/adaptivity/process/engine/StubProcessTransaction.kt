@@ -21,9 +21,9 @@ import nl.adaptivity.process.StubTransaction
 /**
  * Created by pdvrieze on 20/11/16.
  */
-class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction>) : StubTransaction(), ProcessTransaction<StubProcessTransaction> {
-  override val readableEngineData: ProcessEngineDataAccess<StubProcessTransaction>
+class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction>) : StubTransaction(), ProcessTransaction {
+  override val readableEngineData: ProcessEngineDataAccess
     get() = engineData.createReadDelegate(this)
-  override val writableEngineData: MutableProcessEngineDataAccess<StubProcessTransaction>
+  override val writableEngineData: MutableProcessEngineDataAccess
     get() = engineData.createWriteDelegate(this)
 }

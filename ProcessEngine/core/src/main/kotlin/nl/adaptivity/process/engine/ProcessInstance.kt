@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
-import net.devrieze.util.HandleMap.MutableHandleAware
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -25,9 +24,9 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.engine.ExecutableJoin
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.processModel.engine.JoinImpl
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xml.*
@@ -40,31 +39,31 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessInstance<T>>, SecureObject<ProcessInstance<T>> {
+class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<ProcessInstance> {
 
-  interface Builder<T : ProcessTransaction<T>> {
-    var handle: ComparableHandle<out ProcessInstance<T>>
+  interface Builder {
+    var handle: ComparableHandle<out ProcessInstance>
     var owner: Principal
-    var processModel: ProcessModelImpl
+    var processModel: ExecutableProcessModel
     var instancename: String?
     var uuid: UUID
     var state: State?
-    val children: MutableList<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+    val children: MutableList<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     val   inputs: MutableList<ProcessData>
     val  outputs: MutableList<ProcessData>
-    fun build(data: ProcessEngineDataAccess<T>): ProcessInstance<T>
+    fun build(data: ProcessEngineDataAccess): ProcessInstance
   }
 
-  data class BaseBuilder<T: ProcessTransaction<T>>(override var handle: ComparableHandle<out ProcessInstance<T>>, override var owner: Principal, override var processModel: ProcessModelImpl, override var instancename: String?, override var uuid: UUID, override var state: State?) : Builder<T> {
-    override val children = mutableListOf<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>()
+  data class BaseBuilder(override var handle: ComparableHandle<out ProcessInstance>, override var owner: Principal, override var processModel: ExecutableProcessModel, override var instancename: String?, override var uuid: UUID, override var state: State?) : Builder {
+    override val children = mutableListOf<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
     override val   inputs = mutableListOf<ProcessData>()
     override val  outputs = mutableListOf<ProcessData>()
-    override fun build(data: ProcessEngineDataAccess<T>): ProcessInstance<T> {
-      return ProcessInstance<T>(data, this)
+    override fun build(data: ProcessEngineDataAccess): ProcessInstance {
+      return ProcessInstance(data, this)
     }
   }
 
-  class ExtBuilder<T: ProcessTransaction<T>>(private val base: ProcessInstance<T>) : Builder<T> {
+  class ExtBuilder(private val base: ProcessInstance) : Builder {
     override var handle by overlay { base.handle }
 
     override var owner by overlay { base.owner }
@@ -76,7 +75,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     override val inputs by lazy { base.inputs.toMutableList() }
     override val outputs by lazy { base.outputs.toMutableList() }
 
-    override fun build(data: ProcessEngineDataAccess<T>): ProcessInstance<T> {
+    override fun build(data: ProcessEngineDataAccess): ProcessInstance {
       return ProcessInstance(data, this)
     }
   }
@@ -90,7 +89,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     CANCELLED
   }
 
-  class ProcessInstanceRef(processInstance: ProcessInstance<*>) : Handle<ProcessInstance<*>>, XmlSerializable {
+  class ProcessInstanceRef(processInstance: ProcessInstance) : Handle<ProcessInstance>, XmlSerializable {
 
     override val handleValue = processInstance.handle.handleValue
 
@@ -115,26 +114,27 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   }
 
-  val processModel: ProcessModelImpl
+  val processModel: ExecutableProcessModel
 
-  val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+  val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     get() {
       return (active.asSequence() + finished.asSequence() + completedEndnodes.asSequence())
     }
 
-  val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+  val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
 
-  val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+  val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
 
   private val completedEndNodeCount: Int
     get() = completedEndnodes.size
 
-  val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+  val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
 
-  private val pendingJoins: HashMap<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>
+  private val pendingJoins: HashMap<ExecutableJoin, ComparableHandle<out SecureObject<JoinInstance>>>
 
-  override var handle: ComparableHandle<out ProcessInstance<T>>
-    private set
+  private var handle: ComparableHandle<out ProcessInstance>
+
+  override fun getHandle() = handle
 
   /**
    * Get the payload that was passed to start the instance.
@@ -155,7 +155,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   val ref: ProcessInstanceRef
     get() = ProcessInstanceRef(this)
 
-  private constructor(data: ProcessEngineDataAccess<T>, builder: Builder<T>) {
+  private constructor(data: ProcessEngineDataAccess, builder: Builder) {
     name = builder.instancename
     owner = builder.owner
     uuid = builder.uuid
@@ -163,20 +163,20 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     state = builder.state
     handle = Handles.handle(builder.handle)
 
-    val joins = hashMapOf<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>()
+    val joins = hashMapOf<ExecutableJoin, ComparableHandle<out SecureObject<JoinInstance>>>()
 
-    val threads = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>()
+    val threads = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
 
-    val endResults = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>()
+    val endResults = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
 
-    val finishedNodes = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>()
+    val finishedNodes = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
 
     val nodes = builder.children
           .map { data.nodeInstances[it].mustExist(it).withPermission() }
 
     nodes.forEach { instance ->
       if (instance is JoinInstance) {
-        joins.put(instance.node, instance.handle)
+        joins.put(instance.node, instance.getHandle())
       }
 
       if (instance.state.isFinal && instance.node is EndNode<*, *>) {
@@ -203,7 +203,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     outputs = builder.outputs.toList()
   }
 
-  internal constructor(handle: Handle<ProcessInstance<T>>, owner: Principal, processModel: ProcessModelImpl, name: String?, uUid: UUID, state: State?) {
+  internal constructor(handle: Handle<ProcessInstance>, owner: Principal, processModel: ExecutableProcessModel, name: String?, uUid: UUID, state: State?) {
     this.handle = Handles.handle(handle)
     this.processModel = processModel
     this.owner = owner
@@ -218,7 +218,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     outputs = emptyList()
   }
 
-  constructor(owner: Principal, processModel: ProcessModelImpl, name: String, uUid: UUID, state: State?) {
+  constructor(owner: Principal, processModel: ExecutableProcessModel, name: String, uUid: UUID, state: State?) {
     this.processModel = processModel
     this.name = name
     handle = Handles.getInvalid()
@@ -236,14 +236,14 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   override fun withPermission() = this
 
   @Synchronized @Throws(SQLException::class)
-  fun initialize(transaction: T):ProcessInstance<T> {
+  fun initialize(transaction: ProcessTransaction):ProcessInstance {
     if (state != State.NEW || active.isNotEmpty()) {
       throw IllegalStateException("The instance already appears to be initialised")
     }
 
     return update(transaction) {
       processModel.startNodes.forEach { node ->
-        val nodeInstance = ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance<T>>(), this@ProcessInstance)
+        val nodeInstance = ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance>(), this@ProcessInstance)
         val handle = transaction.writableEngineData.nodeInstances.put(nodeInstance)
         children.add(Handles.handle(handle)) // function needed to make the handle comparable
       }
@@ -251,7 +251,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     }
   }
 
-  fun update(transaction: T, body: Builder<T>.() -> Unit):ProcessInstance<T> {
+  fun update(transaction: ProcessTransaction, body: Builder.() -> Unit):ProcessInstance {
     val origHandle = handle
     return builder().apply { body() }.build(transaction.readableEngineData).apply {
       if (origHandle.valid)
@@ -260,10 +260,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     }
   }
 
-  fun builder() = ExtBuilder<T>(this)
+  fun builder() = ExtBuilder(this)
 
   @Synchronized @Throws(SQLException::class)
-  fun finish(transaction: T):ProcessInstance<T> {
+  fun finish(transaction: ProcessTransaction):ProcessInstance {
     // This needs to update first as at this point the node state may not be valid.
     // TODO reduce the need to do a double update.
     update(transaction) {}.let { newInstance ->
@@ -284,7 +284,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getNodeInstance(transaction: T, identifiable: Identifiable): ProcessNodeInstance<T>? {
+  fun getNodeInstance(transaction: ProcessTransaction, identifiable: Identifiable): ProcessNodeInstance? {
     return children.map { handle ->
       val nodeInstances = transaction.readableEngineData.nodeInstances
       val instance = nodeInstances[handle].mustExist(handle).withPermission()
@@ -297,16 +297,16 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): JoinInstance<T> {
+  private fun getJoinInstance(transaction: ProcessTransaction, join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
     synchronized(pendingJoins) {
       val nodeInstances = transaction.writableEngineData.nodeInstances
 
-      val joinInstance = pendingJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance<T> }
+      val joinInstance = pendingJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance }
       if (joinInstance==null) {
         val joinHandle= nodeInstances.put(JoinInstance(join, listOf(predecessor), this.handle, owner))
 
         pendingJoins[join] = Handles.handle(joinHandle.handleValue)
-        return nodeInstances[joinHandle] as JoinInstance<T>
+        return nodeInstances[joinHandle] as JoinInstance
       } else {
         return joinInstance.updateJoin(transaction) {
           predecessors.add(predecessor)
@@ -315,7 +315,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     }
   }
 
-  @Synchronized fun removeJoin(join: JoinInstance<T>) {
+  @Synchronized fun removeJoin(join: JoinInstance) {
     pendingJoins.remove(join.node)
   }
 
@@ -328,7 +328,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun start(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>, payload: Node?):ProcessInstance<T> {
+  fun start(transaction: ProcessTransaction, messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>, payload: Node?):ProcessInstance {
     return transaction.writableEngineData.let { engineData ->
       (if (state == null) initialize(transaction) else this)
             .update(transaction) {
@@ -350,34 +350,34 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   @Synchronized @Throws(SQLException::class)
   @Deprecated("Not needed", ReplaceWith("node.provideTask(transaction, messageService)"))
-  fun provideTask(transaction: T,
-                  messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                  node: ProcessNodeInstance<T>):ProcessNodeInstance<T> {
+  fun provideTask(transaction: ProcessTransaction,
+                  messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+                  node: ProcessNodeInstance):ProcessNodeInstance {
     assert(node.handle.valid) { "The handle is not valid: ${node.handle}" }
     return node.provideTask(transaction, messageService)
   }
 
   @Synchronized @Throws(SQLException::class)
   @Deprecated("Not needed", ReplaceWith("node.takeTask(transaction, messageService)"))
-  fun takeTask(transaction: T,
-               messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-               node: ProcessNodeInstance<T>): ProcessNodeInstance<T> {
+  fun takeTask(transaction: ProcessTransaction,
+               messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+               node: ProcessNodeInstance): ProcessNodeInstance {
     return node.takeTask(transaction, messageService)
   }
 
   @Synchronized @Throws(SQLException::class)
   @Deprecated("Not needed", ReplaceWith("node.startTask<*>(transaction, messageService)"))
-  fun startTask(transaction: T,
-                messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                node: ProcessNodeInstance<T>): ProcessNodeInstance<T> {
+  fun startTask(transaction: ProcessTransaction,
+                messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+                node: ProcessNodeInstance): ProcessNodeInstance {
     return node.startTask(transaction, messageService)
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun finishTask(transaction: T,
-                 messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                 node: ProcessNodeInstance<T>,
-                 resultPayload: Node?): ProcessNodeInstance<T> {
+  fun finishTask(transaction: ProcessTransaction,
+                 messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>,
+                 node: ProcessNodeInstance,
+                 resultPayload: Node?): ProcessNodeInstance {
     if (node.state === NodeInstanceState.Complete) {
       throw IllegalStateException("Task was already complete")
     }
@@ -390,9 +390,9 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  private fun handleFinishedState(transaction: T,
-                                  messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                                  node: ProcessNodeInstance<T>):ProcessInstance<T> {
+  private fun handleFinishedState(transaction: ProcessTransaction,
+                                  messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>,
+                                  node: ProcessNodeInstance):ProcessInstance {
     // XXX todo, handle failed or cancelled tasks
     try {
       if (node.node is EndNode<*, *>) {
@@ -415,12 +415,12 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  private fun startSuccessors(transaction: T,
-                              messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                              predecessor: ProcessNodeInstance<T>):ProcessInstance<T> {
+  private fun startSuccessors(transaction: ProcessTransaction,
+                              messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>,
+                              predecessor: ProcessNodeInstance):ProcessInstance {
 
-    val startedTasks = ArrayList<ProcessNodeInstance<T>>(predecessor.node.successors.size)
-    val joinsToEvaluate = ArrayList<JoinInstance<T>>()
+    val startedTasks = ArrayList<ProcessNodeInstance>(predecessor.node.successors.size)
+    val joinsToEvaluate = ArrayList<JoinInstance>()
 
     val nodeInstances = transaction.writableEngineData.nodeInstances
     val self = update(transaction) {
@@ -453,10 +453,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  private fun createProcessNodeInstance(transaction: T,
-                                        predecessor: ProcessNodeInstance<T>,
-                                        node: ExecutableProcessNode): ProcessNodeInstance<T> {
-    if (node is JoinImpl) {
+  private fun createProcessNodeInstance(transaction: ProcessTransaction,
+                                        predecessor: ProcessNodeInstance,
+                                        node: ExecutableProcessNode): ProcessNodeInstance {
+    if (node is ExecutableJoin) {
       return getJoinInstance(transaction, node, predecessor.handle)
     } else {
       return ProcessNodeInstance(node, predecessor.handle, this)
@@ -465,23 +465,23 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   @Synchronized @Throws(SQLException::class)
   @Deprecated("Not needed", ReplaceWith("node.failTask<*>(transaction, cause, messageService)"))
-  fun failTask(transaction: T,
-               messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-               node: ProcessNodeInstance<T>,
+  fun failTask(transaction: ProcessTransaction,
+               messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+               node: ProcessNodeInstance,
                cause: Throwable) {
     node.failTask(transaction, cause)
   }
 
   @Synchronized @Throws(SQLException::class)
   @Deprecated("Not needed", ReplaceWith("node.cancelTask<*>(transaction, messageService)"))
-  fun cancelTask(transaction: T,
-                 messageService: IMessageService<*, T, ProcessNodeInstance<T>>,
-                 node: ProcessNodeInstance<T>) {
+  fun cancelTask(transaction: ProcessTransaction,
+                 messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+                 node: ProcessNodeInstance) {
     node.cancelTask(transaction)
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getActivePredecessorsFor(transaction: T, join: JoinImpl): Collection<ProcessNodeInstance<T>> {
+  fun getActivePredecessorsFor(transaction: ProcessTransaction, join: ExecutableJoin): Collection<ProcessNodeInstance> {
     return active.asSequence()
           .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
           .filter { it.node.isPredecessorOf(join) }
@@ -489,12 +489,12 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getDirectSuccessors(transaction: T, predecessor: ProcessNodeInstance<T>): Collection<Handle<out SecureObject<ProcessNodeInstance<T>>>> {
+  fun getDirectSuccessors(transaction: ProcessTransaction, predecessor: ProcessNodeInstance): Collection<Handle<out SecureObject<ProcessNodeInstance>>> {
 
-    val result = ArrayList<Handle<out SecureObject<ProcessNodeInstance<T>>>>(predecessor.node.successors.size)
+    val result = ArrayList<Handle<out SecureObject<ProcessNodeInstance>>>(predecessor.node.successors.size)
 
-    fun addDirectSuccessor(candidate: ProcessNodeInstance<T>,
-                            predecessor: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
+    fun addDirectSuccessor(candidate: ProcessNodeInstance,
+                           predecessor: Handle<out SecureObject<ProcessNodeInstance>>) {
 
       // First look for this node, before diving into it's children
       candidate.directPredecessors.asSequence()
@@ -520,7 +520,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized @Throws(XmlException::class)
-  fun serialize(transaction: T, writer: XmlWriter) {
+  fun serialize(transaction: ProcessTransaction, writer: XmlWriter) {
     //
     writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
       writeAttribute("handle", if (!handle.valid) null else java.lang.Long.toString(handle.handleValue))
@@ -552,7 +552,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun XmlWriter.writeActiveNodeRef(transaction: T, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
+  private fun XmlWriter.writeActiveNodeRef(transaction: ProcessTransaction, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance>>) {
 
     val nodeInstance = transaction.readableEngineData.nodeInstances[handleNodeInstance].mustExist(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
@@ -561,7 +561,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun XmlWriter.writeResultNodeRef(transaction: T, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
+  private fun XmlWriter.writeResultNodeRef(transaction: ProcessTransaction, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance>>) {
     val nodeInstance = transaction.readableEngineData.nodeInstances[handleNodeInstance].mustExist(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)
@@ -579,9 +579,9 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
    * @param messageService The message service to use for messenging.
    */
   @Throws(FileNotFoundException::class)
-  fun tickle(transaction: T, messageService: IMessageService<*, T, ProcessNodeInstance<T>>) {
+  fun tickle(transaction: ProcessTransaction, messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>) {
 
-    fun tickePredecessors(successor: ProcessNodeInstance<T>) {
+    fun tickePredecessors(successor: ProcessNodeInstance) {
       successor.directPredecessors.asSequence()
             .map { transaction.writableEngineData.nodeInstances[it]?.withPermission() }
             .filterNotNull()
@@ -626,7 +626,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     private val serialVersionUID = 1145452195455018306L
 
     @Throws(XmlException::class)
-    private fun XmlWriter.writeNodeRefCommon(nodeInstance: ProcessNodeInstance<*>) {
+    private fun XmlWriter.writeNodeRefCommon(nodeInstance: ProcessNodeInstance) {
       attribute(null, "nodeid", null, nodeInstance.node.id)
       attribute(null, "handle", null, java.lang.Long.toString(nodeInstance.getHandleValue()))
       attribute(null, "state", null, nodeInstance.state.toString())

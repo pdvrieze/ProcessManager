@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.SplitImpl;
+import nl.adaptivity.process.processModel.engine.XmlSplit;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.*;
@@ -85,7 +85,7 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
   }
 
   @NotNull
-  public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XmlReader in) throws XmlException {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.processModel.engine.SplitImpl>deserializeHelper(new SplitImpl(ownerModel), in);
+  public static XmlSplit deserialize(final ProcessModelImpl ownerModel, final XmlReader in) throws XmlException {
+    return nl.adaptivity.xml.XmlUtil.<XmlSplit>deserializeHelper(new XmlSplit(ownerModel), in);
   }
 }

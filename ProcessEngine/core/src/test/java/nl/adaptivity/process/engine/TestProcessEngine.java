@@ -27,10 +27,10 @@ import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
+import nl.adaptivity.process.processModel.engine.ExecutableStartNode;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.DetailedDiff;
@@ -66,12 +66,12 @@ import static org.testng.Assert.*;
  */
 public class TestProcessEngine {
 
-  private static final Function2<SecureObject<ProcessNodeInstance<StubProcessTransaction>>, Long, SecureObject<ProcessNodeInstance<StubProcessTransaction>>> PNI_SET_HANDLE = new Function2<SecureObject<ProcessNodeInstance<StubProcessTransaction>>, Long, SecureObject<ProcessNodeInstance<StubProcessTransaction>>>() {
+  private static final Function2<SecureObject<ProcessNodeInstance>, Long, SecureObject<ProcessNodeInstance>> PNI_SET_HANDLE = new Function2<SecureObject<ProcessNodeInstance>, Long, SecureObject<ProcessNodeInstance>>() {
     @Override
-    public SecureObject<ProcessNodeInstance<StubProcessTransaction>> invoke(final SecureObject<ProcessNodeInstance<StubProcessTransaction>> pni, final Long handle) {
+    public SecureObject<ProcessNodeInstance> invoke(final SecureObject<ProcessNodeInstance> pni, final Long handle) {
       if (pni.withPermission().getHandleValue() == handle) { return pni; }
-      final Builder<StubProcessTransaction, ? extends ExecutableProcessNode> builder = pni.withPermission().builder();
-      builder.setHandle(Handles.<SecureObject<? extends ProcessNodeInstance<StubProcessTransaction>>>handle(handle));
+      final Builder<? extends ExecutableProcessNode> builder = pni.withPermission().builder();
+      builder.setHandle(Handles.<SecureObject<? extends ProcessNodeInstance>>handle(handle));
       return builder.build();
     }
   };
@@ -115,8 +115,8 @@ public class TestProcessEngine {
     return XmlStreaming.newReader(getXml(name), "UTF-8");
   }
 
-  private ProcessModelImpl getProcessModel(final String name) throws XmlException {
-    return ProcessModelImpl.deserialize(getStream(name));
+  private ExecutableProcessModel getProcessModel(final String name) throws XmlException {
+    return ExecutableProcessModel.deserialize(getStream(name));
   }
 
   private Document getDocument(final String name) {
@@ -132,7 +132,7 @@ public class TestProcessEngine {
     return new CachingHandleMap<>(base, count);
   }
 
-  private static <V> MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<StubProcessTransaction>>,StubProcessTransaction> cacheNodes(final MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<StubProcessTransaction>>,StubProcessTransaction> base, final int count) {
+  private static <V> MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>,StubProcessTransaction> cacheNodes(final MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>,StubProcessTransaction> base, final int count) {
     return new CachingHandleMap<>(base, count, PNI_SET_HANDLE);
   }
 
@@ -153,8 +153,8 @@ public class TestProcessEngine {
             mStubMessageService,
             mStubTransactionFactory,
             cacheModels(new MemProcessModelMap(), 1),
-            cacheInstances(new MemTransactionedHandleMap<SecureObject<ProcessInstance<StubProcessTransaction>>, StubProcessTransaction>(), 1),
-            cacheNodes(new MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<StubProcessTransaction>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true);
+            cacheInstances(new MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
+            cacheNodes(new MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true);
   }
 
   private char[] serializeToXmlCharArray(final Object object) throws XmlException {
@@ -190,7 +190,7 @@ public class TestProcessEngine {
 
   @Test
   public void testExecuteSingleActivity() throws Exception {
-    final ProcessModelImpl       model       = getProcessModel("testModel1.xml");
+    final ExecutableProcessModel       model       = getProcessModel("testModel1.xml");
     final StubProcessTransaction transaction = mProcessEngine.startTransaction();
     final IProcessModelRef       modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
@@ -217,14 +217,14 @@ public class TestProcessEngine {
 
     }
 
-    ProcessInstance<StubProcessTransaction> processInstance = mProcessEngine.getProcessInstance(transaction, instanceHandle, mPrincipal);
+    ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction, instanceHandle, mPrincipal);
     assertEquals(processInstance.getState(), State.STARTED);
 
     assertEquals(processInstance.getActive().size(), 1);
     assertEquals(processInstance.getFinished().size(), 1);
-    final Handle<? extends SecureObject<ProcessNodeInstance<StubProcessTransaction>>> hfinished = processInstance.getFinished().iterator().next();
-    final ProcessNodeInstance<StubProcessTransaction>                                 finished  = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
-    assertTrue(finished.getNode() instanceof StartNodeImpl);;
+    final Handle<? extends SecureObject<ProcessNodeInstance>> hfinished = processInstance.getFinished().iterator().next();
+    final ProcessNodeInstance                                 finished  = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal);
+    assertTrue(finished.getNode() instanceof ExecutableStartNode);
     assertEquals(finished.getNode().getId(), "start");
 
     assertEquals(processInstance.getCompletedEndnodes().size(), 0);
@@ -243,7 +243,7 @@ public class TestProcessEngine {
 
   @Test
   public void testGetDataFromTask() throws Exception {
-    final ProcessModelImpl       model       = getProcessModel("testModel2.xml");
+    final ExecutableProcessModel       model = getProcessModel("testModel2.xml");
     final StubProcessTransaction transaction = mProcessEngine.startTransaction();
     final IProcessModelRef       modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
@@ -255,7 +255,7 @@ public class TestProcessEngine {
     assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(serializeToXmlCharArray(mStubMessageService
                                                                                                                               .getMMessages()
                                                                                                                               .get(0))));
-    ProcessNodeInstance<StubProcessTransaction> ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);// This should be 0 as it's the first activity
+    ProcessNodeInstance ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);// This should be 0 as it's the first activity
 
 
     mStubMessageService.clear(); // (Process the message)

@@ -16,21 +16,7 @@
 
 package net.devrieze.util
 
-import net.devrieze.util.HandleMap.MutableHandleAware
-
-
 interface HandleMap<V:Any> : Iterable<V> {
-
-  interface ReadableHandleAware<out T:Any> {
-
-    val handle: Handle<out @JvmWildcard T>
-  }
-
-  interface MutableHandleAware<out T:Any> : ReadableHandleAware<T> {
-
-    fun setHandleValue(handleValue: Long)
-
-  }
 
   /**
    * Determine whether the given object is contained in the map. If the object

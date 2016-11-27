@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -63,7 +64,7 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
     if (Engine.NAMESPACE.equals(in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
         case XmlDefineType.ELEMENTLOCALNAME:
-          getDefines().add(XmlDefineType.deserialize(in));
+          ((List)getDefines()).add(XmlDefineType.deserialize(in));
           return true;
         case XmlResultType.ELEMENTLOCALNAME:
           getResults().add(XmlResultType.deserialize(in));

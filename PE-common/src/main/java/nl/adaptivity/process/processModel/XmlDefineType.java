@@ -34,7 +34,6 @@ import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
@@ -150,47 +149,6 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   public static XmlDefineType get(final IXmlDefineType export) {
     if (export instanceof XmlDefineType) { return (XmlDefineType) export; }
     return new XmlDefineType(export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.getContent(), export.getOriginalNSContext());
-  }
-
-  @NotNull
-  @Override
-  public <T extends Transaction, V extends IProcessNodeInstance<T, V>> ProcessData apply(final T transaction, @NotNull final IProcessNodeInstance<T, V> node) throws SQLException {
-    final ProcessData processData;
-    if (refNode!=null) {
-      final IProcessNodeInstance<T, V> predecessor = node.resolvePredecessor(transaction, refNode);
-      final ProcessData origpair = predecessor.getResult(transaction, refName);
-      if (origpair==null) {
-        processData = null;
-      } else {
-        try {
-          if (getXPath()==null) {
-            processData = new ProcessData(getName(), origpair.getContent());
-          } else {
-            processData = new ProcessData(getName(), DomUtil.nodeListToFragment((NodeList) getXPath().evaluate(origpair.getContentFragment(), XPathConstants.NODESET)));
-          }
-        } catch (@NotNull XPathExpressionException|XmlException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    } else {
-      processData = new ProcessData(getName(), new CompactFragment(""));
-    }
-    final char[] content = getContent();
-    if (getContent()!=null && getContent().length>0) {
-      try {
-        final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.Companion.from(getOriginalNSContext()), processData);
-
-        XmlReader reader = transformer.createFilter(getBodyStreamReader());
-        if (reader.hasNext()) reader.next(); // Initialise the reader
-        final CompactFragment transformed = XmlReaderUtil.siblingsToFragment(reader);
-        return new ProcessData(getName(), transformed);
-
-      } catch (@NotNull final XmlException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      return processData;
-    }
   }
 
 }

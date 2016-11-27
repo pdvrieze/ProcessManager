@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -50,7 +51,7 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
       switch (in.getLocalName().toString()) {
         case "export":
         case XmlDefineType.ELEMENTLOCALNAME:
-          getDefines().add(XmlDefineType.deserialize(in)); return true;
+          ((List) getDefines()).add(XmlDefineType.deserialize(in)); return true;
       }
     }
     return false;

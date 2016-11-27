@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2016.
+ *
+ * This file is part of ProcessManager.
+ *
+ * ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+ * GNU Lesser General Public License as published by the Free Software Foundation.
+ *
+ * ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * see <http://www.gnu.org/licenses/>.
+ */
+
+package nl.adaptivity.process.processModel.engine
+
+import net.devrieze.util.StringUtil
+import net.devrieze.util.Transaction
+import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.engine.ProcessTransaction
+import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.processModel.Condition
+import nl.adaptivity.xml.*
+
+import javax.xml.namespace.QName
+
+
+/**
+ * Class encapsulating a condition.
+
+ * @author Paul de Vrieze
+ */
+class ExecutableCondition(private val condition: String) : XmlSerializable, Condition {
+
+  @Throws(XmlException::class)
+  override fun serialize(out: XmlWriter) {
+    out.writeSimpleElement(QName(Engine.NAMESPACE, Condition.ELEMENTLOCALNAME, Engine.NSPREFIX), condition)
+  }
+
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.engine.Condition#getCondition()
+   */
+  override fun getCondition(): String {
+    return condition
+  }
+
+  /**
+   * Evaluate the condition.
+
+   * @param transaction The transaction to use for reading state
+   * *
+   * @param instance The instance to use to evaluate against.
+   * *
+   * @return `true` if the condition holds, `false` if not
+   */
+  fun eval(transaction: ProcessTransaction, instance: IExecutableProcessNodeInstance<*>): Boolean {
+    // TODO process the condition as xpath, expose the node's defines as variables
+    return true
+  }
+
+  companion object {
+
+    @Throws(XmlException::class)
+    fun deserialize(reader: XmlReader): ExecutableCondition {
+      val condition = reader.readSimpleElement()
+      return ExecutableCondition(condition.toString())
+    }
+  }
+
+}

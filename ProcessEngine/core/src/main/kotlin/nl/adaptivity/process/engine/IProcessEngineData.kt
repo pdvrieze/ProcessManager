@@ -20,48 +20,48 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import java.security.Principal
 
-abstract class IProcessEngineData<T:ProcessTransaction<T>> : TransactionFactory<T> {
+abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
-  protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<T>>, T>
-  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<T>>, T>
+  protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
+  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>
 
 
-  fun invalidateCachePM(handle: Handle<out SecureObject<ProcessModelImpl>>) {
+  fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
     (processModels as? CachingProcessModelMap<T>)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
   }
 
-  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance<T>>>) {
+  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>) {
     (processInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
   }
 
-  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance<T>>>) {
+  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance>>) {
     (processNodeInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
   }
 
 
-  inline fun <R> inReadonlyTransaction(transaction: T, body: ProcessEngineDataAccess<T>.() -> R): R {
+  inline fun <R> inReadonlyTransaction(transaction: T, body: ProcessEngineDataAccess.() -> R): R {
     return body(createReadDelegate(transaction))
   }
 
-  open fun createReadDelegate(transaction: T): ProcessEngineDataAccess<T> = createWriteDelegate(transaction)
+  open fun createReadDelegate(transaction: T): ProcessEngineDataAccess = createWriteDelegate(transaction)
 
-  inline fun <R> inWriteTransaction(transaction: T, body: MutableProcessEngineDataAccess<T>.() -> R): R {
+  inline fun <R> inWriteTransaction(transaction: T, body: MutableProcessEngineDataAccess.() -> R): R {
     return body(createWriteDelegate(transaction))
   }
 
-  abstract fun  createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<T>
+  abstract fun  createWriteDelegate(transaction: T): MutableProcessEngineDataAccess
 
 
-  inline fun <R> inReadonlyTransaction(principal: Principal, permissionResult: SecurityProvider.PermissionResult, body: ProcessEngineDataAccess<T>.() -> R): R {
+  inline fun <R> inReadonlyTransaction(principal: Principal, permissionResult: SecurityProvider.PermissionResult, body: ProcessEngineDataAccess.() -> R): R {
     startTransaction().use { tr ->
       return body(createReadDelegate(tr))
     }
@@ -69,7 +69,7 @@ abstract class IProcessEngineData<T:ProcessTransaction<T>> : TransactionFactory<
 
   inline fun <R> inWriteTransaction(principal: Principal,
                                       permissionResult: SecurityProvider.PermissionResult,
-                                      body: MutableProcessEngineDataAccess<T>.() -> R): R {
+                                      body: MutableProcessEngineDataAccess.() -> R): R {
     startTransaction().use { tr ->
       return body(createWriteDelegate(tr)).apply { tr.commit() }
     }
@@ -77,31 +77,40 @@ abstract class IProcessEngineData<T:ProcessTransaction<T>> : TransactionFactory<
 
 }
 
-interface ProcessEngineDataAccess<T:ProcessTransaction<T>> {
-  val instances: HandleMap<SecureObject<ProcessInstance<T>>>
+interface ProcessEngineDataAccess {
+  val instances: HandleMap<SecureObject<ProcessInstance>>
 
-  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<T>>>
+  fun  instance(handle: Handle<out SecureObject<ProcessInstance>>)
+        = instances[handle].mustExist(handle)
+
+  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance>>
+
+  fun nodeInstance(handle: Handle<out SecureObject<ProcessNodeInstance>>)
+        = nodeInstances[handle].mustExist(handle)
 
   val processModels: IProcessModelMapAccess
+
+  fun processModel(handle: Handle<out SecureObject<ExecutableProcessModel>>)
+        = processModels[handle].mustExist(handle)
 }
 
-interface MutableProcessEngineDataAccess<T:ProcessTransaction<T>> : ProcessEngineDataAccess<T> {
-  override val instances: MutableHandleMap<SecureObject<ProcessInstance<T>>>
+interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
+  override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
-  override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<T>>>
+  override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance>>
 
   override val processModels: IMutableProcessModelMapAccess
 
-  fun invalidateCachePM(handle: Handle<out SecureObject<ProcessModelImpl>>)
+  fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>)
 
-  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance<T>>>)
+  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>)
 
-  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance<T>>>)
+  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance>>)
 
   fun commit()
 
   fun rollback()
 
   /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
-  fun  handleFinishedInstance(handle: ComparableHandle<out ProcessInstance<T>>)
+  fun  handleFinishedInstance(handle: ComparableHandle<out ProcessInstance>)
 }

@@ -113,7 +113,7 @@ open class MemHandleMap<V:Any>
     }
 
     override fun remove(element: T): Boolean {
-      if (element is HandleMap.ReadableHandleAware<*>) {
+      if (element is ReadableHandleAware<*>) {
         return handleMap.remove(element.handle)
       }
       synchronized(handleMap) {

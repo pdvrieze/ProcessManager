@@ -26,10 +26,8 @@ package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.processModel.engine.ActivityImpl;
-import nl.adaptivity.process.processModel.engine.EndNodeImpl;
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.XmlActivity;
+import nl.adaptivity.process.processModel.engine.XmlEndNode;
 import nl.adaptivity.util.ListFilter;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
@@ -68,15 +66,15 @@ public class XmlProcessModel {
 
   }
 
-  public XmlProcessModel(@NotNull final ProcessModel<? extends ExecutableProcessNode, ? extends ProcessModelImpl> m) {
-    nodes = filter(CollectionUtil.<Object>copy(m.getModelNodes()), ExecutableProcessNode.class);
+  public XmlProcessModel(@NotNull final ProcessModel<? extends ProcessNode<?,?>, ? extends ProcessModel<?,?>> m) {
+    nodes = (List) filter(CollectionUtil.<Object>copy(m.getModelNodes()), ProcessNode.class);
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
     roles = m.getRoles();
     uuid = m.getUuid();
   }
 
-  private List<ExecutableProcessNode> nodes;
+  private List<ProcessNode<?,?>> nodes;
 
   @Nullable private UUID uuid;
 
@@ -101,17 +99,17 @@ public class XmlProcessModel {
    * getStartOrActivityOrJoin().add(newItem);
    * </pre>
    * <p>
-   * Objects of the following type(s) are allowed in the list {@link EndNodeImpl }
-   * {@link ActivityImpl } {@link StartNode } {@link Join }
+   * Objects of the following type(s) are allowed in the list {@link XmlEndNode }
+   * {@link XmlActivity } {@link StartNode } {@link Join }
    */
-  public List<? extends ExecutableProcessNode> getNodes() {
+  public List<? extends ProcessNode<?,?>> getNodes() {
     if (nodes == null) {
-      nodes = filter(new ArrayList<>(), ExecutableProcessNode.class);
+      nodes = (List) XmlProcessModel.filter(new ArrayList<>(), ProcessNode.class);
     }
     return this.nodes;
   }
 
-  public void setNodes(@NotNull final List<? extends ExecutableProcessNode> nodes) {
+  public void setNodes(@NotNull final List<? extends ProcessNode<?,?>> nodes) {
     this.nodes.clear();
     this.nodes.addAll(nodes);
   }

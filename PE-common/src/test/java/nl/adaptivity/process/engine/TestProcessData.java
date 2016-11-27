@@ -20,6 +20,7 @@ import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
@@ -208,10 +209,10 @@ public class TestProcessData {
   @Test
   public void testSerializeMessage() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    final ProcessModelImpl pm = getProcessModel("testModel2.xml");
-    ActivityImpl ac2 = (ActivityImpl) pm.getNode("ac2");
-    String serialized = XmlUtil.toString(ac2.getMessage());
-    XmlMessage msg2= XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
+    final ProcessModelImpl pm         = getProcessModel("testModel2.xml");
+    XmlActivity            ac2        = (XmlActivity) pm.getNode("ac2");
+    String                 serialized = XmlUtil.toString(ac2.getMessage());
+    XmlMessage             msg2       = XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
     assertEquals(msg2.getMessageBody().getContentString(), ac2.getMessage().getMessageBody().getContentString());
     assertEquals(msg2, ac2.getMessage());
   }
@@ -219,25 +220,25 @@ public class TestProcessData {
   @Test
   public void testDeserializeProcessModel() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    final ProcessModelImpl pm = getProcessModel("testModel2.xml");
-    ActivityImpl ac1 = null;
-    ActivityImpl ac2 = null;
-    StartNodeImpl start = null;
-    EndNodeImpl end = null;
-    for(final ExecutableProcessNode node: pm.getModelNodes()) {
+    final ProcessModelImpl pm    = getProcessModel("testModel2.xml");
+    XmlActivity            ac1   = null;
+    XmlActivity            ac2   = null;
+    XmlStartNode           start = null;
+    XmlEndNode             end   = null;
+    for(final XmlProcessNode node: pm.getModelNodes()) {
       if (node.getId() != null) {
         switch (node.getId()) {
           case "start":
-            start = (StartNodeImpl) node;
+            start = (XmlStartNode) node;
             break;
           case "ac1":
-            ac1 = (ActivityImpl) node;
+            ac1 = (XmlActivity) node;
             break;
           case "ac2":
-            ac2 = (ActivityImpl) node;
+            ac2 = (XmlActivity) node;
             break;
           case "end":
-            end = (EndNodeImpl) node;
+            end = (XmlEndNode) node;
             break;
         }
       }
@@ -366,10 +367,10 @@ public class TestProcessData {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
-      final ExecutableProcessNode ac1;
+      final XmlProcessNode ac1;
       {
-        Collection<? extends ExecutableProcessNode> modelNodes = xpm.getModelNodes();
-        Iterator<? extends ExecutableProcessNode> it = modelNodes.iterator();
+        Collection<? extends XmlProcessNode> modelNodes = xpm.getModelNodes();
+        Iterator<? extends XmlProcessNode> it = modelNodes.iterator();
         it.next();
         ac1 = it.next();
       }
@@ -407,7 +408,7 @@ public class TestProcessData {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
-      final ExecutableProcessNode ac1 = processModel.getNode("ac1");
+      final XmlProcessNode ac1 = processModel.getNode("ac1");
       assertEquals(ac1.getId(), "ac1");
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
       final XmlResultType result = (XmlResultType) ac1Results.get(1);
@@ -752,7 +753,7 @@ public class TestProcessData {
             "      </Envelope>\n" +
             "    </message>\n" +
             "  </activity>\n";
-    testRoundTrip(xml, ActivityImpl.class, true);
+    testRoundTrip(xml, XmlActivity.class, true);
   }
 
 }

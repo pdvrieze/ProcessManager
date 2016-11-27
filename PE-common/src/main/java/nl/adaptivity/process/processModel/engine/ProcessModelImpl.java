@@ -17,14 +17,13 @@
 package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.CollectionUtil;
-import net.devrieze.util.HandleMap.MutableHandleAware;
+import net.devrieze.util.MutableHandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializer;
@@ -48,13 +47,9 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, ProcessModelImpl> implements MutableHandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
+public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessModelImpl> implements MutableHandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
 
-  public enum Permissions implements SecurityProvider.Permission {
-    INSTANTIATE
-  }
-
-  public static class Factory implements XmlDeserializerFactory<ProcessModelImpl>, DeserializationFactory<ExecutableProcessNode, ProcessModelImpl> {
+  public static class Factory implements XmlDeserializerFactory<ProcessModelImpl>, DeserializationFactory<XmlProcessNode,ProcessModelImpl> {
 
     @NotNull
     @Override
@@ -63,77 +58,46 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
     }
 
     @Override
-    public EndNodeImpl deserializeEndNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlEndNode deserializeEndNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
-      return EndNodeImpl.deserialize(ownerModel, in);
+      return XmlEndNode.deserialize(ownerModel, in);
     }
 
     @Override
-    public ActivityImpl deserializeActivity(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlActivity deserializeActivity(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
-      return ActivityImpl.deserialize(ownerModel, in);
+      return XmlActivity.deserialize(ownerModel, in);
     }
 
     @Override
-    public StartNodeImpl deserializeStartNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlStartNode deserializeStartNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
-      return StartNodeImpl.deserialize(ownerModel, in);
+      return XmlStartNode.deserialize(ownerModel, in);
     }
 
     @Override
-    public JoinImpl deserializeJoin(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlJoin deserializeJoin(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
-      return JoinImpl.deserialize(ownerModel, in);
+      return XmlJoin.deserialize(ownerModel, in);
     }
 
     @Override
-    public SplitImpl deserializeSplit(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlSplit deserializeSplit(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
-      return SplitImpl.deserialize(ownerModel, in);
+      return XmlSplit.deserialize(ownerModel, in);
     }
   }
 
   private volatile int mEndNodeCount = -1;
 
-  public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
-    super(basepm, toExecutableNodes(basepm.getModelNodes()));
+  public ProcessModelImpl(final ProcessModelBase<?, ?> basepm, final Collection<? extends XmlProcessNode> modelNodes) {
+    super(basepm, modelNodes);
   }
 
-  private static Collection<? extends ExecutableProcessNode> toExecutableNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
-    List<ExecutableProcessNode> result = new ArrayList<>();
-    for(ProcessNode<?,?> node: modelNodes) {
-      result.add(node.visit(new Visitor<ExecutableProcessNode>() {
-        @Override
-        public ExecutableProcessNode visitStartNode(final StartNode<?, ?> startNode) {
-          return new StartNodeImpl(startNode);
-        }
 
-        @Override
-        public ExecutableProcessNode visitActivity(final Activity<?, ?> activity) {
-          return new ActivityImpl(activity);
-        }
 
-        @Override
-        public ExecutableProcessNode visitSplit(final Split<?, ?> split) {
-          return new SplitImpl(split);
-        }
-
-        @Override
-        public ExecutableProcessNode visitJoin(final Join<?, ?> join) {
-          return new JoinImpl(join);
-        }
-
-        @Override
-        public ExecutableProcessNode visitEndNode(final EndNode<?, ?> endNode) {
-          return new EndNodeImpl(endNode);
-        }
-      }));
-    }
-    return result;
-  }
-
-  public static ProcessModelImpl from(final ProcessModelBase<?, ?> basepm) {
-    return new ProcessModelImpl(basepm);
+  public static ProcessModelImpl from(final ProcessModelBase<?, ? extends ProcessNode<?,?>> basepm) {
+    return new ProcessModelImpl(basepm, new ArrayList(basepm.getModelNodes()));
   }
 
   @NotNull
@@ -142,8 +106,9 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
   }
 
     @NotNull
+    @Deprecated
   public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ExecutableProcessNode>emptyList()), in);
+    return ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<XmlProcessNode>emptyList()), in);
   }
 
   /**
@@ -163,23 +128,23 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
    * Create a new processModel based on the given nodes. These nodes should be complete
    *
    */
-  public ProcessModelImpl(final Collection<? extends ExecutableProcessNode> processNodes) {
-    super(processNodes);
+  public ProcessModelImpl(final Collection<? extends XmlProcessNode> processNodes) {
+    super(new ArrayList<XmlProcessNode>(processNodes));
   }
 
   /**
    * Ensure that the given node is owned by this model.
    * @param processNode
    */
-  public boolean addNode(@NotNull final ExecutableProcessNode processNode) {
+  public boolean addNode(@NotNull final XmlProcessNode processNode) {
     if (super.addNode(processNode)) {
-      processNode.setOwnerModel(this);
+      processNode.setOwnerModel(this.asM());
       return true;
     }
     return false;
   }
 
-  public boolean removeNode(final ExecutableProcessNode processNode) {
+  public boolean removeNode(final XmlProcessNode processNode) {
     throw new UnsupportedOperationException("This will break in all kinds of ways");
   }
 
@@ -192,14 +157,14 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
    * @param node The node to start extraction from. This will go on to the
    *          successors.
    */
-  private static void extractElements(final Collection<? super ExecutableProcessNode> to, final HashSet<String> seen, final ExecutableProcessNode node) {
+  private static void extractElements(final Collection<? super XmlProcessNode> to, final HashSet<String> seen, final XmlProcessNode node) {
     if (seen.contains(node.getId())) {
       return;
     }
     to.add(node);
     seen.add(node.getId());
     for (final Identifiable successor : node.getSuccessors()) {
-      extractElements(to, seen, (ExecutableProcessNode) successor);
+      extractElements(to, seen, (XmlProcessNode) successor);
     }
   }
 
@@ -208,16 +173,16 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
    *
    * @return The start nodes.
    */
-  public Collection<StartNodeImpl> getStartNodes() {
-    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList<StartNodeImpl>(), getModelNodes(), StartNodeImpl.class));
+  public Collection<XmlStartNode> getStartNodes() {
+    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList<XmlStartNode>(), getModelNodes(), XmlStartNode.class));
   }
 
   @Override
-  public void setModelNodes(@NotNull final Collection<? extends ExecutableProcessNode> processNodes) {
+  public void setModelNodes(@NotNull final Collection<? extends XmlProcessNode> processNodes) {
     super.setModelNodes(processNodes);
     int endNodeCount = 0;
-    for (final ExecutableProcessNode n : processNodes) {
-      if (n instanceof EndNodeImpl) {
+    for (final XmlProcessNode n : processNodes) {
+      if (n instanceof XmlEndNode) {
         ++endNodeCount;
       }
     }
@@ -230,9 +195,9 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
   public int getEndNodeCount() {
     if (mEndNodeCount<0) {
       int endNodeCount = 0;
-      for (final ExecutableProcessNode node : getModelNodes()) {
-        node.setOwnerModel(this);
-        if (node instanceof EndNodeImpl) { ++endNodeCount; }
+      for (final XmlProcessNode node : getModelNodes()) {
+        node.setOwnerModel(this.asM());
+        if (node instanceof XmlEndNode) { ++endNodeCount; }
       }
       mEndNodeCount = endNodeCount;
     }
@@ -271,7 +236,7 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
    * @param nodeId
    * @return
    */
-  public ExecutableProcessNode getNode(final String nodeId) {
+  public XmlProcessNode getNode(final String nodeId) {
     return getNode(new Identifier(nodeId));
   }
 

@@ -51,21 +51,21 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
   constructor()
 
   constructor(nodeId: String,
-              predecessors :Iterable<Handle<out IProcessNodeInstance<*,*>>>,
+              predecessors :Iterable<Handle<out IProcessNodeInstance<*>>>,
               processInstance: Long,
-              handle: Handle<out IProcessNodeInstance<*,*>>,
+              handle: Handle<out IProcessNodeInstance<*>>,
               state: NodeInstanceState,
               results: Iterable<ProcessData>,
               body: CompactFragment?) {
 
   }
 
-  private val _predecessors = mutableListOf<Handle<out IProcessNodeInstance<*, *>>>()
+  private val _predecessors = mutableListOf<Handle<out IProcessNodeInstance<*>>>()
 
   /**
    * Gets the value of the predecessor property.
    */
-  val predecessors: List<Handle<out IProcessNodeInstance<*, *>>>
+  val predecessors: List<Handle<out IProcessNodeInstance<*>>>
     @XmlElement(name = "predecessor")
     get() = _predecessors
 
@@ -103,7 +103,7 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
   @Throws(XmlException::class)
   override fun deserializeChild(reader: XmlReader): Boolean {
     if (reader.isElement(Engine.NAMESPACE, "predecessor")) {
-      _predecessors.add(Handles.handle<IProcessNodeInstance<*, *>>(reader.readSimpleElement().toString()))
+      _predecessors.add(Handles.handle<IProcessNodeInstance<*>>(reader.readSimpleElement().toString()))
       return true
     } else if (reader.isElement(Engine.NAMESPACE, "body")) {
       body = reader.elementContentToFragment()

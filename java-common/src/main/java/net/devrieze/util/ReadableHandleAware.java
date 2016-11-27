@@ -14,14 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine
+package net.devrieze.util;
 
-import net.devrieze.util.TransactionFactory
-import net.devrieze.util.db.DBHandleMap
-import net.devrieze.util.db.DBTransaction
-import net.devrieze.util.security.SecureObject
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
-
-
-internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine))
+/**
+ * Created by pdvrieze on 27/11/16.
+ */
+public interface ReadableHandleAware<T> {
+  Handle<? extends T> getHandle();
+}

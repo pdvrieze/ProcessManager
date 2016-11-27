@@ -29,11 +29,7 @@ import java.sql.SQLException;
 
 public interface IXmlDefineType extends XmlSerializable {
 
-  @Nullable
-  <T extends Transaction, V extends IProcessNodeInstance<T,V>> ProcessData apply(@NotNull T transaction, @NotNull IProcessNodeInstance<T, V> node) throws
-          SQLException;
-
-  char[] getContent();
+  @Nullable char[] getContent();
 
   /**
    * Gets the value of the node property.

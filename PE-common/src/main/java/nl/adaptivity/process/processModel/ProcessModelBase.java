@@ -17,14 +17,14 @@
 package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.Handle;
-import net.devrieze.util.HandleMap.MutableHandleAware;
+import net.devrieze.util.MutableHandleAware;
 import net.devrieze.util.Handles;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.processModel.engine.EndNodeImpl;
+import nl.adaptivity.process.processModel.engine.XmlEndNode;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
@@ -358,8 +358,8 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
 
   /**
    * Set the process nodes for the model. This will actually just retrieve the
-   * {@link EndNodeImpl}s and sets the model accordingly. This does mean that only
-   * passing {@link EndNodeImpl}s will have the same result, and the other nodes
+   * {@link XmlEndNode}s and sets the model accordingly. This does mean that only
+   * passing {@link XmlEndNode}s will have the same result, and the other nodes
    * will be pulled in.
    *
    * @param processNodes The process nodes to base the model on.

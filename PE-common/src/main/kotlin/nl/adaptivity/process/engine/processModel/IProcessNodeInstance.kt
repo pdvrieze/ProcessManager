@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.HandleMap
+import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.StringUtil
 import net.devrieze.util.Transaction
 import net.devrieze.util.security.SecureObject
@@ -37,12 +38,7 @@ import javax.xml.bind.annotation.XmlRootElement
  * *
  * @param <V> The actual type of the implementing class.
 </V> */
-interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> : HandleMap.ReadableHandleAware<SecureObject<V>> {
-
-  @Throws(XmlException::class)
-  fun serialize(transaction: T,
-                out: XmlWriter,
-                localEndpoint: EndpointDescriptor)
+interface IProcessNodeInstance<V : IProcessNodeInstance<V>> : ReadableHandleAware<SecureObject<V>> {
 
   /**
    * Enumeration representing the various states a task can be in.
@@ -116,85 +112,4 @@ interface IProcessNodeInstance<T : Transaction, V : IProcessNodeInstance<T, V>> 
    * @return the state.
    */
   val state: NodeInstanceState
-
-  /**
-   * Called by the processEngine so indicate starting of the task.
-
-   * @param messageService Service to use for communication of change of state.
-   * *
-   * @return `true` if this stage is complete and the engine should
-   * *         progress to {
-   * *
-   * @throws SQLException @link #takeTask(IMessageService)
-   */
-  @Throws(SQLException::class)
-  fun <U> provideTask(transaction: T, messageService: IMessageService<U, T, V>): V
-
-  /**
-   * Called by the processEngine to let the task be taken.
-
-   * @param messageService Service to use for communication of change of state.
-   * *
-   * @return `true` if this stage has completed and the task should
-   * *         be [started][.startTask].
-   */
-  @Throws(SQLException::class)
-  fun <U> takeTask(transaction: T, messageService: IMessageService<U, T, V>): V
-
-  /**
-   * Called by the processEngine to let the system start the task.
-
-   * @param messageService Service to use for communication of change of state.
-   * *
-   * @return `true` if the task has completed and
-   * *         [.finishTask]  should be called.
-   */
-  @Throws(SQLException::class)
-  fun <U> startTask(transaction: T, messageService: IMessageService<U, T, V>): V
-
-  /**
-   * Called by the processEngine to signify to the task that it is finished
-   * (with the given payload).
-
-   * @param payload The payload which is the result of the processing.
-   */
-  @Throws(SQLException::class)
-  fun finishTask(transaction: T, payload: Node? = null): V
-
-  /**
-   * Called to signify that this task has failed.
-   */
-  @Throws(SQLException::class)
-  fun failTask(transaction: T, cause: Throwable): V
-
-  /**
-   * Called to signify that creating this task has failed, a retry would be expected.
-   */
-  @Throws(SQLException::class)
-  fun failTaskCreation(transaction: T, cause: Throwable): V
-
-  /**
-   * Called to signify that this task has been cancelled.
-   * @throws SQLException
-   */
-  @Throws(SQLException::class)
-  fun cancelTask(transaction: T): V
-
-  /**
-   * Called to attempt to cancel the task if that is semantically valid.
-   * @throws SQLException
-   */
-  @Throws(SQLException::class)
-  fun tryCancelTask(transaction: T): V
-
-  /** Get the predecessor instance with the given node name.
-   * @throws SQLException
-   * *
-   */
-  @Throws(SQLException::class)
-  fun resolvePredecessor(transaction: T, nodeName: String): V?
-
-  /** Get the result instance with the given data name.  */
-  @Throws(SQLException::class)
-  fun getResult(transaction: T, name: String): ProcessData?
 }

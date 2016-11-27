@@ -81,6 +81,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
     }
   }
 
+  @Nullable
   public char[] getContent() {
     return content;
   }

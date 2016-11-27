@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecuredObject
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl
 
 import java.sql.SQLException
@@ -29,7 +30,7 @@ import java.util.UUID
  * Extension to cachingHandleMap that handles the uuids needed for process models.
  * Created by pdvrieze on 20/05/16.
  */
-class CachingProcessModelMap<T : ProcessTransaction<T>>(base: IMutableProcessModelMap<T>, cacheSize: Int) : CachingHandleMap<SecureObject<ProcessModelImpl>, T>(
+class CachingProcessModelMap<T : ProcessTransaction>(base: IMutableProcessModelMap<T>, cacheSize: Int) : CachingHandleMap<SecureObject<ExecutableProcessModel>, T>(
       base,
       cacheSize), IMutableProcessModelMap<T> {
 
@@ -37,7 +38,7 @@ class CachingProcessModelMap<T : ProcessTransaction<T>>(base: IMutableProcessMod
     get() = super.delegate as IMutableProcessModelMap<T>
 
   @Throws(SQLException::class)
-  override fun getModelWithUuid(transaction: T, uuid: UUID): Handle<out SecureObject<ProcessModelImpl>>? {
+  override fun getModelWithUuid(transaction: T, uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
     return delegate.inReadonlyTransaction(transaction) { getModelWithUuid(uuid) }
   }
 }
