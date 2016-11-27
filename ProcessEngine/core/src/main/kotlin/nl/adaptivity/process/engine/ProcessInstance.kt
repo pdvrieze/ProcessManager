@@ -119,19 +119,19 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
     get() {
-      return (active.asSequence() + finished.asSequence() + results.asSequence())
+      return (active.asSequence() + finished.asSequence() + completedEndnodes.asSequence())
     }
 
   val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
   val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
-  private val finishedCount: Int
-    get() = results.size
+  private val completedEndNodeCount: Int
+    get() = completedEndnodes.size
 
-  val results: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
+  val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>>
 
-  private val mJoins: HashMap<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>
+  private val pendingJoins: HashMap<JoinImpl, ComparableHandle<out SecureObject<JoinInstance<T>>>>
 
   override var handle: ComparableHandle<out ProcessInstance<T>>
     private set
@@ -195,10 +195,10 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     }
 
     active = threads
-    results = endResults
+    completedEndnodes = endResults
     finished = finishedNodes
 
-    mJoins = joins
+    pendingJoins = joins
     inputs = builder.inputs.toList()
     outputs = builder.outputs.toList()
   }
@@ -211,9 +211,9 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     this.name = name
     this.state = state ?: State.NEW
     active = ArraySet()
-    results = ArraySet()
+    completedEndnodes = ArraySet()
     finished = ArraySet()
-    mJoins = HashMap()
+    pendingJoins = HashMap()
     inputs = emptyList()
     outputs = emptyList()
   }
@@ -224,9 +224,9 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     handle = Handles.getInvalid()
     uuid = uUid
     this.owner = owner
-    mJoins = HashMap()
+    pendingJoins = HashMap()
     active = ArraySet()
-    results = ArraySet()
+    completedEndnodes = ArraySet()
     finished = ArraySet()
     this.state = state ?: State.NEW
     inputs = emptyList()
@@ -267,7 +267,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
     // This needs to update first as at this point the node state may not be valid.
     // TODO reduce the need to do a double update.
     update(transaction) {}.let { newInstance ->
-      if (newInstance.finishedCount >= processModel.endNodeCount) {
+      if (newInstance.completedEndNodeCount >= processModel.endNodeCount) {
         // TODO mark and store results
         return newInstance.update(transaction) {
           state = State.FINISHED
@@ -298,14 +298,14 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
 
   @Synchronized @Throws(SQLException::class)
   private fun getJoinInstance(transaction: T, join: JoinImpl, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<T>>>): JoinInstance<T> {
-    synchronized(mJoins) {
+    synchronized(pendingJoins) {
       val nodeInstances = transaction.writableEngineData.nodeInstances
 
-      val joinInstance = mJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance<T> }
+      val joinInstance = pendingJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance<T> }
       if (joinInstance==null) {
         val joinHandle= nodeInstances.put(JoinInstance(join, listOf(predecessor), this.handle, owner))
 
-        mJoins[join] = Handles.handle(joinHandle.handleValue)
+        pendingJoins[join] = Handles.handle(joinHandle.handleValue)
         return nodeInstances[joinHandle] as JoinInstance<T>
       } else {
         return joinInstance.updateJoin(transaction) {
@@ -316,7 +316,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
   }
 
   @Synchronized fun removeJoin(join: JoinInstance<T>) {
-    mJoins.remove(join.node)
+    pendingJoins.remove(join.node)
   }
 
   @Synchronized override fun setHandleValue(handleValue: Long) {
@@ -399,7 +399,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
         return finish(transaction).apply {
           assert(node.handle !in active)
           assert(node.handle !in finished)
-          assert(node.handle in results)
+          assert(node.handle in completedEndnodes)
         }
       } else {
         return startSuccessors(transaction, messageService, node)
@@ -545,7 +545,7 @@ class ProcessInstance<T : ProcessTransaction<T>> : MutableHandleAware<ProcessIns
         writeActiveNodeRef(transaction, it)
       }
 
-      writeListIfNotEmpty(results, Constants.PROCESS_ENGINE_NS, "endresults") {
+      writeListIfNotEmpty(completedEndnodes, Constants.PROCESS_ENGINE_NS, "endresults") {
         writeResultNodeRef(transaction, it)
       }
     }

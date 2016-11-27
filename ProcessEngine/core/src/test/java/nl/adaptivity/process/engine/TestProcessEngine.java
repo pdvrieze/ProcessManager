@@ -23,7 +23,6 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.MemTransactionedHandleMap;
-import nl.adaptivity.process.StubTransaction;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -58,10 +57,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.nio.charset.Charset.defaultCharset;
-import static nl.adaptivity.process.engine.ProcessInstance.State.FINISHED;
-import static nl.adaptivity.process.engine.ProcessInstance.State.STARTED;
-import static nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete;
-import static nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Pending;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.testng.Assert.*;
 
@@ -232,7 +227,7 @@ public class TestProcessEngine {
     assertTrue(finished.getNode() instanceof StartNodeImpl);;
     assertEquals(finished.getNode().getId(), "start");
 
-    assertEquals(processInstance.getResults().size(), 0);
+    assertEquals(processInstance.getCompletedEndnodes().size(), 0);
 
     final ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal);
     assertEquals(taskNode.getState(), NodeInstanceState.Pending); // Our messenger does not do delivery notification
@@ -241,7 +236,7 @@ public class TestProcessEngine {
     processInstance = mProcessEngine.getProcessInstance(transaction, instanceHandle, mPrincipal);
     assertEquals(processInstance.getActive().size(), 0);
     assertEquals(processInstance.getFinished().size(), 2);
-    assertEquals(processInstance.getResults().size(), 1);
+    assertEquals(processInstance.getCompletedEndnodes().size(), 1);
 
     assertEquals(processInstance.getState(), State.FINISHED);
   }
