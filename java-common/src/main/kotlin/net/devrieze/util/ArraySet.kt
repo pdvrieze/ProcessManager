@@ -43,6 +43,20 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
   }
 
+  private var buffer = arrayOfNulls<Any?>(Math.max(1,initCapacity))
+  private var firstElemIdx =0
+  private var nextElemIdx = 0
+
+  constructor(base: Iterable<T>) : this((base as? Collection)?.size ?: 10) {
+    addAll(base)
+  }
+
+  constructor(base: Sequence<T>) : this() {
+    addAll(base)
+  }
+
+  constructor(vararg items:T) : this(items.asList())
+
   operator fun get(pos: Int): T {
     if (pos<0 || pos>=size) throw IndexOutOfBoundsException("This index is invalid")
     val offset = (firstElemIdx +pos)%buffer.size
@@ -57,10 +71,6 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
     return true
   }
-
-  private var buffer = arrayOfNulls<Any?>(Math.max(1,initCapacity))
-  private var firstElemIdx =0
-  private var nextElemIdx = 0
 
   override val size: Int
     get() = (nextElemIdx +buffer.size- firstElemIdx)%buffer.size
