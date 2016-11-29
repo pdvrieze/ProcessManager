@@ -14,17 +14,27 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel;
+package nl.adaptivity.process.processModel
 
 
-public interface JoinSplit<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T,M> {
+import nl.adaptivity.process.ProcessConsts.Engine
 
-  void setMax(int max);
+import javax.xml.namespace.QName
 
-  int getMax();
 
-  void setMin(int min);
+interface Join<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M>, JoinSplit<T, M> {
 
-  int getMin();
 
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
+
+    override fun build(newOwner: M): Join<T, M>
+  }
+
+  companion object {
+
+    const val ELEMENTLOCALNAME = "join"
+    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+    val PREDELEMNAME = QName(Engine.NAMESPACE, "predecessor", Engine.NSPREFIX)
+  }
+  // No methods beyond JoinSplit
 }

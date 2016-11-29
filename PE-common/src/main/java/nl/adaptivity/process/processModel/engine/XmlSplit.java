@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
+import static nl.adaptivity.xml.XmlUtil.deserializeHelper;
+
 
 @XmlDeserializer(XmlSplit.Factory.class)
 public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
@@ -37,10 +39,11 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
     @NotNull
     @Override
     public XmlSplit deserialize(final XmlReader reader) throws XmlException {
-      return XmlSplit.deserialize(null, reader);
+      return SplitBase.Companion.deserialize(null, reader);
     }
   }
 
+  @Deprecated
   public XmlSplit(final @Nullable ProcessModelImpl ownerModel, final XmlProcessNode predecessor, final int min, final int max) {
     super(ownerModel, Collections.singleton(predecessor), max, min);
     if ((getMin() < 1) || (max < min)) {
@@ -48,12 +51,18 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
     }
   }
 
+  @Deprecated
   public XmlSplit(final @Nullable ProcessModelImpl ownerModel) {
     super(ownerModel);
   }
 
+  public XmlSplit(final Split<?, ?> orig, ProcessModelImpl newOwner) {
+    super(orig, newOwner);
+  }
+
+  @Deprecated
   public XmlSplit(final Split<?, ?> orig) {
-    super(orig);
+    this(orig, null);
   }
 
   @NotNull
@@ -100,6 +109,10 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
   @Override
   public void setSuccessors(final Collection<? extends Identifiable> successors) {
     super.setSuccessors(successors);
+  }
+
+  public static XmlSplit deserialize(ProcessModelImpl owner, XmlReader reader) throws XmlException {
+    return deserializeHelper(new XmlSplit(owner), reader);
   }
 
 }

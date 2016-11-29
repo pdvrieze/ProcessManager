@@ -54,6 +54,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
     super(orig, newOwnerModel);
   }
 
+  @Deprecated
   public XmlStartNode(final StartNode<?, ?> orig) {
     this(orig, null);
   }

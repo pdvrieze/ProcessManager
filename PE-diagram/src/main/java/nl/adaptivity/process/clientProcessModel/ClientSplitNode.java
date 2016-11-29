@@ -41,8 +41,13 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
     setId(id);
   }
 
-  protected ClientSplitNode(Split<?, ?> orig) {
-    super(orig);
+  @Deprecated
+  protected ClientSplitNode(Split<?,?> orig) {
+    this (orig, null);
+  }
+
+  protected ClientSplitNode(Split<?, ?> orig, M newOwner) {
+    super(orig, newOwner);
   }
 
   @Override

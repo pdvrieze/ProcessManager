@@ -36,12 +36,15 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     constructor(private var _ownerModel: M?,
                 predecessors: Collection<Identifiable> = emptyList(),
                 successors: Collection<Identifiable> = emptyList(),
-                id: String? = null,
+                id: String?,
                 label: String? = null,
                 x: Double = java.lang.Double.NaN,
                 y: Double = java.lang.Double.NaN,
                 defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
                 results: Collection<IXmlResultType> = ArrayList<IXmlResultType>()) : ProcessNode<T, M>, XmlDeserializable {
+
+  @Deprecated("Don't use this if it can be avoided")
+  constructor(ownerModel: M?): this (ownerModel, id=null)
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(predecessors: Collection<Identifiable> = emptyList(),
                 successors: Collection<Identifiable> = emptyList(),

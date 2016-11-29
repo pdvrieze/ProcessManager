@@ -40,7 +40,11 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
   }
 
   protected ClientJoinNode(Join<?,?> orig, final boolean compat) {
-    super(orig);
+    this(orig, null, compat);
+  }
+
+  protected ClientJoinNode(Join<?,?> orig, M newOwner, final boolean compat) {
+    super(orig, newOwner);
     mCompat = compat;
   }
 
