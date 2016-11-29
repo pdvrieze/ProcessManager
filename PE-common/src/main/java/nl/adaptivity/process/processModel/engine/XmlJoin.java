@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.Join.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -33,6 +34,23 @@ import java.util.Set;
 
 @XmlDeserializer(XmlJoin.Factory.class)
 public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
+
+  public static class Builder extends JoinBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    public Builder(@NotNull final Join<?, ?> node) {
+      super(node);
+    }
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+    }
+
+    @NotNull
+    @Override
+    public XmlJoin build(@NotNull final ProcessModelImpl newOwner) {
+      return new XmlJoin(this, newOwner);
+    }
+  }
 
   public static class Factory implements XmlDeserializerFactory<XmlJoin> {
 
@@ -62,6 +80,10 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
 
   public XmlJoin(final ProcessModelImpl ownerModel) {
     super(ownerModel);
+  }
+
+  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+    super(builder, newOwnerModel);
   }
 
   @NotNull

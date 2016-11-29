@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -34,12 +35,29 @@ import static nl.adaptivity.xml.XmlUtil.deserializeHelper;
 @XmlDeserializer(XmlSplit.Factory.class)
 public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
 
+  public static class Builder extends SplitBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    public Builder(@NotNull final Split<?, ?> node) {
+      super(node);
+    }
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+    }
+
+    @NotNull
+    @Override
+    public XmlSplit build(@NotNull final ProcessModelImpl newOwner) {
+      return new XmlSplit(this, newOwner);
+    }
+  }
+
   public static class Factory implements XmlDeserializerFactory<XmlSplit> {
 
     @NotNull
     @Override
     public XmlSplit deserialize(final XmlReader reader) throws XmlException {
-      return SplitBase.Companion.deserialize(null, reader);
+      return XmlSplit.deserialize(null, reader);
     }
   }
 
@@ -63,6 +81,10 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
   @Deprecated
   public XmlSplit(final Split<?, ?> orig) {
     this(orig, null);
+  }
+
+  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+    super(builder, newOwnerModel);
   }
 
   @NotNull

@@ -69,6 +69,9 @@ open class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSp
 
   constructor(orig: Split<*, *>, newOwner: M? = null) : super(orig, newOwner)
 
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+
+
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {
     out.smartStartTag(Split.ELEMENTNAME) {

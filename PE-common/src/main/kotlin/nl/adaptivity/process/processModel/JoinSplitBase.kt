@@ -50,8 +50,8 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
       max = node.max
     }
 
-    var min:Int
-    var max:Int
+    override var min:Int
+    override var max:Int
 
     override abstract fun build(newOwner: M): JoinSplitBase<T, M>
   }
@@ -72,6 +72,8 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
     this.max = max
   }
 
+
+
   override var min: Int
   override var max: Int
 
@@ -84,6 +86,11 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   constructor(orig: JoinSplit<*, *>, newOwner: M?) : super(orig, newOwner) {
     min = orig.min
     max = orig.max
+  }
+
+  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
+    this.min = builder.min
+    this.max = builder.max
   }
 
   @Throws(XmlException::class)

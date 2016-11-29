@@ -70,6 +70,9 @@ open class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSpl
 
   constructor(orig: Join<*, *>, newOwner: M?) : super(orig, newOwner)
 
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+
+
   override val idBase: String
     get() = IDBASE
 
