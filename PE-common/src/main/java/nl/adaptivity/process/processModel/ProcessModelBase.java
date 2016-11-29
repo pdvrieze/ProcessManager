@@ -101,8 +101,8 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
     mOwner = basepm.getOwner();
     mRoles = new HashSet<>(basepm.getRoles());
     mUuid = basepm.getUuid();
-    mImports = ProcessNodeBase.toExportableResults(basepm.getImports());
-    mExports = ProcessNodeBase.toExportableDefines(basepm.getExports());
+    mImports = ProcessNodeBase.Companion.toExportableResults(basepm.getImports());
+    mExports = ProcessNodeBase.Companion.toExportableDefines(basepm.getExports());
   }
 
   @NotNull
@@ -188,11 +188,11 @@ public class ProcessModelBase<T extends ProcessNode<T, M>, M extends ProcessMode
   }
 
   public void setImports(@NotNull final Collection<? extends IXmlResultType> imports) {
-    mImports = ProcessNodeBase.toExportableResults(imports);
+    mImports = ProcessNodeBase.Companion.toExportableResults(imports);
   }
 
   public void setExports(@NotNull final Collection<? extends IXmlDefineType> exports) {
-    mExports = ProcessNodeBase.toExportableDefines(exports);
+    mExports = ProcessNodeBase.Companion.toExportableDefines(exports);
   }
 
   private static int getOrDefault(final Map<String, Integer> map, final String key, final int defaultValue) {

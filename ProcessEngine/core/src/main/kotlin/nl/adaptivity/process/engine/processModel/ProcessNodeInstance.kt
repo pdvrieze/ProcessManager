@@ -273,7 +273,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   @Throws(SQLException::class)
   override fun finishTask(transaction: ProcessTransaction, resultPayload: Node?): ProcessNodeInstance {
     return transaction.commit(update(transaction) {
-      node.getResults().mapTo(results.apply{clear()}) { it.apply(resultPayload) }
+      node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
       state = NodeInstanceState.Complete
     })
   }

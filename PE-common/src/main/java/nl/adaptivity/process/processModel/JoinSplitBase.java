@@ -46,7 +46,7 @@ public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends Proce
   public JoinSplitBase(final M ownerModel) {super(ownerModel);}
 
   public JoinSplitBase(final JoinSplit<?, ?> orig) {
-    super(orig);
+    super(orig, null);
     mMin = orig.getMin();
     mMax = orig.getMax();
   }

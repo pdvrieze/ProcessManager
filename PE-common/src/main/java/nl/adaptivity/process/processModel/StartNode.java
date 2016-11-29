@@ -18,11 +18,17 @@ package nl.adaptivity.process.processModel;
 
 
 import nl.adaptivity.process.ProcessConsts.Engine;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
 
 public interface StartNode<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T, M> {
+
+  interface Builder<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode.Builder<T,M> {
+    @NotNull
+    StartNode<T,M> build(@NotNull final M newOwner);
+  }
 
   String ELEMENTLOCALNAME = "start";
   QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);

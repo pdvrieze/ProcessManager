@@ -54,8 +54,8 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
   @Override
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
-    if (getPredecessors()!=null && getPredecessors().size()>0) {
-      XmlWriterUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessors().get(0).getId());
+    if (getPredecessors().size() > 0) {
+      XmlWriterUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessors().iterator().next().getId());
     }
   }
 

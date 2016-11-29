@@ -32,6 +32,15 @@ import java.util.List;
 @XmlDeserializer(XmlStartNode.Factory.class)
 public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
 
+  public static class Builder extends StartNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    @NotNull
+    @Override
+    public XmlStartNode build(@NotNull final ProcessModelImpl newOwner) {
+      return new XmlStartNode(this, newOwner);
+    }
+  }
+
   public static class Factory implements XmlDeserializerFactory<XmlStartNode> {
 
     @NotNull
@@ -41,8 +50,16 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
     }
   }
 
+  public XmlStartNode(@NotNull final ProcessNode<?, ?> orig, @Nullable final ProcessModelImpl newOwnerModel) {
+    super(orig, newOwnerModel);
+  }
+
   public XmlStartNode(final StartNode<?, ?> orig) {
-    super(orig);
+    this(orig, null);
+  }
+
+  public XmlStartNode(@NotNull final Builder builder, @NotNull final ProcessModelImpl newOwnerModel) {
+    super(builder, newOwnerModel);
   }
 
   @NotNull

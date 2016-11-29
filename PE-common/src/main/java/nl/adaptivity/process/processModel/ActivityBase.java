@@ -43,7 +43,7 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
   @Nullable private String mName;
 
   public ActivityBase(final Activity<?, ?> orig) {
-    super(orig);
+    super(orig, null);
     setMessage(orig.getMessage());
     setName(orig.getName());
   }

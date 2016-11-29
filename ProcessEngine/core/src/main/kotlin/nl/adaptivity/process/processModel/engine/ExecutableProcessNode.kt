@@ -77,8 +77,8 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
                                                                                    instance: U): Boolean
 
 
-  override fun getResults(): List<XmlResultType>
+  override val results: List<XmlResultType>
 
-  override fun getDefines(): List<XmlDefineType>
+  override val defines: List<XmlDefineType>
 }
 

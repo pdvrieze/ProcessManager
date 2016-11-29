@@ -24,6 +24,9 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import static nl.adaptivity.process.util.IdentifyableSet.empty;
+
+
 public abstract class IdentifyableSet<T extends Identifiable> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
 
 
@@ -589,6 +592,24 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
   @NotNull
   public static <V extends Identifiable> IdentifyableSet<V> processNodeSet(@NotNull final Collection<? extends V> collection) {
     return new BaseIdentifyableSet<>(collection);
+  }
+
+  public static <V extends Identifiable> IdentifyableSet<V> processNodeSet(final int maxSize, @NotNull final Collection<? extends V>elements) {
+    switch (maxSize) {
+      case 0:
+        if (elements.size()>0) { throw new IllegalArgumentException("More elements than allowed"); }
+        return IdentifyableSet.empty();
+      case 1: {
+        if (elements.size() > 1) { throw new IllegalArgumentException("More elements than allowed"); }
+        final Iterator<? extends V> iterator = elements.iterator();
+        if (iterator.hasNext())
+          return singleton(iterator.next());
+        else
+          return singleton();
+      }
+      default:
+        return processNodeSet(elements);
+    }
   }
 
   @Override

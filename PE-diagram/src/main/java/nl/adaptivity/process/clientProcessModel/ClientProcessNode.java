@@ -18,6 +18,7 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.IdentifyableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,11 +47,11 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
   @NotNull
   @Override
-  Set<? extends Identifiable> getPredecessors();
+  IdentifyableSet<? extends Identifiable> getPredecessors();
 
   @NotNull
   @Override
-  Set<? extends Identifiable> getSuccessors();
+  IdentifyableSet<? extends Identifiable> getSuccessors();
 
   void setOwnerModel(M owner);
 

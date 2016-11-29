@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.processModel.ProcessNodeBase.Builder;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +31,27 @@ import javax.xml.namespace.QName;
  */
 public abstract class StartNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends ProcessNodeBase<T,M> implements StartNode<T,M>, SimpleXmlDeserializable {
 
+  public static abstract class Builder<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase.Builder<T,M>  implements StartNode.Builder<T,M> {
+
+    @NotNull
+    @Override
+    public abstract StartNodeBase<T,M> build(@NotNull final M newOwner);
+  }
+
   public StartNodeBase(@Nullable final M ownerModel) {
     super(ownerModel);
   }
 
+  public StartNodeBase(@NotNull final ProcessNode<?, ?> orig, @Nullable final M newOwnerModel) {
+    super(orig, newOwnerModel);
+  }
+
   public StartNodeBase(final ProcessNode<?,?> orig) {
-    super(orig);
+    this(orig, null);
+  }
+
+  public StartNodeBase(@NotNull final Builder<T,M> builder, @NotNull final M newOwnerModel) {
+    super(builder, newOwnerModel);
   }
 
   @Override

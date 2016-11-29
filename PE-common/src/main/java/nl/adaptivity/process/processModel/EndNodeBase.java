@@ -42,7 +42,7 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
   }
 
   public EndNodeBase(final EndNode<?, ?> orig) {
-    super(orig);
+    super(orig, null);
   }
 
   @Override
@@ -114,7 +114,7 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
 
   @NotNull
   @Override
-  public final IdentifyableSet<? extends Identifiable> getSuccessors() {
+  public final IdentifyableSet<Identifiable> getSuccessors() {
     return IdentifyableSet.empty();
   }
 

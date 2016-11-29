@@ -90,6 +90,14 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
 
   private volatile int mEndNodeCount = -1;
 
+  /**
+   * Create a new processModel based on the given nodes. These nodes should be complete
+   *
+   */
+  public ProcessModelImpl(final Collection<? extends XmlProcessNode> processNodes) {
+    super(new ArrayList<>(processNodes));
+  }
+
   public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
     super(basepm, toXmlNodes(basepm.getModelNodes()));
   }
@@ -156,12 +164,9 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
     return this.asM();
   }
 
-  public static ProcessModelImpl from(final ProcessModelBase<?, ? extends ProcessNode<?,?>> basepm) {
-    return new ProcessModelImpl(basepm);
-  }
-
   @NotNull
   public static ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
+    //noinspection deprecation
     return deserialize(new Factory(), in);
   }
 
@@ -182,14 +187,6 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
     } catch (@NotNull final ClassNotFoundException e) {
       _cls_darwin_principal = null;
     }
-  }
-
-  /**
-   * Create a new processModel based on the given nodes. These nodes should be complete
-   *
-   */
-  public ProcessModelImpl(final Collection<? extends XmlProcessNode> processNodes) {
-    super(new ArrayList<XmlProcessNode>(processNodes));
   }
 
   /**
