@@ -106,7 +106,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                                                                  orig.results) {
   }
 
-  constructor(builder: Builder<T,M>, newOwnerModel: M): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
+  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: M): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
                                                         , builder.defines, builder.results)
 
   fun offset(offsetX: Int, offsetY: Int) {

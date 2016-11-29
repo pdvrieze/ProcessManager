@@ -50,7 +50,7 @@ public abstract class StartNodeBase<T extends ProcessNode<T, M>, M extends Proce
     this(orig, null);
   }
 
-  public StartNodeBase(@NotNull final Builder<T,M> builder, @NotNull final M newOwnerModel) {
+  public StartNodeBase(@NotNull final StartNode.Builder<?,?> builder, @NotNull final M newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
