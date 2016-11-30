@@ -135,26 +135,16 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   override fun deserializeAttribute(attributeNamespace: CharSequence,
                                     attributeLocalName: CharSequence,
                                     attributeValue: CharSequence): Boolean {
-    val value = StringUtil.toString(attributeValue)
+    val value = attributeValue.toString()
     if (XMLConstants.NULL_NS_URI == attributeNamespace) {
       when (attributeLocalName.toString()) {
-        "id"    -> {
-          setId(value)
-          return true
-        }
-        "label" -> {
-          label=value
-          return true
-        }
-        "x"     -> {
-          x = java.lang.Double.parseDouble(value)
-          return true
-        }
-        "y"     -> {
-          y = java.lang.Double.parseDouble(value)
-          return true
-        }
+        "id"    -> setId(value)
+        "label" -> label=value
+        "x"     -> x = value.toDouble()
+        "y"     -> y = value.toDouble()
+        else -> return false
       }
+      return true
     }
     return false
   }
@@ -393,7 +383,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     }
   }
 
-  protected open fun setDefines(exports: Collection<IXmlDefineType>?) {
+  protected open fun setDefines(exports: Collection<IXmlDefineType>) {
     _hashCode = 0
     _defines = if (exports == null) ArrayList<XmlDefineType>(0) else toExportableDefines(exports)
   }
@@ -414,9 +404,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   override fun getDefine(name: String)
       = _defines.firstOrNull { it.name == name }
 
-  protected open fun setResults(imports: Collection<IXmlResultType>?) {
+  protected open fun setResults(imports: Collection<IXmlResultType>) {
     _hashCode = 0
-    _results = if (imports == null) ArrayList<XmlResultType>(0) else toExportableResults(imports)
+    _results = imports?.let { toExportableResults(imports) } ?: mutableListOf()
   }
 
   override val results: List<XmlResultType> get() = _results

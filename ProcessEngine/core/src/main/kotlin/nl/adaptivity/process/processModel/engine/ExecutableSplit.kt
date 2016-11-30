@@ -50,12 +50,13 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
     }
   }
 
+  @Deprecated("Use the full constructor")
   constructor(ownerModel: ExecutableProcessModel?, predecessor: ExecutableProcessNode, min: Int, max: Int)
         : super(ownerModel, listOf(predecessor), max, min)
 
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
 
-  constructor(orig: Split<*, *>) : super(orig)
+  constructor(orig: Split<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {

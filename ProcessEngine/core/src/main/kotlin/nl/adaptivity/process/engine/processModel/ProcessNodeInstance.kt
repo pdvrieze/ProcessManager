@@ -361,9 +361,9 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   fun toSerializable(transaction: ProcessTransaction, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
     val builder = ExtBuilder(this)
 
-    val body:CompactFragment? = (node as? Activity<*,*>)?.let { act ->
+    val body:CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
       try {
-        val xmlReader = XMLFragmentStreamReader.from(act.getMessage().messageBody)
+        val xmlReader = XMLFragmentStreamReader.from(message.messageBody)
         instantiateXmlPlaceholders(transaction, xmlReader, true, localEndpoint)
       } catch (e: XmlException) {
         logger.log(Level.WARNING, "Error processing body", e)
@@ -390,7 +390,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
       serializeAll(results)
 
-      (node as? Activity<*,*>)?.getMessage()?.messageBody?.let { body ->
+      (node as? Activity<*,*>)?.message?.messageBody?.let { body ->
         instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true, localEndpoint)
       }
     }

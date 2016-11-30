@@ -81,7 +81,8 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
   @Volatile private var mEndNodeCount = -1
 
-  constructor(basepm: ProcessModelBase<*, *>) : super(basepm, toExecutableNodes(basepm.getModelNodes())) {
+  constructor(basepm: ProcessModelBase<*, *>) : super(basepm, toExecutableNodes(basepm.getModelNodes(), null)) {
+    // TODO make this work properly passing the model as owner
   }
 
   /**
@@ -262,19 +263,19 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 }
 
 
-fun toExecutableNodes(modelNodes: Collection<ProcessNode<*, *>>): Collection<ExecutableProcessNode> {
+fun toExecutableNodes(modelNodes: Collection<ProcessNode<*, *>>, newOwner: ExecutableProcessModel?): Collection<ExecutableProcessNode> {
 
   return modelNodes.map { node ->
     node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
-      override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode)
+      override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode, newOwner)
 
-      override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity)
+      override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity, newOwner)
 
-      override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split)
+      override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split, newOwner)
 
-      override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join)
+      override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join, newOwner)
 
-      override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode)
+      override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode, newOwner)
     })
   }
 }

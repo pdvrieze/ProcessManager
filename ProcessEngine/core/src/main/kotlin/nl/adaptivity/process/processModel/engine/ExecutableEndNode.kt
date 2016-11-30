@@ -36,7 +36,7 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
     }
   }
 
-  constructor(orig: EndNode<*, *>) : super(orig) {
+  constructor(orig: EndNode<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner) {
   }
 
   constructor(ownerModel: ExecutableProcessModel?, previous: ExecutableProcessNode) : super(ownerModel) {

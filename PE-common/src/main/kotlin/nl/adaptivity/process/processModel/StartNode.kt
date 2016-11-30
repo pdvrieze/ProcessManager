@@ -14,23 +14,25 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel;
+package nl.adaptivity.process.processModel
 
 
-import nl.adaptivity.process.ProcessConsts.Engine;
-import org.jetbrains.annotations.NotNull;
+import nl.adaptivity.process.ProcessConsts.Engine
 
-import javax.xml.namespace.QName;
+import javax.xml.namespace.QName
 
 
-public interface StartNode<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T, M> {
+interface StartNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
 
-  interface Builder<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode.Builder<T,M> {
-    @NotNull
-    StartNode<T,M> build(@NotNull final M newOwner);
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
+    override fun build(newOwner: M): StartNode<T, M>
   }
 
-  String ELEMENTLOCALNAME = "start";
-  QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
-// No special aspects.
+  companion object {
+
+    const val ELEMENTLOCALNAME = "start"
+    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+
+  }
+  // No special aspects.
 }

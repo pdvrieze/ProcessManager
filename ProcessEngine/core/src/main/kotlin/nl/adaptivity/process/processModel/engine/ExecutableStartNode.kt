@@ -37,7 +37,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     }
   }
 
-  constructor(orig: StartNode<*, *>) : super(orig)
+  constructor(orig: StartNode<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
 
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
 

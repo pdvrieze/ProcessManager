@@ -146,7 +146,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
    * @return
    */
   @NotNull
-  public static XmlDefineType get(final IXmlDefineType export) {
+  public static XmlDefineType get(@NotNull final IXmlDefineType export) {
     if (export instanceof XmlDefineType) { return (XmlDefineType) export; }
     return new XmlDefineType(export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.getContent(), export.getOriginalNSContext());
   }

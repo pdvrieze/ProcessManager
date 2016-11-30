@@ -39,8 +39,13 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> imp
     }
   }
 
+  @Deprecated
   public XmlEndNode(final EndNode<?, ?> orig) {
-    super(orig);
+    this(orig, null);
+  }
+
+  public XmlEndNode(final EndNode<?, ?> orig, ProcessModelImpl newOwner) {
+    super(orig, newOwner);
   }
 
   @NotNull

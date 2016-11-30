@@ -36,7 +36,7 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
   }
 
   protected ClientEndNode(EndNode<?, ?> orig) {
-    super(orig);
+    super(orig, null);
   }
 
   @Override

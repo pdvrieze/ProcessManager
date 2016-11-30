@@ -45,7 +45,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   protected ClientActivityNode(Activity<?, ?> orig, final boolean compat) {
-    super(orig);
+    super(orig, null);
     mCompat = compat;
   }
 

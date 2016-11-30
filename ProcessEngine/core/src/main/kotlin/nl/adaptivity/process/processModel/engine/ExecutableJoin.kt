@@ -38,8 +38,9 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
     }
   }
 
-  constructor(orig: Join<*, *>) : super(orig)
+  constructor(orig: Join<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
 
+  @Deprecated("Use the full constructor")
   constructor(ownerModel: ExecutableProcessModel?, predecessors: Collection<Identifiable>, min: Int, max: Int)
         : super(ownerModel, predecessors, max, min)
 

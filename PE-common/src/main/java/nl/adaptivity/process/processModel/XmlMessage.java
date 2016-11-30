@@ -30,6 +30,7 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +89,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
 
   @NotNull
+  @Contract("null -> null")
   public static XmlMessage get(final IXmlMessage message) {
     if (message==null) { return null; }
     if (message instanceof XmlMessage) { return (XmlMessage) message; }

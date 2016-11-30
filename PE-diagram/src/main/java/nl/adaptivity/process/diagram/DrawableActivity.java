@@ -179,7 +179,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   }
 
   public boolean isUserTask() {
-    XmlMessage message = getMessage();
+    XmlMessage message = XmlMessage.get(getMessage());
     return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.getEndpointDescriptor());
   }
 

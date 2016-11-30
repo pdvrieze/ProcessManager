@@ -32,10 +32,10 @@ import java.sql.SQLException
 class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
 
-  private var condition: ExecutableCondition?
+  private var _condition: ExecutableCondition?
 
   constructor(ownerModel: ExecutableProcessModel, condition: ExecutableCondition? = null) : super(ownerModel) {
-    this.condition = condition
+    this._condition = condition
   }
 
   /**
@@ -45,42 +45,41 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
    * @param predecessor The process node that starts immediately precedes this
    * *          activity.
    */
-  constructor(ownerModel: ExecutableProcessModel, predecessor: ExecutableProcessNode): this(ownerModel) {
-    setPredecessor(predecessor)
+  @Deprecated("Don't use")
+  constructor(ownerModel: ExecutableProcessModel, predecessor: ExecutableProcessNode?): this(ownerModel) {
+    setPredecessors(listOfNotNull(predecessor))
   }
 
-  constructor(orig: Activity<*,*>): super(orig) {
-    condition = orig.getCondition()?.let { ExecutableCondition(it) }
+  constructor(orig: Activity<*, *>, newOwner: ExecutableProcessModel?): super(orig, newOwner) {
+    _condition = orig.condition?.let { ExecutableCondition(it) }
   }
 
   /**
    * Determine whether the process can start.
    */
   override fun <T : ProcessTransaction> condition(transaction: T, instance: IExecutableProcessNodeInstance<*>): Boolean {
-    return condition?.run { eval(transaction, instance) } ?: true
+    return _condition?.run { eval(transaction, instance) } ?: true
   }
 
-  override fun getCondition(): String? {
-    return condition?.condition
-  }
-
-  override fun setCondition(condition: String?) {
-    this.condition = condition?.let { ExecutableCondition(it) }
-  }
+  override var condition: String?
+    get() = _condition?.condition
+    set(value) {
+      _condition = condition?.let { ExecutableCondition(it) }
+    }
 
   /**
    * This will actually take the message element, and send it through the
    * message service.
    *
    * @param transaction
-   * *
+   *
    * @param messageService The message service to use to send the message.
-   * *
+   *
    * @param instance The processInstance that represents the actual activity
-   * *          instance that the message responds to.
-   * *
+   *           instance that the message responds to.
+   *
    * @throws SQLException
-   * *
+   *
    * @todo handle imports.
    */
   @Throws(SQLException::class)
@@ -125,12 +124,12 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {
-    out.writeChild(condition)
+    out.writeChild(_condition)
   }
 
   @Throws(XmlException::class)
-  override fun deserializeCondition(`in`: XmlReader) {
-    condition = ExecutableCondition.deserialize(`in`)
+  override fun deserializeCondition(reader: XmlReader) {
+    _condition = ExecutableCondition.deserialize(reader)
   }
 
   companion object {

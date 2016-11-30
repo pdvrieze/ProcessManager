@@ -16,20 +16,28 @@
 
 package nl.adaptivity.process.processModel
 
+import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.util.Identifiable
 
-interface JoinSplit<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
+import javax.xml.namespace.QName
+
+
+interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
-
-    override fun build(newOwner: M): JoinSplit<T, M>
-
-    var min:Int
-    var max:Int
-
+    override fun build(newOwner: M): EndNode<T, M>
+    var predecessor: Identifiable?
   }
 
-  var min: Int
+  fun setDefines(exports: Collection<@JvmWildcard IXmlDefineType>)
 
-  var max: Int
+  var predecessor: Identifiable?
+
+  companion object {
+
+    const val ELEMENTLOCALNAME = "end"
+    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+
+  }
 
 }

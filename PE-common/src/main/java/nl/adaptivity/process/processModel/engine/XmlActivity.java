@@ -68,8 +68,11 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> 
    */
   public XmlActivity(final ProcessModelImpl ownerModel) {super(ownerModel);}
 
-  public XmlActivity(final Activity<?, ?> orig) {
-    super(orig);
+  @Deprecated
+  public XmlActivity(final Activity<?,?> orig) { this(orig, null); }
+
+  public XmlActivity(final Activity<?, ?> orig, ProcessModelImpl newOwner) {
+    super(orig, newOwner);
   }
 
   @Override

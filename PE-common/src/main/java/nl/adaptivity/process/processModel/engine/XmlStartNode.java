@@ -50,7 +50,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
     }
   }
 
-  public XmlStartNode(@NotNull final ProcessNode<?, ?> orig, @Nullable final ProcessModelImpl newOwnerModel) {
+  public XmlStartNode(@NotNull final StartNode<?, ?> orig, @Nullable final ProcessModelImpl newOwnerModel) {
     super(orig, newOwnerModel);
   }
 

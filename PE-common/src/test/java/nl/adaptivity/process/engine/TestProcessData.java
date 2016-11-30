@@ -210,7 +210,7 @@ public class TestProcessData {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
     final ProcessModelImpl pm         = getProcessModel("testModel2.xml");
     XmlActivity            ac2        = (XmlActivity) pm.getNode("ac2");
-    String                 serialized = XmlUtil.toString(ac2.getMessage());
+    String                 serialized = XmlUtil.toString(XmlMessage.get(ac2.getMessage()));
     XmlMessage             msg2       = XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
     assertEquals(msg2.getMessageBody().getContentString(), ac2.getMessage().getMessageBody().getContentString());
     assertEquals(msg2, ac2.getMessage());

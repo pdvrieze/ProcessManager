@@ -40,7 +40,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   protected ClientStartNode(final ClientStartNode<T, M> orig, final boolean compat) {
-    super(orig);
+    super(orig, null);
     mCompat = compat;
   }
 
