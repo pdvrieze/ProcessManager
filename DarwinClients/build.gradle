@@ -35,7 +35,6 @@ configurations {
 sourceSets {
     main {
         java {
-            srcDir 'src'
             srcDir genDir
         }
     }

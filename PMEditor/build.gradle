@@ -56,14 +56,14 @@ dependencies {
 }
 
 ext {
-    if (!has('androidCompatVersion')) {
+    if (!rootProject.hasProperty('androidCompatVersion')) {
         androidCompatVersion = '24.2.1'
     }
-    if (!has('androidPluginVersion')) {
-        androidPluginVersion = '2.2.1'
+    if (!rootProject.hasProperty('androidPluginVersion')) {
+        androidPluginVersion = '2.2.2'
     }
-    if (!has('androidBuildToolsVersion')) {
-        androidBuildToolsVersion = '24.0.2'
+    if (!rootProject.hasProperty('androidBuildToolsVersion')) {
+        androidBuildToolsVersion = '25.0.0'
     }
 }
 
