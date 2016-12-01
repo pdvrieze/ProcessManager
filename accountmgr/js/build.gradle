@@ -63,3 +63,6 @@ idea {
 //        name="accountmgrjs"
     }
 }
+
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion

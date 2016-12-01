@@ -30,3 +30,6 @@ dependencies {
 test {
     useTestNG()
 }
+
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion

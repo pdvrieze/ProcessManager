@@ -84,3 +84,5 @@ idea {
     }
 }
 
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion
