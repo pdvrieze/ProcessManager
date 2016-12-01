@@ -27,8 +27,8 @@ dependencies {
     testCompile 'mysql:mysql-connector-java:5.1.36'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion
 
 
 test {

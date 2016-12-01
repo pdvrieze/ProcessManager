@@ -90,7 +90,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   public EditableUserTask getUserTask() {
-    final XmlMessage message = getMessage();
+    final XmlMessage message = XmlMessage.get(getMessage());
     if (message!=null && UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
             UserTaskServiceDescriptor.ENDPOINT.equals(message.getEndpoint())) {
       try {
@@ -129,7 +129,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     if (getMessage()==null) {
       dest.writeString("");
     } else {
-      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(getMessage()));
+      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(XmlMessage.get(getMessage())));
     }
 
     writeDefines(dest);

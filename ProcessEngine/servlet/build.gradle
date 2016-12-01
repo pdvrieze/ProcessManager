@@ -74,8 +74,8 @@ artifacts {
     codeGen jar
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion
 
 //webAppDirName = 'src/main/webapp'
 

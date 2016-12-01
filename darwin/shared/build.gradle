@@ -23,8 +23,8 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx.html.jvm:$kotlinx_html_version"
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion
 
 //compileKotlin2Js {
 //    kotlinOptions.metaInfo = true

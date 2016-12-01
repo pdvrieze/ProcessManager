@@ -30,8 +30,8 @@ version = '1.0.0'
 description = 'The service that handles tasks for users (and functions as web interface entry point'
 //group = ['service', 'server']
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion
 
 def wsDestDir = file("${buildDir}/docs/wsDoc")
 

@@ -29,5 +29,5 @@ dependencies {
     testCompile 'org.testng:testng:6.9.13.8'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion

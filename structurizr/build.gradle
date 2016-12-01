@@ -42,8 +42,8 @@ dependencies {
 
 mainClassName='uk.ac.bournemouth.darwin.architecture.StructurizrKt'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = myJavaVersion
+targetCompatibility = myJavaVersion
 
 run {
     args "10541", structurizrWs1ApikeyProp, structurizrWs1ApisecretProp
