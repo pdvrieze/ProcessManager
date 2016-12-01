@@ -53,7 +53,7 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
   @Override
   IdentifyableSet<? extends Identifiable> getSuccessors();
 
-  void setOwnerModel(M owner);
+  void setOwnerModel(@Nullable M owner);
 
   void setId(String id);
 

@@ -89,10 +89,6 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       notifyChange()
     }
 
-  init {
-    _ownerModel?.addNode(this.asT())
-  }
-
   /**
    * Copy constructor
    * @param orig Original
@@ -183,7 +179,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       if (predId is MutableProcessNode<*, *>) {
         node = predId
       } else if (ownerModel != null) {
-        node = ownerModel.getNode(predId) as MutableProcessNode<*, *>
+        node = ownerModel.getNode(predId) as? MutableProcessNode<*, *>
       }
       if (node != null) {
         node.addSuccessor(this)
@@ -379,7 +375,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       this===pred ||
           id == pred.id ||
           (pred is ProcessNode<*,*> && isPredecessorOf(pred as T)) ||
-          _ownerModel?.let { isPredecessorOf(it.getNode(pred)) }?: false
+          _ownerModel?.getNode(pred)?.let { node-> isPredecessorOf(node) }?: false
     }
   }
 
@@ -491,25 +487,19 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
         }
       }
     }
-    val result = StringBuilder()
-    result.append(name).append('(')
-    if (mId != null) {
-      result.append(" id=\'").append(mId).append('\'')
-    }
-    if (_predecessors != null && _predecessors.size > 0) {
-      result.append(" pred=\'")
-      val predIt = _predecessors.iterator()
-      result.append(predIt.next().id)
-      while (predIt.hasNext()) {
-        result.append(", ").append(predIt.next().id)
+    return buildString {
+      append(name).append('(')
+      mId?.let { id -> append(" id='${id}'") }
+
+      if (_predecessors.size > 0) {
+        _predecessors.joinTo(this, ", ", " pred='", "'") { it.id }
       }
-      result.append('\'')
+
+      _ownerModel?.name?.let { name ->
+        if (! name.isEmpty()) append(" owner='${name}'")
+      }
+      append(" )")
     }
-    if (_ownerModel != null && _ownerModel!!.name != null && _ownerModel!!.name.length > 0) {
-      result.append(" owner='").append(_ownerModel!!.name).append('\'')
-    }
-    result.append(" )")
-    return result.toString()
   }
 
   companion object {

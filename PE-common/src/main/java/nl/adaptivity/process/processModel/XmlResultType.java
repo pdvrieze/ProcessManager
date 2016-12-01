@@ -85,7 +85,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
-  public static XmlResultType get(IXmlResultType pImport) {
+  @NotNull
+  public static XmlResultType get(@NotNull IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
     return new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getOriginalNSContext());
   }

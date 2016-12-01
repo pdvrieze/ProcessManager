@@ -172,7 +172,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     val finishedNodes = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
 
     val nodes = builder.children
-          .map { data.nodeInstances[it].mustExist(it).withPermission() }
+          .map { data.nodeInstance(it).withPermission() }
 
     nodes.forEach { instance ->
       if (instance is JoinInstance) {
@@ -286,12 +286,12 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   @Synchronized @Throws(SQLException::class)
   fun getNodeInstance(transaction: ProcessTransaction, identifiable: Identifiable): ProcessNodeInstance? {
     return children.map { handle ->
-      val nodeInstances = transaction.readableEngineData.nodeInstances
-      val instance = nodeInstances[handle].mustExist(handle).withPermission()
+      val data = transaction.readableEngineData
+      val instance = data.nodeInstance(handle).withPermission()
       if (identifiable.id == instance.node.id) {
         instance
       } else {
-        instance.getPredecessor(transaction, identifiable.id)?.let { nodeInstances[it].mustExist(it).withPermission() }
+        instance.getPredecessor(transaction, identifiable.id)?.let { data.nodeInstance(it).withPermission() }
       }
     }.filterNotNull().firstOrNull()
   }
@@ -340,7 +340,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
               inputs.addAll(processModel.toInputs(payload))
             }.apply {
         active.asSequence()
-              .map { engineData.nodeInstances[it].mustExist(it).withPermission() }
+              .map { engineData.nodeInstance(it).withPermission() }
               .filter { !it.state.isFinal }
               .forEach { it.provideTask(transaction, messageService) }
 
@@ -422,15 +422,15 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     val startedTasks = ArrayList<ProcessNodeInstance>(predecessor.node.successors.size)
     val joinsToEvaluate = ArrayList<JoinInstance>()
 
-    val nodeInstances = transaction.writableEngineData.nodeInstances
+    val data = transaction.writableEngineData
     val self = update(transaction) {
       predecessor.node.successors.asSequence()
             .map { successorId ->
-              val pni = createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorId))
-              Handles.handle(nodeInstances.put(pni))
+              val pni = createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorId)?: throw ProcessException("Missing node ${successorId} in process model"))
+              Handles.handle(data.nodeInstances.put(pni))
             }.forEach { instanceHandle ->
         run {
-          nodeInstances[instanceHandle].mustExist(instanceHandle).withPermission()
+          data.nodeInstance(instanceHandle).withPermission()
         }.let { instance ->
           children.add(instanceHandle)
           if (instance is JoinInstance) {
@@ -464,7 +464,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   }
 
   @Synchronized @Throws(SQLException::class)
-  @Deprecated("Not needed", ReplaceWith("node.failTask<*>(transaction, cause, messageService)"))
+  @Deprecated("Not needed", ReplaceWith("node.failTask<*>(transaction, cause)"))
   fun failTask(transaction: ProcessTransaction,
                messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
                node: ProcessNodeInstance,
@@ -473,7 +473,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   }
 
   @Synchronized @Throws(SQLException::class)
-  @Deprecated("Not needed", ReplaceWith("node.cancelTask<*>(transaction, messageService)"))
+  @Deprecated("Not needed", ReplaceWith("node.cancelTask<*>(transaction)"))
   fun cancelTask(transaction: ProcessTransaction,
                  messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
                  node: ProcessNodeInstance) {
@@ -483,7 +483,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   @Synchronized @Throws(SQLException::class)
   fun getActivePredecessorsFor(transaction: ProcessTransaction, join: ExecutableJoin): Collection<ProcessNodeInstance> {
     return active.asSequence()
-          .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+          .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
           .filter { it.node.isPredecessorOf(join) }
           .toList()
   }
@@ -505,15 +505,15 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
             }
       for (hnode in candidate.directPredecessors) {
         // Use the fact that we start with a proper node to get the engine and get the actual node based on the handle (which might be a node itself)
-        val node = transaction.readableEngineData.nodeInstances[hnode].mustExist(hnode).withPermission()
+        val node = transaction.readableEngineData.nodeInstance(hnode).withPermission()
         addDirectSuccessor(node, predecessor)
       }
     }
 
 
-    val nodeInstances = transaction.readableEngineData.nodeInstances
+    val data = transaction.readableEngineData
     active.asSequence()
-          .map { nodeInstances[it].mustExist(it).withPermission() }
+          .map { data.nodeInstance(it).withPermission() }
           .forEach { addDirectSuccessor(it, predecessor.handle) }
 
     return result
@@ -554,7 +554,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   @Throws(XmlException::class, SQLException::class)
   private fun XmlWriter.writeActiveNodeRef(transaction: ProcessTransaction, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance>>) {
 
-    val nodeInstance = transaction.readableEngineData.nodeInstances[handleNodeInstance].mustExist(handleNodeInstance).withPermission()
+    val nodeInstance = transaction.readableEngineData.nodeInstance(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)
     }
@@ -562,7 +562,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
   @Throws(XmlException::class, SQLException::class)
   private fun XmlWriter.writeResultNodeRef(transaction: ProcessTransaction, handleNodeInstance: Handle<out SecureObject<ProcessNodeInstance>>) {
-    val nodeInstance = transaction.readableEngineData.nodeInstances[handleNodeInstance].mustExist(handleNodeInstance).withPermission()
+    val nodeInstance = transaction.readableEngineData.nodeInstance(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)
 
@@ -596,7 +596,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       try {
         transaction.writableEngineData.run {
           invalidateCachePNI(handle)
-          val instance = nodeInstances[handle].mustExist(handle).withPermission()
+          val instance = nodeInstance(handle).withPermission()
           tickePredecessors(instance)
           val instanceState = instance.state
           if (instanceState.isFinal) {

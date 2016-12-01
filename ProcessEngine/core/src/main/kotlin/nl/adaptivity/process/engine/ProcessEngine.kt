@@ -250,7 +250,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
         basepm.owner.let { baseOwner ->
           mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
-        } ?: user.apply { basepm.setOwner(this) }
+        } ?: user.apply { basepm.owner=this }
 
         val pm = ExecutableProcessModel.from(basepm)
 
@@ -277,7 +277,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         ProcessModelImpl(processModel).run {
           normalize(XmlProcessNodeBase.XmlSplitFactory())
           if (uuid == null) {
-            uuid = UUID.randomUUID()
+            setUuid(UUID.randomUUID())
             ExecutableProcessModel(this).apply {
               processModels[handle] = this
             }
@@ -302,7 +302,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     engineData.inWriteTransaction(user, mSecurityProvider.ensurePermission(Permissions.FIND_MODEL, user)) {
       processModels[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.RENAME, user) { pm->
         mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, user, pm)
-        pm.name = newName
+        pm.setName(newName)
         processModels[handle]= pm // set it to ensure update on the database
       }
     }
@@ -319,7 +319,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
       mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
 
       if (processModel.owner == SecurityProvider.SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
-        processModel.setOwner(oldModel.owner)
+        processModel.owner=oldModel.owner
       } else if (oldModel.owner.name != processModel.owner.name) {
         mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
       }
@@ -448,7 +448,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     engineData.inWriteTransaction(transaction) {
       val resultHandle = instances.put(instance)
-      instances[resultHandle].mustExist(resultHandle).withPermission().let { instance ->
+      instance(resultHandle).withPermission().let { instance ->
         assert(instance.handle.handleValue==resultHandle.handleValue)
         instance.initialize(transaction)
       }.let { instance ->
@@ -597,19 +597,19 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
 
-        val pi = instances[task.hProcessInstance].mustExist(task.hProcessInstance).withPermission()
+        val pi = instance(task.hProcessInstance).withPermission()
 
         synchronized(pi) { // XXX Should not be needed if pi is immutable
           when (newState) {
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
             Acknowledged -> return task.update(transaction) { state = newState }.state // Record the state, do nothing else.
-            Taken        -> pi.takeTask(transaction, messageService, task)
-            Started      -> pi.startTask(transaction, messageService, task)
+            Taken        -> task.takeTask(transaction, messageService)
+            Started      -> task.startTask(transaction, messageService)
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
           // TODO don't just make up a failure cause
-            Failed       -> pi.failTask(transaction, messageService, task, IllegalArgumentException("Missing failure cause"))
-            Cancelled -> pi.cancelTask(transaction, messageService, task)
-            else                                             -> throw IllegalArgumentException("Unsupported state :" + newState)
+            Failed       -> task.failTask(transaction, IllegalArgumentException("Missing failure cause"))
+            Cancelled    -> task.cancelTask(transaction)
+            else         -> throw IllegalArgumentException("Unsupported state :" + newState)
           }
           return task.state
         }
@@ -621,7 +621,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   fun finishTask(transaction: TRXXX, handle: Handle<out SecureObject<ProcessNodeInstance>>, payload: Node?, user: Principal): ProcessNodeInstance {
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
-        val pi = instances[task.hProcessInstance].mustExist(task.hProcessInstance).withPermission()
+        val pi = instance(task.hProcessInstance).withPermission()
         try {
           synchronized(pi) {
             return pi.finishTask(transaction, messageService, task, payload)

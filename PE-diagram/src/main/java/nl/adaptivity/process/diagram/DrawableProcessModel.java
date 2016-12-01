@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.diagram;
 
+import kotlin.jvm.functions.Function2;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
@@ -93,9 +94,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double JOINHEIGHT=JOINWIDTH;
   public static final double DEFAULT_HORIZ_SEPARATION = 40d;
   public static final double DEFAULT_VERT_SEPARATION = 30d;
-  private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
   public static final double DIAGRAMTEXT_SIZE = JOINHEIGHT/2.4d; // 10dp
   public static final double DIAGRAMLABEL_SIZE = DIAGRAMTEXT_SIZE*1.1; // 11dp
+
+  private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
 
   private ItemCache mItems = new ItemCache();
   private Rectangle mBounds = new Rectangle(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
@@ -103,16 +105,23 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private int idSeq=0;
   private boolean mFavourite;
 
+  private static Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> DRAWABLE_NODE_FACTORY = new Function2<DrawableProcessModel, ProcessNode<?, ?>, DrawableProcessNode>() {
+    @Override
+    public DrawableProcessNode invoke(final DrawableProcessModel drawableProcessModel, final ProcessNode<?, ?> processNode) {
+      return toDrawableNode(processNode);
+    }
+  };
+
   private DrawableProcessModel() {
-    super();
+    super(DRAWABLE_NODE_FACTORY);
   }
 
   public DrawableProcessModel(final ProcessModel<?, ?> original) {
-    this(original, null);
+    this(original, null, DRAWABLE_NODE_FACTORY);
   }
 
-  public DrawableProcessModel(final ProcessModel<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
-    super(original.getUuid(), original.getName(), cloneNodes(original), layoutAlgorithm);
+  public DrawableProcessModel(final ProcessModel<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm, final Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> nodeFactory) {
+    super(original.getUuid(), original.getName(), cloneNodes(original), layoutAlgorithm, nodeFactory);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -136,7 +145,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @NotNull
   public static DrawableProcessModel deserialize(@NotNull final Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return (DrawableProcessModel) ProcessModelBase.deserialize(factory, new DrawableProcessModel(), in).normalize(factory);
+    return (DrawableProcessModel) ProcessModelBase.Companion.deserialize(factory, new DrawableProcessModel(), in).normalize(factory);
   }
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?,?>, ?> original) {
@@ -168,7 +177,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   public DrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
-    super(uuid, name, nodes, layoutAlgorithm);
+    super(uuid, name, nodes, layoutAlgorithm, DRAWABLE_NODE_FACTORY);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);

@@ -21,10 +21,7 @@ import net.devrieze.util.Handles
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
-import nl.adaptivity.process.engine.ProcessDBTransaction
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
@@ -69,7 +66,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
     val processInstance = processEngine.getProcessInstance(transaction, pihandle, SecurityProvider.SYSTEMPRINCIPAL)
 
-    val node = processInstance.processModel.getNode(nodeId)
+    val node = processInstance.processModel.requireNode(nodeId)
 
     val predecessors = ProcessEngineDB
           .SELECT(tbl_pred.predecessor)

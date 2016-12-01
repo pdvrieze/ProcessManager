@@ -23,7 +23,6 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel.Factory
 import nl.adaptivity.xml.XmlStreaming
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import uk.ac.bournemouth.kotlinsql.Column
@@ -53,13 +52,13 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     return pm.model.value(columns, values)
           ?.let { ExecutableProcessModel.deserialize(XmlStreaming.newReader(StringReader(it)))}
           ?.apply {
-      handleValue = handle
+            setHandleValue(handle)
       cacheStrings(stringCache)
-      if (this.owner==SecurityProvider.SYSTEMPRINCIPAL) { this.setOwner(owner) }
+      if (this.owner==SecurityProvider.SYSTEMPRINCIPAL && owner !=null) { this.owner = owner }
 
     } ?: ExecutableProcessModel(emptyList()).apply {
-      this.setOwner(owner)
-      handleValue = handle
+      this.owner = owner ?: SecurityProvider.SYSTEMPRINCIPAL
+      setHandleValue(handle)
     }
   }
 

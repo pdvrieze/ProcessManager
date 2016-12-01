@@ -22,11 +22,22 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.MutableProcessNode
+import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identifier
 import java.io.FileNotFoundException
 
 /**
  * Utilities for handling process things
  */
+
+fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw ProcessException("The node with id ${id} is missing")
+
+inline fun <N: ProcessNode<*,*>> N?.mustExist(id:String): N = mustExist(Identifier(id))
+
+fun <T: ProcessNode<T, *>> ProcessModel<T,*>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
+
+inline fun <T: ProcessNode<T, *>> ProcessModel<T,*>.requireNode(id:String):T = requireNode(Identifier(id))
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
@@ -43,14 +54,14 @@ fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.mustExist(handle: Handle<o
 fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.shouldExist(handle: Handle<out ProcessNodeInstance>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
- * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * Verify that the object instance exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
 fun <N:SecureObject<V>, V:Any> N?.mustExist(handle: Handle<out SecureObject<V>>): N = this ?: throw IllegalStateException("Process engine element missing: $handle")
 
 /**
- * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * Verify that the object exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */

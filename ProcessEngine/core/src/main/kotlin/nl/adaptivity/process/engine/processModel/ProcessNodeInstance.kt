@@ -200,7 +200,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   @Throws(SQLException::class)
   fun resolvePredecessors(transaction: ProcessTransaction): Collection<ProcessNodeInstance> {
     return directPredecessors.asSequence().map {
-            transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission()
+            transaction.readableEngineData.nodeInstance(it).withPermission()
           }.toList()
   }
 
@@ -209,7 +209,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     directPredecessors
           .asSequence()
-          .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+          .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
           .forEach {
             if (nodeName == it.node.id) {
               return it.handle
@@ -265,7 +265,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     val startNext = node.startTask(messageService, this)
     val updatedInstance = update(transaction) { state = NodeInstanceState.Started }
     return if (startNext) {
-      val pi = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+      val pi = transaction.readableEngineData.instance(hProcessInstance).withPermission()
       pi.finishTask(transaction, messageService, updatedInstance, null)
     }else updatedInstance
   }
@@ -403,10 +403,8 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
       val nodeInstance = XmlProcessNodeInstance.deserialize(xmlReader)
       val instance = transaction.readableEngineData.instance(Handles.handle(nodeInstance.processInstance)).withPermission()
-      return ProcessNodeInstance(transaction,
-           instance.processModel.getNode(nodeInstance.nodeId?: throw NullPointerException("Missing node id")),
-           instance,
-           nodeInstance.state ?: throw NullPointerException("Missing state"))
+      val processNode = instance.processModel.getNode(nodeInstance.nodeId ?: throw NullPointerException("Missing node id"))?: throw ProcessException("Missing node in process model")
+      return ProcessNodeInstance(transaction, processNode, instance, nodeInstance.state ?: throw NullPointerException("Missing state"))
     }
 
     private val logger by lazy { Logger.getLogger(ProcessNodeInstance::class.java.getName()) }

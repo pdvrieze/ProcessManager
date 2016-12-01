@@ -179,7 +179,7 @@ class JoinInstance : ProcessNodeInstance {
     }
 
     if (complete >= join.min) {
-      val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+      val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
       if (complete >= join.max || processInstance.getActivePredecessorsFor(transaction, join).isEmpty()) {
         return next()
       }
@@ -189,7 +189,7 @@ class JoinInstance : ProcessNodeInstance {
 
   @Throws(SQLException::class)
   private fun cancelNoncompletedPredecessors(transaction: ProcessTransaction) {
-    val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+    val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     val preds = processInstance.getActivePredecessorsFor(transaction, node)
     for (pred in preds) {
       pred.tryCancelTask(transaction)
@@ -201,11 +201,11 @@ class JoinInstance : ProcessNodeInstance {
     if (!isFinished) {
       val shouldProgress = node.provideTask(transaction, messageService, this)
       if (shouldProgress) {
-        val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+        val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
         val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
         val canAdd = directSuccessors
               .asSequence()
-              .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+              .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
               .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
         if (canAdd) {
           return updateJoin(transaction) { state = NodeInstanceState.Sent }.takeTask(transaction, messageService)
@@ -226,10 +226,10 @@ class JoinInstance : ProcessNodeInstance {
 
     directPredecessors
           .forEach { missingIdentifiers
-                .remove(data.nodeInstances[it].mustExist(it).withPermission().node) }
+                .remove(data.nodeInstance(it).withPermission().node) }
 
     return updateJoin(transaction) {
-      val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+      val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
       missingIdentifiers.asSequence()
             .mapNotNull { processInstance.getNodeInstance(transaction, it) }
             .forEach { predecessors.add(it.handle) }
@@ -249,11 +249,11 @@ class JoinInstance : ProcessNodeInstance {
     if (!isFinished) {
       return true
     }
-    val processInstance = transaction.readableEngineData.instances[hProcessInstance].mustExist(hProcessInstance).withPermission()
+    val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
 
     return directSuccessors.asSequence()
-          .map { transaction.readableEngineData.nodeInstances[it].mustExist(it).withPermission() }
+          .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
           .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
 
   }

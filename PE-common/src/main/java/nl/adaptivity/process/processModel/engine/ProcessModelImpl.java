@@ -16,10 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine;
 
+import kotlin.jvm.functions.Function2;
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.MutableHandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
@@ -95,46 +97,58 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
    *
    */
   public ProcessModelImpl(final Collection<? extends XmlProcessNode> processNodes) {
-    super(new ArrayList<>(processNodes));
+    super(new ArrayList<>(processNodes), null, -1L, SecurityProvider.SYSTEMPRINCIPAL, Collections.<String>emptyList(), null, Collections.<IXmlResultType>emptyList(), Collections.<IXmlDefineType>emptyList(), XML_NODE_FACTORY);
   }
 
+  private static final Function2<ProcessModelImpl, ProcessNode<?, ?>, XmlProcessNode> XML_NODE_FACTORY = new Function2<ProcessModelImpl, ProcessNode<?, ?>, XmlProcessNode>() {
+    @Override
+    public XmlProcessNode invoke(final ProcessModelImpl newOwner, final ProcessNode<?, ?> processNode) {
+      return toXmlNode(newOwner, processNode);
+    }
+  };
+
   public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
-    super(basepm, toXmlNodes(basepm.getModelNodes()));
+    super(basepm, XML_NODE_FACTORY);
   }
 
   private static Collection<? extends XmlProcessNode> toXmlNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
     List<XmlProcessNode> result = new ArrayList<>(modelNodes.size());
+    final ProcessModelImpl newOwner = null;
 
     for(ProcessNode<?, ?> node: modelNodes) {
-      result.add(node.visit(new Visitor<XmlProcessNode>() {
-        @Override
-        public XmlStartNode visitStartNode(final StartNode<?, ?> startNode) {
-          return new XmlStartNode(startNode);
-        }
-
-        @Override
-        public XmlActivity visitActivity(final Activity<?, ?> activity) {
-          return new XmlActivity(activity);
-        }
-
-        @Override
-        public XmlSplit visitSplit(final Split<?, ?> split) {
-          return new XmlSplit(split);
-        }
-
-        @Override
-        public XmlJoin visitJoin(final Join<?, ?> join) {
-          return new XmlJoin(join);
-        }
-
-        @Override
-        public XmlProcessNode visitEndNode(final EndNode<?, ?> endNode) {
-          return new XmlEndNode(endNode);
-        }
-      }));
+      result.add(toXmlNode(newOwner, node));
     }
 
     return result;
+  }
+
+  private static XmlProcessNode toXmlNode(final ProcessModelImpl newOwner, final ProcessNode<?, ?> node) {
+    return node.visit(new Visitor<XmlProcessNode>() {
+      @Override
+      public XmlStartNode visitStartNode(final StartNode<?, ?> startNode) {
+        return new XmlStartNode(startNode, newOwner);
+      }
+
+      @Override
+      public XmlActivity visitActivity(final Activity<?, ?> activity) {
+        return new XmlActivity(activity, newOwner);
+      }
+
+      @Override
+      public XmlSplit visitSplit(final Split<?, ?> split) {
+        return new XmlSplit(split, newOwner);
+      }
+
+      @Override
+      public XmlJoin visitJoin(final Join<?, ?> join) {
+        return new XmlJoin(join, newOwner);
+      }
+
+      @Override
+      public XmlProcessNode visitEndNode(final EndNode<?, ?> endNode) {
+        return new XmlEndNode(endNode, newOwner);
+      }
+    });
   }
 
   /**
@@ -173,7 +187,7 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
     @NotNull
     @Deprecated
   public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<XmlProcessNode>emptyList()), in);
+    return ProcessModelBase.Companion.deserialize(factory, new ProcessModelImpl(Collections.<XmlProcessNode>emptyList()), in);
   }
 
   /**

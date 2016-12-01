@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.util;
 
+import kotlin.sequences.Sequence;
 import net.devrieze.util.ReadMap;
 import nl.adaptivity.process.processModel.ProcessModelBase;
 import org.jetbrains.annotations.NotNull;
@@ -190,8 +191,13 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
       mStore = new ArrayList<>(initialcapacity);
     }
 
-    public BaseIdentifyableSet(@NotNull final Collection<? extends V> c) {
-      mStore = new ArrayList<>(c.size());
+    public BaseIdentifyableSet(@NotNull final Sequence<? extends V> c) {
+      mStore = new ArrayList<V>();
+      addAll(c);
+    }
+
+    public BaseIdentifyableSet(@NotNull final Iterable<? extends V> c) {
+      mStore = (c instanceof Collection) ? new ArrayList<V>(((Collection<? extends V>)c).size()) : new ArrayList<V>();
       addAll(c);
     }
 
@@ -590,7 +596,12 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
   }
 
   @NotNull
-  public static <V extends Identifiable> IdentifyableSet<V> processNodeSet(@NotNull final Collection<? extends V> collection) {
+  public static <V extends Identifiable> IdentifyableSet<V> processNodeSet(@NotNull final Sequence<? extends V> collection) {
+    return new BaseIdentifyableSet<>(collection);
+  }
+
+  @NotNull
+  public static <V extends Identifiable> IdentifyableSet<V> processNodeSet(@NotNull final Iterable<? extends V> collection) {
     return new BaseIdentifyableSet<>(collection);
   }
 
@@ -612,6 +623,26 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     }
   }
 
+  public static <V extends Identifiable> IdentifyableSet<V> processNodeSet(final int maxSize, @NotNull final Sequence<? extends V> elements) {
+    Iterator<? extends V> it = elements.iterator();
+    switch (maxSize) {
+      case 0:
+        if (it.hasNext()) { throw new IllegalArgumentException("More elements than allowed"); }
+        return IdentifyableSet.empty();
+      case 1: {
+        if (it.hasNext()) {
+          try {
+            return singleton(it.next());
+          } finally {
+            if (it.hasNext()) { throw new IllegalArgumentException("More elements than allowed"); }
+          }
+        } else { return singleton(); }
+      }
+      default:
+        return processNodeSet(elements);
+    }
+  }
+
   @Override
   public boolean containsKey(final String key) {
     return get(key) !=null;
@@ -625,6 +656,26 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
   @Nullable
   @Override
   public abstract IdentifyableSet<T> clone();
+
+  public boolean addAll(final Iterable<? extends T> c) {
+    boolean changed = false;
+    for (T e:c) {
+      if (add(e)) {
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  public boolean addAll(final Sequence<? extends T> sequence) {
+    boolean changed = false;
+    for (Iterator<? extends T> it = sequence.iterator(); it.hasNext();) {
+      if (add(it.next())) {
+        changed = true;
+      }
+    }
+    return changed;
+  }
 
   @Nullable
   public T get(@NotNull final Identifiable key) {

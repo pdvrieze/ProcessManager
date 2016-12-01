@@ -61,6 +61,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
     }
   }
 
+  @Deprecated
   public XmlJoin(final Join<?, ?> orig) {
     super(orig);
   }
@@ -80,6 +81,10 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
 
   public XmlJoin(final ProcessModelImpl ownerModel) {
     super(ownerModel);
+  }
+
+  public XmlJoin(@NotNull final Join<?, ?> orig, @Nullable final ProcessModelImpl newOwner) {
+    super(orig, newOwner);
   }
 
   public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {

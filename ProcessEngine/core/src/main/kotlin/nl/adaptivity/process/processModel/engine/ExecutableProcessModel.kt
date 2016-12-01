@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel.engine
 import net.devrieze.util.CollectionUtil
 import net.devrieze.util.MutableHandleAware
 import net.devrieze.util.StringCache
+import net.devrieze.util.lookup
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -81,16 +82,13 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
   @Volatile private var mEndNodeCount = -1
 
-  constructor(basepm: ProcessModelBase<*, *>) : super(basepm, toExecutableNodes(basepm.getModelNodes(), null)) {
-    // TODO make this work properly passing the model as owner
-  }
+  constructor(basepm: ProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
 
   /**
    * Create a new processModel based on the given nodes. These nodes should be complete
 
    */
-  constructor(processNodes: Collection<ExecutableProcessNode>) : super(processNodes) {
-  }
+  constructor(processNodes: Collection<ExecutableProcessNode>) : super(processNodes, nodeFactory = ::toExecutableProcessNode)
 
   /**
    * Ensure that the given node is owned by this model.
@@ -154,13 +152,13 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
   fun cacheStrings(stringCache: StringCache) {
     if (owner is SimplePrincipal) {
-      setOwner(SimplePrincipal(stringCache.lookup(owner.getName())))
+      owner = SimplePrincipal(stringCache.lookup(owner.getName()))
     } else if (_cls_darwin_principal != null) {
       if (_cls_darwin_principal!!.isInstance(owner)) {
         try {
-          val cacheStrings = _cls_darwin_principal!!.getMethod("cacheStrings", StringCache::class.java)
+          val cacheStrings = _cls_darwin_principal?.getMethod("cacheStrings", StringCache::class.java)
           if (cacheStrings != null) {
-            setOwner(cacheStrings.invoke(owner, stringCache) as Principal)
+            owner = cacheStrings.invoke(owner, stringCache) as Principal
           }
         } catch (e: Exception) {
           // Ignore
@@ -168,9 +166,9 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
       }
     }
-    name = stringCache.lookup(name)
+    setName(stringCache.lookup(name))
     val oldRoles = roles
-    if (oldRoles != null && oldRoles.size > 0) {
+    if (oldRoles.isNotEmpty()) {
       val newRoles = HashSet<String>(oldRoles.size + (oldRoles.size shr 1))
       for (role in oldRoles) {
         newRoles.add(stringCache.lookup(role))
@@ -185,7 +183,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
    * *
    * @return
    */
-  fun getNode(nodeId: String): ExecutableProcessNode {
+  fun getNode(nodeId: String): ExecutableProcessNode? {
     return getNode(Identifier(nodeId))
   }
 
@@ -262,20 +260,16 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
   }
 }
 
+fun toExecutableProcessNode(newOwner: ExecutableProcessModel, node: ProcessNode<*, *>): ExecutableProcessNode {
+  return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
+    override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode, newOwner)
 
-fun toExecutableNodes(modelNodes: Collection<ProcessNode<*, *>>, newOwner: ExecutableProcessModel?): Collection<ExecutableProcessNode> {
+    override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity, newOwner)
 
-  return modelNodes.map { node ->
-    node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
-      override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode, newOwner)
+    override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split, newOwner)
 
-      override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity, newOwner)
+    override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join, newOwner)
 
-      override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split, newOwner)
-
-      override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join, newOwner)
-
-      override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode, newOwner)
-    })
-  }
+    override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode, newOwner)
+  })
 }

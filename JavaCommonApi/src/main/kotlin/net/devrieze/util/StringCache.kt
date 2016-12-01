@@ -42,3 +42,7 @@ interface StringCache {
   }
 
 }
+
+
+@Suppress("NOTHING_TO_INLINE")
+inline fun StringCache.lookup(string: String?): String? = string?.let { lookup(it) }

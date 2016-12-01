@@ -160,8 +160,8 @@ public final class StringUtil {
    * @return The result of calling @{link #toString()} on the object.
    */
   @Nullable
-  @Contract(value="null -> null, !null -> !null", pure=true)
-  public static String toString(@Nullable final CharSequence obj) {
+  @Contract(value="null -> null; !null -> !null", pure=true)
+  public static String toString(final CharSequence obj) {
     return obj==null ? null : obj.toString();
   }
 
