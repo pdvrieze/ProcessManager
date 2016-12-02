@@ -43,7 +43,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
   }
 
-  private var buffer = arrayOfNulls<Any?>(Math.max(1,initCapacity))
+  private var buffer = arrayOfNulls<Any?>(Math.max(2,initCapacity))
   private var firstElemIdx =0
   private var nextElemIdx = 0
 
@@ -85,8 +85,8 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     if (contains(element)) { return false }
 
     val space = if (nextElemIdx < firstElemIdx) (nextElemIdx +buffer.size- firstElemIdx) else (nextElemIdx - firstElemIdx)
-    if (space + 1 >= buffer.size) {
-      reserve(space)
+    if (space + 2 >= buffer.size) {
+      reserve(space+2)
     }
     buffer[nextElemIdx] = element
     nextElemIdx = (nextElemIdx +1) %buffer.size
