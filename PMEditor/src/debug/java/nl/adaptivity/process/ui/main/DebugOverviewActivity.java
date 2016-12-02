@@ -30,7 +30,6 @@ import nl.adaptivity.process.editor.android.databinding.ActivityOverviewDebugBin
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.ProcessSyncManager;
-import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 import java.lang.ref.WeakReference;
@@ -67,7 +66,7 @@ public class DebugOverviewActivity extends OverviewActivity implements OnClickLi
 
     public MyRefreshHandler(final DebugOverviewActivity owner) {
       super(Looper.getMainLooper());
-      mOwner = new WeakReference<DebugOverviewActivity>(owner);
+      mOwner = new WeakReference<>(owner);
     }
 
     public void resume() {
@@ -84,16 +83,21 @@ public class DebugOverviewActivity extends OverviewActivity implements OnClickLi
     public void handleMessage(final Message msg) {
       if (mOwner.isEnqueued()) { mOwner.clear(); return; }
       DebugOverviewActivity owner = mOwner.get();
-      if (owner!=null && ! owner.isDestroyed()) {
+      if (owner!=null && ! owner.myIsDestroyed()) {
         owner.updateSyncStatus();
         sendEmptyMessageDelayed(1, 5000);// wait 5 seconds and send again
       }
     }
   }
 
+  private boolean myIsDestroyed() {
+    return mIsDestroyed;
+  }
+
   private MyRefreshHandler mRefreshHandler;
   private SyncStatusObserverData mProcessSyncObserverHandle;
   private SyncStatusObserverData mTaskSyncObserverHandle;
+  private boolean mIsDestroyed = true;
 
   private void updateSyncStatus() {
     ProcessSyncManager    syncManager     = getSyncManager();
@@ -125,6 +129,7 @@ public class DebugOverviewActivity extends OverviewActivity implements OnClickLi
     mTaskSyncObserverHandle = syncManager.addOnStatusChangeObserver(TaskProvider.AUTHORITY, mySyncObserver);
 //
 //    mRefreshHandler = new MyRefreshHandler(this);
+    mIsDestroyed = false;
   }
 
   @Override
@@ -141,6 +146,7 @@ public class DebugOverviewActivity extends OverviewActivity implements OnClickLi
 
   @Override
   protected void onDestroy() {
+    mIsDestroyed = true;
 //    mRefreshHandler.pause();
 //    mRefreshHandler = null;
 //

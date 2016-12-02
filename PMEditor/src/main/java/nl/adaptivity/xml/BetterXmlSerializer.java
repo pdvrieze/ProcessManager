@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Locale;
+
 
 public class BetterXmlSerializer implements XmlSerializer{
 
@@ -317,7 +319,7 @@ public class BetterXmlSerializer implements XmlSerializer{
                     : new OutputStreamWriter(os, encoding));
     this.encoding = encoding;
     if (encoding != null
-            && encoding.toLowerCase().startsWith("utf"))
+            && encoding.toLowerCase(Locale.ENGLISH).startsWith("utf"))
       unicode = true;
   }
 
@@ -329,7 +331,7 @@ public class BetterXmlSerializer implements XmlSerializer{
 
     if (encoding != null) {
       this.encoding = encoding;
-      if (encoding.toLowerCase().startsWith("utf"))
+      if (encoding.toLowerCase(Locale.ENGLISH).startsWith("utf"))
         unicode = true;
     }
 

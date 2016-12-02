@@ -138,7 +138,7 @@
                                 android:enabled="@{task.state.available}"
                                 app:iconSrc="@drawable/decorator_taskstate_accepted"
                                 tools:enabled="false"
-                                android:onClick="@{handler.onAcceptClick}"
+                                android:onClick="@{handler::onAcceptClick}"
                                 >
 
                             <TextView android:layout_width="match_parent"
@@ -156,7 +156,7 @@
                                 android:layout_height="48dp"
                                 android:id="@+id/btn_task_complete"
                                 android:enabled="@{task.completeable}"
-                                android:onClick="@{handler.onCompleteClick}"
+                                android:onClick="@{handler::onCompleteClick}"
                                 app:iconSrc="@drawable/decorator_taskstate_completed"
                                 >
 
@@ -174,7 +174,7 @@
                                 android:layout_height="48dp"
                                 android:id="@+id/btn_task_cancel"
                                 android:orientation="horizontal"
-                                android:onClick="@{handler.onCancelClick}"
+                                android:onClick="@{handler::onCancelClick}"
                                 app:iconSrc="@drawable/decorator_taskstate_cancelled"
                                 >
 

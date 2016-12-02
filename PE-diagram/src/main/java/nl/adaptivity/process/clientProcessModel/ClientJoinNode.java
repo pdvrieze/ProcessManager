@@ -34,6 +34,12 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
 
     private boolean compat;
 
+    public Builder() { }
+
+    public Builder(final boolean compat) {
+      this.compat = compat;
+    }
+
     public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
       super(predecessors, successors, id, label, x, y, defines, results, min, max);
       compat = false;

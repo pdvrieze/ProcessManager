@@ -23,6 +23,7 @@ import android.graphics.Paint.FontMetricsInt;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.Layout.Alignment;
 import android.text.*;
 import android.text.style.ReplacementSpan;
@@ -75,7 +76,7 @@ public class VariableSpan extends ReplacementSpan {
       mLayout = new StaticLayout(myText, 0, myText.length(), textPaint, mContext.getResources().getDisplayMetrics().widthPixels, Alignment.ALIGN_NORMAL, 1f, 0f, false);
     }
     if (mBorder==null && mBorderId!=0) {
-      mBorder = mContext.getDrawable(mBorderId);
+      mBorder = ResourcesCompat.getDrawable(mContext.getResources(), mBorderId, mContext.getTheme());
     }
     if (mBorder!=null) { mBorder.getPadding(mPadding); }
     final int textWidth = (int) Math.ceil(mLayout.getLineMax(0) + mPadding.left + mPadding.right + mExtraPadding*2);

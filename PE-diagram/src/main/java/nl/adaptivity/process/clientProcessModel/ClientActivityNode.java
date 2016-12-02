@@ -30,6 +30,12 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
   public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
 
+    public Builder() { }
+
+    public Builder(final boolean compat) {
+      this.compat = compat;
+    }
+
     public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name, final boolean compat) {
       super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
       this.compat = compat;

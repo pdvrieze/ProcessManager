@@ -21,4 +21,16 @@
         <item name="android:paddingEnd">@dimen/default_margin</item>
     </style>
 
+    <style name="TextAppearance.IconButton.Title" parent="TextAppearance.AppCompat.Large">
+        <item name="android:textAlignment">viewStart</item>
+    </style>
+
+    <style name="TextAppearance.IconButton.Subtitle" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:textAlignment">viewStart</item>
+    </style>
+
+    <style name="TextAppearance.IconButton.Label" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:textAlignment">viewStart</item>
+    </style>
+
 </resources>

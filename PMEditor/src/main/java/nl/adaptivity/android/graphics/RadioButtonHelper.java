@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.graphics;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.support.annotation.IdRes;
 import android.util.AttributeSet;
@@ -64,6 +65,7 @@ public class RadioButtonHelper extends FrameLayout {
     super(context, attrs, defStyleAttr);
   }
 
+  @TargetApi(21)
   public RadioButtonHelper(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
   }
@@ -102,7 +104,7 @@ public class RadioButtonHelper extends FrameLayout {
   @Override
   public void requestLayout() {
     // Just hook into this to find children
-    final ArrayList<RadioButton> newRadioChildren = new ArrayList<RadioButton>();
+    final ArrayList<RadioButton> newRadioChildren = new ArrayList<>();
     final int                    oldChecked       = mCheckedId;
     addRadioChildren(newRadioChildren, this);
     if (mRadioChildren!=null) {

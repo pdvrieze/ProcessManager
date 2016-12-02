@@ -25,6 +25,7 @@ import nl.adaptivity.process.processModel.Split.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,8 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
 public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, DrawableProcessModel> implements Split<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
  
   public static class Builder extends ClientSplitNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableJoinSplit.Builder {
+
+    public Builder() { }
 
     public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
       super(predecessors, successors, id, label, x, y, defines, results, min, max);
@@ -104,9 +107,15 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
+  @Deprecated
   @NotNull
   public static DrawableSplit deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableSplit>deserializeHelper(new DrawableSplit(ownerModel), in);
+  }
+
+  @NotNull
+  public static Builder deserialize(@NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new Builder(), in);
   }
 
   @Override

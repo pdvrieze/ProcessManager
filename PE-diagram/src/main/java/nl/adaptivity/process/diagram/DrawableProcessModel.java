@@ -38,6 +38,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   public static class Builder extends ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel> {
 
+    public Builder() {}
+
     public Builder(@NotNull final Set<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel>> nodes, @Nullable final String name, final long handle, @NotNull final Principal owner, @NotNull final List<String> roles, @Nullable final UUID uuid, @NotNull final List<IXmlResultType> imports, @NotNull final List<IXmlDefineType> exports, @NotNull final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
       super(nodes, name, handle, owner, roles, uuid, imports, exports, layoutAlgorithm);
     }
@@ -53,7 +55,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
   }
 
-  public static class Factory implements DeserializationFactory<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
+  public static class Factory implements DeserializationFactory2<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
 
     @Override
     public DrawableProcessModel deserialize(final XmlReader reader) throws XmlException {
@@ -61,33 +63,33 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableEndNode deserializeEndNode(final DrawableProcessModel ownerModel, final XmlReader in) throws
+    public DrawableEndNode.Builder deserializeEndNode(final XmlReader in) throws
             XmlException {
-      return DrawableEndNode.deserialize(ownerModel, in);
+      return DrawableEndNode.deserialize(in);
     }
 
     @Override
-    public DrawableActivity deserializeActivity(final DrawableProcessModel ownerModel, final XmlReader in) throws
+    public DrawableActivity.Builder deserializeActivity(final XmlReader in) throws
             XmlException {
-      return DrawableActivity.deserialize(ownerModel, in);
+      return DrawableActivity.deserialize(in);
     }
 
     @Override
-    public DrawableStartNode deserializeStartNode(final DrawableProcessModel ownerModel, final XmlReader in) throws
+    public DrawableStartNode.Builder deserializeStartNode(final XmlReader in) throws
             XmlException {
-      return DrawableStartNode.deserialize(ownerModel, in);
+      return DrawableStartNode.deserialize(in);
     }
 
     @Override
-    public DrawableJoin deserializeJoin(final DrawableProcessModel ownerModel, final XmlReader in) throws
+    public DrawableJoin.Builder deserializeJoin(final XmlReader in) throws
             XmlException {
-      return DrawableJoin.deserialize(ownerModel, in);
+      return DrawableJoin.deserialize(in);
     }
 
     @Override
-    public DrawableSplit deserializeSplit(final DrawableProcessModel ownerModel, final XmlReader in) throws
+    public DrawableSplit.Builder deserializeSplit(final XmlReader in) throws
             XmlException {
-      return DrawableSplit.deserialize(ownerModel, in);
+      return DrawableSplit.deserialize(in);
     }
 
     @Override
@@ -182,7 +184,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @NotNull
   public static DrawableProcessModel deserialize(@NotNull final Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return (DrawableProcessModel) ProcessModelBase.Companion.deserialize(factory, new DrawableProcessModel(), in).normalize(factory);
+    return ProcessModelBase.Companion.deserialize(factory, new Builder(), in);
   }
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?,?>, ?> original) {

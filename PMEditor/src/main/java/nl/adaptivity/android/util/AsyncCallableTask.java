@@ -31,10 +31,11 @@ public class AsyncCallableTask<T, C extends Callable<T>> extends AsyncTask<C, Vo
   private FutureTask<T> mFuture;
   private C mCallable;
 
+  @SafeVarargs
   @Override
-  protected Future<T> doInBackground(final C... params) {
+  protected final Future<T> doInBackground(final C... params) {
     mCallable = params[0];
-    mFuture = new FutureTask<T>(mCallable);
+    mFuture = new FutureTask<>(mCallable);
     mFuture.run(); // Run here
     return mFuture;
   }

@@ -23,6 +23,7 @@ import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,12 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode{
 
   public static class Builder extends ClientStartNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode.Builder {
+
+    public Builder() { }
+
+    public Builder(final boolean compat) {
+      super(compat);
+    }
 
     public Builder(@Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(successor, id, label, x, y, defines, results);
@@ -91,6 +98,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
+  @NotNull
+  public static Builder deserialize(@NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new Builder(true), in);
+  }
+
+  @Deprecated
   @NotNull
   public static DrawableStartNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableStartNode>deserializeHelper(new DrawableStartNode(ownerModel, true), in);

@@ -36,6 +36,8 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
   public static class Builder extends ClientEndNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode.Builder {
 
+    public Builder() {}
+
     public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(predecessor, id, label, x, y, defines, results);
     }
@@ -90,9 +92,15 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
+  @Deprecated
   @NotNull
   public static DrawableEndNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableEndNode>deserializeHelper(new DrawableEndNode(ownerModel), in);
+  }
+
+  @NotNull
+  public static DrawableEndNode.Builder deserialize(@NotNull final XmlReader in) throws XmlException {
+    return nl.adaptivity.xml.XmlUtil.<DrawableEndNode.Builder>deserializeHelper(new DrawableEndNode.Builder(), in);
   }
 
   @Override

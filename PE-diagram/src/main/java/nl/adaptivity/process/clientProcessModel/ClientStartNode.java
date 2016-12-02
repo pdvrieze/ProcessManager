@@ -31,6 +31,12 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
   public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends StartNodeBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
 
+    public Builder() { }
+
+    public Builder(final boolean compat) {
+      this.compat = compat;
+    }
+
     public Builder(@Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(successor, id, label, x, y, defines, results);
     }

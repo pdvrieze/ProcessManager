@@ -85,31 +85,31 @@
                     <TextView
                             style="@style/FabMenuItem"
                             android:text="@string/userTaskFabMenuLabel"
-                            android:onClick="@{handler.onFabMenuItemClicked}"
+                            android:onClick="@{handler::onFabMenuItemClicked}"
                             android:id="@+id/fabMenuLabel" />
 
                     <TextView
                             style="@style/FabMenuItem"
                             android:text="@string/userTaskFabMenuTextEntry"
-                            android:onClick="@{handler.onFabMenuItemClicked}"
+                            android:onClick="@{handler::onFabMenuItemClicked}"
                             android:id="@+id/fabMenuText" />
 
                     <TextView
                             style="@style/FabMenuItem"
                             android:text="@string/userTaskFabMenuList"
-                            android:onClick="@{handler.onFabMenuItemClicked}"
+                            android:onClick="@{handler::onFabMenuItemClicked}"
                             android:id="@+id/fabMenuList" />
 
                     <TextView
                             style="@style/FabMenuItem"
                             android:text="@string/userTaskFabMenuPassword"
-                            android:onClick="@{handler.onFabMenuItemClicked}"
+                            android:onClick="@{handler::onFabMenuItemClicked}"
                             android:id="@+id/fabMenuPassword" />
 
                     <TextView
                             style="@style/FabMenuItem"
                             android:text="@string/userTaskFabMenuOther"
-                            android:onClick="@{handler.onFabMenuItemClicked}"
+                            android:onClick="@{handler::onFabMenuItemClicked}"
                             android:id="@+id/fabMenuOther"
                             android:enabled="false" />
 

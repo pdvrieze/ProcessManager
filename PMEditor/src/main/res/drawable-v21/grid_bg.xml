@@ -16,7 +16,7 @@
   -->
 
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:drawable="@drawable/list_activated_holo" />
+    <item android:drawable="?android:attr/activatedBackgroundIndicator" />
     <item>
         <inset android:insetLeft="8dp"
                android:insetTop="8dp"

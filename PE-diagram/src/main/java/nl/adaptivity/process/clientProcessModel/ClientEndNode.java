@@ -31,6 +31,8 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
   public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends EndNodeBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
 
+    public Builder() {}
+
     public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(predecessor, id, label, x, y, defines, results);
     }

@@ -463,8 +463,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           mLayoutTask.postProgress(task);
           try {
             task.get();
-          } catch (ExecutionException e) { // ignore
-          } catch (InterruptedException e) { // ignore
+          } catch (ExecutionException | InterruptedException e) { // ignore
           }
         }
       }
@@ -739,7 +738,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     } else {
       mPmUri = getIntent().getData();
       if (mPmUri!=null) {
-        final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+        final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
         setPm(loadProcessModel(mPmUri, layoutAlgorithm, layoutAlgorithm));
       }
     }

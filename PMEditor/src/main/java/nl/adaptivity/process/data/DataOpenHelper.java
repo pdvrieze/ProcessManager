@@ -142,7 +142,7 @@ public class DataOpenHelper extends SQLiteOpenHelper {
       final String                               modelName       = mContext.getString(R.string.example_1_name);
       final ContentValues                        cv              = new ContentValues();
       final InputStream                          in              = mContext.getResources().openRawResource(R.raw.processmodel);
-      final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+      final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
       final DrawableProcessModel                 model           = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
       model.setName(modelName);
       final CharArrayWriter out = new CharArrayWriter();

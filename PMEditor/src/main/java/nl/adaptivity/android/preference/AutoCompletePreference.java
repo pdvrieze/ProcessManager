@@ -87,7 +87,7 @@ public class AutoCompletePreference extends DialogPreference {
 
     if (suggestionsId!=0) {
       final String[] candidates = context.getResources().getStringArray(suggestionsId);
-      mEditText.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, candidates));
+      mEditText.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, candidates));
     }
 
   }

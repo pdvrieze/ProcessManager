@@ -46,6 +46,8 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> : ProcessModelBase.Builder<T,M> {
     var  layoutAlgorithm: LayoutAlgorithm<T>
 
+    constructor(): this(nodes= mutableSetOf())
+
     constructor(
         nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
         name: String? = null,

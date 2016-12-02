@@ -88,6 +88,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     buildTypes {
         release {
 
@@ -95,7 +99,6 @@ android {
         debug {
             manifestPlaceholders = [ serverScheme:'http', serverHost:'10.0.2.2' ]
 //            applicationIdSuffix ".debug"
-            useJack false
 //            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                     'proguard-project.txt'

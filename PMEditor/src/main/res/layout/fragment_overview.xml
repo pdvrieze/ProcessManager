@@ -81,7 +81,7 @@
                             android:padding="8dp"
                             android:src="@drawable/ic_more_horiz_black_24dp"
                             android:contentDescription="@string/cdesc_show_all"
-                            android:onClick="@{fragment.onPendingTasksClicked}" />
+                            android:onClick="@{fragment::onPendingTasksClicked}" />
                 </LinearLayout>
 
                 <android.support.v4.widget.SwipeRefreshLayout android:layout_width="match_parent"
@@ -166,7 +166,7 @@
                             android:padding="8dp"
                             android:contentDescription="@string/cdesc_show_all"
                             android:src="@drawable/ic_more_horiz_black_24dp"
-                            android:onClick="@{fragment.onMoreModelsClicked}" />
+                            android:onClick="@{fragment::onMoreModelsClicked}" />
                 </LinearLayout>
 
                 <android.support.v4.widget.SwipeRefreshLayout android:layout_width="match_parent"

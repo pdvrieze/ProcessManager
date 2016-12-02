@@ -19,11 +19,14 @@ package nl.adaptivity.android.widget;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Dimension;
@@ -92,8 +95,12 @@ public class IconButton extends ViewGroup {
     }
   }
 
-  private static class Compat17 {
+  @TargetApi(17)
+  private static final class Compat17 {
 
+    public static int densityDpi(final Configuration configuration) {
+      return configuration.densityDpi;
+    }
   }
 
   public static final int DEFAULT_ICON_PADDING_DP = 32;
@@ -125,9 +132,17 @@ public class IconButton extends ViewGroup {
     applyAttrs(context, attrs, defStyleAttr, defStyleRes);
   }
 
+  private static int densityDpi(Context context) {
+    if (VERSION.SDK_INT >= 17) {
+      return Compat17.densityDpi(context.getResources().getConfiguration());
+    } else {
+      return context.getResources().getDisplayMetrics().densityDpi;
+    }
+  }
+
   private void applyAttrs(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
     final TypedArray a   = context.obtainStyledAttributes(attrs, R.styleable.IconButton, defStyleAttr, defStyleRes == 0 ? R.style.Widget_IconButton : defStyleRes);
-    final int        dpi = context.getResources().getConfiguration().densityDpi;
+    final int        dpi = densityDpi(context);
     mIconPadding = a.getDimensionPixelOffset(R.styleable.IconButton_iconPadding, DEFAULT_ICON_PADDING_DP * 160 / dpi);
     mIconWidth = a.getDimensionPixelSize(R.styleable.IconButton_iconWidth, 0);
     mIconHeight = a.getDimensionPixelSize(R.styleable.IconButton_iconHeight, 0);
@@ -155,7 +170,7 @@ public class IconButton extends ViewGroup {
     }
 
     final int hPadding = ViewCompat.getPaddingStart(this) + ViewCompat.getPaddingEnd(this);
-    final int dpi = getResources().getConfiguration().densityDpi;
+    final int dpi = densityDpi(getContext());
     final int widthMode = MeasureSpec.getMode(widthMeasureSpec);
     final int innerWidth = MeasureSpec.getSize(widthMeasureSpec) - hPadding;
     final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
