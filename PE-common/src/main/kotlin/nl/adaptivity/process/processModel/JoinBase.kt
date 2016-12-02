@@ -27,7 +27,7 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-open class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Join<T, M> {
+abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Join<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Join.Builder<T,M> {
 
@@ -72,6 +72,7 @@ open class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSpl
 
   constructor(builder: Join.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 
+  override abstract fun builder(): Builder<T, M>
 
   override val idBase: String
     get() = IDBASE

@@ -23,9 +23,19 @@ import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.ProcessNode.Builder;
+import org.jetbrains.annotations.NotNull;
 
 
 public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
+
+  interface Builder extends ClientProcessNode.Builder<DrawableProcessNode, DrawableProcessModel> {
+
+    @NotNull
+    @Override
+    DrawableProcessNode build(@NotNull DrawableProcessModel newOwner);
+  }
 
   void setLabel(String label);
 
@@ -38,4 +48,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
   DrawableProcessModel getOwnerModel();
 
+  @NotNull
+  @Override
+  Builder builder();
 }

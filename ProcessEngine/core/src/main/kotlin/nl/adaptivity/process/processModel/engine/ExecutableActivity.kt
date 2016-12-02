@@ -20,8 +20,8 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
-import nl.adaptivity.process.processModel.Activity
-import nl.adaptivity.process.processModel.ActivityBase
+import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
@@ -31,8 +31,20 @@ import java.sql.SQLException
  */
 class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
+  class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+    constructor(predecessor: Identifiable?, successor: Identifiable?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, message: XmlMessage?, condition: String? = null, name: String?) : super(predecessor, successor, id, label, x, y, defines, results, message, condition, name)
+    constructor(node: Activity<*, *>) : super(node)
+
+    override fun build(newOwner: ExecutableProcessModel) = ExecutableActivity(this, newOwner)
+  }
 
   private var _condition: ExecutableCondition?
+
+  override var condition: String?
+    get() = _condition?.condition
+    set(value) {
+      _condition = condition?.let { ExecutableCondition(it) }
+    }
 
   constructor(ownerModel: ExecutableProcessModel, condition: ExecutableCondition? = null) : super(ownerModel) {
     this._condition = condition
@@ -54,18 +66,19 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
     _condition = orig.condition?.let { ExecutableCondition(it) }
   }
 
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel) {
+    _condition = builder.condition?.let { ExecutableCondition(it) }
+  }
+
+
+  override fun builder() = Builder(this)
+
   /**
    * Determine whether the process can start.
    */
   override fun <T : ProcessTransaction> condition(transaction: T, instance: IExecutableProcessNodeInstance<*>): Boolean {
     return _condition?.run { eval(transaction, instance) } ?: true
   }
-
-  override var condition: String?
-    get() = _condition?.condition
-    set(value) {
-      _condition = condition?.let { ExecutableCondition(it) }
-    }
 
   /**
    * This will actually take the message element, and send it through the

@@ -30,7 +30,7 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-open class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Split<T, M> {
+abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Split<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Split.Builder<T,M> {
 
@@ -71,6 +71,7 @@ open class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSp
 
   constructor(builder: Split.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 
+  override abstract fun builder(): Builder<T, M>
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {

@@ -26,6 +26,23 @@ import java.util.Collection;
 
 public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode {
 
+  public static abstract class Builder extends ProcessNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    public Builder() { }
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+      super(predecessors, successors, id, label, x, y, defines, results);
+    }
+
+    public Builder(@NotNull final ProcessNode<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public abstract XmlProcessNodeBase build(@NotNull final ProcessModelImpl newOwner);
+  }
+
   public static class XmlSplitFactory implements ProcessModelBase.SplitFactory<XmlProcessNode, ProcessModelImpl> {
 
     @Override
@@ -55,6 +72,10 @@ public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode,
     }
     setPredecessors(predecessors);
   }
+
+  @NotNull
+  @Override
+  public abstract Builder builder();
 
   @NotNull
   @Override

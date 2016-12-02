@@ -92,6 +92,12 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
     return new XmlSplit(ownerModel, predecessor, Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
+  }
+
 
   @Override
   public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {

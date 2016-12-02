@@ -20,17 +20,40 @@ import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.ProcessConsts.Endpoints;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
 public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode {
+
+  public static class Builder extends ClientActivityNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode.Builder {
+
+
+    public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name, final boolean compat) {
+      super(predecessor, successor, id, label, x, y, defines, results, message, condition, name, compat);
+    }
+
+    public Builder(@NotNull final Activity<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public DrawableActivity build(@NotNull final DrawableProcessModel newOwner) {
+      return new DrawableActivity(this, newOwner);
+    }
+  }
 
   private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
   private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
@@ -55,6 +78,16 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
     if (orig instanceof DrawableActivity) {
       mState = ((DrawableActivity) orig).mState;
     }
+  }
+
+  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @Override

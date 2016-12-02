@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -33,6 +34,10 @@ import java.util.List;
 public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
 
   public static class Builder extends StartNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    public Builder(StartNode base) {
+      super(base);
+    }
 
     @NotNull
     @Override
@@ -76,6 +81,12 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
   public XmlStartNode(final @Nullable ProcessModelImpl ownerModel, final List<XmlResultType> imports) {
     super(ownerModel);
     setResults(imports);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @Override

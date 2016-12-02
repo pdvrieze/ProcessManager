@@ -18,11 +18,23 @@ package nl.adaptivity.process.diagram;
 
 
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
+import org.jetbrains.annotations.NotNull;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 public interface DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode, DrawableProcessModel>, DrawableProcessNode{
+
+  interface Builder extends DrawableProcessNode.Builder, ClientJoinSplit.Builder<DrawableProcessNode, DrawableProcessModel> {
+
+    @NotNull
+    @Override
+    DrawableJoinSplit build(@NotNull DrawableProcessModel newOwner);
+  }
+
+  @NotNull
+  @Override
+  Builder builder();
 
   boolean CURVED_ARROWS=true;
   boolean TEXT_DESC=true;

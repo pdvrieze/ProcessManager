@@ -23,6 +23,15 @@ import javax.xml.namespace.QName
 
 
 interface Activity<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
+
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
+    var message: IXmlMessage?
+    var name: String?
+    var condition: String?
+  }
+
+  override fun builder(): Builder<T, M>
+
   /**
    * The name of this activity. Note that for serialization to XML to work
    * this needs to be unique for the process model at time of serialization, and

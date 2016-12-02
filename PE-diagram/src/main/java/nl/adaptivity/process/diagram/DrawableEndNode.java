@@ -18,15 +18,38 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
 public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode {
+
+  public static class Builder extends ClientEndNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode.Builder {
+
+    public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+      super(predecessor, id, label, x, y, defines, results);
+    }
+
+    public Builder(@NotNull final EndNode<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public DrawableEndNode build(@NotNull final DrawableProcessModel newOwner) {
+      return new DrawableEndNode(this, newOwner);
+    }
+  }
 
   private static final double REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS;
   private static final double REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS;
@@ -47,6 +70,16 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
     if (orig instanceof DrawableEndNode) {
       mState = ((DrawableEndNode) orig).mState;
     }
+  }
+
+  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @Override

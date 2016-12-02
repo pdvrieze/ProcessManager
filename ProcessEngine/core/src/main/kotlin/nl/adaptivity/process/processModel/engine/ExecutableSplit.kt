@@ -19,9 +19,7 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
-import nl.adaptivity.process.processModel.ProcessModelBase
-import nl.adaptivity.process.processModel.Split
-import nl.adaptivity.process.processModel.SplitBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xml.*
 import java.sql.SQLException
@@ -30,6 +28,14 @@ import java.sql.SQLException
 @XmlDeserializer(ExecutableSplit.Factory::class)
 class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
+  class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+    constructor(predecessors: Collection<Identifiable>, successors: Collection<Identifiable>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
+    constructor(node: Split<*, *>) : super(node)
+
+    override fun build(newOwner: ExecutableProcessModel): ExecutableSplit {
+      return ExecutableSplit(this, newOwner)
+    }
+  }
 
   class ExecutableSplitFactory : ProcessModelBase.SplitFactory<ExecutableProcessNode, ExecutableProcessModel> {
 
@@ -57,6 +63,11 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
 
   constructor(orig: Split<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
+
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
+
+
+  override fun builder() = Builder(this)
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {

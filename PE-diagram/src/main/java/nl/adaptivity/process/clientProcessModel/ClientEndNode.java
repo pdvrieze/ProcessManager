@@ -18,13 +18,44 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.EndNodeBase;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 
 public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends EndNodeBase<T, M> implements EndNode<T, M>, ClientProcessNode<T, M> {
+
+  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends EndNodeBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
+
+    public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+      super(predecessor, id, label, x, y, defines, results);
+    }
+
+    public Builder(@NotNull final EndNode<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public ClientEndNode<T, M> build(@NotNull final M newOwner) {
+      return new ClientEndNode<T, M>(this, newOwner);
+    }
+
+    @Override
+    public boolean isCompat() {
+      return false;
+    }
+
+    @Override
+    public void setCompat(final boolean compat) {
+      if (compat) throw new IllegalArgumentException("Compatibility not supported on end nodes.");
+    }
+
+  }
 
   public ClientEndNode(final M ownerModel) {
     super(ownerModel);
@@ -38,6 +69,17 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
   protected ClientEndNode(EndNode<?, ?> orig) {
     super(orig, null);
   }
+
+  public ClientEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder<T, M> builder() {
+    return new Builder<>(this);
+  }
+
 
   @Override
   public boolean isCompat() {

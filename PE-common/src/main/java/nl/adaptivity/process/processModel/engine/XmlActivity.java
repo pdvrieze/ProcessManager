@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.Activity.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.XmlName;
@@ -38,6 +39,23 @@ import java.util.Collection;
  */
 @XmlDeserializer(XmlActivity.Factory.class)
 public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode {
+
+  public static class Builder extends ActivityBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name) {
+      super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
+    }
+
+    public Builder(@NotNull final Activity<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public XmlActivity build(@NotNull final ProcessModelImpl newOwner) {
+      return new XmlActivity(this, newOwner);
+    }
+  }
 
   public static class Factory implements XmlDeserializerFactory<XmlActivity> {
 
@@ -73,6 +91,16 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> 
 
   public XmlActivity(final Activity<?, ?> orig, ProcessModelImpl newOwner) {
     super(orig, newOwner);
+  }
+
+  public XmlActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @Override

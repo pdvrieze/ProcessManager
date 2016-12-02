@@ -28,6 +28,8 @@ interface StartNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode
     override fun build(newOwner: M): StartNode<T, M>
   }
 
+  override fun builder(): Builder<T, M>
+
   companion object {
 
     const val ELEMENTLOCALNAME = "start"

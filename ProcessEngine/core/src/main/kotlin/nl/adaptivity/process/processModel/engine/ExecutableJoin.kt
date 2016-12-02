@@ -19,6 +19,8 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.JoinBase
 import nl.adaptivity.process.util.Identifiable
@@ -29,6 +31,13 @@ import java.util.*
 
 @XmlDeserializer(ExecutableJoin.Factory::class)
 class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+
+  class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+    constructor(predecessors: Collection<Identifiable>, successors: Collection<Identifiable>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
+    constructor(node: Join<*, *>) : super(node)
+
+    override fun build(newOwner: ExecutableProcessModel) = ExecutableJoin(this, newOwner)
+  }
 
   class Factory : XmlDeserializerFactory<ExecutableJoin> {
 
@@ -45,6 +54,10 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
         : super(ownerModel, predecessors, max, min)
 
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
+
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
+
+  override fun builder() = Builder(this)
 
   @Deprecated("")
   internal fun getXmlPrececessors(): Set<Identifiable>? {

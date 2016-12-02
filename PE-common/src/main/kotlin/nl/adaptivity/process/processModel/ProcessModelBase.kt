@@ -38,7 +38,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 21/11/15.
  */
-open class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
+abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
 
   interface DeserializationFactory<U : ProcessNode<U, M>, M : ProcessModelBase<U, M>> {
 
@@ -73,6 +73,32 @@ open class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     fun createSplit(ownerModel: M, successors: Collection<Identifiable>): Split<out U, M>
   }
 
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
+      val nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
+      val name: String? = null,
+      val handle: Long = -1L,
+      val owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+      val roles: MutableList<String> = mutableListOf<String>(),
+      val uuid: UUID? = null,
+      val imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
+      val exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>()) {
+
+    constructor(base:ProcessModelBase<T,M>) :
+        this(base.getModelNodes().map { it.builder() }.toMutableSet(),
+            base.getName(),
+            base.handleValue,
+            base.owner,
+            base.getRoles().toMutableList(),
+            base.uuid,
+            base.getImports().toMutableList(),
+            base.getExports().toMutableList())
+
+
+
+
+    abstract fun build(): ProcessModelBase<T,M>
+  }
+
   private var _processNodes: IdentifyableSet<T>
   private var mName: String? = null
   private var mHandle = -1L
@@ -94,6 +120,19 @@ open class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
   private constructor(processNodes: Collection<T>) {
     _processNodes = IdentifyableSet.processNodeSet(processNodes)
     uuid = null
+  }
+
+  constructor(builder: Builder<T,M>, nodeFactory: (M, ProcessNode.Builder<T,M>)->T ) {
+    val newOwner = this.asM()
+    val newNodes = builder.nodes.map { it.build(newOwner).asT() }
+    this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
+    this.mName = builder.name
+    this.mHandle = builder.handle
+    this._owner = builder.owner
+    this._roles = builder.roles.toMutableArraySet()
+    this.uuid = builder.uuid
+    this._imports = builder.imports.map { XmlResultType.get(it) }
+    this._exports = builder.exports.map { XmlDefineType.get(it) }
   }
 
   /**
@@ -136,6 +175,11 @@ open class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     this._exports = exports.map { XmlDefineType.get(it) }
   }
 
+  abstract fun builder(): Builder<T,M>
+
+  fun update(body: (Builder<T,M>)->Unit):M {
+    return builder().apply(body).build().asM()
+  }
 
   override fun withPermission(): M {
     return asM()

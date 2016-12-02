@@ -30,6 +30,8 @@ interface Join<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M
     override fun build(newOwner: M): Join<T, M>
   }
 
+  override fun builder(): Builder<T, M>
+
   companion object {
 
     const val ELEMENTLOCALNAME = "join"

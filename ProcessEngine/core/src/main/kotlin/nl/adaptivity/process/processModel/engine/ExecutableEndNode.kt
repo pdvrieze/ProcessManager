@@ -21,12 +21,22 @@ import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
 
 @XmlDeserializer(ExecutableEndNode.Factory::class)
 class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+
+  class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+    constructor(predecessor: Identifiable?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>) : super(predecessor, id, label, x, y, defines, results)
+    constructor(node: EndNode<*, *>) : super(node)
+
+    override fun build(newOwner: ExecutableProcessModel) = ExecutableEndNode(this, newOwner)
+  }
 
   class Factory : XmlDeserializerFactory<ExecutableEndNode> {
 
@@ -43,8 +53,11 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
     predecessor = previous
   }
 
-  constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel) {
-  }
+  constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
+
+  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
+
+  override fun builder() = Builder(this)
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {

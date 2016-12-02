@@ -18,16 +18,40 @@ package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientSplitNode;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Split;
+import nl.adaptivity.process.processModel.Split.Builder;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
 
 
 public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, DrawableProcessModel> implements Split<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
+ 
+  public static class Builder extends ClientSplitNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableJoinSplit.Builder {
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+    }
+
+    public Builder(@NotNull final Split<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public DrawableSplit build(@NotNull final DrawableProcessModel newOwner) {
+      return new DrawableSplit(this, newOwner);
+    }
+  }
 
   private static final double ARROWHEADDX = JOINWIDTH*0.2;
   private static final double ARROWHEADDY = JOINWIDTH*0.2;
@@ -58,6 +82,17 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
     } else {
       mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
     }
+  }
+
+  public DrawableSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+    super(builder, newOwnerModel);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @SuppressWarnings("CloneDoesntCallSuperClone")

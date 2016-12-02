@@ -96,6 +96,12 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
     return new XmlJoin(ownerModel, Arrays.asList(predecessors), Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
+  }
+
   @Deprecated
   @Nullable
   Set<? extends Identifiable> getXmlPrececessors() {

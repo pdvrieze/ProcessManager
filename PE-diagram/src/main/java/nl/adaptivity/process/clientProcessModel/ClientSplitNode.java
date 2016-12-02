@@ -16,10 +16,13 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.processModel.SplitBase;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -30,7 +33,34 @@ import java.util.Collection;
  *
  * @param <T> The type of ProcessNode used.
  */
-public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends SplitBase<T, M> implements ClientProcessNode<T,M> {
+public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends SplitBase<T, M> implements ClientJoinSplit<T,M> {
+
+  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends SplitBase.Builder<T,M> implements ClientJoinSplit.Builder<T,M> {
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+    }
+
+    public Builder(@NotNull final Split<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public ClientSplitNode<T, M> build(@NotNull final M newOwner) {
+      return new ClientSplitNode<T, M>(this, newOwner);
+    }
+
+    @Override
+    public boolean isCompat() {
+      return false;
+    }
+
+    @Override
+    public void setCompat(final boolean compat) {
+      if (compat) throw new IllegalArgumentException("Split nodes cannot be compatible with their own absense");
+    }
+  }
 
   public ClientSplitNode(final M ownerModel) {
     super(ownerModel);
@@ -50,6 +80,19 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
     super(orig, newOwner);
   }
 
+
+
+  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder<T, M> builder() {
+    return new Builder<>(this);
+  }
+
+  
   @Override
   public int getMaxSuccessorCount() {
     return Integer.MAX_VALUE;

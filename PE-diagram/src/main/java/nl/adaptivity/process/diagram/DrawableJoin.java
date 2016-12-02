@@ -18,15 +18,38 @@ package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawableProcessModel> implements Join<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
+
+  public static class Builder extends ClientJoinNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableJoinSplit.Builder {
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+    }
+
+    public Builder(@NotNull final Join<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public DrawableJoin build(@NotNull final DrawableProcessModel newOwner) {
+      return new DrawableJoin(this, newOwner);
+    }
+  }
 
   private static final double ARROWHEADDX = JOINWIDTH*0.375;
   private static final double ARROWHEADADJUST = 0.5*STROKEWIDTH/Math.sin(DrawableJoinSplit.ARROWHEADANGLE);
@@ -58,6 +81,17 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
   public DrawableJoin(DrawableJoin orig, final boolean compat) {
     super(orig, compat);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate(orig.mDrawableJoinSplitDelegate);
+  }
+
+  public DrawableJoin(@NotNull final ClientJoinNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+    super(builder, newOwnerModel);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @Override

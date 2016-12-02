@@ -33,6 +33,37 @@ import java.util.Collections
  */
 abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, Activity<T, M>, SimpleXmlDeserializable {
 
+  abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M> {
+
+    override var message: IXmlMessage?
+    override var name: String?
+    override var condition: String?
+
+    constructor(predecessor: Identifiable? = null,
+                successor: Identifiable? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                message: XmlMessage? = null,
+                condition: String? = null,
+                name: String? = null) : super(listOfNotNull(predecessor), listOfNotNull(successor), id, label, x, y, defines, results) {
+      this.message = message
+      this.name = name
+      this.condition = condition
+    }
+
+    constructor(node: Activity<*, *>) : super(node) {
+      this.message = XmlMessage.get(node.message)
+      this.name = node.name
+      this.condition = node.condition
+    }
+
+    override abstract fun build(newOwner: M): ActivityBase<T, M>
+  }
+
   private var _message: XmlMessage? = null
 
   private var _name: String? = null
@@ -67,7 +98,19 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
   // Object Initialization
   @Deprecated("Don't use")
   constructor(ownerModel: M?) : super(ownerModel) { }
+
+  constructor(_ownerModel: M?, predecessors: Collection<Identifiable>, successors: Collection<Identifiable>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, _message: XmlMessage?, _name: String?) : super(_ownerModel, predecessors, successors, id, label, x, y, defines, results) {
+    this._message = _message
+    this._name = _name
+  }
+
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
+    this._message = XmlMessage.get(builder.message)
+    this._name = builder.name
+  }
   // Object Initialization end
+
+  override abstract fun builder(): Builder<T, M>
 
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
     return visitor.visitActivity(this)

@@ -30,7 +30,18 @@ import javax.xml.namespace.QName
  */
 abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, StartNode<T, M>, SimpleXmlDeserializable {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>(), StartNode.Builder<T, M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M> {
+
+    constructor(successor: Identifiable? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList()) : super(emptyList(), listOfNotNull(successor), id, label, x, y, defines, results)
+
+    constructor(node: StartNode<*, *>) : super(node)
+
 
     abstract override fun build(newOwner: M): StartNodeBase<T, M>
 
@@ -55,6 +66,8 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   @JvmOverloads constructor(orig: StartNode<*, *>, newOwnerModel: M?) : super(orig, newOwnerModel)
 
   constructor(builder: StartNode.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+
+  override abstract fun builder(): Builder<T, M>
 
   @Throws(XmlException::class)
   override fun deserializeChild(reader: XmlReader): Boolean {

@@ -16,15 +16,54 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.StartNode.Builder;
 import nl.adaptivity.process.processModel.StartNodeBase;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 
 public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends StartNodeBase<T, M> implements ClientProcessNode<T, M> {
+
+  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends StartNodeBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
+
+    public Builder(@Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+      super(successor, id, label, x, y, defines, results);
+    }
+
+    public Builder(@NotNull final StartNode<?, ?> node) {
+      super(node);
+      if (node instanceof ClientStartNode) {
+        compat = ((ClientStartNode) node).isCompat();
+      } else {
+        compat = false;
+      }
+    }
+
+    @NotNull
+    @Override
+    public ClientStartNode<T, M> build(@NotNull final M newOwner) {
+      return new ClientStartNode<T, M>(this, newOwner);
+    }
+
+    @Override
+    public boolean isCompat() {
+      return compat;
+    }
+
+    @Override
+    public void setCompat(final boolean compat) {
+      this.compat = compat;
+    }
+
+    public boolean compat = false;
+  }
 
   private final boolean mCompat;
 
@@ -42,6 +81,21 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
   protected ClientStartNode(final ClientStartNode<T, M> orig, final boolean compat) {
     super(orig, null);
     mCompat = compat;
+  }
+
+  public ClientStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+    super(builder, newOwnerModel);
+    if (builder instanceof Builder) {
+      mCompat = ((Builder) builder).compat;
+    } else {
+      mCompat = false;
+    }
+  }
+
+  @NotNull
+  @Override
+  public Builder<T, M> builder() {
+    return new Builder<>(this);
   }
 
   @Override

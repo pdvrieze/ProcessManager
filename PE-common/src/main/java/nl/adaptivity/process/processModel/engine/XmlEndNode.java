@@ -17,18 +17,37 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 
 @XmlDeserializer(XmlEndNode.Factory.class)
 public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
+
+  public static class Builder extends EndNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+
+    public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+      super(predecessor, id, label, x, y, defines, results);
+    }
+
+    public Builder(@NotNull final EndNode<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public XmlEndNode build(@NotNull final ProcessModelImpl newOwner) {
+      return new XmlEndNode(this, newOwner);
+    }
+  }
 
   public static class Factory implements XmlDeserializerFactory<XmlEndNode> {
 
@@ -46,6 +65,16 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> imp
 
   public XmlEndNode(final EndNode<?, ?> orig, ProcessModelImpl newOwner) {
     super(orig, newOwner);
+  }
+
+  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @NotNull

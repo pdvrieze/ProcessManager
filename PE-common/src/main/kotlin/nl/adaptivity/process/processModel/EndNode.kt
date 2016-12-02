@@ -29,6 +29,8 @@ interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T
     var predecessor: Identifiable?
   }
 
+  override fun builder(): Builder<T, M>
+
   fun setDefines(exports: Collection<@JvmWildcard IXmlDefineType>)
 
   var predecessor: Identifiable?

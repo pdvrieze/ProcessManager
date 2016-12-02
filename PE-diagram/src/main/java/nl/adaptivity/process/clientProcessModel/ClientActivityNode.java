@@ -17,17 +17,51 @@
 package nl.adaptivity.process.clientProcessModel;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.ActivityBase;
-import nl.adaptivity.process.processModel.Condition;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 
 public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase<T, M> implements ClientProcessNode<T, M> {
+
+  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
+
+    public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name, final boolean compat) {
+      super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
+      this.compat = compat;
+    }
+
+    public Builder(@NotNull final Activity<?, ?> node) {
+      super(node);
+      if (node instanceof ClientProcessNode) {
+        compat = ((ClientProcessNode) node).isCompat();
+      } else {
+        compat = false;
+      }
+    }
+
+    @NotNull
+    @Override
+    public ClientActivityNode<T, M> build(@NotNull final M newOwner) {
+      return new ClientActivityNode<T, M>(this, newOwner);
+    }
+
+    @Override
+    public boolean isCompat() {
+      return compat;
+    }
+
+    @Override
+    public void setCompat(final boolean compat) {
+      this.compat = compat;
+    }
+
+    public boolean compat = false;
+  }
 
   private final boolean mCompat;
   private String mCondition;
@@ -47,6 +81,21 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   protected ClientActivityNode(Activity<?, ?> orig, final boolean compat) {
     super(orig, null);
     mCompat = compat;
+  }
+
+  public ClientActivityNode(@NotNull final Activity.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+    super(builder, newOwnerModel);
+    if (builder instanceof Builder) {
+      mCompat = ((Builder) builder).compat;
+    } else {
+      mCompat = false;
+    }
+  }
+
+  @NotNull
+  @Override
+  public Builder<T, M> builder() {
+    return new Builder<>(this);
   }
 
   @Override

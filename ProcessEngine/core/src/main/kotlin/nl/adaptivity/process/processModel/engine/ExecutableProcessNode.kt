@@ -31,6 +31,12 @@ import java.sql.SQLException
  */
 interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel> {
 
+  interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
+    override fun build(newOwner: ExecutableProcessModel): ExecutableProcessNode
+  }
+
+  override fun builder(): ExecutableProcessNode.Builder
+
   /**
    * Should this node be able to be provided?
 

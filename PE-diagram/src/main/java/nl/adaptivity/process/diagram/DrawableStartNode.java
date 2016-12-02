@@ -17,16 +17,39 @@
 package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode{
+
+  public static class Builder extends ClientStartNode.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode.Builder {
+
+    public Builder(@Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+      super(successor, id, label, x, y, defines, results);
+    }
+
+    public Builder(@NotNull final StartNode<?, ?> node) {
+      super(node);
+    }
+
+    @NotNull
+    @Override
+    public DrawableStartNode build(@NotNull final DrawableProcessModel newOwner) {
+      return new DrawableStartNode(this, newOwner);
+    }
+  }
 
   private static final double REFERENCE_OFFSET_X = STARTNODERADIUS+(STROKEWIDTH/2);
   private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS+(STROKEWIDTH/2);
@@ -48,6 +71,16 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   public DrawableStartNode(DrawableStartNode orig, final boolean compat) {
     super(orig, compat);
     mState = orig.mState;
+  }
+
+  public DrawableStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+    super(builder, newOwnerModel);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   @Override

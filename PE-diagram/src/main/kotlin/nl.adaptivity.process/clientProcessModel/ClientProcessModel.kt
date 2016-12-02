@@ -16,22 +16,55 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.diagram.Bounded
 import nl.adaptivity.process.diagram.DiagramNode
 import nl.adaptivity.process.diagram.LayoutAlgorithm
-import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.ProcessModelBase
-import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.process.processModel.Split
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.IdentifyableSet
+import java.security.Principal
 import java.util.*
 
 
-abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<T> = emptyList(), var layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm<T>(), nodeFactory: (M, ProcessNode<*, *>) -> T) :
-    ProcessModelBase<T, M>(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
+abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> :
+    ProcessModelBase<T, M> {
+
+  var layoutAlgorithm: LayoutAlgorithm<T>
+
+  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<T> = emptyList(), layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm<T>(), nodeFactory: (M, ProcessNode<*, *>) -> T) :
+    super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
+    this.layoutAlgorithm = layoutAlgorithm
+  }
+
+  constructor(builder: ProcessModelBase.Builder<T, M>, nodeFactory: (M, ProcessNode.Builder<T, M>) -> T) : super(builder, nodeFactory) {
+    this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+  }
+
+  abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> : ProcessModelBase.Builder<T,M> {
+    var  layoutAlgorithm: LayoutAlgorithm<T>
+
+    constructor(
+        nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
+        name: String? = null,
+        handle: Long = -1L,
+        owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+        roles: MutableList<String> = mutableListOf<String>(),
+        uuid: UUID? = null,
+        imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
+        exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
+        layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm()) : super(nodes, name, handle, owner, roles, uuid, imports, exports) {
+      this.layoutAlgorithm = layoutAlgorithm
+    }
+
+    constructor(base: ProcessModelBase<T, M>) : super(base) {
+      this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
+    }
+
+    abstract override fun build(): ClientProcessModel<T, M>
+  }
 
   var topPadding = 5.0
     set(topPadding) {
@@ -58,11 +91,9 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   var isInvalid = false
     private set
 
-  init {
-    invalidate()
-  }
-
   abstract fun asNode(id: Identifiable): T
+
+  override abstract fun builder(): Builder<T, M>
 
   /**
    * Normalize the process model. By default this may do nothing.

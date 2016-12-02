@@ -93,6 +93,8 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
     this.max = builder.max
   }
 
+  override abstract fun builder(): Builder<T, M>
+
   @Throws(XmlException::class)
   override fun deserializeChild(`in`: XmlReader): Boolean {
     return false

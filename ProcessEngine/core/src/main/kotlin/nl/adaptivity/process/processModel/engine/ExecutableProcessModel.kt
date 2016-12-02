@@ -43,6 +43,13 @@ import java.util.*
 @XmlDeserializer(ExecutableProcessModel.Factory::class)
 class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>, MutableHandleAware<ExecutableProcessModel>, SecureObject<ExecutableProcessModel> {
 
+  class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableProcessModel> {
+    constructor(nodes: MutableSet<ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel>>, name: String?, handle: Long, owner: Principal, roles: MutableList<String>, uuid: UUID?, imports: MutableList<IXmlResultType>, exports: MutableList<IXmlDefineType>) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
+    constructor(base: ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>) : super(base)
+
+    override fun build(): ExecutableProcessModel = ExecutableProcessModel(this)
+  }
+
   enum class Permissions : SecurityProvider.Permission {
     INSTANTIATE
   }
@@ -80,7 +87,15 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     }
   }
 
-  @Volatile private var mEndNodeCount = -1
+  @Volatile var endNodeCount: Int = -1
+    get() {
+      if (field < 0) {
+        field = modelNodes.count { it is ExecutableEndNode }
+      }
+
+      return field
+    }
+    private set
 
   constructor(basepm: ProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
 
@@ -89,6 +104,10 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
    */
   constructor(processNodes: Collection<ExecutableProcessNode>) : super(processNodes, nodeFactory = ::toExecutableProcessNode)
+
+  constructor(builder: Builder) : super(builder, { newOwner, nodeBuilder -> nodeBuilder.build(newOwner).asT() } )
+
+  override fun builder(): Builder = Builder(this)
 
   /**
    * Ensure that the given node is owned by this model.
@@ -122,33 +141,12 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
   override fun setModelNodes(processNodes: Collection<ExecutableProcessNode>) {
     super.setModelNodes(processNodes)
-    var endNodeCount = 0
-    for (n in processNodes) {
-      if (n is ExecutableEndNode) {
-        ++endNodeCount
-      }
-    }
-    mEndNodeCount = endNodeCount
+    endNodeCount = processNodes.count { it is ExecutableEndNode }
   }
 
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
      */
-  val endNodeCount: Int
-    get() {
-      if (mEndNodeCount < 0) {
-        var endNodeCount = 0
-        for (node in modelNodes) {
-//          node.setOwnerModel(this)
-          if (node is ExecutableEndNode) {
-            ++endNodeCount
-          }
-        }
-        mEndNodeCount = endNodeCount
-      }
-
-      return mEndNodeCount
-    }
 
   fun cacheStrings(stringCache: StringCache) {
     if (owner is SimplePrincipal) {

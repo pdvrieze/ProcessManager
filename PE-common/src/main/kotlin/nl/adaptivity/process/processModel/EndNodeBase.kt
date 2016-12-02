@@ -33,7 +33,21 @@ import java.util.Arrays
  */
 abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, EndNode<T, M>, SimpleXmlDeserializable {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>(), EndNode.Builder<T, M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M> {
+
+    constructor(predecessor: Identifiable? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList()) : super(listOfNotNull(predecessor), emptyList(), id, label, x, y, defines, results)
+
+    constructor(node: EndNode<*, *>) : super(node)
+
+    override var predecessor: Identifiable?
+      get() = predecessors.firstOrNull()
+      set(value) { value?.let { predecessors.apply { clear() }.add(it)} }
 
     abstract override fun build(newOwner: M): EndNodeBase<T, M>
 
@@ -69,7 +83,9 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
   constructor(orig: EndNode<*, *>, newOwner : M?) : super(orig, newOwner)
 
-  constructor(builder: ProcessNode.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+
+  override abstract fun builder(): Builder<T, M>
 
   @Throws(XmlException::class)
   override fun deserializeChild(reader: XmlReader): Boolean {

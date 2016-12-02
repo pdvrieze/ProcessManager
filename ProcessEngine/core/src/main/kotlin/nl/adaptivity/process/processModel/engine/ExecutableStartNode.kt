@@ -19,15 +19,24 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
-import nl.adaptivity.process.processModel.StartNode
-import nl.adaptivity.process.processModel.StartNodeBase
-import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
 
 @XmlDeserializer(ExecutableStartNode.Factory::class)
 class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+
+  class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+    constructor(successor: Identifiable?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>) : super(successor, id, label, x, y, defines, results)
+    constructor(node: StartNode<*, *>) : super(node)
+
+
+    override fun build(newOwner: ExecutableProcessModel): ExecutableStartNode {
+      return ExecutableStartNode(this, newOwner)
+    }
+  }
 
   class Factory : XmlDeserializerFactory<ExecutableStartNode> {
 
@@ -44,6 +53,10 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
   constructor(ownerModel: ExecutableProcessModel?, imports: List<XmlResultType>) : super(ownerModel) {
     setResults(imports)
   }
+
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
+
+  override fun builder() = Builder(this)
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {

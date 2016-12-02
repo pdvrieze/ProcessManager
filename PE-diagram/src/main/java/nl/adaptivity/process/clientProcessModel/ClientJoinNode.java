@@ -16,17 +16,54 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.Join.Builder;
 import nl.adaptivity.process.processModel.JoinBase;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 
-public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinBase<T, M> implements ClientProcessNode<T, M> {
+public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinBase<T, M> implements ClientJoinSplit<T, M> {
 
-  private final boolean mCompat;
+  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinBase.Builder<T,M> implements ClientJoinSplit.Builder<T,M> {
+
+    private boolean compat;
+
+    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Collection<? extends Identifiable> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+      compat = false;
+    }
+
+    public Builder(@NotNull final Join<?, ?> node) {
+      super(node);
+      if (node instanceof ClientProcessNode) { compat = ((ClientProcessNode) node).isCompat(); }
+      else compat = false;
+    }
+
+    @NotNull
+    @Override
+    public ClientJoinNode<T, M> build(@NotNull final M newOwner) {
+      return new ClientJoinNode<T, M>(this, newOwner);
+    }
+
+    @Override
+    public boolean isCompat() {
+      return compat;
+    }
+
+    @Override
+    public void setCompat(final boolean value) {
+      compat = value;
+    }
+  }
+
+
+    private final boolean mCompat;
 
   public ClientJoinNode(final M ownerModel, final boolean compat) {
     super(ownerModel);
@@ -46,6 +83,17 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
   protected ClientJoinNode(Join<?,?> orig, M newOwner, final boolean compat) {
     super(orig, newOwner);
     mCompat = compat;
+  }
+
+  public ClientJoinNode(@NotNull final Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+    super(builder, newOwnerModel);
+    mCompat = builder.isCompat();
+  }
+
+  @NotNull
+  @Override
+  public Builder<T, M> builder() {
+    return new Builder<>(this);
   }
 
   @Override

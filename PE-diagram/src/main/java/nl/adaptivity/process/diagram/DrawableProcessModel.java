@@ -21,18 +21,40 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.XmlProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.security.Principal;
 import java.util.*;
 
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode, DrawableProcessModel> implements Diagram {
+
+  public static class Builder extends ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel> {
+
+    public Builder(@NotNull final Set<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel>> nodes, @Nullable final String name, final long handle, @NotNull final Principal owner, @NotNull final List<String> roles, @Nullable final UUID uuid, @NotNull final List<IXmlResultType> imports, @NotNull final List<IXmlDefineType> exports, @NotNull final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+      super(nodes, name, handle, owner, roles, uuid, imports, exports, layoutAlgorithm);
+    }
+
+    public Builder(@NotNull final DrawableProcessModel base) {
+      super(base);
+    }
+
+    @NotNull
+    @Override
+    public DrawableProcessModel build() {
+      return new DrawableProcessModel(this);
+    }
+  }
 
   public static class Factory implements DeserializationFactory<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
 
@@ -128,6 +150,24 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setVertSeparation(DEFAULT_VERT_SEPARATION);
     ensureIds();
     layout();
+  }
+
+  private static final Function2 < ProcessModelImpl, XmlProcessNode.Builder, nl.adaptivity.process.processModel.engine.XmlProcessNode> DRAWABLE_NODE_FACTORY_FROM_BUILDER = new Function2<ProcessModelImpl, XmlProcessNode.Builder, XmlProcessNode>() {
+    @Override
+    public XmlProcessNode invoke(final ProcessModelImpl newOwner, final XmlProcessNode.Builder processNode) {
+      return processNode.build(newOwner);
+    }
+  };
+
+  public DrawableProcessModel(@NotNull final ProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
+    //noinspection unchecked
+    super(builder, (Function2) DRAWABLE_NODE_FACTORY_FROM_BUILDER);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
   }
 
   public boolean isFavourite() {

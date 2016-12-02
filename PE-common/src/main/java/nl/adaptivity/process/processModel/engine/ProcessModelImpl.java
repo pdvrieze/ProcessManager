@@ -26,6 +26,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
+import nl.adaptivity.process.processModel.engine.XmlProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializer;
@@ -50,6 +51,26 @@ import java.util.*;
 
 @SuppressWarnings("unused")
 public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessModelImpl> implements MutableHandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
+
+  public static class Builder extends ProcessModelBase.Builder<XmlProcessNode, ProcessModelImpl> {
+
+    public Builder(@NotNull final Set<ProcessNode.Builder<XmlProcessNode, ProcessModelImpl>> nodes, @Nullable final String name, final long handle, @NotNull final Principal owner, @NotNull final List<String> roles, @Nullable final UUID uuid, @NotNull final List<IXmlResultType> imports, @NotNull final List<IXmlDefineType> exports) {
+      super(nodes, name, handle, owner, roles, uuid, imports, exports);
+    }
+
+    public Builder() {
+    }
+
+    public Builder(@NotNull final ProcessModelBase<XmlProcessNode, ProcessModelImpl> base) {
+      super(base);
+    }
+
+    @NotNull
+    @Override
+    public ProcessModelImpl build() {
+      return new ProcessModelImpl(this);
+    }
+  }
 
   public static class Factory implements XmlDeserializerFactory<ProcessModelImpl>, DeserializationFactory<XmlProcessNode,ProcessModelImpl> {
 
@@ -107,9 +128,27 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
     }
   };
 
+  private static final Function2<ProcessModelImpl, XmlProcessNode.Builder, XmlProcessNode> XML_NODE_FACTORY_FROM_BUILDER = new Function2<ProcessModelImpl, XmlProcessNode.Builder, XmlProcessNode>() {
+    @Override
+    public XmlProcessNode invoke(final ProcessModelImpl newOwner, final XmlProcessNode.Builder processNode) {
+      return processNode.build(newOwner);
+    }
+  };
+
   public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
     super(basepm, XML_NODE_FACTORY);
   }
+
+  public ProcessModelImpl(@NotNull final ProcessModelBase.Builder<XmlProcessNode, ProcessModelImpl> builder) {
+    super(builder, (Function2)XML_NODE_FACTORY_FROM_BUILDER);
+  }
+
+  @NotNull
+  @Override
+  public Builder builder() {
+    return new Builder(this);
+  }
+
 
   private static Collection<? extends XmlProcessNode> toXmlNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
     List<XmlProcessNode> result = new ArrayList<>(modelNodes.size());

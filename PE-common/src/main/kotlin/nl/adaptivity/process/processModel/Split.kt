@@ -28,6 +28,7 @@ interface Split<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, 
 
     override fun build(newOwner: M): Split<T, M>
   }
+  override fun builder(): Builder<T, M>
 
   companion object {
 

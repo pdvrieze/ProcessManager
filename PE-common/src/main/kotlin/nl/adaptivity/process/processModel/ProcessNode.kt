@@ -48,6 +48,8 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
     fun visitEndNode(endNode: EndNode<*, *>): R
   }
 
+  fun builder(): Builder<T,M>
+
   fun asT(): T
 
   fun isPredecessorOf(node: T): Boolean
