@@ -21,10 +21,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.XmlProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -152,9 +149,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  private static final Function2 < ProcessModelImpl, XmlProcessNode.Builder, nl.adaptivity.process.processModel.engine.XmlProcessNode> DRAWABLE_NODE_FACTORY_FROM_BUILDER = new Function2<ProcessModelImpl, XmlProcessNode.Builder, XmlProcessNode>() {
+  private static final Function2 <DrawableProcessModel, DrawableProcessNode.Builder, DrawableProcessNode> DRAWABLE_NODE_FACTORY_FROM_BUILDER = new Function2<DrawableProcessModel, DrawableProcessNode.Builder, DrawableProcessNode>() {
     @Override
-    public XmlProcessNode invoke(final ProcessModelImpl newOwner, final XmlProcessNode.Builder processNode) {
+    public DrawableProcessNode invoke(final DrawableProcessModel newOwner, final DrawableProcessNode.Builder processNode) {
       return processNode.build(newOwner);
     }
   };
