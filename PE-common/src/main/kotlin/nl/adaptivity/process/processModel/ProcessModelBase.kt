@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.*
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts
@@ -136,7 +137,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       when (StringUtil.toString(attributeLocalName)) {
         "name" -> name=value
         "owner" -> owner = SimplePrincipal(value)
-        ATTR_ROLES -> roles.apply { clear() }.addAll(value.split(" *, *".toRegex()).filter { it.isEmpty() })
+        ATTR_ROLES -> roles.replaceBy(value.split(" *, *".toRegex()).filter { it.isEmpty() })
         "uuid" -> uuid = UUID.fromString(value)
         else -> return false
       }
@@ -146,7 +147,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     abstract fun build(): ProcessModelBase<T,M>
 
     override fun toString(): String {
-      return "Builder(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
+      return "${this.javaClass.name.split('.').last()}(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
     }
 
 
@@ -486,7 +487,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       }
 
       var event: EventType? = null
-      loop@ while (reader.hasNext() && event !== XmlStreaming.END_ELEMENT) {
+      loop@ while (reader.hasNext() && event !== EventType.END_ELEMENT) {
         event = reader.next()
         if (!(event== EventType.START_ELEMENT && processModel.deserializeChild(factory, reader))) {
           reader.unhandledEvent()
@@ -512,7 +513,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       }
 
       var event: EventType? = null
-      loop@ while (reader.hasNext() && event !== XmlStreaming.END_ELEMENT) {
+      loop@ while (reader.hasNext() && event !== EventType.END_ELEMENT) {
         event = reader.next()
         if (!(event== EventType.START_ELEMENT && builder.deserializeChild(factory, reader))) {
           reader.unhandledEvent()

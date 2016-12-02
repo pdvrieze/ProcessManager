@@ -16,16 +16,14 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
-
 import javax.xml.namespace.QName
-
-import java.util.Arrays
 
 
 /**
@@ -49,7 +47,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
     override var predecessor: Identifiable?
       get() = predecessors.firstOrNull()
-      set(value) { value?.let { predecessors.apply { clear() }.add(it)} }
+      set(value) { value?.let { predecessors.replaceBy(it) } }
 
     abstract override fun build(newOwner: M): EndNodeBase<T, M>
 

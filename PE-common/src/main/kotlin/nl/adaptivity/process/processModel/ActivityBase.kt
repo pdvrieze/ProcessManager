@@ -16,16 +16,14 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.StringUtil
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
-
 import javax.xml.namespace.QName
-import java.util.Collections
 
 
 /**
@@ -89,7 +87,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
 
     override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
       when (attributeLocalName.toString()) {
-        ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.apply { clear() }.add(Identifier(attributeValue.toString()))
+        ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue.toString()))
         "name" -> name = attributeValue.toString()
         else -> return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
       }

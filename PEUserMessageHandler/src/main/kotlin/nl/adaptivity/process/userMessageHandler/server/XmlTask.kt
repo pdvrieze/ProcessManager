@@ -18,6 +18,7 @@ package nl.adaptivity.process.userMessageHandler.server
 
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingException
@@ -81,7 +82,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
   override var items: List<XmlItem>
     get() = _items
     set(value) {
-      _items.apply { clear() }.addAll(value)
+      _items.replaceBy(value)
     }
 
   constructor()

@@ -86,7 +86,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     }
 
     override fun toString(): String {
-      return "${this.javaClass.name}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
+      return "${this.javaClass.name.split('.').last()}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
     }
 
   }

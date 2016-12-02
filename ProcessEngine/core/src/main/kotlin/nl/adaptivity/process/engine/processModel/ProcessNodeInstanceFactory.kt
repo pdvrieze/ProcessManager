@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
@@ -96,7 +97,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
               ProcessData(name, CompactFragment(data!!))
             }
           }.filterNotNull()
-    builder.results.apply {clear(); }.addAll(results)
+    builder.results.replaceBy(results)
     return builder.build()
   }
 
