@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import net.devrieze.util.StringUtil
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
@@ -33,11 +34,13 @@ import java.util.Collections
  */
 abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, Activity<T, M>, SimpleXmlDeserializable {
 
-  abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M> {
+  abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M>, SimpleXmlDeserializable {
 
     override var message: IXmlMessage?
     override var name: String?
     override var condition: String?
+
+    constructor(): this(predecessor = null)
 
     constructor(predecessor: Identifiable? = null,
                 successor: Identifiable? = null,
@@ -62,6 +65,42 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     }
 
     override abstract fun build(newOwner: M): ActivityBase<T, M>
+
+    override val elementName: QName get() = Activity.ELEMENTNAME
+
+    @Throws(XmlException::class)
+    override fun deserializeChild(reader: XmlReader): Boolean {
+      if (Engine.NAMESPACE == reader.namespaceUri) {
+        when (reader.localName.toString()) {
+          XmlDefineType.ELEMENTLOCALNAME -> (defines as MutableList).add(XmlDefineType.deserialize(reader))
+
+          XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
+
+          Condition.ELEMENTLOCALNAME -> condition = XmlCondition.deserialize(reader).condition
+
+          XmlMessage.ELEMENTLOCALNAME -> message=XmlMessage.deserialize(reader)
+
+          else -> return false
+        }
+        return true
+      }
+      return false
+    }
+
+    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+      when (attributeLocalName.toString()) {
+        ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.apply { clear() }.add(Identifier(attributeValue.toString()))
+        "name" -> name = attributeValue.toString()
+        else -> return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+      }
+      return true
+    }
+
+    override fun deserializeChildText(elementText: CharSequence): Boolean {
+      return false
+    }
+
+
   }
 
   private var _message: XmlMessage? = null

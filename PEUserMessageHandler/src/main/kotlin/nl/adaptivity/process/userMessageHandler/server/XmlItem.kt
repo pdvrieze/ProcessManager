@@ -92,7 +92,7 @@ class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
   }
 
   @Throws(XmlException::class)
-  override fun onBeforeDeserializeChildren(`in`: XmlReader) {
+  override fun onBeforeDeserializeChildren(reader: XmlReader) {
     // do nothing
   }
 

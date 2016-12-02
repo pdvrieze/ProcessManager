@@ -25,6 +25,7 @@ import nl.adaptivity.process.processModel.engine.XmlEndNode
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlStreaming.EventType
@@ -58,6 +59,24 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     fun deserializeSplit(ownerModel: M, reader: XmlReader): Split<out U, M>
   }
 
+  interface DeserializationFactory2<U : ProcessNode<U, M>, M : ProcessModelBase<U, M>> {
+
+    @Throws(XmlException::class)
+    fun deserializeEndNode(reader: XmlReader): EndNode.Builder<U, M>
+
+    @Throws(XmlException::class)
+    fun deserializeActivity(reader: XmlReader): Activity.Builder<U, M>
+
+    @Throws(XmlException::class)
+    fun deserializeStartNode(reader: XmlReader): StartNode.Builder<U, M>
+
+    @Throws(XmlException::class)
+    fun deserializeJoin(reader: XmlReader): Join.Builder<U, M>
+
+    @Throws(XmlException::class)
+    fun deserializeSplit(reader: XmlReader): Split.Builder<U, M>
+  }
+
   interface SplitFactory<U : ProcessNode<U, M>, M : ProcessModel<U, M>> {
 
     /**
@@ -75,11 +94,11 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
       val nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
-      val name: String? = null,
-      val handle: Long = -1L,
-      val owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+      var name: String? = null,
+      var handle: Long = -1L,
+      var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
       val roles: MutableList<String> = mutableListOf<String>(),
-      val uuid: UUID? = null,
+      var uuid: UUID? = null,
       val imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
       val exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>()) {
 
@@ -94,6 +113,35 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
             base.getExports().toMutableList())
 
 
+
+    @Throws(XmlException::class)
+    internal fun deserializeChild(factory: DeserializationFactory2<T, M>, reader: XmlReader): Boolean {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
+        val newNode = when (reader.localName.toString()) {
+          EndNode.ELEMENTLOCALNAME -> factory.deserializeEndNode(reader)
+          Activity.ELEMENTLOCALNAME -> factory.deserializeActivity(reader)
+          StartNode.ELEMENTLOCALNAME -> factory.deserializeStartNode(reader)
+          Join.ELEMENTLOCALNAME -> factory.deserializeJoin(reader)
+          Split.ELEMENTLOCALNAME -> factory.deserializeSplit(reader)
+          else -> return false
+        }
+        nodes.add(newNode)
+        return true
+      }
+      return false
+    }
+
+    internal fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+      val value = attributeValue.toString()
+      when (StringUtil.toString(attributeLocalName)) {
+        "name" -> name=value
+        "owner" -> owner = SimplePrincipal(value)
+        ATTR_ROLES -> roles.apply { clear() }.addAll(value.split(" *, *".toRegex()).filter { it.isEmpty() })
+        "uuid" -> uuid = UUID.fromString(value)
+        else -> return false
+      }
+      return true
+    }
 
 
     abstract fun build(): ProcessModelBase<T,M>
@@ -185,6 +233,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     return asM()
   }
 
+  @Deprecated("Use Builders")
   @Throws(XmlException::class)
   protected fun deserializeChild(factory: DeserializationFactory<T, M>, reader: XmlReader): Boolean {
     if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
@@ -202,6 +251,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     return false
   }
 
+  @Deprecated("Use builders")
   protected fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
     val value = attributeValue.toString()
     when (StringUtil.toString(attributeLocalName)) {
@@ -419,6 +469,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       return `val`?.toInt() ?: defaultValue
     }
 
+    @Deprecated("Use the version that takes a builder and a DeserializationFactory2")
     @Throws(XmlException::class)
     fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory<T, M>, processModel: M, reader: XmlReader): M {
 
@@ -443,6 +494,32 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
         }
       }
       return processModel
+    }
+
+    @Throws(XmlException::class)
+    fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory2<T, M>, builder: Builder<T,M>, reader: XmlReader): M {
+
+      reader.skipPreamble()
+      val elementName = ELEMENTNAME
+      assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
+      for (i in reader.attributeCount - 1 downTo 0) {
+        builder.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i), reader.getAttributeValue(i))
+      }
+
+      var event: EventType? = null
+      loop@ while (reader.hasNext() && event !== XmlStreaming.END_ELEMENT) {
+        event = reader.next()
+        if (!(event== EventType.START_ELEMENT && builder.deserializeChild(factory, reader))) {
+          reader.unhandledEvent()
+        }
+      }
+
+      for (node in builder.nodes) {
+        for (pred in node.predecessors) {
+          builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id))
+        }
+      }
+      return builder.build().asM()
     }
   }
 }

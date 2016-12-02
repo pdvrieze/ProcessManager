@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Handle;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.annotation.XmlValue;
 
@@ -56,7 +57,7 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) {
     // ignore
   }
 

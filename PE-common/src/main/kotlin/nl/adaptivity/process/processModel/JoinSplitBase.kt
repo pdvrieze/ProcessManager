@@ -32,7 +32,11 @@ import java.util.*
 abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     ProcessNodeBase<T, M>, JoinSplit<T, M>, SimpleXmlDeserializable {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, JoinSplit.Builder<T,M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, JoinSplit.Builder<T,M>, SimpleXmlDeserializable {
+
+    override var min:Int
+    override var max:Int
+
     constructor(predecessors: Collection<Identifiable> = emptyList(),
                 successors: Collection<Identifiable> = emptyList(),
                 id: String? = null, label: String? = null,
@@ -45,15 +49,23 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
       this.min = min
       this.max = max
     }
+
     constructor(node: JoinSplit<*, *>) : super(node) {
       min = node.min
       max = node.max
     }
 
-    override var min:Int
-    override var max:Int
-
     override abstract fun build(newOwner: M): JoinSplitBase<T, M>
+
+    @Throws(XmlException::class)
+    override fun deserializeChild(`in`: XmlReader): Boolean {
+      return false
+    }
+
+    override fun deserializeChildText(elementText: CharSequence): Boolean {
+      return false
+    }
+
   }
 
   constructor(ownerModel: M?,

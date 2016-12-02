@@ -25,6 +25,7 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
@@ -71,7 +72,7 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<XmlProcessModel>, DeserializationFactory<XmlProcessNode,XmlProcessModel> {
+  public static class Factory implements XmlDeserializerFactory<XmlProcessModel>, DeserializationFactory2<XmlProcessNode,XmlProcessModel> {
 
     @NotNull
     @Override
@@ -79,34 +80,34 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
       return XmlProcessModel.deserialize(reader);
     }
 
+    @NotNull
     @Override
-    public XmlEndNode deserializeEndNode(final XmlProcessModel ownerModel, final XmlReader in) throws
-            XmlException {
-      return XmlEndNode.deserialize(ownerModel, in);
+    public XmlEndNode.Builder deserializeEndNode(@NotNull final XmlReader reader) throws XmlException {
+      return XmlEndNode.deserialize(reader);
     }
 
+    @NotNull
     @Override
-    public XmlActivity deserializeActivity(final XmlProcessModel ownerModel, final XmlReader in) throws
-            XmlException {
-      return XmlActivity.deserialize(ownerModel, in);
+    public XmlActivity.Builder deserializeActivity(@NotNull final XmlReader reader) throws XmlException {
+      return XmlActivity.deserialize(reader);
     }
 
+    @NotNull
     @Override
-    public XmlStartNode deserializeStartNode(final XmlProcessModel ownerModel, final XmlReader in) throws
-            XmlException {
-      return XmlStartNode.deserialize(ownerModel, in);
+    public XmlStartNode.Builder deserializeStartNode(@NotNull final XmlReader reader) throws XmlException {
+      return XmlStartNode.deserialize(reader);
     }
 
+    @NotNull
     @Override
-    public XmlJoin deserializeJoin(final XmlProcessModel ownerModel, final XmlReader in) throws
-            XmlException {
-      return XmlJoin.deserialize(ownerModel, in);
+    public XmlJoin.Builder deserializeJoin(@NotNull final XmlReader reader) throws XmlException {
+      return XmlJoin.deserialize(reader);
     }
 
+    @NotNull
     @Override
-    public XmlSplit deserializeSplit(final XmlProcessModel ownerModel, final XmlReader in) throws
-            XmlException {
-      return XmlSplit.deserialize(ownerModel, in);
+    public Split.Builder<XmlProcessNode, XmlProcessModel> deserializeSplit(@NotNull final XmlReader reader) throws XmlException {
+      return XmlSplit.deserialize(reader);
     }
   }
 
@@ -225,7 +226,7 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     @NotNull
     @Deprecated
   public static XmlProcessModel deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.Companion.deserialize(factory, new XmlProcessModel(Collections.<XmlProcessNode>emptyList()), in);
+    return ProcessModelBase.Companion.deserialize(factory, new Builder(), in);
   }
 
   /**

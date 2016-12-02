@@ -279,7 +279,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     }
 
     @Override
-    public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) {
       /* Do nothing. */
     }
 
@@ -581,7 +581,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) {
     // do nothing
   }
 

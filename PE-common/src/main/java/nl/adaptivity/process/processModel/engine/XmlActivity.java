@@ -41,6 +41,8 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
 
   public static class Builder extends ActivityBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
+    public Builder() { }
+
     public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name) {
       super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
     }
@@ -135,6 +137,12 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   public static XmlActivity deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader reader) throws
           XmlException {
     return nl.adaptivity.xml.XmlUtil.<XmlActivity>deserializeHelper(new XmlActivity(ownerModel), reader);
+  }
+
+  @NotNull
+  public static XmlActivity.Builder deserialize(@NotNull final XmlReader reader) throws
+          XmlException {
+    return nl.adaptivity.xml.XmlUtil.<XmlActivity.Builder>deserializeHelper(new Builder(), reader);
   }
 
   @Override

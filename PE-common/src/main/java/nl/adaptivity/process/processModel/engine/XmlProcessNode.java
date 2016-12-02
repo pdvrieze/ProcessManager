@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.xml.XmlDeserializable;
 import org.jetbrains.annotations.NotNull;
 
 

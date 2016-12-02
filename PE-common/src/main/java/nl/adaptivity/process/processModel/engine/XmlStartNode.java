@@ -22,6 +22,7 @@ import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,8 @@ import java.util.List;
 public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
   public static class Builder extends StartNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+
+    public Builder() { }
 
     public Builder(StartNode base) {
       super(base);
@@ -70,7 +73,14 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
   @NotNull
   public static XmlStartNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return nl.adaptivity.xml.XmlUtil.deserializeHelper(new XmlStartNode(ownerModel), in);
+    return XmlUtil.deserializeHelper(new XmlStartNode(ownerModel), in);
+  }
+
+  @NotNull
+  public static XmlStartNode.Builder deserialize(@NotNull final XmlReader in) throws
+          XmlException {
+
+    return XmlUtil.deserializeHelper(new XmlStartNode.Builder(), in);
   }
 
   public XmlStartNode(final @Nullable XmlProcessModel ownerModel) {

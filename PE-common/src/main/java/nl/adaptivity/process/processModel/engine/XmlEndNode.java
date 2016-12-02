@@ -22,6 +22,7 @@ import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,10 @@ import java.util.Collection;
 public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
   public static class Builder extends EndNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+
+    public Builder() {
+      super();
+    }
 
     public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(predecessor, id, label, x, y, defines, results);
@@ -79,7 +84,13 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
   @NotNull
   public static XmlEndNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return nl.adaptivity.xml.XmlUtil.<XmlEndNode>deserializeHelper(new XmlEndNode(ownerModel), in);
+    return XmlUtil.<XmlEndNode>deserializeHelper(new XmlEndNode(ownerModel), in);
+  }
+
+  @NotNull
+  public static XmlEndNode.Builder deserialize(@NotNull final XmlReader in) throws
+          XmlException {
+    return XmlUtil.deserializeHelper(new Builder(), in);
   }
 
   public XmlEndNode(final XmlProcessModel ownerModel, final XmlProcessNode previous) {

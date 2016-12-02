@@ -105,7 +105,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
   protected abstract void setSummary(final String summary);
 
   @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(final XmlReader reader) {
     // do nothing
   }
 

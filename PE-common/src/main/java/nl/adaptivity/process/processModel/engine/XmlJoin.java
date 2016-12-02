@@ -22,6 +22,7 @@ import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,8 @@ import java.util.Set;
 public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
   public static class Builder extends JoinBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+
+    public Builder() {}
 
     public Builder(@NotNull final Join<?, ?> node) {
       super(node);
@@ -68,7 +71,13 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
   @NotNull
   public static XmlJoin deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return nl.adaptivity.xml.XmlUtil.deserializeHelper(new XmlJoin(ownerModel), in);
+    return XmlUtil.deserializeHelper(new XmlJoin(ownerModel), in);
+  }
+
+  @NotNull
+  public static XmlJoin.Builder deserialize(@NotNull final XmlReader in) throws
+          XmlException {
+    return XmlUtil.deserializeHelper(new XmlJoin.Builder(), in);
   }
 
   public XmlJoin(final XmlProcessModel ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {

@@ -97,7 +97,7 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) {
     // ignore
   }
 

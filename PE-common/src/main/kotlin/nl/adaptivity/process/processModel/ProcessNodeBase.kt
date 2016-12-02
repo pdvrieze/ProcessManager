@@ -53,7 +53,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                 override var x: Double = Double.NaN,
                 override var y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList()) : ProcessNode.Builder<T,M> {
+                results: Collection<IXmlResultType> = emptyList()) : ProcessNode.Builder<T,M>, XmlDeserializable {
 
     override var predecessors: MutableSet<Identifiable> = ArraySet(predecessors)
     override var successors: MutableSet<Identifiable> = ArraySet(successors)
@@ -63,6 +63,28 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.getId(), node.label, node.getX(), node.getY(), node.defines, node.results)
 
     override abstract fun build(newOwner: M): ProcessNodeBase<T, M>
+
+    override fun onBeforeDeserializeChildren(reader: XmlReader) {
+      // By default do nothing
+    }
+
+    override fun deserializeAttribute(attributeNamespace: CharSequence,
+                                      attributeLocalName: CharSequence,
+                                      attributeValue: CharSequence): Boolean {
+      if (XMLConstants.NULL_NS_URI == attributeNamespace) {
+        val value = attributeValue.toString()
+        when (attributeLocalName.toString()) {
+          "id"    -> id = value
+          "label" -> label=value
+          "x"     -> x = value.toDouble()
+          "y"     -> y = value.toDouble()
+          else -> return false
+        }
+        return true
+      }
+      return false
+    }
+
   }
 
   private var _predecessors = toIdentifiers(maxPredecessorCount, predecessors)
@@ -147,7 +169,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     return false
   }
 
-  override fun onBeforeDeserializeChildren(`in`: XmlReader) {
+  override fun onBeforeDeserializeChildren(reader: XmlReader) {
     // do nothing
   }
 
@@ -309,14 +331,15 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   }
 
   override fun asT(): T {
+    @Suppress("UNCHECKED_CAST")
     return this as T
   }
 
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#getId()
      */
-  override fun compareTo(o: Identifiable): Int {
-    return id!!.compareTo(o.id)
+  override fun compareTo(other: Identifiable): Int {
+    return id!!.compareTo(other.id)
   }
 
   private var mId: String? = id
@@ -404,7 +427,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
   protected open fun setResults(imports: Collection<IXmlResultType>) {
     _hashCode = 0
-    _results = imports?.let { toExportableResults(imports) } ?: mutableListOf()
+    _results = imports.let { toExportableResults(imports) } ?: mutableListOf()
   }
 
   override val results: List<XmlResultType> get() = _results
@@ -413,15 +436,15 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     return _results.firstOrNull { it.name == name }
   }
 
-  override fun equals(o: Any?): Boolean {
-    if (this === o) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) {
       return true
     }
-    if (o == null || javaClass != o.javaClass) {
+    if (other == null || javaClass != other.javaClass) {
       return false
     }
 
-    val that = o as ProcessNodeBase<*, *>?
+    val that = other as ProcessNodeBase<*, *>?
 
     if (java.lang.Double.compare(that!!._x, _x) != 0) {
       return false

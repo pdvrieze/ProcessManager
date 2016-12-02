@@ -30,7 +30,12 @@ import javax.xml.namespace.QName
  */
 abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, StartNode<T, M>, SimpleXmlDeserializable {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M>, SimpleXmlDeserializable {
+
+    override val elementName: QName
+      get() = StartNode.ELEMENTNAME
+
+    constructor() : this(successor = null)
 
     constructor(successor: Identifiable? = null,
                 id: String? = null,
@@ -42,8 +47,24 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
 
     constructor(node: StartNode<*, *>) : super(node)
 
-
     abstract override fun build(newOwner: M): StartNodeBase<T, M>
+
+    @Throws(XmlException::class)
+    override fun deserializeChild(reader: XmlReader): Boolean {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
+        when (reader.localName.toString()) {
+          "import" -> {
+            (results as MutableList).add(XmlResultType.deserialize(reader))
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    override fun deserializeChildText(elementText: CharSequence): Boolean {
+      return false
+    }
 
   }
 

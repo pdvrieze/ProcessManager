@@ -128,7 +128,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) {
     // nothing
   }
 

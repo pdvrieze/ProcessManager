@@ -136,7 +136,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(final XmlReader reader) {
 
   }
 

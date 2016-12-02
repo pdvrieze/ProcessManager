@@ -36,6 +36,8 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
   public static class Builder extends SplitBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
+    public Builder(){}
+
     public Builder(@NotNull final Split<?, ?> node) {
       super(node);
     }
@@ -140,6 +142,10 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
   public static XmlSplit deserialize(XmlProcessModel owner, XmlReader reader) throws XmlException {
     return deserializeHelper(new XmlSplit(owner), reader);
+  }
+
+  public static XmlSplit.Builder deserialize(XmlReader reader) throws XmlException {
+    return deserializeHelper(new XmlSplit.Builder(), reader);
   }
 
 }

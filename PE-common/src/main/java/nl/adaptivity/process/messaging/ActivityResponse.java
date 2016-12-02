@@ -152,7 +152,7 @@ public class ActivityResponse<T> implements XmlSerializable, SimpleXmlDeserializ
   }
 
   @Override
-  public void onBeforeDeserializeChildren(@NotNull final XmlReader in) throws XmlException {
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) {
 
   }
 

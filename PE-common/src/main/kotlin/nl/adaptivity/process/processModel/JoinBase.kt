@@ -31,6 +31,8 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Join.Builder<T,M> {
 
+    constructor():this(predecessors= emptyList())
+
     constructor(predecessors: Collection<Identifiable> = emptyList(),
                 successors: Collection<Identifiable> = emptyList(),
                 id: String? = null, label: String? = null,
@@ -44,6 +46,10 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
     constructor(node: Join<*, *>) : super(node)
 
     override abstract fun build(newOwner: M): JoinBase<T, M>
+
+    override val elementName: QName
+      get() = Join.ELEMENTNAME
+
   }
 
   constructor(ownerModel: M?,

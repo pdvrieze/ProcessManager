@@ -44,8 +44,8 @@ public class XmlCondition implements XmlSerializable, Condition {
   }
 
   @NotNull
-  public static XmlCondition deserialize(@NotNull final XmlReader in) throws XmlException {
-    final CharSequence condition = XmlReaderUtil.readSimpleElement(in);
+  public static XmlCondition deserialize(@NotNull final XmlReader reader) throws XmlException {
+    final CharSequence condition = XmlReaderUtil.readSimpleElement(reader);
     return new XmlCondition(StringUtil.toString(condition));
   }
 

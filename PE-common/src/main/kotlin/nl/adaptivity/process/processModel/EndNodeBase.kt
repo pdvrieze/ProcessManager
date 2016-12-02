@@ -33,7 +33,9 @@ import java.util.Arrays
  */
 abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, EndNode<T, M>, SimpleXmlDeserializable {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
+
+    constructor(): this(predecessor=null)
 
     constructor(predecessor: Identifiable? = null,
                 id: String? = null,
@@ -51,6 +53,35 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
     abstract override fun build(newOwner: M): EndNodeBase<T, M>
 
+
+    @Throws(XmlException::class)
+    override fun deserializeChild(reader: XmlReader): Boolean {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
+        when (reader.localName.toString()) {
+          "export", XmlDefineType.ELEMENTLOCALNAME -> {
+            defines.add(XmlDefineType.deserialize(reader))
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+      if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
+        predecessor = Identifier(attributeValue.toString())
+        return true
+      }
+      return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+    }
+
+    override fun deserializeChildText(elementText: CharSequence): Boolean {
+      return false
+    }
+
+
+    override val elementName: QName
+      get() = EndNode.ELEMENTNAME
   }
 
   override val elementName: QName

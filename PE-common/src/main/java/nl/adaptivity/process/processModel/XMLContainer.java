@@ -74,10 +74,10 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
   }
 
   @Override
-  public void onBeforeDeserializeChildren(@NotNull final XmlReader in) throws XmlException {
-    int nsEnd = in.getNamespaceEnd();
-    for(int i=in.getNamespaceStart(); i< nsEnd;++i) {
-      visitNamespace(in, in.getNamespacePrefix(i));
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader reader) throws XmlException {
+    int nsEnd = reader.getNamespaceEnd();
+    for(int i = reader.getNamespaceStart(); i < nsEnd; ++i) {
+      visitNamespace(reader, reader.getNamespacePrefix(i));
     }
   }
 
