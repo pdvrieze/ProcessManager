@@ -66,6 +66,10 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
       return false
     }
 
+    override fun toString(): String {
+      return "${super.toString().dropLast(1)}, min=$min, max=$max)"
+    }
+
   }
 
   constructor(ownerModel: M?,

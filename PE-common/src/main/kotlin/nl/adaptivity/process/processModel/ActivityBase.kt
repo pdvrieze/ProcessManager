@@ -100,6 +100,10 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
       return false
     }
 
+    override fun toString(): String {
+      return "${super.toString().dropLast(1)}, message=$message, name=$name, condition=$condition)"
+    }
+
 
   }
 

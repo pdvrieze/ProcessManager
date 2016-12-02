@@ -143,8 +143,13 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       return true
     }
 
-
     abstract fun build(): ProcessModelBase<T,M>
+
+    override fun toString(): String {
+      return "Builder(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
+    }
+
+
   }
 
   private var _processNodes: IdentifyableSet<T>

@@ -85,6 +85,10 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       return false
     }
 
+    override fun toString(): String {
+      return "${this.javaClass.name}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
+    }
+
   }
 
   private var _predecessors = toIdentifiers(maxPredecessorCount, predecessors)
