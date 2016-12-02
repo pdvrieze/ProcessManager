@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.Activity.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.XmlName;
@@ -38,9 +37,9 @@ import java.util.Collection;
  * @author Paul de Vrieze
  */
 @XmlDeserializer(XmlActivity.Factory.class)
-public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode {
+public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> implements XmlProcessNode {
 
-  public static class Builder extends ActivityBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+  public static class Builder extends ActivityBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
     public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name) {
       super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
@@ -52,7 +51,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> 
 
     @NotNull
     @Override
-    public XmlActivity build(@NotNull final ProcessModelImpl newOwner) {
+    public XmlActivity build(@NotNull final XmlProcessModel newOwner) {
       return new XmlActivity(this, newOwner);
     }
   }
@@ -75,7 +74,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> 
    * @param predecessor The process node that starts immediately precedes this
    *          activity.
    */
-  public XmlActivity(final ProcessModelImpl  ownerModel, final XmlProcessNode predecessor) {
+  public XmlActivity(final XmlProcessModel ownerModel, final XmlProcessNode predecessor) {
     super(ownerModel);
     setPredecessor(predecessor);
   }
@@ -84,16 +83,16 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> 
    * Create an activity without predecessor. This constructor is needed for JAXB
    * to work.
    */
-  public XmlActivity(final ProcessModelImpl ownerModel) {super(ownerModel);}
+  public XmlActivity(final XmlProcessModel ownerModel) {super(ownerModel);}
 
   @Deprecated
   public XmlActivity(final Activity<?,?> orig) { this(orig, null); }
 
-  public XmlActivity(final Activity<?, ?> orig, ProcessModelImpl newOwner) {
+  public XmlActivity(final Activity<?, ?> orig, XmlProcessModel newOwner) {
     super(orig, newOwner);
   }
 
-  public XmlActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+  public XmlActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -133,13 +132,13 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, ProcessModelImpl> 
   }
 
   @NotNull
-  public static XmlActivity deserialize(final ProcessModelImpl  ownerModel, @NotNull final XmlReader reader) throws
+  public static XmlActivity deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader reader) throws
           XmlException {
     return nl.adaptivity.xml.XmlUtil.<XmlActivity>deserializeHelper(new XmlActivity(ownerModel), reader);
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
     super.setOwnerModel(ownerModel);
   }
 

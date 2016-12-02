@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.StringUtil
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.processModel.engine.XmlSplit
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
@@ -111,7 +111,7 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
 
     @Deprecated("Use a final class deserializer such as XmlSplit.deserialize")
     @Throws(XmlException::class)
-    fun deserialize(ownerModel: ProcessModelImpl, reader: XmlReader): XmlSplit {
+    fun deserialize(ownerModel: XmlProcessModel, reader: XmlReader): XmlSplit {
       return XmlSplit.deserialize(ownerModel, reader)
     }
   }

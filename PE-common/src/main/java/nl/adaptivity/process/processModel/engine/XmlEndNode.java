@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -30,9 +29,9 @@ import java.util.Collection;
 
 
 @XmlDeserializer(XmlEndNode.Factory.class)
-public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
+public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
-  public static class Builder extends EndNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+  public static class Builder extends EndNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
     public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(predecessor, id, label, x, y, defines, results);
@@ -44,7 +43,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> imp
 
     @NotNull
     @Override
-    public XmlEndNode build(@NotNull final ProcessModelImpl newOwner) {
+    public XmlEndNode build(@NotNull final XmlProcessModel newOwner) {
       return new XmlEndNode(this, newOwner);
     }
   }
@@ -63,11 +62,11 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> imp
     this(orig, null);
   }
 
-  public XmlEndNode(final EndNode<?, ?> orig, ProcessModelImpl newOwner) {
+  public XmlEndNode(final EndNode<?, ?> orig, XmlProcessModel newOwner) {
     super(orig, newOwner);
   }
 
-  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -78,22 +77,22 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,ProcessModelImpl> imp
   }
 
   @NotNull
-  public static XmlEndNode deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static XmlEndNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return nl.adaptivity.xml.XmlUtil.<XmlEndNode>deserializeHelper(new XmlEndNode(ownerModel), in);
   }
 
-  public XmlEndNode(final ProcessModelImpl ownerModel, final XmlProcessNode previous) {
+  public XmlEndNode(final XmlProcessModel ownerModel, final XmlProcessNode previous) {
     super(ownerModel);
     setPredecessor(previous);
   }
 
-  public XmlEndNode(final ProcessModelImpl ownerModel) {
+  public XmlEndNode(final XmlProcessModel ownerModel) {
     super(ownerModel);
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
     super.setOwnerModel(ownerModel);
   }
 

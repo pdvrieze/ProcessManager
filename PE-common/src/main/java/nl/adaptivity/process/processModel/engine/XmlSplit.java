@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -33,9 +32,9 @@ import static nl.adaptivity.xml.XmlUtil.deserializeHelper;
 
 
 @XmlDeserializer(XmlSplit.Factory.class)
-public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
+public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
-  public static class Builder extends SplitBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+  public static class Builder extends SplitBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
     public Builder(@NotNull final Split<?, ?> node) {
       super(node);
@@ -47,7 +46,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
 
     @NotNull
     @Override
-    public XmlSplit build(@NotNull final ProcessModelImpl newOwner) {
+    public XmlSplit build(@NotNull final XmlProcessModel newOwner) {
       return new XmlSplit(this, newOwner);
     }
   }
@@ -62,7 +61,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
   }
 
   @Deprecated
-  public XmlSplit(final @Nullable ProcessModelImpl ownerModel, final XmlProcessNode predecessor, final int min, final int max) {
+  public XmlSplit(final @Nullable XmlProcessModel ownerModel, final XmlProcessNode predecessor, final int min, final int max) {
     super(ownerModel, Collections.singleton(predecessor), max, min);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
@@ -70,11 +69,11 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
   }
 
   @Deprecated
-  public XmlSplit(final @Nullable ProcessModelImpl ownerModel) {
+  public XmlSplit(final @Nullable XmlProcessModel ownerModel) {
     super(ownerModel);
   }
 
-  public XmlSplit(final Split<?, ?> orig, ProcessModelImpl newOwner) {
+  public XmlSplit(final Split<?, ?> orig, XmlProcessModel newOwner) {
     super(orig, newOwner);
   }
 
@@ -83,12 +82,12 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
     this(orig, null);
   }
 
-  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
   @NotNull
-  public static XmlSplit andSplit(final ProcessModelImpl ownerModel, final XmlProcessNode predecessor) {
+  public static XmlSplit andSplit(final XmlProcessModel ownerModel, final XmlProcessNode predecessor) {
     return new XmlSplit(ownerModel, predecessor, Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
@@ -100,7 +99,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
 
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
     super.setOwnerModel(ownerModel);
   }
 
@@ -139,7 +138,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,ProcessModelImpl> impleme
     super.setSuccessors(successors);
   }
 
-  public static XmlSplit deserialize(ProcessModelImpl owner, XmlReader reader) throws XmlException {
+  public static XmlSplit deserialize(XmlProcessModel owner, XmlReader reader) throws XmlException {
     return deserializeHelper(new XmlSplit(owner), reader);
   }
 

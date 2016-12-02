@@ -26,7 +26,6 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
-import nl.adaptivity.process.processModel.engine.XmlProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializer;
@@ -47,65 +46,65 @@ import java.util.*;
  *
  * @author Paul de Vrieze
  */
-@XmlDeserializer(ProcessModelImpl.Factory.class)
+@XmlDeserializer(XmlProcessModel.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessModelImpl> implements MutableHandleAware<ProcessModelImpl>, SecureObject<ProcessModelImpl> {
+public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcessModel> implements MutableHandleAware<XmlProcessModel>, SecureObject<XmlProcessModel> {
 
-  public static class Builder extends ProcessModelBase.Builder<XmlProcessNode, ProcessModelImpl> {
+  public static class Builder extends ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel> {
 
-    public Builder(@NotNull final Set<ProcessNode.Builder<XmlProcessNode, ProcessModelImpl>> nodes, @Nullable final String name, final long handle, @NotNull final Principal owner, @NotNull final List<String> roles, @Nullable final UUID uuid, @NotNull final List<IXmlResultType> imports, @NotNull final List<IXmlDefineType> exports) {
+    public Builder(@NotNull final Set<ProcessNode.Builder<XmlProcessNode, XmlProcessModel>> nodes, @Nullable final String name, final long handle, @NotNull final Principal owner, @NotNull final List<String> roles, @Nullable final UUID uuid, @NotNull final List<IXmlResultType> imports, @NotNull final List<IXmlDefineType> exports) {
       super(nodes, name, handle, owner, roles, uuid, imports, exports);
     }
 
     public Builder() {
     }
 
-    public Builder(@NotNull final ProcessModelBase<XmlProcessNode, ProcessModelImpl> base) {
+    public Builder(@NotNull final ProcessModelBase<XmlProcessNode, XmlProcessModel> base) {
       super(base);
     }
 
     @NotNull
     @Override
-    public ProcessModelImpl build() {
-      return new ProcessModelImpl(this);
+    public XmlProcessModel build() {
+      return new XmlProcessModel(this);
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<ProcessModelImpl>, DeserializationFactory<XmlProcessNode,ProcessModelImpl> {
+  public static class Factory implements XmlDeserializerFactory<XmlProcessModel>, DeserializationFactory<XmlProcessNode,XmlProcessModel> {
 
     @NotNull
     @Override
-    public ProcessModelImpl deserialize(@NotNull final XmlReader reader) throws XmlException {
-      return ProcessModelImpl.deserialize(reader);
+    public XmlProcessModel deserialize(@NotNull final XmlReader reader) throws XmlException {
+      return XmlProcessModel.deserialize(reader);
     }
 
     @Override
-    public XmlEndNode deserializeEndNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlEndNode deserializeEndNode(final XmlProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       return XmlEndNode.deserialize(ownerModel, in);
     }
 
     @Override
-    public XmlActivity deserializeActivity(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlActivity deserializeActivity(final XmlProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       return XmlActivity.deserialize(ownerModel, in);
     }
 
     @Override
-    public XmlStartNode deserializeStartNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlStartNode deserializeStartNode(final XmlProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       return XmlStartNode.deserialize(ownerModel, in);
     }
 
     @Override
-    public XmlJoin deserializeJoin(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlJoin deserializeJoin(final XmlProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       return XmlJoin.deserialize(ownerModel, in);
     }
 
     @Override
-    public XmlSplit deserializeSplit(final ProcessModelImpl ownerModel, final XmlReader in) throws
+    public XmlSplit deserializeSplit(final XmlProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       return XmlSplit.deserialize(ownerModel, in);
     }
@@ -117,29 +116,29 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
    * Create a new processModel based on the given nodes. These nodes should be complete
    *
    */
-  public ProcessModelImpl(final Collection<? extends XmlProcessNode> processNodes) {
+  public XmlProcessModel(final Collection<? extends XmlProcessNode> processNodes) {
     super(new ArrayList<>(processNodes), null, -1L, SecurityProvider.SYSTEMPRINCIPAL, Collections.<String>emptyList(), null, Collections.<IXmlResultType>emptyList(), Collections.<IXmlDefineType>emptyList(), XML_NODE_FACTORY);
   }
 
-  private static final Function2<ProcessModelImpl, ProcessNode<?, ?>, XmlProcessNode> XML_NODE_FACTORY = new Function2<ProcessModelImpl, ProcessNode<?, ?>, XmlProcessNode>() {
+  private static final Function2<XmlProcessModel, ProcessNode<?, ?>, XmlProcessNode> XML_NODE_FACTORY = new Function2<XmlProcessModel, ProcessNode<?, ?>, XmlProcessNode>() {
     @Override
-    public XmlProcessNode invoke(final ProcessModelImpl newOwner, final ProcessNode<?, ?> processNode) {
+    public XmlProcessNode invoke(final XmlProcessModel newOwner, final ProcessNode<?, ?> processNode) {
       return toXmlNode(newOwner, processNode);
     }
   };
 
-  private static final Function2<ProcessModelImpl, XmlProcessNode.Builder, XmlProcessNode> XML_NODE_FACTORY_FROM_BUILDER = new Function2<ProcessModelImpl, XmlProcessNode.Builder, XmlProcessNode>() {
+  private static final Function2<XmlProcessModel, XmlProcessNode.Builder, XmlProcessNode> XML_NODE_FACTORY_FROM_BUILDER = new Function2<XmlProcessModel, XmlProcessNode.Builder, XmlProcessNode>() {
     @Override
-    public XmlProcessNode invoke(final ProcessModelImpl newOwner, final XmlProcessNode.Builder processNode) {
+    public XmlProcessNode invoke(final XmlProcessModel newOwner, final XmlProcessNode.Builder processNode) {
       return processNode.build(newOwner);
     }
   };
 
-  public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
+  public XmlProcessModel(final ProcessModelBase<?, ?> basepm) {
     super(basepm, XML_NODE_FACTORY);
   }
 
-  public ProcessModelImpl(@NotNull final ProcessModelBase.Builder<XmlProcessNode, ProcessModelImpl> builder) {
+  public XmlProcessModel(@NotNull final ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel> builder) {
     super(builder, (Function2)XML_NODE_FACTORY_FROM_BUILDER);
   }
 
@@ -152,7 +151,7 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
 
   private static Collection<? extends XmlProcessNode> toXmlNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
     List<XmlProcessNode> result = new ArrayList<>(modelNodes.size());
-    final ProcessModelImpl newOwner = null;
+    final XmlProcessModel newOwner = null;
 
     for(ProcessNode<?, ?> node: modelNodes) {
       result.add(toXmlNode(newOwner, node));
@@ -161,7 +160,7 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
     return result;
   }
 
-  private static XmlProcessNode toXmlNode(final ProcessModelImpl newOwner, final ProcessNode<?, ?> node) {
+  private static XmlProcessNode toXmlNode(final XmlProcessModel newOwner, final ProcessNode<?, ?> node) {
     return node.visit(new Visitor<XmlProcessNode>() {
       @Override
       public XmlStartNode visitStartNode(final StartNode<?, ?> startNode) {
@@ -194,7 +193,7 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  public ProcessModelImpl normalize(SplitFactory<? extends XmlProcessNode, ProcessModelImpl> splitFactory) {
+  public XmlProcessModel normalize(SplitFactory<? extends XmlProcessNode, XmlProcessModel> splitFactory) {
     ensureIds();
     // Make all nodes directly refer to other nodes.
     for(XmlProcessNode childNode: getModelNodes()) {
@@ -210,7 +209,7 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
           childNode.removeSuccessor(suc); // remove the predecessor from the current node
         }
         // create a new join, this should
-        Split<? extends XmlProcessNode, ProcessModelImpl> newSplit = splitFactory.createSplit(asM(), successors);
+        Split<? extends XmlProcessNode, XmlProcessModel> newSplit = splitFactory.createSplit(asM(), successors);
         childNode.addSuccessor(newSplit);
       }
     }
@@ -218,15 +217,15 @@ public class ProcessModelImpl extends ProcessModelBase<XmlProcessNode, ProcessMo
   }
 
   @NotNull
-  public static ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
+  public static XmlProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
     //noinspection deprecation
     return deserialize(new Factory(), in);
   }
 
     @NotNull
     @Deprecated
-  public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.Companion.deserialize(factory, new ProcessModelImpl(Collections.<XmlProcessNode>emptyList()), in);
+  public static XmlProcessModel deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
+    return ProcessModelBase.Companion.deserialize(factory, new XmlProcessModel(Collections.<XmlProcessNode>emptyList()), in);
   }
 
   /**

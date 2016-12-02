@@ -168,15 +168,15 @@ public class TestProcessData {
   }
 
   @NotNull
-  private static ProcessModelImpl getProcessModel(final String name) throws IOException,
-          XmlException {
+  private static XmlProcessModel getProcessModel(final String name) throws IOException,
+                                                                           XmlException {
     try (InputStream inputStream = getDocument(name)) {
       final XmlReader in = XmlStreaming.newReader(inputStream, "UTF-8");
       try {
         final XmlDeserializerFactory factory = ProcessModel.class.getAnnotation(XmlDeserializer.class)
                                                                  .value()
                                                                  .newInstance();
-        return (ProcessModelImpl) factory.deserialize(in);
+        return (XmlProcessModel) factory.deserialize(in);
       } catch (@NotNull InstantiationException | IllegalAccessException e) {
         throw new RuntimeException(e);
       }
@@ -208,7 +208,7 @@ public class TestProcessData {
   @Test
   public void testSerializeMessage() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    final ProcessModelImpl pm         = getProcessModel("testModel2.xml");
+    final XmlProcessModel pm         = getProcessModel("testModel2.xml");
     XmlActivity            ac2        = (XmlActivity) pm.getNode("ac2");
     String                 serialized = XmlUtil.toString(XmlMessage.get(ac2.getMessage()));
     XmlMessage             msg2       = XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
@@ -219,7 +219,7 @@ public class TestProcessData {
   @Test
   public void testDeserializeProcessModel() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    final ProcessModelImpl pm    = getProcessModel("testModel2.xml");
+    final XmlProcessModel pm    = getProcessModel("testModel2.xml");
     XmlActivity            ac1   = null;
     XmlActivity            ac2   = null;
     XmlStartNode           start = null;
@@ -361,7 +361,7 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripProcessModel1_ac1_result1() throws Exception {
-    final ProcessModelImpl xpm = getProcessModel("testModel2.xml");
+    final XmlProcessModel xpm = getProcessModel("testModel2.xml");
     {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
@@ -402,7 +402,7 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripProcessModel1_ac1_result2() throws Exception {
-    final ProcessModelImpl processModel = getProcessModel("testModel2.xml");
+    final XmlProcessModel processModel = getProcessModel("testModel2.xml");
     {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
@@ -433,7 +433,7 @@ public class TestProcessData {
   @Test
   public void testJaxbRoundTripProcessModel1() throws Exception {
 
-    testRoundTrip(getDocument("testModel2.xml"), ProcessModelImpl.class);
+    testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel.class);
 
   }
 
@@ -466,7 +466,7 @@ public class TestProcessData {
   public void testSerializeResult2() throws IOException, SAXException, XmlException {
     final XmlResultType result;
     {
-      final ProcessModelImpl xpm = getProcessModel("testModel2.xml");
+      final XmlProcessModel xpm = getProcessModel("testModel2.xml");
       final Iterator<? extends IXmlResultType> iterator = xpm.getNode("ac1").getResults().iterator();
       assertNotNull(iterator.next());
       result = (XmlResultType) iterator.next();

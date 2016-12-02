@@ -22,7 +22,7 @@ import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.HMElementFactory
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModels
 import java.util.*

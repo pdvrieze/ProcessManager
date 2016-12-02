@@ -18,20 +18,19 @@ package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import org.jetbrains.annotations.NotNull;
 
 
 /**
  * Created by pdvrieze on 27/11/16.
  */
-public interface XmlProcessNode extends MutableProcessNode<XmlProcessNode, ProcessModelImpl> {
+public interface XmlProcessNode extends MutableProcessNode<XmlProcessNode, XmlProcessModel> {
 
-  interface Builder extends ProcessNode.Builder<XmlProcessNode, ProcessModelImpl> {
+  interface Builder extends ProcessNode.Builder<XmlProcessNode, XmlProcessModel> {
 
     @NotNull
     @Override
-    XmlProcessNode build(@NotNull ProcessModelImpl newOwner);
+    XmlProcessNode build(@NotNull XmlProcessModel newOwner);
   }
 
   @NotNull

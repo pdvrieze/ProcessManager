@@ -20,7 +20,7 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecuredObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 
 import java.sql.SQLException
 import java.util.UUID

@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -31,9 +30,9 @@ import java.util.List;
 
 
 @XmlDeserializer(XmlStartNode.Factory.class)
-public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
+public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
-  public static class Builder extends StartNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+  public static class Builder extends StartNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
     public Builder(StartNode base) {
       super(base);
@@ -41,7 +40,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
 
     @NotNull
     @Override
-    public XmlStartNode build(@NotNull final ProcessModelImpl newOwner) {
+    public XmlStartNode build(@NotNull final XmlProcessModel newOwner) {
       return new XmlStartNode(this, newOwner);
     }
   }
@@ -55,7 +54,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
     }
   }
 
-  public XmlStartNode(@NotNull final StartNode<?, ?> orig, @Nullable final ProcessModelImpl newOwnerModel) {
+  public XmlStartNode(@NotNull final StartNode<?, ?> orig, @Nullable final XmlProcessModel newOwnerModel) {
     super(orig, newOwnerModel);
   }
 
@@ -64,21 +63,21 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
     this(orig, null);
   }
 
-  public XmlStartNode(@NotNull final StartNode.Builder<?,?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+  public XmlStartNode(@NotNull final StartNode.Builder<?,?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
   @NotNull
-  public static XmlStartNode deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static XmlStartNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return nl.adaptivity.xml.XmlUtil.deserializeHelper(new XmlStartNode(ownerModel), in);
   }
 
-  public XmlStartNode(final @Nullable ProcessModelImpl ownerModel) {
+  public XmlStartNode(final @Nullable XmlProcessModel ownerModel) {
     super(ownerModel);
   }
 
-  public XmlStartNode(final @Nullable ProcessModelImpl ownerModel, final List<XmlResultType> imports) {
+  public XmlStartNode(final @Nullable XmlProcessModel ownerModel, final List<XmlResultType> imports) {
     super(ownerModel);
     setResults(imports);
   }
@@ -90,7 +89,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,ProcessModelImpl>
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
     super.setOwnerModel(ownerModel);
   }
 

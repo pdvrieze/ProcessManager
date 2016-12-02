@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 
-public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode {
+public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode, XmlProcessModel> implements XmlProcessNode {
 
-  public static abstract class Builder extends ProcessNodeBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+  public static abstract class Builder extends ProcessNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
     public Builder() { }
 
@@ -40,13 +40,13 @@ public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode,
 
     @NotNull
     @Override
-    public abstract XmlProcessNodeBase build(@NotNull final ProcessModelImpl newOwner);
+    public abstract XmlProcessNodeBase build(@NotNull final XmlProcessModel newOwner);
   }
 
-  public static class XmlSplitFactory implements ProcessModelBase.SplitFactory<XmlProcessNode, ProcessModelImpl> {
+  public static class XmlSplitFactory implements ProcessModelBase.SplitFactory<XmlProcessNode, XmlProcessModel> {
 
     @Override
-    public Split<XmlProcessNode, ProcessModelImpl> createSplit(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> successors) {
+    public Split<XmlProcessNode, XmlProcessModel> createSplit(final XmlProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
       XmlSplit result = new XmlSplit(ownerModel);
       result.setSuccessors(successors);
       return result;
@@ -57,12 +57,12 @@ public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode,
 //
 //  private Collection<? extends IXmlExportType> mExports;
 
-  protected XmlProcessNodeBase(@Nullable final ProcessModelImpl ownerModel) {
+  protected XmlProcessNodeBase(@Nullable final XmlProcessModel ownerModel) {
     super(ownerModel);
   }
 
 
-  public XmlProcessNodeBase(final ProcessModelImpl ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
+  public XmlProcessNodeBase(final XmlProcessModel ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
     this(ownerModel);
     if ((predecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
@@ -109,7 +109,7 @@ public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode,
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
     super.setOwnerModel(ownerModel);
   }
 

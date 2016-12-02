@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.XmlProcessModel;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 
 
-@XmlDeserializer(ProcessModelImpl.Factory.class)
+@XmlDeserializer(XmlProcessModel.Factory.class)
 public interface ProcessModel<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends SecureObject<M> {
 
   /**

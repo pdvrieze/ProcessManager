@@ -214,7 +214,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     @Throws(XmlException::class)
     @JvmStatic
     fun deserialize(reader: XmlReader): ExecutableProcessModel {
-      val processModelImpl = ProcessModelImpl.deserialize(reader)
+      val processModelImpl = XmlProcessModel.deserialize(reader)
       return ExecutableProcessModel(processModelImpl)
     }
 

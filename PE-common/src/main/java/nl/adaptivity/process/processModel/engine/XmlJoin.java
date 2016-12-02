@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.Join.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -33,9 +32,9 @@ import java.util.Set;
 
 
 @XmlDeserializer(XmlJoin.Factory.class)
-public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implements XmlProcessNode {
+public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
 
-  public static class Builder extends JoinBase.Builder<XmlProcessNode, ProcessModelImpl> implements XmlProcessNode.Builder {
+  public static class Builder extends JoinBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
 
     public Builder(@NotNull final Join<?, ?> node) {
       super(node);
@@ -47,7 +46,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
 
     @NotNull
     @Override
-    public XmlJoin build(@NotNull final ProcessModelImpl newOwner) {
+    public XmlJoin build(@NotNull final XmlProcessModel newOwner) {
       return new XmlJoin(this, newOwner);
     }
   }
@@ -67,32 +66,32 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
   }
 
   @NotNull
-  public static XmlJoin deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static XmlJoin deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return nl.adaptivity.xml.XmlUtil.deserializeHelper(new XmlJoin(ownerModel), in);
   }
 
-  public XmlJoin(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public XmlJoin(final XmlProcessModel ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors, max, min);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
   }
 
-  public XmlJoin(final ProcessModelImpl ownerModel) {
+  public XmlJoin(final XmlProcessModel ownerModel) {
     super(ownerModel);
   }
 
-  public XmlJoin(@NotNull final Join<?, ?> orig, @Nullable final ProcessModelImpl newOwner) {
+  public XmlJoin(@NotNull final Join<?, ?> orig, @Nullable final XmlProcessModel newOwner) {
     super(orig, newOwner);
   }
 
-  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final ProcessModelImpl newOwnerModel) {
+  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
   @NotNull
-  public static XmlJoin andJoin(final ProcessModelImpl ownerModel, final XmlProcessNode... predecessors) {
+  public static XmlJoin andJoin(final XmlProcessModel ownerModel, final XmlProcessNode... predecessors) {
     return new XmlJoin(ownerModel, Arrays.asList(predecessors), Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
@@ -114,7 +113,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,ProcessModelImpl> implement
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
     super.setOwnerModel(ownerModel);
   }
 
