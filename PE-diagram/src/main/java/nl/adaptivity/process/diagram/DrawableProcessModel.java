@@ -95,11 +95,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @Override
     public DrawableSplit createSplit(final DrawableProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
-      final DrawableSplit join = new DrawableSplit(ownerModel);
-      join.setId(Identifier.findIdentifier(join.getIdBase(), ownerModel.getModelNodes()));
-      ownerModel.addNode(join);
-      join.setSuccessors(successors);
-      return join;
+      final DrawableSplit split = new DrawableSplit(ownerModel);
+      split.setId(Identifier.findIdentifier(split.getIdBase(), ownerModel.getModelNodes()));
+      ownerModel.addNode(split);
+      split.setSuccessors(successors);
+      return split;
     }
   }
 
