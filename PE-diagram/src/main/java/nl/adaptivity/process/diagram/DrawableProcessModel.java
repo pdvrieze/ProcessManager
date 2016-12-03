@@ -22,6 +22,7 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
+import nl.adaptivity.process.processModel.Split.Builder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -151,16 +152,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  private static final Function2 <DrawableProcessModel, DrawableProcessNode.Builder, DrawableProcessNode> DRAWABLE_NODE_FACTORY_FROM_BUILDER = new Function2<DrawableProcessModel, DrawableProcessNode.Builder, DrawableProcessNode>() {
+  private static final SplitFactory2<DrawableProcessNode, DrawableProcessModel> DRAWABLE_SPLIT_FACTORY = new SplitFactory2<DrawableProcessNode, DrawableProcessModel>() {
+    @NotNull
     @Override
-    public DrawableProcessNode invoke(final DrawableProcessModel newOwner, final DrawableProcessNode.Builder processNode) {
-      return processNode.build(newOwner);
+    public Split.Builder<DrawableProcessNode, DrawableProcessModel> createSplit(@NotNull final Collection<? extends Identifiable> successors) {
+      final DrawableSplit.Builder builder = new DrawableSplit.Builder();
+      builder.getSuccessors().addAll(successors);
+      return builder;
     }
   };
 
   public DrawableProcessModel(@NotNull final ProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
-    //noinspection unchecked
-    super(builder, (Function2) DRAWABLE_NODE_FACTORY_FROM_BUILDER);
+    super(builder, DRAWABLE_SPLIT_FACTORY);
   }
 
   @NotNull

@@ -39,7 +39,8 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     this.layoutAlgorithm = layoutAlgorithm
   }
 
-  constructor(builder: ProcessModelBase.Builder<T, M>, nodeFactory: (M, ProcessNode.Builder<T, M>) -> T) : super(builder, nodeFactory) {
+  @JvmOverloads
+  constructor(builder: ProcessModelBase.Builder<T, M>, splitFactory: SplitFactory2<T, M>, pedantic: Boolean = false) : super(builder, splitFactory, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 

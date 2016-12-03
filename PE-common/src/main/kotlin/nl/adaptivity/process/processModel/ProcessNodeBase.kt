@@ -17,15 +17,13 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.ArraySet
-import net.devrieze.util.StringUtil
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
-
-import javax.xml.XMLConstants
-
 import java.util.*
+import javax.xml.XMLConstants
 
 
 /**
@@ -56,9 +54,13 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                 results: Collection<IXmlResultType> = emptyList()) : ProcessNode.Builder<T,M>, XmlDeserializable {
 
     override var predecessors: MutableSet<Identifiable> = ArraySet(predecessors)
+      set(value) {field.replaceBy(value)}
     override var successors: MutableSet<Identifiable> = ArraySet(successors)
+      set(value) {field.replaceBy(value)}
     override var defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
+      set(value) {field.replaceBy(value)}
     override var results: MutableCollection<IXmlResultType> = ArrayList(results)
+      set(value) {field.replaceBy(value)}
 
     constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.getId(), node.label, node.getX(), node.getY(), node.defines, node.results)
 

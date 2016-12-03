@@ -128,10 +128,13 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     }
   };
 
-  private static final Function2<XmlProcessModel, XmlProcessNode.Builder, XmlProcessNode> XML_NODE_FACTORY_FROM_BUILDER = new Function2<XmlProcessModel, XmlProcessNode.Builder, XmlProcessNode>() {
+  private static final SplitFactory2<XmlProcessNode, XmlProcessModel> XML_SPLIT_FACTORY = new SplitFactory2<XmlProcessNode, XmlProcessModel>() {
+    @NotNull
     @Override
-    public XmlProcessNode invoke(final XmlProcessModel newOwner, final XmlProcessNode.Builder processNode) {
-      return processNode.build(newOwner);
+    public Split.Builder<XmlProcessNode, XmlProcessModel> createSplit(@NotNull final Collection<? extends Identifiable> successors) {
+      final XmlSplit.Builder splitBuilder = new XmlSplit.Builder();
+      splitBuilder.getSuccessors().addAll(successors);
+      return splitBuilder;
     }
   };
 
@@ -140,7 +143,11 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
   }
 
   public XmlProcessModel(@NotNull final ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel> builder) {
-    super(builder, (Function2)XML_NODE_FACTORY_FROM_BUILDER);
+    this(builder, false);
+  }
+
+  public XmlProcessModel(@NotNull final ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel> builder, boolean pedantic) {
+    super(builder, XML_SPLIT_FACTORY , pedantic);
   }
 
   @NotNull

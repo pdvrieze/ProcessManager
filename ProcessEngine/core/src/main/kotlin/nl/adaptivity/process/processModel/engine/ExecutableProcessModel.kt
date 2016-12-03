@@ -105,7 +105,8 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
    */
   constructor(processNodes: Collection<ExecutableProcessNode>) : super(processNodes, nodeFactory = ::toExecutableProcessNode)
 
-  constructor(builder: Builder) : super(builder, { newOwner, nodeBuilder -> nodeBuilder.build(newOwner).asT() } )
+  @JvmOverloads
+  constructor(builder: Builder, pedantic:Boolean = true) : super(builder, SplitFactory2({ successors -> ExecutableSplit.Builder(successors = successors)}), pedantic)
 
   override fun builder(): Builder = Builder(this)
 

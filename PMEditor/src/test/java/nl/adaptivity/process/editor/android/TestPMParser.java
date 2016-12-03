@@ -10,7 +10,6 @@ import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3.soapEnvelope.Envelope;
@@ -175,7 +174,7 @@ public class TestPMParser {
   @Test
   public void testRoundTripProcessModel1() throws Exception {
     TestProcessData otherTestSuite = new TestProcessData();
-    otherTestSuite.testJaxbRoundTripProcessModel1();
+    otherTestSuite.testXmlStreamingRoundTripProcessModel1();
   }
 
   @Test

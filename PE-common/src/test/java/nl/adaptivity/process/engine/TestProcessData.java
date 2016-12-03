@@ -17,9 +17,11 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Streams;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
@@ -431,11 +433,64 @@ public class TestProcessData {
   }
 
   @Test
-  public void testJaxbRoundTripProcessModel1() throws Exception {
+  public void testXmlStreamingRoundTripProcessModel1() throws Exception {
 
     testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel.class);
 
   }
+
+  @Test
+  public void testParseProcessModel1() throws XmlException, FileNotFoundException {
+    InputStream inputStream = getDocument("processmodel1.xml");
+    XmlReader parser = XmlStreaming.newReader(inputStream, "UTF-8");
+    XmlProcessModel model = XmlProcessModel.deserialize(parser);
+    checkModel1(model);
+  }
+
+
+  private void checkModel1(final XmlProcessModel model) {
+    assertNotNull(model);
+
+    assertEquals(model.getModelNodes().size(), 9, "There should be 9 effective elements in the process model (including an introduced split)");
+    XmlStartNode start = (XmlStartNode) model.getNode("start");
+    XmlActivity ac1 = (XmlActivity) model.getNode("ac1");
+    XmlActivity ac2 = (XmlActivity) model.getNode("ac2");
+    XmlActivity ac3 = (XmlActivity) model.getNode("ac3");
+    XmlActivity ac4 = (XmlActivity) model.getNode("ac4");
+    XmlActivity ac5 = (XmlActivity) model.getNode("ac5");
+    XmlSplit split = (XmlSplit) model.getNode("split1");
+    XmlJoin j1 = (XmlJoin) model.getNode("j1");
+    XmlEndNode end = (XmlEndNode) model.getNode("end");
+    Collection<XmlProcessNode> actualNodes = model.getModelNodes();
+    List<XmlProcessNode> expectedNodes = Arrays.<XmlProcessNode>asList(start, ac1, ac2, split, ac3, ac5, j1, ac4, end);
+    assertEquals(expectedNodes.size(), actualNodes.size());
+    assertTrue(actualNodes.containsAll(expectedNodes));
+
+    assertEquals(start.getPredecessors().toArray(), toArray());
+    assertEquals(start.getSuccessors().toArray(), toArray(new Identifier(ac1.getId())));
+
+    assertEquals(ac1.getPredecessors().toArray(), toArray(new Identifier(start.getId())));
+    assertEquals(ac1.getSuccessors().toArray(), toArray(new Identifier(split.getId())));
+
+    assertEquals(split.getPredecessors().toArray(), toArray(new Identifier(ac1.getId())));
+    assertEquals(split.getSuccessors().toArray(), toArray(new Identifier(ac2.getId()), new Identifier(ac3.getId())));
+
+    assertEquals(ac2.getPredecessors().toArray(), toArray(new Identifier(split.getId())));
+    assertEquals(ac2.getSuccessors().toArray(), toArray(new Identifier(j1.getId())));
+
+    assertEquals(ac3.getPredecessors().toArray(), toArray(new Identifier(split.getId())));
+    assertEquals(ac3.getSuccessors().toArray(), toArray(new Identifier(ac5.getId())));
+
+    assertEquals(ac4.getPredecessors().toArray(), toArray(new Identifier(j1.getId())));
+    assertEquals(ac4.getSuccessors().toArray(), toArray(new Identifier(end.getId())));
+
+    assertEquals(ac5.getPredecessors().toArray(), toArray(new Identifier(ac3.getId())));
+    assertEquals(ac5.getSuccessors().toArray(), toArray(new Identifier(j1.getId())));
+
+    assertEquals(end.getPredecessors().toArray(), toArray(new Identifier(ac4.getId())));
+    assertEquals(end.getSuccessors().toArray(), toArray());
+  }
+
 
   @Test
   public void testSerializeResult1() throws IOException, SAXException, XmlException {
@@ -753,6 +808,10 @@ public class TestProcessData {
             "    </message>\n" +
             "  </activity>\n";
     testRoundTrip(xml, XmlActivity.class, true);
+  }
+
+  private static Object[] toArray(Object... val) {
+    return val;
   }
 
 }

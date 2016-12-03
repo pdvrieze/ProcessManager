@@ -22,19 +22,16 @@ import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.processModel.engine.XmlEndNode
-import nl.adaptivity.process.processModel.engine.IProcessModelRef
-import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.engine.ProcessException
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlStreaming.EventType
-
-import javax.xml.namespace.QName
-
 import java.security.Principal
 import java.util.*
+import javax.xml.namespace.QName
 
 
 /**
@@ -91,6 +88,21 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
      * @return The resulting join node.
      */
     fun createSplit(ownerModel: M, successors: Collection<Identifiable>): Split<out U, M>
+  }
+
+  interface SplitFactory2<U : ProcessNode<U, M>, M : ProcessModel<U, M>> {
+
+    /**
+     * Create a new join node. This must register the node with the owner, and mark the join as successor to
+     * the predecessors. If appropriate, this should also generate an id for the node, and must verify that it
+     * is not duplcated in the model.
+     * @param ownerModel The owner
+     * *
+     * @param successors The predecessors
+     * *
+     * @return The resulting join node.
+     */
+    fun createSplit(successors: Collection<Identifiable>): Split.Builder<U, M>
   }
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
@@ -150,12 +162,15 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       return "${this.javaClass.name.split('.').last()}(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
     }
 
+    fun validate() {
+      nodes.validate(ValidationSplitFactory())
+    }
 
   }
 
   private var _processNodes: IdentifyableSet<T>
-  private var mName: String? = null
-  private var mHandle = -1L
+  private var _name: String? = null
+  private var _handle = -1L
   /**
    * Set the owner of a model
    * @param owner
@@ -176,12 +191,12 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     uuid = null
   }
 
-  constructor(builder: Builder<T,M>, nodeFactory: (M, ProcessNode.Builder<T,M>)->T ) {
+  constructor(builder: Builder<T, M>, splitFactory: SplitFactory2<T, M>, pedantic: Boolean) {
     val newOwner = this.asM()
-    val newNodes = builder.nodes.map { it.build(newOwner).asT() }
+    val newNodes = builder.nodes.normalize<MutableSet<ProcessNode.Builder<T, M>>, T, M>(splitFactory, pedantic).map { it.build(newOwner).asT() }
     this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
-    this.mName = builder.name
-    this.mHandle = builder.handle
+    this._name = builder.name
+    this._handle = builder.handle
     this._owner = builder.owner
     this._roles = builder.roles.toMutableArraySet()
     this.uuid = builder.uuid
@@ -220,8 +235,8 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
               nodeFactory: (M, ProcessNode<*,*>)->T) {
     val newOwner = this.asM()
     this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, processNodes.asSequence().map { nodeFactory(newOwner, it) })
-    this.mName = name
-    this.mHandle = handle
+    this._name = name
+    this._handle = handle
     this._owner = owner
     this._roles = roles.toMutableArraySet()
     this.uuid = uuid
@@ -324,7 +339,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   }
 
   open fun removeNode(nodePos: Int): T {
-    return _processNodes!!.removeAt(nodePos)
+    return _processNodes.removeAt(nodePos)
   }
 
   fun hasUnpositioned(): Boolean {
@@ -350,7 +365,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
    * @return
    */
   override fun getName(): String? {
-    return mName
+    return _name
   }
 
   /**
@@ -359,23 +374,23 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
    * @param name The name
    */
   fun setName(name: String?) {
-    mName = name
+    _name = name
   }
 
   /**
    * Get the handle recorded for this model.
    */
   override fun getHandle(): Handle<M> {
-    return Handles.handle<M>(mHandle)
+    return Handles.handle<M>(_handle)
   }
 
-  val handleValue: Long get() = mHandle
+  val handleValue: Long get() = _handle
 
   /**
    * Set the handle for this model.
    */
   override fun setHandleValue(handleValue: Long) {
-    mHandle = handleValue
+    _handle = handleValue
   }
 
   override fun getImports(): Collection<IXmlResultType> {
@@ -407,7 +422,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
    * @return An array of all nodes.
    */
   override fun getModelNodes(): Collection<T> {
-    return Collections.unmodifiableCollection(_processNodes!!)
+    return Collections.unmodifiableCollection(_processNodes)
   }
 
   /**
@@ -423,14 +438,14 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   }
 
   open fun addNode(node: T): Boolean {
-    if (_processNodes!!.add(node)) {
+    if (_processNodes.add(node)) {
       return true
     }
     return false
   }
 
   open fun removeNode(node: T): Boolean {
-    return _processNodes!!.remove(node)
+    return _processNodes.remove(node)
   }
 
   /* (non-Javadoc)
@@ -438,17 +453,18 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
      */
   override fun getNode(nodeId: Identifiable): T? {
     if (nodeId is MutableProcessNode<*, *>) {
+      @Suppress("UNCHECKED_CAST")
       return nodeId as T
     }
-    return _processNodes!!.get(nodeId)
+    return _processNodes.get(nodeId)
   }
 
   fun getNode(pos: Int): T {
-    return _processNodes!![pos]
+    return _processNodes[pos]
   }
 
   open fun setNode(pos: Int, newValue: T): T {
-    return _processNodes!!.set(pos, newValue)
+    return _processNodes.set(pos, newValue)
   }
 
   /**
@@ -460,6 +476,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   }
 
   fun asM(): M {
+    @Suppress("UNCHECKED_CAST")
     return this as M
   }
 
@@ -471,8 +488,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     val ATTR_NAME = "name"
 
     private fun getOrDefault(map: Map<String, Int>, key: String, defaultValue: Int): Int {
-      val `val` = map[key]
-      return `val`?.toInt() ?: defaultValue
+      return map[key] ?: defaultValue
     }
 
     @Deprecated("Use the version that takes a builder and a DeserializationFactory2")
@@ -526,6 +542,139 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
         }
       }
       return builder.build().asM()
+    }
+  }
+}
+
+fun <C: MutableCollection<ProcessNode.Builder<T,M>>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>
+    C.normalize(splitFactory: ProcessModelBase.SplitFactory2<T,M>, pedantic: Boolean): C {
+  val nodes = this.asSequence().filter { it.id!=null }.associateBy { it.id }
+
+  // Ensure all nodes are linked up and have ids
+  var lastId = 1
+  this.forEach { nodeBuilder ->
+    val curIdentifier = nodeBuilder.id?.let(::Identifier) ?: if(pedantic) {
+      throw IllegalArgumentException("Node without id found")
+    } else {
+      generateSequence(lastId) { lastId+=1; lastId }
+          .map { "node$it" }
+          .first { it !in nodes }
+          .apply { nodeBuilder.id = this }
+          .let(::Identifier)
+    }
+
+    if (pedantic) { // Pedantic will throw exceptions on missing things
+      if (nodeBuilder is StartNode.Builder && ! nodeBuilder.predecessors.isEmpty()) {
+        throw ProcessException("Start nodes have no predecessors")
+      }
+      if (nodeBuilder is EndNode.Builder && ! nodeBuilder.successors.isEmpty()) {
+        throw ProcessException("End nodes have no successors")
+      }
+
+      nodeBuilder.predecessors.firstOrNull { it.id !in nodes }?.let { missingPred ->
+        throw ProcessException("The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})")
+      }
+
+      nodeBuilder.successors.firstOrNull { it.id !in nodes }?.let { missingSuc ->
+        throw ProcessException("The node ${nodeBuilder.id} has a missing successor (${missingSuc.id})")
+      }
+    } else {
+      // Remove "missing" predecessors and successors
+      nodeBuilder.predecessors.removeAll { it.id !in nodes }
+      nodeBuilder.successors.removeAll { it.id !in nodes }
+    }
+
+    nodeBuilder.predecessors.asSequence()
+        .map { nodes[it.id]!! }
+        .forEach { pred ->
+      pred.successors.add(curIdentifier) // If existing, should ignore it
+    }
+
+    nodeBuilder.successors.asSequence()
+        .map { nodes[it.id]!! }
+        .forEach { successor ->
+      successor.predecessors.add(curIdentifier) // If existing, should ignore it
+    }
+  }
+
+  var lastSplitId = 1
+
+  this.asSequence()
+      .filter { it.successors.size > 1 && it !is Split.Builder }
+      .map { nodeBuilder ->
+        splitFactory.createSplit(nodeBuilder.successors).apply {
+          val newSplit = this
+          val curIdentifier = Identifier(nodeBuilder.id!!)
+
+          val splitId = (id?.let { if (it.isEmpty() || it in nodes) null else it } ?:
+              generateSequence(lastSplitId) { lastSplitId += 1; lastSplitId }
+                  .map { "split$it" }.first { it !in nodes }
+                  .apply {
+                    newSplit.id = this
+                    newSplit.predecessor = curIdentifier
+                  })
+              .let(::Identifier)
+
+          nodeBuilder.successors.asSequence()
+              .map { nodes[it.id] }
+              .filterNotNull()
+              .forEach {
+                it.predecessors.remove(curIdentifier)
+                it.predecessors.add(splitId)
+              }
+          nodeBuilder.successors.replaceBy(splitId)
+
+        }
+      }.toList().let { this.addAll(it) }
+
+  return this
+}
+
+fun <C: MutableCollection<ProcessNode.Builder<T,M>>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>
+    C.validate(splitFactory: ProcessModelBase.SplitFactory2<T,M>): C {
+  val seen = hashSetOf<String>()
+  normalize(splitFactory, true)
+  val nodes = this.asSequence().filter { it.id!=null }.associateBy { it.id }
+
+  fun visitSuccessors(node: ProcessNode.Builder<T,M>) {
+    val id = node.id!!
+    if (id in seen) { throw ProcessException("Cycle in process model") }
+    seen += id
+    node.successors.forEach { visitSuccessors(nodes[it.id]!!) }
+  }
+
+  // First normalize pedantically
+  return this.apply {
+
+    // Check for cycles and mark each node as seen
+    this.filter { it.predecessors.isEmpty().apply { if (it !is StartNode.Builder) throw nl.adaptivity.process.engine.ProcessException("Non-start node without predecessors found")} }
+        .forEach(::visitSuccessors)
+
+    if (seen.size != this.size) { // We should have seen all nodes
+      val msg = asSequence().filter { it.id !in seen }.joinToString(prefix = "Disconnected nodes found: ")
+      throw ProcessException(msg)
+    }
+
+    // This DOES allow for multiple disconnected graphs when multiple start nodes are present.
+  }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <U : ProcessNode<U, M>, M : ProcessModel<U, M>> ValidationSplitFactory(): ProcessModelBase.SplitFactory2<U, M> {
+  // This object carefully is independent of the type but must specify one nonetheless
+  return ValidationSplitFactoryObj as ProcessModelBase.SplitFactory2<U, M>
+}
+
+private object ValidationSplitFactoryObj :ProcessModelBase.SplitFactory2<XmlProcessNode, XmlProcessModel> {
+  override fun createSplit(successors: Collection<Identifiable>): Split.Builder<XmlProcessNode, XmlProcessModel> {
+    throw ProcessException("Missing split in process model")
+  }
+}
+
+inline fun <U : ProcessNode<U, M>, M : ProcessModel<U, M>> SplitFactory2(crossinline factory: (Collection<Identifiable>)->Split.Builder<U,M>): ProcessModelBase.SplitFactory2<U,M> {
+  return object : ProcessModelBase.SplitFactory2<U,M> {
+    override fun createSplit(successors: Collection<Identifiable>): Split.Builder<U, M> {
+      return factory(successors)
     }
   }
 }
