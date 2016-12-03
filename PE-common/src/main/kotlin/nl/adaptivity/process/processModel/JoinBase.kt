@@ -47,6 +47,16 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
     override abstract fun build(newOwner: M): JoinBase<T, M>
 
+    @Throws(XmlException::class)
+    override fun deserializeChild(reader: XmlReader): Boolean {
+      if (reader.isElement(Join.PREDELEMNAME)) {
+        val id = reader.readSimpleElement().toString()
+        predecessors.add(Identifier(id))
+        return true
+      }
+      return super.deserializeChild(reader)
+    }
+
     override val elementName: QName
       get() = Join.ELEMENTNAME
 
@@ -102,13 +112,13 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
   }
 
   @Throws(XmlException::class)
-  override fun deserializeChild(`in`: XmlReader): Boolean {
-    if (`in`.isElement(Join.PREDELEMNAME)) {
-      val id = `in`.readSimpleElement().toString()
+  override fun deserializeChild(reader: XmlReader): Boolean {
+    if (reader.isElement(Join.PREDELEMNAME)) {
+      val id = reader.readSimpleElement().toString()
       addPredecessor(Identifier(id))
       return true
     }
-    return super.deserializeChild(`in`)
+    return super.deserializeChild(reader)
   }
 
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
