@@ -84,9 +84,9 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   override fun add(element: T): Boolean {
     if (contains(element)) { return false }
 
-    val space = if (nextElemIdx < firstElemIdx) (nextElemIdx +buffer.size- firstElemIdx) else (nextElemIdx - firstElemIdx)
+    val space = size
     if (space + 2 >= buffer.size) {
-      reserve(space+2)
+      reserve(buffer.size *2)
     }
     buffer[nextElemIdx] = element
     nextElemIdx = (nextElemIdx +1) %buffer.size
@@ -94,18 +94,20 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   }
 
   private fun reserve(reservation: Int) {
-    if (reservation+1<size) { reserve(size+1) }
+    assert(reservation>1) { "The reservation was ${reservation} but should be larger than 1"}
+    if (reservation+1<size) { reserve(size+1); return }
     val newBuffer = arrayOfNulls<Any?>(reservation)
 
     if (firstElemIdx <= nextElemIdx) {
       System.arraycopy(buffer, firstElemIdx, newBuffer, 0, nextElemIdx - firstElemIdx)
       nextElemIdx -= firstElemIdx
-      firstElemIdx =0
     } else {
       System.arraycopy(buffer, firstElemIdx, newBuffer, 0, buffer.size- firstElemIdx)
       System.arraycopy(buffer, 0, newBuffer, buffer.size- firstElemIdx, nextElemIdx)
       nextElemIdx += buffer.size- firstElemIdx
     }
+    buffer = newBuffer
+    firstElemIdx =0
 
   }
 

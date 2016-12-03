@@ -20,6 +20,7 @@ import org.testng.annotations.Test
 
 import org.testng.Assert.*
 import java.util.*
+import java.util.stream.IntStream
 
 
 /**
@@ -73,6 +74,17 @@ class ArraySetTest {
     assertTrue(set.contains(5))
     assertFalse(set.add(5))
     assertTrue(set.add(3))
+  }
+
+  @Test
+  fun testAddReservation() {
+    val set = ArraySet<Int>(2)
+    for (i in 1..100) {
+      set+=i
+      assertEquals(set.size, i)
+      for ( j in 1..i)
+        assertTrue(j in set)
+    }
   }
 
   @Test
