@@ -17,7 +17,9 @@
 package nl.adaptivity.process.processModel
 
 
+import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.util.Identifiable
 
 import javax.xml.namespace.QName
 
@@ -26,6 +28,11 @@ interface StartNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
     override fun build(newOwner: M): StartNode<T, M>
+
+    var successor: Identifiable?
+      get() = successors.firstOrNull()
+      set(value) { successors.replaceByNotNull(value) }
+
   }
 
   override fun builder(): Builder<T, M>

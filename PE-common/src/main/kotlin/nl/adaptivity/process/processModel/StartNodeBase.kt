@@ -17,11 +17,12 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.ProcessNodeBase.Builder
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
-
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.smartStartTag
 import javax.xml.namespace.QName
 
 

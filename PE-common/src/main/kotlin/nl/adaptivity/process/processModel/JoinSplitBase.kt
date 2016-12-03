@@ -22,7 +22,7 @@ import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.writeAttribute
 import java.util.*
 
 

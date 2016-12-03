@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 
@@ -28,6 +29,15 @@ interface Activity<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<
     var message: IXmlMessage?
     var name: String?
     var condition: String?
+
+    var predecessor: Identifiable?
+      get() = predecessors.firstOrNull()
+      set(value) { predecessors.replaceByNotNull(value) }
+
+    var successor: Identifiable?
+      get() = successors.firstOrNull()
+      set(value) { successors.replaceByNotNull(value) }
+
   }
 
   override fun builder(): Builder<T, M>

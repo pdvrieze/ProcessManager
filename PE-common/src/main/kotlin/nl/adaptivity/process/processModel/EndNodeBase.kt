@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
@@ -44,10 +43,6 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
                 results: Collection<IXmlResultType> = emptyList()) : super(listOfNotNull(predecessor), emptyList(), id, label, x, y, defines, results)
 
     constructor(node: EndNode<*, *>) : super(node)
-
-    override var predecessor: Identifiable?
-      get() = predecessors.firstOrNull()
-      set(value) { value?.let { predecessors.replaceBy(it) } }
 
     abstract override fun build(newOwner: M): EndNodeBase<T, M>
 

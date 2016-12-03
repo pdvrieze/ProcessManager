@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 
@@ -26,7 +27,11 @@ interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
     override fun build(newOwner: M): EndNode<T, M>
+
     var predecessor: Identifiable?
+      get() = predecessors.firstOrNull()
+      set(value) { predecessors.replaceByNotNull(value) }
+
   }
 
   override fun builder(): Builder<T, M>
