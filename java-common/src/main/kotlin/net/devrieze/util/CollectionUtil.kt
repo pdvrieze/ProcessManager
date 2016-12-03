@@ -31,6 +31,14 @@ fun <T, C: MutableCollection<in T>> C.replaceBy(vararg elements: T) {
 /**
  * Helper function to reset and set values in a set.
  */
+fun <T, C: MutableCollection<in T>> C.replaceByNotNull(element: T?) {
+  clear()
+  element?.let { add(it) }
+}
+
+/**
+ * Helper function to reset and set values in a set.
+ */
 fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Sequence<T>) {
   clear()
   addAll(elements)

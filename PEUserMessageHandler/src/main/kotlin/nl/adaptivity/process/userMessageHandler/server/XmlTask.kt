@@ -19,6 +19,7 @@ package nl.adaptivity.process.userMessageHandler.server
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingException
