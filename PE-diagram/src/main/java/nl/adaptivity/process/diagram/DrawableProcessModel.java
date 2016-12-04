@@ -86,41 +86,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
   }
 
-  public static class Factory implements DeserializationFactory2<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
+  public static class Factory implements XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
 
     @Override
     public DrawableProcessModel deserialize(final XmlReader reader) throws XmlException {
-      return DrawableProcessModel.deserialize(this, reader);
-    }
-
-    @Override
-    public DrawableEndNode.Builder deserializeEndNode(final XmlReader in) throws
-            XmlException {
-      return DrawableEndNode.deserialize(in);
-    }
-
-    @Override
-    public DrawableActivity.Builder deserializeActivity(final XmlReader in) throws
-            XmlException {
-      return DrawableActivity.deserialize(in);
-    }
-
-    @Override
-    public DrawableStartNode.Builder deserializeStartNode(final XmlReader in) throws
-            XmlException {
-      return DrawableStartNode.deserialize(in);
-    }
-
-    @Override
-    public DrawableJoin.Builder deserializeJoin(final XmlReader in) throws
-            XmlException {
-      return DrawableJoin.deserialize(in);
-    }
-
-    @Override
-    public DrawableSplit.Builder deserializeSplit(final XmlReader in) throws
-            XmlException {
-      return DrawableSplit.deserialize(in);
+      return DrawableProcessModel.deserialize(reader);
     }
 
     @Override
@@ -182,18 +152,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  private static final SplitFactory2<DrawableProcessNode, DrawableProcessModel> DRAWABLE_SPLIT_FACTORY = new SplitFactory2<DrawableProcessNode, DrawableProcessModel>() {
-    @NotNull
-    @Override
-    public Split.Builder<DrawableProcessNode, DrawableProcessModel> createSplit(@NotNull final Collection<? extends Identifiable> successors) {
-      final DrawableSplit.Builder builder = new DrawableSplit.Builder();
-      builder.getSuccessors().addAll(successors);
-      return builder;
-    }
-  };
-
   public DrawableProcessModel(@NotNull final ProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
-    super(builder, DRAWABLE_SPLIT_FACTORY);
+    super(builder);
   }
 
   @NotNull
@@ -212,12 +172,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @NotNull
   public static DrawableProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
-    return deserialize(new Factory(), in);
-  }
-
-  @NotNull
-  public static DrawableProcessModel deserialize(@NotNull final Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.Companion.deserialize(factory, new Builder(), in);
+    return ProcessModelBase.Builder.<Builder>deserialize(new Builder(), in).build().asM();
   }
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?,?>, ?> original) {

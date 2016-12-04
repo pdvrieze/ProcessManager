@@ -92,7 +92,7 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     protected XmlEndNode.Builder endNodeBuilder() { return new XmlEndNode.Builder(); }
 
     public static Builder deserialize(XmlReader reader) {
-      return ProcessModelBase.Builder.deserialize(NodeFactory.INSTANCE, new Builder(), reader);
+      return ProcessModelBase.Builder.deserialize(new Builder(), reader);
     }
   }
 
@@ -102,40 +102,6 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     @Override
     public XmlProcessModel deserialize(@NotNull final XmlReader reader) throws XmlException {
       return XmlProcessModel.deserialize(reader);
-    }
-  }
-
-  private enum NodeFactory implements DeserializationFactory2<XmlProcessNode,XmlProcessModel> {
-    INSTANCE;
-
-    @NotNull
-    @Override
-    public XmlEndNode.Builder deserializeEndNode(@NotNull final XmlReader reader) throws XmlException {
-      return XmlEndNode.deserialize(reader);
-    }
-
-    @NotNull
-    @Override
-    public XmlActivity.Builder deserializeActivity(@NotNull final XmlReader reader) throws XmlException {
-      return XmlActivity.deserialize(reader);
-    }
-
-    @NotNull
-    @Override
-    public XmlStartNode.Builder deserializeStartNode(@NotNull final XmlReader reader) throws XmlException {
-      return XmlStartNode.deserialize(reader);
-    }
-
-    @NotNull
-    @Override
-    public XmlJoin.Builder deserializeJoin(@NotNull final XmlReader reader) throws XmlException {
-      return XmlJoin.deserialize(reader);
-    }
-
-    @NotNull
-    @Override
-    public Split.Builder<XmlProcessNode, XmlProcessModel> deserializeSplit(@NotNull final XmlReader reader) throws XmlException {
-      return XmlSplit.deserialize(reader);
     }
   }
 
@@ -156,16 +122,6 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     }
   };
 
-  private static final SplitFactory2<XmlProcessNode, XmlProcessModel> XML_SPLIT_FACTORY = new SplitFactory2<XmlProcessNode, XmlProcessModel>() {
-    @NotNull
-    @Override
-    public Split.Builder<XmlProcessNode, XmlProcessModel> createSplit(@NotNull final Collection<? extends Identifiable> successors) {
-      final XmlSplit.Builder splitBuilder = new XmlSplit.Builder();
-      splitBuilder.getSuccessors().addAll(successors);
-      return splitBuilder;
-    }
-  };
-
   public XmlProcessModel(final ProcessModelBase<?, ?> basepm) {
     super(basepm, XML_NODE_FACTORY);
   }
@@ -175,7 +131,7 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
   }
 
   public XmlProcessModel(@NotNull final ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel> builder, boolean pedantic) {
-    super(builder, XML_SPLIT_FACTORY , pedantic);
+    super(builder, pedantic);
   }
 
   @NotNull
@@ -229,27 +185,10 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  public XmlProcessModel normalize(SplitFactory<? extends XmlProcessNode, XmlProcessModel> splitFactory) {
-    ensureIds();
-    // Make all nodes directly refer to other nodes.
-    for(XmlProcessNode childNode: getModelNodes()) {
-      childNode.resolveRefs();
-    }
-    for(XmlProcessNode childNode: getModelNodes()) {
-      // Create a copy as we are actually going to remove all successors, but need to keep the list
-      ArrayList<Identifiable> successors = new ArrayList<>(childNode.getSuccessors());
-      if (successors.size()>1 && ! (childNode instanceof Split)) {
-        for(Identifiable suc2: successors) { // Remove the current node as predecessor.
-          MutableProcessNode<?, ?> suc = (MutableProcessNode) suc2;
-          suc.removePredecessor(childNode);
-          childNode.removeSuccessor(suc); // remove the predecessor from the current node
-        }
-        // create a new join, this should
-        Split<? extends XmlProcessNode, XmlProcessModel> newSplit = splitFactory.createSplit(asM(), successors);
-        childNode.addSuccessor(newSplit);
-      }
-    }
-    return this.asM();
+  public XmlProcessModel normalized(boolean pedantic) {
+    final Builder builder = builder();
+    builder.normalize(pedantic);
+    return builder.build();
   }
 
   @NotNull

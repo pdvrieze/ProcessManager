@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.diagram.Positioned
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xml.XmlDeserializable
 import nl.adaptivity.xml.XmlSerializable
 
 
@@ -27,7 +28,7 @@ import nl.adaptivity.xml.XmlSerializable
  */
 interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positioned, Identifiable, XmlSerializable {
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> {
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : XmlDeserializable {
     var predecessors: MutableSet<Identifiable>
     var successors: MutableSet<Identifiable>
     var id: String?

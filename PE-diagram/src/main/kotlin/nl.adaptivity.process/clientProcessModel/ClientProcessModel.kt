@@ -40,7 +40,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   }
 
   @JvmOverloads
-  constructor(builder: ProcessModelBase.Builder<T, M>, splitFactory: SplitFactory2<T, M>, pedantic: Boolean = false) : super(builder, splitFactory, pedantic) {
+  constructor(builder: ProcessModelBase.Builder<T, M>, pedantic: Boolean = false) : super(builder, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 

@@ -66,7 +66,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     companion object {
       @JvmStatic
       fun deserialize(reader: XmlReader): Builder {
-        return ProcessModelBase.Builder.deserialize(NodeFactory.INSTANCE, ExecutableProcessModel.Builder(), reader)
+        return ProcessModelBase.Builder.deserialize(ExecutableProcessModel.Builder(), reader)
       }
     }
   }
@@ -80,35 +80,6 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     @Throws(XmlException::class)
     override fun deserialize(reader: XmlReader): ExecutableProcessModel {
       return ExecutableProcessModel.deserialize(reader)
-    }
-  }
-
-  enum class NodeFactory : ProcessModelBase.DeserializationFactory2<ExecutableProcessNode, ExecutableProcessModel> {
-    INSTANCE;
-
-    @Throws(XmlException::class)
-    override fun deserializeEndNode(reader: XmlReader): ExecutableEndNode.Builder {
-      return ExecutableEndNode.Builder().deserializeHelper(reader);
-    }
-
-    @Throws(XmlException::class)
-    override fun deserializeActivity(reader: XmlReader): ExecutableActivity.Builder {
-      return ExecutableActivity.Builder().deserializeHelper(reader)
-    }
-
-    @Throws(XmlException::class)
-    override fun deserializeStartNode(reader: XmlReader): ExecutableStartNode.Builder {
-      return ExecutableStartNode.Builder().deserializeHelper(reader)
-    }
-
-    @Throws(XmlException::class)
-    override fun deserializeJoin(reader: XmlReader): ExecutableJoin.Builder {
-      return ExecutableJoin.Builder().deserializeHelper(reader)
-    }
-
-    @Throws(XmlException::class)
-    override fun deserializeSplit(reader: XmlReader): ExecutableSplit.Builder {
-      return ExecutableSplit.Builder().deserializeHelper(reader)
     }
   }
 
@@ -131,7 +102,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
   constructor(processNodes: Collection<ExecutableProcessNode>) : super(processNodes, nodeFactory = ::toExecutableProcessNode)
 
   @JvmOverloads
-  constructor(builder: Builder, pedantic:Boolean = true) : super(builder, SplitFactory2({ successors -> ExecutableSplit.Builder(successors = successors)}), pedantic)
+  constructor(builder: Builder, pedantic:Boolean = true) : super(builder, pedantic)
 
   override fun builder(): Builder = Builder(this)
 

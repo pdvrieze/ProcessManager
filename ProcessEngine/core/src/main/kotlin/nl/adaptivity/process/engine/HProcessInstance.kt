@@ -18,10 +18,8 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
-import net.devrieze.util.Transaction
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xml.*
-
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessInstance.Factory::class)

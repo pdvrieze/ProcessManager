@@ -275,7 +275,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     return engineData.inWriteTransaction(transaction) {
       processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
         XmlProcessModel(processModel).run {
-          normalize(XmlProcessNodeBase.XmlSplitFactory())
+          normalized(true)
           if (uuid == null) {
             setUuid(UUID.randomUUID())
             ExecutableProcessModel(this).apply {

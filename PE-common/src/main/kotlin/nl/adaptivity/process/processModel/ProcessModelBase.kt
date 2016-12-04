@@ -57,24 +57,6 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     fun deserializeSplit(ownerModel: M, reader: XmlReader): Split<out U, M>
   }
 
-  interface DeserializationFactory2<U : ProcessNode<U, M>, M : ProcessModelBase<U, M>> {
-
-    @Throws(XmlException::class)
-    fun deserializeEndNode(reader: XmlReader): EndNode.Builder<U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeActivity(reader: XmlReader): Activity.Builder<U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeStartNode(reader: XmlReader): StartNode.Builder<U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeJoin(reader: XmlReader): Join.Builder<U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeSplit(reader: XmlReader): Split.Builder<U, M>
-  }
-
   interface SplitFactory<U : ProcessNode<U, M>, M : ProcessModel<U, M>> {
 
     /**
@@ -133,14 +115,14 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
 
     @Throws(XmlException::class)
-    internal fun deserializeChild(factory: DeserializationFactory2<T, M>, reader: XmlReader): Boolean {
+    internal fun deserializeChild(reader: XmlReader): Boolean {
       if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
         val newNode = when (reader.localName.toString()) {
-          EndNode.ELEMENTLOCALNAME -> factory.deserializeEndNode(reader)
-          Activity.ELEMENTLOCALNAME -> factory.deserializeActivity(reader)
-          StartNode.ELEMENTLOCALNAME -> factory.deserializeStartNode(reader)
-          Join.ELEMENTLOCALNAME -> factory.deserializeJoin(reader)
-          Split.ELEMENTLOCALNAME -> factory.deserializeSplit(reader)
+          EndNode.ELEMENTLOCALNAME -> endNodeBuilder().deserializeHelper(reader)
+          Activity.ELEMENTLOCALNAME -> activityBuilder().deserializeHelper(reader)
+          StartNode.ELEMENTLOCALNAME -> startNodeBuilder().deserializeHelper(reader)
+          Join.ELEMENTLOCALNAME -> joinBuilder().deserializeHelper(reader)
+          Split.ELEMENTLOCALNAME -> splitBuilder().deserializeHelper(reader)
           else -> return false
         }
         nodes.add(newNode)
@@ -168,8 +150,108 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     }
 
     fun validate() {
-      nodes.validate(ValidationSplitFactory())
+      val seen = hashSetOf<String>()
+      normalize(true)
+      val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
+
+      fun visitSuccessors(node: ProcessNode.Builder<T,M>) {
+        val id = node.id!!
+        if (id in seen) { throw ProcessException("Cycle in process model") }
+        seen += id
+        node.successors.forEach { visitSuccessors(nodeMap[it.id]!!) }
+      }
+
+      // First normalize pedantically
+
+      // Check for cycles and mark each node as seen
+      nodes.filter { it.predecessors.isEmpty().apply { if (it !is StartNode.Builder) throw nl.adaptivity.process.engine.ProcessException("Non-start node without predecessors found")} }
+          .forEach(::visitSuccessors)
+
+      if (seen.size != nodes.size) { // We should have seen all nodes
+        val msg = nodes.asSequence().filter { it.id !in seen }.joinToString(prefix = "Disconnected nodes found: ")
+        throw ProcessException(msg)
+      }
+
+      // This DOES allow for multiple disconnected graphs when multiple start nodes are present.
     }
+
+    fun normalize(pedantic: Boolean) {
+      val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
+
+      // Ensure all nodes are linked up and have ids
+      var lastId = 1
+      nodes.forEach { nodeBuilder ->
+        val curIdentifier = nodeBuilder.id?.let(::Identifier) ?: if(pedantic) {
+          throw IllegalArgumentException("Node without id found")
+        } else {
+          generateSequence(lastId) { lastId+=1; lastId }
+              .map { "node$it" }
+              .first { it !in nodeMap }
+              .apply { nodeBuilder.id = this }
+              .let(::Identifier)
+        }
+
+        if (pedantic) { // Pedantic will throw exceptions on missing things
+          if (nodeBuilder is StartNode.Builder && ! nodeBuilder.predecessors.isEmpty()) {
+            throw ProcessException("Start nodes have no predecessors")
+          }
+          if (nodeBuilder is EndNode.Builder && ! nodeBuilder.successors.isEmpty()) {
+            throw ProcessException("End nodes have no successors")
+          }
+
+          nodeBuilder.predecessors.firstOrNull { it.id !in nodeMap }?.let { missingPred ->
+            throw ProcessException("The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})")
+          }
+
+          nodeBuilder.successors.firstOrNull { it.id !in nodeMap }?.let { missingSuc ->
+            throw ProcessException("The node ${nodeBuilder.id} has a missing successor (${missingSuc.id})")
+          }
+        } else {
+          // Remove "missing" predecessors and successors
+          nodeBuilder.predecessors.removeAll { it.id !in nodeMap }
+          nodeBuilder.successors.removeAll { it.id !in nodeMap }
+        }
+
+        nodeBuilder.predecessors.asSequence()
+            .map { nodeMap[it.id]!! }
+            .forEach { pred ->
+              pred.successors.add(curIdentifier) // If existing, should ignore it
+            }
+
+        nodeBuilder.successors.asSequence()
+            .map { nodeMap[it.id]!! }
+            .forEach { successor ->
+              successor.predecessors.add(curIdentifier) // If existing, should ignore it
+            }
+      }
+
+      nodes.asSequence()
+          .filter { it.successors.size > 1 && it !is Split.Builder }
+          .map { nodeBuilder ->
+            splitBuilder().apply {
+              successors.addAll(nodeBuilder.successors)
+
+              val curIdentifier = Identifier(nodeBuilder.id!!)
+
+              predecessor = curIdentifier
+
+              val newSplit = this
+
+              val splitId = Identifier(ensureId().id!!)
+
+              nodeBuilder.successors.asSequence()
+                  .map { nodeMap[it.id] }
+                  .filterNotNull()
+                  .forEach {
+                    it.predecessors.remove(curIdentifier)
+                    it.predecessors.add(splitId)
+                  }
+              nodeBuilder.successors.replaceBy(splitId)
+
+            }
+          }.toList().let { nodes.addAll(it) }
+    }
+
 
     abstract protected fun startNodeBuilder(): StartNode.Builder<T,M>
     abstract protected fun splitBuilder(): Split.Builder<T,M>
@@ -198,7 +280,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     }
 
     fun newId(base:String):String {
-      return (1..Int.MAX_VALUE).map { "${base}${it}" }.first { id -> nodes.none { it.id == id } }
+      return generateSequence(1, { it+1} ).map { "${base}${it}" }.first { candidateId -> nodes.none { it.id == candidateId } }
     }
 
     fun <B: ProcessNode.Builder<*,*>> B.ensureId(): B = apply {
@@ -209,7 +291,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
 
       @JvmStatic
-      fun <B: Builder<T,M>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory2<T, M>, builder: B, reader: XmlReader): B {
+      fun <B: Builder<*,*>> deserialize(builder: B, reader: XmlReader): B {
 
         reader.skipPreamble()
         val elementName = ELEMENTNAME
@@ -221,7 +303,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
         var event: EventType? = null
         while (reader.hasNext() && event !== EventType.END_ELEMENT) {
           event = reader.next()
-          if (!(event== EventType.START_ELEMENT && builder.deserializeChild(factory, reader))) {
+          if (!(event== EventType.START_ELEMENT && builder.deserializeChild(reader))) {
             reader.unhandledEvent()
           }
         }
@@ -262,9 +344,9 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     uuid = null
   }
 
-  constructor(builder: Builder<T, M>, splitFactory: SplitFactory2<T, M>, pedantic: Boolean) {
+  constructor(builder: Builder<T, M>, pedantic: Boolean) {
     val newOwner = this.asM()
-    val newNodes = builder.nodes.normalize<MutableSet<ProcessNode.Builder<T, M>>, T, M>(splitFactory, pedantic).map { it.build(newOwner).asT() }
+    val newNodes = builder.apply { normalize(pedantic) }.nodes.map { it.build(newOwner).asT() }
     this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
     this._name = builder.name
     this._handle = builder.handle
@@ -591,135 +673,10 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
     @Throws(XmlException::class)
     @JvmStatic
-    @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(factory, builder, reader).build().asM()"))
-    fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory2<T, M>, builder: Builder<T,M>, reader: XmlReader): M {
-      return Builder.deserialize(factory, builder, reader).build().asM()
+    @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(builder, reader).build().asM()"))
+    fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(builder: Builder<T, M>, reader: XmlReader): M {
+      return Builder.deserialize(builder, reader).build().asM()
     }
-  }
-}
-
-fun <C: MutableCollection<ProcessNode.Builder<T,M>>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>
-    C.normalize(splitFactory: ProcessModelBase.SplitFactory2<T,M>, pedantic: Boolean): C {
-  val nodes = this.asSequence().filter { it.id!=null }.associateBy { it.id }
-
-  // Ensure all nodes are linked up and have ids
-  var lastId = 1
-  this.forEach { nodeBuilder ->
-    val curIdentifier = nodeBuilder.id?.let(::Identifier) ?: if(pedantic) {
-      throw IllegalArgumentException("Node without id found")
-    } else {
-      generateSequence(lastId) { lastId+=1; lastId }
-          .map { "node$it" }
-          .first { it !in nodes }
-          .apply { nodeBuilder.id = this }
-          .let(::Identifier)
-    }
-
-    if (pedantic) { // Pedantic will throw exceptions on missing things
-      if (nodeBuilder is StartNode.Builder && ! nodeBuilder.predecessors.isEmpty()) {
-        throw ProcessException("Start nodes have no predecessors")
-      }
-      if (nodeBuilder is EndNode.Builder && ! nodeBuilder.successors.isEmpty()) {
-        throw ProcessException("End nodes have no successors")
-      }
-
-      nodeBuilder.predecessors.firstOrNull { it.id !in nodes }?.let { missingPred ->
-        throw ProcessException("The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})")
-      }
-
-      nodeBuilder.successors.firstOrNull { it.id !in nodes }?.let { missingSuc ->
-        throw ProcessException("The node ${nodeBuilder.id} has a missing successor (${missingSuc.id})")
-      }
-    } else {
-      // Remove "missing" predecessors and successors
-      nodeBuilder.predecessors.removeAll { it.id !in nodes }
-      nodeBuilder.successors.removeAll { it.id !in nodes }
-    }
-
-    nodeBuilder.predecessors.asSequence()
-        .map { nodes[it.id]!! }
-        .forEach { pred ->
-      pred.successors.add(curIdentifier) // If existing, should ignore it
-    }
-
-    nodeBuilder.successors.asSequence()
-        .map { nodes[it.id]!! }
-        .forEach { successor ->
-      successor.predecessors.add(curIdentifier) // If existing, should ignore it
-    }
-  }
-
-  var lastSplitId = 1
-
-  this.asSequence()
-      .filter { it.successors.size > 1 && it !is Split.Builder }
-      .map { nodeBuilder ->
-        splitFactory.createSplit(nodeBuilder.successors).apply {
-          val newSplit = this
-          val curIdentifier = Identifier(nodeBuilder.id!!)
-
-          val splitId = (id?.let { if (it.isEmpty() || it in nodes) null else it } ?:
-              generateSequence(lastSplitId) { lastSplitId += 1; lastSplitId }
-                  .map { "split$it" }.first { it !in nodes }
-                  .apply {
-                    newSplit.id = this
-                    newSplit.predecessor = curIdentifier
-                  })
-              .let(::Identifier)
-
-          nodeBuilder.successors.asSequence()
-              .map { nodes[it.id] }
-              .filterNotNull()
-              .forEach {
-                it.predecessors.remove(curIdentifier)
-                it.predecessors.add(splitId)
-              }
-          nodeBuilder.successors.replaceBy(splitId)
-
-        }
-      }.toList().let { this.addAll(it) }
-
-  return this
-}
-
-fun <C: MutableCollection<ProcessNode.Builder<T,M>>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>
-    C.validate(splitFactory: ProcessModelBase.SplitFactory2<T,M>): C {
-  val seen = hashSetOf<String>()
-  normalize(splitFactory, true)
-  val nodes = this.asSequence().filter { it.id!=null }.associateBy { it.id }
-
-  fun visitSuccessors(node: ProcessNode.Builder<T,M>) {
-    val id = node.id!!
-    if (id in seen) { throw ProcessException("Cycle in process model") }
-    seen += id
-    node.successors.forEach { visitSuccessors(nodes[it.id]!!) }
-  }
-
-  // First normalize pedantically
-  return this.apply {
-
-    // Check for cycles and mark each node as seen
-    this.filter { it.predecessors.isEmpty().apply { if (it !is StartNode.Builder) throw nl.adaptivity.process.engine.ProcessException("Non-start node without predecessors found")} }
-        .forEach(::visitSuccessors)
-
-    if (seen.size != this.size) { // We should have seen all nodes
-      val msg = asSequence().filter { it.id !in seen }.joinToString(prefix = "Disconnected nodes found: ")
-      throw ProcessException(msg)
-    }
-
-    // This DOES allow for multiple disconnected graphs when multiple start nodes are present.
-  }
-}
-
-@Suppress("UNCHECKED_CAST")
-fun <U : ProcessNode<U, M>, M : ProcessModel<U, M>> ValidationSplitFactory(): ProcessModelBase.SplitFactory2<U, M> {
-  // This object carefully is independent of the type but must specify one nonetheless
-  return ValidationSplitFactoryObj as ProcessModelBase.SplitFactory2<U, M>
-}
-
-private object ValidationSplitFactoryObj :ProcessModelBase.SplitFactory2<XmlProcessNode, XmlProcessModel> {
-  override fun createSplit(successors: Collection<Identifiable>): Split.Builder<XmlProcessNode, XmlProcessModel> {
-    throw ProcessException("Missing split in process model")
   }
 }
 
