@@ -313,7 +313,7 @@ fun XmlWriter.writeAttribute(name: String, value: Double) {
 
 @Throws(XmlException::class)
 fun XmlWriter.writeAttribute(name: String, value: Long) {
-  attribute(null, name, null, java.lang.Long.toString(value))
+  attribute(null, name, null, value.toString())
 }
 
 @Throws(XmlException::class)

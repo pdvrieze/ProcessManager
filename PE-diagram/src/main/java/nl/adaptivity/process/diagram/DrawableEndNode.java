@@ -20,7 +20,7 @@ import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
     public Builder() {}
 
-    public Builder(@Nullable final Identifiable predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+    public Builder(@Nullable final Identified predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(predecessor, id, label, x, y, defines, results);
     }
 

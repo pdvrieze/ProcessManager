@@ -23,7 +23,7 @@ import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.XmlMessage;
-import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlUtil;
@@ -44,7 +44,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
     public Builder(final boolean compat) { super(compat); }
 
-    public Builder(@Nullable final Identifiable predecessor, @Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name, final boolean compat) {
+    public Builder(@Nullable final Identified predecessor, @Nullable final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name, final boolean compat) {
       super(predecessor, successor, id, label, x, y, defines, results, message, condition, name, compat);
     }
 

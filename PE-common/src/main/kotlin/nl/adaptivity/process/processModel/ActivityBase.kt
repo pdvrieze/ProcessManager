@@ -20,6 +20,7 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
@@ -42,8 +43,8 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
 
     constructor(): this(predecessor = null)
 
-    constructor(predecessor: Identifiable? = null,
-                successor: Identifiable? = null,
+    constructor(predecessor: Identified? = null,
+                successor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
@@ -118,7 +119,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
   override var predecessor: Identifiable?
     get() = if (predecessors.isEmpty()) null else predecessors.single()
     set(value) {
-      setPredecessors(listOfNotNull(value))
+      setPredecessors(listOfNotNull(value?.identifier))
     }
 
   override var message: IXmlMessage?
@@ -142,7 +143,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
   @Deprecated("Don't use")
   constructor(ownerModel: M?) : super(ownerModel) { }
 
-  constructor(_ownerModel: M?, predecessors: Collection<Identifiable>, successors: Collection<Identifiable>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, _message: XmlMessage?, _name: String?) : super(_ownerModel, predecessors, successors, id, label, x, y, defines, results) {
+  constructor(_ownerModel: M?, predecessors: Collection<Identified>, successors: Collection<Identified>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, _message: XmlMessage?, _name: String?) : super(_ownerModel, predecessors, successors, id, label, x, y, defines, results) {
     this._message = _message
     this._name = _name
   }

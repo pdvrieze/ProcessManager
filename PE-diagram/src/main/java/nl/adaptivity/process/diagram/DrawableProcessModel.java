@@ -24,6 +24,7 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.processModel.Split.Builder;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
@@ -181,7 +182,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
         final DrawableProcessNode cpy  = toDrawableNode(orig);
         result.add(cpy);
         cache.put(cpy.getId(), cpy);
-        cpy.setSuccessors(Collections.<DrawableProcessNode>emptyList());
+        cpy.setSuccessors(Collections.<Identified>emptyList());
         cpy.setPredecessors(cloneNodes(source, cache, orig.getPredecessors()));
       } else {
         result.add(val);
@@ -418,12 +419,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     to.setX(from.getX());
     to.setY(from.getY());
 
-    final Set<? extends Identifiable> predecessors = from.getPredecessors();
-    final Set<? extends Identifiable> successors = from.getSuccessors();
-    if (predecessors != null) { to.setPredecessors(predecessors); }
-    if (successors != null) { to.setSuccessors(successors); }
+    final Set<? extends Identified> predecessors = from.getPredecessors();
+    final Set<? extends Identified> successors = from.getSuccessors();
+    to.setPredecessors(predecessors);
+    to.setSuccessors(successors);
   }
 
+  @NotNull
   @Override
   public DrawableProcessNode asNode(final Identifiable id) {
     if (id instanceof DrawableProcessNode) {

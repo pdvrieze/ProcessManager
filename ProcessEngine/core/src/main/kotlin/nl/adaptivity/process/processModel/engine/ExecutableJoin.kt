@@ -24,6 +24,7 @@ import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.JoinBase
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 import java.util.*
@@ -33,8 +34,8 @@ import java.util.*
 class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
   class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(predecessors: Collection<Identifiable> = emptyList(),
-                successor: Identifiable? = null,
+    constructor(predecessors: Collection<Identified> = emptyList(),
+                successor: Identified? = null,
                 id: String? = null, label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
@@ -55,10 +56,12 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
     }
   }
 
+  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+
   constructor(orig: Join<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
 
   @Deprecated("Use the full constructor")
-  constructor(ownerModel: ExecutableProcessModel?, predecessors: Collection<Identifiable>, min: Int, max: Int)
+  constructor(ownerModel: ExecutableProcessModel?, predecessors: Collection<Identified>, min: Int, max: Int)
         : super(ownerModel, predecessors, max, min)
 
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)

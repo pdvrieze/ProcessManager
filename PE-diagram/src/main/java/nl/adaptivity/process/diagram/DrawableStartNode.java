@@ -20,7 +20,7 @@ import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlUtil;
@@ -43,7 +43,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
       super(compat);
     }
 
-    public Builder(@Nullable final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
+    public Builder(@Nullable final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
       super(successor, id, label, x, y, defines, results);
     }
 

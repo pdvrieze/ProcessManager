@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 
 import javax.xml.namespace.QName
 
@@ -28,7 +29,7 @@ interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
     override fun build(newOwner: M): EndNode<T, M>
 
-    var predecessor: Identifiable?
+    var predecessor: Identified?
       get() = predecessors.firstOrNull()
       set(value) { predecessors.replaceByNotNull(value) }
 
@@ -38,7 +39,7 @@ interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T
 
   fun setDefines(exports: Collection<@JvmWildcard IXmlDefineType>)
 
-  var predecessor: Identifiable?
+  var predecessor: Identified?
 
   companion object {
 

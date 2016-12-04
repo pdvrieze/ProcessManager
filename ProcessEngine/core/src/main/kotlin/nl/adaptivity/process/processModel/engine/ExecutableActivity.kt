@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
@@ -34,8 +35,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
   class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
 
     constructor(): this(predecessor=null)
-    constructor(predecessor: Identifiable? = null,
-                successor: Identifiable? = null,
+    constructor(predecessor: Identified? = null,
+                successor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
@@ -52,6 +53,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
   }
 
   private var _condition: ExecutableCondition?
+
+  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   override var condition: String?
     get() = _condition?.condition
@@ -84,7 +87,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
   }
 
 
-  override fun builder() = Builder(this)
+  override fun builder() = Builder(node=this)
 
   /**
    * Determine whether the process can start.

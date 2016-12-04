@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
@@ -43,7 +44,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
       super(node);
     }
 
-    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+    public Builder(@NotNull final Collection<? extends Identified> predecessors, @NotNull final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
       super(predecessors, successor, id, label, x, y, defines, results, min, max);
     }
 
@@ -80,7 +81,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
     return XmlUtil.deserializeHelper(new XmlJoin.Builder(), in);
   }
 
-  public XmlJoin(final XmlProcessModel ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public XmlJoin(final XmlProcessModel ownerModel, final Collection<? extends Identified> predecessors, final int min, final int max) {
     super(ownerModel, predecessors, max, min);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
@@ -100,7 +101,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
   }
 
   @NotNull
-  public static XmlJoin andJoin(final XmlProcessModel ownerModel, final XmlProcessNode... predecessors) {
+  public static XmlJoin andJoin(final XmlProcessModel ownerModel, final Identified... predecessors) {
     return new XmlJoin(ownerModel, Arrays.asList(predecessors), Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
@@ -127,37 +128,32 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
   }
 
   @Override
-  public void resolveRefs() {
-    super.resolveRefs();
-  }
-
-  @Override
-  public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
+  public void setPredecessors(final Collection<? extends Identified> predecessors) {
     super.setPredecessors(predecessors);
   }
 
   @Override
-  public void removePredecessor(final Identifiable node) {
+  public void removePredecessor(@NotNull final Identified node) {
     super.removePredecessor(node);
   }
 
   @Override
-  public void addPredecessor(final Identifiable node) {
-    super.addPredecessor(node);
+  public void addPredecessor(final Identified nodeId) {
+    super.addPredecessor(nodeId);
   }
 
   @Override
-  public void addSuccessor(final Identifiable node) {
+  public void addSuccessor(final Identified node) {
     super.addSuccessor(node);
   }
 
   @Override
-  public void removeSuccessor(final Identifiable node) {
+  public void removeSuccessor(@NotNull final Identified node) {
     super.removeSuccessor(node);
   }
 
   @Override
-  public void setSuccessors(final Collection<? extends Identifiable> successors) {
+  public void setSuccessors(@NotNull final Collection<? extends Identified> successors) {
     super.setSuccessors(successors);
   }
 

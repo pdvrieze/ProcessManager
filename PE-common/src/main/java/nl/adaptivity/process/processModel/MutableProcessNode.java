@@ -16,38 +16,28 @@
 
 package nl.adaptivity.process.processModel;
 
-import nl.adaptivity.diagram.Positioned;
-import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.xml.XmlSerializable;
+import nl.adaptivity.process.util.Identified;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 
 public interface MutableProcessNode<T extends MutableProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T, M> {
 
-  void setId(String id);
+  void setId(@NotNull String id);
 
   void setOwnerModel(@NotNull M ownerModel);
 
-  /**
-   * Make all references (predecessors successors) directly reference nodes. Not names.
-   */
-  void resolveRefs();
+  void setPredecessors(Collection<? extends Identified> predecessors);
 
-  void setPredecessors(Collection<? extends Identifiable> predecessors);
+  void removePredecessor(Identified node);
 
-  void removePredecessor(Identifiable node);
+  void addPredecessor(Identified nodeId);
 
-  void addPredecessor(Identifiable node);
+  void addSuccessor(Identified node);
 
-  void addSuccessor(Identifiable node);
+  void removeSuccessor(Identified node);
 
-  void removeSuccessor(Identifiable node);
-
-  void setSuccessors(Collection<? extends Identifiable> successors);
+  void setSuccessors(Collection<? extends Identified> successors);
 
 }

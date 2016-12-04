@@ -23,13 +23,14 @@ import nl.adaptivity.process.processModel.MutableProcessNode
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.process.util.Identified
 import java.sql.SQLException
 
 
 /**
  * Created by pdvrieze on 23/11/15.
  */
-interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel> {
+interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel>, Identified {
 
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
     override fun build(newOwner: ExecutableProcessModel): ExecutableProcessNode

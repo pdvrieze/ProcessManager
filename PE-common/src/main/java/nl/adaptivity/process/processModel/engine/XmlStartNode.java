@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
@@ -104,37 +104,32 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
   }
 
   @Override
-  public void resolveRefs() {
-    super.resolveRefs();
-  }
-
-  @Override
-  public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
+  public void setPredecessors(final Collection<? extends Identified> predecessors) {
     super.setPredecessors(predecessors);
   }
 
   @Override
-  public void removePredecessor(final Identifiable node) {
+  public void removePredecessor(@NotNull final Identified node) {
     super.removePredecessor(node);
   }
 
   @Override
-  public void addPredecessor(final Identifiable node) {
-    super.addPredecessor(node);
+  public void addPredecessor(final Identified nodeId) {
+    super.addPredecessor(nodeId);
   }
 
   @Override
-  public void addSuccessor(final Identifiable node) {
+  public void addSuccessor(final Identified node) {
     super.addSuccessor(node);
   }
 
   @Override
-  public void removeSuccessor(final Identifiable node) {
+  public void removeSuccessor(@NotNull final Identified node) {
     super.removeSuccessor(node);
   }
 
   @Override
-  public void setSuccessors(final Collection<? extends Identifiable> successors) {
+  public void setSuccessors(@NotNull final Collection<? extends Identified> successors) {
     super.setSuccessors(successors);
   }
 

@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -40,7 +41,7 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
 
     constructor() : this(successor = null)
 
-    constructor(successor: Identifiable? = null,
+    constructor(successor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
@@ -72,7 +73,7 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   }
 
   constructor(_ownerModel: M?=null,
-              successor: Identifiable?=null,
+              successor: Identified?=null,
               id: String?,
               label: String?=null,
               x: Double = Double.NaN,

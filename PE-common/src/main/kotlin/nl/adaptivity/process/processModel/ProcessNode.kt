@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.diagram.Positioned
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.XmlDeserializable
 import nl.adaptivity.xml.XmlSerializable
@@ -29,8 +30,8 @@ import nl.adaptivity.xml.XmlSerializable
 interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positioned, Identifiable, XmlSerializable {
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : XmlDeserializable {
-    var predecessors: MutableSet<Identifiable>
-    var successors: MutableSet<Identifiable>
+    var predecessors: MutableSet<Identified>
+    var successors: MutableSet<Identified>
     var id: String?
     var label: String?
     var x: Double
@@ -54,7 +55,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
 
   fun asT(): T
 
-  fun isPredecessorOf(node: T): Boolean
+  fun isPredecessorOf(node: ProcessNode<*, *>): Boolean
 
   fun <R> visit(visitor: Visitor<R>): R
 
@@ -64,9 +65,9 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
 
   val ownerModel: M?
 
-  val predecessors: IdentifyableSet<out @JvmWildcard Identifiable>
+  val predecessors: IdentifyableSet<out @JvmWildcard Identified>
 
-  val successors: IdentifyableSet<out @JvmWildcard Identifiable>
+  val successors: IdentifyableSet<out @JvmWildcard Identified>
 
   val maxSuccessorCount: Int
 

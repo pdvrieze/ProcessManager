@@ -212,23 +212,23 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     abstract protected fun endNodeBuilder(): EndNode.Builder<T,M>
 
     fun startNode(body: StartNode.Builder<T,M>.() -> Unit) : Identifiable {
-      return startNodeBuilder().ensureId().let { Identifier(it.id) }
+      return startNodeBuilder().ensureId().let { Identifier(it.id!!) }
     }
 
     fun split(body: Split.Builder<T,M>.() -> Unit) : Identifiable {
-      return splitBuilder().ensureId().let { Identifier(it.id) }
+      return splitBuilder().ensureId().let { Identifier(it.id!!) }
     }
 
     fun join(body: Join.Builder<T,M>.() -> Unit) : Identifiable {
-      return joinBuilder().ensureId().let { Identifier(it.id) }
+      return joinBuilder().ensureId().let { Identifier(it.id!!) }
     }
 
     fun activity(body: Activity.Builder<T,M>.() -> Unit) : Identifiable {
-      return activityBuilder().ensureId().let { Identifier(it.id) }
+      return activityBuilder().ensureId().let { Identifier(it.id!!) }
     }
 
     fun endNode(body: EndNode.Builder<T,M>.() -> Unit) : Identifiable {
-      return endNodeBuilder().ensureId().let { Identifier(it.id) }
+      return endNodeBuilder().ensureId().let { Identifier(it.id!!) }
     }
 
     fun newId(base:String):String {
@@ -262,7 +262,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
         for (node in builder.nodes) {
           for (pred in node.predecessors) {
-            builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id))
+            builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id!!))
           }
         }
         return builder
@@ -276,6 +276,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   private var _processNodes: IdentifyableSet<T>
   private var _name: String? = null
   private var _handle = -1L
+
   /**
    * Set the owner of a model
    * @param owner
@@ -367,8 +368,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     }
     out.smartStartTag(ELEMENTNAME)
     out.writeAttribute("name", name)
-    val value = if (_owner == null) null else _owner.name
-    out.writeAttribute("owner", value)
+    out.writeAttribute("owner", _owner.name)
     if (_roles != null && _roles!!.size > 0) {
       out.writeAttribute(ATTR_ROLES, StringUtil.join(",", _roles))
     }
@@ -379,40 +379,6 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     out.writeChildren(exports)
     out.writeChildren(_processNodes)
     out.endTag(ELEMENTNAME)
-  }
-
-  open fun ensureIds() {
-    val ids = HashSet<String>()
-    val unnamedNodes = ArrayList<MutableProcessNode<*, *>>()
-    for (node in modelNodes) {
-      val id = node.id
-      // XXX this is rather much of a hack that should happen through updates.
-      if (id == null && node is MutableProcessNode<*, *>) {
-        unnamedNodes.add(node)
-      } else {
-        ids.add(id)
-      }
-    }
-    val startCounts = HashMap<String, Int>()
-    for (unnamed in unnamedNodes) {
-      val idBase = unnamed.idBase
-      var startCount = getOrDefault(startCounts, idBase, 1)
-      var id = idBase + Integer.toString(startCount)
-      while (ids.contains(id)) {
-        ++startCount
-        id = idBase + Integer.toString(startCount)
-      }
-      unnamed.setId(idBase + Integer.toString(startCount))
-      startCounts.put(idBase, startCount + 1)
-    }
-  }
-
-  fun setImports(imports: Collection<IXmlResultType>) {
-    _imports = ProcessNodeBase.toExportableResults(imports)
-  }
-
-  fun setExports(exports: Collection<IXmlDefineType>) {
-    _exports = ProcessNodeBase.toExportableDefines(exports)
   }
 
   open fun removeNode(nodePos: Int): T {

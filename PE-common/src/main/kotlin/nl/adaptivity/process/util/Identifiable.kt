@@ -14,13 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.util;
+package nl.adaptivity.process.util
 
 /**
- * Created by pdvrieze on 01/11/15.
+ * Interface for objects that may have identifiers.
  */
-public interface Identifiable extends Comparable<Identifiable> {
+interface Identifiable : Comparable<Identifiable> {
 
-  String getId();
+  val id: String?
+
+  val identifier: Identifier? get() = id?.let(::Identifier)
 
 }

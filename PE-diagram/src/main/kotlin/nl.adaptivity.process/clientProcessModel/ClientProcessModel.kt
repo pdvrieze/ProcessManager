@@ -24,6 +24,8 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
@@ -211,19 +213,20 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     return false
   }
 
+  @Deprecated("Unsafe")
   override fun setNode(pos: Int, newValue: T): T {
-    val oldValue = setNode(pos, newValue) as T
+    val oldValue = setNode(pos, newValue)
 
     newValue.setOwnerModel(asM())
-    oldValue.setSuccessors(emptySet<Identifiable>())
-    oldValue.setPredecessors(emptySet<Identifiable>())
+    oldValue.setSuccessors(emptySet<Identified>())
+    oldValue.setPredecessors(emptySet<Identified>())
     oldValue.setOwnerModel(null)
-    newValue.resolveRefs()
+
     for (pred in newValue.predecessors) {
-      getNode(pred)!!.addSuccessor(newValue)
+      getNode(pred)!!.addSuccessor(newValue.identifier)
     }
     for (suc in newValue.successors) {
-      getNode(suc)!!.addPredecessor(newValue)
+      getNode(suc)!!.addPredecessor(newValue.identifier)
     }
 
     return oldValue
@@ -247,8 +250,8 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   }
 
   private fun disconnectNode(node: T) {
-    node.setPredecessors(emptyList<Identifiable>())
-    node.setSuccessors(emptyList<Identifiable>())
+    node.setPredecessors(emptyList<Identified>())
+    node.setSuccessors(emptyList<Identified>())
     notifyNodeChanged(node)
   }
 
@@ -267,7 +270,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   }
 
   private fun toDiagramNodes(modelNodes: Collection<T>): List<DiagramNode<T>> {
-    val map = HashMap<T, DiagramNode<T>>()
+    val map = HashMap<Identified, DiagramNode<T>>()
     val result = ArrayList<DiagramNode<T>>()
     for (node in modelNodes) {
       val leftExtend: Double
@@ -301,27 +304,19 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
         topExtend = bottomExtend
       }
       val dn = DiagramNode(node, leftExtend, rightExtend, topExtend, bottomExtend)
-      if (node.id != null) {
-        map.put(node, dn)
-      }
+      node.id?.let(::Identifier)?.let { map.put(it, dn) }
       result.add(dn)
     }
 
-    for (dn in result) {
-      val mn = dn.target
-      for (successor in mn.successors) {
-        val rightdn = map[successor]
-        if (rightdn != null) {
-          dn.rightNodes.add(rightdn)
-        }
-      }
-      for (predecessorId in mn.predecessors) {
-        val predecessor = getNode(predecessorId)
-        val leftdn = map[predecessor]
-        if (leftdn != null) {
-          dn.leftNodes.add(leftdn)
-        }
-      }
+    for (diagramNode in result) {
+      val modelNode = diagramNode.target
+      modelNode.successors.asSequence()
+          .map { map[it] }
+          .filterNotNullTo(diagramNode.rightNodes)
+
+      modelNode.predecessors.asSequence()
+          .map { map[it] }
+          .filterNotNullTo(diagramNode.leftNodes)
     }
     return result
   }

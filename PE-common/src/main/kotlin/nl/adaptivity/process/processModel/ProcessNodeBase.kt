@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
@@ -32,8 +33,8 @@ import javax.xml.XMLConstants
  */
 abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> @JvmOverloads
     constructor(private var _ownerModel: M?,
-                predecessors: Collection<Identifiable> = emptyList(),
-                successors: Collection<Identifiable> = emptyList(),
+                predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(),
                 id: String?,
                 label: String? = null,
                 x: Double = java.lang.Double.NaN,
@@ -44,8 +45,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   @Deprecated("Don't use this if it can be avoided")
   constructor(ownerModel: M?): this (ownerModel, id=null)
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(predecessors: Collection<Identifiable> = emptyList(),
-                successors: Collection<Identifiable> = emptyList(),
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
+                predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(),
                 override var id: String? = null,
                 override var label: String? = null,
                 override var x: Double = Double.NaN,
@@ -53,16 +55,16 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList()) : ProcessNode.Builder<T,M>, XmlDeserializable {
 
-    override var predecessors: MutableSet<Identifiable> = ArraySet(predecessors)
+    override var predecessors: MutableSet<Identified> = ArraySet(predecessors)
       set(value) {field.replaceBy(value)}
-    override var successors: MutableSet<Identifiable> = ArraySet(successors)
+    override var successors: MutableSet<Identified> = ArraySet(successors)
       set(value) {field.replaceBy(value)}
     override var defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
       set(value) {field.replaceBy(value)}
     override var results: MutableCollection<IXmlResultType> = ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.getId(), node.label, node.getX(), node.getY(), node.defines, node.results)
+    constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.id, node.label, node.getX(), node.getY(), node.defines, node.results)
 
     override abstract fun build(newOwner: M): ProcessNodeBase<T, M>
 
@@ -93,8 +95,19 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
   }
 
+  @Suppress("LeakingThis")
   private var _predecessors = toIdentifiers(maxPredecessorCount, predecessors)
+
+  override val predecessors: IdentifyableSet<@JvmWildcard Identified>
+    get() = _predecessors
+
+
+  @Suppress("LeakingThis")
   private var _successors = toIdentifiers(maxSuccessorCount, successors)
+
+  override val successors: IdentifyableSet<@JvmWildcard Identified>
+    get() = _successors
+
   private var _x = x
   private var _y = y
 
@@ -117,6 +130,10 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       notifyChange()
     }
 
+  override val maxSuccessorCount: Int get() = Integer.MAX_VALUE
+
+  override val maxPredecessorCount: Int get() = 1
+
   /**
    * Copy constructor
    * @param orig Original
@@ -125,7 +142,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                                                                  toIdentifiers(orig.maxPredecessorCount,
                                                                                orig.predecessors),
                                                                  toIdentifiers(orig.maxSuccessorCount, orig.successors),
-                                                                 orig.getId(),
+                                                                 orig.id,
                                                                  orig.label,
                                                                  orig.getX(),
                                                                  orig.getY(),
@@ -184,17 +201,17 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     _hashCode = 0
     _predecessors = IdentifyableSet.processNodeSet(maxPredecessorCount, emptyList())
 
-    val tmp = predecessors.filterNotNull()
+    val tmp = predecessors.asSequence().map { it.identifier }.filterNotNull().toList()
     setPredecessors(tmp)
   }
 
-  protected open fun addPredecessor(predId: Identifiable) {
+  protected open fun addPredecessor(predecessorId: Identified) {
     _hashCode = 0
-    if (predId === this) {
+    if (predecessorId === this || predecessorId.id == id) {
       throw IllegalArgumentException()
     }
     if (true) {
-      if (_predecessors.containsKey(predId.id)) {
+      if (_predecessors.containsKey(predecessorId.id)) {
         return
       }
       if (_predecessors.size + 1 > maxPredecessorCount) {
@@ -202,36 +219,36 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       }
     }
 
-    if (_predecessors.add(predId)) {
+    if (_predecessors.add(predecessorId)) {
       val ownerModel = _ownerModel
 
       var node: MutableProcessNode<*, *>? = null
-      if (predId is MutableProcessNode<*, *>) {
-        node = predId
+      if (predecessorId is MutableProcessNode<*, *>) {
+        node = predecessorId
       } else if (ownerModel != null) {
-        node = ownerModel.getNode(predId) as? MutableProcessNode<*, *>
+        node = ownerModel.getNode(predecessorId) as? MutableProcessNode<*, *>
       }
       if (node != null) {
-        node.addSuccessor(this)
+        node.addSuccessor(this.identifier)
       }
     }
 
   }
 
-  protected open fun removePredecessor(predecessorId: Identifiable) {
+  protected open fun removePredecessor(predecessorId: Identified) {
     _hashCode = 0
     if (_predecessors.remove(predecessorId)) {
       val owner = _ownerModel
       val predecessor: T? = owner?.getNode(predecessorId)
       if (predecessor != null) {
-        (predecessor as MutableProcessNode<*, *>).removeSuccessor(this.asT())
+        (predecessor as MutableProcessNode<*, *>).removeSuccessor(this.identifier)
       }
     }
 
     // TODO perhaps make this reciprocal
   }
 
-  protected open fun addSuccessor(nodeId: Identifiable) {
+  protected open fun addSuccessor(nodeId: Identified) {
     _hashCode = 0
 
     if (nodeId in _successors) return
@@ -242,53 +259,48 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
     val owner = _ownerModel
     var node: MutableProcessNode<*, M>? = null
+    @Suppress("UNCHECKED_CAST")
     if (owner != null) {
+      @Suppress("UNCHECKED_CAST")
       node = owner.getNode(nodeId) as MutableProcessNode<*, M>
     } else if (nodeId is MutableProcessNode<*, *>) {
       node = nodeId as MutableProcessNode<*, M>?
     }
-    if (node != null) {
-      val predecessors = node.predecessors
-      if (this !in predecessors) {
-        node.addPredecessor(this.asT())
-      }
+    if (node != null && id!=null) {
+      node.addPredecessor(this.identifier)
     }
   }
 
-  protected open fun removeSuccessor(node: Identifiable) {
+  protected open fun removeSuccessor(node: Identified) {
     if (_successors.remove(node)) {
       _hashCode = 0
       val successorNode = node as? MutableProcessNode<*, *> ?: if (_ownerModel == null) null else _ownerModel!!.getNode(
             node) as MutableProcessNode<*, *>
-      successorNode?.removePredecessor(this.asT())
+      successorNode?.removePredecessor(this.identifier)
     }
   }
-
-  override val predecessors: IdentifyableSet<@JvmWildcard Identifiable>
-    get() = _predecessors
 
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
      */
-  protected open fun setPredecessors(predecessors: Collection<out Identifiable>) {
+  protected open fun setPredecessors(predecessors: Collection<Identified>) {
     if (predecessors.size > maxPredecessorCount) {
       throw IllegalArgumentException()
     }
     _hashCode = 0
 
-    val toAdd = predecessors.toMutableList()
     if (_predecessors.size > 0) {
       val (toRemove, shared) = _predecessors.partition { it !in predecessors }
 
       toRemove.forEach { removePredecessor(it) }
-      (predecessors.asSequence() - shared.asSequence()).forEach { addPredecessor(it) }
+      (predecessors.asSequence() - shared.asSequence()).forEach { it.identifier?.let { addPredecessor(it) } }
     } else {
 
-      toAdd.forEach { addPredecessor(it) }
+      predecessors.toList().forEach { it.identifier?.let { addPredecessor(it) } }
     }
   }
 
-  protected open fun setSuccessors(successors: Collection<out Identifiable>) {
+  protected open fun setSuccessors(successors: Collection<Identified>) {
     if (successors.size > maxSuccessorCount) {
       throw IllegalArgumentException()
     }
@@ -301,22 +313,6 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     } else {
       successors.forEach { addSuccessor(it) }
     }
-  }
-
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.ProcessNode#getSuccessors()
-     */
-  override val successors: IdentifyableSet<@JvmWildcard Identifiable>
-    get() = _successors
-
-  override val maxSuccessorCount: Int get() = Integer.MAX_VALUE
-
-  override val maxPredecessorCount: Int get() = 1
-
-  protected open fun resolveRefs() {
-    val ownerModel = _ownerModel
-    _predecessors.resolve(ownerModel)
-    _successors.resolve(ownerModel)
   }
 
   fun unsetPos() {
@@ -345,7 +341,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
      * @see nl.adaptivity.process.processModel.ProcessNode#getId()
      */
   override fun compareTo(other: Identifiable): Int {
-    return id!!.compareTo(other.id)
+    return id?.let { other.id?.let { otherId -> it.compareTo(otherId)} ?: 1} ?: other.id?.let{ 1} ?: 0
   }
 
   private var mId: String? = id
@@ -355,9 +351,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       notifyChange()
     }
 
-  override fun getId(): String? {
-    return mId
-  }
+  override val id: String? get() = mId
 
   fun setId(id: String?) {
     mId = id
@@ -401,18 +395,18 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#isPredecessorOf(nl.adaptivity.process.processModel.ProcessNode)
      */
-  override fun isPredecessorOf(node: T): Boolean {
+  override fun isPredecessorOf(node: ProcessNode<*, *>): Boolean {
     return node.predecessors.any { pred ->
       this===pred ||
           id == pred.id ||
-          (pred is ProcessNode<*,*> && isPredecessorOf(pred as T)) ||
+          (pred is ProcessNode<*,*> && isPredecessorOf(pred)) ||
           _ownerModel?.getNode(pred)?.let { node-> isPredecessorOf(node) }?: false
     }
   }
 
   protected open fun setDefines(exports: Collection<IXmlDefineType>) {
     _hashCode = 0
-    _defines = if (exports == null) ArrayList<XmlDefineType>(0) else toExportableDefines(exports)
+    _defines = toExportableDefines(exports)
   }
 
 
@@ -433,7 +427,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
   protected open fun setResults(imports: Collection<IXmlResultType>) {
     _hashCode = 0
-    _results = imports.let { toExportableResults(imports) } ?: mutableListOf()
+    _results = imports.let { toExportableResults(imports) }
   }
 
   override val results: List<XmlResultType> get() = _results
@@ -471,11 +465,11 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       return false
     }
 
-    if (_predecessors.map { it.id }.sorted() != that._predecessors.map { it.id }.sorted()) {
+    if (_predecessors.mapNotNull { it.id }.sorted() != that._predecessors.mapNotNull { it.id }.sorted()) {
       return false
     }
 
-    if (_successors.map { it.id }.sorted() != that._successors.map { it.id }.sorted()) {
+    if (_successors.mapNotNull { it.id }.sorted() != that._successors.mapNotNull { it.id }.sorted()) {
       return false
     }
 
@@ -488,7 +482,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     }
     var result: Int
     var temp: Long
-    result = if (_predecessors != null) getHashCode(_predecessors) else 0
+    result = getHashCode(_predecessors)
     result = 31 * result + getHashCode(_successors)
     result = 31 * result + (mId?.hashCode() ?: 0)
     result = 31 * result + (label?.hashCode() ?: 0)
@@ -520,14 +514,14 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     }
     return buildString {
       append(name).append('(')
-      mId?.let { id -> append(" id='${id}'") }
+      mId?.let { id -> append(" id='$id'") }
 
       if (_predecessors.size > 0) {
         _predecessors.joinTo(this, ", ", " pred='", "'") { it.id }
       }
 
       _ownerModel?.name?.let { name ->
-        if (! name.isEmpty()) append(" owner='${name}'")
+        if (! name.isEmpty()) append(" owner='$name'")
       }
       append(" )")
     }
@@ -538,7 +532,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     const val ATTR_PREDECESSOR = "predecessor"
 
     private fun toIdentifiers(maxSize: Int,
-                              identifiables: Iterable<Identifiable>): IdentifyableSet<Identifiable> {
+                              identifiables: Iterable<Identified>): IdentifyableSet<Identified> {
       return IdentifyableSet.processNodeSet(maxSize, identifiables.map { it as? Identifier ?: Identifier(it.id) })
     }
 

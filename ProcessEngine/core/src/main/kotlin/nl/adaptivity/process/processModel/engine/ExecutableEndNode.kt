@@ -24,6 +24,7 @@ import nl.adaptivity.process.processModel.EndNodeBase
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
@@ -33,7 +34,7 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
-    constructor(predecessor: Identifiable? = null,
+    constructor(predecessor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
@@ -54,6 +55,8 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
     }
   }
 
+  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+
   constructor(orig: EndNode<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner) {
   }
 
@@ -65,7 +68,7 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
 
   constructor(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
 
-  override fun builder() = Builder(this)
+  override fun builder() = Builder(node=this)
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {

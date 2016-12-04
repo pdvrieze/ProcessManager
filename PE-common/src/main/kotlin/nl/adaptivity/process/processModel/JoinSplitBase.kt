@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import net.devrieze.util.StringUtil
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -37,8 +38,8 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
     override var min:Int
     override var max:Int
 
-    constructor(predecessors: Collection<Identifiable> = emptyList(),
-                successors: Collection<Identifiable> = emptyList(),
+    constructor(predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(),
                 id: String? = null, label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
@@ -73,8 +74,8 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   }
 
   constructor(ownerModel: M?,
-              predecessors: Collection<Identifiable> = emptyList(),
-              successors: Collection<Identifiable> = emptyList(),
+              predecessors: Collection<Identified> = emptyList(),
+              successors: Collection<Identified> = emptyList(),
               id: String?,
               label: String? = null,
               x: Double = java.lang.Double.NaN,
@@ -94,7 +95,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   override var max: Int
 
   @Deprecated("Use the main constructor")
-  constructor(ownerModel: M?, predecessors: Collection<Identifiable>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
+  constructor(ownerModel: M?, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
 
   @Deprecated("")
   constructor(ownerModel: M?) : this(ownerModel, id=null) { }

@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.*
 import java.util.*
@@ -35,8 +36,8 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
     constructor():this(predecessors= emptyList())
 
-    constructor(predecessors: Collection<Identifiable> = emptyList(),
-                successor: Identifiable? = null,
+    constructor(predecessors: Collection<Identified> = emptyList(),
+                successor: Identified? = null,
                 id: String? = null, label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
@@ -65,8 +66,8 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
   }
 
   constructor(ownerModel: M?,
-              predecessors: Collection<Identifiable> = emptyList(),
-              successor: Identifiable? = null,
+              predecessors: Collection<Identified> = emptyList(),
+              successor: Identified? = null,
               id: String?,
               label: String? = null,
               x: Double = java.lang.Double.NaN,
@@ -77,7 +78,7 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
               max: Int = -1) : super(ownerModel, predecessors, successor?.let { listOf(it) } ?: emptyList(), id, label, x, y, defines, results, min, max)
 
   @Deprecated("Use the normal constructor")
-  constructor(ownerModel: M?, predecessors: Collection<Identifiable>, max: Int, min: Int) : this(ownerModel, predecessors, id=null, max=max, min=min)
+  constructor(ownerModel: M?, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors, id=null, max=max, min=min)
 
   @Deprecated("")
   constructor(ownerModel: M?) : super(ownerModel)

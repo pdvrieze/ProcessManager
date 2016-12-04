@@ -27,6 +27,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
 import java.security.Principal
 import java.sql.SQLException
@@ -221,7 +222,7 @@ class JoinInstance : ProcessNodeInstance {
   override fun tickle(transaction: ProcessTransaction,
                       messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>): ProcessNodeInstance {
     super.tickle(transaction, messageService)
-    val missingIdentifiers = TreeSet<Identifiable>(node.predecessors)
+    val missingIdentifiers = TreeSet<Identified>(node.predecessors)
     val data = transaction.readableEngineData
 
     directPredecessors

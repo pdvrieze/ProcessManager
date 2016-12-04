@@ -20,7 +20,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
@@ -30,7 +30,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor() : this(successor=null)
-    constructor(successor: Identifiable? = null,
+    constructor(successor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
@@ -53,6 +53,8 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     }
   }
 
+  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+
   constructor(orig: StartNode<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
 
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
@@ -63,7 +65,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
 
   constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
 
-  override fun builder() = Builder(this)
+  override fun builder() = Builder(node=this)
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {

@@ -27,6 +27,7 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.xml.XmlException;
@@ -189,8 +190,8 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
 
-  private static Collection<? extends Identifiable> fromIdStrings(final String[] stringArray) {
-    final List<Identifiable> result = new ArrayList<>();
+  private static Collection<? extends Identified> fromIdStrings(final String[] stringArray) {
+    final List<Identified> result = new ArrayList<>();
     for(final String s:stringArray) {
       result.add(new Identifier(s));
     }

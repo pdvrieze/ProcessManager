@@ -35,6 +35,7 @@ import nl.adaptivity.process.diagram.DrawableJoinSplit;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.util.Identified;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -256,7 +257,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
 
   public void tryAddSuccessor(final DrawableProcessNode prev, final DrawableProcessNode next) {
     if (prev.isPredecessorOf(next)) {
-      prev.removeSuccessor(next);
+      prev.removeSuccessor(next.getIdentifier());
     } else {
 
       if (prev.getSuccessors().size() < prev.getMaxSuccessorCount() && next.getPredecessors().size() < next.getMaxPredecessorCount()) {
@@ -279,7 +280,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
               join.setMax(join.getMax() + 1);
             }
           }
-          prev.addSuccessor(next);
+          prev.addSuccessor(next.getIdentifier());
         } catch (IllegalProcessModelException e) {
           Log.w(MyDiagramAdapter.class.getName(), e.getMessage(), e);
           Toast.makeText(mContext, "These can not be connected", Toast.LENGTH_LONG).show();

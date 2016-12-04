@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
@@ -35,9 +35,9 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
     override val idBase:String
       get() = "end"
 
-    constructor(): this(predecessor=null)
+    constructor(): this(predecessor =null)
 
-    constructor(predecessor: Identifiable? = null,
+    constructor(predecessor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
@@ -83,7 +83,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
   override val elementName: QName
     get() = EndNode.ELEMENTNAME
 
-  override var predecessor: Identifiable?
+  override var predecessor: Identified?
     get() = if (predecessors.size==0) null else predecessors.single()
     set(value) {
       setPredecessors(listOfNotNull(value))
@@ -91,12 +91,12 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
   override val maxSuccessorCount: Int get() = 0
 
-  override val successors: IdentifyableSet<Identifiable>
-    get() = IdentifyableSet.empty<Identifiable>()
+  override val successors: IdentifyableSet<Identified>
+    get() = IdentifyableSet.empty<Identified>()
 
 
   constructor(_ownerModel: M?=null,
-              predecessor: Identifiable?=null,
+              predecessor: Identified?=null,
               id: String?,
               label: String?=null,
               x: Double = Double.NaN,

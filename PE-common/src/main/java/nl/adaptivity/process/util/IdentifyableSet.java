@@ -164,11 +164,6 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends T, ?> reference) {
-      throw new UnsupportedOperationException("This set is immutable");
-    }
-
-    @Override
     public boolean equals(final Object o) {
       return IdentifyableSet.this.equals(o);
     }
@@ -281,14 +276,6 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends V, ?> reference) {
-      int len = mStore.size();
-      for(int i=0; i<len; ++i) {
-        mStore.set(i, reference.getNode(mStore.get(i)));
-      }
-    }
-
-    @Override
     public boolean equals(final Object o) {
       if (this == o) { return true; }
       if (o == null || getClass() != o.getClass()) { return false; }
@@ -340,11 +327,6 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     @Override
     public int size() {
       return 0;
-    }
-
-    @Override
-    public void resolve(final ProcessModelBase<? extends V, ?> reference) {
-      // do nothing
     }
 
     @Override
@@ -518,13 +500,6 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends V, ?> reference) {
-      if (mElement!=null) {
-        mElement = reference.getNode(mElement);
-      }
-    }
-
-    @Override
     public boolean equals(final Object o) {
       if (this == o) { return true; }
       if (o == null || getClass() != o.getClass()) { return false; }
@@ -582,8 +557,6 @@ public abstract class IdentifyableSet<T extends Identifiable> extends AbstractLi
     }
 
   }
-
-  public abstract void resolve(final ProcessModelBase<? extends T, ?> reference);
 
   @NotNull
   public static <V extends Identifiable> IdentifyableSet<V> processNodeSet() {

@@ -29,6 +29,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
 import java.io.FileNotFoundException
@@ -284,14 +285,14 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getNodeInstance(transaction: ProcessTransaction, identifiable: Identifiable): ProcessNodeInstance? {
+  fun getNodeInstance(transaction: ProcessTransaction, identified: Identified): ProcessNodeInstance? {
     return children.map { handle ->
       val data = transaction.readableEngineData
       val instance = data.nodeInstance(handle).withPermission()
-      if (identifiable.id == instance.node.id) {
+      if (identified.id == instance.node.id) {
         instance
       } else {
-        instance.getPredecessor(transaction, identifiable.id)?.let { data.nodeInstance(it).withPermission() }
+        instance.getPredecessor(transaction, identified.id)?.let { data.nodeInstance(it).withPermission() }
       }
     }.filterNotNull().firstOrNull()
   }
@@ -627,8 +628,8 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
     @Throws(XmlException::class)
     private fun XmlWriter.writeNodeRefCommon(nodeInstance: ProcessNodeInstance) {
-      attribute(null, "nodeid", null, nodeInstance.node.id)
-      attribute(null, "handle", null, java.lang.Long.toString(nodeInstance.getHandleValue()))
+      writeAttribute("nodeid", nodeInstance.node.id)
+      writeAttribute("handle", nodeInstance.getHandleValue())
       attribute(null, "state", null, nodeInstance.state.toString())
       if (nodeInstance.state === NodeInstanceState.Failed) {
         val failureCause = nodeInstance.failureCause

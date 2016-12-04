@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
@@ -29,8 +30,8 @@ import java.sql.SQLException
 class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
   class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(predecessors: Collection<Identifiable> = emptyList(),
-                successors: Collection<Identifiable> = emptyList(),
+    constructor(predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(),
                 id: String? = null, label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
@@ -45,17 +46,6 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
     }
   }
 
-  class ExecutableSplitFactory {
-
-    override fun createSplit(ownerModel: ExecutableProcessModel,
-                             successors: Collection<Identifiable>): ExecutableSplit {
-      val result = ExecutableSplit(ownerModel)
-      result.setSuccessors(successors)
-      return result
-    }
-  }
-
-
   class Factory : XmlDeserializerFactory<ExecutableSplit> {
 
     @Throws(XmlException::class)
@@ -63,6 +53,8 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
       return ExecutableSplit.deserialize(null, reader)
     }
   }
+
+  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   @Deprecated("Use the full constructor")
   constructor(ownerModel: ExecutableProcessModel?, predecessor: ExecutableProcessNode, min: Int, max: Int)

@@ -21,7 +21,7 @@ import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlUtil;
@@ -44,7 +44,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
       super(compat);
     }
 
-    public Builder(@NotNull final Collection<? extends Identifiable> predecessors, @NotNull final Identifiable successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
+    public Builder(@NotNull final Collection<? extends Identified> predecessors, @NotNull final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
       super(predecessors, successor, id, label, x, y, defines, results, min, max);
     }
 

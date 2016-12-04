@@ -16,14 +16,15 @@
 
 package nl.adaptivity.process.util;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
 /**
  * A class representing a simple identifier. It just holds a single string.
  */
-public final class Identifier implements Identifiable {
-  private static class ChangeableIdentifier implements Identifiable {
+public final class Identifier implements Identified {
+  private static class ChangeableIdentifier implements Identified {
 
     private final String mIdBase;
     private int mIdNo;
@@ -46,13 +47,23 @@ public final class Identifier implements Identifiable {
     public String getId() {
       return mIdBase + Integer.toString(mIdNo);
     }
+
+    @Nullable
+    @Override
+    public Identifier getIdentifier() {
+      return Identified.DefaultImpls.getIdentifier(this);
+    }
   }
 
-
+  @NotNull
   private String mID;
 
-  public Identifier(final String iD) {
+  public Identifier(final @NotNull String iD) {
     mID = iD;
+  }
+
+  public Identifier(final @NotNull CharSequence iD) {
+    mID = iD.toString();
   }
 
   @Override
@@ -60,7 +71,7 @@ public final class Identifier implements Identifiable {
     return mID;
   }
 
-  public void setID(final String iD) {
+  public void setId(final @NotNull String iD) {
     mID = iD;
   }
 
@@ -88,6 +99,12 @@ public final class Identifier implements Identifiable {
   @Override
   public String toString() {
     return mID;
+  }
+
+  @Nullable
+  @Override
+  public Identifier getIdentifier() {
+    return this;
   }
 
   public static String findIdentifier(String idBase, Iterable<? extends Identifiable> exclusions) {

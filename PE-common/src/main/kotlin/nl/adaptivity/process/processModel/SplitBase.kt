@@ -20,6 +20,7 @@ import net.devrieze.util.StringUtil
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.processModel.engine.XmlSplit
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.*
 import java.util.*
@@ -38,8 +39,8 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
 
     constructor() : this(predecessors = emptyList())
 
-    constructor(predecessors: Collection<Identifiable> = emptyList(),
-                successors: Collection<Identifiable> = emptyList(),
+    constructor(predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(),
                 id: String? = null, label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
@@ -58,8 +59,8 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
   }
 
   constructor(ownerModel: M?,
-              predecessor: Identifiable? = null,
-              successors: Collection<Identifiable> = emptyList(),
+              predecessor: Identified? = null,
+              successors: Collection<Identified> = emptyList(),
               id: String?,
               label: String? = null,
               x: Double = java.lang.Double.NaN,
@@ -70,7 +71,7 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
               max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id, label, x, y, defines, results, min, max)
 
   @Deprecated("Use general constructor")
-  constructor(ownerModel: M?, predecessors: Collection<Identifiable>, max: Int, min: Int) : super(ownerModel, predecessors, max, min) { }
+  constructor(ownerModel: M?, predecessors: Collection<Identified>, max: Int, min: Int) : super(ownerModel, predecessors, max, min) { }
 
   @Deprecated("Use general constructor")
   constructor(ownerModel: M?) : super(ownerModel)
@@ -99,7 +100,7 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
 
   override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
     if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
-      setPredecessors(setOf(Identifier(StringUtil.toString(attributeValue))))
+      setPredecessors(setOf(Identifier(attributeValue.toString())))
       return true
     }
     return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
