@@ -53,6 +53,16 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
     override fun build(): ExecutableProcessModel = ExecutableProcessModel(this)
 
+    override fun startNodeBuilder() = ExecutableStartNode.Builder()
+
+    override fun splitBuilder() = ExecutableSplit.Builder()
+
+    override fun joinBuilder() = ExecutableJoin.Builder()
+
+    override fun activityBuilder() = ExecutableActivity.Builder()
+
+    override fun endNodeBuilder() = ExecutableEndNode.Builder()
+
     companion object {
       @JvmStatic
       fun deserialize(reader: XmlReader): Builder {

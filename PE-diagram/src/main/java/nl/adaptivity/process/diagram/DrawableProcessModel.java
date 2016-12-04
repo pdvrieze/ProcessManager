@@ -51,6 +51,36 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @NotNull
     @Override
+    protected DrawableStartNode.Builder startNodeBuilder() {
+      return new DrawableStartNode.Builder();
+    }
+
+    @NotNull
+    @Override
+    protected DrawableSplit.Builder splitBuilder() {
+      return new DrawableSplit.Builder();
+    }
+
+    @NotNull
+    @Override
+    protected DrawableJoin.Builder joinBuilder() {
+      return new DrawableJoin.Builder();
+    }
+
+    @NotNull
+    @Override
+    protected DrawableActivity.Builder activityBuilder() {
+      return new DrawableActivity.Builder();
+    }
+
+    @NotNull
+    @Override
+    protected DrawableEndNode.Builder endNodeBuilder() {
+      return new DrawableEndNode.Builder();
+    }
+
+    @NotNull
+    @Override
     public DrawableProcessModel build() {
       return new DrawableProcessModel(this);
     }

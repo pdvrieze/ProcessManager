@@ -30,6 +30,8 @@ import javax.xml.namespace.QName
 abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Join<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Join.Builder<T,M> {
+    override val idBase:String
+      get() = "join"
 
     constructor():this(predecessors= emptyList())
 

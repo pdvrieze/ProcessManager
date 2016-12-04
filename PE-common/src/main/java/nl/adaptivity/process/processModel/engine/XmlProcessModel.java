@@ -71,6 +71,26 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
       return new XmlProcessModel(this);
     }
 
+    @NotNull
+    @Override
+    protected XmlStartNode.Builder startNodeBuilder() { return new XmlStartNode.Builder(); }
+
+    @NotNull
+    @Override
+    protected XmlSplit.Builder splitBuilder() { return new XmlSplit.Builder(); }
+
+    @NotNull
+    @Override
+    protected XmlJoin.Builder joinBuilder() { return new XmlJoin.Builder(); }
+
+    @NotNull
+    @Override
+    protected XmlActivity.Builder activityBuilder() { return new XmlActivity.Builder(); }
+
+    @NotNull
+    @Override
+    protected XmlEndNode.Builder endNodeBuilder() { return new XmlEndNode.Builder(); }
+
     public static Builder deserialize(XmlReader reader) {
       return ProcessModelBase.Builder.deserialize(NodeFactory.INSTANCE, new Builder(), reader);
     }

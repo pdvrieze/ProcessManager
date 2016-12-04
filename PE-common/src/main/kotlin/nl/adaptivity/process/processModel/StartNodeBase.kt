@@ -32,6 +32,8 @@ import javax.xml.namespace.QName
 abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, StartNode<T, M>, SimpleXmlDeserializable {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M>, SimpleXmlDeserializable {
+    override val idBase:String
+      get() = "start"
 
     override val elementName: QName
       get() = StartNode.ELEMENTNAME

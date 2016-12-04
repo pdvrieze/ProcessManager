@@ -32,6 +32,9 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
 
+    override val idBase:String
+      get() = "end"
+
     constructor(): this(predecessor=null)
 
     constructor(predecessor: Identifiable? = null,

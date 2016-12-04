@@ -171,7 +171,42 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       nodes.validate(ValidationSplitFactory())
     }
 
+    abstract protected fun startNodeBuilder(): StartNode.Builder<T,M>
+    abstract protected fun splitBuilder(): Split.Builder<T,M>
+    abstract protected fun joinBuilder(): Join.Builder<T,M>
+    abstract protected fun activityBuilder(): Activity.Builder<T,M>
+    abstract protected fun endNodeBuilder(): EndNode.Builder<T,M>
+
+    fun startNode(body: StartNode.Builder<T,M>.() -> Unit) : Identifiable {
+      return startNodeBuilder().ensureId().let { Identifier(it.id) }
+    }
+
+    fun split(body: Split.Builder<T,M>.() -> Unit) : Identifiable {
+      return splitBuilder().ensureId().let { Identifier(it.id) }
+    }
+
+    fun join(body: Join.Builder<T,M>.() -> Unit) : Identifiable {
+      return joinBuilder().ensureId().let { Identifier(it.id) }
+    }
+
+    fun activity(body: Activity.Builder<T,M>.() -> Unit) : Identifiable {
+      return activityBuilder().ensureId().let { Identifier(it.id) }
+    }
+
+    fun endNode(body: EndNode.Builder<T,M>.() -> Unit) : Identifiable {
+      return endNodeBuilder().ensureId().let { Identifier(it.id) }
+    }
+
+    fun newId(base:String):String {
+      return (1..Int.MAX_VALUE).map { "${base}${it}" }.first { id -> nodes.none { it.id == id } }
+    }
+
+    fun <B: ProcessNode.Builder<*,*>> B.ensureId(): B = apply {
+      if (id ==null) { id = newId(this.idBase) }
+    }
+
     companion object {
+
 
       @JvmStatic
       fun <B: Builder<T,M>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory2<T, M>, builder: B, reader: XmlReader): B {

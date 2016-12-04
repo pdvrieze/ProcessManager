@@ -33,6 +33,8 @@ import javax.xml.namespace.QName
 abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Split<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Split.Builder<T,M> {
+    override val idBase:String
+      get() = "split"
 
     constructor() : this(predecessors = emptyList())
 

@@ -37,6 +37,8 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     override var message: IXmlMessage?
     override var name: String?
     override var condition: String?
+    override val idBase:String
+        get() = "ac"
 
     constructor(): this(predecessor = null)
 

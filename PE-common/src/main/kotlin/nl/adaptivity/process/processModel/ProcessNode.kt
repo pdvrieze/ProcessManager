@@ -36,6 +36,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
     var y: Double
     var defines: MutableCollection<IXmlDefineType>
     var results: MutableCollection<IXmlResultType>
+    val idBase: String
 
     fun build(newOwner: M): ProcessNode<T,M>
   }
