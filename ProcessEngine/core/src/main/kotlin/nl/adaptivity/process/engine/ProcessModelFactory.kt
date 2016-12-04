@@ -36,9 +36,6 @@ import java.io.StringReader
  * A factory to create process models from the database.
  */
 internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ExecutableProcessModel, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>() {
-  private var mColNoOwner: Int = 0
-  private var mColNoModel: Int = 0
-  private var mColNoHandle: Int = 0
 
   override val table: Table
     get() = pm
