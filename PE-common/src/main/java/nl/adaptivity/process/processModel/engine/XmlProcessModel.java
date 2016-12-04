@@ -77,7 +77,15 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
 
     @NotNull
     @Override
+    protected StartNode.Builder<XmlProcessNode, XmlProcessModel> startNodeBuilder(@NotNull final StartNode<?, ?> startNode) { return new XmlStartNode.Builder(startNode); }
+
+    @NotNull
+    @Override
     protected XmlSplit.Builder splitBuilder() { return new XmlSplit.Builder(); }
+
+    @NotNull
+    @Override
+    protected Split.Builder<XmlProcessNode, XmlProcessModel> splitBuilder(@NotNull final Split<?, ?> split) { return new XmlSplit.Builder(split); }
 
     @NotNull
     @Override
@@ -85,13 +93,31 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
 
     @NotNull
     @Override
+    protected XmlJoin.Builder joinBuilder(@NotNull final Join<?, ?> join) {
+      return new XmlJoin.Builder(join);
+    }
+
+    @NotNull
+    @Override
     protected XmlActivity.Builder activityBuilder() { return new XmlActivity.Builder(); }
+
+    @NotNull
+    @Override
+    protected XmlActivity.Builder activityBuilder(@NotNull final Activity<?, ?> activity) {
+      return new XmlActivity.Builder(activity);
+    }
 
     @NotNull
     @Override
     protected XmlEndNode.Builder endNodeBuilder() { return new XmlEndNode.Builder(); }
 
-    public static Builder deserialize(XmlReader reader) {
+    @NotNull
+    @Override
+    protected XmlEndNode.Builder endNodeBuilder(@NotNull final EndNode<?, ?> endNode) {
+      return new XmlEndNode.Builder(endNode);
+    }
+
+    public static Builder deserialize(final XmlReader reader) throws XmlException {
       return ProcessModelBase.Builder.deserialize(new Builder(), reader);
     }
   }

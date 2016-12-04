@@ -55,13 +55,23 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
     override fun startNodeBuilder() = ExecutableStartNode.Builder()
 
+    override fun startNodeBuilder(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
+
     override fun splitBuilder() = ExecutableSplit.Builder()
+
+    override fun splitBuilder(split: Split<*, *>) = ExecutableSplit.Builder(split)
 
     override fun joinBuilder() = ExecutableJoin.Builder()
 
+    override fun joinBuilder(join: Join<*, *>) = ExecutableJoin.Builder(join)
+
     override fun activityBuilder() = ExecutableActivity.Builder()
 
+    override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
+
     override fun endNodeBuilder() = ExecutableEndNode.Builder()
+
+    override fun endNodeBuilder(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
 
     companion object {
       @JvmStatic

@@ -64,7 +64,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
       this.layoutAlgorithm = layoutAlgorithm
     }
 
-    constructor(base: ProcessModelBase<T, M>) : super(base) {
+    constructor(base: ProcessModel<*,*>) : super(base) {
       this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
     }
 
@@ -96,7 +96,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   var isInvalid = false
     private set
 
-  abstract fun asNode(id: Identifiable): T
+  abstract fun asNode(id: Identifiable): T?
 
   override abstract fun builder(): Builder<T, M>
 

@@ -54,15 +54,25 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     val imports: MutableList<IXmlResultType> = imports.toMutableList()
     val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
-    constructor(base:ProcessModelBase<T,M>) :
-        this(base.getModelNodes().map { it.builder() }.toMutableSet(),
+    constructor(base:ProcessModelBase<*,*>) :
+        this(emptyList(),
             base.getName(),
             base.handleValue,
             base.owner,
             base.getRoles().toMutableList(),
             base.uuid,
             base.getImports().toMutableList(),
-            base.getExports().toMutableList())
+            base.getExports().toMutableList()) {
+
+      base.getModelNodes().mapTo(nodes) { it.visit(object : ProcessNode.Visitor<ProcessNode.Builder<T, M>> {
+        override fun visitStartNode(startNode: StartNode<*, *>) = startNodeBuilder(startNode)
+        override fun visitActivity(activity: Activity<*, *>) = activityBuilder(activity)
+        override fun visitSplit(split: Split<*, *>) = splitBuilder(split)
+        override fun visitJoin(join: Join<*, *>) = joinBuilder(join)
+        override fun visitEndNode(endNode: EndNode<*, *>) = endNodeBuilder(endNode)
+      }) }
+
+    }
 
 
 
@@ -204,12 +214,17 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
           }.toList().let { nodes.addAll(it) }
     }
 
-
     abstract protected fun startNodeBuilder(): StartNode.Builder<T,M>
     abstract protected fun splitBuilder(): Split.Builder<T,M>
     abstract protected fun joinBuilder(): Join.Builder<T,M>
     abstract protected fun activityBuilder(): Activity.Builder<T,M>
     abstract protected fun endNodeBuilder(): EndNode.Builder<T,M>
+
+    abstract protected fun startNodeBuilder(startNode: StartNode<*,*>): StartNode.Builder<T,M>
+    abstract protected fun splitBuilder(split: Split<*,*>): Split.Builder<T,M>
+    abstract protected fun joinBuilder(join: Join<*,*>): Join.Builder<T,M>
+    abstract protected fun activityBuilder(activity: Activity<*,*>): Activity.Builder<T,M>
+    abstract protected fun endNodeBuilder(endNode: EndNode<*,*>): EndNode.Builder<T,M>
 
     fun startNode(body: StartNode.Builder<T,M>.() -> Unit) : Identifiable {
       return startNodeBuilder().ensureId().let { Identifier(it.id!!) }
@@ -242,6 +257,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     companion object {
 
 
+      @Throws(XmlException::class)
       @JvmStatic
       fun <B: Builder<*,*>> deserialize(builder: B, reader: XmlReader): B {
 
