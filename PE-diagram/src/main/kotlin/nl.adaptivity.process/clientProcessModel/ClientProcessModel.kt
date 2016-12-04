@@ -102,26 +102,8 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  fun normalize(splitFactory: ProcessModelBase.SplitFactory<out T, M>): M {
-    ensureIds()
-    // Make all nodes directly refer to other nodes.
-    for (childNode in modelNodes) {
-      childNode.resolveRefs()
-    }
-    for (childNode in modelNodes) {
-      // Create a copy as we are actually going to remove all successors, but need to keep the list
-      val successors = childNode.successors.map { getNode(it)?: throw NullPointerException("Missing node ${it}") }
-      if (successors.size > 1 && childNode !is Split<*, *>) {
-        for (suc2 in successors) { // Remove the current node as predecessor.
-          suc2.removePredecessor(childNode)
-          childNode.removeSuccessor(suc2) // remove the predecessor from the current node
-        }
-        // create a new join, this should
-        val newSplit = splitFactory.createSplit(asM(), successors)
-        childNode.addSuccessor(newSplit)
-      }
-    }
-    return this.asM()
+  fun normalize(): M {
+    return builder().apply { normalize(false) }.build().asM()
   }
 
   open fun setNodes(nodes: Collection<T>) {

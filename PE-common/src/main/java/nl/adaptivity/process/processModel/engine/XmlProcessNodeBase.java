@@ -43,24 +43,9 @@ public abstract class XmlProcessNodeBase extends ProcessNodeBase<XmlProcessNode,
     public abstract XmlProcessNodeBase build(@NotNull final XmlProcessModel newOwner);
   }
 
-  public static class XmlSplitFactory implements ProcessModelBase.SplitFactory<XmlProcessNode, XmlProcessModel> {
-
-    @Override
-    public Split<XmlProcessNode, XmlProcessModel> createSplit(final XmlProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
-      XmlSplit result = new XmlSplit(ownerModel);
-      result.setSuccessors(successors);
-      return result;
-    }
-  }
-
-//  private Collection<? extends IXmlImportType> mImports;
-//
-//  private Collection<? extends IXmlExportType> mExports;
-
   protected XmlProcessNodeBase(@Nullable final XmlProcessModel ownerModel) {
     super(ownerModel);
   }
-
 
   public XmlProcessNodeBase(final XmlProcessModel ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
     this(ownerModel);

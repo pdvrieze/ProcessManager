@@ -86,21 +86,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
+  public static class Factory implements XmlDeserializerFactory<DrawableProcessModel> {
 
     @Override
     public DrawableProcessModel deserialize(final XmlReader reader) throws XmlException {
       return DrawableProcessModel.deserialize(reader);
     }
 
-    @Override
-    public DrawableSplit createSplit(final DrawableProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
-      final DrawableSplit split = new DrawableSplit(ownerModel);
-      split.setId(Identifier.findIdentifier(split.getIdBase(), ownerModel.getModelNodes()));
-      ownerModel.addNode(split);
-      split.setSuccessors(successors);
-      return split;
-    }
   }
 
   public static final double STARTNODERADIUS=10d;

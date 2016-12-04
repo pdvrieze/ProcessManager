@@ -45,7 +45,7 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
     }
   }
 
-  class ExecutableSplitFactory : ProcessModelBase.SplitFactory<ExecutableProcessNode, ExecutableProcessModel> {
+  class ExecutableSplitFactory {
 
     override fun createSplit(ownerModel: ExecutableProcessModel,
                              successors: Collection<Identifiable>): ExecutableSplit {

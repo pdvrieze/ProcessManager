@@ -39,54 +39,6 @@ import javax.xml.namespace.QName
  */
 abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
 
-  interface DeserializationFactory<U : ProcessNode<U, M>, M : ProcessModelBase<U, M>> {
-
-    @Throws(XmlException::class)
-    fun deserializeEndNode(ownerModel: M, reader: XmlReader): EndNode<out U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeActivity(ownerModel: M, reader: XmlReader): Activity<out U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeStartNode(ownerModel: M, reader: XmlReader): StartNode<out U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeJoin(ownerModel: M, reader: XmlReader): Join<out U, M>
-
-    @Throws(XmlException::class)
-    fun deserializeSplit(ownerModel: M, reader: XmlReader): Split<out U, M>
-  }
-
-  interface SplitFactory<U : ProcessNode<U, M>, M : ProcessModel<U, M>> {
-
-    /**
-     * Create a new join node. This must register the node with the owner, and mark the join as successor to
-     * the predecessors. If appropriate, this should also generate an id for the node, and must verify that it
-     * is not duplcated in the model.
-     * @param ownerModel The owner
-     * *
-     * @param successors The predecessors
-     * *
-     * @return The resulting join node.
-     */
-    fun createSplit(ownerModel: M, successors: Collection<Identifiable>): Split<out U, M>
-  }
-
-  interface SplitFactory2<U : ProcessNode<U, M>, M : ProcessModel<U, M>> {
-
-    /**
-     * Create a new join node. This must register the node with the owner, and mark the join as successor to
-     * the predecessors. If appropriate, this should also generate an id for the node, and must verify that it
-     * is not duplcated in the model.
-     * @param ownerModel The owner
-     * *
-     * @param successors The predecessors
-     * *
-     * @return The resulting join node.
-     */
-    fun createSplit(successors: Collection<Identifiable>): Split.Builder<U, M>
-  }
-
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
       var name: String? = null,
@@ -407,40 +359,12 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     return asM()
   }
 
-  @Deprecated("Use Builders")
-  @Throws(XmlException::class)
-  protected fun deserializeChild(factory: DeserializationFactory<T, M>, reader: XmlReader): Boolean {
-    if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-      val newNode = when (reader.localName.toString()) {
-        EndNode.ELEMENTLOCALNAME -> factory.deserializeEndNode(asM(), reader)
-        Activity.ELEMENTLOCALNAME -> factory.deserializeActivity(asM(), reader)
-        StartNode.ELEMENTLOCALNAME -> factory.deserializeStartNode(asM(), reader)
-        Join.ELEMENTLOCALNAME -> factory.deserializeJoin(asM(), reader)
-        Split.ELEMENTLOCALNAME -> factory.deserializeSplit(asM(), reader)
-        else -> return false
-      }
-      addNode(newNode.asT())
-      return true
-    }
-    return false
-  }
-
-  @Deprecated("Use builders")
-  protected fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-    val value = attributeValue.toString()
-    when (StringUtil.toString(attributeLocalName)) {
-      "name" -> setName(value)
-      "owner" -> _owner = SimplePrincipal(value)
-      ATTR_ROLES -> _roles!!.addAll(Arrays.asList(*value.split(" *, *".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()))
-      "uuid" -> setUuid(UUID.fromString(value))
-      else -> return false
-    }
-    return true
-  }
-
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {
-    ensureIds()
+
+    if (_processNodes.any { it.id == null }) {
+      builder().build().serialize(out)
+    }
     out.smartStartTag(ELEMENTNAME)
     out.writeAttribute("name", name)
     val value = if (_owner == null) null else _owner.name
@@ -644,33 +568,6 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       return map[key] ?: defaultValue
     }
 
-    @Deprecated("Use the version that takes a builder and a DeserializationFactory2")
-    @Throws(XmlException::class)
-    fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory<T, M>, processModel: M, reader: XmlReader): M {
-
-      reader.skipPreamble()
-      val elementName = ELEMENTNAME
-      assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
-      for (i in reader.attributeCount - 1 downTo 0) {
-        processModel.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i), reader.getAttributeValue(i))
-      }
-
-      var event: EventType? = null
-      loop@ while (reader.hasNext() && event !== EventType.END_ELEMENT) {
-        event = reader.next()
-        if (!(event== EventType.START_ELEMENT && processModel.deserializeChild(factory, reader))) {
-          reader.unhandledEvent()
-        }
-      }
-
-      for (node in processModel.modelNodes) {
-        for (pred in node.predecessors) {
-          processModel.getNode(pred)?.addSuccessor(node)
-        }
-      }
-      return processModel
-    }
-
     @Throws(XmlException::class)
     @JvmStatic
     @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(builder, reader).build().asM()"))
@@ -680,10 +577,3 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   }
 }
 
-inline fun <U : ProcessNode<U, M>, M : ProcessModel<U, M>> SplitFactory2(crossinline factory: (Collection<Identifiable>)->Split.Builder<U,M>): ProcessModelBase.SplitFactory2<U,M> {
-  return object : ProcessModelBase.SplitFactory2<U,M> {
-    override fun createSplit(successors: Collection<Identifiable>): Split.Builder<U, M> {
-      return factory(successors)
-    }
-  }
-}
