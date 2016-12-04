@@ -35,7 +35,7 @@ import java.io.StringReader
 /**
  * A factory to create process models from the database.
  */
-internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ExecutableProcessModel, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>() {
+internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ExecutableProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>() {
 
   override val table: Table
     get() = pm
@@ -43,24 +43,20 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   override val createColumns: List<Column<*, *, *>>
     get() = listOf(pm.pmhandle, pm.owner, pm.model)
 
-  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ExecutableProcessModel {
+  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ExecutableProcessModel.Builder {
     val owner = pm.owner.value(columns, values)?.let { SimplePrincipal(it) }
     val handle = pm.pmhandle.value(columns, values)!!
     return pm.model.value(columns, values)
-          ?.let { ExecutableProcessModel.deserialize(XmlStreaming.newReader(StringReader(it)))}
-          ?.apply {
-            setHandleValue(handle)
-      cacheStrings(stringCache)
-      if (this.owner==SecurityProvider.SYSTEMPRINCIPAL && owner !=null) { this.owner = owner }
-
-    } ?: ExecutableProcessModel(emptyList()).apply {
+          ?.let { ExecutableProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it)))}
+       ?: ExecutableProcessModel.Builder().apply {
+      owner?.let { this.owner = it }
       this.owner = owner ?: SecurityProvider.SYSTEMPRINCIPAL
-      setHandleValue(handle)
+      this.handle
     }
   }
 
-  override fun postCreate(transaction: ProcessDBTransaction, builder: ExecutableProcessModel): ExecutableProcessModel {
-    return builder
+  override fun postCreate(transaction: ProcessDBTransaction, builder: ExecutableProcessModel.Builder): ExecutableProcessModel {
+    return builder.build()
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<out SecureObject<ExecutableProcessModel>>): Database.WhereClause? {

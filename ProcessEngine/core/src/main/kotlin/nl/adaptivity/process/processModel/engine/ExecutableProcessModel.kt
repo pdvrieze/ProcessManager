@@ -26,10 +26,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.XmlDeserializer
-import nl.adaptivity.xml.XmlDeserializerFactory
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xml.*
 import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
@@ -44,46 +41,64 @@ import java.util.*
 class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>, MutableHandleAware<ExecutableProcessModel>, SecureObject<ExecutableProcessModel> {
 
   class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableProcessModel> {
-    constructor(nodes: MutableSet<ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel>>, name: String?, handle: Long, owner: Principal, roles: MutableList<String>, uuid: UUID?, imports: MutableList<IXmlResultType>, exports: MutableList<IXmlDefineType>) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
+    constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
+                name: String? = null,
+                handle: Long = -1L,
+                owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+                roles: Collection<String> = emptyList(),
+                uuid: UUID? = null,
+                imports: Collection<IXmlResultType> = emptyList(),
+                exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
     constructor(base: ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>) : super(base)
 
     override fun build(): ExecutableProcessModel = ExecutableProcessModel(this)
+
+    companion object {
+      @JvmStatic
+      fun deserialize(reader: XmlReader): Builder {
+        return ProcessModelBase.Builder.deserialize(NodeFactory.INSTANCE, ExecutableProcessModel.Builder(), reader)
+      }
+    }
   }
 
   enum class Permissions : SecurityProvider.Permission {
     INSTANTIATE
   }
 
-  class Factory : XmlDeserializerFactory<ExecutableProcessModel>, ProcessModelBase.DeserializationFactory<ExecutableProcessNode, ExecutableProcessModel> {
+  class Factory : XmlDeserializerFactory<ExecutableProcessModel> {
 
     @Throws(XmlException::class)
     override fun deserialize(reader: XmlReader): ExecutableProcessModel {
       return ExecutableProcessModel.deserialize(reader)
     }
+  }
+
+  enum class NodeFactory : ProcessModelBase.DeserializationFactory2<ExecutableProcessNode, ExecutableProcessModel> {
+    INSTANCE;
 
     @Throws(XmlException::class)
-    override fun deserializeEndNode(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableEndNode {
-      return ExecutableEndNode.deserialize(ownerModel, reader)
+    override fun deserializeEndNode(reader: XmlReader): ExecutableEndNode.Builder {
+      return ExecutableEndNode.Builder().deserializeHelper(reader);
     }
 
     @Throws(XmlException::class)
-    override fun deserializeActivity(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableActivity {
-      return ExecutableActivity.deserialize(ownerModel, reader)
+    override fun deserializeActivity(reader: XmlReader): ExecutableActivity.Builder {
+      return ExecutableActivity.Builder().deserializeHelper(reader)
     }
 
     @Throws(XmlException::class)
-    override fun deserializeStartNode(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableStartNode {
-      return ExecutableStartNode.deserialize(ownerModel, reader)
+    override fun deserializeStartNode(reader: XmlReader): ExecutableStartNode.Builder {
+      return ExecutableStartNode.Builder().deserializeHelper(reader)
     }
 
     @Throws(XmlException::class)
-    override fun deserializeJoin(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableJoin {
-      return ExecutableJoin.deserialize(ownerModel, reader)
+    override fun deserializeJoin(reader: XmlReader): ExecutableJoin.Builder {
+      return ExecutableJoin.Builder().deserializeHelper(reader)
     }
 
     @Throws(XmlException::class)
-    override fun deserializeSplit(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableSplit {
-      return ExecutableSplit.deserialize(ownerModel, reader)
+    override fun deserializeSplit(reader: XmlReader): ExecutableSplit.Builder {
+      return ExecutableSplit.Builder().deserializeHelper(reader)
     }
   }
 
@@ -215,8 +230,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     @Throws(XmlException::class)
     @JvmStatic
     fun deserialize(reader: XmlReader): ExecutableProcessModel {
-      val processModelImpl = XmlProcessModel.deserialize(reader)
-      return ExecutableProcessModel(processModelImpl)
+      return Builder.deserialize(reader).build()
     }
 
     /**

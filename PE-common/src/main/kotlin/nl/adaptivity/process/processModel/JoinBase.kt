@@ -34,14 +34,14 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
     constructor():this(predecessors= emptyList())
 
     constructor(predecessors: Collection<Identifiable> = emptyList(),
-                successors: Collection<Identifiable> = emptyList(),
+                successor: Identifiable? = null,
                 id: String? = null, label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
-                max: Int = -1) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
+                max: Int = -1) : super(predecessors, listOfNotNull(successor), id, label, x, y, defines, results, min, max)
 
     constructor(node: Join<*, *>) : super(node)
 

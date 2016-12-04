@@ -32,7 +32,15 @@ import java.sql.SQLException
 class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(predecessor: Identifiable?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>) : super(predecessor, id, label, x, y, defines, results)
+    constructor(): this(predecessor=null)
+    constructor(predecessor: Identifiable? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList()) : super(predecessor, id, label, x, y, defines, results)
+
     constructor(node: EndNode<*, *>) : super(node)
 
     override fun build(newOwner: ExecutableProcessModel) = ExecutableEndNode(this, newOwner)

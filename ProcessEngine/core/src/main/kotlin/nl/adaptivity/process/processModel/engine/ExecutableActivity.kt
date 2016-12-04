@@ -32,7 +32,20 @@ import java.sql.SQLException
 class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
   class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(predecessor: Identifiable?, successor: Identifiable?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, message: XmlMessage?, condition: String? = null, name: String?) : super(predecessor, successor, id, label, x, y, defines, results, message, condition, name)
+
+    constructor(): this(predecessor=null)
+    constructor(predecessor: Identifiable? = null,
+                successor: Identifiable? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                message: XmlMessage? = null,
+                condition: String? = null,
+                name: String? = null) : super(predecessor, successor, id, label, x, y, defines, results, message, condition, name)
+
     constructor(node: Activity<*, *>) : super(node)
 
     override fun build(newOwner: ExecutableProcessModel) = ExecutableActivity(this, newOwner)

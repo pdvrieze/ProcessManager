@@ -106,14 +106,19 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   }
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
-      val nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
+      nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
       var name: String? = null,
       var handle: Long = -1L,
       var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
-      val roles: MutableList<String> = mutableListOf<String>(),
+      roles: Collection<String> = emptyList(),
       var uuid: UUID? = null,
-      val imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
-      val exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>()) {
+      imports: Collection<IXmlResultType> = emptyList(),
+      exports: Collection<IXmlDefineType> = emptyList()) {
+
+    val nodes: MutableSet<ProcessNode.Builder<T, M>> = nodes.toMutableSet()
+    val roles: MutableSet<String> = roles.toMutableSet()
+    val imports: MutableList<IXmlResultType> = imports.toMutableList()
+    val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
     constructor(base:ProcessModelBase<T,M>) :
         this(base.getModelNodes().map { it.builder() }.toMutableSet(),
@@ -165,6 +170,37 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     fun validate() {
       nodes.validate(ValidationSplitFactory())
     }
+
+    companion object {
+
+      @JvmStatic
+      fun <B: Builder<T,M>, T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory2<T, M>, builder: B, reader: XmlReader): B {
+
+        reader.skipPreamble()
+        val elementName = ELEMENTNAME
+        assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
+        for (i in reader.attributeCount - 1 downTo 0) {
+          builder.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i), reader.getAttributeValue(i))
+        }
+
+        var event: EventType? = null
+        while (reader.hasNext() && event !== EventType.END_ELEMENT) {
+          event = reader.next()
+          if (!(event== EventType.START_ELEMENT && builder.deserializeChild(factory, reader))) {
+            reader.unhandledEvent()
+          }
+        }
+
+        for (node in builder.nodes) {
+          for (pred in node.predecessors) {
+            builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id))
+          }
+        }
+        return builder
+      }
+
+    }
+
 
   }
 
@@ -519,29 +555,10 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     }
 
     @Throws(XmlException::class)
+    @JvmStatic
+    @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(factory, builder, reader).build().asM()"))
     fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(factory: DeserializationFactory2<T, M>, builder: Builder<T,M>, reader: XmlReader): M {
-
-      reader.skipPreamble()
-      val elementName = ELEMENTNAME
-      assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
-      for (i in reader.attributeCount - 1 downTo 0) {
-        builder.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i), reader.getAttributeValue(i))
-      }
-
-      var event: EventType? = null
-      loop@ while (reader.hasNext() && event !== EventType.END_ELEMENT) {
-        event = reader.next()
-        if (!(event== EventType.START_ELEMENT && builder.deserializeChild(factory, reader))) {
-          reader.unhandledEvent()
-        }
-      }
-
-      for (node in builder.nodes) {
-        for (pred in node.predecessors) {
-          builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id))
-        }
-      }
-      return builder.build().asM()
+      return Builder.deserialize(factory, builder, reader).build().asM()
     }
   }
 }

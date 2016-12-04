@@ -29,7 +29,14 @@ import java.sql.SQLException
 class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(successor: Identifiable?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>) : super(successor, id, label, x, y, defines, results)
+    constructor() : this(successor=null)
+    constructor(successor: Identifiable? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList()) : super(successor, id, label, x, y, defines, results)
     constructor(node: StartNode<*, *>) : super(node)
 
 

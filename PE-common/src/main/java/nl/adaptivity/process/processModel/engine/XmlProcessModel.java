@@ -70,15 +70,23 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     public XmlProcessModel build() {
       return new XmlProcessModel(this);
     }
+
+    public static Builder deserialize(XmlReader reader) {
+      return ProcessModelBase.Builder.deserialize(NodeFactory.INSTANCE, new Builder(), reader);
+    }
   }
 
-  public static class Factory implements XmlDeserializerFactory<XmlProcessModel>, DeserializationFactory2<XmlProcessNode,XmlProcessModel> {
+  public static class Factory implements XmlDeserializerFactory<XmlProcessModel> {
 
     @NotNull
     @Override
     public XmlProcessModel deserialize(@NotNull final XmlReader reader) throws XmlException {
       return XmlProcessModel.deserialize(reader);
     }
+  }
+
+  private enum NodeFactory implements DeserializationFactory2<XmlProcessNode,XmlProcessModel> {
+    INSTANCE;
 
     @NotNull
     @Override
@@ -225,15 +233,8 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
   }
 
   @NotNull
-  public static XmlProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
-    //noinspection deprecation
-    return deserialize(new Factory(), in);
-  }
-
-    @NotNull
-    @Deprecated
-  public static XmlProcessModel deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.Companion.deserialize(factory, new Builder(), in);
+  public static XmlProcessModel deserialize(@NotNull final XmlReader reader) throws XmlException {
+    return Builder.deserialize(reader).build().asM();
   }
 
   /**

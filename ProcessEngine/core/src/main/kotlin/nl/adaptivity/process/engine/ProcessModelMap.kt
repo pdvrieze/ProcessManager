@@ -28,7 +28,7 @@ import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModel
 import java.util.*
 
 
-internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ExecutableProcessModel, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>(
+internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ExecutableProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>(
       transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<ProcessDBTransaction> {
 
   override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<ExecutableProcessModel>? {

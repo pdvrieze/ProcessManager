@@ -136,13 +136,13 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   @NotNull
   public static XmlActivity deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader reader) throws
           XmlException {
-    return nl.adaptivity.xml.XmlUtil.<XmlActivity>deserializeHelper(new XmlActivity(ownerModel), reader);
+    return XmlUtil.<XmlActivity>deserializeHelper(new XmlActivity(ownerModel), reader);
   }
 
   @NotNull
   public static XmlActivity.Builder deserialize(@NotNull final XmlReader reader) throws
           XmlException {
-    return nl.adaptivity.xml.XmlUtil.<XmlActivity.Builder>deserializeHelper(new Builder(), reader);
+    return XmlUtil.<XmlActivity.Builder>deserializeHelper(new Builder(), reader);
   }
 
   @Override
