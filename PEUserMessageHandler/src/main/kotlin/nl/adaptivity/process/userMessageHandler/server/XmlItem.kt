@@ -105,8 +105,10 @@ class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
     out.writeAttribute("type", type)
     out.writeAttribute("value", value)
 
-    for (option in options) {
-      out.writeSimpleElement(OPTION_ELEMENTNAME, option)
+    if (_options.isInitialized()) {
+      for (option in _options.value) {
+        out.writeSimpleElement(OPTION_ELEMENTNAME, option)
+      }
     }
 
     out.endTag(ELEMENTNAME)
@@ -115,10 +117,10 @@ class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
   override fun hashCode(): Int {
     val prime = 31
     var result = 1
-    result = prime * result + if (name == null) 0 else name!!.hashCode()
-    result = prime * result + if (options.isEmpty()) 0 else options.hashCode()
-    result = prime * result + if (type == null) 0 else type!!.hashCode()
-    result = prime * result + if (value == null) 0 else value!!.hashCode()
+    result = prime * result + (name?.hashCode() ?: 0)
+    result = prime * result + if (!_options.isInitialized() || _options.value.isEmpty()) 0 else _options.value.hashCode()
+    result = prime * result + (type?.hashCode() ?: 0)
+    result = prime * result + (value?.hashCode() ?: 0)
     return result
   }
 
@@ -129,16 +131,16 @@ class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
       return false
     if (javaClass != obj.javaClass)
       return false
-    val other = obj as XmlItem?
+    val other = obj as XmlItem
     if (name == null) {
-      if (other!!.name != null)
+      if (other.name != null)
         return false
-    } else if (name != other!!.name)
+    } else if (name != other.name)
       return false
-    if (options == null || options!!.isEmpty()) {
-      if (other.options != null && !options!!.isEmpty())
+    if (! _options.isInitialized() || _options.value.isEmpty()) {
+      if (other._options.isInitialized() && ! _options.value.isEmpty())
         return false
-    } else if (options != other.options)
+    } else if (! other._options.isInitialized() || _options.value != other._options.value)
       return false
     if (type == null) {
       if (other.type != null)
