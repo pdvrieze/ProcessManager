@@ -103,7 +103,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
 
 
-    private inline fun invokeNext(request: Request, response: Response) {
+    private fun invokeNext(request: Request, response: Response) {
         next.invoke(request, response)
         val cookieNote = request.getNote(DARWINCOOKIENAME)
         if (cookieNote != null) { log.finer("Found a cookie note on the request") }
