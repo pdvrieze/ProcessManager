@@ -65,7 +65,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     }
 
     constructor(base: ProcessModel<*,*>) : super(base) {
-      this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
+      this.layoutAlgorithm = (base as? ClientProcessModel<T,M>)?.layoutAlgorithm ?: LayoutAlgorithm<T>()
     }
 
     abstract override fun build(): ClientProcessModel<T, M>
