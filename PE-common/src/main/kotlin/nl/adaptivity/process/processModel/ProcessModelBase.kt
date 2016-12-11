@@ -54,13 +54,13 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     val imports: MutableList<IXmlResultType> = imports.toMutableList()
     val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
-    constructor(base:ProcessModelBase<*,*>) :
+    constructor(base:ProcessModel<*,*>) :
         this(emptyList(),
             base.getName(),
-            base.handleValue,
+            (base as? ReadableHandleAware<*>)?.handle?.handleValue ?: -1L,
             base.owner,
             base.getRoles().toMutableList(),
-            base.uuid,
+            base.getUuid(),
             base.getImports().toMutableList(),
             base.getExports().toMutableList()) {
 
