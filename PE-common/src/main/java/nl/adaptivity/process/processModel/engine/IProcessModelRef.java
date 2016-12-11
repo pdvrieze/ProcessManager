@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.Handle;
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
 import org.jetbrains.annotations.Nullable;
 
