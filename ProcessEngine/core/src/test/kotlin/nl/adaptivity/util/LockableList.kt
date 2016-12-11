@@ -78,7 +78,7 @@ class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
 
   override fun sort(c: Comparator<in T>?) {
     checkLocked()
-    super.sort(c)
+    super<ArrayList>.sort(c)
   }
 
   override fun removeAll(elements: Collection<T>): Boolean {
@@ -88,7 +88,7 @@ class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
 
   override fun replaceAll(operator: UnaryOperator<T>?) {
     checkLocked()
-    super.replaceAll(operator)
+    super<ArrayList>.replaceAll(operator)
   }
 
   override fun listIterator(): MutableListIterator<T> {
@@ -112,7 +112,7 @@ class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
 
   override fun removeIf(filter: Predicate<in T>?): Boolean {
     checkLocked()
-    return super.removeIf(filter)
+    return super<ArrayList>.removeIf(filter)
   }
 
   override fun iterator(): MutableIterator<T> {
