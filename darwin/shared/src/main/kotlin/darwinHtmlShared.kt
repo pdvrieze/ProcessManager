@@ -85,8 +85,8 @@ inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsu
 
 
 /** Just inline for now, as this is just a forwarder. */
-@Suppress("NOTHING_TO_INLINE")
-inline fun <O : Appendable> O.appendXML(prettyPrint: Boolean = true): TagConsumer<O> = this.appendHTML(prettyPrint)
+fun <O : java.lang.Appendable> O.appendXML(prettyPrint: Boolean = true): TagConsumer<O>
+    = this.appendHTML(prettyPrint)
 
 class PartialHTML(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) : HTMLTag("root", consumer, initialAttributes, null, false, false) {
 
