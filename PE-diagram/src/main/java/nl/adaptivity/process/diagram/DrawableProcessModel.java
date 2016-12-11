@@ -21,6 +21,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
@@ -56,8 +57,20 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @NotNull
     @Override
+    protected DrawableStartNode.Builder startNodeBuilder(@NotNull final StartNode<?, ?> startNode) {
+      return new DrawableStartNode.Builder(startNode);
+    }
+
+    @NotNull
+    @Override
     protected DrawableSplit.Builder splitBuilder() {
       return new DrawableSplit.Builder();
+    }
+
+    @NotNull
+    @Override
+    protected DrawableSplit.Builder splitBuilder(@NotNull final Split<?, ?> split) {
+      return new DrawableSplit.Builder(split);
     }
 
     @NotNull
@@ -68,14 +81,32 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @NotNull
     @Override
+    protected DrawableJoin.Builder joinBuilder(@NotNull final Join<?, ?> join) {
+      return new DrawableJoin.Builder(join);
+    }
+
+    @NotNull
+    @Override
     protected DrawableActivity.Builder activityBuilder() {
       return new DrawableActivity.Builder();
     }
 
     @NotNull
     @Override
+    protected Activity.Builder<DrawableProcessNode, DrawableProcessModel> activityBuilder(@NotNull final Activity<?, ?> activity) {
+      return new DrawableActivity.Builder(activity);
+    }
+
+    @NotNull
+    @Override
     protected DrawableEndNode.Builder endNodeBuilder() {
       return new DrawableEndNode.Builder();
+    }
+
+    @NotNull
+    @Override
+    protected EndNode.Builder<DrawableProcessNode, DrawableProcessModel> endNodeBuilder(@NotNull final EndNode<?, ?> endNode) {
+      return new DrawableEndNode.Builder(endNode);
     }
 
     @NotNull
@@ -129,17 +160,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     super(DRAWABLE_NODE_FACTORY);
   }
 
-  public DrawableProcessModel(final ProcessModelBase<?, ?> original) {
+  public DrawableProcessModel(final ProcessModel<?, ?> original) {
     this(original, null, DRAWABLE_NODE_FACTORY);
   }
 
-  public DrawableProcessModel(final ProcessModelBase<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm, final Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> nodeFactory) {
+  public DrawableProcessModel(final ProcessModel<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm, final Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> nodeFactory) {
     this(new Builder(original));
-    super(original.getUuid(), original.getName(), cloneNodes(original), layoutAlgorithm, nodeFactory);
-    setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
-    setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
-    setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
-    setVertSeparation(DEFAULT_VERT_SEPARATION);
     ensureIds();
     layout();
   }

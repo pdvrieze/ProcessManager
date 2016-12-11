@@ -112,7 +112,7 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   @Override
-  public void setPredecessors(final Collection<? extends Identified> predecessors) {
+  public void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     super.setPredecessors(predecessors);
   }
 

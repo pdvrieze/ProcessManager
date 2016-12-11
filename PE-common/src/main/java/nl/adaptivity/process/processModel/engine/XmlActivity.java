@@ -152,7 +152,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   }
 
   @Override
-  public void setPredecessors(final Collection<? extends Identified> predecessors) {
+  public void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     super.setPredecessors(predecessors);
   }
 

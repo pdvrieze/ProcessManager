@@ -108,7 +108,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
   }
 
   @Override
-  public void setPredecessors(final Collection<? extends Identified> predecessors) {
+  public void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     super.setPredecessors(predecessors);
   }
 

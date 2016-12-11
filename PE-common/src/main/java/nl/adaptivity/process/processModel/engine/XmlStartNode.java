@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -104,7 +105,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
   }
 
   @Override
-  public void setPredecessors(final Collection<? extends Identified> predecessors) {
+  public void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     super.setPredecessors(predecessors);
   }
 

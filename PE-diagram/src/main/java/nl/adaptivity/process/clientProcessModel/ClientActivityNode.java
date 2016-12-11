@@ -18,6 +18,7 @@ package nl.adaptivity.process.clientProcessModel;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
@@ -142,7 +143,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   @Override
-  public void setPredecessors(final Collection<? extends Identified> predecessors) {
+  public void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     super.setPredecessors(predecessors);
   }
 

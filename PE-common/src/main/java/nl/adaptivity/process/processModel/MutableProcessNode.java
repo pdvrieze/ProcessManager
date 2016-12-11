@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +29,7 @@ public interface MutableProcessNode<T extends MutableProcessNode<T, M>, M extend
 
   void setOwnerModel(@NotNull M ownerModel);
 
-  void setPredecessors(Collection<? extends Identified> predecessors);
+  void setPredecessors(Collection<? extends Identifiable> predecessors);
 
   void removePredecessor(Identified node);
 

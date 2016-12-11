@@ -283,7 +283,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
      */
-  protected open fun setPredecessors(predecessors: Collection<Identified>) {
+  protected open fun setPredecessors(predecessors: Collection<Identifiable>) {
     if (predecessors.size > maxPredecessorCount) {
       throw IllegalArgumentException()
     }
