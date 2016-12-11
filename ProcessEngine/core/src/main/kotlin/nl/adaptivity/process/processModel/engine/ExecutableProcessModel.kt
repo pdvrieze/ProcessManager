@@ -224,6 +224,10 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
       return Builder.deserialize(reader).build()
     }
 
+    @JvmStatic
+    inline fun build(body: Builder.()->Unit)
+        = Builder().apply(body).build()
+
     /**
      * A class handle purely used for caching and special casing the DarwinPrincipal class.
      */
