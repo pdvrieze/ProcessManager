@@ -23,12 +23,12 @@ import nl.adaptivity.xml.*
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessInstance.Factory::class)
-class HProcessInstance<T : ProcessTransaction>(handle: Handle<out ProcessInstance>) : XmlHandle<ProcessInstance>(handle) {
+class HProcessInstance(handle: Handle<out ProcessInstance>) : XmlHandle<ProcessInstance>(handle) {
 
-  class Factory : XmlDeserializerFactory<HProcessInstance<*>> {
+  class Factory : XmlDeserializerFactory<HProcessInstance> {
 
     @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): HProcessInstance<*> {
+    override fun deserialize(reader: XmlReader): HProcessInstance {
       return HProcessInstance.deserialize(reader)
     }
   }
@@ -39,7 +39,7 @@ class HProcessInstance<T : ProcessTransaction>(handle: Handle<out ProcessInstanc
     get() = ELEMENTNAME
 
   override fun equals(obj: Any?): Boolean {
-    return obj === this || obj is HProcessInstance<*> && handleValue == obj.handleValue
+    return obj === this || obj is HProcessInstance && handleValue == obj.handleValue
   }
 
   override fun hashCode(): Int {
@@ -54,9 +54,9 @@ class HProcessInstance<T : ProcessTransaction>(handle: Handle<out ProcessInstanc
     val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
     @Throws(XmlException::class)
-    private fun deserialize(xmlReader: XmlReader): HProcessInstance<*> {
+    private fun deserialize(xmlReader: XmlReader): HProcessInstance {
       // For some reason a transactiontype is needed here even though it is dropped
-      return HProcessInstance<ProcessDBTransaction>().deserializeHelper(xmlReader)
+      return HProcessInstance().deserializeHelper(xmlReader)
     }
   }
 

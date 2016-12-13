@@ -28,7 +28,9 @@ import nl.adaptivity.process.processModel.MutableProcessNode
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import java.sql.SQLException
 
 
@@ -41,6 +43,17 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
 
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
     override fun build(newOwner: ExecutableProcessModel): ExecutableProcessNode
+
+    override fun predecessors(vararg values: Identifiable) {
+      values.forEach {
+        predecessors.add(it.identifier ?: throw NullPointerException("Missing identifier for predecessor ${it}"))
+      }
+    }
+
+    override fun result(builder: XmlResultType.Builder.() -> Unit) {
+      results.add(XmlResultType.Builder().apply(builder).build())
+    }
+
   }
 
   override fun builder(): ExecutableProcessNode.Builder
@@ -50,6 +63,9 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * the type (joins)
    */
   fun <T: ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance
+
+  override val identifier: Identifier?
+    get() = Identifier(id)
 
   /**
    * Should this node be able to be provided?

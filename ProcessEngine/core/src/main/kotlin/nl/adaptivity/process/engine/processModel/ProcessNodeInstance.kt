@@ -282,7 +282,8 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun finishTask(transaction: ProcessTransaction, resultPayload: Node?): ProcessNodeInstance {
+  @Deprecated("This is dangerous, it will not update the instance")
+  internal open fun finishTask(transaction: ProcessTransaction, resultPayload: Node? = null): ProcessNodeInstance {
     return transaction.commit(update(transaction) {
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
       state = NodeInstanceState.Complete

@@ -437,7 +437,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                            model: SecureObject<ExecutableProcessModel>,
                            name: String,
                            uuid: UUID,
-                           payload: Node?): HProcessInstance<TRXXX> {
+                           payload: Node?): HProcessInstance {
 
     if (user == null) {
       throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes")
@@ -487,7 +487,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                    handle: Handle<out SecureObject<ExecutableProcessModel>>,
                    name: String,
                    uuid: UUID,
-                   payload: Node?): HProcessInstance<TRXXX> {
+                   payload: Node?): HProcessInstance {
     engineData.inWriteTransaction(transaction) {
       processModels[handle].shouldExist(handle)
     }.let { processModel ->

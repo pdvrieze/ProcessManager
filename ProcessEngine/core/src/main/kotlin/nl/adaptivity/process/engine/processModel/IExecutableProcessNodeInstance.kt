@@ -70,14 +70,14 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
   @Throws(SQLException::class)
   fun <U> startTask(transaction: ProcessTransaction, messageService: IMessageService<U, ProcessTransaction, in V>): V
 
-  /**
-   * Called by the processEngine to signify to the task that it is finished
-   * (with the given payload).
-
-   * @param payload The payload which is the result of the processing.
-   */
-  @Throws(SQLException::class)
-  fun finishTask(transaction: ProcessTransaction, payload: Node? = null): V
+//  /**
+//   * Called by the processEngine to signify to the task that it is finished
+//   * (with the given payload).
+//
+//   * @param payload The payload which is the result of the processing.
+//   */
+//  @Throws(SQLException::class)
+//  fun finishTask(transaction: ProcessTransaction, payload: Node? = null): V
 
   /**
    * Called to signify that this task has failed.

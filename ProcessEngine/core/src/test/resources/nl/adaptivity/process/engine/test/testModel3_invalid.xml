@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pe:processModel xmlns:pe="http://adaptivity.nl/ProcessEngine/" name="123" owner="test" uuid="de402eea-68d3-4b51-b74f-01288286d904">
+    <pe:start id="start0" x="32.0" y="136.0" />
+    <pe:activity id="ac1" label="1" x="80.0" y="136.0" predecessor="start0">
+        <pe:result xpath="/values/tn/text()" name="r_tn" />
+        <pe:define name="d_tn">tv</pe:define>
+        <pe:message type="application/soap+xml" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+            <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <env:Body>
+                    <umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler">
+                        <umh:repliesParam>
+                            <jbi:element xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task>
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="instancehandle" name="instancehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="handle" name="remotehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="owner" name="owner" />
+                                <umh:item name="tn" type="text">
+                                    <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="d_tn" name="value" />
+                                    <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="d_tn" name="value" />
+                                </umh:item>
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </env:Body>
+            </env:Envelope>
+        </pe:message>
+    </pe:activity>
+    <pe:activity id="ac2" label="2" x="128.0" y="136.0" predecessor="ac1">
+        <pe:define xpath="." name="d_tl" refnode="ac1" refname="r_tn">
+            tv
+            <jbi:value xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" />
+        </pe:define>
+        <pe:message type="application/soap+xml" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+            <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <env:Body>
+                    <umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler">
+                        <umh:repliesParam>
+                            <jbi:element xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task>
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="instancehandle" name="instancehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="handle" name="remotehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="owner" name="owner" />
+                                <umh:item name="tl" type="label">
+                                    <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="d_tl" name="value" />
+                                </umh:item>
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </env:Body>
+            </env:Envelope>
+        </pe:message>
+    </pe:activity>
+    <pe:end id="end3" x="176.0" y="128.0" predecessor="ac2" />
+</pe:processModel>

@@ -400,6 +400,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       throw IllegalStateException("Task was already complete")
     }
     // Make sure the finish is recorded.
+    @Suppress("DEPRECATION")
     val newNode = transaction.commit(node.finishTask(transaction, resultPayload))
 
     handleFinishedState(transaction, messageService, newNode)

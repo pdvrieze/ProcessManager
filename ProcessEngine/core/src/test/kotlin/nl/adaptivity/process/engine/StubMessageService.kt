@@ -20,6 +20,8 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
@@ -56,6 +58,7 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
   override fun sendMessage(transaction: T,
                            protoMessage: IXmlMessage,
                            instance: ProcessNodeInstance): Boolean {
+    assert(instance.handle.valid) { "Sending messages from invalid nodes is a bad idea" }
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       instance.instantiateXmlPlaceholders(transaction,
@@ -75,6 +78,7 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
 
     processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
     _messages.add(ExtMessage(processedMessage, instance.handle))
+    instance.update(transaction) { state = NodeInstanceState.Sent }
     return true
   }
 }

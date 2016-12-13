@@ -120,6 +120,106 @@ class TestProcessEngine {
 
   }
 
+  @Throws(XmlException::class)
+  private fun serializeToXmlCharArray(obj: Any): CharArray {
+    return CharArrayWriter().apply {
+      val caw = this
+      if (obj is XmlSerializable) {
+        XmlStreaming.newWriter(this).use { writer ->
+          obj.serialize(writer)
+        }
+      } else {
+        JAXB.marshal(obj, caw)
+      }
+    }.toCharArray()
+  }
+
+  private fun <R> testProcess(model: ExecutableProcessModel, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
+    mProcessEngine.startTransaction().use { transaction ->
+
+      val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
+      val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
+
+      return body(transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+    }
+  }
+
+  private fun ProcessTransaction.getInstance(instanceHandle: HProcessInstance):ProcessInstance {
+    return readableEngineData.instance(instanceHandle).withPermission()
+  }
+
+  private fun StubMessageService<ProcessTransaction>.messageNode(transaction: ProcessTransaction, index:Int): ProcessNodeInstance {
+    return transaction.readableEngineData.nodeInstance(this._messages[index].source).withPermission()
+  }
+
+  private fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance {
+    return getChild(transaction, name)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
+  }
+
+  private val ProcessInstance.sortedFinished
+    get() = finished.sortedBy { it.handleValue }
+
+  private val ProcessInstance.sortedActive
+    get() = active.sortedBy { it.handleValue }
+
+  private val ProcessInstance.sortedCompleted
+    get() = completedEndnodes.sortedBy { it.handleValue }
+
+  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<ProcessNodeInstance>) = apply {
+    assertEquals(ArrayList(sortedFinished), handles.sorted())
+  }
+
+  private fun ProcessInstance.assertFinished(vararg handles: ProcessNodeInstance) = apply {
+    assertEquals(ArrayList(sortedFinished), handles.asSequence().map{ it.handle }.sortedBy { it.handleValue }.toList())
+  }
+
+  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<ProcessNodeInstance>) = apply {
+    assertEquals(ArrayList(sortedActive), handles.sorted())
+  }
+
+  private fun ProcessInstance.assertActive(vararg handles: ProcessNodeInstance) = apply {
+    assertEquals(ArrayList(sortedActive), handles.asSequence().map{ it.handle }.sortedBy { it.handleValue }.toList())
+  }
+
+  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<ProcessNodeInstance>) = apply {
+    assertEquals(ArrayList(sortedCompleted), handles.sorted())
+  }
+
+  private fun ProcessInstance.assertCompleted(vararg handles: ProcessNodeInstance): ProcessInstance {
+    val actual = ArrayList(sortedCompleted)
+    val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
+    assertEquals(actual, expected)
+    return this
+  }
+
+  private fun ProcessNodeInstance.assertStarted() = apply {
+    assertEquals(this.state, NodeInstanceState.Started)
+  }
+
+  private fun ProcessInstance.assertIsStarted() = apply {
+    assertEquals(this.state, State.STARTED)
+  }
+
+  private fun ProcessInstance.assertIsFinished() = apply {
+    assertEquals(this.state, State.FINISHED)
+  }
+
+  private fun ProcessNodeInstance.assertSent() = apply {
+    assertEquals(this.state, NodeInstanceState.Sent)
+  }
+
+  private fun ProcessNodeInstance.assertPending() = apply {
+    assertEquals(this.state, NodeInstanceState.Pending)
+  }
+
+  private fun ProcessNodeInstance.assertAcknowledged() = apply {
+    assertEquals(this.state, NodeInstanceState.Acknowledged)
+  }
+
+  private fun ProcessNodeInstance.assertComplete() = apply {
+    assertEquals(this.state, NodeInstanceState.Complete)
+  }
+
   @BeforeMethod
   fun beforeTest() {
     mStubMessageService.clear()
@@ -135,20 +235,6 @@ class TestProcessEngine {
         cacheModels<Any>(MemProcessModelMap(), 1),
         cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
         cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
-  }
-
-  @Throws(XmlException::class)
-  private fun serializeToXmlCharArray(obj: Any): CharArray {
-    return CharArrayWriter().apply {
-      val caw = this
-      if (obj is XmlSerializable) {
-        XmlStreaming.newWriter(this).use { writer ->
-          obj.serialize(writer)
-        }
-      } else {
-        JAXB.marshal(obj, caw)
-      }
-    }.toCharArray()
   }
 
   @Test
@@ -181,37 +267,33 @@ class TestProcessEngine {
 
     }
 
-    var processInstance = mProcessEngine.getProcessInstance(transaction, instanceHandle, mPrincipal)
-    assertEquals(processInstance.state, State.STARTED)
+    run {
+      val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
 
-    assertEquals(processInstance.active.size, 1)
-    assertEquals(processInstance.finished.size, 1)
-    val hfinished = processInstance.finished.iterator().next()
-    val finished = mProcessEngine.getNodeInstance(transaction, hfinished, mPrincipal)
-    assertTrue(finished!!.node is ExecutableStartNode)
-    assertEquals(finished.node.id, "start")
+      assertEquals(processInstance.active.size, 1)
 
-    assertEquals(processInstance.completedEndnodes.size, 0)
+      processInstance.child(transaction, "start").assertComplete().let { start ->
+        processInstance.assertFinished(start)
+        assertTrue(start.node is ExecutableStartNode)
+      }
 
-    val taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal)
-    assertEquals(taskNode!!.state, NodeInstanceState.Pending) // Our messenger does not do delivery notification
+      processInstance.assertCompleted() // no completions
 
-    assertEquals(mProcessEngine.finishTask(transaction, taskNode.handle, null, mPrincipal).state, NodeInstanceState.Complete)
-    processInstance = mProcessEngine.getProcessInstance(transaction, instanceHandle, mPrincipal)
-    assertEquals(processInstance.active.size, 0)
-    assertEquals(processInstance.finished.size, 2)
-    assertEquals(processInstance.completedEndnodes.size, 1)
+      val taskNode = mStubMessageService.messageNode(transaction, 0)
+      taskNode.assertSent()
+      processInstance.assertActive(taskNode)
+      processInstance.finishTask(transaction, mStubMessageService, taskNode, null).assertComplete()
+    }
 
-    assertEquals(processInstance.state, State.FINISHED)
-  }
+    run {
+      val processInstance = transaction.getInstance(instanceHandle).assertIsFinished()
+      val start = processInstance.child(transaction, "start")
+      val ac = processInstance.child(transaction, "ac2")
+      val end = processInstance.child(transaction, "end")
+      processInstance.assertActive()
+      processInstance.assertFinished(start, ac)
+      processInstance.assertCompleted(end)
 
-  private fun <R> testProcess(model: ExecutableProcessModel, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance<StubProcessTransaction>) -> R):R {
-    mProcessEngine.startTransaction().use { transaction ->
-
-      val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
-      val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
-
-      return body(transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
     }
   }
 
@@ -220,48 +302,55 @@ class TestProcessEngine {
     testProcess(simpleSplitModel) { transaction, model, instanceHandle ->
       run {
         val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
-        val start = instance.getChild(transaction, "start")?.withPermission() ?: throw AssertionError("Start node not instantiated")
+        val start = instance.child(transaction, "start")
         run {
-          val split = instance.getChild(transaction, "split1")?.withPermission() ?: throw AssertionError("Split node not instantiated")
-          val ac1 = instance.getChild(transaction, "ac1")?.withPermission() ?: throw AssertionError("Activity 1 not instantiated")
-          val ac2 = instance.getChild(transaction, "ac2")?.withPermission() ?: throw AssertionError("Activity 2 not instantiated")
+          val split = instance.child(transaction, "split1").assertStarted()
+          val ac1 = instance.child(transaction, "ac1").assertPending()
+          val ac2 = instance.child(transaction, "ac2").assertPending()
 
-          assertEquals(start.state, NodeInstanceState.Complete)
-          assertEquals(instance.finished.toList(), listOf(start, split))
-          assertEquals(instance.active.sortedBy { transaction.readableEngineData.nodeInstance(it)?.withPermission()?.node?.id }, listOf(ac1, ac2))
-
-          assertEquals(split.state, NodeInstanceState.Started)
-          assertTrue(split.handle in instance.active)
+          instance.assertFinished(start)
+          instance.assertActive(split, ac1, ac2)
 
           run {
-            val messageSources = mStubMessageService._messages.map { transaction.readableEngineData.nodeInstance(it.source).withPermission() }.sortedBy { it.node.id }
+            val messageSources = mStubMessageService._messages
+                .map { transaction.readableEngineData.nodeInstance(it.source).withPermission() }
+                .sortedBy { it.node.id }
             assertEquals(messageSources, listOf(ac1, ac2))
+            mStubMessageService._messages.forEach { msg ->
+              msg.source
+            }
           }
 
-          assertEquals(ac1.finishTask(transaction, null).state, NodeInstanceState.Complete)
+          instance.finishTask(transaction, mStubMessageService, ac1, null).assertComplete()
         }
         run {
-          val split = instance.getChild(transaction, "split1")?.withPermission() ?: throw AssertionError("Split node not instantiated")
-          val ac1 = instance.getChild(transaction, "ac1")?.withPermission() ?: throw AssertionError("Activity 1 not instantiated")
-          val ac2 = instance.getChild(transaction, "ac2")?.withPermission() ?: throw AssertionError("Activity 2 not instantiated")
-          val join = (instance.getChild(transaction, "join1")?.withPermission() ?: throw AssertionError("Join node not instantiated")) as JoinInstance
-          assertEquals(instance.active.map { transaction.readableEngineData.nodeInstance(it).withPermission() }.sortedBy { it.node.id }, listOf(ac2, join, split))
-          assertEquals(instance.finished.map { transaction.readableEngineData.nodeInstance(it).withPermission() }.sortedBy { it.node.id }, listOf(ac1, start))
-          assertEquals(join.state, NodeInstanceState.Started)
-          assertEquals(ac2.state, NodeInstanceState.Acknowledged)
+          val split = instance.child(transaction, "split1").assertStarted()
+          val ac1 = instance.child(transaction, "ac1").assertComplete()
+          val ac2 = instance.child(transaction, "ac2").assertAcknowledged()
+          val join = instance.child(transaction, "join1").assertStarted()
+          instance.assertActive(ac2, join, split)
+          instance.assertFinished(ac1, start)
 
-          assertEquals(ac2.finishTask(transaction, null).state, NodeInstanceState.Complete)
+          ac2.startTask(transaction, mStubMessageService)
+        }
+        run {
+          val split = instance.child(transaction, "split1").assertComplete()
+          val ac1 = instance.child(transaction, "ac1").assertComplete()
+          val ac2 = instance.child(transaction, "ac2").assertStarted()
+          val join = instance.child(transaction, "join1").assertStarted()
+
+          instance.finishTask(transaction, mStubMessageService, ac2, null).assertComplete()
         }
 
         run {
-          val join = (instance.getChild(transaction, "join1")?.withPermission() ?: throw AssertionError("Join node not instantiated")) as JoinInstance
-          val ac2 = instance.getChild(transaction, "ac2")?.withPermission() ?: throw AssertionError("Activity 2 not instantiated")
-          val end = instance.getChild(transaction, "end")?.withPermission() ?: throw AssertionError("End node not instantiated")
+          val split = instance.child(transaction, "split1").assertComplete()
+          val ac1 = instance.child(transaction, "ac1").assertComplete()
+          val ac2 = instance.child(transaction, "ac2").assertComplete()
+          val join = instance.child(transaction, "join1").assertComplete()
+          val end = instance.child(transaction, "end").assertComplete()
+
           assertEquals(instance.active.size, 0)
-          assertEquals(join.state, NodeInstanceState.Complete)
-          assertEquals(ac2.state, NodeInstanceState.Complete)
-          assertEquals(end.state, NodeInstanceState.Complete)
-
+          instance.assertFinished(start, split, ac1, ac2, join, end)
         }
 
       }
@@ -271,47 +360,6 @@ class TestProcessEngine {
       }
     }
 
-  }
-
-  private val simpleSplitModel: ExecutableProcessModel get() {
-    return ExecutableProcessModel.build {
-      owner = mPrincipal
-      val start = startNode {
-        id = "start"
-      }
-      val split1 = split {
-        predecessor = start.identifier
-        id = "split1"
-        min = 2
-        max = 2
-      }
-      val ac1 = activity {
-        predecessor = split1
-        id = "ac1"
-        message = XmlMessage()
-        result {
-          name = "ac1result"
-          content = "ac1content".toCharArray()
-        }
-      }
-      val ac2 = activity {
-        predecessor = split1
-        id = "ac2"
-        message = XmlMessage()
-        result {
-          name = "ac2result"
-          content = "ac2content".toCharArray()
-        }
-      }
-      val join = join {
-        predecessors(ac1, ac2)
-        id = "join1"
-      }
-      endNode {
-        id = "end"
-        predecessor = join
-      }
-    }
   }
 
   @Test
@@ -356,6 +404,47 @@ class TestProcessEngine {
     assertEquals(define.name, "mylabel")
     assertEquals(define.content.contentString, "Hi Paul. Welcome!")
 
+  }
+
+  private val simpleSplitModel: ExecutableProcessModel get() {
+    return ExecutableProcessModel.build {
+      owner = mPrincipal
+      val start = startNode {
+        id = "start"
+      }
+      val split1 = split {
+        predecessor = start.identifier
+        id = "split1"
+        min = 2
+        max = 2
+      }
+      val ac1 = activity {
+        predecessor = split1
+        id = "ac1"
+        message = XmlMessage()
+        result {
+          name = "ac1result"
+          content = "ac1content".toCharArray()
+        }
+      }
+      val ac2 = activity {
+        predecessor = split1
+        id = "ac2"
+        message = XmlMessage()
+        result {
+          name = "ac2result"
+          content = "ac2content".toCharArray()
+        }
+      }
+      val join = join {
+        predecessors(ac1, ac2)
+        id = "join1"
+      }
+      endNode {
+        id = "end"
+        predecessor = join
+      }
+    }
   }
 
   companion object {
