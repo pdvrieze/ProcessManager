@@ -120,7 +120,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
   val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     get() {
-      return (active.asSequence() + finished.asSequence() + completedEndnodes.asSequence())
+      return (active.asSequence() + finished.asSequence() + pendingJoins.values.asSequence() + completedEndnodes.asSequence())
     }
 
   val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
@@ -305,21 +305,23 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
   @Synchronized @Throws(SQLException::class)
   internal fun getJoinInstance(transaction: ProcessTransaction, join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
-    synchronized(pendingJoins) {
-      val nodeInstances = transaction.writableEngineData.nodeInstances
+    val nodeInstances = transaction.writableEngineData.nodeInstances
 
-      val joinInstance = pendingJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance }
-      if (joinInstance==null) {
-        val joinHandle= nodeInstances.put(JoinInstance(join, listOf(predecessor), this.handle, owner))
+    val joinInstance = pendingJoins[join]?.let {nodeInstances[it]?.withPermission() as JoinInstance }
+    if (joinInstance==null) {
+      val joinHandle = nodeInstances.put(JoinInstance(join, listOf(predecessor), this.handle, owner))
+      update(transaction) {
+        children.add(Handles.handle(joinHandle))
 
         pendingJoins[join] = Handles.handle(joinHandle.handleValue)
-        return nodeInstances[joinHandle] as JoinInstance
-      } else {
-        return joinInstance.updateJoin(transaction) {
-          predecessors.add(predecessor)
-        }
+      }
+      return nodeInstances[joinHandle] as JoinInstance
+    } else {
+      return joinInstance.updateJoin(transaction) {
+        predecessors.add(predecessor)
       }
     }
+
   }
 
   @Synchronized fun removeJoin(join: JoinInstance) {

@@ -134,7 +134,7 @@ class TestProcessEngine {
     }.toCharArray()
   }
 
-  private fun <R> testProcess(model: ExecutableProcessModel, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
+  private inline fun <R> testProcess(model: ExecutableProcessModel, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
     mProcessEngine.startTransaction().use { transaction ->
 
       val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
@@ -170,7 +170,13 @@ class TestProcessEngine {
   }
 
   private fun ProcessInstance.assertFinished(vararg handles: ProcessNodeInstance) = apply {
-    assertEquals(ArrayList(sortedFinished), handles.asSequence().map{ it.handle }.sortedBy { it.handleValue }.toList())
+    val actual = ArrayList(sortedFinished)
+    val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
+    try {
+      assertEquals(actual, expected)
+    } catch (e: AssertionError) {
+      throw AssertionError("Expected finished list $expected, but found $actual").initCause(e)
+    }
   }
 
   private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<ProcessNodeInstance>) = apply {
@@ -178,7 +184,13 @@ class TestProcessEngine {
   }
 
   private fun ProcessInstance.assertActive(vararg handles: ProcessNodeInstance) = apply {
-    assertEquals(ArrayList(sortedActive), handles.asSequence().map{ it.handle }.sortedBy { it.handleValue }.toList())
+    val actual = ArrayList(sortedActive)
+    val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
+    try {
+      assertEquals(actual, expected)
+    } catch (e:AssertionError) {
+      throw AssertionError("Expected active list $expected, but found $actual").initCause(e)
+    }
   }
 
   private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<ProcessNodeInstance>) = apply {
@@ -301,12 +313,12 @@ class TestProcessEngine {
   fun testSplitJoin1() {
     testProcess(simpleSplitModel) { transaction, model, instanceHandle ->
       run {
-        val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
-        val start = instance.child(transaction, "start")
         run {
+          val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+          val start = instance.child(transaction, "start")
           val split = instance.child(transaction, "split1").assertStarted()
-          val ac1 = instance.child(transaction, "ac1").assertPending()
-          val ac2 = instance.child(transaction, "ac2").assertPending()
+          val ac1 = instance.child(transaction, "ac1").assertSent()
+          val ac2 = instance.child(transaction, "ac2").assertSent()
 
           instance.assertFinished(start)
           instance.assertActive(split, ac1, ac2)
@@ -324,25 +336,34 @@ class TestProcessEngine {
           instance.finishTask(transaction, mStubMessageService, ac1, null).assertComplete()
         }
         run {
+          val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+          val start = instance.child(transaction, "start")
           val split = instance.child(transaction, "split1").assertStarted()
           val ac1 = instance.child(transaction, "ac1").assertComplete()
-          val ac2 = instance.child(transaction, "ac2").assertAcknowledged()
-          val join = instance.child(transaction, "join1").assertStarted()
-          instance.assertActive(ac2, join, split)
+          val ac2 = instance.child(transaction, "ac2").assertSent()
+          val join = instance.child(transaction, "join1").assertPending()
           instance.assertFinished(ac1, start)
+          instance.assertActive(ac2, split, join)
+          // check join is in the pending set
 
           ac2.startTask(transaction, mStubMessageService)
         }
         run {
+          val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+          val start = instance.child(transaction, "start")
           val split = instance.child(transaction, "split1").assertComplete()
           val ac1 = instance.child(transaction, "ac1").assertComplete()
           val ac2 = instance.child(transaction, "ac2").assertStarted()
-          val join = instance.child(transaction, "join1").assertStarted()
+          val join = instance.child(transaction, "join1").assertPending()
+          instance.assertFinished(ac1, start)
+          instance.assertActive(ac2, split, join)
 
           instance.finishTask(transaction, mStubMessageService, ac2, null).assertComplete()
         }
 
         run {
+          val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+          val start = instance.child(transaction, "start")
           val split = instance.child(transaction, "split1").assertComplete()
           val ac1 = instance.child(transaction, "ac1").assertComplete()
           val ac2 = instance.child(transaction, "ac2").assertComplete()

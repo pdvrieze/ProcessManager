@@ -145,6 +145,9 @@ class SplitInstance : ProcessNodeInstance {
         var successorInstance = successor.createOrReuseInstance(transaction, processInstance, this.handle)
         if (successorInstance.state==NodeInstanceState.Pending && successorInstance.condition(transaction)) { // only if it can be executed, otherwise just drop it.
           val nodeInstanceHandle = transaction.writableEngineData.nodeInstances.put(successorInstance)
+          // Load the updated version with updated handle
+          successorInstance = transaction.readableEngineData.nodeInstance(nodeInstanceHandle).withPermission()
+
           processInstance = processInstance.update(transaction) {
             children.add(Handles.handle(nodeInstanceHandle))
           }
