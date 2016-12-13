@@ -17,10 +17,8 @@
 package uk.ac.bournemouth.darwin.sharedhtml
 
 import kotlinx.html.*
-import kotlinx.html.attributes.enumEncode
 import kotlinx.html.stream.appendHTML
 import org.w3c.dom.events.Event
-
 
 const val FIELD_USERNAME = "username"
 const val FIELD_PASSWORD = "password"
@@ -85,7 +83,7 @@ inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsu
 
 
 /** Just inline for now, as this is just a forwarder. */
-fun <O : java.lang.Appendable> O.appendXML(prettyPrint: Boolean = true): TagConsumer<O>
+fun <O : Appendable> O.appendXML(prettyPrint: Boolean = true): TagConsumer<O>
     = this.appendHTML(prettyPrint)
 
 class PartialHTML(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) : HTMLTag("root", consumer, initialAttributes, null, false, false) {

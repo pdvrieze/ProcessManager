@@ -33,7 +33,6 @@ import uk.ac.bournemouth.darwin.LoginDialog
 import uk.ac.bournemouth.darwin.accountsLoc
 import uk.ac.bournemouth.darwin.sharedhtml.*
 import uk.ac.bournemouth.darwin.util.*
-import java.io.Closeable
 import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.dom.*
