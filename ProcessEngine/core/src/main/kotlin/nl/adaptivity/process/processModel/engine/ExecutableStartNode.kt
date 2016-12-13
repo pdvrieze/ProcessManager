@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
+import net.devrieze.util.Handles
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstance
@@ -65,6 +66,10 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
   constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
 
   override fun builder() = Builder(node=this)
+
+  fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance): ProcessNodeInstance {
+    return ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
+  }
 
   override fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
     return ProcessNodeInstance(this, predecessor, processInstance)

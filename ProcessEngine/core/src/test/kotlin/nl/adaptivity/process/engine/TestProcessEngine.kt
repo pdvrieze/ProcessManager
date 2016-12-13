@@ -205,14 +205,19 @@ class TestProcessEngine {
     assertEquals(processInstance.state, State.FINISHED)
   }
 
+  private fun <R> testProcess(model: ExecutableProcessModel, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance<StubProcessTransaction>) -> R):R {
+    mProcessEngine.startTransaction().use { transaction ->
+
+      val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
+      val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
+
+      return body(transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+    }
+  }
+
   @Test
   fun testSplitJoin1() {
-    val model = simpleSplitModel
-
-    mProcessEngine.startTransaction().use { transaction ->
-      val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
-
-      val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance2", UUID.randomUUID(), null)
+    testProcess(simpleSplitModel) { transaction, model, instanceHandle ->
       run {
         val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
         val start = instance.getChild(transaction, "start")?.withPermission() ?: throw AssertionError("Start node not instantiated")
@@ -223,6 +228,7 @@ class TestProcessEngine {
 
           assertEquals(start.state, NodeInstanceState.Complete)
           assertEquals(instance.finished.toList(), listOf(start, split))
+          assertEquals(instance.active.sortedBy { transaction.readableEngineData.nodeInstance(it)?.withPermission()?.node?.id }, listOf(ac1, ac2))
 
           assertEquals(split.state, NodeInstanceState.Started)
           assertTrue(split.handle in instance.active)
@@ -263,7 +269,6 @@ class TestProcessEngine {
         val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
         assertEquals(instance.state, State.FINISHED)
       }
-
     }
 
   }
@@ -355,7 +360,7 @@ class TestProcessEngine {
 
   companion object {
 
-    private val PNI_SET_HANDLE = fun(pni: SecureObject<ProcessNodeInstance>, handle: Long?): SecureObject<ProcessNodeInstance> {
+    private val PNI_SET_HANDLE = fun(pni: SecureObject<out ProcessNodeInstance>, handle: Long?): SecureObject<out ProcessNodeInstance> {
       if (pni.withPermission().getHandleValue() == handle) {
         return pni
       }

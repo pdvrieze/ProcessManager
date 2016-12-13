@@ -89,6 +89,7 @@ class JoinInstance : ProcessNodeInstance {
         : super(transaction, node, processInstance, state) {
   }
 
+  @JvmName("updateJoin")
   fun updateJoin(transaction: ProcessTransaction, body: Builder.() -> Unit):JoinInstance {
     val origHandle = handle
     return JoinInstance(ExtBuilder(this).apply { body() }).apply {

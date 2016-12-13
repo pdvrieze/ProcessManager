@@ -188,11 +188,16 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       }
 
     }
+    // Only mark nodes as finished if their state is final
     nodes.forEach { instance ->
-      instance.directPredecessors.forEach { pred ->
-        if (threads.remove(pred)) {
-          finishedNodes.add(pred)
-        }
+      instance.directPredecessors.asSequence()
+          .map { data.nodeInstance(it).withPermission() }
+          .filter { it.state.isFinal }
+          .forEach { pred ->
+            val handle = pred.handle
+            if (threads.remove(handle)) {
+              finishedNodes.add(handle)
+            }
       }
     }
 
@@ -245,7 +250,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
     return update(transaction) {
       processModel.startNodes.forEach { node ->
-        val nodeInstance = ProcessNodeInstance(node, Handles.getInvalid<ProcessNodeInstance>(), this@ProcessInstance)
+        val nodeInstance = node.createOrReuseInstance(transaction, this@ProcessInstance)
         val handle = transaction.writableEngineData.nodeInstances.put(nodeInstance)
         children.add(Handles.handle(handle)) // function needed to make the handle comparable
       }
@@ -457,7 +462,9 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
     // Commit the registration of the follow up nodes before starting them.
     transaction.commit()
-    startedTasks.forEach { task -> task.provideTask(transaction, messageService) }
+    for(task in startedTasks) {
+      task.provideTask(transaction, messageService)
+    }
 
     joinsToEvaluate.forEach { join ->
       join.startTask(transaction, messageService)

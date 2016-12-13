@@ -87,12 +87,26 @@ class SplitInstance : ProcessNodeInstance {
   constructor(builder: SplitInstance.Builder): this(builder.node, builder.predecessor?: throw NullPointerException("Missing predecessor node instance"), builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results)
 
   override fun update(transaction: ProcessTransaction, body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): SplitInstance {
-    return ExtBuilder(this).apply(body).build()
+    val origHandle = handle
+    return ExtBuilder(this).apply(body).build().apply {
+      if (origHandle.valid)
+        if (handle.valid)
+          transaction.writableEngineData.nodeInstances[handle] = this
+    }
+  }
+
+  override fun builder(): ProcessNodeInstance.Builder<out ExecutableProcessNode> {
+    return ExtBuilder(this)
   }
 
   @JvmName("updateSplit")
   fun update(transaction: ProcessTransaction, body: SplitInstance.Builder.() -> Unit): ProcessNodeInstance {
-    return ExtBuilder(this).apply(body).build()
+    val origHandle = handle
+    return ExtBuilder(this).apply(body).build().apply {
+      if (origHandle.valid)
+        if (handle.valid)
+          transaction.writableEngineData.nodeInstances[handle] = this
+    }
   }
 
   private fun successorInstances(transaction: ProcessTransaction): Sequence<ProcessNodeInstance> {

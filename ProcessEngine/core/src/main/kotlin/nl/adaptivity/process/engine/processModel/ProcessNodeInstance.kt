@@ -23,6 +23,8 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.Join
+import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
@@ -133,6 +135,9 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   init {
+    if (this.javaClass== ProcessNodeInstance::class.java && node is Split<*, *>) {
+      throw IllegalArgumentException("ProcessNodeInstances cannot be created for joins. Use SplitInstance")
+    }
     if (node is StartNode<*, *>) {
       if (predecessors.any { it.valid }) throw IllegalArgumentException("Start nodes don't have (valid) predecessors.")
     } else {
@@ -154,7 +159,10 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
   override fun withPermission() = this
 
-  open fun builder(): Builder<out ExecutableProcessNode> = ExtBuilder(this)
+  open fun builder(): Builder<out ExecutableProcessNode> {
+    assert(this.javaClass == ProcessNodeInstance::class.java) { "Builders must be overridden" }
+    return ExtBuilder(this)
+  }
 
   /** Update the node. This will store the update based on the transaction. It will return the new object. The old object
    *  may be invalid afterwards.
