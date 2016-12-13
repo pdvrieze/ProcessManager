@@ -68,7 +68,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
       this.layoutAlgorithm = (base as? ClientProcessModel<T,M>)?.layoutAlgorithm ?: LayoutAlgorithm<T>()
     }
 
-    abstract override fun build(): ClientProcessModel<T, M>
+    abstract override fun build(pedantic: Boolean): ProcessModelBase<T, M>
   }
 
   var topPadding = 5.0

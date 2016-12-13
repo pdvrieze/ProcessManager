@@ -87,7 +87,7 @@ public interface IXmlDefineType extends XmlSerializable {
    * @param namespaceContext
    * @param value allowed object is {@link String }
    */
-  void setPath(final Iterable<Namespace> namespaceContext, String value);
+  void setPath(final Iterable<? extends Namespace> namespaceContext, @Nullable String value);
 
   /**
    * Get the namespace context that defines the "missing" namespaces in the content.

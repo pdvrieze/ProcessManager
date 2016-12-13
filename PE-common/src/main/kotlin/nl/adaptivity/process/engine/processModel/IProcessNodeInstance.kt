@@ -46,49 +46,53 @@ interface IProcessNodeInstance<V : IProcessNodeInstance<V>> : ReadableHandleAwar
    * @author Paul de Vrieze
    */
   @XmlRootElement(name = "taskState", namespace = "http://adaptivity.nl/userMessageHandler")
-  enum class NodeInstanceState private constructor(val isFinal: Boolean) {
+  enum class NodeInstanceState private constructor(val isFinal: Boolean, val isActive:Boolean, val isCommitted:Boolean) {
     /**
      * Initial task state. The instance has been created, but has not been successfully sent to a receiver.
      */
-    Pending(false),
+    Pending(false, true, false),
+    /**
+     * The task is skipped due to split conditions
+     */
+    Skipped(true, false, false),
     /**
      * Signifies that the task has failed to be created, a new attempt should be made.
      */
-    FailRetry(false),
+    FailRetry(false, false, false),
     /**
      * Indicates that the task has been communicated to a
      * handler, but receipt has not been acknowledged.
      */
-    Sent(false),
+    Sent(false, true, false),
     /**
      * State acknowledging reception of the task. Note that this is generally
      * only used by process aware services. It signifies that a task has been
      * received, but processing has not started yet.
      */
-    Acknowledged(false),
+    Acknowledged(false, true, false),
     /**
      * Some tasks allow for alternatives (different users). Taken signifies that
      * the task has been claimed and others can not claim it anymore (unless
      * released again).
      */
-    Taken(false),
+    Taken(false, true, true),
     /**
      * Signifies that work on the task has actually started.
      */
-    Started(false),
+    Started(false, true, true),
     /**
      * Signifies that the task is complete. This generally is the end state of a
      * task.
      */
-    Complete(true),
+    Complete(true, false, true),
     /**
      * Signifies that the task has failed for some reason.
      */
-    Failed(true),
+    Failed(true, false, true),
     /**
      * Signifies that the task has been cancelled (but not through a failure).
      */
-    Cancelled(true);
+    Cancelled(true, false, false);
 
 
     companion object {
@@ -104,6 +108,7 @@ interface IProcessNodeInstance<V : IProcessNodeInstance<V>> : ReadableHandleAwar
         return null
       }
     }
+
   }
 
   /**

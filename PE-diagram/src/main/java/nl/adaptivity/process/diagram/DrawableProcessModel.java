@@ -111,7 +111,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @NotNull
     @Override
-    public DrawableProcessModel build() {
+    public DrawableProcessModel build(final boolean pedantic) {
       return new DrawableProcessModel(this);
     }
   }

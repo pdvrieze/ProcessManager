@@ -19,13 +19,16 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
+import net.devrieze.util.security.withPermission
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder
+import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
@@ -56,6 +59,7 @@ import java.util.UUID
 import java.nio.charset.Charset.defaultCharset
 import org.custommonkey.xmlunit.XMLAssert.assertXMLEqual
 import org.testng.Assert.*
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.pnipredecessors.predecessor
 
 
 /**
@@ -156,12 +160,12 @@ class TestProcessEngine {
 
     val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
 
-    assertEquals(mStubMessageService.mMessages.size, 1)
+    assertEquals(mStubMessageService._messages.size, 1)
     assertEquals(mStubMessageService.getMessageNode(0).handleValue, 1L)
 
     val expected = getXml("testModel1_task1.xml")
 
-    val receivedChars = serializeToXmlCharArray(mStubMessageService.mMessages[0])
+    val receivedChars = serializeToXmlCharArray(mStubMessageService._messages[0].base)
 
     XMLUnit.setIgnoreWhitespace(true)
     try {
@@ -202,8 +206,107 @@ class TestProcessEngine {
   }
 
   @Test
-  fun testSplitJoin() {
+  fun testSplitJoin1() {
+    val model = simpleSplitModel
 
+    mProcessEngine.startTransaction().use { transaction ->
+      val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
+
+      val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance2", UUID.randomUUID(), null)
+      run {
+        val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+        val start = instance.getChild(transaction, "start")?.withPermission() ?: throw AssertionError("Start node not instantiated")
+        run {
+          val split = instance.getChild(transaction, "split1")?.withPermission() ?: throw AssertionError("Split node not instantiated")
+          val ac1 = instance.getChild(transaction, "ac1")?.withPermission() ?: throw AssertionError("Activity 1 not instantiated")
+          val ac2 = instance.getChild(transaction, "ac2")?.withPermission() ?: throw AssertionError("Activity 2 not instantiated")
+
+          assertEquals(start.state, NodeInstanceState.Complete)
+          assertEquals(instance.finished.toList(), listOf(start, split))
+
+          assertEquals(split.state, NodeInstanceState.Started)
+          assertTrue(split.handle in instance.active)
+
+          run {
+            val messageSources = mStubMessageService._messages.map { transaction.readableEngineData.nodeInstance(it.source).withPermission() }.sortedBy { it.node.id }
+            assertEquals(messageSources, listOf(ac1, ac2))
+          }
+
+          assertEquals(ac1.finishTask(transaction, null).state, NodeInstanceState.Complete)
+        }
+        run {
+          val split = instance.getChild(transaction, "split1")?.withPermission() ?: throw AssertionError("Split node not instantiated")
+          val ac1 = instance.getChild(transaction, "ac1")?.withPermission() ?: throw AssertionError("Activity 1 not instantiated")
+          val ac2 = instance.getChild(transaction, "ac2")?.withPermission() ?: throw AssertionError("Activity 2 not instantiated")
+          val join = (instance.getChild(transaction, "join1")?.withPermission() ?: throw AssertionError("Join node not instantiated")) as JoinInstance
+          assertEquals(instance.active.map { transaction.readableEngineData.nodeInstance(it).withPermission() }.sortedBy { it.node.id }, listOf(ac2, join, split))
+          assertEquals(instance.finished.map { transaction.readableEngineData.nodeInstance(it).withPermission() }.sortedBy { it.node.id }, listOf(ac1, start))
+          assertEquals(join.state, NodeInstanceState.Started)
+          assertEquals(ac2.state, NodeInstanceState.Acknowledged)
+
+          assertEquals(ac2.finishTask(transaction, null).state, NodeInstanceState.Complete)
+        }
+
+        run {
+          val join = (instance.getChild(transaction, "join1")?.withPermission() ?: throw AssertionError("Join node not instantiated")) as JoinInstance
+          val ac2 = instance.getChild(transaction, "ac2")?.withPermission() ?: throw AssertionError("Activity 2 not instantiated")
+          val end = instance.getChild(transaction, "end")?.withPermission() ?: throw AssertionError("End node not instantiated")
+          assertEquals(instance.active.size, 0)
+          assertEquals(join.state, NodeInstanceState.Complete)
+          assertEquals(ac2.state, NodeInstanceState.Complete)
+          assertEquals(end.state, NodeInstanceState.Complete)
+
+        }
+
+      }
+      run {
+        val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+        assertEquals(instance.state, State.FINISHED)
+      }
+
+    }
+
+  }
+
+  private val simpleSplitModel: ExecutableProcessModel get() {
+    return ExecutableProcessModel.build {
+      owner = mPrincipal
+      val start = startNode {
+        id = "start"
+      }
+      val split1 = split {
+        predecessor = start.identifier
+        id = "split1"
+        min = 2
+        max = 2
+      }
+      val ac1 = activity {
+        predecessor = split1
+        id = "ac1"
+        message = XmlMessage()
+        result {
+          name = "ac1result"
+          content = "ac1content".toCharArray()
+        }
+      }
+      val ac2 = activity {
+        predecessor = split1
+        id = "ac2"
+        message = XmlMessage()
+        result {
+          name = "ac2result"
+          content = "ac2content".toCharArray()
+        }
+      }
+      val join = join {
+        predecessors(ac1, ac2)
+        id = "join1"
+      }
+      endNode {
+        id = "end"
+        predecessor = join
+      }
+    }
   }
 
   @Test
@@ -215,11 +318,11 @@ class TestProcessEngine {
 
     val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
 
-    assertEquals(mStubMessageService.mMessages.size, 1)
+    assertEquals(mStubMessageService._messages.size, 1)
 
     XMLUnit.setIgnoreWhitespace(true)
     assertXMLEqual(InputStreamReader(getXml("testModel2_task1.xml")!!), CharArrayReader(serializeToXmlCharArray(mStubMessageService
-        .mMessages[0])))
+        ._messages[0].base)))
     var ac1: ProcessNodeInstance = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
 
@@ -236,7 +339,7 @@ class TestProcessEngine {
     assertEquals(result2.name, "user")
     assertXMLEqual("<user><fullname>Paul</fullname></user>", result2.content.contentString)
 
-    assertEquals(mStubMessageService.mMessages.size, 1)
+    assertEquals(mStubMessageService._messages.size, 1)
     assertEquals(mStubMessageService.getMessageNode(0).handleValue, 2L) //We should have a new message with the new task (with the data)
     val ac2 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal)
 

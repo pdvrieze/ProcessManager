@@ -33,20 +33,20 @@ import java.util.*
  */
 class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, T, ProcessNodeInstance> {
 
-  var mMessages: MutableList<IXmlMessage> = ArrayList()
-  private val mMessageNodes = ArrayList<Handle<out SecureObject<ProcessNodeInstance>>>()
+  class ExtMessage(val base: IXmlMessage, val source: Handle<out SecureObject<ProcessNodeInstance>>) : IXmlMessage by base
+
+  var _messages = mutableListOf<ExtMessage>()
 
   override fun createMessage(message: IXmlMessage): IXmlMessage {
     return message
   }
 
   fun clear() {
-    mMessageNodes.clear()
-    mMessages.clear()
+    _messages.clear()
   }
 
   fun getMessageNode(i: Int): Handle<out SecureObject<ProcessNodeInstance>> {
-    return mMessageNodes[i]
+    return _messages[i].source
   }
 
   override fun getLocalEndpoint(): EndpointDescriptor {
@@ -74,8 +74,7 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
                                     instantiatedContent)
 
     processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
-    mMessages.add(processedMessage)
-    mMessageNodes.add(instance.handle)
+    _messages.add(ExtMessage(processedMessage, instance.handle))
     return true
   }
 }

@@ -29,6 +29,7 @@ import nl.adaptivity.xml.XmlSerializable
  */
 interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positioned, Identifiable, XmlSerializable {
 
+  @ProcessModelDSL
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : XmlDeserializable {
     var predecessors: MutableSet<Identified>
     var successors: MutableSet<Identified>
@@ -40,7 +41,17 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
     var results: MutableCollection<IXmlResultType>
     val idBase: String
 
+    fun predecessors(vararg values:Identifiable) {
+      values.forEach {
+        predecessors.add(it.identifier ?: throw NullPointerException("Missing identifier for predecessor ${it}"))
+      }
+    }
+
     fun build(newOwner: M): ProcessNode<T,M>
+
+    fun result(builder: XmlResultType.Builder.() -> Unit) {
+      results.add(XmlResultType.Builder().apply(builder).build())
+    }
   }
 
   interface Visitor<R> {

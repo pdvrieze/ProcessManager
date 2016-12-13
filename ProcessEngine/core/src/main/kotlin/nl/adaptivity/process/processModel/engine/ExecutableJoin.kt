@@ -16,9 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.JoinInstance
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Join
@@ -58,10 +63,13 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  constructor(orig: Join<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
+  override val ownerModel: ExecutableProcessModel
+    get() = super.ownerModel!!
+
+  constructor(orig: Join<*, *>, newOwner: ExecutableProcessModel) : super(orig, newOwner)
 
   @Deprecated("Use the full constructor")
-  constructor(ownerModel: ExecutableProcessModel?, predecessors: Collection<Identified>, min: Int, max: Int)
+  constructor(ownerModel: ExecutableProcessModel, predecessors: Collection<Identified>, min: Int, max: Int)
         : super(ownerModel, predecessors, max, min)
 
   constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
@@ -69,6 +77,10 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
   constructor(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
 
   override fun builder() = Builder(this)
+
+  override fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): JoinInstance {
+    return processInstance.getJoinInstance(transaction, this, predecessor)
+  }
 
   @Deprecated("")
   internal fun getXmlPrececessors(): Set<Identifiable>? {

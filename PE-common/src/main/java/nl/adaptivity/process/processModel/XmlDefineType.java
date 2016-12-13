@@ -34,6 +34,7 @@ import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
@@ -41,6 +42,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import java.sql.SQLException;
+import java.util.*;
 
 
 @XmlDeserializer(XmlDefineType.Factory.class)
@@ -54,6 +56,41 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       return XmlDefineType.deserialize(reader);
     }
   }
+
+
+  @ProcessModelDSL
+  public static class Builder {
+
+    public @Nullable String name;
+    public @Nullable String path;
+    public @NotNull char[] content;
+    public @NotNull List<Namespace> nsContext;
+
+    Builder() {
+      name = null;
+      path = null;
+      content = new char[0];
+      nsContext = new ArrayList<>();
+    }
+
+    Builder(IXmlResultType orig) {
+      name = orig.getName();
+      path = orig.getPath();
+      content = Arrays.copyOf(orig.getContent(), orig.getContent().length);
+      nsContext = new ArrayList<>();
+      Iterable<Namespace> origContext = orig.getOriginalNSContext();
+      if (origContext!=null) {
+        for(Namespace ns:origContext) {
+          nsContext.add(ns);
+        }
+      }
+    }
+
+    public XmlResultType build() {
+      return new XmlResultType(name, path, content, nsContext);
+    }
+  }
+
 
   public static final String ELEMENTLOCALNAME = "define";
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
@@ -72,7 +109,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @NotNull
   public static XmlDefineType deserialize(@NotNull final XmlReader in) throws XmlException {
-    return deserialize(in, new XmlDefineType());
+    return XPathHolder.deserialize(in, new XmlDefineType());
   }
 
   @NotNull
@@ -150,5 +187,4 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     if (export instanceof XmlDefineType) { return (XmlDefineType) export; }
     return new XmlDefineType(export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.getContent(), export.getOriginalNSContext());
   }
-
 }

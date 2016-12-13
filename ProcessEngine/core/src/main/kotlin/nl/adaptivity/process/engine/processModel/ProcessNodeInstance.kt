@@ -77,6 +77,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     fun toXmlInstance(body: CompactFragment?):XmlProcessNodeInstance
     var failureCause: Throwable?
     fun  build(): ProcessNodeInstance
+    // Cancel the instance
   }
 
   abstract class AbstractBuilder<N:ExecutableProcessNode> : Builder<N> {
@@ -233,6 +234,8 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     return handle.handleValue
   }
 
+  fun condition(transaction: ProcessTransaction) = node.condition(transaction, this)
+
   @Throws(SQLException::class)
   override fun <U> provideTask(transaction: ProcessTransaction, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): ProcessNodeInstance {
     try {
@@ -276,6 +279,18 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
       state = NodeInstanceState.Complete
     })
+  }
+
+  fun cancelAndSkip(transaction: ProcessTransaction): ProcessNodeInstance {
+    return when (state) {
+      NodeInstanceState.Pending,
+      NodeInstanceState.FailRetry -> update(transaction) { state = NodeInstanceState.Skipped }
+      NodeInstanceState.Sent,
+      NodeInstanceState.Taken,
+      NodeInstanceState.Acknowledged ->
+      cancelTask(transaction).update(transaction) { state = NodeInstanceState.Skipped }
+      else -> this
+    }
   }
 
   @Throws(SQLException::class)

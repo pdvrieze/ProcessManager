@@ -16,16 +16,20 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
 
 
-@XmlDeserializer(ExecutableStartNode.Factory::class)
 class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
@@ -45,27 +49,26 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     }
   }
 
-  class Factory : XmlDeserializerFactory<ExecutableStartNode> {
-
-    @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): ExecutableStartNode {
-      return ExecutableStartNode.deserialize(null, reader)
-    }
-  }
-
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  constructor(orig: StartNode<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
+  override val ownerModel: ExecutableProcessModel
+    get() = super.ownerModel!!
 
-  constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
+  constructor(orig: StartNode<*, *>, newOwner: ExecutableProcessModel) : super(orig, newOwner)
 
-  constructor(ownerModel: ExecutableProcessModel?, imports: List<XmlResultType>) : super(ownerModel) {
+  constructor(ownerModel: ExecutableProcessModel) : super(ownerModel)
+
+  constructor(ownerModel: ExecutableProcessModel, imports: List<XmlResultType>) : super(ownerModel) {
     setResults(imports)
   }
 
   constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
 
   override fun builder() = Builder(node=this)
+
+  override fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+    return ProcessNodeInstance(this, predecessor, processInstance)
+  }
 
   override fun <T : ProcessTransaction> condition(transaction: T,
                                                   instance: IExecutableProcessNodeInstance<*>): Boolean {
@@ -92,7 +95,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
   companion object {
 
     @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableProcessModel?, reader: XmlReader): ExecutableStartNode {
+    fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableStartNode {
       return ExecutableStartNode(ownerModel).deserializeHelper<ExecutableStartNode>(reader)
     }
   }

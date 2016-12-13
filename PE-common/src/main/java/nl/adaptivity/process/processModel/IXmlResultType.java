@@ -56,7 +56,7 @@ public interface IXmlResultType extends XmlSerializable{
    * @param namespaceContext
    * @param value allowed object is {@link String }
    */
-  void setPath(final Iterable<Namespace> namespaceContext, String value);
+  void setPath(final Iterable<? extends Namespace> namespaceContext, String value);
 
   @NotNull
   ProcessData apply(Node payload);

@@ -68,6 +68,12 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     @NotNull
     @Override
     public XmlProcessModel build() {
+      return build(false);
+    }
+
+    @NotNull
+    @Override
+    public XmlProcessModel build(final boolean pedantic) {
       return new XmlProcessModel(this);
     }
 

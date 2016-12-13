@@ -29,9 +29,9 @@ interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
     override fun build(newOwner: M): EndNode<T, M>
 
-    var predecessor: Identified?
+    var predecessor: Identifiable?
       get() = predecessors.firstOrNull()
-      set(value) { predecessors.replaceByNotNull(value) }
+      set(value) { predecessors.replaceByNotNull(value?.identifier) }
 
   }
 

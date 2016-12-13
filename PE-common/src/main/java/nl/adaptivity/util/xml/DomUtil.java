@@ -257,7 +257,9 @@ public final class DomUtil {
 
   @NotNull
   public static CompactFragment nodeToFragment(final Node node) throws XmlException {
-    if (node instanceof Text) {
+    if (node == null) {
+      return new CompactFragment("");
+    } else if (node instanceof Text) {
       return new CompactFragment(((Text) node).getData());
     }
     return XmlReaderUtil.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));

@@ -33,12 +33,15 @@ import java.security.Principal
 import java.util.*
 import javax.xml.namespace.QName
 
+@DslMarker
+annotation class ProcessModelDSL
 
 /**
  * Created by pdvrieze on 21/11/15.
  */
 abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
 
+  @ProcessModelDSL
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
       var name: String? = null,
@@ -105,7 +108,9 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
       return true
     }
 
-    abstract fun build(): ProcessModelBase<T,M>
+    open fun build(): ProcessModelBase<T,M> = build(false)
+
+    abstract fun build(pedantic: Boolean): ProcessModelBase<T, M>
 
     override fun toString(): String {
       return "${this.javaClass.name.split('.').last()}(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
@@ -199,7 +204,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
               val newSplit = this
 
-              val splitId = Identifier(ensureId().id!!)
+              val splitId = Identifier(this@Builder.newId(this.idBase))
 
               nodeBuilder.successors.asSequence()
                   .map { nodeMap[it.id] }
@@ -226,24 +231,28 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     abstract protected fun activityBuilder(activity: Activity<*,*>): Activity.Builder<T,M>
     abstract protected fun endNodeBuilder(endNode: EndNode<*,*>): EndNode.Builder<T,M>
 
+    private fun <B: ProcessNode.Builder<T,M>>nodeHelper(builder:B, body: B.()->Unit): Identifiable {
+      return builder.apply(body).ensureId().apply { this@Builder.nodes.add(this) }.let { Identifier(it.id!!) }
+    }
+
     fun startNode(body: StartNode.Builder<T,M>.() -> Unit) : Identifiable {
-      return startNodeBuilder().ensureId().let { Identifier(it.id!!) }
+      return nodeHelper(startNodeBuilder(), body)
     }
 
     fun split(body: Split.Builder<T,M>.() -> Unit) : Identifiable {
-      return splitBuilder().ensureId().let { Identifier(it.id!!) }
+      return nodeHelper(splitBuilder(), body)
     }
 
     fun join(body: Join.Builder<T,M>.() -> Unit) : Identifiable {
-      return joinBuilder().ensureId().let { Identifier(it.id!!) }
+      return nodeHelper(joinBuilder(), body)
     }
 
     fun activity(body: Activity.Builder<T,M>.() -> Unit) : Identifiable {
-      return activityBuilder().ensureId().let { Identifier(it.id!!) }
+      return nodeHelper(activityBuilder(), body)
     }
 
     fun endNode(body: EndNode.Builder<T,M>.() -> Unit) : Identifiable {
-      return endNodeBuilder().ensureId().let { Identifier(it.id!!) }
+      return nodeHelper(endNodeBuilder(), body)
     }
 
     fun newId(base:String):String {
@@ -251,7 +260,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     }
 
     fun <B: ProcessNode.Builder<*,*>> B.ensureId(): B = apply {
-      if (id ==null) { id = newId(this.idBase) }
+      if (id ==null) { id = this@Builder.newId(this.idBase) }
     }
 
     companion object {

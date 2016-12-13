@@ -20,8 +20,6 @@ package nl.adaptivity.process.processModel
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
-
 import javax.xml.namespace.QName
 
 
@@ -32,9 +30,9 @@ interface Join<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M
 
     override fun build(newOwner: M): Join<T, M>
 
-    var successor: Identified?
+    var successor: Identifiable?
       get() = successors.firstOrNull()
-      set(value) { successors.replaceByNotNull(value) }
+      set(value) { successors.replaceByNotNull(value?.identifier) }
 
   }
 

@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -298,7 +299,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   }
 
   @Synchronized @Throws(SQLException::class)
-  private fun getJoinInstance(transaction: ProcessTransaction, join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
+  internal fun getJoinInstance(transaction: ProcessTransaction, join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
     synchronized(pendingJoins) {
       val nodeInstances = transaction.writableEngineData.nodeInstances
 
@@ -326,6 +327,17 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       if (handle.valid) throw IllegalStateException("Handles are not allowed to change")
       handle = Handles.handle(handleValue)
     }
+  }
+
+  fun getChild(transaction: ProcessTransaction, node:ExecutableProcessNode): SecureObject<ProcessNodeInstance>? {
+    return getChild(transaction, node.id)
+  }
+
+  fun getChild(transaction: ProcessTransaction, nodeId:String): SecureObject<ProcessNodeInstance>? {
+    return children
+        .asSequence()
+        .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
+        .firstOrNull { it.node.id == nodeId }
   }
 
   @Synchronized @Throws(SQLException::class)
@@ -427,7 +439,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     val self = update(transaction) {
       predecessor.node.successors.asSequence()
             .map { successorId ->
-              val pni = createProcessNodeInstance(transaction, predecessor, processModel.getNode(successorId)?: throw ProcessException("Missing node ${successorId} in process model"))
+              val pni = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(transaction, this@ProcessInstance, predecessor.handle)
               Handles.handle(data.nodeInstances.put(pni))
             }.forEach { instanceHandle ->
         run {
@@ -451,17 +463,6 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       join.startTask(transaction, messageService)
     }
     return self
-  }
-
-  @Synchronized @Throws(SQLException::class)
-  private fun createProcessNodeInstance(transaction: ProcessTransaction,
-                                        predecessor: ProcessNodeInstance,
-                                        node: ExecutableProcessNode): ProcessNodeInstance {
-    if (node is ExecutableJoin) {
-      return getJoinInstance(transaction, node, predecessor.handle)
-    } else {
-      return ProcessNodeInstance(node, predecessor.handle, this)
-    }
   }
 
   @Synchronized @Throws(SQLException::class)

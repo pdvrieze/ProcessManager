@@ -16,10 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -62,6 +66,9 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
       _condition = condition?.let { ExecutableCondition(it) }
     }
 
+  override val ownerModel: ExecutableProcessModel
+    get() = super.ownerModel!!
+
   constructor(ownerModel: ExecutableProcessModel, condition: ExecutableCondition? = null) : super(ownerModel) {
     this._condition = condition
   }
@@ -78,7 +85,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
     setPredecessors(listOfNotNull(predecessor))
   }
 
-  constructor(orig: Activity<*, *>, newOwner: ExecutableProcessModel?): super(orig, newOwner) {
+  constructor(orig: Activity<*, *>, newOwner: ExecutableProcessModel): super(orig, newOwner) {
     _condition = orig.condition?.let { ExecutableCondition(it) }
   }
 
@@ -88,6 +95,10 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
 
 
   override fun builder() = Builder(node=this)
+
+  override fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+    return ProcessNodeInstance(this, predecessor, processInstance)
+  }
 
   /**
    * Determine whether the process can start.

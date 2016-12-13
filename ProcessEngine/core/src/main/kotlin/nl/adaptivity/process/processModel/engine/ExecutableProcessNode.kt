@@ -16,9 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.MutableProcessNode
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
@@ -32,11 +37,19 @@ import java.sql.SQLException
  */
 interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel>, Identified {
 
+  override val ownerModel: ExecutableProcessModel
+
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
     override fun build(newOwner: ExecutableProcessModel): ExecutableProcessNode
   }
 
   override fun builder(): ExecutableProcessNode.Builder
+
+  /**
+   * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
+   * the type (joins)
+   */
+  fun <T: ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance
 
   /**
    * Should this node be able to be provided?

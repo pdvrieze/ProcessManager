@@ -51,7 +51,9 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
                 exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
     constructor(base: ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>) : super(base)
 
-    override fun build(): ExecutableProcessModel = ExecutableProcessModel(this)
+    override fun build(): ExecutableProcessModel = build(pedantic = true)
+
+    override fun build(pedantic: Boolean) = ExecutableProcessModel(this, pedantic)
 
     override fun startNodeBuilder() = ExecutableStartNode.Builder()
 
