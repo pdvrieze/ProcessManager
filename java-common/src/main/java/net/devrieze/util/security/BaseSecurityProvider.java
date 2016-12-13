@@ -49,13 +49,13 @@ public abstract class BaseSecurityProvider implements SecurityProvider {
   @Override
   public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject, @NotNull final Principal objectPrincipal) {
     return ensurePermission(getPermission(permission, subject, objectPrincipal)," denied permission to " + subject.getName() + " to perform "
-                                          + permission + "on " + objectPrincipal.getName() + ". To allow this set a security provider.");
+                                          + permission + " in relation to role " + objectPrincipal.getName() + ". To allow this set a security provider.");
   }
 
   @Override
   public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
     return ensurePermission(getPermission(permission, subject, secureObject), " denied permission to " + subject.getName() + " to perform "
-                                          + permission + "on " + secureObject + ". To allow this set a security provider.");
+                                          + permission + " on " + secureObject + ". To allow this set a security provider.");
   }
 
   @Override
