@@ -24,12 +24,10 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
@@ -446,20 +444,17 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
     val data = transaction.writableEngineData
     val self = update(transaction) {
-      predecessor.node.successors.asSequence()
-            .map { successorId ->
-              val pni = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(transaction, this@ProcessInstance, predecessor.handle)
-              if (! pni.handle.valid) Handles.handle(data.nodeInstances.put(pni)) else pni.handle
-            }.forEach { instanceHandle ->
-        run {
-          data.nodeInstance(instanceHandle).withPermission()
-        }.let { instance ->
-          children.add(instanceHandle)
-          if (instance is JoinInstance) {
-            joinsToEvaluate.add(instance)
-          } else {
-            startedTasks.add(instance)
-          }
+      for (successorId in predecessor.node.successors) {
+        val pni = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(transaction, this@ProcessInstance, predecessor.handle)
+        val instanceHandle = if (! pni.handle.valid) Handles.handle(data.nodeInstances.put(pni)) else pni.handle
+
+        val instance = data.nodeInstance(instanceHandle).withPermission()
+        children.add(instanceHandle)
+
+        if (instance is JoinInstance) {
+          joinsToEvaluate.add(instance)
+        } else {
+          startedTasks.add(instance)
         }
       }
     }
