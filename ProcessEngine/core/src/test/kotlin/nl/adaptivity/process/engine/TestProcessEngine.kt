@@ -351,7 +351,7 @@ class TestProcessEngine {
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
           val start = instance.child(transaction, "start")
-          val split = instance.child(transaction, "split1").assertComplete()
+          val split = instance.child(transaction, "split1").assertStarted()
           val ac1 = instance.child(transaction, "ac1").assertComplete()
           val ac2 = instance.child(transaction, "ac2").assertStarted()
           val join = instance.child(transaction, "join1").assertPending()
@@ -460,6 +460,8 @@ class TestProcessEngine {
       val join = join {
         predecessors(ac1, ac2)
         id = "join1"
+        min = 2
+        max = 2
       }
       endNode {
         id = "end"

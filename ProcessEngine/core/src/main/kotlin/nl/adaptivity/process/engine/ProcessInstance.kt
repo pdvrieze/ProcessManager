@@ -405,7 +405,8 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     @Suppress("DEPRECATION")
     val newNode = transaction.commit(node.finishTask(transaction, resultPayload))
 
-    handleFinishedState(transaction, messageService, newNode)
+    // The transaction may have updated the process instance, so handle that
+    update(transaction){}.handleFinishedState(transaction, messageService, newNode)
     return newNode
 
   }
@@ -448,7 +449,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       predecessor.node.successors.asSequence()
             .map { successorId ->
               val pni = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(transaction, this@ProcessInstance, predecessor.handle)
-              Handles.handle(data.nodeInstances.put(pni))
+              if (! pni.handle.valid) Handles.handle(data.nodeInstances.put(pni)) else pni.handle
             }.forEach { instanceHandle ->
         run {
           data.nodeInstance(instanceHandle).withPermission()
