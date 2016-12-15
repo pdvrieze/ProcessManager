@@ -38,7 +38,9 @@ import javax.xml.bind.annotation.XmlRootElement
  * *
  * @param <V> The actual type of the implementing class.
 </V> */
-interface IProcessNodeInstance<V : IProcessNodeInstance<V>> : ReadableHandleAware<SecureObject<V>> {
+interface IProcessNodeInstance<out V : IProcessNodeInstance<V>> : ReadableHandleAware<SecureObject<V>> {
+
+  typealias SecureT = SecureObject<V>
 
   /**
    * Enumeration representing the various states a task can be in.

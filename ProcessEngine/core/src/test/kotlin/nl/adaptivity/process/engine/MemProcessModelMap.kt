@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
+import net.devrieze.util.handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -33,7 +34,7 @@ class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ExecutableProc
     for (c in this) {
       val candidate = c.withPermission()
       if (uuid == candidate.uuid) {
-        return candidate.handle
+        return candidate.getHandle()
       }
     }
     return null

@@ -29,5 +29,4 @@ abstract class AbstractProcessEngineDataAccess<T:ProcessTransaction>(protected v
   override final fun commit() = transaction.commit()
 
   override final fun rollback() = transaction.rollback()
-
 }

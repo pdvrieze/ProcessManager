@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel.engine
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
@@ -68,8 +69,8 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
 
   override fun builder() = Builder(this)
 
-  override fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
-    return SplitInstance(this, predecessor, processInstance.handle, processInstance.owner)
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+    return SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
   }
 
   override fun <T : ProcessTransaction> condition(transaction: T,
@@ -80,7 +81,7 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
   @Throws(SQLException::class)
   override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> provideTask(transaction: T,
                                                                                               messageService: IMessageService<V, T, in U>,
-                                                                                              instance: U): Boolean {
+                                                                                              processInstance: ProcessInstance, instance: U): Boolean {
     return true
   }
 

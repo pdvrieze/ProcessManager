@@ -27,7 +27,7 @@ import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
-import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
+import nl.adaptivity.process.engine.ReadableProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;

@@ -60,7 +60,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     constructor(base:ProcessModel<*,*>) :
         this(emptyList(),
             base.getName(),
-            (base as? ReadableHandleAware<*>)?.handle?.handleValue ?: -1L,
+            (base as? ReadableHandleAware<*>)?.getHandle()?.handleValue ?: -1L,
             base.owner,
             base.getRoles().toMutableList(),
             base.getUuid(),
@@ -473,7 +473,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
      * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
      */
   override fun getRef(): IProcessModelRef<T, M> {
-    return ProcessModelRef(name, this.handle, uuid)
+    return ProcessModelRef(name, this.getHandle(), uuid)
   }
 
   override fun getRoles(): Set<String> {

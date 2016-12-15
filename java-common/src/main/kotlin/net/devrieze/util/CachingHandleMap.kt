@@ -147,7 +147,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
     if (pValue is Handle<*>) {
       putCache(transaction, pValue as Handle<V>, pValue)
     } else if (pValue is ReadableHandleAware<*>) {
-      putCache(transaction, (pValue as ReadableHandleAware<V>).handle, pValue)
+      putCache(transaction, (pValue as ReadableHandleAware<V>).getHandle(), pValue)
     }
   }
 
@@ -157,7 +157,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
         val updatedValue = handleAssigner(nonUpdatedValue, handle.handleValue)
 
         // Don't cache if the updated value has a handle that does not match
-        if (updatedValue is ReadableHandleAware<*> && updatedValue.handle!=handle) return
+        if (updatedValue is ReadableHandleAware<*> && updatedValue.getHandle()!=handle) return
 
         synchronized (cacheHandles) {
           transaction.addRollbackHandler({ invalidateCache(handle) })

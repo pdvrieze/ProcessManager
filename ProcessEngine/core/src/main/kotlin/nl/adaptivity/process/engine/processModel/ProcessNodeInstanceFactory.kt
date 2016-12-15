@@ -77,9 +77,9 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .requireNoNulls()
 
     return if (node is ExecutableJoin) {
-      JoinInstance.BaseBuilder(node, predecessors, processInstance.handle, processInstance.owner, Handles.handle(pnihandle.handleValue), state)
+      JoinInstance.BaseBuilder(node, predecessors, processInstance.getHandle(), processInstance.owner, Handles.handle(pnihandle.handleValue), state)
     } else {
-      ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(node, predecessors, processInstance.handle, processInstance.owner, Handles.handle(pnihandle.handleValue), state)
+      ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(node, predecessors, processInstance.getHandle(), processInstance.owner, Handles.handle(pnihandle.handleValue), state)
     }
   }
 
@@ -103,7 +103,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
   override fun getPrimaryKeyCondition(where: Database._Where,
                              instance: SecureObject<ProcessNodeInstance>): Database.WhereClause? {
-    return getHandleCondition(where, instance.withPermission().handle);
+    return getHandleCondition(where, instance.withPermission().getHandle());
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -184,7 +184,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessNodeInstance>) {
-    preRemove(transaction, element.withPermission().handle)
+    preRemove(transaction, element.withPermission().getHandle())
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {

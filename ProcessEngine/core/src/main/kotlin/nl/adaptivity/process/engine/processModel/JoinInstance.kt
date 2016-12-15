@@ -23,6 +23,7 @@ import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -90,28 +91,43 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @JvmName("updateJoin")
-  fun updateJoin(transaction: ProcessTransaction, body: Builder.() -> Unit):JoinInstance {
-    val origHandle = handle
-    return JoinInstance(ExtBuilder(this).apply { body() }).apply {
-      if (origHandle.valid)
-        if (handle.valid)
-          transaction.writableEngineData.nodeInstances[handle] = this
+  fun updateJoin(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): PNIPair<JoinInstance> {
+    val origHandle = getHandle()
+    val builder = builder().apply(body)
+    if (builder.changed) {
+      if (origHandle.valid && getHandle().valid) {
+        return instance.updateNode(writableEngineData, builder.build())
+      } else {
+        return PNIPair(instance, this)
+      }
+    } else {
+      return PNIPair(instance, this)
     }
   }
 
-  override fun builder(): Builder = ExtBuilder(this)
+  override fun builder() = ExtBuilder(this)
 
   @Deprecated("Use updateJoin when using this function directly.", ReplaceWith("updateJoin(transaction, body)"))
-  override fun update(transaction: ProcessTransaction,
-                      body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): ProcessNodeInstance {
-    return super.update(transaction, body)
+
+  override fun update(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: ProcessNodeInstance.Builder<*>.() -> Unit): PNIPair<JoinInstance> {
+    val origHandle = getHandle()
+    val builder = builder().apply(body)
+    if (builder.changed) {
+      if (origHandle.valid && getHandle().valid) {
+        return instance.updateNode(writableEngineData, builder.build())
+      } else {
+        return PNIPair(instance, this)
+      }
+    } else {
+      return PNIPair(instance, this)
+    }
   }
 
   @Throws(SQLException::class)
-  fun addPredecessor(transaction: ProcessTransaction, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance? {
+  fun addPredecessor(transaction: ProcessTransaction, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): PNIPair<JoinInstance>? {
 
     if (canAddNode(transaction) && predecessor !in directPredecessors) {
-      return updateJoin(transaction) {
+      return updateJoin(transaction.writableEngineData, processInstance) {
         predecessors.add(predecessor)
       }
     }
@@ -119,30 +135,30 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  override fun <V> startTask(transaction: ProcessTransaction, messageService: IMessageService<V, ProcessTransaction, in ProcessNodeInstance>): ProcessNodeInstance {
+  override fun <V> startTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<V, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     if (node.startTask(messageService, this)) {
-      return updateTaskState(transaction)
+      return updateTaskState(transaction, processInstance)
     }
-    return this
+    return PNIPair(processInstance, this)
   }
 
-  override fun finishTask(transaction: ProcessTransaction, resultPayload: Node?)
-        = super.finishTask(transaction, resultPayload) as JoinInstance
+  override fun finishTask(transaction: ProcessTransaction, processInstance: ProcessInstance, resultPayload: Node?)
+        = super.finishTask(transaction, processInstance, resultPayload) as PNIPair<JoinInstance>
 
-  override fun <U> takeTask(transaction: ProcessTransaction, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>)
-        = super.takeTask(transaction, messageService) as JoinInstance
+  override fun <U> takeTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>)
+        = super.takeTask(transaction, processInstance, messageService) as PNIPair<JoinInstance>
 
-  override fun cancelTask(transaction: ProcessTransaction)
-        = super.cancelTask(transaction) as JoinInstance
+  override fun cancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance)
+        = super.cancelTask(transaction, processInstance) as PNIPair<JoinInstance>
 
-  override fun tryCancelTask(transaction: ProcessTransaction)
-        = super.tryCancelTask(transaction) as JoinInstance
+  override fun tryCancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance)
+        = super.tryCancelTask(transaction, processInstance) as PNIPair<JoinInstance>
 
-  override fun failTask(transaction: ProcessTransaction, cause: Throwable)
-        = super.failTask(transaction, cause) as JoinInstance
+  override fun failTask(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable)
+        = super.failTask(transaction, processInstance, cause) as PNIPair<JoinInstance>
 
-  override fun failTaskCreation(transaction: ProcessTransaction, cause: Throwable)
-        = super.failTaskCreation(transaction, cause) as JoinInstance
+  override fun failTaskCreation(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable)
+        = super.failTaskCreation(transaction, processInstance, cause) as PNIPair<JoinInstance>
 
   /**
    * Update the state of the task, based on the predecessors
@@ -153,11 +169,13 @@ class JoinInstance : ProcessNodeInstance {
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  private fun updateTaskState(transaction: ProcessTransaction): JoinInstance {
+  private fun updateTaskState(transaction: ProcessTransaction, processInstance: ProcessInstance): PNIPair<JoinInstance> {
 
-    fun next() = updateJoin(transaction) { state = NodeInstanceState.Started }.finishTask(transaction, null)
+    fun next() = updateJoin(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Started }.let {
+      it.node.finishTask(transaction, it.instance, null)
+    }
 
-    if (state == NodeInstanceState.Complete) return this // Don't update if we're already complete
+    if (state == NodeInstanceState.Complete) return PNIPair(processInstance, this) // Don't update if we're already complete
 
     val join = node
     val totalPossiblePredecessors = join.predecessors.size
@@ -176,32 +194,30 @@ class JoinInstance : ProcessNodeInstance {
       }// do nothing
     }
     if (totalPossiblePredecessors - skipped < join.min) {
-      cancelNoncompletedPredecessors(transaction)
-      return failTask(transaction, ProcessException("Too many predecessors have failed"))
+      cancelNoncompletedPredecessors(transaction, processInstance).let { processInstance ->
+        failTask(transaction, processInstance, ProcessException("Too many predecessors have failed"))
+      }
     }
 
     if (complete >= join.min) {
-      val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
       if (complete >= join.max || processInstance.getActivePredecessorsFor(transaction, join).isEmpty()) {
         return next()
       }
     }
-    return this
+    return PNIPair(processInstance, this)
   }
 
   @Throws(SQLException::class)
-  private fun cancelNoncompletedPredecessors(transaction: ProcessTransaction) {
-    val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
+  private fun cancelNoncompletedPredecessors(transaction: ProcessTransaction, processInstance: ProcessInstance): ProcessInstance {
     val preds = processInstance.getActivePredecessorsFor(transaction, node)
-    for (pred in preds) {
-      pred.tryCancelTask(transaction)
-    }
+    return preds.fold(processInstance) { processInstance, pred -> pred.tryCancelTask(transaction, processInstance).instance }
   }
 
+
   @Throws(SQLException::class)
-  override fun <V> provideTask(transaction: ProcessTransaction, messageService: IMessageService<V, ProcessTransaction, in ProcessNodeInstance>): ProcessNodeInstance {
+  override fun <V> provideTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<V, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     if (!isFinished) {
-      val shouldProgress = node.provideTask(transaction, messageService, this)
+      val shouldProgress = node.provideTask(transaction, messageService,processInstance, this)
       if (shouldProgress) {
         val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
         val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
@@ -210,19 +226,19 @@ class JoinInstance : ProcessNodeInstance {
               .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
               .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
         if (canAdd) {
-          return updateJoin(transaction) { state = NodeInstanceState.Sent }.takeTask(transaction, messageService)
+          return updateJoin(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> pair.node.takeTask(transaction,pair.instance, messageService) }
         }
-        return this // no need to update as the initial state is already pending.
+        return PNIPair(processInstance, this) // no need to update as the initial state is already pending.
       }
 
     }
-    return this
+    return PNIPair(processInstance, this)
   }
 
   @Throws(SQLException::class)
   override fun tickle(transaction: ProcessTransaction,
-                      messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>): ProcessNodeInstance {
-    super.tickle(transaction, messageService)
+                      instance: ProcessInstance, messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>): PNIPair<JoinInstance> {
+    val (processInstance, self) = super.tickle(transaction,instance, messageService) as PNIPair<JoinInstance>
     val missingIdentifiers = TreeSet<Identified>(node.predecessors)
     val data = transaction.readableEngineData
 
@@ -230,18 +246,18 @@ class JoinInstance : ProcessNodeInstance {
           .forEach { missingIdentifiers
                 .remove(data.nodeInstance(it).withPermission().node) }
 
-    return updateJoin(transaction) {
+    return self.updateJoin(transaction.writableEngineData, processInstance) {
       val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
       missingIdentifiers.asSequence()
             .mapNotNull { processInstance.getNodeInstance(transaction, it) }
-            .forEach { predecessors.add(it.handle) }
-    }.let { updated ->
-      updateTaskState(transaction)
-    }.let { updated ->
-      if (updated.state==NodeInstanceState.Started) {
-        updated.finishTask(transaction)
+            .forEach { predecessors.add(it.getHandle()) }
+    }.let { updatedPair ->
+      updatedPair.node.updateTaskState(transaction, updatedPair.instance)
+    }.let { updatedPair ->
+      if (updatedPair.node.state==NodeInstanceState.Started) {
+        updatedPair.node.finishTask(transaction, updatedPair.instance)
       } else {
-        updated
+        updatedPair
       }
     }
   }
@@ -277,7 +293,7 @@ class JoinInstance : ProcessNodeInstance {
                                      handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder.() -> Unit):JoinInstance {
-      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance.handle, processInstance.owner, handle, state).apply(body))
+      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance.getHandle(), processInstance.owner, handle, state).apply(body))
     }
   }
 

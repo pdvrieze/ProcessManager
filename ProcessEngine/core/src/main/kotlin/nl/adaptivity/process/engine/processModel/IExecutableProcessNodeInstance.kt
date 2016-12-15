@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlWriter
@@ -46,7 +47,7 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * @throws SQLException @link #takeTask(IMessageService)
    */
   @Throws(SQLException::class)
-  fun <U> provideTask(transaction: ProcessTransaction, messageService: IMessageService<U, ProcessTransaction, in V>): V
+  fun <U> provideTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in V>): ProcessInstance.PNIPair<V>
 
   /**
    * Called by the processEngine to let the task be taken.
@@ -57,7 +58,7 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * *         be [started][.startTask].
    */
   @Throws(SQLException::class)
-  fun <U> takeTask(transaction: ProcessTransaction, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): V
+  fun <U> takeTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): ProcessInstance.PNIPair<V>
 
   /**
    * Called by the processEngine to let the system start the task.
@@ -68,7 +69,7 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * *         [.finishTask]  should be called.
    */
   @Throws(SQLException::class)
-  fun <U> startTask(transaction: ProcessTransaction, messageService: IMessageService<U, ProcessTransaction, in V>): V
+  fun <U> startTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in V>): ProcessInstance.PNIPair<V>
 
 //  /**
 //   * Called by the processEngine to signify to the task that it is finished
@@ -83,27 +84,27 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * Called to signify that this task has failed.
    */
   @Throws(SQLException::class)
-  fun failTask(transaction: ProcessTransaction, cause: Throwable): V
+  fun failTask(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable): ProcessInstance.PNIPair<V>
 
   /**
    * Called to signify that creating this task has failed, a retry would be expected.
    */
   @Throws(SQLException::class)
-  fun failTaskCreation(transaction: ProcessTransaction, cause: Throwable): V
+  fun failTaskCreation(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable): ProcessInstance.PNIPair<V>
 
   /**
    * Called to signify that this task has been cancelled.
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun cancelTask(transaction: ProcessTransaction): V
+  fun cancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance): ProcessInstance.PNIPair<V>
 
   /**
    * Called to attempt to cancel the task if that is semantically valid.
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun tryCancelTask(transaction: ProcessTransaction): V
+  fun tryCancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance): ProcessInstance.PNIPair<V>
 
   /** Get the predecessor instance with the given node name.
    * @throws SQLException

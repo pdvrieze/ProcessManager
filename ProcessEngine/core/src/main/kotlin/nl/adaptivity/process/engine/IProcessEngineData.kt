@@ -97,7 +97,7 @@ interface ProcessEngineDataAccess {
 interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
   override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
-  override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance>>
+//  override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance>>
 
   override val processModels: IMutableProcessModelMapAccess
 

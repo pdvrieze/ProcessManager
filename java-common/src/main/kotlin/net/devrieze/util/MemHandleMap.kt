@@ -114,7 +114,7 @@ open class MemHandleMap<V:Any>
 
     override fun remove(element: T): Boolean {
       if (element is ReadableHandleAware<*>) {
-        return handleMap.remove(element.handle)
+        return handleMap.remove(element.getHandle())
       }
       synchronized(handleMap) {
         val it = handleMap.iterator()
@@ -357,7 +357,7 @@ open class MemHandleMap<V:Any>
    * @see net.devrieze.util.HandleMap#put(V)
    */
   override fun <W : V> put(value: W): Handle<W> {
-    assert(if (value is ReadableHandleAware<*>) !value.handle.valid else true) { "Storing a value that already has a handle is invalid" }
+    assert(if (value is ReadableHandleAware<*>) !value.getHandle().valid else true) { "Storing a value that already has a handle is invalid" }
 
     var index: Int // The space in the mValues array where to store the value
     var generation: Int // To allow reuse of spaces without reuse of handles

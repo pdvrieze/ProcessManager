@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
+import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
@@ -96,11 +97,11 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
               }
             }
     }
-    return builder.build(transaction.readableEngineData)
+    return builder.build(transaction.writableEngineData)
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessInstance>) {
-    preRemove(transaction, element.withPermission().handle)
+    preRemove(transaction, element.withPermission().getHandle())
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
@@ -122,7 +123,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .map { Handles.handle<ProcessNodeInstance>(it) }
 
     for (node in nodes) { // Delete through the process engine so caches get invalidated.
-      mProcessEngine.removeNodeInstance(transaction, node)
+      (transaction.writableEngineData.nodeInstances as MutableHandleMap).remove(node)
     }
   }
 
@@ -132,7 +133,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
 
   override fun getPrimaryKeyCondition(where: Database._Where,
                                       instance: SecureObject<ProcessInstance>): Database.WhereClause? {
-    return getHandleCondition(where, instance.withPermission().handle)
+    return getHandleCondition(where, instance.withPermission().getHandle())
   }
 
   override fun asInstance(obj: Any): ProcessInstance? {

@@ -20,6 +20,7 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
@@ -96,7 +97,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
 
   override fun builder() = Builder(node=this)
 
-  override fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
     return ProcessNodeInstance(this, predecessor, processInstance)
   }
 
@@ -125,15 +126,15 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
   @Throws(SQLException::class)
   override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> provideTask(transaction: T,
                                                                                               messageService: IMessageService<V, T, in U>,
-                                                                                              instance: U): Boolean {
+                                                                                              processInstance: ProcessInstance, instance: U): Boolean {
     // TODO handle imports
     val message = messageService.createMessage(message)
     try {
       if (!messageService.sendMessage(transaction, message, instance)) {
-        instance.failTaskCreation(transaction, MessagingException("Failure to send message"))
+        instance.failTaskCreation(transaction, processInstance, MessagingException("Failure to send message"))
       }
     } catch (e: RuntimeException) {
-      instance.failTaskCreation(transaction, e)
+      instance.failTaskCreation(transaction, processInstance, e)
       throw e
     }
 

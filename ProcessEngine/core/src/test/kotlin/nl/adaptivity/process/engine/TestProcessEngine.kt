@@ -19,47 +19,38 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import net.devrieze.util.security.withPermission
-import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
-import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.util.activation.Sources
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xml.XmlStreaming
 import org.custommonkey.xmlunit.DetailedDiff
-import org.custommonkey.xmlunit.Diff
+import org.custommonkey.xmlunit.XMLAssert.assertXMLEqual
 import org.custommonkey.xmlunit.XMLUnit
+import org.testng.Assert.*
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Node
-
+import java.io.*
+import java.net.URI
+import java.nio.charset.Charset.defaultCharset
+import java.util.UUID
 import javax.xml.bind.JAXB
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.parsers.ParserConfigurationException
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
-
-import java.io.*
-import java.net.URI
-import java.util.UUID
-
-import java.nio.charset.Charset.defaultCharset
-import org.custommonkey.xmlunit.XMLAssert.assertXMLEqual
-import org.testng.Assert.*
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.pnipredecessors.predecessor
 
 
 /**
@@ -294,7 +285,7 @@ class TestProcessEngine {
       val taskNode = mStubMessageService.messageNode(transaction, 0)
       taskNode.assertSent()
       processInstance.assertActive(taskNode)
-      processInstance.finishTask(transaction, mStubMessageService, taskNode, null).assertComplete()
+      processInstance.finishTask(transaction, mStubMessageService, taskNode, null).node.assertComplete()
     }
 
     run {
@@ -333,7 +324,7 @@ class TestProcessEngine {
             }
           }
 
-          instance.finishTask(transaction, mStubMessageService, ac1, null).assertComplete()
+          instance.finishTask(transaction, mStubMessageService, ac1, null).node.assertComplete()
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -346,7 +337,7 @@ class TestProcessEngine {
           instance.assertActive(ac2, split, join)
           // check join is in the pending set
 
-          ac2.startTask(transaction, mStubMessageService)
+          ac2.startTask(transaction, instance, mStubMessageService)
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -358,7 +349,7 @@ class TestProcessEngine {
           instance.assertFinished(ac1, start)
           instance.assertActive(ac2, split, join)
 
-          instance.finishTask(transaction, mStubMessageService, ac2, null).assertComplete()
+          instance.finishTask(transaction, mStubMessageService, ac2, null).node.assertComplete()
         }
 
         run {

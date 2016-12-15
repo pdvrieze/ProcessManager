@@ -14,11 +14,14 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util;
+package net.devrieze.util
 
 /**
  * Created by pdvrieze on 27/11/16.
  */
-public interface ReadableHandleAware<T> {
-  Handle<? extends T> getHandle();
+interface ReadableHandleAware<out T:Any> {
+  fun getHandle(): Handle<out T>
 }
+
+@Deprecated("Use getHandle()", ReplaceWith("this.getHandle()"))
+val <T:Any> ReadableHandleAware<T>.handle: Handle<out T> get() = getHandle()

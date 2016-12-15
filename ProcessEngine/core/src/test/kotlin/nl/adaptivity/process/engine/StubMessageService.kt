@@ -58,7 +58,7 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
   override fun sendMessage(transaction: T,
                            protoMessage: IXmlMessage,
                            instance: ProcessNodeInstance): Boolean {
-    assert(instance.handle.valid) { "Sending messages from invalid nodes is a bad idea" }
+    assert(instance.getHandle().valid) { "Sending messages from invalid nodes is a bad idea" }
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       instance.instantiateXmlPlaceholders(transaction,
@@ -77,8 +77,9 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
                                     instantiatedContent)
 
     processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
-    _messages.add(ExtMessage(processedMessage, instance.handle))
-    instance.update(transaction) { state = NodeInstanceState.Sent }
+    _messages.add(ExtMessage(processedMessage, instance.getHandle()))
+    val processInstance = transaction.readableEngineData.instance(instance.hProcessInstance).withPermission()
+    instance.update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Sent }
     return true
   }
 }

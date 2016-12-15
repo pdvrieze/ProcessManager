@@ -21,7 +21,7 @@ import kotlin.reflect.KProperty
 /**
  * Created by pdvrieze on 21/11/16.
  */
-class OverlayProp<T>(private val base: () -> T) {
+class OverlayProp<T>(private val update:()->Unit = {}, private val base: () -> T) {
   private var set=false
   private var value:T? = null
 
@@ -32,7 +32,8 @@ class OverlayProp<T>(private val base: () -> T) {
   operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
     set=true
     this.value = value
+    update()
   }
 }
 
-fun <T> overlay(base: () ->T) = OverlayProp<T>(base)
+fun <T> overlay(update:()->Unit = {}, base: () ->T) = OverlayProp<T>(update, base)

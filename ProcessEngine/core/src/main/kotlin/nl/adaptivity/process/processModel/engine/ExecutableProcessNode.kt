@@ -20,6 +20,7 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
@@ -62,7 +63,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
    * the type (joins)
    */
-  fun <T: ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance
+  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance
 
   override val identifier: Identifier?
     get() = Identifier(id)
@@ -95,7 +96,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
   @Throws(SQLException::class)
   fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> provideTask(transaction: T,
                                                                                      messageService: IMessageService<V, T, in U>,
-                                                                                     instance: U): Boolean
+                                                                                     processInstance: ProcessInstance, instance: U): Boolean
 
   /**
    * Take action to accept the task (but not start it yet)
