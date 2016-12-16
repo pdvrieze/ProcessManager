@@ -314,30 +314,34 @@ public class PETransformer {
       }
       final XmlReader dataReader = data.getContentStream();
       final StringBuilder result = new StringBuilder();
-      while (dataReader.hasNext()) {
-        final EventType event = dataReader.next();
-        switch (event) {
-          case ATTRIBUTE:
-            case DOCDECL:
-          case START_ELEMENT:
-            throw new XmlException("Unexpected node found while resolving attribute. Only CDATA allowed: ("+event.getClass().getSimpleName()+") "+event);
-          case CDSECT:
-          case TEXT: {
-              if (! isIgnorableWhiteSpace(dataReader)) {
-                  result.append(dataReader.getText());
-              }
-              break;
+      try {
+        while (dataReader.hasNext()) {
+          final EventType event = dataReader.next();
+          switch (event) {
+            case ATTRIBUTE:
+              case DOCDECL:
+            case START_ELEMENT:
+              throw new XmlException("Unexpected node found while resolving attribute. Only CDATA allowed: ("+event.getClass().getSimpleName()+") "+event);
+            case CDSECT:
+            case TEXT: {
+                if (! isIgnorableWhiteSpace(dataReader)) {
+                    result.append(dataReader.getText());
+                }
+                break;
+            }
+            case START_DOCUMENT:
+            case END_DOCUMENT:
+            case COMMENT:
+            case PROCESSING_INSTRUCTION:
+              break; // ignore
+            case END_ELEMENT: // finished the element
+              return result.toString();
+            default:
+              throw new XmlException("Unexpected node type: "+event);
           }
-          case START_DOCUMENT:
-          case END_DOCUMENT:
-          case COMMENT:
-          case PROCESSING_INSTRUCTION:
-            break; // ignore
-          case END_ELEMENT: // finished the element
-            return result.toString();
-          default:
-            throw new XmlException("Unexpected node type: "+event);
         }
+      } catch (XmlException e) {
+        throw new XmlException("Failure to parse data (name="+valueName+", value="+data.getContent().getContentString()+")", e);
       }
       return result.toString();
     }
