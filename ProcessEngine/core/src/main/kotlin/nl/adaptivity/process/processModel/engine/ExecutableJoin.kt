@@ -79,7 +79,7 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
   override fun builder() = Builder(this)
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
-    return processInstance.getJoinInstance(data, this, predecessor)
+    return processInstance.getJoinInstance(this, predecessor)
   }
 
   @Deprecated("")

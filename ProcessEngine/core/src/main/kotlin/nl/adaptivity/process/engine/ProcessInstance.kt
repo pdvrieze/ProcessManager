@@ -372,7 +372,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   }
 
   @Synchronized @Throws(SQLException::class)
-  internal fun getJoinInstance(data : ProcessEngineDataAccess, join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
+  internal fun getJoinInstance(join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
     return pendingJoinNodes.firstOrNull { it.node == join }
         ?: JoinInstance(join, listOf(predecessor), this.handle, owner)
   }
