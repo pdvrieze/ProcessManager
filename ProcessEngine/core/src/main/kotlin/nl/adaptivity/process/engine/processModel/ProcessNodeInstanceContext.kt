@@ -21,9 +21,7 @@ import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.Namespace
-import nl.adaptivity.xml.SimpleNamespaceContext
-import nl.adaptivity.xml.XmlEvent
+import nl.adaptivity.xml.*
 import java.util.*
 
 class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
@@ -33,7 +31,7 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
       "handle"         -> return ProcessData(valueName, CompactFragment(java.lang.Long.toString(processNodeInstance.getHandleValue())))
       "instancehandle" -> return ProcessData(valueName, CompactFragment(java.lang.Long.toString(processNodeInstance.hProcessInstance.handleValue)))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())
-      "owner"          -> return ProcessData(valueName, CompactFragment(processNodeInstance.owner.name))
+      "owner"          -> return ProcessData(valueName, CompactFragment(processNodeInstance.owner.name.xmlEncode()))
     }
 
     for (define in mDefines) {
