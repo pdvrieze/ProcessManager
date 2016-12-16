@@ -94,8 +94,8 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
 
   @Throws(SQLException::class)
   protected operator fun set(transaction: TR, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
-    if (oldValue == newValue) {
-      return oldValue
+    if (elementFactory.isEqualForStorage(oldValue, newValue)) {
+      return newValue
     }
 
     val newValueWithHandle = handleAssigner(newValue, handle.handleValue)

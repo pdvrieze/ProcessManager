@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
@@ -208,19 +209,27 @@ class TestProcessEngine {
   }
 
   private fun ProcessNodeInstance.assertSent() = apply {
-    assertEquals(this.state, NodeInstanceState.Sent)
+    assertState(NodeInstanceState.Sent)
   }
 
   private fun ProcessNodeInstance.assertPending() = apply {
-    assertEquals(this.state, NodeInstanceState.Pending)
+    assertState(NodeInstanceState.Pending)
   }
 
   private fun ProcessNodeInstance.assertAcknowledged() = apply {
-    assertEquals(this.state, NodeInstanceState.Acknowledged)
+    assertState(NodeInstanceState.Acknowledged)
   }
 
   private fun ProcessNodeInstance.assertComplete() = apply {
-    assertEquals(this.state, NodeInstanceState.Complete)
+    assertState(NodeInstanceState.Complete)
+  }
+
+  private fun ProcessNodeInstance.assertState(state: NodeInstanceState) {
+    try {
+      assertEquals(this.state, state, "Node ${this.node.id}(${this.getHandle()}) should be in the ${state.name} state")
+    } catch (e: AssertionError) {
+      throw dropStack(e, 2)
+    }
   }
 
   @BeforeMethod
@@ -235,7 +244,7 @@ class TestProcessEngine {
     mProcessEngine = ProcessEngine.newTestInstance(
         mStubMessageService,
         mStubTransactionFactory,
-        cacheModels<Any>(MemProcessModelMap(), 1),
+        cacheModels<Any>(MemProcessModelMap(), 3),
         cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
         cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
   }

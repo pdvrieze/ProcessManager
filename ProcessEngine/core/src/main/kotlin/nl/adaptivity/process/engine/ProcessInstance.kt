@@ -181,21 +181,55 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
   val processModel: ExecutableProcessModel
 
+  val childNodes: Collection<SecureObject<ProcessNodeInstance>>
+
   val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+    get() = childNodes.asSequence().map { it.withPermission().getHandle() }
+
+  val _children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     get() {
-      return (active.asSequence() + finished.asSequence() + pendingJoins.values.asSequence() + completedEndnodes.asSequence())
+      return (_active.asSequence() + _finished.asSequence() + _pendingJoins.values.asSequence() + _completedEndnodes.asSequence())
     }
 
-  val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+  val activeNodes get() = childNodes.asSequence()
+      .map { it.withPermission() }
+      .filter { ! it.state.isFinal }
 
-  val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+  val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = activeNodes
+      .map { it.getHandle() }
+      .toList()
 
-  private val completedEndNodeCount: Int
-    get() = completedEndnodes.size
+  val _active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
 
-  val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+  val finishedNodes get() = childNodes.asSequence()
+      .map { it.withPermission() }
+      .filter { it.state.isFinal && it.node !is EndNode<*,*> }
 
-  private val pendingJoins: HashMap<ExecutableJoin, ComparableHandle<out SecureObject<JoinInstance>>>
+  val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = finishedNodes
+      .map { it.getHandle() }
+      .toList()
+
+  val _finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+
+  val completedNodeInstances get() = childNodes.asSequence()
+      .map { it.withPermission() }
+      .filter { it.state.isFinal && it.node is EndNode<*,*> }
+
+  val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = completedNodeInstances
+      .map { it.getHandle() }
+      .toList()
+
+  val _completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+
+  private val pendingJoinNodes get() = childNodes.asSequence()
+      .map { it.withPermission() }
+      .filterIsInstance(JoinInstance::class.java)
+      .filter { ! it.state.isFinal }
+
+  private val pendingJoins: Map<ExecutableJoin, JoinInstance> get() =
+      pendingJoinNodes.associateBy { it.node }
+
+  private val _pendingJoins: Map<ExecutableJoin, ComparableHandle<out SecureObject<JoinInstance>>>
 
   private var handle: ComparableHandle<out ProcessInstance>
 
@@ -237,51 +271,51 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
     val finishedNodes = TreeSet<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
 
-    val createdNodeHandles = builder.pendingChildren.asSequence().map {
-      it as InstanceFuture<*>
-    }.filter {
-      if (it.orig.getHandle().valid) {
-        data.storeNodeInstance(it)
-        false
-      } else true
-    }.map {
-      data.putNodeInstance(it).getHandle()
+    val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*> }.toList()
+
+    val createdNodes = pending
+        .filter { ! it.orig.getHandle().valid }
+        .map { data.putNodeInstance(it) }
+
+    val updatedNodes = pending.asSequence()
+        .filter { it.orig.getHandle().valid }
+        .map {
+          assert(it.orig.hProcessInstance == handle)
+          data.storeNodeInstance(it)
+        }
+        .associateBy { it.getHandle() }.toMutableMap()
+
+    val nodes = createdNodes + builder.children.asSequence().map { childHandle ->
+      updatedNodes.remove(childHandle) ?: data.nodeInstance(childHandle).withPermission()
     }.toList()
 
+    assert(updatedNodes.isEmpty()) { "All updated nodes must be used" }
+
     // TODO don't query created handles again as we have the nodes already
-    val nodes = (createdNodeHandles.asSequence() + builder.children.asSequence())
-          .map { data.nodeInstance(it).withPermission() }.toList()
+    childNodes = nodes
 
     nodes.forEach { nodeInstance ->
       if (nodeInstance is JoinInstance) {
         joins.put(nodeInstance.node, nodeInstance.getHandle())
       }
 
-      if (nodeInstance.state.isFinal && nodeInstance.node is EndNode<*, *>) {
-        endResults.add(nodeInstance.getHandle())
+      if (nodeInstance.state.isFinal) {
+        if (nodeInstance.node is EndNode<*, *>) {
+          endResults.add(nodeInstance.getHandle())
+        } else {
+          finishedNodes.add(nodeInstance.getHandle())
+        }
       } else {
         threads.add(nodeInstance.getHandle())
       }
 
     }
-    // Only mark nodes as finished if their state is final
-    nodes.forEach { nodeInstance ->
-      nodeInstance.directPredecessors.asSequence()
-          .map { data.nodeInstance(it).withPermission() }
-          .filter { it.state.isFinal }
-          .forEach { pred ->
-            val handle = pred.getHandle()
-            if (threads.remove(handle)) {
-              finishedNodes.add(handle)
-            }
-      }
-    }
 
-    active = threads
-    completedEndnodes = endResults
-    finished = finishedNodes
+    _active = threads
+    _completedEndnodes = endResults
+    _finished = finishedNodes
 
-    pendingJoins = joins
+    _pendingJoins = joins
     inputs = builder.inputs.toList()
     outputs = builder.outputs.toList()
   }
@@ -294,10 +328,11 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     uuid = uUid
     this.name = name
     this.state = state ?: State.NEW
-    active = ArraySet()
-    completedEndnodes = ArraySet()
-    finished = ArraySet()
-    pendingJoins = HashMap()
+    childNodes = emptyList()
+    _active = emptyList()
+    _completedEndnodes = emptyList()
+    _finished = emptyList()
+    _pendingJoins = emptyMap()
     inputs = emptyList()
     outputs = emptyList()
   }
@@ -309,10 +344,11 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     handle = Handles.getInvalid()
     uuid = uUid
     this.owner = owner
-    pendingJoins = HashMap()
-    active = ArraySet()
-    completedEndnodes = ArraySet()
-    finished = ArraySet()
+    childNodes = emptyList()
+    _pendingJoins = emptyMap()
+    _active = ArraySet()
+    _completedEndnodes = ArraySet()
+    _finished = ArraySet()
     this.state = state ?: State.NEW
     inputs = emptyList()
     outputs = emptyList()
@@ -345,12 +381,12 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
       return newInstance.handle.valid && handle.valid
     }
 
-    if (getHandle().valid && handle.valid && this!=newInstance) {
+    if (getHandle().valid && handle.valid) {
       assert(dataValid()) { "Instance generations lost in the waves" }
       writableEngineData.instances[handle] = newInstance
       return newInstance
     }
-    return this
+    return newInstance
   }
 
   inline fun update(writableEngineData: MutableProcessEngineDataAccess, body: Builder.() -> Unit): ProcessInstance {
@@ -379,7 +415,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     // This needs to update first as at this point the node state may not be valid.
     // TODO reduce the need to do a double update.
     update(transaction.writableEngineData ) {}.let { newInstance ->
-      if (newInstance.completedEndNodeCount >= processModel.endNodeCount) {
+      if (newInstance.completedNodeInstances.count() >= processModel.endNodeCount) {
         // TODO mark and store results
         return newInstance.update(transaction.writableEngineData) {
           state = State.FINISHED
@@ -410,12 +446,8 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
   @Synchronized @Throws(SQLException::class)
   internal fun getJoinInstance(data : ProcessEngineDataAccess, join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
-    return pendingJoins[join]?.let { data.nodeInstance(it).withPermission() as JoinInstance }
+    return pendingJoins[join]
         ?: JoinInstance(join, listOf(predecessor), this.handle, owner)
-  }
-
-  @Synchronized fun removeJoin(join: JoinInstance) {
-    pendingJoins.remove(join.node)
   }
 
   @Synchronized override fun setHandleValue(handleValue: Long) {
@@ -426,15 +458,19 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     }
   }
 
+  @Deprecated("No transaction needed", ReplaceWith("getChild(node.id)"))
   fun getChild(transaction: ProcessTransaction, node:ExecutableProcessNode): SecureObject<ProcessNodeInstance>? {
     return getChild(transaction, node.id)
   }
 
+  @Deprecated("No transaction needed", ReplaceWith("getChild(nodeId)"))
   fun getChild(transaction: ProcessTransaction, nodeId:String): SecureObject<ProcessNodeInstance>? {
-    return children
-        .asSequence()
-        .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
-        .firstOrNull { it.node.id == nodeId }
+    val engineData = transaction.readableEngineData
+    return getChild(nodeId)
+  }
+
+  fun getChild(nodeId: String): SecureObject<ProcessNodeInstance>? {
+    return childNodes.firstOrNull { it.withPermission().node.id == nodeId }
   }
 
   @Synchronized @Throws(SQLException::class)
@@ -748,6 +784,10 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     result = 31 * result + (state?.hashCode() ?: 0)
     result = 31 * result + uuid.hashCode()
     return result
+  }
+
+  override fun toString(): String {
+    return "ProcessInstance(handle=${handle.handleValue}, name=$name, state=$state, generation=$generation, childNodes=$childNodes)"
   }
 
   companion object {

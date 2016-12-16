@@ -179,7 +179,10 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     val builder:ExtBuilderBase<*> = builder().apply(body)
     if (builder.changed) {
       if (origHandle.valid && handle.valid) {
-        return instance.updateNode(writableEngineData, builder.build())
+        return instance.updateNode(writableEngineData, builder.build()).apply {
+          assert(node == writableEngineData.nodeInstance(handle)) { "The returned node and the stored node don't match for node ${node.node.id}-${node.handle}(${node.state})" }
+          assert(this.instance.getChild(node.node.id)==node) { "The instance node and the node don't match for node ${node.node.id}-${node.handle}(${node.state})" }
+        }
       } else {
         return PNIPair(instance, this)
       }
@@ -265,11 +268,16 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
       failTaskCreation(transaction,processInstance, e)
       throw e
     }
+    val pniPair = run {
+      // TODO, get the updated state out of provideTask
+      val newInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
+      val newNodeInstance = transaction.readableEngineData.nodeInstance(handle).withPermission()
+      transaction.commit(newNodeInstance.update(transaction.writableEngineData, newInstance) { state = NodeInstanceState.Sent })
+    }
     if (shouldProgress) {
-      val (newInstance, newNodeInstance) = transaction.commit(update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Sent })
-      return newNodeInstance.takeTask(transaction, newInstance, messageService)
+      return pniPair.node.takeTask(transaction, pniPair.instance, messageService)
     } else
-      return PNIPair(processInstance, this)
+      return pniPair
 
   }
 
@@ -427,6 +435,36 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
         instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true, localEndpoint)
       }
     }
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other?.javaClass != javaClass) return false
+
+    other as ProcessNodeInstance
+
+    if (hProcessInstance != other.hProcessInstance) return false
+    if (state != other.state) return false
+    if (failureCause != other.failureCause) return false
+    if (node != other.node) return false
+    if (handle != other.handle) return false
+    if (results != other.results) return false
+    if (directPredecessors != other.directPredecessors) return false
+    if (owner != other.owner) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = hProcessInstance.hashCode()
+    result = 31 * result + state.hashCode()
+    result = 31 * result + (failureCause?.hashCode() ?: 0)
+    result = 31 * result + node.hashCode()
+    result = 31 * result + handle.hashCode()
+    result = 31 * result + results.hashCode()
+    result = 31 * result + directPredecessors.hashCode()
+    result = 31 * result + owner.hashCode()
+    return result
   }
 
   companion object {

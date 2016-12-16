@@ -137,4 +137,9 @@ interface ElementFactory<BUILDER, T:Any, TR: DBTransaction> {
   fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T)
 
   val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
+
+  /**
+   * Determine whether the two values are equal as far as storage is concerned. By default only on object identity
+   */
+  fun  isEqualForStorage(oldValue: T?, newValue: T): Boolean = (oldValue === newValue)
 }

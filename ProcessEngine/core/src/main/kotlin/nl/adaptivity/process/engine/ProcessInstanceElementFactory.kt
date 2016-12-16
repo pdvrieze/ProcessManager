@@ -159,6 +159,21 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
         SET(pi.uuid, value.uuid.toString())
       }
     }
+    // TODO Store inputs and outputs in postStore
+  }
+
+  override fun isEqualForStorage(oldValue: SecureObject<ProcessInstance>?, newValue: SecureObject<ProcessInstance>): Boolean {
+    if (oldValue==null) { return false; }
+    if (oldValue === newValue) { return true; }
+    return isEqualForStorage(oldValue.withPermission(), newValue.withPermission())
+  }
+
+  fun isEqualForStorage(oldValue: ProcessInstance, newValue: ProcessInstance): Boolean {
+    return oldValue.uuid == newValue.uuid &&
+        oldValue.getHandle() == newValue.getHandle() &&
+        oldValue.state == newValue.state &&
+        oldValue.name == newValue.name &&
+        oldValue.owner == newValue.owner
   }
 
   companion object {
