@@ -86,9 +86,12 @@ fun NamespaceContext.asQName(name: String): QName {
 
 }
 
-
 fun CharSequence?.xmlEncode(): String? {
-  if (this==null) return null
+  return this?.xmlEncode()
+}
+
+@JvmName("xmlEncodeNotNull")
+fun CharSequence.xmlEncode(): String {
 
   return buildString {
     for (c in this@xmlEncode) {
