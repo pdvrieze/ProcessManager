@@ -16,15 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.StringUtil
-import net.devrieze.util.Transaction
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.engine.ProcessTransaction
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.xml.*
-
 import javax.xml.namespace.QName
 
 
@@ -56,7 +52,7 @@ class ExecutableCondition(private val condition: String) : XmlSerializable, Cond
    * *
    * @return `true` if the condition holds, `false` if not
    */
-  fun eval(transaction: ProcessTransaction, instance: IExecutableProcessNodeInstance<*>): Boolean {
+  fun eval(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>): Boolean {
     // TODO process the condition as xpath, expose the node's defines as variables
     return true
   }

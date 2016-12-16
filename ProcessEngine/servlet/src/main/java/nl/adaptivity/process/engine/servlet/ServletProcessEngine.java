@@ -27,7 +27,7 @@ import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
-import nl.adaptivity.process.engine.ReadableProcessInstance.ProcessInstanceRef;
+import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
@@ -100,7 +100,7 @@ import java.util.logging.Logger;
 //             serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 public class ServletProcessEngine<T extends ProcessTransaction> extends EndpointServlet implements GenericEndpoint {
 
-  public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage, T, ProcessNodeInstance> {
+  public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage, MutableProcessEngineDataAccess, ProcessNodeInstance> {
 
     private EndpointDescriptorImpl mLocalEndPoint;
 
@@ -114,10 +114,10 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
     }
 
     @Override
-    public boolean sendMessage(T transaction, final NewServletMessage message, final ProcessNodeInstance instance) throws SQLException {
+    public boolean sendMessage(MutableProcessEngineDataAccess engineData, final NewServletMessage message, final ProcessNodeInstance instance) throws SQLException {
       final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instance.getHandle();
 
-      message.setHandle(transaction, instance);
+      message.setHandle(engineData, instance);
 
       Future<DataSource>                       result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener((Handle)nodeHandle, message.getOwner()), DataSource.class, new Class<?>[0]);
       if (result.isCancelled()) { return false; }
@@ -428,12 +428,12 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
     }
 
 
-    public <T extends ProcessTransaction> void setHandle(T transaction, final ProcessNodeInstance nodeInstance) throws SQLException {
+    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance nodeInstance) throws SQLException {
       mNodeInstance = nodeInstance;
 
       try {
 
-        mData = mNodeInstance.instantiateXmlPlaceholders(transaction, getSource(), false, mLocalEndpoint);
+        mData = mNodeInstance.instantiateXmlPlaceholders(engineData, getSource(), false, mLocalEndpoint);
 
       } catch (final FactoryConfigurationError | XmlException e) {
         throw new MessagingException(e);
@@ -795,10 +795,11 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
               final long handle,
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
-    final T                   transaction = mProcessEngine.startTransaction();
-    final ProcessNodeInstance result      = mProcessEngine.getNodeInstance(transaction, Handles.<ProcessNodeInstance>handle(handle), user);
-    if (result==null) { throw new FileNotFoundException(); }
-    return transaction.commit(result.toSerializable(transaction, mMessageService.getLocalEndpoint()));
+    try(final T transaction = mProcessEngine.startTransaction()) {
+      final ProcessNodeInstance result = mProcessEngine.getNodeInstance(transaction, Handles.<ProcessNodeInstance>handle(handle), user);
+      if (result == null) { throw new FileNotFoundException(); }
+      return transaction.commit(result.toSerializable(transaction.getWritableEngineData(), mMessageService.getLocalEndpoint()));
+    }
   }
 
   /**
@@ -877,12 +878,13 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
             ProcessNodeInstance inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
             assert inst.getState() == NodeInstanceState.Pending;
             if (inst.getState() == NodeInstanceState.Pending) {
+              ProcessInstance processInstance = transaction.getReadableEngineData().instance(inst.getHProcessInstance()).withPermission();
+
               final Builder builder = inst.builder();
               builder.setState(NodeInstanceState.Sent);
 
               // TODO in Kotlin this could use the update closure that would update by itself.
-              inst = builder.build();
-              transaction.getWritableEngineData().getNodeInstances().set(inst.getHandle(), inst);
+              processInstance.updateNode(transaction.getWritableEngineData(), builder.build());
             }
             transaction.commit();
           }

@@ -16,13 +16,11 @@
 
 package nl.adaptivity.process;
 
-import java.sql.SQLException;
-
-import net.devrieze.util.Transaction;
-
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IXmlMessage;
+
+import java.sql.SQLException;
 
 
 /**
@@ -33,7 +31,7 @@ import nl.adaptivity.process.processModel.IXmlMessage;
  * @param <U> The task that the message corresponds to. This allows for messages
  *          to be linked to tasks.
  */
-public interface IMessageService<T, TR extends Transaction,  U extends IProcessNodeInstance<U>> {
+public interface IMessageService<T, TR,  U extends IProcessNodeInstance<U>> {
 
   /**
    * Create a message.
@@ -46,14 +44,14 @@ public interface IMessageService<T, TR extends Transaction,  U extends IProcessN
   /**
    * Send a message.
    *
-   * @param transaction The transaction to use in sending.
+   * @param dataAccess The transaction to use in sending.
    * @param message The message to send. (Created by
    *          {@link #createMessage(IXmlMessage)}).
    * @param instance The task instance to link the sending to.
    * @return <code>true</code> or lack of failure, <code>false</code> on failure.
    * @throws SQLException
    */
-  boolean sendMessage(TR transaction, T message, U instance) throws SQLException;
+  boolean sendMessage(TR dataAccess, T message, U instance) throws SQLException;
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

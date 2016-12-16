@@ -61,7 +61,7 @@ class TestProcessEngine {
 
   internal lateinit var mProcessEngine: ProcessEngine<StubProcessTransaction>
   private val mLocalEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
-  private val mStubMessageService: StubMessageService<ProcessTransaction> = StubMessageService(mLocalEndpoint)
+  private val mStubMessageService: StubMessageService = StubMessageService(mLocalEndpoint)
   private val mStubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
     override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
       return StubProcessTransaction(engineData)
@@ -140,12 +140,12 @@ class TestProcessEngine {
     return readableEngineData.instance(instanceHandle).withPermission()
   }
 
-  private fun StubMessageService<ProcessTransaction>.messageNode(transaction: ProcessTransaction, index:Int): ProcessNodeInstance {
+  private fun StubMessageService.messageNode(transaction: ProcessTransaction, index:Int): ProcessNodeInstance {
     return transaction.readableEngineData.nodeInstance(this._messages[index].source).withPermission()
   }
 
   private fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance {
-    return getChild(transaction, name)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
+    return getChild(name)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
   }
 
   private val ProcessInstance.sortedFinished
@@ -254,6 +254,7 @@ class TestProcessEngine {
   fun testExecuteSingleActivity() {
     val model = getProcessModel("testModel1.xml")
     val transaction = mProcessEngine.startTransaction()
+    val engineData = transaction.writableEngineData
     val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
 
     val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
@@ -294,7 +295,7 @@ class TestProcessEngine {
       val taskNode = mStubMessageService.messageNode(transaction, 0)
       taskNode.assertSent()
       processInstance.assertActive(taskNode)
-      processInstance.finishTask(transaction, mStubMessageService, taskNode, null).node.assertComplete()
+      processInstance.finishTask(engineData, mStubMessageService, taskNode, null).node.assertComplete()
     }
 
     run {
@@ -312,6 +313,7 @@ class TestProcessEngine {
   @Test
   fun testSplitJoin1() {
     testProcess(simpleSplitModel) { transaction, model, instanceHandle ->
+      val engineData = transaction.writableEngineData
       run {
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -333,7 +335,7 @@ class TestProcessEngine {
             }
           }
 
-          instance.finishTask(transaction, mStubMessageService, ac1, null).node.assertComplete()
+          instance.finishTask(engineData, mStubMessageService, ac1, null).node.assertComplete()
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -346,7 +348,7 @@ class TestProcessEngine {
           instance.assertActive(ac2, split, join)
           // check join is in the pending set
 
-          ac2.startTask(transaction, instance, mStubMessageService)
+          ac2.startTask(engineData, instance, mStubMessageService)
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -358,7 +360,7 @@ class TestProcessEngine {
           instance.assertFinished(ac1, start)
           instance.assertActive(ac2, split, join)
 
-          instance.finishTask(transaction, mStubMessageService, ac2, null).node.assertComplete()
+          instance.finishTask(engineData, mStubMessageService, ac2, null).node.assertComplete()
         }
 
         run {
@@ -388,6 +390,7 @@ class TestProcessEngine {
   fun testGetDataFromTask() {
     val model = getProcessModel("testModel2.xml")
     val transaction = mProcessEngine.startTransaction()
+    val engineData = transaction.writableEngineData
     val modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal)
 
     val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
@@ -417,7 +420,7 @@ class TestProcessEngine {
     assertEquals(mStubMessageService.getMessageNode(0).handleValue, 2L) //We should have a new message with the new task (with the data)
     val ac2 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal)
 
-    val ac2Defines = ac2!!.getDefines(transaction)
+    val ac2Defines = ac2!!.getDefines(engineData)
     assertEquals(ac2Defines.size, 1)
 
 

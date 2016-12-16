@@ -26,7 +26,7 @@ package nl.adaptivity.process.engine.processModel
 
 import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessTransaction
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.DomUtil
@@ -39,12 +39,12 @@ import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 
 @Throws(SQLException::class)
-fun <T : ProcessTransaction, V : IExecutableProcessNodeInstance<V>> XmlDefineType.apply(transaction: T, node: V): ProcessData {
+fun <V : IExecutableProcessNodeInstance<V>> XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: V): ProcessData {
   val processData: ProcessData
   val refNode = refNode
   if (refNode != null) {
-    val predecessor = node.resolvePredecessor(transaction, refNode)
-    val origpair = predecessor!!.getResult(transaction, refName)
+    val predecessor = node.resolvePredecessor(engineData, refNode)
+    val origpair = predecessor!!.getResult(engineData, refName)
     if (origpair == null) {
       // TODO on missing data do something else than an empty value
       processData = ProcessData.missingData(name)

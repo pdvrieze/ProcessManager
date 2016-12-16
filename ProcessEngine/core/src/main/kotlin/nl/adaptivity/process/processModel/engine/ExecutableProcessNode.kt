@@ -17,15 +17,13 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.MutableProcessNode
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
@@ -70,21 +68,18 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
 
   /**
    * Should this node be able to be provided?
-
-
    * @param transaction
-   * *
+   *
    * @param instance The instance against which the condition should be evaluated.
-   * *
+   *
    * @return `true` if the node can be started, `false` if
-   * *         not.
+   *          not.
    */
-  fun <T : ProcessTransaction> condition(transaction: T, instance: IExecutableProcessNodeInstance<*>): Boolean
+  fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>): Boolean
 
   /**
    * Take action to make task available
-
-
+   *
    * @param transaction
    * *
    * @param messageService The message service to use for the communication.
@@ -94,8 +89,8 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * @return `true` if the task can/must be automatically taken
    */
   @Throws(SQLException::class)
-  fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> provideTask(transaction: T,
-                                                                                     messageService: IMessageService<V, T, in U>,
+  fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
+                                                                                     messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                      processInstance: ProcessInstance, instance: U): Boolean
 
   /**
@@ -107,10 +102,10 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * *
    * @return `true` if the task can/must be automatically started
    */
-  fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, T, in U>,
+  fun <V, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                   instance: U): Boolean
 
-  fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, T, in U>,
+  fun <V, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                    instance: U): Boolean
 
 

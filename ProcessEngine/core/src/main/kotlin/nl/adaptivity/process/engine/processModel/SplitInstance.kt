@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
-import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
@@ -27,8 +26,6 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
-import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
 import java.security.Principal
 
@@ -116,11 +113,11 @@ class SplitInstance : ProcessNodeInstance {
     }
   }
 
-  private fun successorInstances(transaction: ProcessTransaction): Sequence<ProcessNodeInstance> {
-    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
+  private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance> {
+    val instance = engineData.instance(hProcessInstance).withPermission()
     return node.successors
         .asSequence()
-        .mapNotNull { instance.getChild(transaction, it.id)?.withPermission() }
+        .mapNotNull { instance.getChild(it.id)?.withPermission() }
   }
 
   private fun isActiveOrCompleted(it: ProcessNodeInstance): Boolean {
@@ -132,19 +129,19 @@ class SplitInstance : ProcessNodeInstance {
     }
   }
 
-  override fun <U> startTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): ProcessInstance.PNIPair<SplitInstance> {
-    return update(transaction.writableEngineData, processInstance){ state=NodeInstanceState.Started }.let {
-      it.node.updateState(transaction, it.instance, messageService)
+  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): ProcessInstance.PNIPair<ProcessNodeInstance> {
+    return update(engineData, processInstance){ state=NodeInstanceState.Started }.let {
+      it.node.updateState(engineData, it.instance, messageService)
     }
   }
 
-  internal fun <U> updateState(transaction: ProcessTransaction, _processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): ProcessInstance.PNIPair<SplitInstance> {
+  internal fun <U> updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): ProcessInstance.PNIPair<SplitInstance> {
     // XXX really needs fixing
     var processInstance = _processInstance
     val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }
     var viableNodes: Int = 0
 
-    var canStartMore = successorInstances(transaction).filter { isActiveOrCompleted(it) }.count() < node.max
+    var canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
 
 
     for (successor in successorNodes) {
@@ -153,15 +150,15 @@ class SplitInstance : ProcessNodeInstance {
           throw IllegalStateException("Splits cannot be immediately followed by joins")
         }
 
-        val nonRegisteredSuccessor = successor.createOrReuseInstance(transaction.readableEngineData, processInstance, this.getHandle())
-        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending && nonRegisteredSuccessor.condition(transaction)) { // only if it can be executed, otherwise just drop it.
-          val pnipair = processInstance.addChild(transaction.writableEngineData, nonRegisteredSuccessor)
+        val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this.getHandle())
+        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending && nonRegisteredSuccessor.condition(engineData)) { // only if it can be executed, otherwise just drop it.
+          val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
 
-          transaction.commit()
+          engineData.commit()
 
-          processInstance = pnipair.node.provideTask(transaction,pnipair.instance, messageService).instance
+          processInstance = pnipair.node.provideTask(engineData, pnipair.instance, messageService).instance
 
-          canStartMore = successorInstances(transaction).filter { isActiveOrCompleted(it) }.count() < node.max
+          canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
         }
       }
       // in any case
@@ -171,20 +168,20 @@ class SplitInstance : ProcessNodeInstance {
 
     }
     if (viableNodes<node.min) { // No way to succeed, try to cancel anything that is not in a final state
-      processInstance = successorInstances(transaction)
+      processInstance = successorInstances(engineData)
           .filter { ! it.state.isFinal }
-          .fold(processInstance) { processInstance, it -> it.tryCancelTask(transaction, processInstance).instance }
+          .fold(processInstance) { processInstance, it -> it.tryCancelTask(engineData, processInstance).instance }
 
-      return update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Failed }
+      return update(engineData, processInstance) { state = NodeInstanceState.Failed }
     }
 
-    if (successorInstances(transaction).filter { isActiveOrCompleted(it) }.count()>=node.max) {
+    if (successorInstances(engineData).filter { isActiveOrCompleted(it) }.count()>=node.max) {
       // We have a maximum amount of successors
-      processInstance = successorInstances(transaction)
+      processInstance = successorInstances(engineData)
           .filter { !isActiveOrCompleted(it) }
-          .fold(processInstance) { processInstance, successor -> successor.cancelAndSkip(transaction, processInstance).instance }
+          .fold(processInstance) { processInstance, successor -> successor.cancelAndSkip(engineData, processInstance).instance }
 
-      return update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Complete }
+      return update(engineData, processInstance) { state = NodeInstanceState.Complete }
     }
 
     return ProcessInstance.PNIPair(processInstance, this) // the state is whatever it should be

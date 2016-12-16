@@ -20,7 +20,6 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
@@ -33,7 +32,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, T, ProcessNodeInstance> {
+class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, MutableProcessEngineDataAccess, ProcessNodeInstance> {
 
   class ExtMessage(val base: IXmlMessage, val source: Handle<out SecureObject<ProcessNodeInstance>>) : IXmlMessage by base
 
@@ -55,16 +54,16 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
     return mLocalEndpoint
   }
 
-  override fun sendMessage(transaction: T,
+  override fun sendMessage(engineData: MutableProcessEngineDataAccess,
                            protoMessage: IXmlMessage,
                            instance: ProcessNodeInstance): Boolean {
     assert(instance.getHandle().valid) { "Sending messages from invalid nodes is a bad idea" }
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
-      instance.instantiateXmlPlaceholders(transaction,
-                                          XMLFragmentStreamReader.from(protoMessage.messageBody),
-                                          false,
-                                          localEndpoint)
+      instance.instantiateXmlPlaceholders(engineData,
+          XMLFragmentStreamReader.from(protoMessage.messageBody),
+          false,
+          localEndpoint)
     } else {
       CompactFragment(Collections.emptyList(), CharArray(0))
     }
@@ -78,8 +77,8 @@ class StubMessageService<T:ProcessTransaction>(private val mLocalEndpoint: Endpo
 
     processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
     _messages.add(ExtMessage(processedMessage, instance.getHandle()))
-    val processInstance = transaction.readableEngineData.instance(instance.hProcessInstance).withPermission()
-    instance.update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Sent }
+    val processInstance = engineData.instance(instance.hProcessInstance).withPermission()
+    instance.update(engineData, processInstance) { state = NodeInstanceState.Sent }
     return true
   }
 }

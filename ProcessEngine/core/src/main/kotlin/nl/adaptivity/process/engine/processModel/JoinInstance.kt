@@ -26,8 +26,6 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
 import java.security.Principal
@@ -124,10 +122,10 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  fun addPredecessor(transaction: ProcessTransaction, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): PNIPair<JoinInstance>? {
+  fun addPredecessor(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): PNIPair<JoinInstance>? {
 
-    if (canAddNode(transaction) && predecessor !in directPredecessors) {
-      return updateJoin(transaction.writableEngineData, processInstance) {
+    if (canAddNode(engineData) && predecessor !in directPredecessors) {
+      return updateJoin(engineData, processInstance) {
         predecessors.add(predecessor)
       }
     }
@@ -135,30 +133,30 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  override fun <V> startTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<V, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <V> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     if (node.startTask(messageService, this)) {
-      return updateTaskState(transaction, processInstance)
+      return updateTaskState(engineData, processInstance)
     }
     return PNIPair(processInstance, this)
   }
 
-  override fun finishTask(transaction: ProcessTransaction, processInstance: ProcessInstance, resultPayload: Node?)
-        = super.finishTask(transaction, processInstance, resultPayload) as PNIPair<JoinInstance>
+  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?)
+        = super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
 
-  override fun <U> takeTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>)
-        = super.takeTask(transaction, processInstance, messageService) as PNIPair<JoinInstance>
+  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>)
+        = super.takeTask(engineData, processInstance, messageService) as PNIPair<JoinInstance>
 
-  override fun cancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance)
-        = super.cancelTask(transaction, processInstance) as PNIPair<JoinInstance>
+  override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
+        = super.cancelTask(engineData, processInstance) as PNIPair<JoinInstance>
 
-  override fun tryCancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance)
-        = super.tryCancelTask(transaction, processInstance) as PNIPair<JoinInstance>
+  override fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
+        = super.tryCancelTask(engineData, processInstance) as PNIPair<JoinInstance>
 
-  override fun failTask(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable)
-        = super.failTask(transaction, processInstance, cause) as PNIPair<JoinInstance>
+  override fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable)
+        = super.failTask(engineData, processInstance, cause) as PNIPair<JoinInstance>
 
-  override fun failTaskCreation(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable)
-        = super.failTaskCreation(transaction, processInstance, cause) as PNIPair<JoinInstance>
+  override fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable)
+        = super.failTaskCreation(engineData, processInstance, cause) as PNIPair<JoinInstance>
 
   /**
    * Update the state of the task, based on the predecessors
@@ -169,10 +167,10 @@ class JoinInstance : ProcessNodeInstance {
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  private fun updateTaskState(transaction: ProcessTransaction, processInstance: ProcessInstance): PNIPair<JoinInstance> {
+  private fun updateTaskState(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<JoinInstance> {
 
-    fun next() = updateJoin(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Started }.let {
-      it.node.finishTask(transaction, it.instance, null)
+    fun next() = updateJoin(engineData, processInstance) { state = NodeInstanceState.Started }.let {
+      it.node.finishTask(engineData, it.instance, null)
     }
 
     if (state == NodeInstanceState.Complete) return PNIPair(processInstance, this) // Don't update if we're already complete
@@ -187,20 +185,20 @@ class JoinInstance : ProcessNodeInstance {
 
     var complete = 0
     var skipped = 0
-    for (predecessor in resolvePredecessors(transaction)) {
+    for (predecessor in resolvePredecessors(engineData)) {
       when (predecessor.state) {
         NodeInstanceState.Complete                            -> complete += 1
         NodeInstanceState.Cancelled, NodeInstanceState.Failed -> skipped += 1
       }// do nothing
     }
     if (totalPossiblePredecessors - skipped < join.min) {
-      cancelNoncompletedPredecessors(transaction, processInstance).let { processInstance ->
-        failTask(transaction, processInstance, ProcessException("Too many predecessors have failed"))
+      cancelNoncompletedPredecessors(engineData, processInstance).let { processInstance ->
+        failTask(engineData, processInstance, ProcessException("Too many predecessors have failed"))
       }
     }
 
     if (complete >= join.min) {
-      if (complete >= join.max || processInstance.getActivePredecessorsFor(transaction, join).isEmpty()) {
+      if (complete >= join.max || processInstance.getActivePredecessorsFor(engineData, join).isEmpty()) {
         return next()
       }
     }
@@ -208,25 +206,25 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  private fun cancelNoncompletedPredecessors(transaction: ProcessTransaction, processInstance: ProcessInstance): ProcessInstance {
-    val preds = processInstance.getActivePredecessorsFor(transaction, node)
-    return preds.fold(processInstance) { processInstance, pred -> pred.tryCancelTask(transaction, processInstance).instance }
+  private fun cancelNoncompletedPredecessors(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance {
+    val preds = processInstance.getActivePredecessorsFor(engineData, node)
+    return preds.fold(processInstance) { processInstance, pred -> pred.tryCancelTask(engineData, processInstance).instance }
   }
 
 
   @Throws(SQLException::class)
-  override fun <V> provideTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<V, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <V> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     if (!isFinished) {
-      val shouldProgress = node.provideTask(transaction, messageService,processInstance, this)
+      val shouldProgress = node.provideTask(engineData, messageService, processInstance, this)
       if (shouldProgress) {
-        val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-        val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
+        val processInstance = engineData.instance(hProcessInstance).withPermission()
+        val directSuccessors = processInstance.getDirectSuccessors(engineData, this)
         val canAdd = directSuccessors
               .asSequence()
-              .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
+              .map { engineData.nodeInstance(it).withPermission() }
               .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
         if (canAdd) {
-          return updateJoin(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> pair.node.takeTask(transaction,pair.instance, messageService) }
+          return updateJoin(engineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> pair.node.takeTask(engineData, pair.instance, messageService) }
         }
         return PNIPair(processInstance, this) // no need to update as the initial state is already pending.
       }
@@ -236,26 +234,26 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  override fun tickle(transaction: ProcessTransaction,
-                      instance: ProcessInstance, messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>): PNIPair<JoinInstance> {
-    val (processInstance, self) = super.tickle(transaction,instance, messageService) as PNIPair<JoinInstance>
+  override fun tickle(engineData: MutableProcessEngineDataAccess,
+                      instance: ProcessInstance, messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<JoinInstance> {
+    val (processInstance, self) = super.tickle(engineData, instance, messageService) as PNIPair<JoinInstance>
     val missingIdentifiers = TreeSet<Identified>(node.predecessors)
-    val data = transaction.readableEngineData
+    val data = engineData
 
     directPredecessors
           .forEach { missingIdentifiers
                 .remove(data.nodeInstance(it).withPermission().node) }
 
-    return self.updateJoin(transaction.writableEngineData, processInstance) {
-      val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
+    return self.updateJoin(engineData, processInstance) {
+      val processInstance = engineData.instance(hProcessInstance).withPermission()
       missingIdentifiers.asSequence()
-            .mapNotNull { processInstance.getNodeInstance(transaction, it) }
+            .mapNotNull { processInstance.getNodeInstance(it) }
             .forEach { predecessors.add(it.getHandle()) }
     }.let { updatedPair ->
-      updatedPair.node.updateTaskState(transaction, updatedPair.instance)
+      updatedPair.node.updateTaskState(engineData, updatedPair.instance)
     }.let { updatedPair ->
       if (updatedPair.node.state==NodeInstanceState.Started) {
-        updatedPair.node.finishTask(transaction, updatedPair.instance)
+        updatedPair.node.finishTask(engineData = engineData, processInstance = updatedPair.instance)
       } else {
         updatedPair
       }
@@ -263,15 +261,15 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  private fun canAddNode(transaction: ProcessTransaction): Boolean {
+  private fun canAddNode(engineData: ProcessEngineDataAccess): Boolean {
     if (!isFinished) {
       return true
     }
-    val processInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    val directSuccessors = processInstance.getDirectSuccessors(transaction, this)
+    val processInstance = engineData.instance(hProcessInstance).withPermission()
+    val directSuccessors = processInstance.getDirectSuccessors(engineData, this)
 
     return directSuccessors.asSequence()
-          .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
+          .map { engineData.nodeInstance(it).withPermission() }
           .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
 
   }

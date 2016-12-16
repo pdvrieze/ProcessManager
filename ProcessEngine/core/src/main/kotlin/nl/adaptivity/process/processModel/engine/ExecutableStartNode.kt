@@ -17,10 +17,10 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
@@ -28,7 +28,9 @@ import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xml.deserializeHelper
 import java.sql.SQLException
 
 
@@ -76,24 +78,21 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     return ProcessNodeInstance(this, predecessor, processInstance)
   }
 
-  override fun <T : ProcessTransaction> condition(transaction: T,
-                                                  instance: IExecutableProcessNodeInstance<*>): Boolean {
-    return true
-  }
+  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
 
   @Throws(SQLException::class)
-  override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> provideTask(transaction: T,
-                                                                                              messageService: IMessageService<V, T, in U>,
+  override fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
+                                                                                              messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                               processInstance: ProcessInstance, instance: U): Boolean {
     return true
   }
 
-  override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, T, in U>,
+  override fun <V, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                            instance: U): Boolean {
     return true
   }
 
-  override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, T, in U>,
+  override fun <V, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                             instance: U): Boolean {
     return true
   }

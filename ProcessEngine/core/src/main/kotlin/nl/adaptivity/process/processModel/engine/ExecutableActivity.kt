@@ -20,13 +20,12 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
@@ -104,8 +103,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
   /**
    * Determine whether the process can start.
    */
-  override fun <T : ProcessTransaction> condition(transaction: T, instance: IExecutableProcessNodeInstance<*>): Boolean {
-    return _condition?.run { eval(transaction, instance) } ?: true
+  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>): Boolean {
+    return _condition?.run { eval(engineData, instance) } ?: true
   }
 
   /**
@@ -124,17 +123,17 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
    * @todo handle imports.
    */
   @Throws(SQLException::class)
-  override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> provideTask(transaction: T,
-                                                                                              messageService: IMessageService<V, T, in U>,
+  override fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
+                                                                                              messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                               processInstance: ProcessInstance, instance: U): Boolean {
     // TODO handle imports
     val message = messageService.createMessage(message)
     try {
-      if (!messageService.sendMessage(transaction, message, instance)) {
-        instance.failTaskCreation(transaction, processInstance, MessagingException("Failure to send message"))
+      if (!messageService.sendMessage(engineData, message, instance)) {
+        instance.failTaskCreation(engineData, processInstance, MessagingException("Failure to send message"))
       }
     } catch (e: RuntimeException) {
-      instance.failTaskCreation(transaction, processInstance, e)
+      instance.failTaskCreation(engineData, processInstance, e)
       throw e
     }
 
@@ -147,7 +146,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
 
    * @return `false`
    */
-  override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, T, in U>,
+  override fun <V, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                            instance: U): Boolean {
     return false
   }
@@ -158,7 +157,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
 
    * @return `false`
    */
-  override fun <V, T : ProcessTransaction, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, T, in U>,
+  override fun <V, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
                                                                                             instance: U): Boolean {
     return false
   }

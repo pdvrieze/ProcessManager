@@ -83,7 +83,7 @@ private fun <T : ProcessTransaction, V:Any> wrapModelCache(base: IMutableProcess
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>,
                                                 private val engineData: IProcessEngineData<TRXXX>) {
 
   class DelegateProcessEngineData<T: ProcessTransaction>(
@@ -443,7 +443,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
       throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes")
     }
     val instance = model.withPermission(mSecurityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
-      ProcessInstance(user, it, name, uuid, State.NEW)
+      ProcessInstance(transaction.writableEngineData, it) {
+        this.instancename = name
+        this.uuid = uuid
+        this.state = State.NEW
+        this.owner = user
+      }
     }
 
     engineData.inWriteTransaction(transaction) {
@@ -603,12 +608,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
           when (newState) {
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
             Acknowledged -> return task.update(transaction.writableEngineData, pi) { state = newState }.node.state // Record the state, do nothing else.
-            Taken        -> task.takeTask(transaction, pi, messageService)
-            Started      -> task.startTask(transaction, pi, messageService)
+            Taken        -> task.takeTask(this, pi, messageService)
+            Started      -> task.startTask(this, pi, messageService)
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
           // TODO don't just make up a failure cause
-            Failed       -> task.failTask(transaction, pi, IllegalArgumentException("Missing failure cause"))
-            Cancelled    -> task.cancelTask(transaction, pi)
+            Failed       -> task.failTask(this, pi, IllegalArgumentException("Missing failure cause"))
+            Cancelled    -> task.cancelTask(this, pi)
             else         -> throw IllegalArgumentException("Unsupported state :" + newState)
           }
           return task.state
@@ -624,7 +629,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         val pi = instance(task.hProcessInstance).withPermission()
         try {
           synchronized(pi) {
-            return pi.finishTask(transaction, messageService, task, payload).node
+            return pi.finishTask(this, messageService, task, payload).node
           }
         } catch (e: Exception) {
           engineData.invalidateCachePNI(handle)
@@ -685,7 +690,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   fun errorTask(transaction: TRXXX, handle: Handle<out ProcessNodeInstance>, cause: Throwable, user: Principal) {
     engineData.inWriteTransaction(transaction) {
       nodeInstances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
-        task.failTask(transaction, instance(task.hProcessInstance).withPermission(), cause)
+        task.failTask(this, instance(task.hProcessInstance).withPermission(), cause)
       }
     }
   }
@@ -719,7 +724,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
     @JvmStatic
-    fun newInstance(messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>): ProcessEngine<*> {
+    fun newInstance(messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>): ProcessEngine<*> {
       // TODO enable optional caching
       val engineData = DBProcessEngineData()
       val pe = ProcessEngine(messageService, engineData)
@@ -729,7 +734,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     @JvmStatic
     @JvmName("newTestInstance")
-    internal fun <T : ProcessTransaction> newTestInstance(messageService: IMessageService<*, ProcessTransaction, ProcessNodeInstance>,
+    internal fun <T : ProcessTransaction> newTestInstance(messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>,
                                                           transactionFactory: ProcessTransactionFactory<T>,
                                                           processModels: IMutableProcessModelMap<T>,
                                                           processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,

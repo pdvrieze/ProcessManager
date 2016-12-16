@@ -24,12 +24,10 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.Activity
-import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
-import nl.adaptivity.process.processModel.engine.XmlStartNode
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
@@ -37,7 +35,6 @@ import org.w3c.dom.Node
 import java.io.CharArrayWriter
 import java.security.Principal
 import java.sql.SQLException
-import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.xml.transform.Result
@@ -192,23 +189,23 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  open fun tickle(transaction: ProcessTransaction, instance: ProcessInstance, messageService: IMessageService<*, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     return when (state) {
       NodeInstanceState.FailRetry,
-      NodeInstanceState.Pending -> provideTask(transaction, instance, messageService)
+      NodeInstanceState.Pending -> provideTask(engineData, instance, messageService)
       else -> PNIPair(instance, this)
     }// ignore
   }
 
   @Throws(SQLException::class)
-  override fun getResult(transaction: ProcessTransaction, name: String): ProcessData? {
+  override fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
     return results.firstOrNull { name == it.name }
   }
 
   @Throws(SQLException::class)
-  fun getDefines(transaction: ProcessTransaction): List<ProcessData> {
+  fun getDefines(engineData: ProcessEngineDataAccess): List<ProcessData> {
     return node.defines.map {
-      it.apply(transaction, this)
+      it.applyData(engineData, this)
     }
   }
 
@@ -222,23 +219,23 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  fun resolvePredecessors(transaction: ProcessTransaction): Collection<ProcessNodeInstance> {
+  fun resolvePredecessors(engineData: ProcessEngineDataAccess): Collection<ProcessNodeInstance> {
     return directPredecessors.asSequence().map {
-            transaction.readableEngineData.nodeInstance(it).withPermission()
+            engineData.nodeInstance(it).withPermission()
           }.toList()
   }
 
   @Throws(SQLException::class)
-  fun getPredecessor(transaction: ProcessTransaction, nodeName: String): Handle<out SecureObject<ProcessNodeInstance>>? {
+  fun getPredecessor(engineData: ProcessEngineDataAccess, nodeName: String): Handle<out SecureObject<ProcessNodeInstance>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     directPredecessors
           .asSequence()
-          .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
+          .map { engineData.nodeInstance(it).withPermission() }
           .forEach {
             if (nodeName == it.node.id) {
               return it.handle
             } else {
-              val result = it.getPredecessor(transaction, nodeName)
+              val result = it.getPredecessor(engineData, nodeName)
               if (result != null) {
                 return result
               }
@@ -248,86 +245,89 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun resolvePredecessor(transaction: ProcessTransaction, nodeName: String): ProcessNodeInstance? {
-    val handle = getPredecessor(transaction, nodeName) ?: throw NullPointerException("Missing predecessor with name ${nodeName} referenced from node ${node.id}")
-    return transaction.readableEngineData.nodeInstances[handle]?.withPermission()
+  override fun resolvePredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance? {
+    val handle = getPredecessor(engineData, nodeName) ?: throw NullPointerException("Missing predecessor with name ${nodeName} referenced from node ${node.id}")
+    return engineData.nodeInstances[handle]?.withPermission()
   }
 
   fun getHandleValue(): Long {
     return handle.handleValue
   }
 
-  fun condition(transaction: ProcessTransaction) = node.condition(transaction, this)
+  fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
 
   @Throws(SQLException::class)
-  override fun <U> provideTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <U> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     val shouldProgress = try {
-      node.provideTask(transaction, messageService, processInstance, this)
+      node.provideTask(engineData, messageService, processInstance, this)
     } catch (e: Exception) {
       // TODO later move failretry to fail
-      failTaskCreation(transaction,processInstance, e)
+      try {
+        failTaskCreation(engineData, engineData.instance(processInstance.getHandle()).withPermission(), e)
+      } catch (f:Exception) {
+        e.addSuppressed(f)
+      }
       throw e
     }
     val pniPair = run {
       // TODO, get the updated state out of provideTask
-      val newInstance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-      val newNodeInstance = transaction.readableEngineData.nodeInstance(handle).withPermission()
-      transaction.commit(newNodeInstance.update(transaction.writableEngineData, newInstance) { state = NodeInstanceState.Sent })
+      val newInstance = engineData.instance(hProcessInstance).withPermission()
+      val newNodeInstance = engineData.nodeInstance(handle).withPermission()
+      newNodeInstance.update(engineData, newInstance) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
     }
     if (shouldProgress) {
-      return pniPair.node.takeTask(transaction, pniPair.instance, messageService)
+      return pniPair.node.takeTask(engineData, pniPair.instance, messageService)
     } else
       return pniPair
 
   }
 
-  @Throws(SQLException::class)
-  override fun <U> takeTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     val startNext = node.takeTask(messageService, this)
-    val updatedInstances = update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Taken }
+    val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Taken }
 
-    return if (startNext) updatedInstances.node.startTask(transaction, updatedInstances.instance, messageService) else updatedInstances
+    return if (startNext) updatedInstances.node.startTask(engineData, updatedInstances.instance, messageService) else updatedInstances
   }
 
   @Throws(SQLException::class)
-  override fun <U> startTask(transaction: ProcessTransaction, processInstance: ProcessInstance, messageService: IMessageService<U, ProcessTransaction, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
     val startNext = node.startTask(messageService, this)
-    val updatedInstances = update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Started }
+    val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Started }
     return if (startNext) {
-      updatedInstances.instance.finishTask(transaction, messageService, updatedInstances.node, null)
+      updatedInstances.instance.finishTask(engineData, messageService, updatedInstances.node, null)
     } else updatedInstances
   }
 
   @Throws(SQLException::class)
   @Deprecated("This is dangerous, it will not update the instance")
-  internal open fun finishTask(transaction: ProcessTransaction, processInstance: ProcessInstance, resultPayload: Node? = null): PNIPair<ProcessNodeInstance> {
-    return transaction.commit(update(transaction.writableEngineData, processInstance) {
+  internal open fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node? = null): PNIPair<ProcessNodeInstance> {
+    return update(engineData, processInstance) {
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
       state = NodeInstanceState.Complete
-    })
+    }.apply { engineData.commit() }
   }
 
-  fun cancelAndSkip(transaction: ProcessTransaction, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
+  fun cancelAndSkip(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     return when (state) {
       NodeInstanceState.Pending,
-      NodeInstanceState.FailRetry -> update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Skipped }
+      NodeInstanceState.FailRetry -> update(engineData, processInstance) { state = NodeInstanceState.Skipped }
       NodeInstanceState.Sent,
       NodeInstanceState.Taken,
       NodeInstanceState.Acknowledged ->
-      cancelTask(transaction, processInstance).update(transaction.writableEngineData) { state = NodeInstanceState.Skipped }
+          cancelTask(engineData, processInstance).update(engineData) { state = NodeInstanceState.Skipped }
       else -> PNIPair(processInstance, this)
     }
   }
 
   @Throws(SQLException::class)
-  override fun cancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
-    return update(transaction.writableEngineData, processInstance) { state = NodeInstanceState.Cancelled }
+  override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
+    return update(engineData, processInstance) { state = NodeInstanceState.Cancelled }
   }
 
   @Throws(SQLException::class)
-  override fun tryCancelTask(transaction: ProcessTransaction, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
+  override fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     try {
-      return cancelTask(transaction, processInstance)
+      return cancelTask(engineData, processInstance)
     } catch (e: IllegalArgumentException) {
       logger.log(Level.WARNING, "Task could not be cancelled")
       return PNIPair(processInstance, this)
@@ -339,73 +339,73 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun failTask(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
-    return update(transaction.writableEngineData, processInstance) {
+  override fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
+    return update(engineData, processInstance) {
       failureCause = cause
       state = if (state == NodeInstanceState.Pending) NodeInstanceState.FailRetry else NodeInstanceState.Failed
     }
   }
 
   @Throws(SQLException::class)
-  override fun failTaskCreation(transaction: ProcessTransaction, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
-    return transaction.commit(update(transaction.writableEngineData, processInstance) {
+  override fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
+    return update(engineData, processInstance) {
       failureCause = cause
       state = NodeInstanceState.FailRetry
-    })
+    }.apply { engineData.commit() }
   }
 
   @Throws(SQLException::class, XmlException::class)
-  fun instantiateXmlPlaceholders(transaction: ProcessTransaction,
+  fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  source: Source,
                                  result: Result,
                                  localEndpoint: EndpointDescriptor) {
-    instantiateXmlPlaceholders(transaction, source, true, localEndpoint)
+    instantiateXmlPlaceholders(engineData, source, true, localEndpoint)
   }
 
   @Throws(XmlException::class, SQLException::class)
-  fun instantiateXmlPlaceholders(transaction: ProcessTransaction,
+  fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  xmlReader: XmlReader,
                                  out: XmlWriter,
                                  removeWhitespace: Boolean,
                                  localEndpoint: EndpointDescriptor) {
-    val defines = getDefines(transaction)
+    val defines = getDefines(engineData)
     val transformer = PETransformer.create(ProcessNodeInstanceContext(this,
-                                                                      defines,
-                                                                      state == NodeInstanceState.Complete, localEndpoint),
-                                           removeWhitespace)
+        defines,
+        state == NodeInstanceState.Complete, localEndpoint),
+        removeWhitespace)
     transformer.transform(xmlReader, out.filterSubstream())
   }
 
   @Throws(SQLException::class, XmlException::class)
-  fun instantiateXmlPlaceholders(transaction: ProcessTransaction,
+  fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  source: Source,
                                  removeWhitespace: Boolean,
                                  localEndpoint: EndpointDescriptor): CompactFragment {
     val xmlReader = XmlStreaming.newReader(source)
-    return instantiateXmlPlaceholders(transaction, xmlReader, removeWhitespace, localEndpoint)
+    return instantiateXmlPlaceholders(engineData, xmlReader, removeWhitespace, localEndpoint)
   }
 
   @Throws(XmlException::class, SQLException::class)
-  fun instantiateXmlPlaceholders(transaction: ProcessTransaction,
+  fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  xmlReader: XmlReader,
                                  removeWhitespace: Boolean,
                                  localEndpoint: EndpointDescriptor): WritableCompactFragment {
     val caw = CharArrayWriter()
 
     val writer = XmlStreaming.newWriter(caw, true)
-    instantiateXmlPlaceholders(transaction, xmlReader, writer, removeWhitespace, localEndpoint)
+    instantiateXmlPlaceholders(engineData, xmlReader, writer, removeWhitespace, localEndpoint)
     writer.close()
     return WritableCompactFragment(emptyList<Namespace>(), caw.toCharArray())
   }
 
   @Throws(SQLException::class, XmlException::class)
-  fun toSerializable(transaction: ProcessTransaction, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
+  fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
     val builder = ExtBuilder(this)
 
     val body:CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
       try {
         val xmlReader = XMLFragmentStreamReader.from(message.messageBody)
-        instantiateXmlPlaceholders(transaction, xmlReader, true, localEndpoint)
+        instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)
       } catch (e: XmlException) {
         logger.log(Level.WARNING, "Error processing body", e)
         throw e
@@ -416,7 +416,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(XmlException::class)
-  override fun serialize(transaction: ProcessTransaction,
+  override fun serialize(engineData: ProcessEngineDataAccess,
                          out: XmlWriter,
                          localEndpoint: EndpointDescriptor) {
     out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
@@ -432,7 +432,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
       serializeAll(results)
 
       (node as? Activity<*,*>)?.message?.messageBody?.let { body ->
-        instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(body), out, true, localEndpoint)
+        instantiateXmlPlaceholders(engineData, XMLFragmentStreamReader.from(body), out, true, localEndpoint)
       }
     }
   }
@@ -486,7 +486,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
                                                            node: ExecutableProcessNode): List<ComparableHandle<out SecureObject<ProcessNodeInstance>>> {
 
       return node.predecessors.asSequence()
-            .map { processInstance.getNodeInstance(transaction, it) }
+            .map { processInstance.getNodeInstance(it) }
             .filterNotNull()
             .map { it.handle }
             .toList()
