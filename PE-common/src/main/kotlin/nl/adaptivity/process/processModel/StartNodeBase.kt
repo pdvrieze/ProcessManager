@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.XmlException
@@ -28,9 +27,9 @@ import javax.xml.namespace.QName
 
 
 /**
- * Created by pdvrieze on 26/11/15.
+ * Base class for start nodes. It knows about the data
  */
-abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, StartNode<T, M>, SimpleXmlDeserializable {
+abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, StartNode<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M>, SimpleXmlDeserializable {
     override val idBase:String
@@ -51,7 +50,7 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
 
     constructor(node: StartNode<*, *>) : super(node)
 
-    abstract override fun build(newOwner: M): StartNodeBase<T, M>
+    abstract override fun build(newOwner: M?): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -90,26 +89,9 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
 
   @JvmOverloads constructor(orig: StartNode<*, *>, newOwnerModel: M?) : super(orig, newOwnerModel)
 
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
-
-  @Throws(XmlException::class)
-  override fun deserializeChild(reader: XmlReader): Boolean {
-    if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-      when (reader.localName.toString()) {
-        "import" -> {
-          (results as MutableList).add(XmlResultType.deserialize(reader))
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-  override fun deserializeChildText(elementText: CharSequence): Boolean {
-    return false
-  }
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {
@@ -122,9 +104,6 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
     return visitor.visitStartNode(this)
   }
-
-  override val elementName: QName
-    get() = StartNode.ELEMENTNAME
 
   override val maxPredecessorCount: Int get() = 0
 }

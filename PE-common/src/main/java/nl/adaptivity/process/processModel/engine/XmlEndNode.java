@@ -49,7 +49,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
 
     @NotNull
     @Override
-    public XmlEndNode build(@NotNull final XmlProcessModel newOwner) {
+    public XmlEndNode build(@Nullable final XmlProcessModel newOwner) {
       return new XmlEndNode(this, newOwner);
     }
   }
@@ -85,7 +85,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
   @NotNull
   public static XmlEndNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return XmlUtil.<XmlEndNode>deserializeHelper(new XmlEndNode(ownerModel), in);
+    return XmlUtil.<XmlEndNode.Builder>deserializeHelper(new XmlEndNode.Builder(), in).build(ownerModel);
   }
 
   @NotNull

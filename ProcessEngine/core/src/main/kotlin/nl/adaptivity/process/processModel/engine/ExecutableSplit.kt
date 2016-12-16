@@ -25,10 +25,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.Split
-import nl.adaptivity.process.processModel.SplitBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -50,7 +47,7 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
                 max: Int = -1) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
     constructor(node: Split<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel): ExecutableSplit {
+    override fun build(newOwner: ExecutableProcessModel?): ExecutableSplit {
       return ExecutableSplit(this, newOwner)
     }
   }
@@ -68,12 +65,12 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
 
   constructor(orig: Split<*, *>, newOwner: ExecutableProcessModel) : super(orig, newOwner)
 
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : super(builder, newOwnerModel)
 
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
     return SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
   }
 
@@ -106,7 +103,7 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
 
     @Throws(XmlException::class)
     fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableSplit {
-      return ExecutableSplit(ownerModel).deserializeHelper(reader)
+      return ExecutableSplit.Builder().deserializeHelper(reader).build(ownerModel)
     }
   }
 

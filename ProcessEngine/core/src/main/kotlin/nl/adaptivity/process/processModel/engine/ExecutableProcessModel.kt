@@ -272,14 +272,14 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
 fun toExecutableProcessNode(newOwner: ExecutableProcessModel, node: ProcessNode<*, *>): ExecutableProcessNode {
   return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
-    override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode, newOwner)
+    override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode.builder(), newOwner)
 
-    override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity, newOwner)
+    override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity.builder(), newOwner)
 
-    override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split, newOwner)
+    override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split.builder(), newOwner)
 
-    override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join, newOwner)
+    override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join.builder(), newOwner)
 
-    override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode, newOwner)
+    override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode.builder(), newOwner)
   })
 }

@@ -47,7 +47,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
       }
     }
 
-    fun build(newOwner: M): ProcessNode<T,M>
+    fun build(newOwner: M?): ProcessNode<T, M>
 
     fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())

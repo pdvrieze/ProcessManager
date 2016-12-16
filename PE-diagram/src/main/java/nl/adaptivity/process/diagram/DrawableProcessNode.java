@@ -26,6 +26,7 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
@@ -34,7 +35,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
     @NotNull
     @Override
-    DrawableProcessNode build(@NotNull DrawableProcessModel newOwner);
+    DrawableProcessNode build(@Nullable DrawableProcessModel newOwner);
   }
 
   void setLabel(String label);

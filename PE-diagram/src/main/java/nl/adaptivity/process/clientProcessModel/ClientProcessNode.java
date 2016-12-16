@@ -36,7 +36,7 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
     @NotNull
     @Override
-    ClientProcessNode<T, M> build(@NotNull M newOwner);
+    ClientProcessNode<T, M> build(@Nullable M newOwner);
   }
 
   boolean isCompat();

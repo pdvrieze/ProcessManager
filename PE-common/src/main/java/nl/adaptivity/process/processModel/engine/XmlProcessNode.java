@@ -20,6 +20,7 @@ import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.XmlDeserializable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -31,7 +32,7 @@ public interface XmlProcessNode extends MutableProcessNode<XmlProcessNode, XmlPr
 
     @NotNull
     @Override
-    XmlProcessNode build(@NotNull XmlProcessModel newOwner);
+    XmlProcessNode build(@Nullable XmlProcessModel newOwner);
   }
 
   @NotNull

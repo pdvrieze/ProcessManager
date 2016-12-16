@@ -28,7 +28,7 @@ interface Join<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : JoinSplit.Builder<T, M> {
 
-    override fun build(newOwner: M): Join<T, M>
+    override fun build(newOwner: M?): ProcessNode<T, M>
 
     var successor: Identifiable?
       get() = successors.firstOrNull()

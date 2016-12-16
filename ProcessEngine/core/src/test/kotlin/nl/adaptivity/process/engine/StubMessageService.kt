@@ -34,7 +34,7 @@ import java.util.*
  */
 class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, MutableProcessEngineDataAccess, ProcessNodeInstance> {
 
-  class ExtMessage(val base: IXmlMessage, val source: Handle<out SecureObject<ProcessNodeInstance>>) : IXmlMessage by base
+  class ExtMessage(val base: IXmlMessage, val source: ProcessNodeInstance.HandleT) : IXmlMessage by base
 
   var _messages = mutableListOf<ExtMessage>()
 
@@ -46,7 +46,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     _messages.clear()
   }
 
-  fun getMessageNode(i: Int): Handle<out SecureObject<ProcessNodeInstance>> {
+  fun getMessageNode(i: Int): ProcessNodeInstance.HandleT {
     return _messages[i].source
   }
 

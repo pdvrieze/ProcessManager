@@ -21,7 +21,7 @@ interface JoinSplit<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
 
-    override fun build(newOwner: M): JoinSplit<T, M>
+    override fun build(newOwner: M?): ProcessNode<T, M>
 
     var min:Int
     var max:Int

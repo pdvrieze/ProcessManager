@@ -20,6 +20,7 @@ package nl.adaptivity.process.clientProcessModel;
 import nl.adaptivity.process.processModel.JoinSplit;
 import nl.adaptivity.process.processModel.JoinSplit.Builder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public interface ClientJoinSplit<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinSplit<T, M>, ClientProcessNode<T, M> {
@@ -28,7 +29,7 @@ public interface ClientJoinSplit<T extends ClientProcessNode<T, M>, M extends Cl
 
     @NotNull
     @Override
-    ClientJoinSplit<T, M> build(@NotNull M newOwner);
+    ClientJoinSplit<T, M> build(@Nullable M newOwner);
   }
 
   @NotNull

@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
@@ -32,9 +30,9 @@ import java.sql.SQLException
 
 
 /**
- * Created by pdvrieze on 27/11/16.
+ * Activity version that is used for process execution.
  */
-class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
 
@@ -53,50 +51,26 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
 
     constructor(node: Activity<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel) = ExecutableActivity(this, newOwner)
+    override fun build(newOwner: ExecutableProcessModel?) = ExecutableActivity(this, newOwner)
   }
 
-  private var _condition: ExecutableCondition?
+  private var _condition: ExecutableCondition? = builder.condition?.let(::ExecutableCondition)
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   override var condition: String?
     get() = _condition?.condition
     set(value) {
-      _condition = condition?.let { ExecutableCondition(it) }
+      _condition = condition?.let(::ExecutableCondition)
     }
 
   override val ownerModel: ExecutableProcessModel
     get() = super.ownerModel!!
 
-  constructor(ownerModel: ExecutableProcessModel, condition: ExecutableCondition? = null) : super(ownerModel) {
-    this._condition = condition
-  }
-
-  /**
-   * Create a new Activity. Note that activities can only have a a single
-   * predecessor.
-
-   * @param predecessor The process node that starts immediately precedes this
-   * *          activity.
-   */
-  @Deprecated("Don't use")
-  constructor(ownerModel: ExecutableProcessModel, predecessor: ExecutableProcessNode?): this(ownerModel) {
-    setPredecessors(listOfNotNull(predecessor))
-  }
-
-  constructor(orig: Activity<*, *>, newOwner: ExecutableProcessModel): super(orig, newOwner) {
-    _condition = orig.condition?.let { ExecutableCondition(it) }
-  }
-
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel) {
-    _condition = builder.condition?.let { ExecutableCondition(it) }
-  }
-
 
   override fun builder() = Builder(node=this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
     return ProcessNodeInstance(this, predecessor, processInstance)
   }
 
@@ -111,7 +85,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
    * This will actually take the message element, and send it through the
    * message service.
    *
-   * @param transaction
+   * @param engineData The data needed
    *
    * @param messageService The message service to use to send the message.
    *
@@ -119,8 +93,6 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
    *           instance that the message responds to.
    *
    * @throws SQLException
-   *
-   * @todo handle imports.
    */
   @Throws(SQLException::class)
   override fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
@@ -167,17 +139,12 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableProcess
     out.writeChild(_condition)
   }
 
-  @Throws(XmlException::class)
-  override fun deserializeCondition(reader: XmlReader) {
-    _condition = ExecutableCondition.deserialize(reader)
-  }
-
   companion object {
 
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableActivity {
-      return ExecutableActivity(ownerModel).deserializeHelper(reader)
+      return ExecutableActivity.Builder().deserializeHelper(reader).build(ownerModel)
     }
 
   }

@@ -54,7 +54,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
     @NotNull
     @Override
-    public DrawableActivity build(@NotNull final DrawableProcessModel newOwner) {
+    public DrawableActivity build(@Nullable final DrawableProcessModel newOwner) {
       return new DrawableActivity(this, newOwner);
     }
   }

@@ -36,7 +36,7 @@ class SplitInstance : ProcessNodeInstance {
 
   interface Builder : ProcessNodeInstance.Builder<ExecutableSplit> {
     override fun build(): SplitInstance
-    var predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>?
+    var predecessor: ProcessNodeInstance.HandleT?
       get() = predecessors.firstOrNull()
       set(value) = predecessors.replaceByNotNull(value)
   }
@@ -48,10 +48,10 @@ class SplitInstance : ProcessNodeInstance {
 
   class BaseBuilder(
       node: ExecutableSplit,
-      predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+      predecessor: ProcessNodeInstance.HandleT,
       hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
       owner: Principal,
-      handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+      handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
       state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableSplit>(node, listOf(predecessor), hProcessInstance, owner, handle, state), Builder {
     override fun build() = SplitInstance(this)
@@ -69,10 +69,10 @@ class SplitInstance : ProcessNodeInstance {
       = super.getHandle() as ComparableHandle<out SecureObject<SplitInstance>>
 
   constructor(node: ExecutableSplit,
-              predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+              predecessor: ProcessNodeInstance.HandleT,
               hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
               owner: Principal,
-              handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+              handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
       super(node, listOf(predecessor), hProcessInstance, owner, handle, state, results) {

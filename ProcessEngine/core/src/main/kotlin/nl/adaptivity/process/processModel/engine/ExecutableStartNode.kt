@@ -48,7 +48,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     constructor(node: StartNode<*, *>) : super(node)
 
 
-    override fun build(newOwner: ExecutableProcessModel): ExecutableStartNode {
+    override fun build(newOwner: ExecutableProcessModel?): ExecutableStartNode {
       return ExecutableStartNode(this, newOwner)
     }
   }
@@ -66,7 +66,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     setResults(imports)
   }
 
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : super(builder, newOwnerModel)
 
   override fun builder() = Builder(node=this)
 
@@ -74,7 +74,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     return ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
   }
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
     return ProcessNodeInstance(this, predecessor, processInstance)
   }
 
@@ -101,7 +101,7 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
 
     @Throws(XmlException::class)
     fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableStartNode {
-      return ExecutableStartNode(ownerModel).deserializeHelper<ExecutableStartNode>(reader)
+      return Builder().deserializeHelper(reader).build(ownerModel)
     }
   }
 

@@ -54,7 +54,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
 
     @NotNull
     @Override
-    public XmlActivity build(@NotNull final XmlProcessModel newOwner) {
+    public XmlActivity build(@Nullable final XmlProcessModel newOwner) {
       return new XmlActivity(this, newOwner);
     }
   }
@@ -110,11 +110,6 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
     XmlWriterUtil.writeChild(out, mCondition);
   }
 
-  @Override
-  protected void deserializeCondition(final XmlReader in) throws XmlException {
-    mCondition = XmlCondition.deserialize(in);
-  }
-
   /* (non-Javadoc)
          * @see nl.adaptivity.process.processModel.IActivity#getCondition()
          */
@@ -137,7 +132,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   @NotNull
   public static XmlActivity deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader reader) throws
           XmlException {
-    return XmlUtil.<XmlActivity>deserializeHelper(new XmlActivity(ownerModel), reader);
+    return XmlUtil.<XmlActivity.Builder>deserializeHelper(new XmlActivity.Builder(), reader).build(ownerModel);
   }
 
   @NotNull

@@ -50,7 +50,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
 
     @NotNull
     @Override
-    public XmlJoin build(@NotNull final XmlProcessModel newOwner) {
+    public XmlJoin build(@Nullable final XmlProcessModel newOwner) {
       return new XmlJoin(this, newOwner);
     }
   }
@@ -72,7 +72,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
   @NotNull
   public static XmlJoin deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
           XmlException {
-    return XmlUtil.deserializeHelper(new XmlJoin(ownerModel), in);
+    return deserialize(in).build(ownerModel);
   }
 
   @NotNull

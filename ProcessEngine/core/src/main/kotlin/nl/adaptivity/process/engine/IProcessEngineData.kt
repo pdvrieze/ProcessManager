@@ -41,7 +41,7 @@ abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> 
     }
   }
 
-  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance>>) {
+  fun invalidateCachePNI(handle: ProcessNodeInstance.HandleT) {
     (processNodeInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
@@ -85,7 +85,7 @@ interface ProcessEngineDataAccess {
 
   val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance>>
 
-  fun nodeInstance(handle: Handle<out SecureObject<ProcessNodeInstance>>)
+  fun nodeInstance(handle: ProcessNodeInstance.HandleT)
         = nodeInstances[handle].mustExist(handle)
 
   val processModels: IProcessModelMapAccess
@@ -105,7 +105,7 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
   fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>)
 
-  fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance>>)
+  fun invalidateCachePNI(handle: ProcessNodeInstance.HandleT)
 
   fun commit()
 

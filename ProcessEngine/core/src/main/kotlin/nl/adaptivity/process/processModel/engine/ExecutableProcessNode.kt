@@ -41,7 +41,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
   override val ownerModel: ExecutableProcessModel
 
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
-    override fun build(newOwner: ExecutableProcessModel): ExecutableProcessNode
+    override fun build(newOwner: ExecutableProcessModel?): ProcessNode<ExecutableProcessNode, ExecutableProcessModel>
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {
@@ -61,7 +61,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
    * the type (joins)
    */
-  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance
+  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance
 
   override val identifier: Identifier?
     get() = Identifier(id)

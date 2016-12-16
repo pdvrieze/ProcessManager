@@ -19,6 +19,7 @@ package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -29,7 +30,7 @@ public interface DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode, 
 
     @NotNull
     @Override
-    DrawableJoinSplit build(@NotNull DrawableProcessModel newOwner);
+    DrawableJoinSplit build(@Nullable DrawableProcessModel newOwner);
   }
 
   @NotNull

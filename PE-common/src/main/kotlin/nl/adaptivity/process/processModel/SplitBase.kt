@@ -51,7 +51,7 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
 
     constructor(node: Split<*, *>) : super(node)
 
-    override abstract fun build(newOwner: M): SplitBase<T, M>
+    override abstract fun build(newOwner: M?): ProcessNode<T, M>
 
     override val elementName: QName
       get() = Split.ELEMENTNAME
@@ -78,7 +78,7 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
 
   constructor(orig: Split<*, *>, newOwner: M? = null) : super(orig, newOwner)
 
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 
@@ -98,20 +98,9 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
     }
   }
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-    if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
-      setPredecessors(setOf(Identifier(attributeValue.toString())))
-      return true
-    }
-    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-  }
-
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
     return visitor.visitSplit(this)
   }
-
-  override val elementName: QName
-    get() = Split.ELEMENTNAME
 
   override val maxSuccessorCount: Int
     get() = Integer.MAX_VALUE

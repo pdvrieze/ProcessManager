@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -34,7 +32,7 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
@@ -48,7 +46,7 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
 
     constructor(node: EndNode<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel) = ExecutableEndNode(this, newOwner)
+    override fun build(newOwner: ExecutableProcessModel?) = ExecutableEndNode(this, newOwner)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
@@ -56,20 +54,9 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
   override val ownerModel: ExecutableProcessModel
     get() = super.ownerModel!!
 
-  constructor(orig: EndNode<*, *>, newOwner: ExecutableProcessModel) : super(orig, newOwner) {
-  }
-
-  constructor(ownerModel: ExecutableProcessModel, previous: ExecutableProcessNode) : super(ownerModel) {
-    predecessor = previous
-  }
-
-  constructor(ownerModel: ExecutableProcessModel) : super(ownerModel)
-
-  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : super(builder, newOwnerModel)
-
   override fun builder() = Builder(node=this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<out ProcessNodeInstance>>): ProcessNodeInstance {
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
     return ProcessNodeInstance(this, predecessor, processInstance)
   }
 
@@ -95,7 +82,7 @@ class ExecutableEndNode : EndNodeBase<ExecutableProcessNode, ExecutableProcessMo
 
     @Throws(XmlException::class)
     fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableEndNode {
-      return ExecutableEndNode(ownerModel).deserializeHelper(reader)
+      return ExecutableEndNode.Builder().deserializeHelper(reader).build(ownerModel)
     }
   }
 

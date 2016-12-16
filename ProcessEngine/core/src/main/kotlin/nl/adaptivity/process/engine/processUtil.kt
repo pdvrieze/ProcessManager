@@ -44,14 +44,14 @@ inline fun <T: ProcessNode<T, *>> ProcessModel<T,*>.requireNode(id:String):T = r
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.mustExist(handle: Handle<out ProcessNodeInstance>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.mustExist(handle: ProcessNodeInstance.HandleT): N = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.shouldExist(handle: Handle<out ProcessNodeInstance>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.shouldExist(handle: ProcessNodeInstance.HandleT): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the object instance exists. If it doesn't exist this is an internal error

@@ -109,7 +109,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         this@DelegateProcessEngineData.invalidateCachePI(handle)
       }
 
-      override fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance>>) {
+      override fun invalidateCachePNI(handle: ProcessNodeInstance.HandleT) {
         this@DelegateProcessEngineData.invalidateCachePNI(handle)
       }
 
@@ -146,7 +146,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         this@DBProcessEngineData.invalidateCachePI(handle)
       }
 
-      override fun invalidateCachePNI(handle: Handle<out SecureObject<ProcessNodeInstance>>) {
+      override fun invalidateCachePNI(handle: ProcessNodeInstance.HandleT) {
         this@DBProcessEngineData.invalidateCachePNI(handle)
       }
 
@@ -209,7 +209,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     engineData.invalidateCachePI(handle)
   }
 
-  fun invalidateNodeCache(handle: Handle<out ProcessNodeInstance>) {
+  fun invalidateNodeCache(handle: ProcessNodeInstance.HandleT) {
     engineData.invalidateCachePNI(handle)
   }
 
@@ -516,7 +516,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    */
   @Throws(SQLException::class)
   fun getNodeInstance(transaction: TRXXX,
-                      handle: Handle<out SecureObject<ProcessNodeInstance>>,
+                      handle: ProcessNodeInstance.HandleT,
                       user: Principal): ProcessNodeInstance? {
     engineData.inReadonlyTransaction(transaction) {
       return nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) {
@@ -597,7 +597,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun updateTaskState(transaction: TRXXX, handle: Handle<out ProcessNodeInstance>, newState: NodeInstanceState, user: Principal): NodeInstanceState {
+  fun updateTaskState(transaction: TRXXX, handle: ProcessNodeInstance.HandleT, newState: NodeInstanceState, user: Principal): NodeInstanceState {
     transaction.writableEngineData.run {
 
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
@@ -623,7 +623,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun finishTask(transaction: TRXXX, handle: Handle<out SecureObject<ProcessNodeInstance>>, payload: Node?, user: Principal): ProcessNodeInstance {
+  fun finishTask(transaction: TRXXX, handle: ProcessNodeInstance.HandleT, payload: Node?, user: Principal): ProcessNodeInstance {
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
         val pi = instance(task.hProcessInstance).withPermission()
@@ -652,7 +652,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @param resultSource The source that is parsed into DOM nodes and then passed on
    * *          to [.finishTask]
    */
-  fun finishedTask(transaction: TRXXX, handle: Handle<out ProcessNodeInstance>, resultSource: DataSource?, user: Principal) {
+  fun finishedTask(transaction: TRXXX, handle: ProcessNodeInstance.HandleT, resultSource: DataSource?, user: Principal) {
     try {
       val result = resultSource?.let { InputSource(it.inputStream) }
 
@@ -682,12 +682,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun cancelledTask(transaction: TRXXX, handle: Handle<out ProcessNodeInstance>, user: Principal) {
+  fun cancelledTask(transaction: TRXXX, handle: ProcessNodeInstance.HandleT, user: Principal) {
     updateTaskState(transaction, handle, Cancelled, user)
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun errorTask(transaction: TRXXX, handle: Handle<out ProcessNodeInstance>, cause: Throwable, user: Principal) {
+  fun errorTask(transaction: TRXXX, handle: ProcessNodeInstance.HandleT, cause: Throwable, user: Principal) {
     engineData.inWriteTransaction(transaction) {
       nodeInstances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
         task.failTask(this, instance(task.hProcessInstance).withPermission(), cause)

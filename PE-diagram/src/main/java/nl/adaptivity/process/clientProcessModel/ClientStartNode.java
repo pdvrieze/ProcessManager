@@ -53,7 +53,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
     @NotNull
     @Override
-    public ClientStartNode<T, M> build(@NotNull final M newOwner) {
+    public ClientStartNode<T, M> build(@Nullable final M newOwner) {
       return new ClientStartNode<T, M>(this, newOwner);
     }
 

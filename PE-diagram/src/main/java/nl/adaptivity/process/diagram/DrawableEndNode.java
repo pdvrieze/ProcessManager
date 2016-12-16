@@ -48,7 +48,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
     @NotNull
     @Override
-    public DrawableEndNode build(@NotNull final DrawableProcessModel newOwner) {
+    public DrawableEndNode build(@Nullable final DrawableProcessModel newOwner) {
       return new DrawableEndNode(this, newOwner);
     }
   }

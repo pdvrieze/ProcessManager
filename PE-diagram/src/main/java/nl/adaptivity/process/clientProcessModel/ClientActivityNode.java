@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
-import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
@@ -53,7 +52,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
     @NotNull
     @Override
-    public ClientActivityNode<T, M> build(@NotNull final M newOwner) {
+    public ClientActivityNode<T, M> build(@Nullable final M newOwner) {
       return new ClientActivityNode<T, M>(this, newOwner);
     }
 
@@ -113,11 +112,6 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   @Override
   public void setCondition(String condition) {
     mCondition = condition;
-  }
-
-  @Override
-  protected void deserializeCondition(final XmlReader in) throws XmlException {
-    mCondition = StringUtil.toString(XmlReaderUtil.readSimpleElement(in));
   }
 
   @Override

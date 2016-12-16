@@ -54,7 +54,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
 
     @NotNull
     @Override
-    public DrawableJoin build(@NotNull final DrawableProcessModel newOwner) {
+    public DrawableJoin build(@Nullable final DrawableProcessModel newOwner) {
       return new DrawableJoin(this, newOwner);
     }
   }

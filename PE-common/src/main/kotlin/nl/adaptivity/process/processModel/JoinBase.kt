@@ -48,7 +48,7 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
     constructor(node: Join<*, *>) : super(node)
 
-    override abstract fun build(newOwner: M): JoinBase<T, M>
+    override abstract fun build(newOwner: M?): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -89,7 +89,7 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
   constructor(orig: Join<*, *>, newOwner: M?) : super(orig, newOwner)
 
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 
@@ -127,9 +127,6 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
     return visitor.visitJoin(this)
   }
-
-  override val elementName: QName
-    get() = Join.ELEMENTNAME
 
   override val maxPredecessorCount: Int
     get() = Integer.MAX_VALUE

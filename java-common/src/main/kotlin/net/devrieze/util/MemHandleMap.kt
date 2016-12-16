@@ -356,7 +356,7 @@ open class MemHandleMap<V:Any>
   /* (non-Javadoc)
    * @see net.devrieze.util.HandleMap#put(V)
    */
-  override fun <W : V> put(value: W): Handle<W> {
+  override fun <W : V> put(value: W): ComparableHandle<W> {
     assert(if (value is ReadableHandleAware<*>) !value.getHandle().valid else true) { "Storing a value that already has a handle is invalid" }
 
     var index: Int // The space in the mValues array where to store the value
@@ -607,6 +607,7 @@ open class MemHandleMap<V:Any>
     barrier = 0
   }
 
+  @Suppress("OverridingDeprecatedMember")
   override fun isEmpty(): Boolean {
     return size !=0
   }

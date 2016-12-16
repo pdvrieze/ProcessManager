@@ -31,7 +31,7 @@ import java.util.*
  * Created by pdvrieze on 25/11/15.
  */
 abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
-    ProcessNodeBase<T, M>, JoinSplit<T, M>, SimpleXmlDeserializable {
+    ProcessNodeBase<T, M>, JoinSplit<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, JoinSplit.Builder<T,M>, SimpleXmlDeserializable {
 
@@ -56,7 +56,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
       max = node.max
     }
 
-    override abstract fun build(newOwner: M): JoinSplitBase<T, M>
+    override abstract fun build(newOwner: M?): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(`in`: XmlReader): Boolean {
@@ -71,6 +71,16 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
       return "${super.toString().dropLast(1)}, min=$min, max=$max)"
     }
 
+    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+      if (StringUtil.isEqual("min", attributeLocalName)) {
+        min = Integer.parseInt(attributeValue.toString())
+      } else if (StringUtil.isEqual("max", attributeLocalName)) {
+        max = Integer.parseInt(attributeValue.toString())
+      } else {
+        return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+      }
+      return true
+    }
   }
 
   constructor(ownerModel: M?,
@@ -105,19 +115,21 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
     max = orig.max
   }
 
-  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
+  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel) {
     this.min = builder.min
     this.max = builder.max
   }
 
   override abstract fun builder(): Builder<T, M>
 
+  @Deprecated("Don't use")
   @Throws(XmlException::class)
-  override fun deserializeChild(`in`: XmlReader): Boolean {
+  open fun deserializeChild(`in`: XmlReader): Boolean {
     return false
   }
 
-  override fun deserializeChildText(elementText: CharSequence): Boolean {
+  @Deprecated("Don't use")
+  open fun deserializeChildText(elementText: CharSequence): Boolean {
     return false
   }
 
@@ -132,14 +144,4 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
     }
   }
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-    if (StringUtil.isEqual("min", attributeLocalName)) {
-      min = Integer.parseInt(attributeValue.toString())
-    } else if (StringUtil.isEqual("max", attributeLocalName)) {
-      max = Integer.parseInt(attributeValue.toString())
-    } else {
-      return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-    }
-    return true
-  }
 }

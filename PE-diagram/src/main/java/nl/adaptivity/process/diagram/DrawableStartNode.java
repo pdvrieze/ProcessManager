@@ -53,7 +53,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
 
     @NotNull
     @Override
-    public DrawableStartNode build(@NotNull final DrawableProcessModel newOwner) {
+    public DrawableStartNode build(@Nullable final DrawableProcessModel newOwner) {
       return new DrawableStartNode(this, newOwner);
     }
   }

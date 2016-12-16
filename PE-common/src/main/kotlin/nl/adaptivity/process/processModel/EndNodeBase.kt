@@ -28,7 +28,7 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 24/11/15.
  */
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, EndNode<T, M>, SimpleXmlDeserializable {
+abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, EndNode<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
 
@@ -47,7 +47,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
     constructor(node: EndNode<*, *>) : super(node)
 
-    abstract override fun build(newOwner: M): EndNodeBase<T, M>
+    abstract override fun build(newOwner: M?): ProcessNode<T, M>
 
 
     @Throws(XmlException::class)
@@ -80,9 +80,6 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
       get() = EndNode.ELEMENTNAME
   }
 
-  override val elementName: QName
-    get() = EndNode.ELEMENTNAME
-
   override var predecessor: Identified?
     get() = if (predecessors.size==0) null else predecessors.single()
     set(value) {
@@ -110,34 +107,9 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
   constructor(orig: EndNode<*, *>, newOwner : M?) : super(orig, newOwner)
 
-  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
-
-  @Throws(XmlException::class)
-  override fun deserializeChild(reader: XmlReader): Boolean {
-    if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-      when (reader.localName.toString()) {
-        "export", XmlDefineType.ELEMENTLOCALNAME -> {
-          (defines as MutableList<XmlDefineType>).add(XmlDefineType.deserialize(reader))
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-  override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-    if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
-      predecessor = Identifier(attributeValue.toString())
-      return true
-    }
-    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-  }
-
-  override fun deserializeChildText(elementText: CharSequence): Boolean {
-    return false
-  }
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {

@@ -51,7 +51,7 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
 
     @NotNull
     @Override
-    public DrawableSplit build(@NotNull final DrawableProcessModel newOwner) {
+    public DrawableSplit build(@Nullable final DrawableProcessModel newOwner) {
       return new DrawableSplit(this, newOwner);
     }
   }

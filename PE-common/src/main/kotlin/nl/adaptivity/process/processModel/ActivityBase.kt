@@ -31,7 +31,7 @@ import javax.xml.namespace.QName
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, Activity<T, M>, SimpleXmlDeserializable {
+abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, Activity<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M>, SimpleXmlDeserializable {
 
@@ -65,7 +65,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
       this.condition = node.condition
     }
 
-    override abstract fun build(newOwner: M): ActivityBase<T, M>
+    override abstract fun build(newOwner: M?): ProcessNode<T, M>
 
     override val elementName: QName get() = Activity.ELEMENTNAME
 
@@ -132,8 +132,6 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     _message = message
   }
 
-  override val elementName: QName get() = Activity.ELEMENTNAME
-
   constructor(orig: Activity<*, *>, newOwner: M? = null) : super(orig, newOwner) {
     _message = XmlMessage.get(orig.message)
     _name = orig.name
@@ -148,7 +146,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     this._name = _name
   }
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
   }
@@ -158,41 +156,6 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
 
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
     return visitor.visitActivity(this)
-  }
-
-  @Throws(XmlException::class)
-  override fun deserializeChild(reader: XmlReader): Boolean {
-    if (Engine.NAMESPACE == reader.namespaceUri) {
-      when (reader.localName.toString()) {
-        XmlDefineType.ELEMENTLOCALNAME -> (defines as MutableList).add(XmlDefineType.deserialize(reader))
-
-        XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
-
-        Condition.ELEMENTLOCALNAME -> deserializeCondition(reader)
-
-        XmlMessage.ELEMENTLOCALNAME -> setMessage(XmlMessage.deserialize(reader))
-
-        else -> return false
-      }
-      return true
-    }
-    return false
-  }
-
-  override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-    when (attributeLocalName.toString()) {
-      ProcessNodeBase.ATTR_PREDECESSOR -> predecessor = Identifier(attributeValue.toString())
-      "name" -> name = attributeValue.toString()
-      else -> return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-    }
-    return true
-  }
-
-  @Throws(XmlException::class)
-  protected abstract fun deserializeCondition(reader: XmlReader)
-
-  override fun deserializeChildText(elementText: CharSequence): Boolean {
-    return false
   }
 
   @Throws(XmlException::class)
@@ -227,18 +190,18 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
   /* Override to make public */
   override fun setResults(imports: Collection<IXmlResultType>) = super.setResults(imports)
 
-  override fun equals(o: Any?): Boolean {
-    if (this === o) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) {
       return true
     }
-    if (o == null || javaClass != o.javaClass) {
+    if (other == null || javaClass != other.javaClass) {
       return false
     }
-    if (!super.equals(o)) {
+    if (!super.equals(other)) {
       return false
     }
 
-    val that = o as ActivityBase<*, *>?
+    val that = other as ActivityBase<*, *>?
 
     if (_message != that!!._message) {
       return false

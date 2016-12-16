@@ -40,7 +40,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                 x: Double = java.lang.Double.NaN,
                 y: Double = java.lang.Double.NaN,
                 defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
-                results: Collection<IXmlResultType> = ArrayList<IXmlResultType>()) : ProcessNode<T, M>, XmlDeserializable {
+                results: Collection<IXmlResultType> = ArrayList<IXmlResultType>()) : ProcessNode<T, M> {
 
   @Deprecated("Don't use this if it can be avoided")
   constructor(ownerModel: M?): this (ownerModel, id=null)
@@ -66,7 +66,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
     constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.id, node.label, node.getX(), node.getY(), node.defines, node.results)
 
-    override abstract fun build(newOwner: M): ProcessNodeBase<T, M>
+    override abstract fun build(newOwner: M?): ProcessNode<T, M>
 
     override fun onBeforeDeserializeChildren(reader: XmlReader) {
       // By default do nothing
@@ -150,7 +150,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                                                                  orig.results) {
   }
 
-  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: M): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
+  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: M?): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
                                                         , builder.defines, builder.results)
 
   override abstract fun builder(): Builder<T, M>
@@ -175,24 +175,8 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     out.writeChildren(defines)
   }
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                    attributeLocalName: CharSequence,
-                                    attributeValue: CharSequence): Boolean {
-    val value = attributeValue.toString()
-    if (XMLConstants.NULL_NS_URI == attributeNamespace) {
-      when (attributeLocalName.toString()) {
-        "id"    -> setId(value)
-        "label" -> label=value
-        "x"     -> x = value.toDouble()
-        "y"     -> y = value.toDouble()
-        else -> return false
-      }
-      return true
-    }
-    return false
-  }
-
-  override fun onBeforeDeserializeChildren(reader: XmlReader) {
+  @Deprecated("Don't use")
+  open fun onBeforeDeserializeChildren(reader: XmlReader) {
     // do nothing
   }
 

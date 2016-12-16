@@ -46,10 +46,10 @@ class JoinInstance : ProcessNodeInstance {
 
   class BaseBuilder(
         node: ExecutableJoin,
-        predecessors: Iterable<ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
+        predecessors: Iterable<ProcessNodeInstance.HandleT>,
         hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
         owner: Principal,
-        handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+        handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
         state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableJoin>(node, predecessors, hProcessInstance, owner, handle, state), Builder {
     override fun build() = JoinInstance(this)
@@ -66,10 +66,10 @@ class JoinInstance : ProcessNodeInstance {
     get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
   constructor(node: ExecutableJoin,
-              predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
+              predecessors: Collection<ProcessNodeInstance.HandleT>,
               hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
               owner: Principal,
-              handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+              handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, hProcessInstance, owner, handle, state, results) {
@@ -122,7 +122,7 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  fun addPredecessor(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): PNIPair<JoinInstance>? {
+  fun addPredecessor(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): PNIPair<JoinInstance>? {
 
     if (canAddNode(engineData) && predecessor !in directPredecessors) {
       return updateJoin(engineData, processInstance) {
@@ -276,19 +276,19 @@ class JoinInstance : ProcessNodeInstance {
 
   companion object {
     fun <T:ProcessTransaction> build(joinImpl: ExecutableJoin,
-                                     predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
+                                     predecessors: Set<ProcessNodeInstance.HandleT>,
                                      hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
                                      owner: Principal,
-                                     handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+                                     handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder.() -> Unit):JoinInstance {
       return JoinInstance(BaseBuilder(joinImpl, predecessors, hProcessInstance, owner, handle, state).apply(body))
     }
 
     fun <T:ProcessTransaction> build(joinImpl: ExecutableJoin,
-                                     predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
+                                     predecessors: Set<ProcessNodeInstance.HandleT>,
                                      processInstance: ProcessInstance,
-                                     handle: Handle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+                                     handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder.() -> Unit):JoinInstance {
       return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance.getHandle(), processInstance.owner, handle, state).apply(body))

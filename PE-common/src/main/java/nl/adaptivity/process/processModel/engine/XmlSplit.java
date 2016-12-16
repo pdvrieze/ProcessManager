@@ -49,7 +49,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
     @NotNull
     @Override
-    public XmlSplit build(@NotNull final XmlProcessModel newOwner) {
+    public XmlSplit build(@Nullable final XmlProcessModel newOwner) {
       return new XmlSplit(this, newOwner);
     }
   }
@@ -138,7 +138,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
   }
 
   public static XmlSplit deserialize(XmlProcessModel owner, XmlReader reader) throws XmlException {
-    return deserializeHelper(new XmlSplit(owner), reader);
+    return deserialize(reader).build(owner);
   }
 
   public static XmlSplit.Builder deserialize(XmlReader reader) throws XmlException {
