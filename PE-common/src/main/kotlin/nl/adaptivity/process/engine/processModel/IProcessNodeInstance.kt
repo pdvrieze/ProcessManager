@@ -16,18 +16,9 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.HandleMap
 import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.StringUtil
-import net.devrieze.util.Transaction
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlWriter
-import org.w3c.dom.Node
-import java.sql.SQLException
 import javax.xml.bind.annotation.XmlRootElement
 
 

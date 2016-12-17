@@ -14,48 +14,52 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process;
+package nl.adaptivity.process
 
-import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.IXmlMessage;
-
-import java.sql.SQLException;
+import nl.adaptivity.messaging.EndpointDescriptor
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.IXmlMessage
+import java.sql.SQLException
 
 
 /**
- * Interface signifying that the object can be used to send messages.
+ * Interface signifying that the object can be used to send messages. The message provided is an opaque type
  *
  * @author Paul de Vrieze
- * @param <T> The type signifying a message that can then be sent.
- * @param <U> The task that the message corresponds to. This allows for messages
- *          to be linked to tasks.
+ *
+ * @param MSG_T The type signifying a message that can then be sent. This is used to be able to treat the message as opaque
  */
-public interface IMessageService<T, TR,  U extends IProcessNodeInstance<U>> {
+interface IMessageService<MSG_T> {
 
   /**
    * Create a message.
    *
    * @param message The message to create (for later sending)
+   * *
    * @return The sendable message that can be sent.
    */
-  T createMessage(IXmlMessage message);
+  fun createMessage(message: IXmlMessage?): MSG_T
 
   /**
    * Send a message.
-   *
-   * @param dataAccess The transaction to use in sending.
+
+   * @param engineData The transaction to use in sending.
+   * *
    * @param message The message to send. (Created by
-   *          {@link #createMessage(IXmlMessage)}).
+   * *          [.createMessage]).
+   * *
    * @param instance The task instance to link the sending to.
-   * @return <code>true</code> or lack of failure, <code>false</code> on failure.
+   * *
+   * @return `true` or lack of failure, `false` on failure.
+   * *
    * @throws SQLException
    */
-  boolean sendMessage(TR dataAccess, T message, U instance) throws SQLException;
+  fun sendMessage(engineData: MutableProcessEngineDataAccess, message: MSG_T, instance: ProcessNodeInstance): Boolean
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)
    * @return The descriptor of the local endpoint.
    */
-  EndpointDescriptor getLocalEndpoint();
+  val localEndpoint: EndpointDescriptor
 }

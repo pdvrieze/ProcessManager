@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.servlet;
 
+import net.devrieze.util.ComparableHandle;
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.security.AuthenticationNeededException;
@@ -53,6 +54,7 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Document;
@@ -100,7 +102,7 @@ import java.util.logging.Logger;
 //             serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 public class ServletProcessEngine<T extends ProcessTransaction> extends EndpointServlet implements GenericEndpoint {
 
-  public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage, MutableProcessEngineDataAccess, ProcessNodeInstance> {
+  public class MessageService implements IMessageService<ServletProcessEngine.NewServletMessage> {
 
     private EndpointDescriptorImpl mLocalEndPoint;
 
@@ -109,17 +111,17 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
     }
 
     @Override
-    public NewServletMessage createMessage(final IXmlMessage message) {
+    public NewServletMessage createMessage(@Nullable final IXmlMessage message) {
       return new NewServletMessage(message, mLocalEndPoint);
     }
 
     @Override
-    public boolean sendMessage(MutableProcessEngineDataAccess engineData, final NewServletMessage message, final ProcessNodeInstance instance) throws SQLException {
+    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage message, @NotNull final ProcessNodeInstance instance) {
       final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instance.getHandle();
 
       message.setHandle(engineData, instance);
 
-      Future<DataSource>                       result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener((Handle)nodeHandle, message.getOwner()), DataSource.class, new Class<?>[0]);
+      Future<DataSource> result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener((ComparableHandle)nodeHandle, message.getOwner()), DataSource.class, new Class<?>[0]);
       if (result.isCancelled()) { return false; }
       if (result.isDone()) {
         try {
@@ -127,7 +129,6 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
         } catch (ExecutionException e) {
           Throwable cause = e.getCause();
           if (cause instanceof RuntimeException) { throw (RuntimeException) cause; }
-          if (cause instanceof SQLException) { throw (SQLException) cause; }
           throw new RuntimeException(cause);
         } catch (InterruptedException e) {
           return false;
@@ -151,11 +152,11 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
 
   private class MessagingCompletionListener implements CompletionListener<DataSource> {
 
-    private final Handle<? extends ProcessNodeInstance> mHandle;
+    private final ComparableHandle<? extends ProcessNodeInstance> mHandle;
 
     private final Principal mOwner;
 
-    public MessagingCompletionListener(final Handle<? extends ProcessNodeInstance> handle, final Principal owner) {
+    public MessagingCompletionListener(final ComparableHandle<? extends ProcessNodeInstance> handle, final Principal owner) {
       mHandle = handle;
       mOwner = owner;
     }
@@ -428,7 +429,7 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
     }
 
 
-    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance nodeInstance) throws SQLException {
+    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance nodeInstance) {
       mNodeInstance = nodeInstance;
 
       try {
@@ -863,7 +864,7 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
    * specially.
    * @throws SQLException
    */
-  public void onMessageCompletion(final Future<? extends DataSource> future, final Handle<? extends ProcessNodeInstance> handle, final Principal owner) throws FileNotFoundException {
+  public void onMessageCompletion(final Future<? extends DataSource> future, final ComparableHandle<? extends ProcessNodeInstance> handle, final Principal owner) throws FileNotFoundException {
     // XXX do this better
     try {
       if (future.isCancelled()) {

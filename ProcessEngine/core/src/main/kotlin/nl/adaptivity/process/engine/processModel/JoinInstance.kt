@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
@@ -136,8 +135,8 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  override fun <V> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
-    if (node.startTask(messageService, this)) {
+  override fun <V> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V>): PNIPair<ProcessNodeInstance> {
+    if (node.startTask(this)) {
       return updateTaskState(engineData, processInstance)
     }
     return PNIPair(processInstance, this)
@@ -146,7 +145,7 @@ class JoinInstance : ProcessNodeInstance {
   override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?)
         = super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
 
-  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>)
+  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>)
         = super.takeTask(engineData, processInstance, messageService) as PNIPair<JoinInstance>
 
   override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
@@ -216,9 +215,9 @@ class JoinInstance : ProcessNodeInstance {
 
 
   @Throws(SQLException::class)
-  override fun <V> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <V> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V>): PNIPair<ProcessNodeInstance> {
     if (!isFinished) {
-      val shouldProgress = node.provideTask(engineData, messageService, processInstance, this)
+      val shouldProgress = node.provideTask(engineData, processInstance, this)
       if (shouldProgress) {
         val processInstance = engineData.instance(hProcessInstance).withPermission()
         val directSuccessors = processInstance.getDirectSuccessors(engineData, this)
@@ -238,7 +237,7 @@ class JoinInstance : ProcessNodeInstance {
 
   @Throws(SQLException::class)
   override fun tickle(engineData: MutableProcessEngineDataAccess,
-                      instance: ProcessInstance, messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<JoinInstance> {
+                      instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<JoinInstance> {
     val (processInstance, self) = super.tickle(engineData, instance, messageService) as PNIPair<JoinInstance>
     val missingIdentifiers = TreeSet<Identified>(node.predecessors)
     val data = engineData

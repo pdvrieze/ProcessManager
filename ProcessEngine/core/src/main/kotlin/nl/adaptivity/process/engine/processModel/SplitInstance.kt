@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
@@ -129,13 +128,13 @@ class SplitInstance : ProcessNodeInstance {
     }
   }
 
-  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): ProcessInstance.PNIPair<ProcessNodeInstance> {
+  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<ProcessNodeInstance> {
     return update(engineData, processInstance){ state=NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance, messageService)
     }
   }
 
-  internal fun <U> updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): ProcessInstance.PNIPair<SplitInstance> {
+  internal fun <U> updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<SplitInstance> {
     // XXX really needs fixing
     var processInstance = _processInstance
     val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }

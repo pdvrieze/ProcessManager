@@ -19,11 +19,12 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import java.security.Principal
 
-abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> {
+abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
   protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
   protected abstract val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>
@@ -95,9 +96,12 @@ interface ProcessEngineDataAccess {
 }
 
 interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
-  override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
-//  override val nodeInstances: MutableHandleMap<ProcessNodeInstance.SecureT>
+  typealias MessageServiceT = IMessageService<*>
+
+  fun messageService(): MessageServiceT
+
+  override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
   override val processModels: IMutableProcessModelMapAccess
 

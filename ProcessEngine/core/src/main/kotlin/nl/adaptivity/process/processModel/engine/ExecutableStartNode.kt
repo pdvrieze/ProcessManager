@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.Handles
-import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
@@ -68,19 +67,16 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
   override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
 
   @Throws(SQLException::class)
-  override fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
-                                                                                              messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                              processInstance: ProcessInstance, instance: U): Boolean {
+  override fun provideTask(engineData: MutableProcessEngineDataAccess,
+                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
     return true
   }
 
-  override fun <V, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                           instance: U): Boolean {
+  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(instance: U): Boolean {
     return true
   }
 
-  override fun <V, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                            instance: U): Boolean {
+  override fun <U : IExecutableProcessNodeInstance<U>> startTask(instance: U): Boolean {
     return true
   }
 

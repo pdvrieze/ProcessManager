@@ -84,29 +84,31 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
    *
    * @param engineData The data needed
    *
-   * @param messageService The message service to use to send the message.
-   *
    * @param instance The processInstance that represents the actual activity
    *           instance that the message responds to.
    *
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  override fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
-                                                                                              messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                              processInstance: ProcessInstance, instance: U): Boolean {
-    // TODO handle imports
-    val message = messageService.createMessage(message)
-    try {
-      if (!messageService.sendMessage(engineData, message, instance)) {
-        instance.failTaskCreation(engineData, processInstance, MessagingException("Failure to send message"))
-      }
-    } catch (e: RuntimeException) {
-      instance.failTaskCreation(engineData, processInstance, e)
-      throw e
-    }
+  override fun provideTask(engineData: MutableProcessEngineDataAccess,
+                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
 
-    return false
+    fun <V> doProvideTask(messageService: IMessageService<V>): Boolean {
+      // TODO handle imports
+      val preparedMessage = messageService.createMessage(message)
+      try {
+        if (!messageService.sendMessage(engineData, preparedMessage, instance)) {
+          instance.failTaskCreation(engineData, processInstance, MessagingException("Failure to send message"))
+        }
+      } catch (e: RuntimeException) {
+        instance.failTaskCreation(engineData, processInstance, e)
+        throw e
+      }
+
+      return false
+
+    }
+    return doProvideTask(engineData.messageService())
   }
 
   /**
@@ -115,8 +117,8 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
 
    * @return `false`
    */
-  override fun <V, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                           instance: U): Boolean {
+  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(
+      instance: U): Boolean {
     return false
   }
 
@@ -126,8 +128,8 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
 
    * @return `false`
    */
-  override fun <V, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                            instance: U): Boolean {
+  override fun <U : IExecutableProcessNodeInstance<U>> startTask(
+      instance: U): Boolean {
     return false
   }
 

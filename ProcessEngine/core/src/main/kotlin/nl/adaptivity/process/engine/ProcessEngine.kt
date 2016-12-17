@@ -30,7 +30,10 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.ProcessModelBase
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.processModel.engine.IProcessModelRef
+import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
@@ -83,14 +86,15 @@ private fun <T : ProcessTransaction, V:Any> wrapModelCache(base: IMutableProcess
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>,
+class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMessageService<*>,
                                                 private val engineData: IProcessEngineData<TRXXX>) {
 
   class DelegateProcessEngineData<T: ProcessTransaction>(
-        private val transactionFactory: ProcessTransactionFactory<T>,
-        override val processModels: IMutableProcessModelMap<T>,
-        override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
-        override val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
+      private val transactionFactory: ProcessTransactionFactory<T>,
+      override val processModels: IMutableProcessModelMap<T>,
+      override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
+      override val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>,
+      private val messageService: IMessageService<*>) : IProcessEngineData<T>(), TransactionFactory<T> {
 
     private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
       override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
@@ -100,6 +104,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
 
+      override fun messageService(): IMessageService<*> {
+        return messageService
+      }
 
       override fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
         this@DelegateProcessEngineData.invalidateCachePM(handle)
@@ -127,7 +134,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     }
   }
 
-  class DBProcessEngineData : IProcessEngineData<ProcessDBTransaction>() {
+  class DBProcessEngineData(private val messageService: IMessageService<*>) : IProcessEngineData<ProcessDBTransaction>() {
 
 
     private inner class DBEngineDataAccess(transaction: ProcessDBTransaction) : AbstractProcessEngineDataAccess<ProcessDBTransaction>(transaction) {
@@ -137,6 +144,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
+
+      override fun messageService(): IMessageService<*> {
+        return this@DBProcessEngineData.messageService
+      }
 
       override fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
         this@DBProcessEngineData.invalidateCachePM(handle)
@@ -719,9 +730,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
     @JvmStatic
-    fun newInstance(messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>): ProcessEngine<*> {
+    fun newInstance(messageService: IMessageService<*>): ProcessEngine<*> {
       // TODO enable optional caching
-      val engineData = DBProcessEngineData()
+      val engineData = DBProcessEngineData(messageService)
       val pe = ProcessEngine(messageService, engineData)
       engineData.engine = pe // STILL NEEDED to initialize the engine as the factories require the engine
       return pe
@@ -729,14 +740,14 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     @JvmStatic
     @JvmName("newTestInstance")
-    internal fun <T : ProcessTransaction> newTestInstance(messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>,
+    internal fun <T : ProcessTransaction> newTestInstance(messageService: IMessageService<*>,
                                                           transactionFactory: ProcessTransactionFactory<T>,
                                                           processModels: IMutableProcessModelMap<T>,
                                                           processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
                                                           processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>,
                                                           autoTransition: Boolean): ProcessEngine<T> {
 
-      val engineData = ProcessEngine.DelegateProcessEngineData<T>(transactionFactory, processModels, processInstances, processNodeInstances)
+      val engineData = ProcessEngine.DelegateProcessEngineData<T>(transactionFactory, processModels, processInstances, processNodeInstances, messageService)
 
       return ProcessEngine(messageService, engineData)
     }

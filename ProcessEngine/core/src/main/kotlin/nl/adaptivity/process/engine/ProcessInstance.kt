@@ -397,7 +397,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun start(transaction: ProcessTransaction, messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>, payload: Node?):ProcessInstance {
+  fun start(transaction: ProcessTransaction, messageService: IMessageService<*>, payload: Node?):ProcessInstance {
     return (if (state == null) { initialize(transaction) } else this)
         .update(transaction.writableEngineData) { state = State.STARTED; inputs.addAll(processModel.toInputs(payload)) }
         .let { self ->
@@ -410,7 +410,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   @Synchronized @Throws(SQLException::class)
   fun finishTask(engineData: MutableProcessEngineDataAccess,
-                 messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>,
+                 messageService: IMessageService<*>,
                  node: ProcessNodeInstance,
                  resultPayload: Node?): PNIPair<ProcessNodeInstance> {
     if (node.state === NodeInstanceState.Complete) {
@@ -425,7 +425,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   @Synchronized @Throws(SQLException::class)
   private fun handleFinishedState(engineData: MutableProcessEngineDataAccess,
-                                  messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>,
+                                  messageService: IMessageService<*>,
                                   node: ProcessNodeInstance):ProcessInstance {
     // XXX todo, handle failed or cancelled tasks
     try {
@@ -450,7 +450,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   @Synchronized @Throws(SQLException::class)
   private fun startSuccessors(engineData: MutableProcessEngineDataAccess,
-                              messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>,
+                              messageService: IMessageService<*>,
                               predecessor: ProcessNodeInstance):ProcessInstance {
 
     val startedTasks = ArrayList<ProcessNodeInstance>(predecessor.node.successors.size)
@@ -582,7 +582,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
    * @param messageService The message service to use for messenging.
    */
   @Throws(FileNotFoundException::class)
-  fun tickle(transaction: ProcessTransaction, messageService: IMessageService<*, MutableProcessEngineDataAccess, ProcessNodeInstance>) {
+  fun tickle(transaction: ProcessTransaction, messageService: IMessageService<*>) {
     val engineData = transaction.writableEngineData
     fun ticklePredecessors(self: ProcessInstance, successor: ProcessNodeInstance): ProcessInstance {
       return successor.directPredecessors.asSequence()

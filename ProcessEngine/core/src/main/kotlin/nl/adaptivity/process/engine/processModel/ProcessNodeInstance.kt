@@ -189,7 +189,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<ProcessNodeInstance> {
     return when (state) {
       NodeInstanceState.FailRetry,
       NodeInstanceState.Pending -> provideTask(engineData, instance, messageService)
@@ -257,9 +257,9 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
 
   @Throws(SQLException::class)
-  override fun <U> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
+  override fun <U> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): PNIPair<ProcessNodeInstance> {
     val shouldProgress = try {
-      node.provideTask(engineData, messageService, processInstance, this)
+      node.provideTask(engineData, processInstance, this)
     } catch (e: Exception) {
       // TODO later move failretry to fail
       try {
@@ -282,16 +282,16 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
   }
 
-  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
-    val startNext = node.takeTask(messageService, this)
+  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): PNIPair<ProcessNodeInstance> {
+    val startNext = node.takeTask(this)
     val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Taken }
 
     return if (startNext) updatedInstances.node.startTask(engineData, updatedInstances.instance, messageService) else updatedInstances
   }
 
   @Throws(SQLException::class)
-  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): PNIPair<ProcessNodeInstance> {
-    val startNext = node.startTask(messageService, this)
+  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): PNIPair<ProcessNodeInstance> {
+    val startNext = node.startTask(this)
     val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Started }
     return if (startNext) {
       updatedInstances.instance.finishTask(engineData, messageService, updatedInstances.node, null)
@@ -385,7 +385,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     return instantiateXmlPlaceholders(engineData, xmlReader, removeWhitespace, localEndpoint)
   }
 
-  @Throws(XmlException::class, SQLException::class)
+  @Throws(XmlException::class)
   fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  xmlReader: XmlReader,
                                  removeWhitespace: Boolean,

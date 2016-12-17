@@ -47,7 +47,7 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * @throws SQLException @link #takeTask(IMessageService)
    */
   @Throws(SQLException::class)
-  fun <U> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in V>): ProcessInstance.PNIPair<V>
+  fun <U> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<V>
 
   /**
    * Called by the processEngine to let the task be taken.
@@ -58,7 +58,7 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * *         be [started][.startTask].
    */
   @Throws(SQLException::class)
-  fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in ProcessNodeInstance>): ProcessInstance.PNIPair<V>
+  fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<V>
 
   /**
    * Called by the processEngine to let the system start the task.
@@ -69,7 +69,7 @@ interface IExecutableProcessNodeInstance<V: IExecutableProcessNodeInstance<V>> :
    * *         [.finishTask]  should be called.
    */
   @Throws(SQLException::class)
-  fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U, MutableProcessEngineDataAccess, in V>): ProcessInstance.PNIPair<V>
+  fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<V>
 
 //  /**
 //   * Called by the processEngine to signify to the task that it is finished

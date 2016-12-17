@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
@@ -59,19 +58,18 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
 
   override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
 
-  override fun <V, U : IExecutableProcessNodeInstance<U>> provideTask(engineData: MutableProcessEngineDataAccess,
-                                                                                              messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                              processInstance: ProcessInstance, instance: U): Boolean {
+  override fun provideTask(engineData: MutableProcessEngineDataAccess,
+                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
     return true
   }
 
-  override fun <V, U : IExecutableProcessNodeInstance<U>> takeTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                           instance: U): Boolean {
+  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(
+      instance: U): Boolean {
     return true
   }
 
-  override fun <V, U : IExecutableProcessNodeInstance<U>> startTask(messageService: IMessageService<V, MutableProcessEngineDataAccess, in U>,
-                                                                                            instance: U): Boolean {
+  override fun <U : IExecutableProcessNodeInstance<U>> startTask(
+      instance: U): Boolean {
     return true
   }
 

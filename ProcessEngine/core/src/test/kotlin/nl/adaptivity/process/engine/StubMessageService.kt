@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -32,14 +30,14 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, MutableProcessEngineDataAccess, ProcessNodeInstance> {
+class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage> {
 
   class ExtMessage(val base: IXmlMessage, val source: ProcessNodeInstance.HandleT) : IXmlMessage by base
 
   var _messages = mutableListOf<ExtMessage>()
 
-  override fun createMessage(message: IXmlMessage): IXmlMessage {
-    return message
+  override fun createMessage(message: IXmlMessage?): IXmlMessage {
+    return message!!
   }
 
   fun clear() {
@@ -50,9 +48,8 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     return _messages[i].source
   }
 
-  override fun getLocalEndpoint(): EndpointDescriptor {
-    return mLocalEndpoint
-  }
+  override val localEndpoint: EndpointDescriptor
+    get() = mLocalEndpoint
 
   override fun sendMessage(engineData: MutableProcessEngineDataAccess,
                            protoMessage: IXmlMessage,
