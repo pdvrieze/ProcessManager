@@ -49,7 +49,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
 
     @NotNull
     @Override
-    public XmlEndNode build(@Nullable final XmlProcessModel newOwner) {
+    public XmlEndNode build(final XmlProcessModel newOwner) {
       return new XmlEndNode(this, newOwner);
     }
   }
@@ -61,15 +61,6 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
     public XmlEndNode deserialize(@NotNull final XmlReader reader) throws XmlException {
       return XmlEndNode.deserialize(null, reader);
     }
-  }
-
-  @Deprecated
-  public XmlEndNode(final EndNode<?, ?> orig) {
-    this(orig, null);
-  }
-
-  public XmlEndNode(final EndNode<?, ?> orig, XmlProcessModel newOwner) {
-    super(orig, newOwner);
   }
 
   public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
@@ -92,16 +83,6 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
   public static XmlEndNode.Builder deserialize(@NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new Builder(), in);
-  }
-
-  @Deprecated
-  public XmlEndNode(final XmlProcessModel ownerModel, final Identified previous) {
-    super(ownerModel);
-    setPredecessor(previous);
-  }
-
-  public XmlEndNode(final XmlProcessModel ownerModel) {
-    super(ownerModel);
   }
 
   @Override

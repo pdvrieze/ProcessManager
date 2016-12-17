@@ -35,7 +35,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
     @NotNull
     @Override
-    DrawableProcessNode build(@Nullable DrawableProcessModel newOwner);
+    DrawableProcessNode build(DrawableProcessModel newOwner);
   }
 
   void setLabel(String label);

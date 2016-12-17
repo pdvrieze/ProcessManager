@@ -49,7 +49,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
     @NotNull
     @Override
-    public XmlSplit build(@Nullable final XmlProcessModel newOwner) {
+    public XmlSplit build(final XmlProcessModel newOwner) {
       return new XmlSplit(this, newOwner);
     }
   }
@@ -69,20 +69,6 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
-  }
-
-  @Deprecated
-  public XmlSplit(final @Nullable XmlProcessModel ownerModel) {
-    super(ownerModel);
-  }
-
-  public XmlSplit(final Split<?, ?> orig, XmlProcessModel newOwner) {
-    super(orig, newOwner);
-  }
-
-  @Deprecated
-  public XmlSplit(final Split<?, ?> orig) {
-    this(orig, null);
   }
 
   public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {

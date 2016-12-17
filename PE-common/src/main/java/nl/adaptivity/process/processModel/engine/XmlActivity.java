@@ -54,7 +54,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
 
     @NotNull
     @Override
-    public XmlActivity build(@Nullable final XmlProcessModel newOwner) {
+    public XmlActivity build(final XmlProcessModel newOwner) {
       return new XmlActivity(this, newOwner);
     }
   }
@@ -69,31 +69,6 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   }
 
   @Nullable private XmlCondition mCondition;
-
-  /**
-   * Create a new Activity. Note that activities can only have a a single
-   * predecessor.
-   *
-   * @param predecessor The process node that starts immediately precedes this
-   *          activity.
-   */
-  public XmlActivity(final XmlProcessModel ownerModel, final XmlProcessNode predecessor) {
-    super(ownerModel);
-    setPredecessor(predecessor);
-  }
-
-  /**
-   * Create an activity without predecessor. This constructor is needed for JAXB
-   * to work.
-   */
-  public XmlActivity(final XmlProcessModel ownerModel) {super(ownerModel);}
-
-  @Deprecated
-  public XmlActivity(final Activity<?,?> orig) { this(orig, null); }
-
-  public XmlActivity(final Activity<?, ?> orig, XmlProcessModel newOwner) {
-    super(orig, newOwner);
-  }
 
   public XmlActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);

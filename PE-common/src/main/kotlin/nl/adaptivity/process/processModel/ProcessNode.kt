@@ -27,10 +27,10 @@ import nl.adaptivity.xml.XmlSerializable
 /**
  * Created by pdvrieze on 27/11/16.
  */
-interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positioned, Identifiable, XmlSerializable {
+interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Positioned, Identifiable, XmlSerializable {
 
   @ProcessModelDSL
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : XmlDeserializable {
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : XmlDeserializable {
     var predecessors: MutableSet<Identified>
     var successors: MutableSet<Identified>
     var id: String?
@@ -47,7 +47,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
       }
     }
 
-    fun build(newOwner: M?): ProcessNode<T, M>
+    fun build(newOwner: M): ProcessNode<T, M>
 
     fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())
@@ -74,7 +74,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : Positione
 
   fun getDefine(name: String): XmlDefineType?
 
-  val ownerModel: M?
+  val ownerModel: M
 
   val predecessors: IdentifyableSet<out @JvmWildcard Identified>
 

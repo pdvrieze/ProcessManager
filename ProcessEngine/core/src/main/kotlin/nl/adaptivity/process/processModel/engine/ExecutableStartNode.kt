@@ -16,17 +16,17 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.StartNode
+import nl.adaptivity.process.processModel.StartNodeBase
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -34,7 +34,7 @@ import nl.adaptivity.xml.deserializeHelper
 import java.sql.SQLException
 
 
-class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor() : this(successor=null)
@@ -48,29 +48,16 @@ class ExecutableStartNode : StartNodeBase<ExecutableProcessNode, ExecutableProce
     constructor(node: StartNode<*, *>) : super(node)
 
 
-    override fun build(newOwner: ExecutableProcessModel?): ExecutableStartNode {
+    override fun build(newOwner: ExecutableProcessModel): ExecutableStartNode {
       return ExecutableStartNode(this, newOwner)
     }
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  override val ownerModel: ExecutableProcessModel
-    get() = super.ownerModel!!
-
-  constructor(orig: StartNode<*, *>, newOwner: ExecutableProcessModel) : super(orig, newOwner)
-
-  constructor(ownerModel: ExecutableProcessModel) : super(ownerModel)
-
-  constructor(ownerModel: ExecutableProcessModel, imports: List<XmlResultType>) : super(ownerModel) {
-    setResults(imports)
-  }
-
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : super(builder, newOwnerModel)
-
   override fun builder() = Builder(node=this)
 
-  fun <T : ProcessTransaction> createOrReuseInstance(transaction: T, processInstance: ProcessInstance): ProcessNodeInstance {
+  fun createOrReuseInstance(processInstance: ProcessInstance): ProcessNodeInstance {
     return ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
   }
 

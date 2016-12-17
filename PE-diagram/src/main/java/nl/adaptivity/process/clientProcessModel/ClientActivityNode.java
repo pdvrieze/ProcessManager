@@ -52,7 +52,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
     @NotNull
     @Override
-    public ClientActivityNode<T, M> build(@Nullable final M newOwner) {
+    public ClientActivityNode<T, M> build(final M newOwner) {
       return new ClientActivityNode<T, M>(this, newOwner);
     }
 

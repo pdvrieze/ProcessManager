@@ -30,10 +30,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 25/11/15.
  */
-abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
+abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> :
     ProcessNodeBase<T, M>, JoinSplit<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, JoinSplit.Builder<T,M>, SimpleXmlDeserializable {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase.Builder<T,M>, JoinSplit.Builder<T,M>, SimpleXmlDeserializable {
 
     override var min:Int
     override var max:Int
@@ -56,7 +56,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
       max = node.max
     }
 
-    override abstract fun build(newOwner: M?): ProcessNode<T, M>
+    override abstract fun build(newOwner: M): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(`in`: XmlReader): Boolean {
@@ -83,7 +83,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
     }
   }
 
-  constructor(ownerModel: M?,
+  constructor(ownerModel: M,
               predecessors: Collection<Identified> = emptyList(),
               successors: Collection<Identified> = emptyList(),
               id: String?,
@@ -105,17 +105,17 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
   override var max: Int
 
   @Deprecated("Use the main constructor")
-  constructor(ownerModel: M?, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
+  constructor(ownerModel: M, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
 
   @Deprecated("")
-  constructor(ownerModel: M?) : this(ownerModel, id=null) { }
+  constructor(ownerModel: M) : this(ownerModel, id=null) { }
 
-  constructor(orig: JoinSplit<*, *>, newOwner: M?) : super(orig, newOwner) {
+  constructor(orig: JoinSplit<*, *>, newOwner: M) : super(orig, newOwner) {
     min = orig.min
     max = orig.max
   }
 
-  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel) {
+  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
     this.min = builder.min
     this.max = builder.max
   }

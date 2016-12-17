@@ -28,9 +28,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Join<T, M> {
+abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase<T, M>, Join<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Join.Builder<T,M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase.Builder<T,M>, Join.Builder<T,M> {
     override val idBase:String
       get() = "join"
 
@@ -48,7 +48,7 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
     constructor(node: Join<*, *>) : super(node)
 
-    override abstract fun build(newOwner: M?): ProcessNode<T, M>
+    override abstract fun build(newOwner: M): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -65,7 +65,7 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
 
   }
 
-  constructor(ownerModel: M?,
+  constructor(ownerModel: M,
               predecessors: Collection<Identified> = emptyList(),
               successor: Identified? = null,
               id: String?,
@@ -78,18 +78,14 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Joi
               max: Int = -1) : super(ownerModel, predecessors, successor?.let { listOf(it) } ?: emptyList(), id, label, x, y, defines, results, min, max)
 
   @Deprecated("Use the normal constructor")
-  constructor(ownerModel: M?, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors, id=null, max=max, min=min)
+  constructor(ownerModel: M, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors, id=null, max=max, min=min)
 
   @Deprecated("")
-  constructor(ownerModel: M?) : super(ownerModel)
+  constructor(ownerModel: M) : super(ownerModel)
 
-  @Deprecated("")
-  constructor(orig: Join<*, *>) : this(orig, null) {
-  }
+  constructor(orig: Join<*, *>, newOwner: M) : super(orig, newOwner)
 
-  constructor(orig: Join<*, *>, newOwner: M?) : super(orig, newOwner)
-
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 

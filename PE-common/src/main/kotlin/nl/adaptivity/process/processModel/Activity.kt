@@ -22,9 +22,9 @@ import nl.adaptivity.process.util.Identifiable
 import javax.xml.namespace.QName
 
 
-interface Activity<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
+interface Activity<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode<T, M> {
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
     var message: IXmlMessage?
     var name: String?
     var condition: String?

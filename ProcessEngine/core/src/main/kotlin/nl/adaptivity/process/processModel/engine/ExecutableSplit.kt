@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -25,7 +23,10 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.Split
+import nl.adaptivity.process.processModel.SplitBase
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -33,7 +34,7 @@ import nl.adaptivity.xml.deserializeHelper
 import java.sql.SQLException
 
 
-class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : SplitBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(predecessors: Collection<Identified> = emptyList(),
@@ -47,26 +48,12 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
                 max: Int = -1) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
     constructor(node: Split<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel?): ExecutableSplit {
+    override fun build(newOwner: ExecutableProcessModel): ExecutableSplit {
       return ExecutableSplit(this, newOwner)
     }
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
-
-  override val ownerModel: ExecutableProcessModel
-    get() = super.ownerModel!!
-
-  @Deprecated("Use the full constructor")
-  constructor(ownerModel: ExecutableProcessModel, predecessor: ExecutableProcessNode, min: Int, max: Int)
-        : super(ownerModel, listOf(predecessor), max, min)
-
-  constructor(ownerModel: ExecutableProcessModel) : super(ownerModel)
-
-  constructor(orig: Split<*, *>, newOwner: ExecutableProcessModel) : super(orig, newOwner)
-
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : super(builder, newOwnerModel)
-
 
   override fun builder() = Builder(this)
 
@@ -94,12 +81,6 @@ class ExecutableSplit : SplitBase<ExecutableProcessNode, ExecutableProcessModel>
   }
 
   companion object {
-
-    @JvmStatic
-    fun andSplit(ownerModel: ExecutableProcessModel, predecessor: ExecutableProcessNode): ExecutableSplit {
-      return ExecutableSplit(ownerModel, predecessor, Integer.MAX_VALUE, Integer.MAX_VALUE)
-    }
-
 
     @Throws(XmlException::class)
     fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableSplit {

@@ -157,7 +157,7 @@ class TestProcessEngine {
   private val ProcessInstance.sortedCompleted
     get() = completedEndnodes.sortedBy { it.handleValue }
 
-  private fun ProcessInstance.assertFinishedHandles(vararg handles: ProcessNodeInstance.HandleT) = apply {
+  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<ProcessNodeInstance.SecureT>) = apply {
     assertEquals(ArrayList(sortedFinished), handles.sorted())
   }
 
@@ -171,7 +171,7 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertActiveHandles(vararg handles: ProcessNodeInstance.HandleT) = apply {
+  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<ProcessNodeInstance.SecureT>) = apply {
     assertEquals(ArrayList(sortedActive), handles.sorted())
   }
 
@@ -185,13 +185,13 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertCompletedHandles(vararg handles: ProcessNodeInstance.HandleT) = apply {
+  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<ProcessNodeInstance.SecureT>) = apply {
     assertEquals(ArrayList(sortedCompleted), handles.sorted())
   }
 
-  private fun ProcessInstance.assertCompleted(vararg handles: ProcessNodeInstance): ProcessInstance {
+  private fun ProcessInstance.assertCompleted(vararg nodes: ProcessNodeInstance): ProcessInstance {
     val actual = ArrayList(sortedCompleted)
-    val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
+    val expected = nodes.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
     assertEquals(actual, expected)
     return this
   }
@@ -405,9 +405,9 @@ class TestProcessEngine {
 
     mStubMessageService.clear() // (Process the message)
     assertEquals(ac1.results.size, 0)
-    ac1 = mProcessEngine.finishTask(transaction, ac1.handle, getDocument("testModel2_response1.xml"), mPrincipal)
+    ac1 = mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml"), mPrincipal)
     assertEquals(ac1.state, NodeInstanceState.Complete)
-    ac1 = mProcessEngine.getNodeInstance(transaction, ac1.handle, mPrincipal) ?: throw AssertionError("Node ${ac1.handle} not found")
+    ac1 = mProcessEngine.getNodeInstance(transaction, ac1.getHandle(), mPrincipal) ?: throw AssertionError("Node ${ac1.getHandle()} not found")
     assertEquals(ac1.results.size, 2)
     val result1 = ac1.results[0]
     val result2 = ac1.results[1]
@@ -475,7 +475,7 @@ class TestProcessEngine {
 
   companion object {
 
-    private val PNI_SET_HANDLE = fun(pni: SecureObject<out ProcessNodeInstance>, handle: Long?): SecureObject<out ProcessNodeInstance> {
+    private val PNI_SET_HANDLE = fun(pni: ProcessNodeInstance.SecureT, handle: Long?): ProcessNodeInstance.SecureT {
       if (pni.withPermission().getHandleValue() == handle) {
         return pni
       }

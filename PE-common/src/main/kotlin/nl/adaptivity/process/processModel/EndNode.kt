@@ -24,10 +24,10 @@ import nl.adaptivity.process.util.Identified
 import javax.xml.namespace.QName
 
 
-interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
+interface EndNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode<T, M> {
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode.Builder<T, M> {
-    override fun build(newOwner: M?): ProcessNode<T, M>
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
+    override fun build(newOwner: M): ProcessNode<T, M>
 
     var predecessor: Identifiable?
       get() = predecessors.firstOrNull()

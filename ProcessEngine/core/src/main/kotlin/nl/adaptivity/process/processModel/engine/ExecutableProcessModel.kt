@@ -49,7 +49,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
                 uuid: UUID? = null,
                 imports: Collection<IXmlResultType> = emptyList(),
                 exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
-    constructor(base: ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>) : super(base)
+    constructor(base: ProcessModel<*, *>) : super(base)
 
     override fun build(): ExecutableProcessModel = build(pedantic = true)
 
@@ -106,12 +106,6 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     private set
 
   constructor(basepm: ProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
-
-  /**
-   * Create a new processModel based on the given nodes. These nodes should be complete
-
-   */
-  constructor(processNodes: Collection<ExecutableProcessNode>) : super(processNodes, nodeFactory = ::toExecutableProcessNode)
 
   @JvmOverloads
   constructor(builder: Builder, pedantic:Boolean = true) : super(builder, pedantic)

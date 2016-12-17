@@ -19,7 +19,6 @@ package nl.adaptivity.process.processModel.engine;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.XmlDeserializer;
 import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
@@ -45,7 +44,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
 
     @NotNull
     @Override
-    public XmlStartNode build(@Nullable final XmlProcessModel newOwner) {
+    public XmlStartNode build(final XmlProcessModel newOwner) {
       return new XmlStartNode(this, newOwner);
     }
   }
@@ -57,15 +56,6 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
     public XmlStartNode deserialize(@NotNull final XmlReader reader) throws XmlException {
       return XmlStartNode.deserialize(null, reader);
     }
-  }
-
-  public XmlStartNode(@NotNull final StartNode<?, ?> orig, @Nullable final XmlProcessModel newOwnerModel) {
-    super(orig, newOwnerModel);
-  }
-
-  @Deprecated
-  public XmlStartNode(final StartNode<?, ?> orig) {
-    this(orig, null);
   }
 
   public XmlStartNode(@NotNull final StartNode.Builder<?,?> builder, @NotNull final XmlProcessModel newOwnerModel) {

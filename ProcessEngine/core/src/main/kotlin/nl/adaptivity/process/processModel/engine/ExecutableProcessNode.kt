@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -34,14 +32,14 @@ import java.sql.SQLException
 
 
 /**
- * Created by pdvrieze on 23/11/15.
+ * Base type for any process node that can be executed
  */
 interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel>, Identified {
 
   override val ownerModel: ExecutableProcessModel
 
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
-    override fun build(newOwner: ExecutableProcessModel?): ProcessNode<ExecutableProcessNode, ExecutableProcessModel>
+    override fun build(newOwner: ExecutableProcessModel): ProcessNode<ExecutableProcessNode, ExecutableProcessModel>
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {

@@ -36,7 +36,7 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
     @NotNull
     @Override
-    ClientProcessNode<T, M> build(@Nullable M newOwner);
+    ClientProcessNode<T, M> build(M newOwner);
   }
 
   boolean isCompat();
@@ -69,7 +69,6 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
   void setId(String id);
 
-  @Nullable
   M getOwnerModel();
 
 }

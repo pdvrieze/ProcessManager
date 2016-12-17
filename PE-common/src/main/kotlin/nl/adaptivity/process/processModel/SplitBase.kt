@@ -16,24 +16,20 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.StringUtil
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.processModel.engine.XmlSplit
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.*
 import java.util.*
-
 import javax.xml.namespace.QName
 
 
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase<T, M>, Split<T, M> {
+abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase<T, M>, Split<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : JoinSplitBase.Builder<T,M>, Split.Builder<T,M> {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase.Builder<T,M>, Split.Builder<T,M> {
     override val idBase:String
       get() = "split"
 
@@ -51,14 +47,14 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
 
     constructor(node: Split<*, *>) : super(node)
 
-    override abstract fun build(newOwner: M?): ProcessNode<T, M>
+    override abstract fun build(newOwner: M): ProcessNode<T, M>
 
     override val elementName: QName
       get() = Split.ELEMENTNAME
 
   }
 
-  constructor(ownerModel: M?,
+  constructor(ownerModel: M,
               predecessor: Identified? = null,
               successors: Collection<Identified> = emptyList(),
               id: String?,
@@ -71,14 +67,12 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : Jo
               max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id, label, x, y, defines, results, min, max)
 
   @Deprecated("Use general constructor")
-  constructor(ownerModel: M?, predecessors: Collection<Identified>, max: Int, min: Int) : super(ownerModel, predecessors, max, min) { }
+  constructor(ownerModel: M, predecessors: Collection<Identified>, max: Int, min: Int) : super(ownerModel, predecessors, max, min) { }
 
   @Deprecated("Use general constructor")
-  constructor(ownerModel: M?) : super(ownerModel)
+  constructor(ownerModel: M) : super(ownerModel)
 
-  constructor(orig: Split<*, *>, newOwner: M? = null) : super(orig, newOwner)
-
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 

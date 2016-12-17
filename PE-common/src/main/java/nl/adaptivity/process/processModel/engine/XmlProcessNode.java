@@ -32,7 +32,7 @@ public interface XmlProcessNode extends MutableProcessNode<XmlProcessNode, XmlPr
 
     @NotNull
     @Override
-    XmlProcessNode build(@Nullable XmlProcessModel newOwner);
+    XmlProcessNode build(XmlProcessModel newOwner);
   }
 
   @NotNull

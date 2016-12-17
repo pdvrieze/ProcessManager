@@ -172,7 +172,6 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     return new Builder(this);
   }
 
-
   private static Collection<? extends XmlProcessNode> toXmlNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
     List<XmlProcessNode> result = new ArrayList<>(modelNodes.size());
     final XmlProcessModel newOwner = null;
@@ -185,32 +184,32 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
   }
 
   private static XmlProcessNode toXmlNode(final XmlProcessModel newOwner, final ProcessNode<?, ?> node) {
-    return node.visit(new Visitor<XmlProcessNode>() {
+    return node.visit(new Visitor<XmlProcessNode.Builder>() {
       @Override
-      public XmlStartNode visitStartNode(final StartNode<?, ?> startNode) {
-        return new XmlStartNode(startNode, newOwner);
+      public XmlProcessNode.Builder visitStartNode(final StartNode<?, ?> startNode) {
+        return new XmlStartNode.Builder(startNode);
       }
 
       @Override
-      public XmlActivity visitActivity(final Activity<?, ?> activity) {
-        return new XmlActivity(activity, newOwner);
+      public XmlProcessNode.Builder visitActivity(final Activity<?, ?> activity) {
+        return new XmlActivity.Builder(activity);
       }
 
       @Override
-      public XmlSplit visitSplit(final Split<?, ?> split) {
-        return new XmlSplit(split, newOwner);
+      public XmlProcessNode.Builder visitSplit(final Split<?, ?> split) {
+        return new XmlSplit.Builder(split);
       }
 
       @Override
-      public XmlJoin visitJoin(final Join<?, ?> join) {
-        return new XmlJoin(join, newOwner);
+      public XmlProcessNode.Builder visitJoin(final Join<?, ?> join) {
+        return new XmlJoin.Builder(join);
       }
 
       @Override
-      public XmlProcessNode visitEndNode(final EndNode<?, ?> endNode) {
-        return new XmlEndNode(endNode, newOwner);
+      public XmlProcessNode.Builder visitEndNode(final EndNode<?, ?> endNode) {
+        return new XmlEndNode.Builder(endNode);
       }
-    });
+    }).build(newOwner);
   }
 
   /**

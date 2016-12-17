@@ -30,7 +30,7 @@ public interface DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode, 
 
     @NotNull
     @Override
-    DrawableJoinSplit build(@Nullable DrawableProcessModel newOwner);
+    DrawableJoinSplit build(DrawableProcessModel newOwner);
   }
 
   @NotNull

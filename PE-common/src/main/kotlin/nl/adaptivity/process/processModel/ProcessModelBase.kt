@@ -39,10 +39,12 @@ annotation class ProcessModelDSL
 /**
  * Created by pdvrieze on 21/11/15.
  */
-abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
+abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
+
+  typealias HandleT = ComparableHandle<M>
 
   @ProcessModelDSL
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
       var name: String? = null,
       var handle: Long = -1L,

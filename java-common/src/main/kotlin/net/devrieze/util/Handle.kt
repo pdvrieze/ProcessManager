@@ -19,10 +19,10 @@ package net.devrieze.util
 /**
  * @param  Type parameter that should help with compile time handle differentiation
  */
-interface Handle<T:Any> {
+interface Handle<T> {
 
   val handleValue: Long
   val valid:Boolean get() = handleValue>=0
 }
 
-interface ComparableHandle<T:Any> : Handle<T>, Comparable<ComparableHandle<T>>// no body needed
+interface ComparableHandle<T> : Handle<T>, Comparable<ComparableHandle<T>>// no body needed

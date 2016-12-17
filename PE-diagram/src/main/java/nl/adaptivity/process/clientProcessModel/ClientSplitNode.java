@@ -50,7 +50,7 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
 
     @NotNull
     @Override
-    public ClientSplitNode<T, M> build(@Nullable final M newOwner) {
+    public ClientSplitNode<T, M> build(final M newOwner) {
       return new ClientSplitNode<T, M>(this, newOwner);
     }
 

@@ -33,8 +33,7 @@ import nl.adaptivity.xml.*
 import java.sql.SQLException
 
 
-@XmlDeserializer(ExecutableJoin.Factory::class)
-class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode {
+class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : JoinBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(predecessors: Collection<Identified> = emptyList(),
@@ -48,27 +47,10 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
                 max: Int = -1) : super(predecessors, successor, id, label, x, y, defines, results, min, max)
     constructor(node: Join<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel?) = ExecutableJoin(this, newOwner)
-  }
-
-  class Factory : XmlDeserializerFactory<ExecutableJoin> {
-
-    @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): ExecutableJoin {
-      return ExecutableJoin.deserialize(null, reader)
-    }
+    override fun build(newOwner: ExecutableProcessModel) = ExecutableJoin(this, newOwner)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
-
-  override val ownerModel: ExecutableProcessModel
-    get() = super.ownerModel!!
-
-  constructor(orig: Join<*, *>, newOwner: ExecutableProcessModel?) : super(orig, newOwner)
-
-  constructor(ownerModel: ExecutableProcessModel?) : super(ownerModel)
-
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProcessModel?) : super(builder, newOwnerModel)
 
   override fun builder() = Builder(this)
 
@@ -98,7 +80,7 @@ class ExecutableJoin : JoinBase<ExecutableProcessNode, ExecutableProcessModel>, 
   companion object {
 
     @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableProcessModel?, reader: XmlReader): ExecutableJoin {
+    fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableJoin {
       return ExecutableJoin.Builder().deserializeHelper(reader).build(ownerModel)
     }
 

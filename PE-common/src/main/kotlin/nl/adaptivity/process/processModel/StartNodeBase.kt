@@ -29,9 +29,9 @@ import javax.xml.namespace.QName
 /**
  * Base class for start nodes. It knows about the data
  */
-abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, StartNode<T, M> {
+abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase<T, M>, StartNode<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M>, SimpleXmlDeserializable {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M>, SimpleXmlDeserializable {
     override val idBase:String
       get() = "start"
 
@@ -50,7 +50,7 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
 
     constructor(node: StartNode<*, *>) : super(node)
 
-    abstract override fun build(newOwner: M?): ProcessNode<T, M>
+    abstract override fun build(newOwner: M): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -71,9 +71,9 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
 
   }
 
-  constructor(_ownerModel: M?=null,
+  constructor(_ownerModel: M,
               successor: Identified?=null,
-              id: String?,
+              id: String?=null,
               label: String?=null,
               x: Double = Double.NaN,
               y: Double = Double.NaN,
@@ -85,11 +85,9 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> 
               id, label, x, y, defines, results)
   
   @Deprecated("Use the full constructor")
-  constructor(ownerModel: M?) : super(ownerModel) { }
+  constructor(ownerModel: M) : super(ownerModel) { }
 
-  @JvmOverloads constructor(orig: StartNode<*, *>, newOwnerModel: M?) : super(orig, newOwnerModel)
-
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 

@@ -293,7 +293,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
     return update(transaction.writableEngineData ) {
       processModel.startNodes.forEach { node ->
-        addChild(node.createOrReuseInstance(transaction, this@ProcessInstance))
+        addChild(node.createOrReuseInstance(this@ProcessInstance))
       }
       state = State.INITIALIZED
     }

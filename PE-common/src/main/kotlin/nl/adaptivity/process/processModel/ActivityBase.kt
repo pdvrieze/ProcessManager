@@ -31,9 +31,9 @@ import javax.xml.namespace.QName
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, Activity<T, M> {
+abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase<T, M>, Activity<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M>, SimpleXmlDeserializable {
+  abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>?> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M>, SimpleXmlDeserializable {
 
     override var message: IXmlMessage?
     override var name: String?
@@ -65,7 +65,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
       this.condition = node.condition
     }
 
-    override abstract fun build(newOwner: M?): ProcessNode<T, M>
+    override abstract fun build(newOwner: M): ProcessNode<T, M>
 
     override val elementName: QName get() = Activity.ELEMENTNAME
 
@@ -132,21 +132,11 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
     _message = message
   }
 
-  constructor(orig: Activity<*, *>, newOwner: M? = null) : super(orig, newOwner) {
-    _message = XmlMessage.get(orig.message)
-    _name = orig.name
-  }
-
   // Object Initialization
   @Deprecated("Don't use")
-  constructor(ownerModel: M?) : super(ownerModel) { }
+  constructor(ownerModel: M) : super(ownerModel) { }
 
-  constructor(_ownerModel: M?, predecessors: Collection<Identified>, successors: Collection<Identified>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, _message: XmlMessage?, _name: String?) : super(_ownerModel, predecessors, successors, id, label, x, y, defines, results) {
-    this._message = _message
-    this._name = _name
-  }
-
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
   }
@@ -185,10 +175,10 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> :
   protected abstract fun serializeCondition(out: XmlWriter)
 
   /* Override to make public */
-  public override fun setDefines(exports: Collection<IXmlDefineType>) = super.setDefines(exports)
+  override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
 
   /* Override to make public */
-  override fun setResults(imports: Collection<IXmlResultType>) = super.setResults(imports)
+  override fun setResults(results: Collection<IXmlResultType>) = super.setResults(results)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) {

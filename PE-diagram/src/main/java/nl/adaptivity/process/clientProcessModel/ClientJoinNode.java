@@ -53,7 +53,7 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
 
     @NotNull
     @Override
-    public ClientJoinNode<T, M> build(@Nullable final M newOwner) {
+    public ClientJoinNode<T, M> build(final M newOwner) {
       return new ClientJoinNode<T, M>(this, newOwner);
     }
 

@@ -28,7 +28,7 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 24/11/15.
  */
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase<T, M>, EndNode<T, M> {
+abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(builder: EndNode.Builder<*, *>, newOwnerModel: M) : ProcessNodeBase<T, M>(builder, newOwnerModel), EndNode<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
 
@@ -47,7 +47,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
 
     constructor(node: EndNode<*, *>) : super(node)
 
-    abstract override fun build(newOwner: M?): ProcessNode<T, M>
+    abstract override fun build(newOwner: M): ProcessNode<T, M>
 
 
     @Throws(XmlException::class)
@@ -92,23 +92,6 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
     get() = IdentifyableSet.empty<Identified>()
 
 
-  constructor(_ownerModel: M?=null,
-              predecessor: Identified?=null,
-              id: String?,
-              label: String?=null,
-              x: Double = Double.NaN,
-              y: Double = Double.NaN,
-              defines: Collection<IXmlDefineType> = emptyList(),
-              results: Collection<IXmlResultType> = emptyList())
-      : super(_ownerModel, listOfNotNull(predecessor), emptyList(), id, label, x, y, defines, results)
-
-  @Deprecated("Use the proper constructor")
-  constructor(ownerModel: M?) : super(ownerModel)
-
-  constructor(orig: EndNode<*, *>, newOwner : M?) : super(orig, newOwner)
-
-  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: M?) : super(builder, newOwnerModel)
-
   override abstract fun builder(): Builder<T, M>
 
   @Throws(XmlException::class)
@@ -130,5 +113,5 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : 
   }
 
   // Override to make public.
-  override fun setDefines(exports: Collection<IXmlDefineType>) = super.setDefines(exports)
+  override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
 }

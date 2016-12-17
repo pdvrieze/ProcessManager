@@ -44,7 +44,7 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
     @NotNull
     @Override
-    public ClientEndNode<T, M> build(@Nullable final M newOwner) {
+    public ClientEndNode<T, M> build(final M newOwner) {
       return new ClientEndNode<T, M>(this, newOwner);
     }
 

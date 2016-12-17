@@ -31,8 +31,8 @@ import javax.xml.XMLConstants
  * A base class for process nodes. Works like [ProcessModelBase]
  * Created by pdvrieze on 23/11/15.
  */
-abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> @JvmOverloads
-    constructor(private var _ownerModel: M?,
+abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> @JvmOverloads
+    constructor(private var _ownerModel: M,
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
                 id: String?,
@@ -43,9 +43,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                 results: Collection<IXmlResultType> = ArrayList<IXmlResultType>()) : ProcessNode<T, M> {
 
   @Deprecated("Don't use this if it can be avoided")
-  constructor(ownerModel: M?): this (ownerModel, id=null)
+  constructor(ownerModel: M): this (ownerModel, id=null)
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
                 override var id: String? = null,
@@ -66,7 +66,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
     constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.id, node.label, node.getX(), node.getY(), node.defines, node.results)
 
-    override abstract fun build(newOwner: M?): ProcessNode<T, M>
+    override abstract fun build(newOwner: M): ProcessNode<T, M>
 
     override fun onBeforeDeserializeChildren(reader: XmlReader) {
       // By default do nothing
@@ -117,7 +117,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   private var _results: MutableList<XmlResultType> = toExportableResults(results)
   private var _hashCode = 0
 
-  override val ownerModel: M? get() = _ownerModel
+  override val ownerModel: M get() = _ownerModel
 
   override val idBase: String
     get() = "id"
@@ -138,7 +138,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
    * Copy constructor
    * @param orig Original
    */
-  constructor(orig: ProcessNode<*, *>, newOwnerModel: M?) : this(newOwnerModel,
+  constructor(orig: ProcessNode<*, *>, newOwnerModel: M) : this(newOwnerModel,
                                                                  toIdentifiers(orig.maxPredecessorCount,
                                                                                orig.predecessors),
                                                                  toIdentifiers(orig.maxSuccessorCount, orig.successors),
@@ -150,7 +150,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                                                                  orig.results) {
   }
 
-  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: M?): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
+  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: M): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
                                                         , builder.defines, builder.results)
 
   override abstract fun builder(): Builder<T, M>
@@ -304,7 +304,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     y = java.lang.Double.NaN
   }
 
-  protected open fun setOwnerModel(ownerModel: M?) {
+  protected open fun setOwnerModel(ownerModel: M) {
     if (_ownerModel !== ownerModel) {
       _hashCode = 0
       val thisT = this.asT()
@@ -388,9 +388,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     }
   }
 
-  protected open fun setDefines(exports: Collection<IXmlDefineType>) {
+  protected open fun setDefines(defines: Collection<IXmlDefineType>) {
     _hashCode = 0
-    _defines = toExportableDefines(exports)
+    _defines = toExportableDefines(defines)
   }
 
 
@@ -409,9 +409,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   override fun getDefine(name: String)
       = _defines.firstOrNull { it.name == name }
 
-  protected open fun setResults(imports: Collection<IXmlResultType>) {
+  protected open fun setResults(results: Collection<IXmlResultType>) {
     _hashCode = 0
-    _results = imports.let { toExportableResults(imports) }
+    _results = results.let { toExportableResults(results) }
   }
 
   override val results: List<XmlResultType> get() = _results
@@ -504,7 +504,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
         _predecessors.joinTo(this, ", ", " pred='", "'") { it.id }
       }
 
-      _ownerModel?.name?.let { name ->
+      _ownerModel?.getName()?.let { name ->
         if (! name.isEmpty()) append(" owner='$name'")
       }
       append(" )")

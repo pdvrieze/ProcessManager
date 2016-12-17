@@ -29,7 +29,7 @@ public interface ClientJoinSplit<T extends ClientProcessNode<T, M>, M extends Cl
 
     @NotNull
     @Override
-    ClientJoinSplit<T, M> build(@Nullable M newOwner);
+    ClientJoinSplit<T, M> build(M newOwner);
   }
 
   @NotNull

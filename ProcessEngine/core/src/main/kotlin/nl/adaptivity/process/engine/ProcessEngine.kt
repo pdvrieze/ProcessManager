@@ -274,15 +274,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   fun getProcessModel(transaction: TRXXX, handle: Handle<out ExecutableProcessModel>, user: Principal): ExecutableProcessModel? {
     return engineData.inWriteTransaction(transaction) {
       processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
-        XmlProcessModel(processModel).run {
-          normalized(true)
-          if (uuid == null) {
-            setUuid(UUID.randomUUID())
-            ExecutableProcessModel(this).apply {
-              processModels[handle] = this
-            }
-          } else {
-            ExecutableProcessModel(this)
+
+        return processModel.update { builder ->
+          if (builder.uuid==null) {
+            builder.uuid = UUID.randomUUID()
           }
         }
 
