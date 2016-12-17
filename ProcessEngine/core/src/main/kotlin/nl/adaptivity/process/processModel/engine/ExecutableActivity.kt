@@ -65,10 +65,6 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
 
   override fun builder() = Builder(node=this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
-    return ProcessNodeInstance(this, predecessor, processInstance)
-  }
-
   /**
    * Determine whether the process can start.
    */

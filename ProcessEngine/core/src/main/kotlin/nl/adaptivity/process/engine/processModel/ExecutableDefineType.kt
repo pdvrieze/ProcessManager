@@ -39,7 +39,7 @@ import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 
 @Throws(SQLException::class)
-fun <V : IExecutableProcessNodeInstance<V>> XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: V): ProcessData {
+fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance): ProcessData {
   val processData: ProcessData
   val refNode = refNode
   if (refNode != null) {

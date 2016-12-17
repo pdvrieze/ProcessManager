@@ -50,9 +50,8 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProce
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
-    return processInstance.getJoinInstance(this, predecessor)
-  }
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT)
+      = processInstance.getNodeInstance(this) ?: processInstance.getJoinInstance(this, predecessor)
 
   companion object {
 

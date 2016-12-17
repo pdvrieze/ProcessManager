@@ -57,7 +57,8 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
    * the type (joins)
    */
-  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance
+  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance =
+      processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, predecessor, processInstance)
 
   override val identifier: Identifier?
     get() = Identifier(id)

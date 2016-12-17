@@ -21,7 +21,6 @@ import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
@@ -128,13 +127,14 @@ class SplitInstance : ProcessNodeInstance {
     }
   }
 
-  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<ProcessNodeInstance> {
+  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
     return update(engineData, processInstance){ state=NodeInstanceState.Started }.let {
-      it.node.updateState(engineData, it.instance, messageService)
+      it.node.updateState(engineData, it.instance)
     }
   }
 
-  internal fun <U> updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance, messageService: IMessageService<U>): ProcessInstance.PNIPair<SplitInstance> {
+  internal fun updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance): ProcessInstance.PNIPair<SplitInstance> {
+    if (state.isFinal) { return ProcessInstance.PNIPair(_processInstance, this) }
     // XXX really needs fixing
     var processInstance = _processInstance
     val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }
@@ -155,7 +155,7 @@ class SplitInstance : ProcessNodeInstance {
 
           engineData.commit()
 
-          processInstance = pnipair.node.provideTask(engineData, pnipair.instance, messageService).instance
+          processInstance = pnipair.node.provideTask(engineData, pnipair.instance).instance
 
           canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
         }

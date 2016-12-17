@@ -27,7 +27,6 @@ import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
@@ -41,33 +40,27 @@ import javax.xml.transform.Result
 import javax.xml.transform.Source
 
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
-open class ProcessNodeInstance(node: ExecutableProcessNode,
+open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                                predecessors: Collection<ProcessNodeInstance.HandleT>,
                                val hProcessInstance: ProcessInstance.HandleT,
-                               owner: Principal,
+                               override val owner: Principal,
                                handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
                                override final val state: NodeInstanceState = NodeInstanceState.Pending,
                                results: Iterable<ProcessData> = emptyList(),
-                               val failureCause: Throwable? = null) : IExecutableProcessNodeInstance<ProcessNodeInstance>, SecureObject<ProcessNodeInstance>, ReadableHandleAware<SecureObject<ProcessNodeInstance>> {
+                               val failureCause: Throwable? = null) : IProcessNodeInstance<ProcessNodeInstance>, SecureObject<ProcessNodeInstance>, ReadableHandleAware<SecureObject<ProcessNodeInstance>> {
 
   typealias SecureT = IProcessNodeInstance<ProcessNodeInstance>.SecureT
 
   typealias HandleT = ComparableHandle<out SecureT>
 
-  @Suppress("CanBePrimaryConstructorProperty")
-  open val node: ExecutableProcessNode = node
-
   private var handle: ProcessNodeInstance.HandleT
         = Handles.handle(handle)
 
-  override fun getHandle(): HandleT
-        = handle
+  override fun getHandle() = handle
 
   val results: List<ProcessData> = results.toList()
 
   val directPredecessors: Set<HandleT> = predecessors.asSequence().filter { it.valid }.toArraySet()
-
-  override val owner: Principal = owner
 
   interface Builder<N:ExecutableProcessNode> {
     var node: N
@@ -140,7 +133,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
   init {
     if (this.javaClass== ProcessNodeInstance::class.java && node is Split<*, *>) {
-      throw IllegalArgumentException("ProcessNodeInstances cannot be created for joins. Use SplitInstance")
+      throw IllegalArgumentException("ProcessNodeInstances cannot be created for joins. Use JoinInstance")
     }
     if (node is StartNode<*, *>) {
       if (predecessors.any { it.valid }) throw IllegalArgumentException("Start nodes don't have (valid) predecessors.")
@@ -150,8 +143,6 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
       }
     }
   }
-
-  constructor(node: ExecutableStartNode, processInstance: ProcessInstance) : this(node, emptyList(), processInstance.getHandle(), processInstance.owner)
 
   constructor(node: ExecutableProcessNode, predecessor: HandleT, processInstance: ProcessInstance) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(), processInstance.owner)
 
@@ -192,13 +183,13 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<ProcessNodeInstance> {
     return when (state) {
       NodeInstanceState.FailRetry,
-      NodeInstanceState.Pending -> provideTask(engineData, instance, messageService)
+      NodeInstanceState.Pending -> provideTask(engineData, instance)
       else -> PNIPair(instance, this)
     }// ignore
   }
 
   @Throws(SQLException::class)
-  override fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
+  fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
     return results.firstOrNull { name == it.name }
   }
 
@@ -245,7 +236,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun resolvePredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance? {
+  fun resolvePredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance? {
     val handle = getPredecessor(engineData, nodeName) ?: throw NullPointerException("Missing predecessor with name ${nodeName} referenced from node ${node.id}")
     return engineData.nodeInstances[handle]?.withPermission()
   }
@@ -257,44 +248,50 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
 
   @Throws(SQLException::class)
-  override fun <U> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): PNIPair<ProcessNodeInstance> {
-    val shouldProgress = try {
-      node.provideTask(engineData, processInstance, this)
-    } catch (e: Exception) {
-      // TODO later move failretry to fail
-      try {
-        failTaskCreation(engineData, engineData.instance(processInstance.getHandle()).withPermission(), e)
-      } catch (f:Exception) {
-        e.addSuppressed(f)
-      }
-      throw e
-    }
-    val pniPair = run {
-      // TODO, get the updated state out of provideTask
-      val newInstance = engineData.instance(hProcessInstance).withPermission()
-      val newNodeInstance = engineData.nodeInstance(handle).withPermission()
-      newNodeInstance.update(engineData, newInstance) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
-    }
-    if (shouldProgress) {
-      return pniPair.node.takeTask(engineData, pniPair.instance, messageService)
-    } else
-      return pniPair
+  open fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
 
+    fun <MSG_T> impl(messageService: IMessageService<MSG_T>):PNIPair<ProcessNodeInstance> {
+
+      val shouldProgress = try {
+        node.provideTask(engineData, processInstance, this)
+      } catch (e: Exception) {
+        // TODO later move failretry to fail
+        try {
+          failTaskCreation(engineData, engineData.instance(processInstance.getHandle()).withPermission(), e)
+        } catch (f:Exception) {
+          e.addSuppressed(f)
+        }
+        throw e
+      }
+      val pniPair = run {
+        // TODO, get the updated state out of provideTask
+        val newInstance = engineData.instance(hProcessInstance).withPermission()
+        val newNodeInstance = engineData.nodeInstance(handle).withPermission()
+        newNodeInstance.update(engineData, newInstance) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
+      }
+      if (shouldProgress) {
+        return pniPair.node.takeTask(engineData, pniPair.instance)
+      } else
+        return pniPair
+
+    }
+
+    return impl(engineData.messageService())
   }
 
-  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): PNIPair<ProcessNodeInstance> {
+  open fun takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     val startNext = node.takeTask(this)
     val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Taken }
 
-    return if (startNext) updatedInstances.node.startTask(engineData, updatedInstances.instance, messageService) else updatedInstances
+    return if (startNext) updatedInstances.node.startTask(engineData, updatedInstances.instance) else updatedInstances
   }
 
   @Throws(SQLException::class)
-  override fun <U> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>): PNIPair<ProcessNodeInstance> {
+  open fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     val startNext = node.startTask(this)
     val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Started }
     return if (startNext) {
-      updatedInstances.instance.finishTask(engineData, messageService, updatedInstances.node, null)
+      updatedInstances.instance.finishTask(engineData, updatedInstances.node, null)
     } else updatedInstances
   }
 
@@ -320,12 +317,12 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
+  open fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     return update(engineData, processInstance) { state = NodeInstanceState.Cancelled }
   }
 
   @Throws(SQLException::class)
-  override fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
+  open fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     try {
       return cancelTask(engineData, processInstance)
     } catch (e: IllegalArgumentException) {
@@ -339,7 +336,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
+  open fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
     return update(engineData, processInstance) {
       failureCause = cause
       state = if (state == NodeInstanceState.Pending) NodeInstanceState.FailRetry else NodeInstanceState.Failed
@@ -347,7 +344,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  override fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
+  open fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
     return update(engineData, processInstance) {
       failureCause = cause
       state = NodeInstanceState.FailRetry
@@ -416,9 +413,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(XmlException::class)
-  override fun serialize(engineData: ProcessEngineDataAccess,
-                         out: XmlWriter,
-                         localEndpoint: EndpointDescriptor) {
+  fun serialize(engineData: ProcessEngineDataAccess, out: XmlWriter, localEndpoint: EndpointDescriptor) {
     out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
       writeAttribute("state", state.name)
       writeAttribute("processinstance", hProcessInstance.handleValue)

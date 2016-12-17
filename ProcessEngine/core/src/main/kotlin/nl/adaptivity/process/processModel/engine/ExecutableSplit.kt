@@ -53,9 +53,8 @@ class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutablePro
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
-    return SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
-  }
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT)
+      = processInstance.getNodeInstance(this) ?: SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
 
   override fun startTask(instance: ProcessNodeInstance) = false
 

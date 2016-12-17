@@ -16,9 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
 import nl.adaptivity.process.processModel.IXmlDefineType
@@ -49,10 +46,6 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   override fun builder() = Builder(this)
-
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
-    return ProcessNodeInstance(this, predecessor, processInstance)
-  }
 
   companion object {
 

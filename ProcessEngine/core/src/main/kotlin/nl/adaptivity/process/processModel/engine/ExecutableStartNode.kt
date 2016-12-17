@@ -54,13 +54,8 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
 
   override fun builder() = Builder(node=this)
 
-  fun createOrReuseInstance(processInstance: ProcessInstance): ProcessNodeInstance {
-    return ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
-  }
-
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
-    return ProcessNodeInstance(this, predecessor, processInstance)
-  }
+  fun createOrReuseInstance(processInstance: ProcessInstance)
+      = processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
 
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = true
 

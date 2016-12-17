@@ -614,8 +614,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
           when (newState) {
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
             Acknowledged -> return task.update(transaction.writableEngineData, pi) { state = newState }.node.state // Record the state, do nothing else.
-            Taken        -> task.takeTask(this, pi, messageService)
-            Started      -> task.startTask(this, pi, messageService)
+            Taken        -> task.takeTask(this, pi)
+            Started      -> task.startTask(this, pi)
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
           // TODO don't just make up a failure cause
             Failed       -> task.failTask(this, pi, IllegalArgumentException("Missing failure cause"))
@@ -635,7 +635,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         val pi = instance(task.hProcessInstance).withPermission()
         try {
           synchronized(pi) {
-            return pi.finishTask(this, messageService, task, payload).node
+            return pi.finishTask(this, task, payload).node
           }
         } catch (e: Exception) {
           engineData.invalidateCachePNI(handle)

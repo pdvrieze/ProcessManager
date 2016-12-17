@@ -135,28 +135,34 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Throws(SQLException::class)
-  override fun <V> startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V>): PNIPair<ProcessNodeInstance> {
+  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     if (node.startTask(this)) {
       return updateTaskState(engineData, processInstance)
     }
     return PNIPair(processInstance, this)
   }
 
+  @Suppress("UNCHECKED_CAST")
   override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?)
         = super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
 
-  override fun <U> takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<U>)
-        = super.takeTask(engineData, processInstance, messageService) as PNIPair<JoinInstance>
+  @Suppress("UNCHECKED_CAST")
+  override fun takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
+        = super.takeTask(engineData, processInstance) as PNIPair<JoinInstance>
 
+  @Suppress("UNCHECKED_CAST")
   override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
         = super.cancelTask(engineData, processInstance) as PNIPair<JoinInstance>
 
+  @Suppress("UNCHECKED_CAST")
   override fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
         = super.tryCancelTask(engineData, processInstance) as PNIPair<JoinInstance>
 
+  @Suppress("UNCHECKED_CAST")
   override fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable)
         = super.failTask(engineData, processInstance, cause) as PNIPair<JoinInstance>
 
+  @Suppress("UNCHECKED_CAST")
   override fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable)
         = super.failTaskCreation(engineData, processInstance, cause) as PNIPair<JoinInstance>
 
@@ -191,7 +197,8 @@ class JoinInstance : ProcessNodeInstance {
       when (predecessor.state) {
         NodeInstanceState.Complete                            -> complete += 1
         NodeInstanceState.Cancelled, NodeInstanceState.Failed -> skipped += 1
-      }// do nothing
+        else -> Unit // do nothing
+      }
     }
     if (totalPossiblePredecessors - skipped < join.min) {
       cancelNoncompletedPredecessors(engineData, processInstance).let { processInstance ->
@@ -215,7 +222,7 @@ class JoinInstance : ProcessNodeInstance {
 
 
   @Throws(SQLException::class)
-  override fun <V> provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, messageService: IMessageService<V>): PNIPair<ProcessNodeInstance> {
+  override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     if (!isFinished) {
       val shouldProgress = node.provideTask(engineData, processInstance, this)
       if (shouldProgress) {
@@ -226,7 +233,7 @@ class JoinInstance : ProcessNodeInstance {
               .map { engineData.nodeInstance(it).withPermission() }
               .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
         if (canAdd) {
-          return updateJoin(engineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> pair.node.takeTask(engineData, pair.instance, messageService) }
+          return updateJoin(engineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> pair.node.takeTask(engineData, pair.instance) }
         }
         return PNIPair(processInstance, this) // no need to update as the initial state is already pending.
       }

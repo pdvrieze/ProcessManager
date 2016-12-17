@@ -295,7 +295,7 @@ class TestProcessEngine {
       val taskNode = mStubMessageService.messageNode(transaction, 0)
       taskNode.assertSent()
       processInstance.assertActive(taskNode)
-      processInstance.finishTask(engineData, mStubMessageService, taskNode, null).node.assertComplete()
+      processInstance.finishTask(engineData, taskNode, null).node.assertComplete()
     }
 
     run {
@@ -335,7 +335,7 @@ class TestProcessEngine {
             }
           }
 
-          instance.finishTask(engineData, mStubMessageService, ac1, null).node.assertComplete()
+          instance.finishTask(engineData, ac1, null).node.assertComplete()
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -348,7 +348,7 @@ class TestProcessEngine {
           instance.assertActive(ac2, split, join)
           // check join is in the pending set
 
-          ac2.startTask(engineData, instance, mStubMessageService)
+          ac2.startTask(engineData, instance)
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -360,7 +360,7 @@ class TestProcessEngine {
           instance.assertFinished(ac1, start)
           instance.assertActive(ac2, split, join)
 
-          instance.finishTask(engineData, mStubMessageService, ac2, null).node.assertComplete()
+          instance.finishTask(engineData, ac2, null).node.assertComplete()
         }
 
         run {

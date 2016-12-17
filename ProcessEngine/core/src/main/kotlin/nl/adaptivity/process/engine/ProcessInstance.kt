@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
@@ -404,13 +405,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           self.active.asSequence()
               .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
               .filter { !it.state.isFinal }
-              .fold(self) { self, task -> task.provideTask(transaction.writableEngineData, self, messageService).instance }
+              .fold(self) { self, task -> task.provideTask(transaction.writableEngineData, self).instance }
         }
   }
 
   @Synchronized @Throws(SQLException::class)
   fun finishTask(engineData: MutableProcessEngineDataAccess,
-                 messageService: IMessageService<*>,
                  node: ProcessNodeInstance,
                  resultPayload: Node?): PNIPair<ProcessNodeInstance> {
     if (node.state === NodeInstanceState.Complete) {
@@ -420,23 +420,22 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     @Suppress("DEPRECATION")
     val newInstances = node.finishTask(engineData, this, resultPayload).apply { engineData.commit() }
 
-    return PNIPair(newInstances.instance.handleFinishedState(engineData, messageService, newInstances.node), newInstances.node)
+    return newInstances.instance.handleFinishedState(engineData, newInstances.node)
   }
 
   @Synchronized @Throws(SQLException::class)
   private fun handleFinishedState(engineData: MutableProcessEngineDataAccess,
-                                  messageService: IMessageService<*>,
-                                  node: ProcessNodeInstance):ProcessInstance {
+                                  node: ProcessNodeInstance):PNIPair<ProcessNodeInstance> {
     // XXX todo, handle failed or cancelled tasks
     try {
       if (node.node is EndNode<*, *>) {
-        return finish(engineData).apply {
+        return PNIPair(finish(engineData).apply {
           assert(node.getHandle() !in active)
           assert(node.getHandle() !in finished)
           assert(node.getHandle() in completedEndnodes)
-        }
+        }, node)
       } else {
-        return startSuccessors(engineData, messageService, node)
+        return PNIPair(updateSplits(engineData).startSuccessors(engineData, node), node)
       }
     } catch (e: RuntimeException) {
       engineData.rollback()
@@ -445,12 +444,20 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       engineData.rollback()
       Logger.getAnonymousLogger().log(Level.WARNING, "Failure to start follow on task", e)
     }
-    return this
+    return PNIPair(this, node)
+  }
+
+  private fun updateSplits(engineData: MutableProcessEngineDataAccess):ProcessInstance {
+    return childNodes.asSequence()
+        .filterIsInstance(SplitInstance::class.java)
+        .fold(this) {
+          origProcessInstance, split ->
+          split.updateState(engineData, origProcessInstance).instance
+        }
   }
 
   @Synchronized @Throws(SQLException::class)
   private fun startSuccessors(engineData: MutableProcessEngineDataAccess,
-                              messageService: IMessageService<*>,
                               predecessor: ProcessNodeInstance):ProcessInstance {
 
     val startedTasks = ArrayList<ProcessNodeInstance>(predecessor.node.successors.size)
@@ -479,8 +486,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     // Commit the registration of the follow up nodes before starting them.
     engineData.commit()
-    self = startedTasks.fold(self) { self, task -> task.provideTask(engineData, self, messageService).instance }
-    self = joinsToEvaluate.fold(self) {self, join -> join.startTask(engineData, self, messageService).instance }
+    self = startedTasks.fold(self) { self, task -> task.provideTask(engineData, self).instance }
+    self = joinsToEvaluate.fold(self) {self, join -> join.startTask(engineData, self).instance }
     return self
   }
 
@@ -604,7 +611,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           var self2 = ticklePredecessors(self, nodeInstance)
           val instanceState = nodeInstance.state
           if (instanceState.isFinal) {
-            self2 = self2.handleFinishedState(engineData, messageService, nodeInstance)
+            self2 = self2.handleFinishedState(engineData, nodeInstance).instance
           }
           self2
         }
