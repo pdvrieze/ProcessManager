@@ -25,4 +25,6 @@ interface Handle<T> {
   val valid:Boolean get() = handleValue>=0
 }
 
-interface ComparableHandle<T> : Handle<T>, Comparable<ComparableHandle<*>>// no body needed
+interface ComparableHandle<T> : Handle<T>, Comparable<ComparableHandle<*>> {
+  override fun compareTo(other: ComparableHandle<*>) = handleValue.compareTo(other.handleValue)
+}
