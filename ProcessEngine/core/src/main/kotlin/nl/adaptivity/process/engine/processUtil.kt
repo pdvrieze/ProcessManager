@@ -72,14 +72,14 @@ fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<out SecureObject<V>
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, I:ProcessInstance> I?.mustExist(handle: Handle<out ProcessInstance>): I = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, I:ProcessInstance> I?.mustExist(handle: ProcessInstance.HandleT): I = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: Handle<out ProcessInstance>): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: ProcessInstance.HandleT): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

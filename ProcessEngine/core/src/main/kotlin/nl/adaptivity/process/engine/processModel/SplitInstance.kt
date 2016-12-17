@@ -49,7 +49,7 @@ class SplitInstance : ProcessNodeInstance {
   class BaseBuilder(
       node: ExecutableSplit,
       predecessor: ProcessNodeInstance.HandleT,
-      hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+      hProcessInstance: ProcessInstance.HandleT,
       owner: Principal,
       handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
       state: NodeInstanceState = NodeInstanceState.Pending)
@@ -70,7 +70,7 @@ class SplitInstance : ProcessNodeInstance {
 
   constructor(node: ExecutableSplit,
               predecessor: ProcessNodeInstance.HandleT,
-              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+              hProcessInstance: ProcessInstance.HandleT,
               owner: Principal,
               handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,

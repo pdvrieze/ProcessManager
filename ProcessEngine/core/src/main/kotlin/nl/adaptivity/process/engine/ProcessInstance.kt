@@ -44,7 +44,11 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<ProcessInstance> {
+class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance> {
+
+  typealias SecureT = SecureObject<ProcessInstance>
+
+  typealias HandleT = ComparableHandle<out SecureT>
 
   data class PNIPair<out T: IProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T)
 
@@ -84,7 +88,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   interface Builder {
     val generation: Int
     val pendingChildren: List<Future<out ProcessNodeInstance>>
-    var handle: ComparableHandle<out ProcessInstance>
+    var handle: HandleT
     var owner: Principal
     var processModel: ExecutableProcessModel
     var instancename: String?
@@ -98,7 +102,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     fun <T:ProcessNodeInstance> storeChild(child:T): Future<T>
   }
 
-  data class BaseBuilder(override var handle: ComparableHandle<out ProcessInstance> = Handles.getInvalid(),
+  data class BaseBuilder(override var handle: HandleT = Handles.getInvalid(),
                          override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
                          override var processModel: ExecutableProcessModel,
                          override var instancename: String? = null,
@@ -158,7 +162,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     CANCELLED
   }
 
-  class ProcessInstanceRef(processInstance: ProcessInstance) : Handle<ProcessInstance>, XmlSerializable {
+  class ProcessInstanceRef(processInstance: ProcessInstance) : ProcessInstance.HandleT, XmlSerializable {
 
     override val handleValue = processInstance.handle.handleValue
 
@@ -181,6 +185,9 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     override val valid: Boolean
       get() = handleValue >= 0L
 
+    override fun compareTo(other: ComparableHandle<*>): Int {
+      return super.compareTo(other)
+    }
   }
 
   val generation: Int
@@ -224,7 +231,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
   private val pendingJoins: Map<ExecutableJoin, JoinInstance> get() =
       pendingJoinNodes.associateBy { it.node }
 
-  private var handle: ComparableHandle<out ProcessInstance>
+  private var handle: HandleT
 
   override fun getHandle() = handle
 

@@ -113,7 +113,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         this@DelegateProcessEngineData.invalidateCachePNI(handle)
       }
 
-      override fun handleFinishedInstance(handle: ComparableHandle<out ProcessInstance>) {
+      override fun handleFinishedInstance(handle: ProcessInstance.HandleT) {
         // Ignore the completion for now. Just keep it in the engine.
       }
     }
@@ -150,7 +150,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         this@DBProcessEngineData.invalidateCachePNI(handle)
       }
 
-      override fun handleFinishedInstance(handle: ComparableHandle<out ProcessInstance>) {
+      override fun handleFinishedInstance(handle: ProcessInstance.HandleT) {
         // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
       }
     }
@@ -205,7 +205,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     engineData.invalidateCachePM(handle)
   }
 
-  fun invalidateInstanceCache(handle: Handle<out ProcessInstance>) {
+  fun invalidateInstanceCache(handle: ProcessInstance.HandleT) {
     engineData.invalidateCachePI(handle)
   }
 
@@ -380,7 +380,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun getProcessInstance(transaction: TRXXX, handle: Handle<out ProcessInstance>, user: Principal): ProcessInstance {
+  fun getProcessInstance(transaction: TRXXX, handle: ProcessInstance.HandleT, user: Principal): ProcessInstance {
     return engineData.inReadonlyTransaction(transaction) {
       instances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.VIEW_INSTANCE, user) {
         it
@@ -394,7 +394,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun tickleInstance(transaction: TRXXX, handle: Handle<out ProcessInstance>, user: Principal): Boolean {
+  fun tickleInstance(transaction: TRXXX, handle: ProcessInstance.HandleT, user: Principal): Boolean {
     transaction.writableEngineData.run {
       invalidateCachePM(Handles.getInvalid())
       invalidateCachePI(Handles.getInvalid())
@@ -538,7 +538,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun finishInstance(transaction: TRXXX, hProcessInstance: Handle<out ProcessInstance>) {
+  fun finishInstance(transaction: TRXXX, hProcessInstance: ProcessInstance.HandleT) {
     // TODO evict these nodes from the cache (not too bad to keep them though)
     //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
     //      getNodeInstances().invalidateModelCache(childNode);

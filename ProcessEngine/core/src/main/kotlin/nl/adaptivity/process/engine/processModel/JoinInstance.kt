@@ -47,7 +47,7 @@ class JoinInstance : ProcessNodeInstance {
   class BaseBuilder(
         node: ExecutableJoin,
         predecessors: Iterable<ProcessNodeInstance.HandleT>,
-        hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+        hProcessInstance: ProcessInstance.HandleT,
         owner: Principal,
         handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
         state: NodeInstanceState = NodeInstanceState.Pending)
@@ -67,7 +67,7 @@ class JoinInstance : ProcessNodeInstance {
 
   constructor(node: ExecutableJoin,
               predecessors: Collection<ProcessNodeInstance.HandleT>,
-              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+              hProcessInstance: ProcessInstance.HandleT,
               owner: Principal,
               handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
@@ -277,7 +277,7 @@ class JoinInstance : ProcessNodeInstance {
   companion object {
     fun <T:ProcessTransaction> build(joinImpl: ExecutableJoin,
                                      predecessors: Set<ProcessNodeInstance.HandleT>,
-                                     hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+                                     hProcessInstance: ProcessInstance.HandleT,
                                      owner: Principal,
                                      handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,

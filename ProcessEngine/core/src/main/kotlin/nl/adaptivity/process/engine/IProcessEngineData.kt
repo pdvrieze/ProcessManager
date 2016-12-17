@@ -112,5 +112,5 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
   fun rollback()
 
   /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
-  fun  handleFinishedInstance(handle: ComparableHandle<out ProcessInstance>)
+  fun  handleFinishedInstance(handle: ProcessInstance.HandleT)
 }

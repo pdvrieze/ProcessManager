@@ -43,7 +43,7 @@ import javax.xml.transform.Source
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
 open class ProcessNodeInstance(node: ExecutableProcessNode,
                                predecessors: Collection<ProcessNodeInstance.HandleT>,
-                               val hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+                               val hProcessInstance: ProcessInstance.HandleT,
                                owner: Principal,
                                handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
                                override final val state: NodeInstanceState = NodeInstanceState.Pending,
@@ -72,7 +72,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   interface Builder<N:ExecutableProcessNode> {
     var node: N
     val predecessors: MutableSet<HandleT>
-    var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>
+    var hProcessInstance: ProcessInstance.HandleT
     var owner: Principal
     var handle: HandleT
     var state: NodeInstanceState
@@ -118,7 +118,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   open class BaseBuilder<N:ExecutableProcessNode>(
         override var node: N,
         predecessors: Iterable<HandleT>,
-        override var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+        override var hProcessInstance: ProcessInstance.HandleT,
         override var owner: Principal,
         override var handle: HandleT = Handles.getInvalid(),
         override var state: NodeInstanceState = NodeInstanceState.Pending) : AbstractBuilder<N>() {
