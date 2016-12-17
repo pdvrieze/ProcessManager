@@ -26,7 +26,7 @@ import java.security.Principal
 abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
   protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
-  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>
+  protected abstract val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>
 
 
   fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
@@ -83,7 +83,7 @@ interface ProcessEngineDataAccess {
   fun  instance(handle: Handle<out SecureObject<ProcessInstance>>)
         = instances[handle].mustExist(handle)
 
-  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance>>
+  val nodeInstances: HandleMap<ProcessNodeInstance.SecureT>
 
   fun nodeInstance(handle: ProcessNodeInstance.HandleT)
         = nodeInstances[handle].mustExist(handle)
@@ -97,7 +97,7 @@ interface ProcessEngineDataAccess {
 interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
   override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
-//  override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance>>
+//  override val nodeInstances: MutableHandleMap<ProcessNodeInstance.SecureT>
 
   override val processModels: IMutableProcessModelMapAccess
 

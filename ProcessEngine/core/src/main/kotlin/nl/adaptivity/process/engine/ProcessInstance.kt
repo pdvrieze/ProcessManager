@@ -187,7 +187,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
 
   val processModel: ExecutableProcessModel
 
-  val childNodes: Collection<SecureObject<ProcessNodeInstance>>
+  val childNodes: Collection<ProcessNodeInstance.SecureT>
 
   val children: Sequence<ProcessNodeInstance.HandleT>
     get() = childNodes.asSequence().map { it.withPermission().getHandle() }
@@ -385,7 +385,7 @@ class ProcessInstance : MutableHandleAware<ProcessInstance>, SecureObject<Proces
     }
   }
 
-  fun getChild(nodeId: String): SecureObject<ProcessNodeInstance>? {
+  fun getChild(nodeId: String): ProcessNodeInstance.SecureT? {
     return childNodes.firstOrNull { it.withPermission().node.id == nodeId }
   }
 

@@ -57,10 +57,10 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   @Suppress("CanBePrimaryConstructorProperty")
   open val node: ExecutableProcessNode = node
 
-  private var handle: ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance>>
+  private var handle: ProcessNodeInstance.HandleT
         = Handles.handle(handle)
 
-  override fun getHandle(): ComparableHandle<out @JvmWildcard SecureObject<ProcessNodeInstance>>
+  override fun getHandle(): HandleT
         = handle
 
   val results: List<ProcessData> = results.toList()
@@ -71,10 +71,10 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
   interface Builder<N:ExecutableProcessNode> {
     var node: N
-    val predecessors: MutableSet<ProcessNodeInstance.HandleT>
+    val predecessors: MutableSet<HandleT>
     var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>
     var owner: Principal
-    var handle: ProcessNodeInstance.HandleT
+    var handle: HandleT
     var state: NodeInstanceState
     val results:MutableList<ProcessData>
     fun toXmlInstance(body: CompactFragment?):XmlProcessNodeInstance
@@ -104,7 +104,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     override var predecessors = ObservableSet(base.directPredecessors.toMutableArraySet(), { changed = true })
     override var hProcessInstance by overlay(update = observer) { base.hProcessInstance }
     override var owner by overlay(observer) { base.owner }
-    override var handle: ProcessNodeInstance.HandleT by overlay(observer) { base.handle }
+    override var handle: HandleT by overlay(observer) { base.handle }
     override var state by overlay(observer) { base.state }
     override var results = ObservableList(base.results.toMutableList(), { changed = true })
     var changed: Boolean = false
@@ -117,13 +117,13 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
   open class BaseBuilder<N:ExecutableProcessNode>(
         override var node: N,
-        predecessors: Iterable<ProcessNodeInstance.HandleT>,
+        predecessors: Iterable<HandleT>,
         override var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
         override var owner: Principal,
-        override var handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
+        override var handle: HandleT = Handles.getInvalid(),
         override var state: NodeInstanceState = NodeInstanceState.Pending) : AbstractBuilder<N>() {
 
-    override var predecessors :MutableSet<ProcessNodeInstance.HandleT> = predecessors.toMutableArraySet()
+    override var predecessors :MutableSet<HandleT> = predecessors.toMutableArraySet()
 
     override val results = mutableListOf<ProcessData>()
 
@@ -153,7 +153,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
 
   constructor(node: ExecutableStartNode, processInstance: ProcessInstance) : this(node, emptyList(), processInstance.getHandle(), processInstance.owner)
 
-  constructor(node: ExecutableProcessNode, predecessor: ProcessNodeInstance.HandleT, processInstance: ProcessInstance) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(), processInstance.owner)
+  constructor(node: ExecutableProcessNode, predecessor: HandleT, processInstance: ProcessInstance) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(), processInstance.owner)
 
   constructor(builder:Builder<out ExecutableProcessNode>): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.failureCause)
 
@@ -209,7 +209,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     }
   }
 
-  private fun hasDirectPredecessor(handle: ProcessNodeInstance.HandleT): Boolean {
+  private fun hasDirectPredecessor(handle: HandleT): Boolean {
     for (pred in directPredecessors) {
       if (pred.handleValue == handle.handleValue) {
         return true
@@ -226,7 +226,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  fun getPredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance.HandleT? {
+  fun getPredecessor(engineData: ProcessEngineDataAccess, nodeName: String): HandleT? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     directPredecessors
           .asSequence()
@@ -483,7 +483,7 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     @Throws(SQLException::class)
     private fun <T:ProcessTransaction> resolvePredecessors(transaction: T,
                                                            processInstance: ProcessInstance,
-                                                           node: ExecutableProcessNode): List<ProcessNodeInstance.HandleT> {
+                                                           node: ExecutableProcessNode): List<HandleT> {
 
       return node.predecessors.asSequence()
             .map { processInstance.getNodeInstance(it) }
@@ -493,9 +493,9 @@ open class ProcessNodeInstance(node: ExecutableProcessNode,
     }
 
     fun <T:ProcessTransaction> build(node: ExecutableProcessNode,
-                                     predecessors: Set<ProcessNodeInstance.HandleT>,
+                                     predecessors: Set<HandleT>,
                                      processInstance: ProcessInstance,
-                                     handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
+                                     handle: HandleT = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder<ExecutableProcessNode>.() -> Unit):ProcessNodeInstance {
       return ProcessNodeInstance(BaseBuilder(node, predecessors, processInstance.getHandle(), processInstance.owner, handle, state).apply(body))

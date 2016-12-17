@@ -27,4 +27,4 @@ import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 
 
 class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode>, SecureObject<ProcessNodeInstance>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))
+      DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode>, ProcessNodeInstance.SecureT, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))

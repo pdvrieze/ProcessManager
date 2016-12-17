@@ -63,12 +63,12 @@ private fun <T : ProcessTransaction, V:Any> wrapInstanceCache(base: MutableTrans
   return CachingHandleMap<V, T>(base, cacheSize)
 }
 
-private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>,
-                                                   cacheSize: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T> {
+private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>,
+                                                   cacheSize: Int): MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T> {
   if (cacheSize <= 0) {
     return base
   }
-  return CachingHandleMap<SecureObject<ProcessNodeInstance>, T>(base, cacheSize, { pni, handle -> if (pni.withPermission().getHandleValue()==handle) pni else pni.withPermission().builder().apply{ this.handle = Handles.handle(handle)}.build() })
+  return CachingHandleMap<ProcessNodeInstance.SecureT, T>(base, cacheSize, { pni, handle -> if (pni.withPermission().getHandleValue()==handle) pni else pni.withPermission().builder().apply{ this.handle = Handles.handle(handle)}.build() })
 }
 
 private fun <T : ProcessTransaction, V:Any> wrapModelCache(base: IMutableProcessModelMap<T>,
@@ -90,12 +90,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         private val transactionFactory: ProcessTransactionFactory<T>,
         override val processModels: IMutableProcessModelMap<T>,
         override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
-        override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
+        override val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>) : IProcessEngineData<T>(), TransactionFactory<T> {
 
     private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
       override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
         get() = this@DelegateProcessEngineData.processInstances.withTransaction(transaction)
-      override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance>>
+      override val nodeInstances: MutableHandleMap<ProcessNodeInstance.SecureT>
         get() = this@DelegateProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
@@ -133,7 +133,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     private inner class DBEngineDataAccess(transaction: ProcessDBTransaction) : AbstractProcessEngineDataAccess<ProcessDBTransaction>(transaction) {
       override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
         get() = this@DBProcessEngineData.processInstances.withTransaction(transaction)
-      override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance>>
+      override val nodeInstances: MutableHandleMap<ProcessNodeInstance.SecureT>
         get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
       override val processModels: IMutableProcessModelMapAccess
         get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
@@ -733,7 +733,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                                                           transactionFactory: ProcessTransactionFactory<T>,
                                                           processModels: IMutableProcessModelMap<T>,
                                                           processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
-                                                          processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>,
+                                                          processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>,
                                                           autoTransition: Boolean): ProcessEngine<T> {
 
       val engineData = ProcessEngine.DelegateProcessEngineData<T>(transactionFactory, processModels, processInstances, processNodeInstances)

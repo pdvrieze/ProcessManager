@@ -246,7 +246,7 @@ class TestProcessEngine {
         mStubTransactionFactory,
         cacheModels<Any>(MemProcessModelMap(), 3),
         cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-        cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
+        cacheNodes<Any>(MemTransactionedHandleMap<ProcessNodeInstance.SecureT, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
   }
 
   @Test
@@ -480,7 +480,7 @@ class TestProcessEngine {
         return pni
       }
       val builder = pni.withPermission().builder()
-      builder.handle = Handles.handle<SecureObject<ProcessNodeInstance>>(handle!!)
+      builder.handle = Handles.handle<ProcessNodeInstance.SecureT>(handle!!)
       return builder.build()
     }
 
@@ -488,7 +488,7 @@ class TestProcessEngine {
       return CachingHandleMap<V, StubProcessTransaction>(base, count)
     }
 
-    private fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction> {
+    private fun <V> cacheNodes(base: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, StubProcessTransaction> {
       return CachingHandleMap(base, count, PNI_SET_HANDLE)
     }
 

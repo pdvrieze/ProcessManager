@@ -38,7 +38,7 @@ import java.sql.SQLException
  * Factory object to help with process node creation from a database.
  */
 
-internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<ProcessDBTransaction>): AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode>, SecureObject<ProcessNodeInstance>, ProcessDBTransaction>() {
+internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<ProcessDBTransaction>): AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode>, ProcessNodeInstance.SecureT, ProcessDBTransaction>() {
 
   companion object {
     private val tbl_pni = ProcessEngineDB.processNodeInstances
@@ -102,14 +102,14 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where,
-                             instance: SecureObject<ProcessNodeInstance>): Database.WhereClause? {
+                             instance: ProcessNodeInstance.SecureT): Database.WhereClause? {
     return getHandleCondition(where, instance.withPermission().getHandle());
   }
 
   @Suppress("UNCHECKED_CAST")
   override fun asInstance(obj: Any) = obj as? ProcessNodeInstance
 
-  override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessNodeInstance>) {
+  override fun store(update: Database._UpdateBuilder, value: ProcessNodeInstance.SecureT) {
     update.run {
       value.withPermission().let { value ->
         SET(tbl_pni.nodeid, value.node.id)
@@ -121,8 +121,8 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
   override fun postStore(connection: DBConnection,
                          handle: Handle<out ProcessNodeInstance.SecureT>,
-                         oldValue: SecureObject<ProcessNodeInstance>?,
-                         newValue: SecureObject<ProcessNodeInstance>) {
+                         oldValue: ProcessNodeInstance.SecureT?,
+                         newValue: ProcessNodeInstance.SecureT) {
     if (oldValue != null) { // update
       ProcessEngineDB
             .DELETE_FROM(tbl_pred)
@@ -158,7 +158,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
     }
   }
 
-  override fun insertStatement(value: SecureObject<ProcessNodeInstance>): Database.Insert {
+  override fun insertStatement(value: ProcessNodeInstance.SecureT): Database.Insert {
     return value.withPermission().let { value ->
       ProcessEngineDB
             .INSERT(tbl_pni.nodeid, tbl_pni.pihandle, tbl_pni.state)
@@ -183,7 +183,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .executeUpdate(connection)
   }
 
-  override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessNodeInstance>) {
+  override fun preRemove(transaction: ProcessDBTransaction, element: ProcessNodeInstance.SecureT) {
     preRemove(transaction, element.withPermission().getHandle())
   }
 
