@@ -35,6 +35,9 @@ import java.util.*
 
 class JoinInstance : ProcessNodeInstance {
 
+  typealias SecureT = SecureObject<JoinInstance>
+  typealias HandleT = ComparableHandle<out SecureT>
+
   interface Builder : ProcessNodeInstance.Builder<ExecutableJoin> {
     override fun build(): JoinInstance
   }
@@ -59,8 +62,8 @@ class JoinInstance : ProcessNodeInstance {
     get() = super.node as ExecutableJoin
 
   @Suppress("UNCHECKED_CAST")
-  override fun getHandle(): ComparableHandle<out SecureObject<JoinInstance>>
-        = super.getHandle() as ComparableHandle<out SecureObject<JoinInstance>>
+  override fun getHandle(): HandleT
+        = super.getHandle() as HandleT
 
   val isFinished: Boolean
     get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
