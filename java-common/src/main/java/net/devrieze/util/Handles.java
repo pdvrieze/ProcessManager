@@ -48,8 +48,8 @@ public final class Handles {
     }
 
     @Override
-    public int compareTo(ComparableHandle<T> pO) {
-      return Long.compare(getHandleValue(), pO.getHandleValue());
+    public int compareTo(@NotNull ComparableHandle<?> o) {
+      return Long.compare(getHandleValue(), o.getHandleValue());
     }
 
     @Override
