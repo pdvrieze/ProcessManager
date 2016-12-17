@@ -45,7 +45,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
     public Builder() { }
 
     public Builder(@Nullable final Identified predecessor, @Nullable final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name) {
-      super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
+      super(id, predecessor, successor, label, defines, results, message, condition, name, x, y);
     }
 
     public Builder(@NotNull final Activity<?, ?> node) {

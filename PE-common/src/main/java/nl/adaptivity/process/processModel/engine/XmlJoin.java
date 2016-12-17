@@ -16,18 +16,16 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.JoinBase;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.XmlDeserializer;
-import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlUtil;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +43,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
     }
 
     public Builder(@NotNull final Collection<? extends Identified> predecessors, @NotNull final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
-      super(predecessors, successor, id, label, x, y, defines, results, min, max);
+      super(id, predecessors, successor, label, defines, results, min, max, x, y);
     }
 
     @NotNull
@@ -76,28 +74,12 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
     return XmlUtil.deserializeHelper(new XmlJoin.Builder(), in);
   }
 
-  public XmlJoin(final XmlProcessModel ownerModel, final Collection<? extends Identified> predecessors, final int min, final int max) {
-    super(ownerModel, predecessors, max, min);
-    if ((getMin() < 1) || (max < min)) {
-      throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
-    }
-  }
-
   public XmlJoin(final XmlProcessModel ownerModel) {
     super(ownerModel);
   }
 
-  public XmlJoin(@NotNull final Join<?, ?> orig, @Nullable final XmlProcessModel newOwner) {
-    super(orig, newOwner);
-  }
-
   public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
-  }
-
-  @NotNull
-  public static XmlJoin andJoin(final XmlProcessModel ownerModel, final Identified... predecessors) {
-    return new XmlJoin(ownerModel, Arrays.asList(predecessors), Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
   @NotNull

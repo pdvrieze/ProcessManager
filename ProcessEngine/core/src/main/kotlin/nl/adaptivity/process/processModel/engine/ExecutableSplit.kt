@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.IXmlDefineType
@@ -30,21 +28,20 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
-import java.sql.SQLException
 
 
 class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : SplitBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(predecessors: Collection<Identified> = emptyList(),
-                successors: Collection<Identified> = emptyList(),
-                id: String? = null, label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(), label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
-                max: Int = -1) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
+                max: Int = -1,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
     constructor(node: Split<*, *>) : super(node)
 
     override fun build(newOwner: ExecutableProcessModel): ExecutableSplit {
@@ -60,23 +57,7 @@ class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutablePro
     return SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
   }
 
-  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
-
-  @Throws(SQLException::class)
-  override fun provideTask(engineData: MutableProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
-    return true
-  }
-
-  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(
-      instance: U): Boolean {
-    return true
-  }
-
-  override fun <U : IExecutableProcessNodeInstance<U>> startTask(
-      instance: U): Boolean {
-    return false
-  }
+  override fun startTask(instance: ProcessNodeInstance) = false
 
   companion object {
 

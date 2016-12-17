@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
@@ -29,21 +27,20 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
-import java.sql.SQLException
 
 
 class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : JoinBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor(predecessors: Collection<Identified> = emptyList(),
-                successor: Identified? = null,
-                id: String? = null, label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
+                successor: Identified? = null, label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
-                max: Int = -1) : super(predecessors, successor, id, label, x, y, defines, results, min, max)
+                max: Int = -1,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, min, max, x, y)
     constructor(node: Join<*, *>) : super(node)
 
     override fun build(newOwner: ExecutableProcessModel) = ExecutableJoin(this, newOwner)
@@ -55,24 +52,6 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProce
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
     return processInstance.getJoinInstance(this, predecessor)
-  }
-
-  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
-
-  @Throws(SQLException::class)
-  override fun provideTask(engineData: MutableProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
-    return true
-  }
-
-  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(
-      instance: U): Boolean {
-    return true
-  }
-
-  override fun <U : IExecutableProcessNodeInstance<U>> startTask(
-      instance: U): Boolean {
-    return true
   }
 
   companion object {

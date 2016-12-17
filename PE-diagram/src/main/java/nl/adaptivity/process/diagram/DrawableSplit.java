@@ -21,7 +21,6 @@ import nl.adaptivity.process.clientProcessModel.ClientSplitNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.process.processModel.Split.Builder;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -69,17 +68,12 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
 
 
   public DrawableSplit(final DrawableProcessModel ownerModel) {
-    super(ownerModel);
-    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
-  }
-
-  public DrawableSplit(final DrawableProcessModel ownerModel, String id) {
-    super(ownerModel, id);
+    super(new Builder(), ownerModel);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }
 
   public DrawableSplit(Split<?,?> orig) {
-    super(orig);
+    super(orig.builder(), null);
     if (orig instanceof DrawableSplit) {
       mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate(((DrawableSplit) orig).mDrawableJoinSplitDelegate);
     } else {
@@ -110,7 +104,7 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
   @Deprecated
   @NotNull
   public static DrawableSplit deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableSplit>deserializeHelper(new DrawableSplit(ownerModel), in);
+    return XmlUtil.<DrawableSplit.Builder>deserializeHelper(new DrawableSplit.Builder(), in).build(ownerModel);
   }
 
   @NotNull

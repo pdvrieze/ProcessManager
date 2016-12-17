@@ -41,19 +41,19 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> 
     override val idBase:String
         get() = "ac"
 
-    constructor(): this(predecessor = null)
+    constructor(): this(id = null)
 
-    constructor(predecessor: Identified? = null,
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
                 successor: Identified? = null,
-                id: String? = null,
                 label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 message: XmlMessage? = null,
                 condition: String? = null,
-                name: String? = null) : super(listOfNotNull(predecessor), listOfNotNull(successor), id, label, x, y, defines, results) {
+                name: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, listOfNotNull(predecessor), listOfNotNull(successor), label, defines, results, x, y) {
       this.message = message
       this.name = name
       this.condition = condition

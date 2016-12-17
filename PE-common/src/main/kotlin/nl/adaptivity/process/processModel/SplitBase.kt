@@ -33,17 +33,18 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : J
     override val idBase:String
       get() = "split"
 
-    constructor() : this(predecessors = emptyList())
+    constructor() : this(id = null)
 
-    constructor(predecessors: Collection<Identified> = emptyList(),
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
-                id: String? = null, label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
+                label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
-                max: Int = -1) : super(predecessors, successors, id, label, x, y, defines, results, min, max)
+                max: Int = -1,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
 
     constructor(node: Split<*, *>) : super(node)
 
@@ -65,12 +66,6 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : J
               results: Collection<IXmlResultType> = ArrayList<IXmlResultType>(),
               min: Int = -1,
               max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id, label, x, y, defines, results, min, max)
-
-  @Deprecated("Use general constructor")
-  constructor(ownerModel: M, predecessors: Collection<Identified>, max: Int, min: Int) : super(ownerModel, predecessors, max, min) { }
-
-  @Deprecated("Use general constructor")
-  constructor(ownerModel: M) : super(ownerModel)
 
   constructor(builder: Split.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 

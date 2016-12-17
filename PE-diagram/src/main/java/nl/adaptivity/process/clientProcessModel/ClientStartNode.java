@@ -39,7 +39,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
     }
 
     public Builder(@Nullable final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
-      super(successor, id, label, x, y, defines, results);
+      super(id, successor, label, defines, results, x, y);
     }
 
     public Builder(@NotNull final StartNode<?, ?> node) {
@@ -84,7 +84,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   protected ClientStartNode(final ClientStartNode<T, M> orig, final boolean compat) {
-    super(orig, null);
+    super(orig.builder(), null);
     mCompat = compat;
   }
 

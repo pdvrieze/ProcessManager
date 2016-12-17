@@ -106,7 +106,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   @Deprecated
   @NotNull
   public static DrawableStartNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableStartNode>deserializeHelper(new DrawableStartNode(ownerModel, true), in);
+    return XmlUtil.<DrawableStartNode.Builder>deserializeHelper(new DrawableStartNode.Builder(true), in).build(ownerModel);
   }
 
   @Override

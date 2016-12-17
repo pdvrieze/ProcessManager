@@ -104,7 +104,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
   @Deprecated @NotNull
   public static DrawableActivity deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return XmlUtil.<nl.adaptivity.process.diagram.DrawableActivity>deserializeHelper(new DrawableActivity(ownerModel, true), in);
+    return XmlUtil.<DrawableActivity.Builder>deserializeHelper(new DrawableActivity.Builder(true), in).build(ownerModel);
   }
 
   @NotNull

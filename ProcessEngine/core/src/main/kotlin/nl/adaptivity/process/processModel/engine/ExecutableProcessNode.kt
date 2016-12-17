@@ -19,7 +19,6 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
@@ -72,7 +71,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * @return `true` if the node can be started, `false` if
    *          not.
    */
-  fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>): Boolean
+  fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): Boolean = true
 
   /**
    * Take action to make task available
@@ -85,7 +84,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    */
   @Throws(SQLException::class)
   fun provideTask(engineData: MutableProcessEngineDataAccess,
-                  processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean
+                  processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean = true
 
   /**
    * Take action to accept the task (but not start it yet)
@@ -94,9 +93,9 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    *
    * @return `true` if the task can/must be automatically started
    */
-  fun <U : IExecutableProcessNodeInstance<U>> takeTask(instance: U): Boolean
+  fun takeTask(instance: ProcessNodeInstance): Boolean = true
 
-  fun <U : IExecutableProcessNodeInstance<U>> startTask(instance: U): Boolean
+  fun startTask(instance: ProcessNodeInstance): Boolean = true
 
   override val results: List<XmlResultType>
 

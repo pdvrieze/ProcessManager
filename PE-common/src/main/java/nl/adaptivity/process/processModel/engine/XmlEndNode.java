@@ -16,14 +16,13 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.EndNodeBase;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.XmlDeserializer;
-import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlUtil;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +39,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
     }
 
     public Builder(@Nullable final Identified predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
-      super(predecessor, id, label, x, y, defines, results);
+      super(id, predecessor, label, defines, results, x, y);
     }
 
     public Builder(@NotNull final EndNode<?, ?> node) {

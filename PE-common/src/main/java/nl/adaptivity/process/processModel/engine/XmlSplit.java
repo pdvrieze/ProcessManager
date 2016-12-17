@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.Split;
+import nl.adaptivity.process.processModel.SplitBase;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlDeserializer;
@@ -27,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Collections;
 
 import static nl.adaptivity.xml.XmlUtil.deserializeHelper;
 
@@ -44,7 +46,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
     }
 
     public Builder(@NotNull final Collection<? extends Identified> predecessors, @NotNull final Collection<? extends Identified> successors, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
-      super(predecessors, successors, id, label, x, y, defines, results, min, max);
+      super(id, predecessors, successors, label, defines, results, min, max, x, y);
     }
 
     @NotNull
@@ -63,22 +65,8 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
     }
   }
 
-  @Deprecated
-  public XmlSplit(final @Nullable XmlProcessModel ownerModel, final Identified predecessor, final int min, final int max) {
-    super(ownerModel, Collections.singleton(predecessor), max, min);
-    if ((getMin() < 1) || (max < min)) {
-      throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
-    }
-  }
-
   public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
-  }
-
-  @Deprecated
-  @NotNull
-  public static XmlSplit andSplit(final XmlProcessModel ownerModel, final Identified predecessor) {
-    return new XmlSplit(ownerModel, predecessor, Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
   @NotNull

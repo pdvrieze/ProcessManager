@@ -21,7 +21,6 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -36,18 +35,17 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
 
   class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
 
-    constructor(): this(predecessor=null)
-    constructor(predecessor: Identified? = null,
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
                 successor: Identified? = null,
-                id: String? = null,
                 label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 message: XmlMessage? = null,
                 condition: String? = null,
-                name: String? = null) : super(predecessor, successor, id, label, x, y, defines, results, message, condition, name)
+                name: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y)
 
     constructor(node: Activity<*, *>) : super(node)
 
@@ -74,7 +72,7 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
   /**
    * Determine whether the process can start.
    */
-  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>): Boolean {
+  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): Boolean {
     return _condition?.run { eval(engineData, instance) } ?: true
   }
 
@@ -114,24 +112,18 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
   /**
    * Take the task. Tasks are either process aware or finished when a reply is
    * received. In either case they should not be automatically taken.
-
+   *
    * @return `false`
    */
-  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(
-      instance: U): Boolean {
-    return false
-  }
+  override fun takeTask(instance: ProcessNodeInstance) = false
 
   /**
    * Start the task. Tasks are either process aware or finished when a reply is
    * received. In either case they should not be automatically started.
-
+   *
    * @return `false`
    */
-  override fun <U : IExecutableProcessNodeInstance<U>> startTask(
-      instance: U): Boolean {
-    return false
-  }
+  override fun startTask(instance: ProcessNodeInstance) = false
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {

@@ -116,7 +116,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
 
   @NotNull
   public static DrawableJoin deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.diagram.DrawableJoin>deserializeHelper(new DrawableJoin(ownerModel, true), in);
+    return XmlUtil.<Builder>deserializeHelper(new Builder(true), in).build(ownerModel);
   }
 
   @NotNull

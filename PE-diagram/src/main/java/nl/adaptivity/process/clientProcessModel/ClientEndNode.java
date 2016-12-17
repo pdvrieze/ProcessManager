@@ -34,8 +34,12 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
     public Builder() {}
 
-    public Builder(@Nullable final Identified predecessor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results) {
-      super(predecessor, id, label, x, y, defines, results);
+    public Builder(final String id) {
+      setId(id);
+    }
+
+    public Builder(@Nullable final String id, @Nullable final Identified predecessor, @Nullable final String label, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final double x, final double y) {
+      super(id, predecessor, label, defines, results, x, y);
     }
 
     public Builder(@NotNull final EndNode<?, ?> node) {
@@ -61,16 +65,16 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
   }
 
   public ClientEndNode(final M ownerModel) {
-    super(ownerModel);
+    super(new Builder(), ownerModel);
   }
 
   public ClientEndNode(final M ownerModel, String id) {
-    super(ownerModel);
+    super(new Builder<>(id), ownerModel);
     setId(id);
   }
 
   protected ClientEndNode(EndNode<?, ?> orig) {
-    super(orig, null);
+    super(orig.builder(), null);
   }
 
   public ClientEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final M newOwnerModel) {

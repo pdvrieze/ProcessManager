@@ -40,13 +40,13 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
 
     constructor() : this(successor = null)
 
-    constructor(successor: Identified? = null,
-                id: String? = null,
+    constructor(id: String? = null,
+                successor: Identified? = null,
                 label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList()) : super(emptyList(), listOfNotNull(successor), id, label, x, y, defines, results)
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, emptyList(), listOfNotNull(successor), label, defines, results, x, y)
 
     constructor(node: StartNode<*, *>) : super(node)
 

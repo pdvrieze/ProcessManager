@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
@@ -35,13 +33,13 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
-    constructor(predecessor: Identified? = null,
-                id: String? = null,
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
                 label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList()) : super(predecessor, id, label, x, y, defines, results)
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessor, label, defines, results, x, y)
 
     constructor(node: EndNode<*, *>) : super(node)
 
@@ -50,27 +48,10 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  override fun builder() = Builder(node=this)
+  override fun builder() = Builder(this)
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance {
     return ProcessNodeInstance(this, predecessor, processInstance)
-  }
-
-  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
-
-  override fun provideTask(engineData: MutableProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
-    return true
-  }
-
-  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(
-      instance: U): Boolean {
-    return true
-  }
-
-  override fun <U : IExecutableProcessNodeInstance<U>> startTask(
-      instance: U): Boolean {
-    return true
   }
 
   companion object {

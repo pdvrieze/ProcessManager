@@ -41,7 +41,7 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
     }
 
     public Builder(@NotNull final Collection<? extends Identified> predecessors, @NotNull final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
-      super(predecessors, successor, id, label, x, y, defines, results, min, max);
+      super(id, predecessors, successor, label, defines, results, min, max, x, y);
       compat = false;
     }
 
@@ -87,7 +87,7 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
   }
 
   protected ClientJoinNode(Join<?,?> orig, M newOwner, final boolean compat) {
-    super(orig, newOwner);
+    super(orig.builder(), newOwner);
     mCompat = compat;
   }
 

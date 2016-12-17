@@ -46,14 +46,14 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   constructor(ownerModel: M): this (ownerModel, id=null)
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
-                predecessors: Collection<Identified> = emptyList(),
-                successors: Collection<Identified> = emptyList(),
-                override var id: String? = null,
-                override var label: String? = null,
-                override var x: Double = Double.NaN,
-                override var y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList()) : ProcessNode.Builder<T,M>, XmlDeserializable {
+      override var id: String? = null,
+      predecessors: Collection<Identified> = emptyList(),
+      successors: Collection<Identified> = emptyList(),
+      override var label: String? = null,
+      defines: Collection<IXmlDefineType> = emptyList(),
+      results: Collection<IXmlResultType> = emptyList(),
+      override var x: Double = Double.NaN,
+      override var y: Double = Double.NaN) : ProcessNode.Builder<T,M>, XmlDeserializable {
 
     override var predecessors: MutableSet<Identified> = ArraySet(predecessors)
       set(value) {field.replaceBy(value)}
@@ -64,7 +64,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     override var results: MutableCollection<IXmlResultType> = ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    constructor(node: ProcessNode<*,*>): this(node.predecessors, node.successors, node.id, node.label, node.getX(), node.getY(), node.defines, node.results)
+    constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.getX(), node.getY())
 
     override abstract fun build(newOwner: M): ProcessNode<T, M>
 

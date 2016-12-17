@@ -19,7 +19,9 @@ package nl.adaptivity.process.clientProcessModel;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlWriterUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +39,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
     }
 
     public Builder(@Nullable final Identified predecessor, @Nullable final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, @Nullable final XmlMessage message, @Nullable final String condition, @Nullable final String name, final boolean compat) {
-      super(predecessor, successor, id, label, x, y, defines, results, message, condition, name);
+      super(id, predecessor, successor, label, defines, results, message, condition, name, x, y);
       this.compat = compat;
     }
 
@@ -85,7 +87,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   protected ClientActivityNode(Activity<?, ?> orig, final boolean compat) {
-    super(orig, null);
+    super(orig.builder(), null);
     mCompat = compat;
   }
 

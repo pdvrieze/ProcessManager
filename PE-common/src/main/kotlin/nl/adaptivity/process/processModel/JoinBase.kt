@@ -16,12 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.*
-import java.util.*
-
 import javax.xml.namespace.QName
 
 
@@ -36,15 +33,15 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
 
     constructor():this(predecessors= emptyList())
 
-    constructor(predecessors: Collection<Identified> = emptyList(),
-                successor: Identified? = null,
-                id: String? = null, label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
+                successor: Identified? = null, label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
-                max: Int = -1) : super(predecessors, listOfNotNull(successor), id, label, x, y, defines, results, min, max)
+                max: Int = -1,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessors, listOfNotNull(successor), label, defines, results, min, max, x, y)
 
     constructor(node: Join<*, *>) : super(node)
 
@@ -65,25 +62,8 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
 
   }
 
-  constructor(ownerModel: M,
-              predecessors: Collection<Identified> = emptyList(),
-              successor: Identified? = null,
-              id: String?,
-              label: String? = null,
-              x: Double = java.lang.Double.NaN,
-              y: Double = java.lang.Double.NaN,
-              defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
-              results: Collection<IXmlResultType> = ArrayList<IXmlResultType>(),
-              min: Int = -1,
-              max: Int = -1) : super(ownerModel, predecessors, successor?.let { listOf(it) } ?: emptyList(), id, label, x, y, defines, results, min, max)
-
-  @Deprecated("Use the normal constructor")
-  constructor(ownerModel: M, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors, id=null, max=max, min=min)
-
   @Deprecated("")
   constructor(ownerModel: M) : super(ownerModel)
-
-  constructor(orig: Join<*, *>, newOwner: M) : super(orig, newOwner)
 
   constructor(builder: Join.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
 
@@ -108,16 +88,6 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
       out.text(pred.id)
       out.endTag(Join.PREDELEMNAME)
     }
-  }
-
-  @Throws(XmlException::class)
-  override fun deserializeChild(reader: XmlReader): Boolean {
-    if (reader.isElement(Join.PREDELEMNAME)) {
-      val id = reader.readSimpleElement().toString()
-      addPredecessor(Identifier(id))
-      return true
-    }
-    return super.deserializeChild(reader)
   }
 
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {

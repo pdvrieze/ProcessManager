@@ -20,7 +20,6 @@ import net.devrieze.util.Handles
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IExecutableProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
@@ -36,14 +35,13 @@ import java.sql.SQLException
 class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
-    constructor() : this(successor=null)
-    constructor(successor: Identified? = null,
-                id: String? = null,
+    constructor(id: String? = null,
+                successor: Identified? = null,
                 label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList()) : super(successor, id, label, x, y, defines, results)
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, successor, label, defines, results, x, y)
     constructor(node: StartNode<*, *>) : super(node)
 
 
@@ -64,7 +62,7 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
     return ProcessNodeInstance(this, predecessor, processInstance)
   }
 
-  override fun condition(engineData: ProcessEngineDataAccess, instance: IExecutableProcessNodeInstance<*>) = true
+  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = true
 
   @Throws(SQLException::class)
   override fun provideTask(engineData: MutableProcessEngineDataAccess,
@@ -72,13 +70,9 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
     return true
   }
 
-  override fun <U : IExecutableProcessNodeInstance<U>> takeTask(instance: U): Boolean {
-    return true
-  }
+  override fun takeTask(instance: ProcessNodeInstance) = true
 
-  override fun <U : IExecutableProcessNodeInstance<U>> startTask(instance: U): Boolean {
-    return true
-  }
+  override fun startTask(instance: ProcessNodeInstance) = true
 
   companion object {
 

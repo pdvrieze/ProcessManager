@@ -35,15 +35,15 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(bu
     override val idBase:String
       get() = "end"
 
-    constructor(): this(predecessor =null)
+    constructor(): this(id =null)
 
-    constructor(predecessor: Identified? = null,
-                id: String? = null,
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
                 label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList()) : super(listOfNotNull(predecessor), emptyList(), id, label, x, y, defines, results)
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, listOfNotNull(predecessor), emptyList(), label, defines, results, x, y)
 
     constructor(node: EndNode<*, *>) : super(node)
 

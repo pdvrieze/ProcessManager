@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.StringUtil
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.XmlException
@@ -38,15 +37,15 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
     override var min:Int
     override var max:Int
 
-    constructor(predecessors: Collection<Identified> = emptyList(),
-                successors: Collection<Identified> = emptyList(),
-                id: String? = null, label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
+                successors: Collection<Identified> = emptyList(), label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
-                max: Int = -1) : super(predecessors, successors, id, label, x, y, defines, results) {
+                max: Int = -1,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, x, y) {
       this.min = min
       this.max = max
     }
@@ -110,23 +109,12 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
   @Deprecated("")
   constructor(ownerModel: M) : this(ownerModel, id=null) { }
 
-  constructor(orig: JoinSplit<*, *>, newOwner: M) : super(orig, newOwner) {
-    min = orig.min
-    max = orig.max
-  }
-
   constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
     this.min = builder.min
     this.max = builder.max
   }
 
   override abstract fun builder(): Builder<T, M>
-
-  @Deprecated("Don't use")
-  @Throws(XmlException::class)
-  open fun deserializeChild(`in`: XmlReader): Boolean {
-    return false
-  }
 
   @Deprecated("Don't use")
   open fun deserializeChildText(elementText: CharSequence): Boolean {
