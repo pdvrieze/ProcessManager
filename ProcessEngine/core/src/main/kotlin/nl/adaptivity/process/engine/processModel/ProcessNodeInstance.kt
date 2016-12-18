@@ -270,20 +270,13 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
         newNodeInstance.update(engineData, newInstance) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
       }
       if (shouldProgress) {
-        return pniPair.node.takeTask(engineData, pniPair.instance)
+        return ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
       } else
         return pniPair
 
     }
 
     return impl(engineData.messageService())
-  }
-
-  open fun takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
-    val startNext = node.takeTask(this)
-    val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Taken }
-
-    return if (startNext) updatedInstances.node.startTask(engineData, updatedInstances.instance) else updatedInstances
   }
 
   @Throws(SQLException::class)

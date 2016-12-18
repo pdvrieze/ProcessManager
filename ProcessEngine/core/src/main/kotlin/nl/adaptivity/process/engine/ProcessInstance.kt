@@ -51,6 +51,39 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   typealias HandleT = ComparableHandle<out SecureT>
 
+  class Updater(private var instance: ProcessInstance) {
+
+    private fun <N:ProcessNodeInstance> N.update(engineData: MutableProcessEngineDataAccess, body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): N {
+      @Suppress("UNCHECKED_CAST")
+      return update(engineData, instance, body).let {
+        instance = it.instance
+        it.node as N
+      }
+    }
+
+    private fun <N:ProcessNodeInstance> pnipair(node:ProcessNodeInstance) : PNIPair<N> {
+      @Suppress("UNCHECKED_CAST")
+      return PNIPair(instance, node as N)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <N:ProcessNodeInstance> takeTask(engineData: MutableProcessEngineDataAccess, origNodeInstance: N ): PNIPair<N> {
+      val startNext = origNodeInstance.node.takeTask(origNodeInstance)
+
+      val updatedNode = origNodeInstance.update(engineData) { state = NodeInstanceState.Taken }
+
+      if (startNext) {
+        @Suppress("DEPRECATION")
+        return updatedNode.startTask(engineData, instance).apply {
+          this@Updater.instance = instance
+        } as PNIPair<N>
+      } else {
+        return pnipair(updatedNode)
+      }
+    }
+
+  }
+
   data class PNIPair<out T: IProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T)
 
   class InstanceFuture<T:ProcessNodeInstance>(internal val orig: T, val store:Boolean) : Future<T> {

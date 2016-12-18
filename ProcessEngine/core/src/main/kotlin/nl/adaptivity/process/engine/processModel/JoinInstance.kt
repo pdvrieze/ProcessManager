@@ -147,10 +147,6 @@ class JoinInstance : ProcessNodeInstance {
         = super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
 
   @Suppress("UNCHECKED_CAST")
-  override fun takeTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
-        = super.takeTask(engineData, processInstance) as PNIPair<JoinInstance>
-
-  @Suppress("UNCHECKED_CAST")
   override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
         = super.cancelTask(engineData, processInstance) as PNIPair<JoinInstance>
 
@@ -233,7 +229,7 @@ class JoinInstance : ProcessNodeInstance {
               .map { engineData.nodeInstance(it).withPermission() }
               .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
         if (canAdd) {
-          return updateJoin(engineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> pair.node.takeTask(engineData, pair.instance) }
+          return updateJoin(engineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> ProcessInstance.Updater(pair.instance).takeTask(engineData, pair.node) }
         }
         return PNIPair(processInstance, this) // no need to update as the initial state is already pending.
       }
