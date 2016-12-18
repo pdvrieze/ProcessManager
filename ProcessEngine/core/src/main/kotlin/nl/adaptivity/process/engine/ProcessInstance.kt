@@ -410,22 +410,22 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun finishTask(engineData: MutableProcessEngineDataAccess,
-                 node: ProcessNodeInstance,
-                 resultPayload: Node?): PNIPair<ProcessNodeInstance> {
+  fun <N: ProcessNodeInstance>finishTask(engineData: MutableProcessEngineDataAccess,
+                 node: N,
+                 resultPayload: Node?): PNIPair<N> {
     if (node.state === NodeInstanceState.Complete) {
       throw IllegalStateException("Task was already complete")
     }
     // Make sure the finish is recorded.
-    @Suppress("DEPRECATION")
-    val newInstances = node.finishTask(engineData, this, resultPayload).apply { engineData.commit() }
+    @Suppress("DEPRECATION", "UNCHECKED_CAST")
+    val newInstances = node.finishTask(engineData, this, resultPayload).apply { engineData.commit() } as PNIPair<N>
 
     return newInstances.instance.handleFinishedState(engineData, newInstances.node)
   }
 
   @Synchronized @Throws(SQLException::class)
-  private fun handleFinishedState(engineData: MutableProcessEngineDataAccess,
-                                  node: ProcessNodeInstance):PNIPair<ProcessNodeInstance> {
+  private fun <N: ProcessNodeInstance> handleFinishedState(engineData: MutableProcessEngineDataAccess,
+                                  node: N):PNIPair<N> {
     // XXX todo, handle failed or cancelled tasks
     try {
       if (node.node is EndNode<*, *>) {
