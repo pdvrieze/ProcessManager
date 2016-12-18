@@ -178,7 +178,7 @@ class JoinInstance : ProcessNodeInstance {
   private fun updateTaskState(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<JoinInstance> {
 
     fun next() = updateJoin(engineData, processInstance) { state = NodeInstanceState.Started }.let {
-      it.node.finishTask(engineData, it.instance, null)
+      it.instance.finishTask(engineData, it.node, null)
     }
 
     if (state == NodeInstanceState.Complete) return PNIPair(processInstance, this) // Don't update if we're already complete
