@@ -373,7 +373,8 @@ class TestProcessEngine {
           val end = instance.child(transaction, "end").assertComplete()
 
           assertEquals(instance.active.size, 0)
-          instance.assertFinished(start, split, ac1, ac2, join, end)
+          instance.assertFinished(start, split, ac1, ac2, join)
+          instance.assertCompleted(end)
         }
 
       }
