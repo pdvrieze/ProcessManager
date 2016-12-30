@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -32,19 +33,19 @@ import java.util.*
  */
 class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage> {
 
-  class ExtMessage(val base: IXmlMessage, val source: ProcessNodeInstance.HandleT) : IXmlMessage by base
+  class ExtMessage(val base: IXmlMessage, val source: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>) : IXmlMessage by base
 
   var _messages = mutableListOf<ExtMessage>()
 
   override fun createMessage(message: IXmlMessage?): IXmlMessage {
-    return message!!
+    return message?:XmlMessage()
   }
 
   fun clear() {
     _messages.clear()
   }
 
-  fun getMessageNode(i: Int): ProcessNodeInstance.HandleT {
+  fun getMessageNode(i: Int): net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> {
     return _messages[i].source
   }
 

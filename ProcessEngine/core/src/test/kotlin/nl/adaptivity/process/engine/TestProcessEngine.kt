@@ -157,7 +157,7 @@ class TestProcessEngine {
   private val ProcessInstance.sortedCompleted
     get() = completedEndnodes.sortedBy { it.handleValue }
 
-  private fun ProcessInstance.assertFinishedHandles(vararg handles: ProcessNodeInstance.HandleT) = apply {
+  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance>>) = apply {
     assertEquals(ArrayList(sortedFinished), handles.sorted())
   }
 
@@ -171,7 +171,7 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertActiveHandles(vararg handles: ProcessNodeInstance.HandleT) = apply {
+  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance>>) = apply {
     assertEquals(ArrayList(sortedActive), handles.sorted())
   }
 
@@ -185,7 +185,7 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertCompletedHandles(vararg handles: ProcessNodeInstance.HandleT) = apply {
+  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance>>) = apply {
     assertEquals(ArrayList(sortedCompleted), handles.sorted())
   }
 
@@ -246,7 +246,7 @@ class TestProcessEngine {
         mStubTransactionFactory,
         cacheModels<Any>(MemProcessModelMap(), 3),
         cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-        cacheNodes<Any>(MemTransactionedHandleMap<ProcessNodeInstance.SecureT, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
+        cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
   }
 
   @Test
@@ -476,24 +476,24 @@ class TestProcessEngine {
 
   companion object {
 
-    private val PNI_SET_HANDLE = fun(pni: ProcessNodeInstance.SecureT, handle: Long?): ProcessNodeInstance.SecureT {
+    internal val PNI_SET_HANDLE = fun(pni: SecureObject<ProcessNodeInstance>, handle: Long?): SecureObject<ProcessNodeInstance> {
       if (pni.withPermission().getHandleValue() == handle) {
         return pni
       }
       val builder = pni.withPermission().builder()
-      builder.handle = Handles.handle<ProcessNodeInstance.SecureT>(handle!!)
+      builder.handle = Handles.handle<SecureObject<ProcessNodeInstance>>(handle!!)
       return builder.build()
     }
 
-    private fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
+    internal fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
       return CachingHandleMap<V, StubProcessTransaction>(base, count)
     }
 
-    private fun <V> cacheNodes(base: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, StubProcessTransaction> {
+    internal fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction> {
       return CachingHandleMap(base, count, PNI_SET_HANDLE)
     }
 
-    private fun <V> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
+    internal fun <V> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
       return CachingProcessModelMap(base, count)
     }
 
