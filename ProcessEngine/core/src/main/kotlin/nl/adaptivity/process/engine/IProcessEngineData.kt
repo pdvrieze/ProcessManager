@@ -27,7 +27,7 @@ import java.security.Principal
 abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
   protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
-  protected abstract val processNodeInstances: MutableTransactionedHandleMap<ProcessNodeInstance.SecureT, T>
+  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>
 
 
   fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
@@ -42,7 +42,7 @@ abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T
     }
   }
 
-  fun invalidateCachePNI(handle: ProcessNodeInstance.HandleT) {
+  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>) {
     (processNodeInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
@@ -84,9 +84,9 @@ interface ProcessEngineDataAccess {
   fun  instance(handle: Handle<out SecureObject<ProcessInstance>>)
         = instances[handle].mustExist(handle)
 
-  val nodeInstances: HandleMap<ProcessNodeInstance.SecureT>
+  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance>>
 
-  fun nodeInstance(handle: ProcessNodeInstance.HandleT)
+  fun nodeInstance(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
         = nodeInstances[handle].mustExist(handle)
 
   val processModels: IProcessModelMapAccess
@@ -97,9 +97,7 @@ interface ProcessEngineDataAccess {
 
 interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
-  typealias MessageServiceT = IMessageService<*>
-
-  fun messageService(): MessageServiceT
+  fun messageService(): IMessageService<*>
 
   override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
@@ -109,12 +107,12 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
   fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>)
 
-  fun invalidateCachePNI(handle: ProcessNodeInstance.HandleT)
+  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
 
   fun commit()
 
   fun rollback()
 
   /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
-  fun  handleFinishedInstance(handle: ProcessInstance.HandleT)
+  fun  handleFinishedInstance(handle: ComparableHandle<out SecureObject<ProcessInstance>>)
 }

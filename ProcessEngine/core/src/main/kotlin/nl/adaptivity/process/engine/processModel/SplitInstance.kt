@@ -34,7 +34,7 @@ class SplitInstance : ProcessNodeInstance {
 
   interface Builder : ProcessNodeInstance.Builder<ExecutableSplit> {
     override fun build(): SplitInstance
-    var predecessor: ProcessNodeInstance.HandleT?
+    var predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>?
       get() = predecessors.firstOrNull()
       set(value) = predecessors.replaceByNotNull(value)
   }
@@ -46,10 +46,10 @@ class SplitInstance : ProcessNodeInstance {
 
   class BaseBuilder(
       node: ExecutableSplit,
-      predecessor: ProcessNodeInstance.HandleT,
-      hProcessInstance: ProcessInstance.HandleT,
+      predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+      hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
       owner: Principal,
-      handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
+      handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
       state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableSplit>(node, listOf(predecessor), hProcessInstance, owner, handle, state), Builder {
     override fun build() = SplitInstance(this)
@@ -67,10 +67,10 @@ class SplitInstance : ProcessNodeInstance {
       = super.getHandle() as ComparableHandle<out SecureObject<SplitInstance>>
 
   constructor(node: ExecutableSplit,
-              predecessor: ProcessNodeInstance.HandleT,
-              hProcessInstance: ProcessInstance.HandleT,
+              predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
               owner: Principal,
-              handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
+              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
       super(node, listOf(predecessor), hProcessInstance, owner, handle, state, results) {

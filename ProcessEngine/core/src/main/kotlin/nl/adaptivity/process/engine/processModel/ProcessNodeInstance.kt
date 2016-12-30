@@ -41,33 +41,29 @@ import javax.xml.transform.Source
 
 @XmlDeserializer(ProcessNodeInstance.Factory::class)
 open class ProcessNodeInstance(open val node: ExecutableProcessNode,
-                               predecessors: Collection<ProcessNodeInstance.HandleT>,
-                               val hProcessInstance: ProcessInstance.HandleT,
+                               predecessors: Collection<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
+                               val hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
                                override val owner: Principal,
-                               handle: ProcessNodeInstance.HandleT = Handles.getInvalid(),
+                               handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
                                override final val state: NodeInstanceState = NodeInstanceState.Pending,
                                results: Iterable<ProcessData> = emptyList(),
                                val failureCause: Throwable? = null) : IProcessNodeInstance<ProcessNodeInstance>, SecureObject<ProcessNodeInstance>, ReadableHandleAware<SecureObject<ProcessNodeInstance>> {
 
-  typealias SecureT = IProcessNodeInstance<ProcessNodeInstance>.SecureT
-
-  typealias HandleT = ComparableHandle<out SecureT>
-
-  private var handle: ProcessNodeInstance.HandleT
+  private var handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>
         = Handles.handle(handle)
 
   override fun getHandle() = handle
 
   val results: List<ProcessData> = results.toList()
 
-  val directPredecessors: Set<HandleT> = predecessors.asSequence().filter { it.valid }.toArraySet()
+  val directPredecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
 
   interface Builder<N:ExecutableProcessNode> {
     var node: N
-    val predecessors: MutableSet<HandleT>
-    var hProcessInstance: ProcessInstance.HandleT
+    val predecessors: MutableSet<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>
+    var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>
     var owner: Principal
-    var handle: HandleT
+    var handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>
     var state: NodeInstanceState
     val results:MutableList<ProcessData>
     fun toXmlInstance(body: CompactFragment?):XmlProcessNodeInstance
@@ -97,7 +93,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     override var predecessors = ObservableSet(base.directPredecessors.toMutableArraySet(), { changed = true })
     override var hProcessInstance by overlay(update = observer) { base.hProcessInstance }
     override var owner by overlay(observer) { base.owner }
-    override var handle: HandleT by overlay(observer) { base.handle }
+    override var handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> by overlay(observer) { base.handle }
     override var state by overlay(observer) { base.state }
     override var results = ObservableList(base.results.toMutableList(), { changed = true })
     var changed: Boolean = false
@@ -109,14 +105,14 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   }
 
   open class BaseBuilder<N:ExecutableProcessNode>(
-        override var node: N,
-        predecessors: Iterable<HandleT>,
-        override var hProcessInstance: ProcessInstance.HandleT,
-        override var owner: Principal,
-        override var handle: HandleT = Handles.getInvalid(),
-        override var state: NodeInstanceState = NodeInstanceState.Pending) : AbstractBuilder<N>() {
+      override var node: N,
+      predecessors: Iterable<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
+      override var hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+      override var owner: Principal,
+      override var handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+      override var state: NodeInstanceState = NodeInstanceState.Pending) : AbstractBuilder<N>() {
 
-    override var predecessors :MutableSet<HandleT> = predecessors.toMutableArraySet()
+    override var predecessors :MutableSet<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>> = predecessors.toMutableArraySet()
 
     override val results = mutableListOf<ProcessData>()
 
@@ -144,7 +140,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     }
   }
 
-  constructor(node: ExecutableProcessNode, predecessor: HandleT, processInstance: ProcessInstance) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(), processInstance.owner)
+  constructor(node: ExecutableProcessNode, predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>, processInstance: ProcessInstance) : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(), processInstance.owner)
 
   constructor(builder:Builder<out ExecutableProcessNode>): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.failureCause)
 
@@ -200,7 +196,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     }
   }
 
-  private fun hasDirectPredecessor(handle: HandleT): Boolean {
+  private fun hasDirectPredecessor(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>): Boolean {
     for (pred in directPredecessors) {
       if (pred.handleValue == handle.handleValue) {
         return true
@@ -217,7 +213,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   }
 
   @Throws(SQLException::class)
-  fun getPredecessor(engineData: ProcessEngineDataAccess, nodeName: String): HandleT? {
+  fun getPredecessor(engineData: ProcessEngineDataAccess, nodeName: String): net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     directPredecessors
           .asSequence()
@@ -471,7 +467,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     @Throws(SQLException::class)
     private fun <T:ProcessTransaction> resolvePredecessors(transaction: T,
                                                            processInstance: ProcessInstance,
-                                                           node: ExecutableProcessNode): List<HandleT> {
+                                                           node: ExecutableProcessNode): List<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>> {
 
       return node.predecessors.asSequence()
             .map { processInstance.getNodeInstance(it) }
@@ -481,9 +477,9 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     }
 
     fun <T:ProcessTransaction> build(node: ExecutableProcessNode,
-                                     predecessors: Set<HandleT>,
+                                     predecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
                                      processInstance: ProcessInstance,
-                                     handle: HandleT = Handles.getInvalid(),
+                                     handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder<ExecutableProcessNode>.() -> Unit):ProcessNodeInstance {
       return ProcessNodeInstance(BaseBuilder(node, predecessors, processInstance.getHandle(), processInstance.owner, handle, state).apply(body))

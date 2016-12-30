@@ -29,7 +29,6 @@ import javax.xml.bind.annotation.XmlRootElement
  *
  * @param V The actual type of the implementing class.
  */
-typealias SecureIProcessNodeInstance<V> = SecureObject<IProcessNodeInstance<V>>
 interface IProcessNodeInstance<out V : IProcessNodeInstance<V>> : ReadableHandleAware<SecureObject<V>> {
 
   /**

@@ -46,7 +46,7 @@ interface IMessageService<MSG_T> {
 
    * @param engineData The transaction to use in sending.
    * *
-   * @param message The message to send. (Created by
+   * @param protoMessage The message to send. (Created by
    * *          [.createMessage]).
    * *
    * @param instance The task instance to link the sending to.
@@ -55,7 +55,7 @@ interface IMessageService<MSG_T> {
    * *
    * @throws SQLException
    */
-  fun sendMessage(engineData: MutableProcessEngineDataAccess, message: MSG_T, instance: ProcessNodeInstance): Boolean
+  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instance: ProcessNodeInstance): Boolean
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

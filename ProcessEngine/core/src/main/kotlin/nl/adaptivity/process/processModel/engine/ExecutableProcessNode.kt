@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
@@ -57,7 +59,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
    * the type (joins)
    */
-  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT): ProcessNodeInstance =
+  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): ProcessNodeInstance =
       processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, predecessor, processInstance)
 
   override val identifier: Identifier?

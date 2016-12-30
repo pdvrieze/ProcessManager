@@ -47,10 +47,6 @@ import java.util.logging.Logger
 
 class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance> {
 
-  typealias SecureT = SecureObject<ProcessInstance>
-
-  typealias HandleT = ComparableHandle<out SecureT>
-
   class Updater(private var instance: ProcessInstance) {
 
     private fun <N:ProcessNodeInstance> N.update(engineData: MutableProcessEngineDataAccess, body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): N {
@@ -122,13 +118,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   interface Builder {
     val generation: Int
     val pendingChildren: List<Future<out ProcessNodeInstance>>
-    var handle: HandleT
+    var handle: ComparableHandle<out SecureObject<ProcessInstance>>
     var owner: Principal
     var processModel: ExecutableProcessModel
     var instancename: String?
     var uuid: UUID
     var state: State?
-    val children: List<ProcessNodeInstance.HandleT>
+    val children: List<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     val   inputs: MutableList<ProcessData>
     val  outputs: MutableList<ProcessData>
     fun build(data: MutableProcessEngineDataAccess): ProcessInstance
@@ -136,7 +132,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun <T:ProcessNodeInstance> storeChild(child:T): Future<T>
   }
 
-  data class BaseBuilder(override var handle: HandleT = Handles.getInvalid(),
+  data class BaseBuilder(override var handle: ComparableHandle<out SecureObject<ProcessInstance>> = Handles.getInvalid(),
                          override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
                          override var processModel: ExecutableProcessModel,
                          override var instancename: String? = null,
@@ -145,7 +141,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override var generation: Int = 0
     private val _pendingChildren = mutableListOf<Future<out ProcessNodeInstance>>()
     override val pendingChildren: List<Future<out ProcessNodeInstance>> get() = _pendingChildren
-    override val children = mutableListOf<ProcessNodeInstance.HandleT>()
+    override val children = mutableListOf<ComparableHandle<out SecureObject<ProcessNodeInstance>>>()
     override val   inputs = mutableListOf<ProcessData>()
     override val  outputs = mutableListOf<ProcessData>()
     override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {
@@ -196,7 +192,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     CANCELLED
   }
 
-  class ProcessInstanceRef(processInstance: ProcessInstance) : ProcessInstance.HandleT, XmlSerializable {
+  class ProcessInstanceRef(processInstance: ProcessInstance) : ComparableHandle<SecureObject<ProcessInstance>>, XmlSerializable {
 
     override val handleValue = processInstance.handle.handleValue
 
@@ -228,16 +224,16 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   val processModel: ExecutableProcessModel
 
-  val childNodes: Collection<ProcessNodeInstance.SecureT>
+  val childNodes: Collection<SecureObject<ProcessNodeInstance>>
 
-  val children: Sequence<ProcessNodeInstance.HandleT>
+  val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     get() = childNodes.asSequence().map { it.withPermission().getHandle() }
 
   val activeNodes get() = childNodes.asSequence()
       .map { it.withPermission() }
       .filter { ! it.state.isFinal }
 
-  val active: Collection<ProcessNodeInstance.HandleT> get() = activeNodes
+  val active: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = activeNodes
       .map { it.getHandle() }
       .toList()
 
@@ -245,7 +241,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       .map { it.withPermission() }
       .filter { it.state.isFinal && it.node !is EndNode<*,*> }
 
-  val finished: Collection<ProcessNodeInstance.HandleT> get() = finishedNodes
+  val finished: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = finishedNodes
       .map { it.getHandle() }
       .toList()
 
@@ -253,7 +249,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       .map { it.withPermission() }
       .filter { it.state.isFinal && it.node is EndNode<*,*> }
 
-  val completedEndnodes: Collection<ProcessNodeInstance.HandleT> get() = completedNodeInstances
+  val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = completedNodeInstances
       .map { it.getHandle() }
       .toList()
 
@@ -265,7 +261,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   private val pendingJoins: Map<ExecutableJoin, JoinInstance> get() =
       pendingJoinNodes.associateBy { it.node }
 
-  private var handle: HandleT
+  private var handle: ComparableHandle<out SecureObject<ProcessInstance>>
 
   override fun getHandle() = handle
 
@@ -413,7 +409,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  internal fun getJoinInstance(join: ExecutableJoin, predecessor: ProcessNodeInstance.HandleT): JoinInstance {
+  internal fun getJoinInstance(join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
     return pendingJoinNodes.firstOrNull { it.node == join }
         ?: JoinInstance(join, listOf(predecessor), this.handle, owner)
   }
@@ -426,7 +422,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
   }
 
-  fun getChild(nodeId: String): ProcessNodeInstance.SecureT? {
+  fun getChild(nodeId: String): SecureObject<ProcessNodeInstance>? {
     return childNodes.firstOrNull { it.withPermission().node.id == nodeId }
   }
 
@@ -533,12 +529,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getDirectSuccessors(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance): Collection<ProcessNodeInstance.HandleT> {
+  fun getDirectSuccessors(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance): Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> {
     // TODO rewrite, this can be better with the children in the instance
-    val result = ArrayList<ProcessNodeInstance.HandleT>(predecessor.node.successors.size)
+    val result = ArrayList<ComparableHandle<out SecureObject<ProcessNodeInstance>>>(predecessor.node.successors.size)
 
     fun addDirectSuccessor(candidate: ProcessNodeInstance,
-                           predecessor: ProcessNodeInstance.HandleT) {
+                           predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>) {
 
       // First look for this node, before diving into it's children
       if (candidate.directPredecessors.any { it.handleValue == predecessor.handleValue }) {
@@ -595,7 +591,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun XmlWriter.writeActiveNodeRef(transaction: ProcessTransaction, handleNodeInstance: ProcessNodeInstance.HandleT) {
+  private fun XmlWriter.writeActiveNodeRef(transaction: ProcessTransaction, handleNodeInstance: ComparableHandle<out SecureObject<ProcessNodeInstance>>) {
 
     val nodeInstance = transaction.readableEngineData.nodeInstance(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
@@ -604,7 +600,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Throws(XmlException::class, SQLException::class)
-  private fun XmlWriter.writeResultNodeRef(transaction: ProcessTransaction, handleNodeInstance: ProcessNodeInstance.HandleT) {
+  private fun XmlWriter.writeResultNodeRef(transaction: ProcessTransaction, handleNodeInstance: ComparableHandle<out SecureObject<ProcessNodeInstance>>) {
     val nodeInstance = transaction.readableEngineData.nodeInstance(handleNodeInstance).withPermission()
     startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
       writeNodeRefCommon(nodeInstance)

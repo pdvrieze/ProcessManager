@@ -16,14 +16,15 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
+import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xml.*
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessInstance.Factory::class)
-class HProcessInstance(handle: ProcessInstance.HandleT) : XmlHandle<ProcessInstance.SecureT>(handle) {
+class HProcessInstance(handle: ComparableHandle<out SecureObject<ProcessInstance>>) : XmlHandle<SecureObject<ProcessInstance>>(handle) {
 
   class Factory : XmlDeserializerFactory<HProcessInstance> {
 

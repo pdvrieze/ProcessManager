@@ -116,12 +116,13 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
     }
 
     @Override
-    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage message, @NotNull final ProcessNodeInstance instance) {
+    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage protoMessage, @NotNull final ProcessNodeInstance instance) {
       final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instance.getHandle();
 
-      message.setHandle(engineData, instance);
+      protoMessage.setHandle(engineData, instance);
 
-      Future<DataSource> result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener((ComparableHandle)nodeHandle, message.getOwner()), DataSource.class, new Class<?>[0]);
+      Future<DataSource> result = MessagingRegistry.sendMessage(protoMessage, new MessagingCompletionListener((ComparableHandle)nodeHandle, protoMessage
+          .getOwner()), DataSource.class, new Class<?>[0]);
       if (result.isCancelled()) { return false; }
       if (result.isDone()) {
         try {

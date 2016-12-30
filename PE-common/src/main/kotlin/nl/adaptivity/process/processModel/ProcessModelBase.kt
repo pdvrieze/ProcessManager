@@ -23,7 +23,9 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.engine.IProcessModelRef
+import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.processModel.engine.XmlEndNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
@@ -39,9 +41,8 @@ annotation class ProcessModelDSL
 /**
  * Created by pdvrieze on 21/11/15.
  */
+typealias ProcessModelHandle<M> = ComparableHandle<M>
 abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessModel<T, M>, MutableHandleAware<M>, XmlSerializable {
-
-  typealias HandleT = ComparableHandle<M>
 
   @ProcessModelDSL
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(

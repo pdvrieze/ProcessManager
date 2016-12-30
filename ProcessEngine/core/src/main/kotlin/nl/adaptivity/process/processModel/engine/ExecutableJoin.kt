@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -50,7 +51,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProce
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance.HandleT)
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
       = processInstance.getNodeInstance(this) ?: processInstance.getJoinInstance(this, predecessor)
 
   companion object {
