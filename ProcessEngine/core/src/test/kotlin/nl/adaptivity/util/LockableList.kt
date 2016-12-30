@@ -86,7 +86,7 @@ class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
     return super.removeAll(elements)
   }
 
-  override fun replaceAll(operator: UnaryOperator<T>?) {
+  override fun replaceAll(operator: UnaryOperator<T>) {
     checkLocked()
     super<ArrayList>.replaceAll(operator)
   }
@@ -110,7 +110,7 @@ class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
     super.removeRange(fromIndex, toIndex)
   }
 
-  override fun removeIf(filter: Predicate<in T>?): Boolean {
+  override fun removeIf(filter: Predicate<in T>): Boolean {
     checkLocked()
     return super<ArrayList>.removeIf(filter)
   }
