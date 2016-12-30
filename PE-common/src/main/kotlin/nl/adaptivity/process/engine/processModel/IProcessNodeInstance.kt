@@ -24,14 +24,13 @@ import javax.xml.bind.annotation.XmlRootElement
 
 /**
  * Class representing the instantiation of an executable process node.
-
+ *
  * @author Paul de Vrieze
- * *
- * @param <V> The actual type of the implementing class.
-</V> */
+ *
+ * @param V The actual type of the implementing class.
+ */
+typealias SecureIProcessNodeInstance<V> = SecureObject<IProcessNodeInstance<V>>
 interface IProcessNodeInstance<out V : IProcessNodeInstance<V>> : ReadableHandleAware<SecureObject<V>> {
-
-  typealias SecureT = SecureObject<V>
 
   /**
    * Enumeration representing the various states a task can be in.
@@ -39,7 +38,7 @@ interface IProcessNodeInstance<out V : IProcessNodeInstance<V>> : ReadableHandle
    * @author Paul de Vrieze
    */
   @XmlRootElement(name = "taskState", namespace = "http://adaptivity.nl/userMessageHandler")
-  enum class NodeInstanceState private constructor(val isFinal: Boolean, val isActive:Boolean, val isCommitted:Boolean) {
+  enum class NodeInstanceState constructor(val isFinal: Boolean, val isActive:Boolean, val isCommitted:Boolean) {
     /**
      * Initial task state. The instance has been created, but has not been successfully sent to a receiver.
      */
