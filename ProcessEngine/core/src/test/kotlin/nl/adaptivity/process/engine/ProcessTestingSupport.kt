@@ -323,14 +323,16 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
         var success = false
         try {
           assertTracePossible(trace)
-          for(nodeId in trace) {
+          for (nodeId in trace) {
             val nodeInstance by instance.nodeInstance[nodeId]
-            assertNotNull(nodeInstance, "The node instance should exist" )
-            if (nodeInstance.state!=NodeInstanceState.Complete) {
+            assertNotNull(nodeInstance, "The node instance should exist")
+            if (nodeInstance.state != NodeInstanceState.Complete) {
               instance.finishTask(transaction.writableEngineData, nodeInstance, null)
             }
             assertEquals(NodeInstanceState.Complete, nodeInstance.state)
           }
+        } catch (e: ProcessException) {
+          success = true
         } catch (e: AssertionError) {
           success = true
         }
