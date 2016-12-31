@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
+import org.w3c.dom.Node
 import java.security.Principal
 
 /**
@@ -131,6 +132,14 @@ class SplitInstance : ProcessNodeInstance {
     return update(engineData, processInstance){ state=NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)
     }
+  }
+
+  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): ProcessInstance.PNIPair<ProcessNodeInstance> {
+    val committedSuccessors = successorInstances(engineData).filter { it.state.isCommitted }
+    if (committedSuccessors.count()<node.min) {
+      throw ProcessException("A split can only be finished once the minimum amount of children is committed")
+    }
+    return super.finishTask(engineData, processInstance, resultPayload)
   }
 
   internal fun updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance): ProcessInstance.PNIPair<SplitInstance> {
