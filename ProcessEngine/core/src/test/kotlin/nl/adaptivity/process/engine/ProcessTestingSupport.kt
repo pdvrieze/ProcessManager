@@ -154,11 +154,11 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
   }
 
   fun  ProcessInstance.assertFinished(vararg nodeIds: String) {
-    val finished = this.finished.map {
+    val finished = this.finished.mapNotNull {
       val nodeInstance = transaction.readableEngineData.nodeInstance(it).withPermission()
       Assertions.assertTrue(nodeInstance.state.isFinal, { "The node instance state should be final (but is ${nodeInstance.state})" })
       Assertions.assertTrue(nodeInstance.node !is EndNode<*, *>, { "Completed nodes should not be endnodes" })
-      nodeInstance.node.id
+      if (nodeInstance.state != NodeInstanceState.Skipped) nodeInstance.node.id else null
     }.sorted()
     Assertions.assertEquals(nodeIds.sorted(), finished, { "The list of finished nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${finished.joinToString()}])" })
   }
@@ -225,7 +225,7 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
     val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in childIds }
     val lastPos = seen.lastIndexOf(true)
     assertTrue(seen.slice(0 .. lastPos).all { it }) { "All trace elements should be in the trace: [${trace.mapIndexed { i, s -> "$s=${seen[i]}" }.joinToString()}]"}
-    assertTrue(childIds.all { it in trace }) { "All child nodes should be in the full trace (child nodes: [${childIds.joinToString()}])" }
+    assertTrue(childIds.all { instance.getChild(it)?.withPermission()?.state == NodeInstanceState.Skipped || it in trace }) { "All child nodes should be in the full trace or skipped (child nodes: [${childIds.joinToString()}])" }
   }
 
 
