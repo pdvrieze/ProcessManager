@@ -56,7 +56,7 @@ class TestControlPatterns: Spek({
       TestProcessEngine.cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
       TestProcessEngine.cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 2), true)
 
-  describe("WFP1: A sequential process") {
+  describe("WCP1: A sequential process") {
 
     val model = ExecutableProcessModel.build {
       owner = principal
@@ -71,6 +71,30 @@ class TestControlPatterns: Spek({
     }
 
     testTraces(processEngine, model, principal, valid=listOf(trace("start", "ac1" , "ac2", "end")), invalid=listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
+
+  }
+  describe("WCP2: Parallel split") {
+    val model = ExecutableProcessModel.build {
+      owner = principal
+      val start = startNode { id="start" }
+      val split = split { id="split"; predecessor = start; min=2; max=2 }
+      val ac1 = activity { id="ac1"; predecessor = split }
+      val ac2 = activity { id="ac2"; predecessor = split }
+      val end1 = endNode { id="end1"; predecessor = ac1 }
+      val end2 = endNode { id="end2"; predecessor = ac2 }
+    }
+    testTraces(processEngine, model, principal,
+        valid=listOf(
+            trace("start", "ac1", "end1", "ac2", "split", "end2"),
+            trace("start", "ac1", "end1", "ac2", "end2", "split"),
+            trace("start", "ac2", "end2", "ac1", "split", "end1"),
+            trace("start", "ac2", "end2", "ac1", "end1", "split")),
+        invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+            listOf("split", "end1", "end2").map { trace("start", it) } +
+            listOf("split", "end2").map { trace("start", "ac1", it) } +
+            listOf("split", "end1").map { trace("start", "ac2", it) } +
+            listOf("split", "end2").map { trace("start", "ac1", "end1", it) } +
+            listOf("split", "end1").map { trace("start", "ac2", "end2", it) })
 
   }
 })
