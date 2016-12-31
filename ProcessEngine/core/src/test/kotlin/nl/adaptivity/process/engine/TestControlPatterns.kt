@@ -118,6 +118,28 @@ class TestControlPatterns: Spek({
             listOf("split", "join", "end").map { trace("start", "ac1", it) } +
             listOf("split", "join", "end").map { trace("start", "ac2", it) })
   }
+
+  describe("WCP4: XOR split") {
+    val model = ExecutableProcessModel.build {
+      owner = principal
+      val start = startNode { id="start" }
+      val split = split { id="split"; predecessor = start; min=1; max=1 }
+      val ac1 = activity { id="ac1"; predecessor = split }
+      val ac2 = activity { id="ac2"; predecessor = split }
+      val end1 = endNode { id="end1"; predecessor = ac1 }
+      val end2 = endNode { id="end2"; predecessor = ac2 }
+    }
+    testTraces(processEngine, model, principal,
+        valid=listOf(
+            trace("start", "ac1", "end1", "split"),
+            trace("start", "ac1", "split", "end1"),
+            trace("start", "ac2", "end2", "split"),
+            trace("start", "ac2", "split", "end2")),
+        invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+            listOf("split", "end1", "end2").map { trace("start", it) } +
+            listOf("end2", "ac2").map { trace("start", "ac1", it) } +
+            listOf("end1", "ac1").map { trace("start", "ac2", it) })
+  }
 })
 
 private inline fun <R> ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
