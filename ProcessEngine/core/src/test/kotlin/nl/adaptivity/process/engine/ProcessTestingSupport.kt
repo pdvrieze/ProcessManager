@@ -21,13 +21,13 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.Gettable
 import org.jetbrains.spek.api.dsl.Dsl
 import org.jetbrains.spek.api.dsl.Pending
-import org.jetbrains.spek.api.dsl.it
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.w3c.dom.Node
@@ -35,7 +35,7 @@ import java.security.Principal
 import kotlin.reflect.KProperty
 
 /**
- * Created by pdvrieze on 30/12/16.
+ * An extended dsl for testing processes without having to carry around large amounts of local variables.
  */
 
 class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTransaction, val instanceHandle: HProcessInstance) : Dsl by delegate {
@@ -213,11 +213,17 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
   }
 
   fun tracePossible(trace:Trace): Boolean {
-    return instance.trace.mapIndexed { idx, id -> trace[idx]==id }.all { it }
+    val childIds = instance.childNodes.asSequence().map { it.withPermission() }.filter { it.state.isFinal }.map { it.node.id }.toSet()
+    val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in childIds }
+    val lastPos = seen.lastIndexOf(true)
+    return seen.slice(0 .. lastPos).all { it }
   }
 
   fun assertTracePossible(trace: Trace) {
-    instance.trace.forEachIndexed { idx, id -> assertEquals(trace[idx], id) }
+    val childIds = instance.childNodes.asSequence().map { it.withPermission() }.filter { it.state.isFinal }.map { it.node.id }.toSet()
+    val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in childIds }
+    val lastPos = seen.lastIndexOf(true)
+    assertTrue(seen.slice(0 .. lastPos).all { it }) { "All trace elements should be in the trace: [${trace.mapIndexed { i, s -> "$s=${seen[i]}" }.joinToString()}]"}
   }
 
 
@@ -231,54 +237,80 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
   fun addStartedNodeContext(dsl: ProcessTestingDsl, trace: nl.adaptivity.process.engine.Trace, i: kotlin.Int):ProcessTestingDsl {
     val nodeId = trace[i]
     val nodeInstance by with(dsl) { instance.nodeInstance[nodeId] }
-    dsl.test("$nodeId should not be in a final state if not an end node") {
-      if (nodeInstance.node !is EndNode<*, *>) {
-        assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} is in final state ${nodeInstance.state}" }
-      }
-    }
-    dsl.it("should still be a possible trace") {
-      dsl.assertTracePossible(trace)
-    }
-    dsl.test("$nodeId should be committed after starting") {
-      if (nodeInstance.node !is EndNode<*, *>) {
-        with(dsl) { nodeInstance.start() }
-        assertTrue(nodeInstance.state.isCommitted)
-        assertEquals(NodeInstanceState.Started, nodeInstance.state)
-      }
-    }
-
-    return dsl.processGroup("After Finishing ${nodeId}") {
-      beforeEachTest {
-        if (nodeInstance.node !is EndNode<*, *>) {
-          if (nodeInstance.state!=NodeInstanceState.Complete) {
-            nodeInstance.finish()
-          }
+    val node = model.getNode(nodeId)
+    when(node) {
+      is EndNode<*,*> -> {
+        dsl.test("$nodeId should be finished") {
+          assertEquals(NodeInstanceState.Complete, nodeInstance.state)
+        }
+        dsl.test("$nodeId should be part of the completion nodes") {
+          assertTrue(dsl.instance.completedNodeInstances.any { it.node.id==nodeId })
         }
       }
-      if (i + 1 < trace.size) {
-        addStartedNodeContext(this, trace, i + 1)
+      is Split<*,*> -> dsl.test("Split $nodeId should already be finished") {
+        assertEquals(NodeInstanceState.Complete, nodeInstance.state)
+      }
+      else -> {
+        dsl.test("$nodeId should not be in a final state") {
+          assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} is in final state ${nodeInstance.state}" }
+        }
+      }
+    }
+    dsl.test("The trace should still be possible") {
+      dsl.assertTracePossible(trace)
+    }
+    return when(node) {
+      is EndNode<*,*>,
+      is Split<*,*> -> if (i+1 <trace.size) {
+        addStartedNodeContext(dsl, trace, i + 1)
       } else {
-        this
+        dsl
+      }
+      else -> {
+        dsl.test("$nodeId should be committed after starting") {
+          with(dsl) { nodeInstance.start() }
+          assertTrue(nodeInstance.state.isCommitted)
+          assertEquals(NodeInstanceState.Started, nodeInstance.state)
+        }
+        dsl.processGroup("After Finishing ${nodeId}") {
+          beforeEachTest {
+            if (nodeInstance.state!=NodeInstanceState.Complete) {
+              nodeInstance.finish()
+            }
+          }
+          if (i + 1 < trace.size) {
+            addStartedNodeContext(this, trace, i + 1)
+          } else {
+            this
+          }
+        }
       }
     }
   }
 
   for(validTrace in valid) {
     givenProcess(engine, model, owner, description = validTrace.joinToString(prefix = "For trace: [", postfix = "]")) {
-      it("should start in a valid state") {
+      test("Only start nodes should be finished") {
         assertTrue(instance.finishedNodes.all { it.node is StartNode<*, *> })
-        assertTracePossible(validTrace)
       }
 
-      val startPos = instance.childNodes.size - 1
+      val startPos = instance.finished.size
       addStartedNodeContext(this, validTrace, startPos).apply {
-        it("should be finished correctly") {
-          assertTracePossible(validTrace)
-          val expectedCompletedNodes = validTrace.asSequence().map { model.getNode(it)!! }.filterIsInstance(EndNode::class.java).map { it.id!! }.toList().toTypedArray()
-          val expectedFinishedNodes = validTrace.asSequence().map { model.getNode(it)!! }.filterNot { it is EndNode<*,*> }.map { it.id }.toList().toTypedArray()
-          instance.assertFinished(*expectedFinishedNodes)
-          instance.assertActive()
-          instance.assertComplete(*expectedCompletedNodes)
+        group("The trace should be finished correctly") {
+          test("The trace should be valid") {
+            assertTracePossible(validTrace)
+          }
+          test("All non-endnodes are finished") {
+            val expectedFinishedNodes = validTrace.asSequence().map { model.getNode(it)!! }.filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
+            instance.assertFinished(*expectedFinishedNodes)
+          }
+          test("No nodes are active") {
+            instance.assertActive()
+          }
+          test("All endNodes in the trace are complete") {
+            val expectedCompletedNodes = validTrace.asSequence().map { model.getNode(it)!! }.filterIsInstance(EndNode::class.java).map { it.id!! }.toList().toTypedArray()
+            instance.assertComplete(*expectedCompletedNodes)
+          }
         }
       }
 
@@ -298,7 +330,7 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
         } catch (e: AssertionError) {
           success = true
         }
-        if (! success) kfail("The invalid trace $trace could be executed")
+        if (! success) kfail("The invalid trace ${trace.joinToString(prefix = "[", postfix = "]")} could be executed")
       }
     }
   }
