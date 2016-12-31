@@ -165,6 +165,68 @@ class TestControlPatterns: Spek({
             listOf("join", "ac3", "end").map { trace("start1", "start2", it) })
   }
 
+  describe("WCP6: multi-choice / or-split") {
+    listOf(true to false, false to true, true to true).forEach { conditions ->
+      group("ac1.condition=${conditions.first}, ac2.condition=${conditions.second}") {
+        val model = ExecutableProcessModel.build {
+          owner = principal
+          val start = startNode { id="start" }
+          val split = split { id="split"; predecessor = start; min=1; max=2 }
+          val ac1 = activity { id="ac1"; predecessor = split; condition=conditions.first.toString() }
+          val ac2 = activity { id="ac2"; predecessor = split; condition=conditions.second.toString() }
+          val end1 = endNode { id="end1"; predecessor = ac1 }
+          val end2 = endNode { id="end2"; predecessor = ac2 }
+        }
+        val invalidTraces = mutableListOf<Trace>()
+        val validTraces = when {
+          conditions.first && conditions.second -> {
+            invalidTraces.add(trace("start", "ac1", "end2"))
+            invalidTraces.add(trace("start", "ac2", "end1"))
+            invalidTraces.add(trace("start", "ac1", "end1", "end2"))
+            invalidTraces.add(trace("start", "ac2", "end2", "end1"))
+
+            listOf(
+                trace("start", "ac1", "end1", "ac2", "split", "end2"),
+                trace("start", "ac1", "end1", "ac2", "end2", "split"),
+                trace("start", "ac2", "end2", "ac1", "split", "end1"),
+                trace("start", "ac2", "end2", "ac1", "end1", "split"))
+          }
+          conditions.first && !conditions.second -> {
+            listOf("ac2", "split", "end2").forEach { invalidTraces.add(trace("start", "ac1", it)) }
+            invalidTraces.add(trace("start", "ac2"))
+            listOf("split", "ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", "end1", it)) }
+
+            listOf(
+                trace("start", "ac1", "end1", "split"),
+                trace("start", "ac1", "split", "end1"))
+
+          }
+          ! conditions.first && conditions.second -> {
+            listOf("ac1", "split", "end1").forEach { invalidTraces.add(trace("start", "ac2", it)) }
+            invalidTraces.add(trace("start", "ac2"))
+            listOf("split", "ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", "end2", it)) }
+
+            listOf(
+                trace("start", "ac2", "end2", "split"),
+                trace("start", "ac2", "split", "end2"))
+
+          }
+          else -> kfail("All cases need valid traces")
+        }
+
+        testTraces(processEngine, model, principal,
+            valid=validTraces,
+            invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+                listOf("split", "end1", "end2").map { trace("start", it) } + invalidTraces)
+
+
+      }
+
+
+    }
+
+  }
+
 
 })
 

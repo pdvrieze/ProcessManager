@@ -182,7 +182,7 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
   }
 
   fun ProcessInstance.assertActive() {
-    Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
+    Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${finished.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
   }
 
   fun ProcessInstance.assertActive(vararg nodeInstances: ProcessNodeInstance) {
