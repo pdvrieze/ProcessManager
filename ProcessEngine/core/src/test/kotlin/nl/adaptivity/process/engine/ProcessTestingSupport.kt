@@ -224,6 +224,7 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
     val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in childIds }
     val lastPos = seen.lastIndexOf(true)
     assertTrue(seen.slice(0 .. lastPos).all { it }) { "All trace elements should be in the trace: [${trace.mapIndexed { i, s -> "$s=${seen[i]}" }.joinToString()}]"}
+    assertTrue(childIds.all { it in trace }) { "All child nodes should be in the full trace (child nodes: [${childIds.joinToString()}])" }
   }
 
 
@@ -322,10 +323,13 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
         var success = false
         try {
           assertTracePossible(trace)
-          val startPos = instance.childNodes.size - 1
-          for( i in startPos until trace.size) {
-            val nodeInstance by instance.nodeInstance[trace[i]]
-            instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+          for(nodeId in trace) {
+            val nodeInstance by instance.nodeInstance[nodeId]
+            assertNotNull(nodeInstance, "The node instance should exist" )
+            if (nodeInstance.state!=NodeInstanceState.Complete) {
+              instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+            }
+            assertEquals(NodeInstanceState.Complete, nodeInstance.state)
           }
         } catch (e: AssertionError) {
           success = true
