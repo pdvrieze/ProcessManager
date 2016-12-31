@@ -25,6 +25,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.xdescribe
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.w3c.dom.Node
 import java.net.URI
@@ -140,6 +141,31 @@ class TestControlPatterns: Spek({
             listOf("end2", "ac2").map { trace("start", "ac1", it) } +
             listOf("end1", "ac1").map { trace("start", "ac2", it) })
   }
+
+  xdescribe("WCP5: simple-merge", "Multiple instantiations of a single activity are not yet supported") {
+    val model = ExecutableProcessModel.build {
+      owner = principal
+      val start1 = startNode { id="start1" }
+      val start2 = startNode { id="start2" }
+      val ac1 = activity { id="ac1"; predecessor = start1 }
+      val ac2 = activity { id="ac2"; predecessor = start2 }
+      val join = join { id="join"; predecessors(ac1, ac2); min=1; max=1 }
+      val ac3 = activity { id="ac3"; predecessor = join }
+      val end = endNode { id="end"; predecessor = ac3 }
+    }
+    testTraces(processEngine, model, principal,
+        valid=listOf(
+            trace("start1", "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
+            trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
+            trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"),
+            trace("start1", "start2", "ac2", "join:1", "ac3:1", "end:1", "ac1", "join:1", "ac3:2", "end:2"),
+            trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:1", "end:1", "ac3:2", "end:2"),
+            trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:2", "end:2", "ac3:1", "end:1")),
+        invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
+            listOf("join", "ac3", "end").map { trace("start1", "start2", it) })
+  }
+
+
 })
 
 private inline fun <R> ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
