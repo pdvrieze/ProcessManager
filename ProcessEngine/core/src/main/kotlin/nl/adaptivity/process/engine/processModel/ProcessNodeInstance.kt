@@ -58,6 +58,13 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   val directPredecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
 
+  fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance>> {
+    return directPredecessors.asSequence().flatMap { predHandle ->
+      val pred = processData.nodeInstance(predHandle).withPermission()
+      pred.precedingClosure(processData) + sequenceOf(pred)
+    }
+  }
+
   interface Builder<N:ExecutableProcessNode> {
     var node: N
     val predecessors: MutableSet<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>

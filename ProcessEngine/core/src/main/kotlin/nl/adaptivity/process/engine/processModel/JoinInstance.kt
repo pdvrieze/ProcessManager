@@ -140,8 +140,51 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   @Suppress("UNCHECKED_CAST")
-  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?)
-        = super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
+  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): PNIPair<JoinInstance> {
+    var committedPredecessorCount = 0
+    var completedPredecessorCount = 0
+    val cancelablePredecessors = mutableListOf<ProcessNodeInstance>()
+    for(predecessorId in node.predecessors) {
+      val predecessor = processInstance.getChild(predecessorId.id)?.withPermission()
+      if (predecessor==null) {
+        val splitInstance = precedingClosure(engineData).filterIsInstance(SplitInstance::class.java).last()
+        if (splitInstance.state.isFinal) {
+          throw ProcessException("Missing predecessor $predecessorId for join ${node.id}, split ${splitInstance.node.id} is already final")
+        } else {
+          // Finish the split and try again
+          return processInstance.finishTask(engineData, splitInstance,null)
+              .instance.finishTask(engineData, this, resultPayload)
+        }
+      } else {
+        if (predecessor.state.isCommitted) {
+          if (! predecessor.state.isFinal) {
+            throw ProcessException("Predecessor ${predecessorId} is committed but not final, cannot finish join without cancelling the predecessor")
+          } else {
+            committedPredecessorCount++
+            if (predecessor.state==NodeInstanceState.Complete) {
+              completedPredecessorCount++
+            }
+          }
+        } else {
+          val predPred = predecessor.directPredecessors.map { engineData.nodeInstance(it).withPermission() }
+          val splitCandidate = predPred.firstOrNull()
+          if (splitCandidate is SplitInstance) {
+            cancelablePredecessors.add(predecessor)
+          } else {
+            throw ProcessException("Predecessor $predecessorId cannot be cancelled as it has non-split predecessor(s) ${predPred}")
+          }
+        }
+      }
+    }
+    if (committedPredecessorCount<node.min) {
+      throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
+    }
+    for(instanceToCancel in cancelablePredecessors) {
+
+    }
+
+    return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
+  }
 
   @Suppress("UNCHECKED_CAST")
   override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
