@@ -294,6 +294,9 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   @Throws(SQLException::class)
   @Deprecated("This is dangerous, it will not update the instance")
   internal open fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node? = null): PNIPair<ProcessNodeInstance> {
+    if (state.isFinal) {
+      throw ProcessException("instance $this cannot be finished as it is already in a final state: ${state}")
+    }
     return update(engineData, processInstance) {
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
       state = NodeInstanceState.Complete
