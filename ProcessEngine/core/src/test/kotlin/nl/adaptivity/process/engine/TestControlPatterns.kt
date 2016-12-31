@@ -73,6 +73,7 @@ class TestControlPatterns: Spek({
     testTraces(processEngine, model, principal, valid=listOf(trace("start", "ac1" , "ac2", "end")), invalid=listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
 
   }
+
   describe("WCP2: Parallel split") {
     val model = ExecutableProcessModel.build {
       owner = principal
@@ -96,6 +97,26 @@ class TestControlPatterns: Spek({
             listOf("split", "end2").map { trace("start", "ac1", "end1", it) } +
             listOf("split", "end1").map { trace("start", "ac2", "end2", it) })
 
+  }
+
+  describe("WCP3: Synchronization / And join") {
+    val model = ExecutableProcessModel.build {
+      owner = principal
+      val start = startNode { id="start" }
+      val split = split { id="split"; predecessor = start; min=2; max=2 }
+      val ac1 = activity { id="ac1"; predecessor = split }
+      val ac2 = activity { id="ac2"; predecessor = split }
+      val join = join { id="join"; predecessors(ac1, ac2); min=2; max=2 }
+      val end = endNode { id="end"; predecessor = join }
+    }
+    testTraces(processEngine, model, principal,
+        valid=listOf(
+            trace("start", "ac1", "ac2", "split", "join", "end"),
+            trace("start", "ac2", "ac1", "split", "join", "end")),
+        invalid = listOf("ac1", "ac2", "join", "end", "split").map { trace(it) } +
+            listOf("split", "end", "join").map { trace("start", it) } +
+            listOf("split", "join", "end").map { trace("start", "ac1", it) } +
+            listOf("split", "join", "end").map { trace("start", "ac2", it) })
   }
 })
 
