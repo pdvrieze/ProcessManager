@@ -21,6 +21,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -248,7 +249,8 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
           assertTrue(dsl.instance.completedNodeInstances.any { it.node.id==nodeId })
         }
       }
-      is Split<*,*> -> dsl.test("Split $nodeId should already be finished") {
+      is Join<*, *>,
+      is Split<*,*> -> dsl.test("Split/join $nodeId should already be finished") {
         assertEquals(NodeInstanceState.Complete, nodeInstance.state)
       }
       else -> {
@@ -262,6 +264,7 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
     }
     return when(node) {
       is EndNode<*,*>,
+      is Join<*,*>,
       is Split<*,*> -> if (i+1 <trace.size) {
         addStartedNodeContext(dsl, trace, i + 1)
       } else {
