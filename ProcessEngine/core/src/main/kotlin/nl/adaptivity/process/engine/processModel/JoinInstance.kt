@@ -231,8 +231,13 @@ class JoinInstance : ProcessNodeInstance {
     var skipped = 0
     for (predecessor in resolvePredecessors(engineData)) {
       when (predecessor.state) {
-        NodeInstanceState.Complete                            -> complete += 1
-        NodeInstanceState.Cancelled, NodeInstanceState.Failed -> skipped += 1
+        NodeInstanceState.Complete       -> complete += 1
+
+        NodeInstanceState.Skipped,
+        NodeInstanceState.SkippedCancel,
+        NodeInstanceState.Cancelled,
+        NodeInstanceState.SkippedFail,
+        NodeInstanceState.Failed         -> skipped += 1
         else -> Unit // do nothing
       }
     }
@@ -243,7 +248,7 @@ class JoinInstance : ProcessNodeInstance {
     }
 
     if (complete >= join.min) {
-      if (complete >= join.max || processInstance.getActivePredecessorsFor(engineData, join).isEmpty()) {
+      if (complete >= join.max || processInstance.getActivePredecessorsFor(engineData, this).isEmpty()) {
         return next()
       }
     }
@@ -252,7 +257,7 @@ class JoinInstance : ProcessNodeInstance {
 
   @Throws(SQLException::class)
   private fun cancelNoncompletedPredecessors(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance {
-    val preds = processInstance.getActivePredecessorsFor(engineData, node)
+    val preds = processInstance.getActivePredecessorsFor(engineData, this)
     return preds.fold(processInstance) { processInstance, pred -> pred.tryCancelTask(engineData, processInstance).instance }
   }
 

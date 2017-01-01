@@ -452,6 +452,32 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     return newInstances.instance.handleFinishedState(engineData, newInstances.node)
   }
 
+  fun <N:ProcessNodeInstance> skipTask(engineData: MutableProcessEngineDataAccess, node: N): PNIPair<N> {
+    return skipTask(engineData, node, NodeInstanceState.Skipped)
+  }
+
+  fun <N:ProcessNodeInstance> skipCancelTask(engineData: MutableProcessEngineDataAccess, node: N): PNIPair<N> {
+    return skipTask(engineData, node, NodeInstanceState.SkippedCancel)
+  }
+
+  fun <N:ProcessNodeInstance> skipFailTask(engineData: MutableProcessEngineDataAccess, node: N): PNIPair<N> {
+    return skipTask(engineData, node, NodeInstanceState.SkippedFail)
+  }
+
+  fun <N:ProcessNodeInstance> skipTask(engineData: MutableProcessEngineDataAccess, node: N, newState: NodeInstanceState): PNIPair<N> {
+    if (node.state.isFinal) {
+      throw ProcessException("Instance $this is already in a final state and cannot be skipped anymore")
+    }
+    return node.update(engineData, this) {
+      this.state = newState
+    }.let { pnipair ->
+      engineData.commit()
+      @Suppress("UNCHECKED_CAST")
+      pnipair.instance.handleFinishedState(engineData, pnipair.node) as PNIPair<N>
+    }
+  }
+
+
   @Synchronized @Throws(SQLException::class)
   private fun <N: ProcessNodeInstance> handleFinishedState(engineData: MutableProcessEngineDataAccess,
                                   node: N):PNIPair<N> {
@@ -515,16 +541,30 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     // Commit the registration of the follow up nodes before starting them.
     engineData.commit()
-    self = startedTasks.fold(self) { self, task -> task.provideTask(engineData, self).instance }
+    self = startedTasks.fold(self) { self, task ->
+      when (predecessor.state) {
+        NodeInstanceState.Complete ->
+            task.provideTask(engineData, self).instance
+        NodeInstanceState.SkippedCancel,
+        NodeInstanceState.SkippedFail,
+        NodeInstanceState.Skipped ->
+            self.skipTask(engineData, task, predecessor.state).instance
+        NodeInstanceState.Cancelled ->
+            self.skipCancelTask(engineData, task).instance
+        NodeInstanceState.Failed ->
+            self.skipFailTask(engineData, task).instance
+        else -> throw ProcessException("Node ${predecessor} is not in a supported state to initiate successors")
+      }
+    }
     self = joinsToEvaluate.fold(self) {self, join -> join.startTask(engineData, self).instance }
     return self
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getActivePredecessorsFor(engineData: MutableProcessEngineDataAccess, join: ExecutableJoin): Collection<ProcessNodeInstance> {
+  fun getActivePredecessorsFor(engineData: ProcessEngineDataAccess, join: JoinInstance): Collection<ProcessNodeInstance> {
     return active.asSequence()
           .map { engineData.nodeInstance(it).withPermission() }
-          .filter { it.node.isPredecessorOf(join) }
+          .filter { it.node.isPredecessorOf(join.node) }
           .toList()
   }
 

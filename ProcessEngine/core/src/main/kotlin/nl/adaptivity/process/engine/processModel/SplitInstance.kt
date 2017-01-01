@@ -124,6 +124,8 @@ class SplitInstance : ProcessNodeInstance {
     return when (it.state) {
       NodeInstanceState.Started,
       NodeInstanceState.Acknowledged,
+      NodeInstanceState.Skipped,
+      NodeInstanceState.Failed,
       NodeInstanceState.Complete -> true
       else -> false
     }
@@ -161,14 +163,23 @@ class SplitInstance : ProcessNodeInstance {
 
         val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this.getHandle())
         // TODO Make this respond to MAYBEs
-        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending && nonRegisteredSuccessor.condition(engineData)==ConditionResult.TRUE) { // only if it can be executed, otherwise just drop it.
-          val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
+        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending) {
+          val conditionResult = nonRegisteredSuccessor.condition(engineData)
+          when (conditionResult) {
+            ConditionResult.TRUE -> { // only if it can be executed, otherwise just drop it.
+              val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
 
-          engineData.commit()
+              engineData.commit()
 
-          processInstance = pnipair.node.provideTask(engineData, pnipair.instance).instance
+              processInstance = pnipair.node.provideTask(engineData, pnipair.instance).instance
 
-          canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
+              canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
+            }
+            ConditionResult.NEVER -> {
+              val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
+              processInstance = pnipair.instance.skipTask(engineData, pnipair.node).instance
+            }
+          }
         }
       }
       // in any case
