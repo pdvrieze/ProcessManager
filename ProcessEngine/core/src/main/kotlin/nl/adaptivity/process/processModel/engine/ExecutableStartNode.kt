@@ -57,7 +57,7 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
   fun createOrReuseInstance(processInstance: ProcessInstance)
       = processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
 
-  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = true
+  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = ConditionResult.TRUE
 
   @Throws(SQLException::class)
   override fun provideTask(engineData: MutableProcessEngineDataAccess,

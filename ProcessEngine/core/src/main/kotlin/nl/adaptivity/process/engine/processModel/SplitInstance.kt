@@ -24,6 +24,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
+import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
 import org.w3c.dom.Node
 import java.security.Principal
@@ -159,7 +160,8 @@ class SplitInstance : ProcessNodeInstance {
         }
 
         val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this.getHandle())
-        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending && nonRegisteredSuccessor.condition(engineData)) { // only if it can be executed, otherwise just drop it.
+        // TODO Make this respond to MAYBEs
+        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending && nonRegisteredSuccessor.condition(engineData)==ConditionResult.TRUE) { // only if it can be executed, otherwise just drop it.
           val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
 
           engineData.commit()

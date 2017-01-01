@@ -74,7 +74,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    * @return `true` if the node can be started, `false` if
    *          not.
    */
-  fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): Boolean = true
+  fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
   /**
    * Take action to make task available

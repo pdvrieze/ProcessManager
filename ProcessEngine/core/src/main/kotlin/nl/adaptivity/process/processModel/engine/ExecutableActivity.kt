@@ -68,8 +68,8 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
   /**
    * Determine whether the process can start.
    */
-  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): Boolean {
-    return _condition?.run { eval(engineData, instance) } ?: true
+  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult {
+    return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
   }
 
   /**
