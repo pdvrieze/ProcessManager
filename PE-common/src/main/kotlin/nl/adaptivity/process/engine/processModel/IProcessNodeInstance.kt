@@ -81,9 +81,14 @@ interface IProcessNodeInstance<out V : IProcessNodeInstance<V>> : ReadableHandle
      */
     Failed(true, false, true),
     /**
-     * Signifies that the task has been cancelled (but not through a failure).
+     * Signifies that the task has been cancelled directly (but not through a failure).
      */
-    Cancelled(true, false, false);
+    Cancelled(true, false, false),
+    /** Signifies that the task has been skipped because a predecessor was cancelled */
+    SkippedCancel(true, false, false),
+    /** Signifies that the task has been skipped because a predecessor failed */
+    SkippedFail(true, false, false)
+    ;
 
 
     companion object {
