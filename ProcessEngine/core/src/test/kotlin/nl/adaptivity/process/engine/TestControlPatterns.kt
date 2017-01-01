@@ -23,9 +23,7 @@ import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.xdescribe
+import org.jetbrains.spek.api.dsl.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.w3c.dom.Node
 import java.net.URI
@@ -60,173 +58,36 @@ class TestControlPatterns: Spek({
   describe("Basic control-flow patterns") {
 
     describe("WCP1: A sequential process") {
-
-      val model = ExecutableProcessModel.build {
-        owner = principal
-        val start = startNode { id = "start" }
-        val ac1 = activity { id = "ac1"; predecessor = start }
-        val ac2 = activity { id = "ac2"; predecessor = ac1 }
-        endNode { id = "end"; predecessor = ac2 }
-      }
-
-      it("should have 4 children") {
-        assertEquals(4, model.modelNodes.size)
-      }
-
-      testTraces(processEngine, model, principal, valid = listOf(trace("start", "ac1", "ac2", "end")), invalid = listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
-
+      testWCP1(processEngine, principal)
     }
 
     describe("WCP2: Parallel split") {
-      val model = ExecutableProcessModel.build {
-        owner = principal
-        val start = startNode { id = "start" }
-        val split = split { id = "split"; predecessor = start; min = 2; max = 2 }
-        val ac1 = activity { id = "ac1"; predecessor = split }
-        val ac2 = activity { id = "ac2"; predecessor = split }
-        val end1 = endNode { id = "end1"; predecessor = ac1 }
-        val end2 = endNode { id = "end2"; predecessor = ac2 }
-      }
-      testTraces(processEngine, model, principal,
-          valid = listOf(
-              trace("start", "ac1", "end1", "ac2", "split", "end2"),
-              trace("start", "ac1", "end1", "ac2", "end2", "split"),
-              trace("start", "ac2", "end2", "ac1", "split", "end1"),
-              trace("start", "ac2", "end2", "ac1", "end1", "split")),
-          invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
-              listOf("split", "end1", "end2").map { trace("start", it) } +
-              listOf("split", "end2").map { trace("start", "ac1", it) } +
-              listOf("split", "end1").map { trace("start", "ac2", it) } +
-              listOf("split", "end2").map { trace("start", "ac1", "end1", it) } +
-              listOf("split", "end1").map { trace("start", "ac2", "end2", it) })
-
+      testWCP2(processEngine, principal)
     }
 
     describe("WCP3: Synchronization / And join") {
-      val model = ExecutableProcessModel.build {
-        owner = principal
-        val start = startNode { id = "start" }
-        val split = split { id = "split"; predecessor = start; min = 2; max = 2 }
-        val ac1 = activity { id = "ac1"; predecessor = split }
-        val ac2 = activity { id = "ac2"; predecessor = split }
-        val join = join { id = "join"; predecessors(ac1, ac2); min = 2; max = 2 }
-        val end = endNode { id = "end"; predecessor = join }
-      }
-      testTraces(processEngine, model, principal,
-          valid = listOf(
-              trace("start", "ac1", "ac2", "split", "join", "end"),
-              trace("start", "ac2", "ac1", "split", "join", "end")),
-          invalid = listOf("ac1", "ac2", "join", "end", "split").map { trace(it) } +
-              listOf("split", "end", "join").map { trace("start", it) } +
-              listOf("split", "join", "end").map { trace("start", "ac1", it) } +
-              listOf("split", "join", "end").map { trace("start", "ac2", it) })
+      testWCP3(processEngine, principal)
     }
 
     describe("WCP4: XOR split") {
-      val model = ExecutableProcessModel.build {
-        owner = principal
-        val start = startNode { id = "start" }
-        val split = split { id = "split"; predecessor = start; min = 1; max = 1 }
-        val ac1 = activity { id = "ac1"; predecessor = split }
-        val ac2 = activity { id = "ac2"; predecessor = split }
-        val end1 = endNode { id = "end1"; predecessor = ac1 }
-        val end2 = endNode { id = "end2"; predecessor = ac2 }
-      }
-      testTraces(processEngine, model, principal,
-          valid = listOf(
-              trace("start", "ac1", "end1", "split"),
-              trace("start", "ac1", "split", "end1"),
-              trace("start", "ac2", "end2", "split"),
-              trace("start", "ac2", "split", "end2")),
-          invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
-              listOf("split", "end1", "end2").map { trace("start", it) } +
-              listOf("end2", "ac2").map { trace("start", "ac1", it) } +
-              listOf("end1", "ac1").map { trace("start", "ac2", it) })
+      testWCP4(processEngine, principal)
     }
 
     describe("WCP5: simple-merge") {
-      val model = ExecutableProcessModel.build {
-        owner = principal
-        val start = startNode { id = "start" }
-        val split = split { id = "split"; predecessor = start; min = 1; max = 1 }
-        val ac1 = activity { id = "ac1"; predecessor = split }
-        val ac2 = activity { id = "ac2"; predecessor = split }
-        val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
-        val ac3 = activity { id = "ac3"; predecessor = join }
-        val end = endNode { id = "end"; predecessor = ac3 }
-      }
-      testTraces(processEngine, model, principal,
-          valid = listOf(
-              trace("start", "ac1", "split", "join", "ac3", "end"),
-              trace("start", "ac2", "split", "join", "ac3", "end")),
-          invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
-              listOf("join", "ac3", "end").map { trace("start", it) } +
-              listOf(trace("start", "ac1", "ac2"),
-                     trace("start", "ac2", "ac1"))
-
-          )
+      testWCP5(processEngine, principal)
     }
   }
 
   describe("Advanced branching and synchronization patterns") {
     describe("WCP6: multi-choice / or-split") {
-      listOf(true to false, false to true, true to true).forEach { conditions ->
-        group("ac1.condition=${conditions.first}, ac2.condition=${conditions.second}") {
-          val model = ExecutableProcessModel.build {
-            owner = principal
-            val start = startNode { id = "start" }
-            val split = split { id = "split"; predecessor = start; min = 1; max = 2 }
-            val ac1 = activity { id = "ac1"; predecessor = split; condition = conditions.first.toXPath() }
-            val ac2 = activity { id = "ac2"; predecessor = split; condition = conditions.second.toXPath() }
-            val end1 = endNode { id = "end1"; predecessor = ac1 }
-            val end2 = endNode { id = "end2"; predecessor = ac2 }
-          }
-          val invalidTraces = mutableListOf<Trace>()
-          val validTraces = when {
-            conditions.first && conditions.second -> {
-              invalidTraces.add(trace("start", "ac1", "end2"))
-              invalidTraces.add(trace("start", "ac2", "end1"))
-              invalidTraces.add(trace("start", "ac1", "end1", "end2"))
-              invalidTraces.add(trace("start", "ac2", "end2", "end1"))
-
-              listOf(
-                  trace("start", "ac1", "end1", "ac2", "split", "end2"),
-                  trace("start", "ac1", "end1", "ac2", "end2", "split"),
-                  trace("start", "ac2", "end2", "ac1", "split", "end1"),
-                  trace("start", "ac2", "end2", "ac1", "end1", "split"))
-            }
-            conditions.first && !conditions.second -> {
-              listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", it)) }
-              invalidTraces.add(trace("start", "ac2"))
-              listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", "end1", it)) }
-
-              listOf(
-                  trace("start", "ac1", "end1", "split"),
-                  trace("start", "ac1", "split", "end1"))
-
-            }
-            !conditions.first && conditions.second -> {
-              listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", it)) }
-              invalidTraces.add(trace("start", "ac2"))
-              listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", "end2", it)) }
-
-              listOf(
-                  trace("start", "ac2", "end2", "split"),
-                  trace("start", "ac2", "split", "end2"))
-
-            }
-            else -> kfail("All cases need valid traces")
-          }
-
-          testTraces(processEngine, model, principal,
-              valid = validTraces,
-              invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
-                  listOf("split", "end1", "end2").map { trace("start", it) } + invalidTraces)
-
-
-        }
-
-
+      given("ac1.condition=true, ac2.condition=false") {
+        testWCP6(processEngine, principal, true, false)
+      }
+      given("ac1.condition=false, ac2.condition=true") {
+        testWCP6(processEngine, principal, false, true)
+      }
+      given("ac1.condition=true, ac2.condition=true") {
+        testWCP6(processEngine, principal, true, true)
       }
 
     }
@@ -257,6 +118,164 @@ class TestControlPatterns: Spek({
   }
 
 })
+
+private fun Dsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val ac1 = activity { id = "ac1"; predecessor = start }
+    val ac2 = activity { id = "ac2"; predecessor = ac1 }
+    endNode { id = "end"; predecessor = ac2 }
+  }
+
+  it("should have 4 children") {
+    assertEquals(4, model.modelNodes.size)
+  }
+
+  testTraces(processEngine, model, principal, valid = listOf(trace("start", "ac1", "ac2", "end")), invalid = listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
+}
+
+private fun Dsl.testWCP2(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val split = split { id = "split"; predecessor = start; min = 2; max = 2 }
+    val ac1 = activity { id = "ac1"; predecessor = split }
+    val ac2 = activity { id = "ac2"; predecessor = split }
+    val end1 = endNode { id = "end1"; predecessor = ac1 }
+    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start", "ac1", "end1", "ac2", "split", "end2"),
+          trace("start", "ac1", "end1", "ac2", "end2", "split"),
+          trace("start", "ac2", "end2", "ac1", "split", "end1"),
+          trace("start", "ac2", "end2", "ac1", "end1", "split")),
+      invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+          listOf("split", "end1", "end2").map { trace("start", it) } +
+          listOf("split", "end2").map { trace("start", "ac1", it) } +
+          listOf("split", "end1").map { trace("start", "ac2", it) } +
+          listOf("split", "end2").map { trace("start", "ac1", "end1", it) } +
+          listOf("split", "end1").map { trace("start", "ac2", "end2", it) })
+}
+
+private fun Dsl.testWCP3(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val split = split { id = "split"; predecessor = start; min = 2; max = 2 }
+    val ac1 = activity { id = "ac1"; predecessor = split }
+    val ac2 = activity { id = "ac2"; predecessor = split }
+    val join = join { id = "join"; predecessors(ac1, ac2); min = 2; max = 2 }
+    val end = endNode { id = "end"; predecessor = join }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start", "ac1", "ac2", "split", "join", "end"),
+          trace("start", "ac2", "ac1", "split", "join", "end")),
+      invalid = listOf("ac1", "ac2", "join", "end", "split").map { trace(it) } +
+          listOf("split", "end", "join").map { trace("start", it) } +
+          listOf("split", "join", "end").map { trace("start", "ac1", it) } +
+          listOf("split", "join", "end").map { trace("start", "ac2", it) })
+}
+
+private fun Dsl.testWCP4(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val split = split { id = "split"; predecessor = start; min = 1; max = 1 }
+    val ac1 = activity { id = "ac1"; predecessor = split }
+    val ac2 = activity { id = "ac2"; predecessor = split }
+    val end1 = endNode { id = "end1"; predecessor = ac1 }
+    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start", "ac1", "end1", "split"),
+          trace("start", "ac1", "split", "end1"),
+          trace("start", "ac2", "end2", "split"),
+          trace("start", "ac2", "split", "end2")),
+      invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+          listOf("split", "end1", "end2").map { trace("start", it) } +
+          listOf("end2", "ac2").map { trace("start", "ac1", it) } +
+          listOf("end1", "ac1").map { trace("start", "ac2", it) })
+}
+
+private fun Dsl.testWCP5(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val split = split { id = "split"; predecessor = start; min = 1; max = 1 }
+    val ac1 = activity { id = "ac1"; predecessor = split }
+    val ac2 = activity { id = "ac2"; predecessor = split }
+    val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
+    val ac3 = activity { id = "ac3"; predecessor = join }
+    val end = endNode { id = "end"; predecessor = ac3 }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start", "ac1", "split", "join", "ac3", "end"),
+          trace("start", "ac2", "split", "join", "ac3", "end")),
+      invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
+          listOf("join", "ac3", "end").map { trace("start", it) } +
+          listOf(trace("start", "ac1", "ac2"),
+              trace("start", "ac2", "ac1"))
+
+  )
+}
+
+private fun Dsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val split = split { id = "split"; predecessor = start; min = 1; max = 2 }
+    val ac1 = activity { id = "ac1"; predecessor = split; condition = ac1Condition.toXPath() }
+    val ac2 = activity { id = "ac2"; predecessor = split; condition = ac2Condition.toXPath() }
+    val end1 = endNode { id = "end1"; predecessor = ac1 }
+    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  }
+  val invalidTraces = mutableListOf<Trace>()
+  val validTraces = when {
+    ac1Condition && ac2Condition -> {
+      invalidTraces.add(trace("start", "ac1", "end2"))
+      invalidTraces.add(trace("start", "ac2", "end1"))
+      invalidTraces.add(trace("start", "ac1", "end1", "end2"))
+      invalidTraces.add(trace("start", "ac2", "end2", "end1"))
+
+      listOf(
+          trace("start", "ac1", "end1", "ac2", "split", "end2"),
+          trace("start", "ac1", "end1", "ac2", "end2", "split"),
+          trace("start", "ac2", "end2", "ac1", "split", "end1"),
+          trace("start", "ac2", "end2", "ac1", "end1", "split"))
+    }
+    ac1Condition && !ac2Condition -> {
+      listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", it)) }
+      invalidTraces.add(trace("start", "ac2"))
+      listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", "end1", it)) }
+
+      listOf(
+          trace("start", "ac1", "end1", "split"),
+          trace("start", "ac1", "split", "end1"))
+
+    }
+    !ac1Condition && ac2Condition -> {
+      listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", it)) }
+      invalidTraces.add(trace("start", "ac1"))
+      listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", "end2", it)) }
+
+      listOf(
+          trace("start", "ac2", "end2", "split"),
+          trace("start", "ac2", "split", "end2"))
+
+    }
+    else -> kfail("All cases need valid traces")
+  }
+
+  testTraces(processEngine, model, principal,
+      valid = validTraces,
+      invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+          listOf("split", "end1", "end2").map { trace("start", it) } + invalidTraces)
+}
 
 private fun Boolean.toXPath() = if (this) "true()" else "false()"
 
