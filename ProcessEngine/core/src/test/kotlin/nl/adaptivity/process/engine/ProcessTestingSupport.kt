@@ -347,7 +347,9 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
             val nodeInstance by instance.nodeInstance[nodeId]
             assertNotNull(nodeInstance, "The node instance should exist")
             if (nodeInstance.state != NodeInstanceState.Complete) {
-              instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+              if (! (nodeInstance.node is Join<*,*> || nodeInstance.node is Split<*,*>)) {
+                instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+              }
             }
             assertEquals(NodeInstanceState.Complete, nodeInstance.state)
           }
