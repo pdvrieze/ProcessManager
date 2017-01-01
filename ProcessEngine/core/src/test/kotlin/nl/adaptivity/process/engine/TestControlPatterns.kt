@@ -176,8 +176,8 @@ class TestControlPatterns: Spek({
             owner = principal
             val start = startNode { id = "start" }
             val split = split { id = "split"; predecessor = start; min = 1; max = 2 }
-            val ac1 = activity { id = "ac1"; predecessor = split; condition = conditions.first.toString() }
-            val ac2 = activity { id = "ac2"; predecessor = split; condition = conditions.second.toString() }
+            val ac1 = activity { id = "ac1"; predecessor = split; condition = conditions.first.toXPath() }
+            val ac2 = activity { id = "ac2"; predecessor = split; condition = conditions.second.toXPath() }
             val end1 = endNode { id = "end1"; predecessor = ac1 }
             val end2 = endNode { id = "end2"; predecessor = ac2 }
           }
@@ -196,9 +196,9 @@ class TestControlPatterns: Spek({
                   trace("start", "ac2", "end2", "ac1", "end1", "split"))
             }
             conditions.first && !conditions.second -> {
-              listOf("ac2", "split", "end2").forEach { invalidTraces.add(trace("start", "ac1", it)) }
+              listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", it)) }
               invalidTraces.add(trace("start", "ac2"))
-              listOf("split", "ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", "end1", it)) }
+              listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", "end1", it)) }
 
               listOf(
                   trace("start", "ac1", "end1", "split"),
@@ -206,9 +206,9 @@ class TestControlPatterns: Spek({
 
             }
             !conditions.first && conditions.second -> {
-              listOf("ac1", "split", "end1").forEach { invalidTraces.add(trace("start", "ac2", it)) }
+              listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", it)) }
               invalidTraces.add(trace("start", "ac2"))
-              listOf("split", "ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", "end2", it)) }
+              listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", "end2", it)) }
 
               listOf(
                   trace("start", "ac2", "end2", "split"),
@@ -257,6 +257,8 @@ class TestControlPatterns: Spek({
   }
 
 })
+
+private fun Boolean.toXPath() = if (this) "true()" else "false()"
 
 private inline fun <R> ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
   startTransaction().use { transaction ->
