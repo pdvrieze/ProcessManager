@@ -92,6 +92,19 @@ class TestControlPatterns: Spek({
 
     }
 
+    describe("WCP7: structured synchronized merge") {
+      given("ac1.condition=true, ac2.condition=false") {
+        testWCP7(processEngine, principal, true, false)
+      }
+      given("ac1.condition=false, ac2.condition=true") {
+        testWCP7(processEngine, principal, false, true)
+      }
+      given("ac1.condition=true, ac2.condition=true") {
+        testWCP7(processEngine, principal, true, true)
+      }
+
+    }
+
 
     xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single activity are not yet supported") {
       val model = ExecutableProcessModel.build {
@@ -275,6 +288,56 @@ private fun Dsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, p
       valid = validTraces,
       invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
           listOf("split", "end1", "end2").map { trace("start", it) } + invalidTraces)
+}
+
+private fun Dsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start = startNode { id = "start" }
+    val split = split { id = "split"; predecessor = start; min = 1; max = 2 }
+    val ac1 = activity { id = "ac1"; predecessor = split; condition = ac1Condition.toXPath() }
+    val ac2 = activity { id = "ac2"; predecessor = split; condition = ac2Condition.toXPath() }
+    val join = join { id="join"; predecessors(ac1, ac2); min = 1; max=2 }
+    val end = endNode { id = "end"; predecessor = join }
+  }
+  val invalidTraces = mutableListOf<Trace>()
+  val validTraces = when {
+    ac1Condition && ac2Condition -> {
+      listOf("ac1", "ac2").forEach { ac ->
+        listOf("end", "join", "split").forEach { invalidTraces.add(trace("start", ac, it)) }
+      }
+
+      listOf(
+          trace("start", "ac1", "ac2", "split", "join", "end"),
+          trace("start", "ac1", "ac2", "join", "split", "end"),
+          trace("start", "ac2", "ac1", "split", "join", "end"),
+          trace("start", "ac2", "ac1", "join", "split", "end"))
+    }
+    ac1Condition && !ac2Condition -> {
+      invalidTraces.add(trace("start", "ac2"))
+      invalidTraces.add(trace("start", "ac1", "ac2"))
+
+      listOf(
+          trace("start", "ac1", "join", "split", "end"),
+          trace("start", "ac1", "split", "join", "end"))
+
+    }
+    !ac1Condition && ac2Condition -> {
+      invalidTraces.add(trace("start", "ac1"))
+      invalidTraces.add(trace("start", "ac2", "ac1"))
+
+      listOf(
+          trace("start", "ac2", "join", "split", "end"),
+          trace("start", "ac2", "split", "join", "end"))
+
+    }
+    else -> kfail("All cases need valid traces")
+  }
+
+  testTraces(processEngine, model, principal,
+      valid = validTraces,
+      invalid = listOf("ac1", "ac2", "end", "join", "split").map { trace(it) } +
+          listOf("split", "end", "join").map { trace("start", it) } + invalidTraces)
 }
 
 private fun Boolean.toXPath() = if (this) "true()" else "false()"
