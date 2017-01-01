@@ -311,6 +311,22 @@ class TestProcessEngine {
   }
 
   @Test
+  fun testCondition() {
+    val model = ExecutableProcessModel.build {
+      val start = startNode { id="start" }
+      val ac = activity { id="ac"; predecessor=start; condition="false" }
+      val end = endNode { id="end"; predecessor=ac }
+    }
+    testProcess(model) { transaction, model, instanceHandle ->
+      val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
+      val start = instance.child(transaction, "start")
+      val ac = instance.child(transaction, "ac").assertPending()
+      val end = instance.child(transaction, "end").assertSent()
+      instance.assertFinished(start)
+    }
+  }
+
+  @Test
   fun testSplitJoin1() {
     testProcess(simpleSplitModel) { transaction, model, instanceHandle ->
       val engineData = transaction.writableEngineData
