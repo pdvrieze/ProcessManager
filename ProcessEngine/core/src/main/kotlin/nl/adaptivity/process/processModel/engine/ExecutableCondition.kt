@@ -25,6 +25,7 @@ import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
 import nl.adaptivity.xml.*
 import java.util.*
 import javax.xml.namespace.QName
+import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.*
 
 
@@ -59,15 +60,18 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
    * @return `true` if the condition holds, `false` if not
    */
   fun eval(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult {
+    if (condition.isBlank()) return TRUE
     // TODO process the condition as xpath, expose the node's defines as variables
     val factory = XPathFactory.newInstance()
     val resolver = ConditionResolver(engineData, instance)
     factory.setXPathFunctionResolver(resolver)
     factory.setXPathVariableResolver(resolver)
 
+    val doc = DocumentBuilderFactory.newInstance().apply { isNamespaceAware=true }.newDocumentBuilder().newDocument()
+
     val xpath = factory.newXPath()
     val expression = xpath.compile(condition)
-    return (expression.evaluate(null, XPathConstants.BOOLEAN) as Boolean).toResult(resolver)
+    return (expression.evaluate(doc.createDocumentFragment(), XPathConstants.BOOLEAN) as Boolean).toResult(resolver)
   }
 
   companion object {
