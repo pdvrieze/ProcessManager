@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -27,13 +27,6 @@ import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.userMessageHandler.server.XmlTask.Companion.get
 import nl.adaptivity.ws.soap.SoapSeeAlso
-
-import javax.jws.WebMethod
-import javax.jws.WebParam
-import javax.jws.WebParam.Mode
-import javax.servlet.ServletConfig
-import javax.xml.namespace.QName
-
 import java.net.URI
 import java.net.URISyntaxException
 import java.sql.SQLException
@@ -41,6 +34,11 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.jws.WebMethod
+import javax.jws.WebParam
+import javax.jws.WebParam.Mode
+import javax.servlet.ServletConfig
+import javax.xml.namespace.QName
 
 
 class InternalEndpointImpl @JvmOverloads constructor(private val mService: UserMessageService<out Transaction> = UserMessageService.instance) : UserTaskServiceDescriptor(), GenericEndpoint, InternalEndpoint {

@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -18,10 +18,10 @@ package nl.adaptivity.process.engine;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
-
 import javax.activation.DataHandler;
 import javax.xml.transform.Source;
+
+import java.util.Set;
 
 
 public interface NormalizedMessage {

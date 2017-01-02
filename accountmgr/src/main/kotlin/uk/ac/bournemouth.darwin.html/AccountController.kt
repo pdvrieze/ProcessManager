@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -20,13 +20,10 @@ import kotlinx.html.*
 import net.devrieze.util.nullIfNot
 import net.devrieze.util.overrideIf
 import net.sourceforge.migbase64.Base64
-import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.darwin.accounts.*
 import uk.ac.bournemouth.darwin.sharedhtml.darwinDialog
 import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
 import uk.ac.bournemouth.darwin.sharedhtml.setAliasDialog
-import uk.ac.bournemouth.darwin.sharedhtml.shared.setAliasDialog
-import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
 import java.security.MessageDigest

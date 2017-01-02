@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -19,10 +19,12 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Named;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.xml.ExtXmlDeserializable;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;

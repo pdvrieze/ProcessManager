@@ -10,30 +10,28 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.*
 import net.devrieze.util.Handle
+import net.devrieze.util.Transaction
+import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.AuthenticationNeededException
 import nl.adaptivity.messaging.CompletionListener
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
-
+import java.security.Principal
+import java.sql.SQLException
+import java.util.*
+import java.util.concurrent.Future
 import javax.naming.Context
 import javax.naming.InitialContext
 import javax.naming.NamingException
-
-import java.security.Principal
-import java.sql.Connection
-import java.sql.SQLException
-import java.util.ArrayList
-import java.util.concurrent.Future
 
 
 class UserMessageService<T : Transaction> private constructor(private val transactionFactory: TransactionFactory<T>, taskMap: IMutableUserTaskMap<T>) : CompletionListener<Boolean>/*<TODO Placeholder type*/ {

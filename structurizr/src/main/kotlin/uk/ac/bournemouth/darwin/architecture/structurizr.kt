@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -21,9 +21,6 @@ import com.structurizr.api.StructurizrClient
 import com.structurizr.io.json.JsonWriter
 import com.structurizr.model.Model
 import com.structurizr.model.SoftwareSystem
-import com.structurizr.model.Tags
-import com.structurizr.view.Shape
-import com.structurizr.view.Styles
 import com.structurizr.view.ViewSet
 import java.io.FileWriter
 

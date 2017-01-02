@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -19,21 +19,17 @@ package nl.adaptivity.process.processModel
 import net.devrieze.util.StringUtil
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CombiningNamespaceContext
-import nl.adaptivity.xml.Namespace
-import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.*
-
+import java.util.*
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.xml.XMLConstants
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
-import javax.xml.xpath.XPath
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
-import java.util.TreeMap
-import java.util.logging.Level
-import java.util.logging.Logger
 
 
 abstract class XPathHolder : XMLContainer {

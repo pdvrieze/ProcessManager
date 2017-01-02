@@ -11,18 +11,17 @@
   ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU Lesser General Public License for more details.
   ~
-  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
   ~ see <http://www.gnu.org/licenses/>.
   -->
 
 <wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-	xmlns:pe="http://www.adaptivity.nl/ProcessEngine2/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ProcessEngine"
-	xmlns:tns="http://adaptivity.nl/ProcessEngine/"
-	targetNamespace="http://adaptivity.nl/ProcessEngine/"
-	xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
-	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" 
-	xmlns:xsd1="http://adaptivity.nl/ProcessEngine/">
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ProcessEngine"
+                  xmlns:tns="http://adaptivity.nl/ProcessEngine/"
+                  targetNamespace="http://adaptivity.nl/ProcessEngine/"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+>
     <wsdl:import namespace="http://adaptivity.nl/ProcessEngine/" location="ProcessEngine.xsd"></wsdl:import>
     <wsdl:types>
 		</wsdl:types>

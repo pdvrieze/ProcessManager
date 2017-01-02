@@ -11,7 +11,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -21,7 +21,6 @@
 
 package uk.ac.bournemouth.darwin.util
 
-import kotlinx.html.TagConsumer
 import org.w3c.dom.*
 import kotlin.dom.childElements
 import kotlin.dom.children

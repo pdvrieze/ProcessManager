@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -22,9 +22,11 @@ package uk.ac.bournemouth.ac.db.darwin.usertasks
 
 import org.testng.Assert.*
 import org.testng.annotations.Test
-import uk.ac.bournemouth.kotlinsql.*
-import uk.ac.bournemouth.kotlinsql.ColumnType.*
-import uk.ac.bournemouth.kotlinsql.ColumnType.NumericColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.NumericColumnType.BIGINT_T
+import uk.ac.bournemouth.kotlinsql.ForeignKey
+import uk.ac.bournemouth.kotlinsql.Table
+import uk.ac.bournemouth.kotlinsql.TableRef
+import uk.ac.bournemouth.kotlinsql.get
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.sql.Connection

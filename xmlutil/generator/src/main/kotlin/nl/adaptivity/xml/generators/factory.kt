@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -19,15 +19,15 @@ package nl.adaptivity.xml.generators
 import net.devrieze.util.ReflectionUtil
 import net.devrieze.util.StringUtil
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.schema.annotations.AnyType
 import nl.adaptivity.xml.schema.annotations.Element
 import java.io.CharArrayWriter
 import java.io.File
 import java.io.StringWriter
 import java.io.Writer
-import java.lang.reflect.*
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
 import java.util.*
-import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
 
 /*

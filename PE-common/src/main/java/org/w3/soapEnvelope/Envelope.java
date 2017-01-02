@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -25,8 +25,7 @@
 package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.schema.annotations.Attribute;

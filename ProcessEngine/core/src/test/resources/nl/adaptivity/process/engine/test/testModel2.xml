@@ -11,11 +11,12 @@
   ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU Lesser General Public License for more details.
   ~
-  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
   ~ see <http://www.gnu.org/licenses/>.
   -->
 
-<processModel xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:soapenc="http://www.w3.org/2003/05/soap-encoding" xmlns:umh="http://adaptivity.nl/userMessageHandler" owner="pdvrieze" name="testModel2" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
+<processModel xmlns="http://adaptivity.nl/ProcessEngine/"
+              xmlns:umh="http://adaptivity.nl/userMessageHandler" owner="pdvrieze" name="testModel2" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
   <start id="start" x="NaN" y="NaN"/>
   <activity name="ac1" predecessor="start" id="ac1" x="NaN" y="NaN">
     <result name="name" path="/umh:result/umh:value[@name='user']/text()"/>
@@ -28,7 +29,8 @@
       </user>
     </result>
     <message type="application/soap+xml" endpoint="internal" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" url="/PEUserMessageHandler/internal">
-      <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+      <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                         encodingStyle="http://www.w3.org/2003/05/soap-encoding">
         <Body>
           <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
             <repliesParam>
@@ -49,9 +51,14 @@
     </message>
   </activity>
   <activity name="ac2" predecessor="ac1" id="ac2" x="NaN" y="NaN">
-    <define refnode="ac1" refname="name" name="mylabel">Hi <jbi:value xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xpath="."/>. Welcome!</define>
+    <define refnode="ac1" refname="name" name="mylabel">Hi <jbi:value xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:umh="http://adaptivity.nl/userMessageHandler"
+                                                                      xpath="."/>. Welcome!</define>
     <message type="application/soap+xml" endpoint="internal" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" url="/PEUserMessageHandler/internal">
-      <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+        <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope"
+                           xmlns="http://www.w3.org/2003/05/soap-envelope"
+                           xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                           xmlns:umh="http://adaptivity.nl/userMessageHandler"
+                           encodingStyle="http://www.w3.org/2003/05/soap-encoding">
         <Body>
           <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
             <repliesParam>

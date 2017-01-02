@@ -10,12 +10,15 @@
   ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU Lesser General Public License for more details.
   ~
-  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
   ~ see <http://www.gnu.org/licenses/>.
   -->
 
 <message  xmlns="http://adaptivity.nl/ProcessEngine/" type="application/soap+xml" endpoint="internal" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" url="/PEUserMessageHandler/internal">
-    <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+    <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope"
+                       xmlns="http://www.w3.org/2003/05/soap-envelope"
+                       xmlns:umh="http://adaptivity.nl/userMessageHandler"
+                       encodingStyle="http://www.w3.org/2003/05/soap-encoding">
         <Body>
             <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
                 <repliesParam>

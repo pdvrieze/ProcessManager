@@ -11,14 +11,14 @@
   ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU Lesser General Public License for more details.
   ~
-  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
   ~ see <http://www.gnu.org/licenses/>.
   -->
 
 <processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
-    xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:umh="http://adaptivity.nl/userMessageHandler"
-    xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" name="testProcessModel 2">
+              xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
+              xmlns="http://adaptivity.nl/ProcessEngine/"
+              xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" name="testProcessModel 2">
     <start id="start" />
     <activity id="ac1" predecessor="start" name="ac1">
         <result name="name" path="/values/user/text()" />

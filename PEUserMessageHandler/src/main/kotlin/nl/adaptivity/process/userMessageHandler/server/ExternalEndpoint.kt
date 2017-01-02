@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -27,12 +27,6 @@ import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParam.ParamType
-
-import javax.servlet.ServletConfig
-import javax.xml.bind.annotation.XmlElementWrapper
-import javax.xml.bind.annotation.XmlSeeAlso
-import javax.xml.namespace.QName
-
 import java.io.FileNotFoundException
 import java.net.URI
 import java.net.URISyntaxException
@@ -40,6 +34,10 @@ import java.security.Principal
 import java.sql.SQLException
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.servlet.ServletConfig
+import javax.xml.bind.annotation.XmlElementWrapper
+import javax.xml.bind.annotation.XmlSeeAlso
+import javax.xml.namespace.QName
 
 
 /**

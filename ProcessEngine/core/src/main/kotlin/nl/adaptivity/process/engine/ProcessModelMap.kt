@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -18,11 +18,8 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
 import net.devrieze.util.db.DBHandleMap
-import net.devrieze.util.db.DBTransaction
-import net.devrieze.util.db.HMElementFactory
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModels
 import java.util.*

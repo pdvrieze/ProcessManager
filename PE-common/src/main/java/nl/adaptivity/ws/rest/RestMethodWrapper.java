@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -26,10 +26,11 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.xml.*;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlUtil;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.xml.*;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

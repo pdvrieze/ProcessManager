@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -20,10 +20,10 @@
 
 package uk.ac.bournemouth.ac.db.darwin.webauth
 
-import org.testng.Assert.*
+import org.testng.Assert.assertEquals
+import org.testng.Assert.assertTrue
 import org.testng.annotations.Test
-import uk.ac.bournemouth.kotlinsql.*
-import uk.ac.bournemouth.kotlinsql.ColumnType.*
+import uk.ac.bournemouth.kotlinsql.Table
 
 class WebauthTest {
 

@@ -10,13 +10,16 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
 package nl.adaptivity.util.activation;
 
 import org.jetbrains.annotations.NotNull;
+
+import javax.activation.DataSource;
+import javax.activation.MimetypesFileTypeMap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,9 +28,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
-
-import javax.activation.DataSource;
-import javax.activation.MimetypesFileTypeMap;
 
 
 public class UrlDataSource implements DataSource {

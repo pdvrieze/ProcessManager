@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -18,14 +18,11 @@ package nl.adaptivity.process.util;
 
 import kotlin.sequences.Sequence;
 import net.devrieze.util.ReadMap;
-import nl.adaptivity.process.processModel.ProcessModelBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.util.*;
-
-import static nl.adaptivity.process.util.IdentifyableSet.empty;
 
 
 public abstract class IdentifyableSet<T extends Identifiable> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {

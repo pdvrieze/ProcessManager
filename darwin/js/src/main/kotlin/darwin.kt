@@ -10,19 +10,12 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
 package nl.adaptivity.darwin
 
-import kotlinx.html.Tag
-import kotlinx.html.TagConsumer
-import kotlinx.html.div
-import kotlinx.html.dom.create
-import kotlinx.html.js.p
-import kotlinx.html.js.span
-import kotlinx.html.span
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
@@ -31,7 +24,6 @@ import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.JSServiceContext
 import uk.ac.bournemouth.darwin.LoginDialog
 import uk.ac.bournemouth.darwin.accountsLoc
-import uk.ac.bournemouth.darwin.sharedhtml.*
 import uk.ac.bournemouth.darwin.util.*
 import kotlin.browser.document
 import kotlin.browser.window

@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -18,13 +18,10 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.IdentifyableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 
 public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends MutableProcessNode<T, M> {

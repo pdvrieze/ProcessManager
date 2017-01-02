@@ -10,20 +10,18 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
 package net.devrieze.util.db
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Transaction
-import uk.ac.bournemouth.kotlinsql.*
+import uk.ac.bournemouth.kotlinsql.Column
+import uk.ac.bournemouth.kotlinsql.ColumnType
+import uk.ac.bournemouth.kotlinsql.Database
+import uk.ac.bournemouth.kotlinsql.Table
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
 

@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -20,30 +20,23 @@ import net.devrieze.util.Handles
 import net.devrieze.util.ReaderInputStream
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlStreaming
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import org.xml.sax.SAXException
-
-import javax.xml.bind.JAXB
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.parsers.ParserConfigurationException
-import javax.xml.transform.dom.DOMSource
-
-import java.io.IOException
-import java.io.StringReader
-import java.io.StringWriter
-import java.nio.charset.Charset
-
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete
 import nl.adaptivity.xml.serialize
 import org.custommonkey.xmlunit.XMLAssert.assertXMLEqual
 import org.testng.Assert.assertEquals
 import org.testng.AssertJUnit.assertNotNull
+import org.testng.annotations.BeforeMethod
+import org.testng.annotations.Test
+import org.xml.sax.SAXException
+import java.io.IOException
+import java.io.StringReader
+import java.io.StringWriter
+import java.nio.charset.Charset
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.parsers.ParserConfigurationException
+import javax.xml.transform.dom.DOMSource
 
 
 class TestXmlTask {

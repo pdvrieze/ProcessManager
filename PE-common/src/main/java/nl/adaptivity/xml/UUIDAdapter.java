@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -18,9 +18,9 @@ package nl.adaptivity.xml;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+
+import java.util.UUID;
 
 /**
  * Simple JAXB adapter that maps UUID's to strings and reverse

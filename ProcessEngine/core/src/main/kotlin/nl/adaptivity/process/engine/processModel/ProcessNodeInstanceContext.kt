@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -21,7 +21,10 @@ import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.Namespace
+import nl.adaptivity.xml.SimpleNamespaceContext
+import nl.adaptivity.xml.XmlEvent
+import nl.adaptivity.xml.xmlEncode
 import java.util.*
 
 class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {

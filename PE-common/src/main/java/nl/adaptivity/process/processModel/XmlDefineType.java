@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -25,24 +25,16 @@
 package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.StringUtil;
-import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.engine.PETransformer;
-import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
-import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
 
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 @XmlDeserializer(XmlDefineType.Factory.class)

@@ -10,18 +10,21 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
 package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.GatheringNamespaceContext;
+import nl.adaptivity.xml.XmlReader;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -38,7 +41,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stax.StAXSource;
 
-import java.io.*;
+import java.io.CharArrayWriter;
 import java.util.*;
 import java.util.Map.Entry;
 

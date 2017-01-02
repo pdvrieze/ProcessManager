@@ -10,7 +10,7 @@
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
 
@@ -23,7 +23,10 @@ import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.HttpMessage.Post;
 import nl.adaptivity.util.HttpMessage.Query;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.*;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +37,7 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.QName;
 
 import java.io.*;
