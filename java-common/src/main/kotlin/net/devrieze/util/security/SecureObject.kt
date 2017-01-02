@@ -21,7 +21,7 @@ import net.devrieze.util.security.SecurityProvider.Permission
 import java.security.Principal
 
 
-interface SecureObject<out T:Any> :SecuredObject<T> {
+interface SecureObject<out T> :SecuredObject<T> {
 
   enum class Permissions : Permission {
     READ,

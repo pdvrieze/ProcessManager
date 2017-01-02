@@ -510,7 +510,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
 internal fun ProcessInstance.toDebugString():String {
   return buildString {
     append("process(")
-    append(processModel.name)
+    append(processModel.getName())
     name?.let {
       append(", instance: ")
       append(it)

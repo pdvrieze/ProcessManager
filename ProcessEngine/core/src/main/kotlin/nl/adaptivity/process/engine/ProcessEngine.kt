@@ -34,6 +34,8 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.processModel.name
+import nl.adaptivity.process.processModel.ref
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
@@ -335,7 +337,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
       return (processModel as? ExecutableProcessModel ?: ExecutableProcessModel.from(processModel)).apply {
         processModels[handle]= this
-      }.ref
+      }.getRef()
     }
   }
 

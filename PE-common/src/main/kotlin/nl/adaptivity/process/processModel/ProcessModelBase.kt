@@ -62,13 +62,13 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
     constructor(base:ProcessModel<*,*>) :
         this(emptyList(),
-            base.getName(),
+            base.name,
             (base as? ReadableHandleAware<*>)?.getHandle()?.handleValue ?: -1L,
             base.owner,
-            base.getRoles().toMutableList(),
-            base.getUuid(),
-            base.getImports().toMutableList(),
-            base.getExports().toMutableList()) {
+            base.roles.toMutableList(),
+            base.uuid,
+            base.imports.toMutableList(),
+            base.exports.toMutableList()) {
 
       base.getModelNodes().mapTo(nodes) { it.visit(object : ProcessNode.Visitor<ProcessNode.Builder<T, M>> {
         override fun visitStartNode(startNode: StartNode<*, *>) = startNodeBuilder(startNode)

@@ -22,7 +22,7 @@ import java.security.Principal
  * Interface for objects that will provide interface access with a permission.
  */
 
-interface SecuredObject<out T:Any> {
+interface SecuredObject<out T> {
   fun withPermission():T
 }
 

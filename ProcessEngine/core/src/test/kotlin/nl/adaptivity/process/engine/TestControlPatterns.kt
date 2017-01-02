@@ -117,7 +117,7 @@ private fun EngineTestingDsl.testWCP1(processEngine: ProcessEngine<StubProcessTr
   }
 
   it("should have 4 children") {
-    assertEquals(4, model.modelNodes.size)
+    assertEquals(4, model.getModelNodes().size)
   }
 
   testTraces(processEngine, model, principal, valid = listOf(trace("start", "ac1", "ac2", "end")), invalid = listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
