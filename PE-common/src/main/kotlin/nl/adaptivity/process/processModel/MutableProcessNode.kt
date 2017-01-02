@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,14 +14,28 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel;
+package nl.adaptivity.process.processModel
 
-import net.devrieze.util.security.SecureObject;
+import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 
 
-/**
- * Created by pdvrieze on 18/08/15.
- */
-public interface SecureProcessModel<T extends MutableProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessModel<T, M>, SecureObject<M> {
+interface MutableProcessNode<T : MutableProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
+
+  fun setId(id: String)
+
+  fun setOwnerModel(ownerModel: M)
+
+  fun setPredecessors(predecessors: Collection<Identifiable>)
+
+  fun removePredecessor(node: Identified)
+
+  fun addPredecessor(nodeId: Identified)
+
+  fun addSuccessor(node: Identified)
+
+  fun removeSuccessor(node: Identified)
+
+  fun setSuccessors(successors: Collection<Identified>)
 
 }
