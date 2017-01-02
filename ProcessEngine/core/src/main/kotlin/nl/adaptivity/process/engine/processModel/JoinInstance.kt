@@ -168,21 +168,20 @@ class JoinInstance : ProcessNodeInstance {
         } else {
           val predPred = predecessor.directPredecessors.map { engineData.nodeInstance(it).withPermission() }
           val splitCandidate = predPred.firstOrNull()
-          if (splitCandidate is SplitInstance) {
-            cancelablePredecessors.add(predecessor)
-          } else {
-            throw ProcessException("Predecessor $predecessorId cannot be cancelled as it has non-split predecessor(s) ${predPred}")
-          }
+          cancelablePredecessors.add(predecessor)
+//          if (splitCandidate is SplitInstance) {
+//          } else {
+//            throw ProcessException("Predecessor $predecessorId cannot be cancelled as it has non-split predecessor(s) ${predPred.joinToString { "${it.node.id}:${it.state}" }}")
+//          }
         }
       }
     }
     if (committedPredecessorCount<node.min) {
       throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
     }
-    for(instanceToCancel in cancelablePredecessors) {
-
+    val processInstance = cancelablePredecessors.fold(processInstance) { processInstance, instanceToCancel ->
+      instanceToCancel.cancelAndSkip(engineData, processInstance).instance
     }
-
     return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
   }
 
