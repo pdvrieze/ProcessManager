@@ -206,15 +206,8 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     if (_predecessors.add(predecessorId)) {
       val ownerModel = _ownerModel
 
-      var node: MutableProcessNode<*, *>? = null
-      if (predecessorId is MutableProcessNode<*, *>) {
-        node = predecessorId
-      } else if (ownerModel != null) {
-        node = ownerModel.getNode(predecessorId) as? MutableProcessNode<*, *>
-      }
-      if (node != null) {
-        node.addSuccessor(this.identifier)
-      }
+      val mutableNode = predecessorId as? MutableProcessNode<*,*> ?: ownerModel?.getNode(predecessorId) as? MutableProcessNode<*, *>
+      identifier?.let { mutableNode?.addSuccessor(it) }
     }
 
   }
@@ -225,7 +218,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       val owner = _ownerModel
       val predecessor: T? = owner?.getNode(predecessorId)
       if (predecessor != null) {
-        (predecessor as MutableProcessNode<*, *>).removeSuccessor(this.identifier)
+        identifier?.let {
+          (predecessor as MutableProcessNode<*, *>).removeSuccessor(it)
+        }
       }
     }
 
@@ -241,17 +236,9 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
     _successors.add(nodeId)
 
-    val owner = _ownerModel
-    var node: MutableProcessNode<*, M>? = null
-    @Suppress("UNCHECKED_CAST")
-    if (owner != null) {
-      @Suppress("UNCHECKED_CAST")
-      node = owner.getNode(nodeId) as MutableProcessNode<*, M>
-    } else if (nodeId is MutableProcessNode<*, *>) {
-      node = nodeId as MutableProcessNode<*, M>?
-    }
-    if (node != null && id!=null) {
-      node.addPredecessor(this.identifier)
+    val mutableNode = nodeId as? MutableProcessNode<*,*> ?: _ownerModel?.getNode(nodeId) as? MutableProcessNode<*, *>
+    identifier?.let {
+      mutableNode?.addPredecessor(it)
     }
   }
 
@@ -260,7 +247,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
       _hashCode = 0
       val successorNode = node as? MutableProcessNode<*, *> ?: if (_ownerModel == null) null else _ownerModel!!.getNode(
             node) as MutableProcessNode<*, *>
-      successorNode?.removePredecessor(this.identifier)
+      identifier?.let { successorNode?.removePredecessor(it) }
     }
   }
 

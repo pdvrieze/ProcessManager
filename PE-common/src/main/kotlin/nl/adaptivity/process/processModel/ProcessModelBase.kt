@@ -523,7 +523,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
      * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
      */
   override fun getNode(nodeId: Identifiable): T? {
-    if (nodeId is MutableProcessNode<*, *>) {
+    if (nodeId is ProcessNode<*, *>) {
       @Suppress("UNCHECKED_CAST")
       return nodeId as T
     }
@@ -565,7 +565,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     @Throws(XmlException::class)
     @JvmStatic
     @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(builder, reader).build().asM()"))
-    fun <T : MutableProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(builder: Builder<T, M>, reader: XmlReader): M {
+    fun <T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(builder: Builder<T, M>, reader: XmlReader): M {
       return Builder.deserialize(builder, reader).build().asM()
     }
   }

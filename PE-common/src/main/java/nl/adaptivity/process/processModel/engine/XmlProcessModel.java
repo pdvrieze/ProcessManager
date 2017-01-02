@@ -25,7 +25,6 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.EndNode.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
@@ -245,11 +244,7 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
    * @param processNode
    */
   public boolean addNode(@NotNull final XmlProcessNode processNode) {
-    if (super.addNode(processNode)) {
-      processNode.setOwnerModel(this.asM());
-      return true;
-    }
-    return false;
+    throw new UnsupportedOperationException("Xml Process models are immutable");
   }
 
   public boolean removeNode(final XmlProcessNode processNode) {
@@ -304,7 +299,6 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     if (mEndNodeCount<0) {
       int endNodeCount = 0;
       for (final XmlProcessNode node : getModelNodes()) {
-        node.setOwnerModel(this.asM());
         if (node instanceof XmlEndNode) { ++endNodeCount; }
       }
       mEndNodeCount = endNodeCount;
@@ -330,8 +324,8 @@ public class XmlProcessModel extends ProcessModelBase<XmlProcessNode, XmlProcess
     }
     setName(stringCache.lookup(getName()));
     Set<String> oldRoles = getRoles();
-    if ((oldRoles != null) && (oldRoles.size() > 0)) {
-      HashSet<String> newRoles = new HashSet<>(oldRoles.size() + (oldRoles.size() >> 1));
+    if (oldRoles.size() > 0) {
+      final HashSet<String> newRoles = new HashSet<>(oldRoles.size() + (oldRoles.size() >> 1));
       for (final String role : oldRoles) {
         newRoles.add(stringCache.lookup(role));
       }

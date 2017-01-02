@@ -16,17 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.xml.XmlDeserializable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 
 /**
  * Created by pdvrieze on 27/11/16.
  */
-public interface XmlProcessNode extends MutableProcessNode<XmlProcessNode, XmlProcessModel> {
+public interface XmlProcessNode extends ProcessNode<XmlProcessNode, XmlProcessModel> {
 
   interface Builder extends ProcessNode.Builder<XmlProcessNode, XmlProcessModel> {
 
