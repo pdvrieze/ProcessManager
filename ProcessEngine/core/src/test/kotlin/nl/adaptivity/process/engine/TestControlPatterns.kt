@@ -105,28 +105,22 @@ class TestControlPatterns: Spek({
 
     }
 
+    xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
+      testWCP8(processEngine, principal)
+    }
 
-    xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single activity are not yet supported") {
-      val model = ExecutableProcessModel.build {
-        owner = principal
-        val start1 = startNode { id = "start1" }
-        val start2 = startNode { id = "start2" }
-        val ac1 = activity { id = "ac1"; predecessor = start1 }
-        val ac2 = activity { id = "ac2"; predecessor = start2 }
-        val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
-        val ac3 = activity { id = "ac3"; predecessor = join }
-        val end = endNode { id = "end"; predecessor = ac3 }
-      }
-      testTraces(processEngine, model, principal,
-          valid = listOf(
-              trace("start1", "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
-              trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
-              trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"),
-              trace("start1", "start2", "ac2", "join:1", "ac3:1", "end:1", "ac1", "join:1", "ac3:2", "end:2"),
-              trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:1", "end:1", "ac3:2", "end:2"),
-              trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:2", "end:2", "ac3:1", "end:1")),
-          invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
-              listOf("join", "ac3", "end").map { trace("start1", "start2", it) })
+    describe("WCP9: Structured Discriminator") {
+      testWCP9(processEngine, principal)
+    }
+  }
+
+  describe("Structural patterns") {
+    xdescribe("WCP10: arbitrary cycles", "Multiple instantiations of a single node are not yet supported") {
+
+    }
+
+    describe("WCP11: Implicit termination") {
+      testWCP11(processEngine, principal)
     }
   }
 
@@ -338,6 +332,73 @@ private fun Dsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, p
       valid = validTraces,
       invalid = listOf("ac1", "ac2", "end", "join", "split").map { trace(it) } +
           listOf("split", "end", "join").map { trace("start", it) } + invalidTraces)
+}
+
+private fun Dsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start1 = startNode { id = "start1" }
+    val start2 = startNode { id = "start2" }
+    val ac1 = activity { id = "ac1"; predecessor = start1 }
+    val ac2 = activity { id = "ac2"; predecessor = start2 }
+    val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
+    val ac3 = activity { id = "ac3"; predecessor = join }
+    val end = endNode { id = "end"; predecessor = ac3 }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start1", "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
+          trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
+          trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"),
+          trace("start1", "start2", "ac2", "join:1", "ac3:1", "end:1", "ac1", "join:1", "ac3:2", "end:2"),
+          trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:1", "end:1", "ac3:2", "end:2"),
+          trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:2", "end:2", "ac3:1", "end:1")),
+      invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
+          listOf("join", "ac3", "end").map { trace("start1", "start2", it) })
+}
+
+private fun Dsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start1 = startNode { id = "start1" }
+    val start2 = startNode { id = "start2" }
+    val ac1 = activity { id = "ac1"; predecessor = start1 }
+    val ac2 = activity { id = "ac2"; predecessor = start2 }
+    val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
+    val ac3 = activity { id = "ac3"; predecessor = join }
+    val end = endNode { id = "end"; predecessor = ac3 }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start1", "start2", "ac1", "join", "ac3", "end"),
+          trace("start1", "start2", "ac2", "join", "ac3", "end")),
+      invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
+          listOf("join", "ac3", "end").map { trace("start1", "start2", it) } +
+          listOf(trace("start1", "start2", "ac1", "ac2"),
+                 trace("start1", "start2", "ac2", "ac1"))
+  )
+}
+
+private fun Dsl.testWCP11(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start1 = startNode { id = "start1" }
+    val start2 = startNode { id = "start2" }
+    val ac1 = activity { id = "ac1"; predecessor = start1 }
+    val ac2 = activity { id = "ac2"; predecessor = start2 }
+    val end1 = endNode { id = "end1"; predecessor = ac1 }
+    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  }
+  testTraces(processEngine, model, principal,
+      valid = listOf(
+          trace("start1", "start2", "ac1", "end1", "ac2", "end2"),
+          trace("start1", "start2", "ac2", "end2", "ac1", "end1")),
+      invalid = listOf("ac1", "ac2", "end1", "end2").map { trace(it) } +
+          listOf("end1", "end2").map { trace("start1", "start2", it) } +
+          listOf(trace("start1", "start2", "ac1", "end2"),
+              trace("start1", "start2", "ac1", "end1", "end2"),
+              trace("start1", "start2", "ac2", "end1"),
+              trace("start1", "start2", "ac2", "end2", "end1")))
 }
 
 private fun Boolean.toXPath() = if (this) "true()" else "false()"
