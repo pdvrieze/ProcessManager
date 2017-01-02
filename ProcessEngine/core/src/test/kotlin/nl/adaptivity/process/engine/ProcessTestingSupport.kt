@@ -533,7 +533,7 @@ val ProcessInstance.trace:Trace get(){
 typealias Trace = Array<out String>
 
 @ProcessTestingDslMarker
-fun EngineTestingDsl.givenProcess(processModel: ExecutableProcessModel, principal: Principal = this.principal, payload: Node? = null, description: String="Given a process instance", body: ProcessTestingDsl.() -> Unit) {
+fun EngineTestingDsl.givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = this.principal, payload: Node? = null, body: ProcessTestingDsl.() -> Unit) {
   val transaction = processEngine.startTransaction()
   val instance = with(transaction) {
     processEngine.testProcess(processModel, principal, payload)
