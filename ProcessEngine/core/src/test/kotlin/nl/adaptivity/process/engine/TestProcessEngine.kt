@@ -313,6 +313,7 @@ class TestProcessEngine {
   @Test
   fun testCondition() {
     val model = ExecutableProcessModel.build {
+      owner = mPrincipal
       val start = startNode { id="start" }
       val ac = activity { id="ac"; predecessor=start; condition="false" }
       val end = endNode { id="end"; predecessor=ac }
