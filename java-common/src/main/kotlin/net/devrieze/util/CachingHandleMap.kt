@@ -16,7 +16,6 @@
 
 package net.devrieze.util
 
-import net.devrieze.util.CachingHandleMap.WrappingIterator
 import java.io.Closeable
 import java.io.IOException
 import java.sql.SQLException
