@@ -27,7 +27,7 @@ import java.util.UUID
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
-interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : SecureObject<M> {
+interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon<T,M> {
 
   /**
    * Get the UUID for this process model.
@@ -50,9 +50,9 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : SecureO
    * *
    * @return The process node with the id.
    */
-  fun getNode(nodeId: Identifiable): T?
+  override fun getNode(nodeId: Identifiable): T?
 
-  fun getModelNodes(): Collection<T>
+  override fun getModelNodes(): Collection<T>
 
   fun getName(): String?
 
@@ -60,16 +60,16 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : SecureO
 
   fun getRoles(): Set<String>
 
-  fun getImports(): Collection<IXmlResultType>
+  override fun getImports(): Collection<IXmlResultType>
 
-  fun getExports(): Collection<IXmlDefineType>
+  override fun getExports(): Collection<IXmlDefineType>
 
 }
 
 val ProcessModel<*,*>.uuid get() = getUuid()
 val <T : ProcessNode<T, M>, M : ProcessModel<T, M>> ProcessModel<T, M>.ref get() = getRef()
-val <T : ProcessNode<T, *>> ProcessModel<T, *>.modelNodes get() = getModelNodes()
+val <T : ProcessNode<T, *>> ModelCommon<T, *>.modelNodes get() = getModelNodes()
 val ProcessModel<*,*>.name get() = getName()
 val ProcessModel<*,*>.roles get() = getRoles()
-val ProcessModel<*,*>.imports get() = getImports()
-val ProcessModel<*,*>.exports get() = getExports()
+val ModelCommon<*,*>.imports get() = getImports()
+val ModelCommon<*,*>.exports get() = getExports()
