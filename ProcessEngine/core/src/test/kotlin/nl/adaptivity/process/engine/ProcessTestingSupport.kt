@@ -18,6 +18,9 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
+import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.messaging.EndpointDescriptorImpl
+import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -33,19 +36,43 @@ import org.jetbrains.spek.api.dsl.Pending
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.w3c.dom.Node
+import java.net.URI
 import java.security.Principal
+import javax.xml.namespace.QName
 import kotlin.reflect.KProperty
 
-/**
- * An extended dsl for testing processes without having to carry around large amounts of local variables.
- */
+@Retention(AnnotationRetention.SOURCE)
+@DslMarker
+annotation class ProcessTestingDslMarker
 
-class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTransaction, val instanceHandle: HProcessInstance) : Dsl by delegate {
 
-  fun <R> processGroup(description: String, pending: Pending = Pending.No, lazy: Boolean = false, body: ProcessTestingDsl.() -> R):R {
-    var result: R? = null
-    delegate.group(description, pending, lazy) { result = ProcessTestingDsl(this, transaction, instanceHandle).body() }
-    return result!!
+@ProcessTestingDslMarker
+class EngineTestingDsl(val delegate: Dsl) {
+  val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
+  val stubMessageService = StubMessageService(localEndpoint)
+  val stubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
+    override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
+      return StubProcessTransaction(engineData)
+    }
+  }
+  val principal = SimplePrincipal("pdvrieze")
+
+  val processEngine = ProcessEngine.newTestInstance(
+      stubMessageService,
+      stubTransactionFactory,
+      TestProcessEngine.cacheModels<Any>(MemProcessModelMap(), 3),
+      TestProcessEngine.cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
+      TestProcessEngine.cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 2), true)
+
+  fun afterEachTest(callback: () -> Unit) = delegate.afterEachTest(callback)
+
+  fun beforeEachTest(callback: () -> Unit) = delegate.beforeEachTest(callback)
+
+  fun test(description: String, pending: Pending = Pending.No, body: () -> Unit)
+      = delegate.test(description, pending, body)
+
+  inline fun group(description: String, pending: Pending = Pending.No, lazy: Boolean = false, crossinline body: EngineTestingDsl.() -> Unit) {
+    delegate.group(description, pending, lazy) { EngineTestingDsl(this).body() }
   }
 
 
@@ -55,8 +82,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun pdescribe(description: String, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("describe $description", body = body)
+  inline fun describe(description: String, noinline body: EngineTestingDsl.() -> Unit) {
+    group("describe $description", body = body)
   }
 
   /**
@@ -65,8 +92,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun pcontext(description: String, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("context $description", body = body)
+  inline fun context(description: String, noinline body: EngineTestingDsl.() -> Unit) {
+    group("context $description", body = body)
   }
 
   /**
@@ -75,8 +102,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun pgiven(description: String, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("given $description", body = body)
+  inline fun given(description: String, noinline body: EngineTestingDsl.() -> Unit) {
+    group("given $description", body = body)
   }
 
   /**
@@ -85,8 +112,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun pon(description: String, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("on $description", lazy = true, body = body)
+  inline fun on(description: String, noinline body: EngineTestingDsl.() -> Unit) {
+    group("on $description", lazy = true, body = body)
   }
 
   /**
@@ -95,8 +122,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun xdescribe(description: String, reason: String? = null, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("describe $description", Pending.Yes(reason), body = body)
+  inline fun xdescribe(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit) {
+    group("describe $description", Pending.Yes(reason), body = body)
   }
 
   /**
@@ -105,8 +132,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun xcontext(description: String, reason: String? = null, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("context $description", Pending.Yes(reason), body = body)
+  inline fun xcontext(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit) {
+    group("context $description", Pending.Yes(reason), body = body)
   }
 
   /**
@@ -115,8 +142,8 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun xgiven(description: String, reason: String? = null, body: ProcessTestingDsl.() -> Unit) {
-    processGroup("given $description", Pending.Yes(reason), body = body)
+  inline fun xgiven(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit) {
+    group("given $description", Pending.Yes(reason), body = body)
   }
 
   /**
@@ -125,8 +152,123 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
    * @author Ranie Jade Ramiso
    * @since 1.0
    */
-  fun xon(description: String, reason: String? = null, body: ProcessTestingDsl.() -> Unit = {}) {
-    processGroup("on $description", Pending.Yes(reason), lazy = true, body = body)
+  inline fun xon(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit = {}) {
+    group("on $description", Pending.Yes(reason), lazy = true, body = body)
+  }
+
+  fun it(description: String, body: () -> Unit) {
+    test("it $description", body = body)
+  }
+
+}
+
+fun Dsl.givenEngine(body: EngineTestingDsl.()->Unit) {
+  EngineTestingDsl(this).body()
+}
+
+/**
+ * An extended dsl for testing processes without having to carry around large amounts of local variables.
+ */
+@ProcessTestingDslMarker
+class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction, val instanceHandle: HProcessInstance) {
+
+  @ProcessTestingDslMarker
+  inline fun <R> group(description: String, pending: Pending = Pending.No, lazy: Boolean = false, noinline body: ProcessTestingDsl.() -> R):R {
+    var result: R? = null
+    delegate.group(description, pending, lazy) { result = ProcessTestingDsl(this, transaction, instanceHandle).body() }
+    return result!!
+  }
+
+  inline fun test(description: String, pending: Pending = Pending.No, noinline body: () -> Unit) {
+    delegate.test(description, pending, body)
+  }
+
+  inline fun it(description: String, noinline body: () -> Unit) {
+    test("it $description", body = body)
+  }
+
+  inline fun beforeEachTest(noinline callback: () -> Unit) {
+    delegate.beforeEachTest(callback)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun describe(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("describe $description", body = body)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun context(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("context $description", body = body)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun given(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("given $description", body = body)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun on(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("on $description", lazy = true, body = body)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun xdescribe(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("describe $description", Pending.Yes(reason), body = body)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun xcontext(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("context $description", Pending.Yes(reason), body = body)
+  }
+
+  /**
+   * Creates a [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun xgiven(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit) {
+    group("given $description", Pending.Yes(reason), body = body)
+  }
+
+  /**
+   * Creates a pending [group][Dsl.group].
+   *
+   * @author Ranie Jade Ramiso
+   * @since 1.0
+   */
+  inline fun xon(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit = {}) {
+    group("on $description", Pending.Yes(reason), lazy = true, body = body)
   }
 
 
@@ -232,11 +374,12 @@ class ProcessTestingDsl(private val delegate:Dsl, val transaction:StubProcessTra
 
 }
 
-fun Dsl.trace(vararg trace:String):Trace {
+fun trace(vararg trace:String):Trace {
   return trace
 }
 
-fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
+@ProcessTestingDslMarker
+fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
   fun addStartedNodeContext(dsl: ProcessTestingDsl, trace: nl.adaptivity.process.engine.Trace, i: kotlin.Int):ProcessTestingDsl {
     val nodeId = trace[i]
     val nodeInstance by with(dsl) { instance.nodeInstance[nodeId] }
@@ -285,7 +428,7 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
           assertTrue(nodeInstance.state.isCommitted)
           assertEquals(NodeInstanceState.Started, nodeInstance.state)
         }
-        dsl.processGroup("After Finishing ${nodeId}") {
+        dsl.group("After Finishing ${nodeId}") {
           beforeEachTest {
             if (nodeInstance.state!=NodeInstanceState.Complete) {
               nodeInstance.finish()
@@ -302,7 +445,7 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
   }
 
   for(validTrace in valid) {
-    givenProcess(engine, model, owner, description = validTrace.joinToString(prefix = "For trace: [", postfix = "]")) {
+    givenProcess(model, description = validTrace.joinToString(prefix = "For trace: [", postfix = "]")) {
       test("Only start nodes should be finished") {
         assertTrue(instance.finishedNodes.all { it.state==NodeInstanceState.Skipped || it.node is StartNode<*, *> }) { "Nodes [${instance.finishedNodes.filter { it.state!=NodeInstanceState.Skipped && it.node !is StartNode<*,*> }}] are not startnodes, but already finished" }
       }
@@ -338,7 +481,7 @@ fun Dsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:Executabl
     }
   }
   for(trace in invalid) {
-    givenProcess(engine, model, owner, description = "For invalid trace: ${trace.joinToString(prefix = "[", postfix = "]")}") {
+    givenProcess(model, description = "For invalid trace: ${trace.joinToString(prefix = "[", postfix = "]")}") {
       test("Executing the trace should fail") {
         var success = false
         try {
@@ -389,6 +532,19 @@ val ProcessInstance.trace:Trace get(){
 
 typealias Trace = Array<out String>
 
+@ProcessTestingDslMarker
+fun EngineTestingDsl.givenProcess(processModel: ExecutableProcessModel, principal: Principal = this.principal, payload: Node? = null, description: String="Given a process instance", body: ProcessTestingDsl.() -> Unit) {
+  val transaction = processEngine.startTransaction()
+  val instance = with(transaction) {
+    processEngine.testProcess(processModel, principal, payload)
+  }
+
+  group(description, body = { ProcessTestingDsl(this.delegate, transaction, instance.instanceHandle).body() })
+
+}
+/*
+
+@ProcessTestingDslMarker
 fun Dsl.givenProcess(engine: ProcessEngine<StubProcessTransaction>, processModel: ExecutableProcessModel, principal: Principal, payload: Node? = null, description: String="Given a process instance", body: ProcessTestingDsl.() -> Unit) {
   val transaction = engine.startTransaction()
   val instance = with(transaction) {
@@ -397,6 +553,7 @@ fun Dsl.givenProcess(engine: ProcessEngine<StubProcessTransaction>, processModel
 
   group(description, body = { ProcessTestingDsl(this, transaction, instance.instanceHandle).body() })
 }
+*/
 
 fun kfail(message:String):Nothing {
   fail(message)

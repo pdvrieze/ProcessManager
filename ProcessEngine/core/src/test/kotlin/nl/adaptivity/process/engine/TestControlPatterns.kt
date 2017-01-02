@@ -16,117 +16,98 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.messaging.EndpointDescriptorImpl
-import nl.adaptivity.process.MemTransactionedHandleMap
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.w3c.dom.Node
-import java.net.URI
 import java.security.Principal
 import java.util.*
-import javax.xml.namespace.QName
 
 /**
  * Created by pdvrieze on 30/12/16.
  */
 class TestControlPatterns: Spek({
-  val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
-  val stubMessageService = StubMessageService(localEndpoint)
-  val stubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
-    override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-      return StubProcessTransaction(engineData)
-    }
-  }
-  val principal = SimplePrincipal("pdvrieze")
 
-  beforeEachTest {
-    stubMessageService.clear()
-  }
+  givenEngine {
 
-  val processEngine = ProcessEngine.newTestInstance(
-      stubMessageService,
-      stubTransactionFactory,
-      TestProcessEngine.cacheModels<Any>(MemProcessModelMap(), 3),
-      TestProcessEngine.cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-      TestProcessEngine.cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 2), true)
-
-  describe("Basic control-flow patterns") {
-
-    describe("WCP1: A sequential process") {
-      testWCP1(processEngine, principal)
+    beforeEachTest {
+      stubMessageService.clear()
     }
 
-    describe("WCP2: Parallel split") {
-      testWCP2(processEngine, principal)
-    }
+    describe("Basic control-flow patterns") {
 
-    describe("WCP3: Synchronization / And join") {
-      testWCP3(processEngine, principal)
-    }
-
-    describe("WCP4: XOR split") {
-      testWCP4(processEngine, principal)
-    }
-
-    describe("WCP5: simple-merge") {
-      testWCP5(processEngine, principal)
-    }
-  }
-
-  describe("Advanced branching and synchronization patterns") {
-    describe("WCP6: multi-choice / or-split") {
-      given("ac1.condition=true, ac2.condition=false") {
-        testWCP6(processEngine, principal, true, false)
-      }
-      given("ac1.condition=false, ac2.condition=true") {
-        testWCP6(processEngine, principal, false, true)
-      }
-      given("ac1.condition=true, ac2.condition=true") {
-        testWCP6(processEngine, principal, true, true)
+      describe("WCP1: A sequential process") {
+        testWCP1(processEngine, principal)
       }
 
-    }
-
-    describe("WCP7: structured synchronized merge") {
-      given("ac1.condition=true, ac2.condition=false") {
-        testWCP7(processEngine, principal, true, false)
-      }
-      given("ac1.condition=false, ac2.condition=true") {
-        testWCP7(processEngine, principal, false, true)
-      }
-      given("ac1.condition=true, ac2.condition=true") {
-        testWCP7(processEngine, principal, true, true)
+      describe("WCP2: Parallel split") {
+        testWCP2(processEngine, principal)
       }
 
+      describe("WCP3: Synchronization / And join") {
+        testWCP3(processEngine, principal)
+      }
+
+      describe("WCP4: XOR split") {
+        testWCP4(processEngine, principal)
+      }
+
+      describe("WCP5: simple-merge") {
+        testWCP5(processEngine, principal)
+      }
     }
 
-    xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
-      testWCP8(processEngine, principal)
+    describe("Advanced branching and synchronization patterns") {
+      describe("WCP6: multi-choice / or-split") {
+        given("ac1.condition=true, ac2.condition=false") {
+          testWCP6(processEngine, principal, true, false)
+        }
+        given("ac1.condition=false, ac2.condition=true") {
+          testWCP6(processEngine, principal, false, true)
+        }
+        given("ac1.condition=true, ac2.condition=true") {
+          testWCP6(processEngine, principal, true, true)
+        }
+
+      }
+
+      describe("WCP7: structured synchronized merge") {
+        given("ac1.condition=true, ac2.condition=false") {
+          testWCP7(processEngine, principal, true, false)
+        }
+        given("ac1.condition=false, ac2.condition=true") {
+          testWCP7(processEngine, principal, false, true)
+        }
+        given("ac1.condition=true, ac2.condition=true") {
+          testWCP7(processEngine, principal, true, true)
+        }
+
+      }
+
+      xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
+        testWCP8(processEngine, principal)
+      }
+
+      describe("WCP9: Structured Discriminator") {
+        testWCP9(processEngine, principal)
+      }
     }
 
-    describe("WCP9: Structured Discriminator") {
-      testWCP9(processEngine, principal)
-    }
-  }
+    describe("Structural patterns") {
+      xdescribe("WCP10: arbitrary cycles", "Multiple instantiations of a single node are not yet supported") {
 
-  describe("Structural patterns") {
-    xdescribe("WCP10: arbitrary cycles", "Multiple instantiations of a single node are not yet supported") {
+      }
 
-    }
-
-    describe("WCP11: Implicit termination") {
-      testWCP11(processEngine, principal)
+      describe("WCP11: Implicit termination") {
+        testWCP11(processEngine, principal)
+      }
     }
   }
 
 })
 
-private fun Dsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -142,7 +123,7 @@ private fun Dsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, p
   testTraces(processEngine, model, principal, valid = listOf(trace("start", "ac1", "ac2", "end")), invalid = listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
 }
 
-private fun Dsl.testWCP2(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -166,7 +147,7 @@ private fun Dsl.testWCP2(processEngine: ProcessEngine<StubProcessTransaction>, p
           listOf("split", "end1").map { trace("start", "ac2", "end2", it) })
 }
 
-private fun Dsl.testWCP3(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP3(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -186,7 +167,7 @@ private fun Dsl.testWCP3(processEngine: ProcessEngine<StubProcessTransaction>, p
           listOf("split", "join", "end").map { trace("start", "ac2", it) })
 }
 
-private fun Dsl.testWCP4(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP4(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -208,7 +189,7 @@ private fun Dsl.testWCP4(processEngine: ProcessEngine<StubProcessTransaction>, p
           listOf("end1", "ac1").map { trace("start", "ac2", it) })
 }
 
-private fun Dsl.testWCP5(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP5(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -231,7 +212,7 @@ private fun Dsl.testWCP5(processEngine: ProcessEngine<StubProcessTransaction>, p
   )
 }
 
-private fun Dsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
+private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -284,7 +265,7 @@ private fun Dsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, p
           listOf("split", "end1", "end2").map { trace("start", it) } + invalidTraces)
 }
 
-private fun Dsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
+private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start = startNode { id = "start" }
@@ -334,7 +315,7 @@ private fun Dsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, p
           listOf("split", "end", "join").map { trace("start", it) } + invalidTraces)
 }
 
-private fun Dsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start1 = startNode { id = "start1" }
@@ -357,7 +338,7 @@ private fun Dsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, p
           listOf("join", "ac3", "end").map { trace("start1", "start2", it) })
 }
 
-private fun Dsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start1 = startNode { id = "start1" }
@@ -379,7 +360,7 @@ private fun Dsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, p
   )
 }
 
-private fun Dsl.testWCP11(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
+private fun EngineTestingDsl.testWCP11(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
   val model = ExecutableProcessModel.build {
     owner = principal
     val start1 = startNode { id = "start1" }
