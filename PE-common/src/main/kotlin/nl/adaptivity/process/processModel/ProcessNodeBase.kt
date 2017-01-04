@@ -32,7 +32,7 @@ import javax.xml.XMLConstants
  * Created by pdvrieze on 23/11/15.
  */
 abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> @JvmOverloads
-    constructor(private var _ownerModel: M,
+    constructor(private var _ownerModel: ModelCommon<T,M>,
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
                 id: String?,
@@ -43,7 +43,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                 results: Collection<IXmlResultType> = ArrayList<IXmlResultType>()) : ProcessNode<T, M> {
 
   @Deprecated("Don't use this if it can be avoided")
-  constructor(ownerModel: M): this (ownerModel, id=null)
+  constructor(ownerModel: ModelCommon<T,M>): this (ownerModel, id=null)
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
       override var id: String? = null,
@@ -66,7 +66,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
 
     constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.getX(), node.getY())
 
-    override abstract fun build(newOwner: M): ProcessNode<T, M>
+    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     override fun onBeforeDeserializeChildren(reader: XmlReader) {
       // By default do nothing
@@ -117,7 +117,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   private var _results: MutableList<XmlResultType> = toExportableResults(results)
   private var _hashCode = 0
 
-  override val ownerModel: M get() = _ownerModel
+  override val ownerModel: ModelCommon<T, M> get() = _ownerModel
 
   override val idBase: String
     get() = "id"
@@ -138,7 +138,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
    * Copy constructor
    * @param orig Original
    */
-  constructor(orig: ProcessNode<*, *>, newOwnerModel: M) : this(newOwnerModel,
+  constructor(orig: ProcessNode<*, *>, newOwnerModel: ModelCommon<T,M>) : this(newOwnerModel,
                                                                  toIdentifiers(orig.maxPredecessorCount,
                                                                                orig.predecessors),
                                                                  toIdentifiers(orig.maxSuccessorCount, orig.successors),
@@ -150,7 +150,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
                                                                  orig.results) {
   }
 
-  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: M): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
+  constructor(builder: ProcessNode.Builder<*,*>, newOwnerModel: ModelCommon<T,M>): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
                                                         , builder.defines, builder.results)
 
   override abstract fun builder(): Builder<T, M>
@@ -291,15 +291,14 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
     y = java.lang.Double.NaN
   }
 
-  protected open fun setOwnerModel(ownerModel: M) {
-    if (_ownerModel !== ownerModel) {
+  @Deprecated("Use builders instead")
+  protected open fun setOwnerModel(newOwnerModel: ModelCommon<T, M>) {
+    if (_ownerModel !== newOwnerModel) {
       _hashCode = 0
       val thisT = this.asT()
-      if (_ownerModel != null) {
-        _ownerModel!!.removeNode(thisT)
-      }
-      _ownerModel = ownerModel
-      ownerModel?.addNode(thisT)
+      (_ownerModel as? MutableProcessModel<T,M>)?.removeNode(thisT)
+      _ownerModel = newOwnerModel
+      (newOwnerModel as? MutableProcessModel<T,M>)?.addNode(thisT)
     }
   }
 
@@ -329,7 +328,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
   }
 
   protected fun notifyChange() {
-    _ownerModel?.notifyNodeChanged(this.asT())
+    (_ownerModel as? MutableProcessModel)?.notifyNodeChanged(this.asT())
   }
 
   override fun getX(): Double {
@@ -491,7 +490,7 @@ abstract class ProcessNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>
         _predecessors.joinTo(this, ", ", " pred='", "'") { it.id }
       }
 
-      _ownerModel?.getName()?.let { name ->
+      (_ownerModel as? ProcessModel)?.getName()?.let { name ->
         if (! name.isEmpty()) append(" owner='$name'")
       }
       append(" )")

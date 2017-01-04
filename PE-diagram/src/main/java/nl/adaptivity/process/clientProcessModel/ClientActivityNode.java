@@ -54,7 +54,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
     @NotNull
     @Override
-    public ClientActivityNode<T, M> build(final M newOwner) {
+    public ClientActivityNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
       return new ClientActivityNode<T, M>(this, newOwner);
     }
 
@@ -74,13 +74,13 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   private final boolean mCompat;
   private String mCondition;
 
-  public ClientActivityNode(final M owner, final boolean compat) {
+  public ClientActivityNode(final ModelCommon<T,M> owner, final boolean compat) {
     super(owner);
     mCompat = compat;
   }
 
 
-  public ClientActivityNode(final M owner, String id, final boolean compat) {
+  public ClientActivityNode(final ModelCommon<T,M> owner, String id, final boolean compat) {
     super(owner);
     setId(id);
     mCompat = compat;
@@ -91,7 +91,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
     mCompat = compat;
   }
 
-  public ClientActivityNode(@NotNull final Activity.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+  public ClientActivityNode(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
     super(builder, newOwnerModel);
     if (builder instanceof Builder) {
       mCompat = ((Builder) builder).compat;
@@ -134,8 +134,8 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   @Override
-  public void setOwnerModel(@NotNull final M ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

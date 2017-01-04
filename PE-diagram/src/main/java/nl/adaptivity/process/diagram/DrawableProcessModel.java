@@ -21,6 +21,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessModelBase.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
@@ -50,61 +51,61 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @NotNull
     @Override
-    protected DrawableStartNode.Builder startNodeBuilder() {
+    public DrawableStartNode.Builder startNodeBuilder() {
       return new DrawableStartNode.Builder();
     }
 
     @NotNull
     @Override
-    protected DrawableStartNode.Builder startNodeBuilder(@NotNull final StartNode<?, ?> startNode) {
+    public DrawableStartNode.Builder startNodeBuilder(@NotNull final StartNode<?, ?> startNode) {
       return new DrawableStartNode.Builder(startNode);
     }
 
     @NotNull
     @Override
-    protected DrawableSplit.Builder splitBuilder() {
+    public DrawableSplit.Builder splitBuilder() {
       return new DrawableSplit.Builder();
     }
 
     @NotNull
     @Override
-    protected DrawableSplit.Builder splitBuilder(@NotNull final Split<?, ?> split) {
+    public DrawableSplit.Builder splitBuilder(@NotNull final Split<?, ?> split) {
       return new DrawableSplit.Builder(split);
     }
 
     @NotNull
     @Override
-    protected DrawableJoin.Builder joinBuilder() {
+    public DrawableJoin.Builder joinBuilder() {
       return new DrawableJoin.Builder();
     }
 
     @NotNull
     @Override
-    protected DrawableJoin.Builder joinBuilder(@NotNull final Join<?, ?> join) {
+    public DrawableJoin.Builder joinBuilder(@NotNull final Join<?, ?> join) {
       return new DrawableJoin.Builder(join);
     }
 
     @NotNull
     @Override
-    protected DrawableActivity.Builder activityBuilder() {
+    public DrawableActivity.Builder activityBuilder() {
       return new DrawableActivity.Builder();
     }
 
     @NotNull
     @Override
-    protected Activity.Builder<DrawableProcessNode, DrawableProcessModel> activityBuilder(@NotNull final Activity<?, ?> activity) {
+    public DrawableActivity.Builder activityBuilder(@NotNull final Activity<?, ?> activity) {
       return new DrawableActivity.Builder(activity);
     }
 
     @NotNull
     @Override
-    protected DrawableEndNode.Builder endNodeBuilder() {
+    public DrawableEndNode.Builder endNodeBuilder() {
       return new DrawableEndNode.Builder();
     }
 
     @NotNull
     @Override
-    protected EndNode.Builder<DrawableProcessNode, DrawableProcessModel> endNodeBuilder(@NotNull final EndNode<?, ?> endNode) {
+    public DrawableEndNode.Builder endNodeBuilder(@NotNull final EndNode<?, ?> endNode) {
       return new DrawableEndNode.Builder(endNode);
     }
 
@@ -148,9 +149,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private int mIdSeq =0;
   private boolean mFavourite;
 
-  private static final Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> DRAWABLE_NODE_FACTORY = new Function2<DrawableProcessModel, ProcessNode<?, ?>, DrawableProcessNode>() {
+  private static final Function2<? super ModelCommon<DrawableProcessNode, DrawableProcessModel>, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> DRAWABLE_NODE_FACTORY = new Function2<ModelCommon<DrawableProcessNode, DrawableProcessModel>, ProcessNode<?, ?>, DrawableProcessNode>() {
     @Override
-    public DrawableProcessNode invoke(final DrawableProcessModel drawableProcessModel, final ProcessNode<?, ?> processNode) {
+    public DrawableProcessNode invoke(final ModelCommon<DrawableProcessNode, DrawableProcessModel> drawableProcessModel, final ProcessNode<?, ?> processNode) {
       return toDrawableNode(processNode);
     }
   };
@@ -189,7 +190,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @NotNull
   public static DrawableProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.Builder.<Builder>deserialize(new Builder(), in).build().asM();
+    return ProcessModelBase.Builder.<Builder>deserialize(new Builder(), in).build(false);
   }
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?,?>, ?> original) {

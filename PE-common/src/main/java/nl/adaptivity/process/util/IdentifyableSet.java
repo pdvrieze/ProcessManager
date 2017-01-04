@@ -27,9 +27,6 @@ import java.util.*;
 
 public abstract class IdentifyableSet<T extends Identifiable> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
 
-
-
-  
   private class ReadonlyIterator implements Iterator<T>, ListIterator<T> {
 
     private final ListIterator<T> mIterator;

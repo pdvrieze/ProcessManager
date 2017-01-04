@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.MutableProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.util.Identified;
@@ -33,7 +34,7 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
     @NotNull
     @Override
-    ClientProcessNode<T, M> build(M newOwner);
+    ClientProcessNode<T, M> build(ModelCommon<T, M> newOwner);
   }
 
   boolean isCompat();
@@ -62,10 +63,11 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
   @Override
   IdentifyableSet<? extends Identified> getSuccessors();
 
-  void setOwnerModel(@Nullable M owner);
+  void setOwnerModel(@Nullable ModelCommon<T,M> owner);
 
   void setId(String id);
 
-  M getOwnerModel();
+  @NotNull
+  ModelCommon<T, M> getOwnerModel();
 
 }

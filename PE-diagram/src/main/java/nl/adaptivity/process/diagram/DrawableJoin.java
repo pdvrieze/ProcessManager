@@ -21,6 +21,7 @@ import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -54,7 +55,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
 
     @NotNull
     @Override
-    public DrawableJoin build(final DrawableProcessModel newOwner) {
+    public DrawableJoin build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
       return new DrawableJoin(this, newOwner);
     }
   }
@@ -91,7 +92,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate(orig.mDrawableJoinSplitDelegate);
   }
 
-  public DrawableJoin(@NotNull final ClientJoinNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableJoin(@NotNull final ClientJoinNode.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
     super(builder, newOwnerModel);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }

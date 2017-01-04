@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.StartNodeBase;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +50,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
     @NotNull
     @Override
-    public ClientStartNode<T, M> build(final M newOwner) {
+    public ClientStartNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
       return new ClientStartNode<T, M>(this, newOwner);
     }
 
@@ -72,12 +69,12 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
   private final boolean mCompat;
 
-  public ClientStartNode(final M ownerModel, final boolean compat) {
+  public ClientStartNode(final ModelCommon<T,M> ownerModel, final boolean compat) {
     super(ownerModel);
     mCompat = compat;
   }
 
-  public ClientStartNode(final M ownerModel, final String id, final boolean compat) {
+  public ClientStartNode(final ModelCommon<T,M> ownerModel, final String id, final boolean compat) {
     super(ownerModel);
     setId(id);
     mCompat = compat;
@@ -88,7 +85,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
     mCompat = compat;
   }
 
-  public ClientStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+  public ClientStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
     super(builder, newOwnerModel);
     if (builder instanceof Builder) {
       mCompat = ((Builder) builder).compat;
@@ -114,8 +111,8 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   @Override
-  public void setOwnerModel(@NotNull final M ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

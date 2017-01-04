@@ -19,8 +19,10 @@ package nl.adaptivity.process.processModel
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.ProcessException
+import nl.adaptivity.process.processModel.ModelCommon.Builder
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
 
 /**
@@ -32,11 +34,11 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
       imports: Collection<IXmlResultType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList()) {
+      exports: Collection<IXmlDefineType> = emptyList()) : ModelCommon.Builder<T, M> {
 
-    val nodes: MutableSet<ProcessNode.Builder<T, M>> = nodes.toMutableSet()
-    val imports: MutableList<IXmlResultType> = imports.toMutableList()
-    val exports: MutableList<IXmlDefineType> = exports.toMutableList()
+    override val nodes: MutableSet<ProcessNode.Builder<T, M>> = nodes.toMutableSet()
+    override val imports: MutableList<IXmlResultType> = imports.toMutableList()
+    override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
     constructor(base:ProcessModel<*,*>) :
         this(emptyList(),
@@ -53,38 +55,11 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
 
     }
 
-
-
-    @Throws(XmlException::class)
-    internal fun deserializeChild(reader: XmlReader): Boolean {
-      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-        val newNode = when (reader.localName.toString()) {
-          EndNode.ELEMENTLOCALNAME -> endNodeBuilder().deserializeHelper(reader)
-          Activity.ELEMENTLOCALNAME -> activityBuilder().deserializeHelper(reader)
-          StartNode.ELEMENTLOCALNAME -> startNodeBuilder().deserializeHelper(reader)
-          Join.ELEMENTLOCALNAME -> joinBuilder().deserializeHelper(reader)
-          Split.ELEMENTLOCALNAME -> splitBuilder().deserializeHelper(reader)
-          else -> return false
-        }
-        nodes.add(newNode)
-        return true
-      }
-      return false
-    }
-
-    internal open fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-      return false
-    }
-
-    open fun build(): ProcessCommonBase<T,M> = build(false)
-
-    abstract fun build(pedantic: Boolean): ProcessCommonBase<T, M>
-
     override fun toString(): String {
       return "${this.javaClass.name.split('.').last()}(nodes=$nodes, imports=$imports, exports=$exports)"
     }
 
-    fun validate() {
+    override fun validate() {
       val seen = hashSetOf<String>()
       normalize(true)
       val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
@@ -110,7 +85,7 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
       // This DOES allow for multiple disconnected graphs when multiple start nodes are present.
     }
 
-    fun normalize(pedantic: Boolean) {
+    override fun normalize(pedantic: Boolean) {
       val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
 
       // Ensure all nodes are linked up and have ids
@@ -187,56 +162,11 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
           }.toList().let { nodes.addAll(it) }
     }
 
-    abstract protected fun startNodeBuilder(): StartNode.Builder<T,M>
-    abstract protected fun splitBuilder(): Split.Builder<T,M>
-    abstract protected fun joinBuilder(): Join.Builder<T,M>
-    abstract protected fun activityBuilder(): Activity.Builder<T,M>
-    abstract protected fun endNodeBuilder(): EndNode.Builder<T,M>
-
-    abstract protected fun startNodeBuilder(startNode: StartNode<*,*>): StartNode.Builder<T,M>
-    abstract protected fun splitBuilder(split: Split<*,*>): Split.Builder<T,M>
-    abstract protected fun joinBuilder(join: Join<*,*>): Join.Builder<T,M>
-    abstract protected fun activityBuilder(activity: Activity<*,*>): Activity.Builder<T,M>
-    abstract protected fun endNodeBuilder(endNode: EndNode<*,*>): EndNode.Builder<T,M>
-
-    private fun <B: ProcessNode.Builder<T,M>>nodeHelper(builder:B, body: B.()->Unit): Identifiable {
-      return builder.apply(body).ensureId().apply { this@Builder.nodes.add(this) }.let { Identifier(it.id!!) }
-    }
-
-    fun startNode(body: StartNode.Builder<T,M>.() -> Unit) : Identifiable {
-      return nodeHelper(startNodeBuilder(), body)
-    }
-
-    fun split(body: Split.Builder<T,M>.() -> Unit) : Identifiable {
-      return nodeHelper(splitBuilder(), body)
-    }
-
-    fun join(body: Join.Builder<T,M>.() -> Unit) : Identifiable {
-      return nodeHelper(joinBuilder(), body)
-    }
-
-    fun activity(body: Activity.Builder<T,M>.() -> Unit) : Identifiable {
-      return nodeHelper(activityBuilder(), body)
-    }
-
-    fun endNode(body: EndNode.Builder<T,M>.() -> Unit) : Identifiable {
-      return nodeHelper(endNodeBuilder(), body)
-    }
-
-    fun newId(base:String):String {
-      return generateSequence(1, { it+1} ).map { "${base}${it}" }.first { candidateId -> nodes.none { it.id == candidateId } }
-    }
-
-    fun <B: ProcessNode.Builder<*,*>> B.ensureId(): B = apply {
-      if (id ==null) { id = this@Builder.newId(this.idBase) }
-    }
-
     companion object {
-
 
       @Throws(XmlException::class)
       @JvmStatic
-      fun <B: Builder<*,*>> deserialize(builder: B, reader: XmlReader): B {
+      fun <B: ModelCommon.Builder<*, *>> deserialize(builder: B, reader: XmlReader): B {
 
         reader.skipPreamble()
         val elementName = ProcessModelBase.ELEMENTNAME
@@ -266,4 +196,61 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
 
   }
 
+  private val _processNodes: IdentifyableSet<T>
+  private var _imports: List<IXmlResultType>
+  private var _exports: List<IXmlDefineType>
+
+  override fun getModelNodes(): Collection<T> = _processNodes
+
+  final override fun getImports(): Collection<IXmlResultType> = _imports
+  protected fun setImports(value: Iterable<IXmlResultType>) {_imports = value.toList() }
+
+  final override fun getExports(): Collection<IXmlDefineType> = _exports
+  protected fun setExports(value: Iterable<IXmlDefineType>) { _exports = value.toList() }
+
+  constructor(builder: ModelCommon.Builder<T, M>, pedantic: Boolean) {
+    val newOwner = this
+    val newNodes = builder.apply { normalize(pedantic) }.nodes.map { it.build(newOwner).asT() }
+    this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
+    this._imports = builder.imports.map { XmlResultType.get(it) }
+    this._exports = builder.exports.map { XmlDefineType.get(it) }
+  }
+
+  constructor(processNodes: Iterable<ProcessNode<*,*>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>, nodeFactory: (ModelCommon<T,M>, ProcessNode<*,*>)->T) {
+    val newOwner = this
+    _processNodes = IdentifyableSet.processNodeSet(processNodes.asSequence().map { nodeFactory(newOwner, it) })
+    _imports = imports.toList()
+    _exports = exports.toList()
+  }
+
+  abstract fun builder(): Builder<T, M>
+
+  /* (non-Javadoc)
+     * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
+     */
+  override fun getNode(nodeId: Identifiable): T? {
+    if (nodeId is ProcessNode<*, *>) {
+      @Suppress("UNCHECKED_CAST")
+      return nodeId as T
+    }
+    return _processNodes.get(nodeId)
+  }
+
+  fun getNode(pos: Int): T {
+    return _processNodes[pos]
+  }
+
+  /**
+   * Set the process nodes for the model. This will actually just retrieve the
+   * [XmlEndNode]s and sets the model accordingly. This does mean that only
+   * passing [XmlEndNode]s will have the same result, and the other nodes
+   * will be pulled in.
+
+   * @param processNodes The process nodes to base the model on.
+   */
+  protected open fun setModelNodes(processNodes: Collection<T>) {
+    (processNodes as IdentifyableSet).replaceBy(processNodes)
+  }
+
 }
+

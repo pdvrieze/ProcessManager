@@ -21,10 +21,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.StartNode
-import nl.adaptivity.process.processModel.StartNodeBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -32,7 +29,7 @@ import nl.adaptivity.xml.deserializeHelper
 import java.sql.SQLException
 
 
-class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
@@ -45,7 +42,7 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
     constructor(node: StartNode<*, *>) : super(node)
 
 
-    override fun build(newOwner: ExecutableProcessModel): ExecutableStartNode {
+    override fun build(newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>): ExecutableStartNode {
       return ExecutableStartNode(this, newOwner)
     }
   }

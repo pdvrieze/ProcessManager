@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.process.processModel.SplitBase;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlDeserializer;
@@ -51,7 +48,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
     @NotNull
     @Override
-    public XmlSplit build(final XmlProcessModel newOwner) {
+    public XmlSplit build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
       return new XmlSplit(this, newOwner);
     }
   }
@@ -77,8 +74,8 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
 
   @Override
-  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.JoinBase;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +50,7 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
 
     @NotNull
     @Override
-    public ClientJoinNode<T, M> build(final M newOwner) {
+    public ClientJoinNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
       return new ClientJoinNode<T, M>(this, newOwner);
     }
 
@@ -71,12 +68,12 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
 
     private final boolean mCompat;
 
-  public ClientJoinNode(final M ownerModel, final boolean compat) {
+  public ClientJoinNode(final ModelCommon<T,M> ownerModel, final boolean compat) {
     super(ownerModel);
     mCompat = compat;
   }
 
-  public ClientJoinNode(final M ownerModel, String id, final boolean compat) {
+  public ClientJoinNode(final ModelCommon<T,M> ownerModel, String id, final boolean compat) {
     super(ownerModel);
     setId(id);
     mCompat = compat;
@@ -86,12 +83,12 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
     this(orig, null, compat);
   }
 
-  protected ClientJoinNode(Join<?,?> orig, M newOwner, final boolean compat) {
+  protected ClientJoinNode(Join<?,?> orig, ModelCommon<T,M> newOwner, final boolean compat) {
     super(orig.builder(), newOwner);
     mCompat = compat;
   }
 
-  public ClientJoinNode(@NotNull final Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+  public ClientJoinNode(@NotNull final Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
     super(builder, newOwnerModel);
     mCompat = builder.isCompat();
   }
@@ -113,8 +110,8 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
   }
 
   @Override
-  public void setOwnerModel(@NotNull final M ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

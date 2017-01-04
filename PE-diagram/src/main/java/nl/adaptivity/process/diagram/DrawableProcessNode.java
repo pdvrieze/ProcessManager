@@ -18,6 +18,7 @@ package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
+import nl.adaptivity.process.processModel.ModelCommon;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -27,7 +28,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
     @NotNull
     @Override
-    DrawableProcessNode build(DrawableProcessModel newOwner);
+    DrawableProcessNode build(ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner);
   }
 
   void setLabel(String label);
@@ -39,7 +40,8 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
   DrawableProcessNode clone();
 
-  DrawableProcessModel getOwnerModel();
+  @NotNull
+  ModelCommon<DrawableProcessNode, DrawableProcessModel> getOwnerModel();
 
   @NotNull
   @Override

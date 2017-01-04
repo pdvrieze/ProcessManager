@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.EndNodeBase;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.*;
@@ -48,7 +45,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
 
     @NotNull
     @Override
-    public XmlEndNode build(final XmlProcessModel newOwner) {
+    public XmlEndNode build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
       return new XmlEndNode(this, newOwner);
     }
   }
@@ -85,8 +82,8 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
   }
 
   @Override
-  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

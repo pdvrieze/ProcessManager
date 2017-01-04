@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.EndNodeBase;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +45,7 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
     @NotNull
     @Override
-    public ClientEndNode<T, M> build(final M newOwner) {
+    public ClientEndNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
       return new ClientEndNode<T, M>(this, newOwner);
     }
 
@@ -64,11 +61,11 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
   }
 
-  public ClientEndNode(final M ownerModel) {
+  public ClientEndNode(final ModelCommon<T,M> ownerModel) {
     super(new Builder(), ownerModel);
   }
 
-  public ClientEndNode(final M ownerModel, String id) {
+  public ClientEndNode(final ModelCommon<T,M> ownerModel, String id) {
     super(new Builder<>(id), ownerModel);
     setId(id);
   }
@@ -77,7 +74,7 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
     super(orig.builder(), null);
   }
 
-  public ClientEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+  public ClientEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -95,8 +92,8 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
 
   @Override
-  public void setOwnerModel(@NotNull final M ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

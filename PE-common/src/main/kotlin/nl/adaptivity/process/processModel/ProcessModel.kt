@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecureObject
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.Identifiable
@@ -27,15 +29,37 @@ import java.util.UUID
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
-interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon<T,M> {
+interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon<T,M>, SecureObject<M> {
+
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon.Builder<T,M> {
+    var name: String?
+    var handle: Long
+    var owner: Principal
+    var uuid: UUID?
+    val roles: MutableSet<String>
+
+    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+      val value = attributeValue.toString()
+      when (attributeLocalName.toString()) {
+        "name" -> name=value
+        "owner" -> owner = SimplePrincipal(value)
+        ATTR_ROLES -> roles.replaceBy(value.split(" *, *".toRegex()).filter { it.isEmpty() })
+        "uuid" -> uuid = UUID.fromString(value)
+        else -> return false
+      }
+      return true
+    }
+
+    fun build() = build(false)
+    fun build(pedantic: Boolean): ProcessModel<T,M>
+
+  }
 
   /**
    * Get the UUID for this process model.
    * @return The UUID this process model has.
    */
   fun getUuid(): UUID?
-
-  fun setUuid(uUID: UUID)
 
   /**
    * Get a reference node for this model.
@@ -64,6 +88,33 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCo
 
   override fun getExports(): Collection<IXmlDefineType>
 
+  val asM:M get() {
+    @Suppress("UNCHECKED_CAST")
+    return this as M
+  }
+
+  override val rootModel: M get() = asM
+
+  companion object {
+    const val ATTR_ROLES = "roles"
+    const val ATTR_NAME = "name"
+  }
+
+}
+
+@Deprecated("Use builders instead")
+interface MutableProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>: ProcessModel<T,M> {
+
+  fun setUuid(uUID: UUID)
+
+  fun addNode(node: T): Boolean
+  fun removeNode(node: T): Boolean
+
+  /**
+   * Initiate the notification that a node has changed. Actual implementations can override this.
+   * @param node The node that has changed.
+   */
+  fun notifyNodeChanged(node: T)
 }
 
 val ProcessModel<*,*>.uuid get() = getUuid()

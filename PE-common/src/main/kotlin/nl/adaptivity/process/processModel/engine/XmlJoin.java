@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.JoinBase;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.*;
@@ -48,7 +45,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
 
     @NotNull
     @Override
-    public XmlJoin build(final XmlProcessModel newOwner) {
+    public XmlJoin build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
       return new XmlJoin(this, newOwner);
     }
   }
@@ -100,8 +97,8 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
   }
 
   @Override
-  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

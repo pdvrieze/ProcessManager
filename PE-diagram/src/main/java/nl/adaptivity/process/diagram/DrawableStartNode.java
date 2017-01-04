@@ -19,6 +19,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
@@ -53,7 +54,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
 
     @NotNull
     @Override
-    public DrawableStartNode build(final DrawableProcessModel newOwner) {
+    public DrawableStartNode build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
       return new DrawableStartNode(this, newOwner);
     }
   }
@@ -80,7 +81,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
     mState = orig.mState;
   }
 
-  public DrawableStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
     super(builder, newOwnerModel);
   }
 

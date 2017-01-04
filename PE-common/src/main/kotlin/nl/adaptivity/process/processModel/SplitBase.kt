@@ -48,14 +48,14 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : J
 
     constructor(node: Split<*, *>) : super(node)
 
-    override abstract fun build(newOwner: M): ProcessNode<T, M>
+    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     override val elementName: QName
       get() = Split.ELEMENTNAME
 
   }
 
-  constructor(ownerModel: M,
+  constructor(ownerModel: ModelCommon<T,M>,
               predecessor: Identified? = null,
               successors: Collection<Identified> = emptyList(),
               id: String?,
@@ -67,7 +67,7 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : J
               min: Int = -1,
               max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id, label, x, y, defines, results, min, max)
 
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 

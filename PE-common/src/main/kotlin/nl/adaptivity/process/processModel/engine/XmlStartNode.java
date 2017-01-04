@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.StartNodeBase;
 import nl.adaptivity.process.processModel.XmlResultType;
@@ -42,7 +43,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
 
     @NotNull
     @Override
-    public XmlStartNode build(final XmlProcessModel newOwner) {
+    public XmlStartNode build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
       return new XmlStartNode(this, newOwner);
     }
   }
@@ -89,8 +90,8 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
   }
 
   @Override
-  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

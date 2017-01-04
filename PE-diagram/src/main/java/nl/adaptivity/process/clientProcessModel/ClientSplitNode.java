@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.process.processModel.SplitBase;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +47,7 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
 
     @NotNull
     @Override
-    public ClientSplitNode<T, M> build(final M newOwner) {
+    public ClientSplitNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
       return new ClientSplitNode<T, M>(this, newOwner);
     }
 
@@ -65,7 +62,7 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
     }
   }
 
-  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @NotNull final M newOwnerModel) {
+  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -87,8 +84,8 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   @Override
-  public void setOwnerModel(@NotNull final M ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

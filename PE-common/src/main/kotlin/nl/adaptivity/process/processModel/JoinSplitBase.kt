@@ -55,7 +55,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
       max = node.max
     }
 
-    override abstract fun build(newOwner: M): ProcessNode<T, M>
+    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(`in`: XmlReader): Boolean {
@@ -82,7 +82,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
     }
   }
 
-  constructor(ownerModel: M,
+  constructor(ownerModel: ModelCommon<T,M>,
               predecessors: Collection<Identified> = emptyList(),
               successors: Collection<Identified> = emptyList(),
               id: String?,
@@ -104,12 +104,12 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
   override var max: Int
 
   @Deprecated("Use the main constructor")
-  constructor(ownerModel: M, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
+  constructor(ownerModel: ModelCommon<T,M>, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
 
-  @Deprecated("")
-  constructor(ownerModel: M) : this(ownerModel, id=null) { }
+  @Deprecated("Use builders")
+  constructor(ownerModel: ModelCommon<T,M>) : this(ownerModel, id=null) { }
 
-  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
+  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel) {
     this.min = builder.min
     this.max = builder.max
   }

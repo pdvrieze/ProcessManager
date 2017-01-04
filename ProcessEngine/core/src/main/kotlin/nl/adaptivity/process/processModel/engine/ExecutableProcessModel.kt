@@ -35,6 +35,8 @@ import java.security.Principal
 import java.util.*
 
 
+typealias ExecutableModelCommon = ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
+
 /**
  * A class representing a process model.
 
@@ -267,7 +269,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
   }
 }
 
-fun toExecutableProcessNode(newOwner: ExecutableProcessModel, node: ProcessNode<*, *>): ExecutableProcessNode {
+fun toExecutableProcessNode(newOwner: ExecutableModelCommon, node: ProcessNode<*, *>): ExecutableProcessNode {
   return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
     override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode.builder(), newOwner)
 

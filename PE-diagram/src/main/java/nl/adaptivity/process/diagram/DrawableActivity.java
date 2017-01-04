@@ -19,10 +19,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.ProcessConsts.Endpoints;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
-import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -54,7 +51,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
     @NotNull
     @Override
-    public DrawableActivity build(final DrawableProcessModel newOwner) {
+    public DrawableActivity build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
       return new DrawableActivity(this, newOwner);
     }
   }
@@ -84,7 +81,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
     }
   }
 
-  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -146,8 +143,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   public void setState(int state) {
     if (state==mState) { return ; }
     mState = state;
-    if (getOwnerModel() != null) {
-      getOwnerModel().notifyNodeChanged(this);
+    if (getOwnerModel() instanceof DrawableProcessModel) {
+      ((DrawableProcessModel) getOwnerModel()).notifyNodeChanged(this);
     }
   }
 

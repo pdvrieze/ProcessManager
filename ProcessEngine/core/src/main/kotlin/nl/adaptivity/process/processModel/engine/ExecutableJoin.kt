@@ -20,17 +20,14 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.Join
-import nl.adaptivity.process.processModel.JoinBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : JoinBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : JoinBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
@@ -44,7 +41,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableProce
                 y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, min, max, x, y)
     constructor(node: Join<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel) = ExecutableJoin(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommon) = ExecutableJoin(this, newOwner)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

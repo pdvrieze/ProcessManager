@@ -31,7 +31,7 @@ import java.sql.SQLException
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : ActivityBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
 
@@ -49,7 +49,7 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
 
     constructor(node: Activity<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel) = ExecutableActivity(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommon) = ExecutableActivity(this, newOwner)
   }
 
   private var _condition: ExecutableCondition? = builder.condition?.let(::ExecutableCondition)

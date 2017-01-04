@@ -26,7 +26,7 @@ import javax.xml.namespace.QName
 interface StartNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode<T, M> {
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
-    override fun build(newOwner: M): ProcessNode<T, M>
+    override fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     var successor: Identifiable?
       get() = successors.firstOrNull()

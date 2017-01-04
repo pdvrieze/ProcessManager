@@ -20,6 +20,7 @@ import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -49,7 +50,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
     @NotNull
     @Override
-    public DrawableEndNode build(final DrawableProcessModel newOwner) {
+    public DrawableEndNode build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
       return new DrawableEndNode(this, newOwner);
     }
   }
@@ -75,7 +76,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
     }
   }
 
-  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
     super(builder, newOwnerModel);
   }
 

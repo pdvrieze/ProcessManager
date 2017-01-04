@@ -54,7 +54,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
 
     @NotNull
     @Override
-    public XmlActivity build(final XmlProcessModel newOwner) {
+    public XmlActivity build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
       return new XmlActivity(this, newOwner);
     }
   }
@@ -117,8 +117,8 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   }
 
   @Override
-  public void setOwnerModel(@NotNull final XmlProcessModel ownerModel) {
-    super.setOwnerModel(ownerModel);
+  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+    super.setOwnerModel(newOwnerModel);
   }
 
   @Override

@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.ModelCommon
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
@@ -36,10 +37,10 @@ import java.sql.SQLException
  */
 interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel>, Identified {
 
-  override val ownerModel: ExecutableProcessModel
+  override val ownerModel: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
 
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
-    override fun build(newOwner: ExecutableProcessModel): ProcessNode<ExecutableProcessNode, ExecutableProcessModel>
+    override fun build(newOwner: ExecutableModelCommon): ProcessNode<ExecutableProcessNode, ExecutableProcessModel>
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {

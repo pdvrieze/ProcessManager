@@ -47,7 +47,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Position
       }
     }
 
-    fun build(newOwner: M): ProcessNode<T, M>
+    fun build(newOwner: ModelCommon<T,M>): ProcessNode<T, M>
 
     fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())
@@ -74,7 +74,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Position
 
   fun getDefine(name: String): XmlDefineType?
 
-  val ownerModel: M
+  val ownerModel: ModelCommon<T, M>
 
   val predecessors: IdentifyableSet<out @JvmWildcard Identified>
 

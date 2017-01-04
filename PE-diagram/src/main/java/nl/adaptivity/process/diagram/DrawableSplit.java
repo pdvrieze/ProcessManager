@@ -20,6 +20,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientSplitNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
@@ -50,7 +51,7 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
 
     @NotNull
     @Override
-    public DrawableSplit build(final DrawableProcessModel newOwner) {
+    public DrawableSplit build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
       return new DrawableSplit(this, newOwner);
     }
   }
@@ -81,7 +82,7 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
     }
   }
 
-  public DrawableSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
     super(builder, newOwnerModel);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }

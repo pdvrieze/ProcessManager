@@ -30,13 +30,12 @@ import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
 
-
 abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> :
-    ProcessModelBase<T, M> {
+    ProcessModelBase<T, M>, MutableProcessModel<T,M> {
 
   var layoutAlgorithm: LayoutAlgorithm<T>
 
-  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<T> = emptyList(), layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm<T>(), nodeFactory: (M, ProcessNode<*, *>) -> T) :
+  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<T> = emptyList(), layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm<T>(), nodeFactory: (ModelCommon<T,M>, ProcessNode<*, *>) -> T) :
     super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
     this.layoutAlgorithm = layoutAlgorithm
   }
@@ -105,7 +104,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
    * @return The model (this).
    */
   fun normalize(): M {
-    return builder().apply { normalize(false) }.build().asM()
+    return builder().apply { normalize(false) }.build().asM
   }
 
   open fun setNodes(nodes: Collection<T>) {
@@ -223,10 +222,10 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     oldValue.setOwnerModel(null)
 
     for (pred in newValue.predecessors) {
-      getNode(pred)!!.addSuccessor(newValue.identifier)
+      getNode(pred)!!.addSuccessor(newValue.identifier!!)
     }
     for (suc in newValue.successors) {
-      getNode(suc)!!.addPredecessor(newValue.identifier)
+      getNode(suc)!!.addPredecessor(newValue.identifier!!)
     }
 
     return oldValue

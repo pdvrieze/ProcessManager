@@ -65,7 +65,7 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> 
       this.condition = node.condition
     }
 
-    override abstract fun build(newOwner: M): ProcessNode<T, M>
+    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     override val elementName: QName get() = Activity.ELEMENTNAME
 
@@ -134,9 +134,9 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> 
 
   // Object Initialization
   @Deprecated("Don't use")
-  constructor(ownerModel: M) : super(ownerModel) { }
+  constructor(ownerModel: ModelCommon<T,M>) : super(ownerModel) { }
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
   }

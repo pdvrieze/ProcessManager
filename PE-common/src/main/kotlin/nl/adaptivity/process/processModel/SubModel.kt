@@ -20,5 +20,12 @@ package nl.adaptivity.process.processModel
  * Created by pdvrieze on 02/01/17.
  */
 interface SubModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon<T,M> {
-  val parent: M
+
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ModelCommon.Builder<T,M> {
+    fun build(ownerNode: T, pedantic: Boolean = false)
+  }
+
+  val ownerNode: T
+  val parent: ModelCommon<T,M> get() = ownerNode.ownerModel
+  override val rootModel get() = parent.rootModel
 }

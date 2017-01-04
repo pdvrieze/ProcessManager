@@ -24,7 +24,7 @@ interface MutableProcessNode<T : MutableProcessNode<T, M>, M : ProcessModel<T, M
 
   fun setId(id: String)
 
-  fun setOwnerModel(ownerModel: M)
+  fun setOwnerModel(ownerModel: ModelCommon<T,M>)
 
   fun setPredecessors(predecessors: Collection<Identifiable>)
 

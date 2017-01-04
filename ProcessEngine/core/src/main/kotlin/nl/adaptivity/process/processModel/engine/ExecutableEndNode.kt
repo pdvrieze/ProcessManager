@@ -16,17 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.EndNodeBase
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableProcessModel) : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
@@ -40,7 +37,7 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
 
     constructor(node: EndNode<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableProcessModel) = ExecutableEndNode(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommon) = ExecutableEndNode(this, newOwner)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

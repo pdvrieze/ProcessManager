@@ -45,7 +45,7 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
 
     constructor(node: Join<*, *>) : super(node)
 
-    override abstract fun build(newOwner: M): ProcessNode<T, M>
+    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -63,9 +63,9 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
   }
 
   @Deprecated("")
-  constructor(ownerModel: M) : super(ownerModel)
+  constructor(ownerModel: ModelCommon<T,M>) : super(ownerModel)
 
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: M) : super(builder, newOwnerModel)
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel)
 
   override abstract fun builder(): Builder<T, M>
 

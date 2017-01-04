@@ -17,12 +17,8 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.*
-import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecurityProvider
-import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.processModel.engine.XmlEndNode
@@ -47,15 +43,15 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   @ProcessModelDSL
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
-      var name: String? = null,
-      var handle: Long = -1L,
-      var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+      override var name: String? = null,
+      override var handle: Long = -1L,
+      override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
       roles: Collection<String> = emptyList(),
-      var uuid: UUID? = null,
+      override var uuid: UUID? = null,
       imports: Collection<IXmlResultType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList()): ProcessCommonBase.Builder<T,M>(nodes, imports, exports) {
+      exports: Collection<IXmlDefineType> = emptyList()): ProcessCommonBase.Builder<T,M>(nodes, imports, exports), ProcessModel.Builder<T,M> {
 
-    val roles: MutableSet<String> = roles.toMutableSet()
+    override val roles: MutableSet<String> = roles.toMutableSet()
 
     constructor(base:ProcessModel<*,*>) :
         this(emptyList(),
@@ -77,22 +73,6 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
     }
 
-
-    internal override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-      val value = attributeValue.toString()
-      when (StringUtil.toString(attributeLocalName)) {
-        "name" -> name=value
-        "owner" -> owner = SimplePrincipal(value)
-        ATTR_ROLES -> roles.replaceBy(value.split(" *, *".toRegex()).filter { it.isEmpty() })
-        "uuid" -> uuid = UUID.fromString(value)
-        else -> return false
-      }
-      return true
-    }
-
-    override fun build(): ProcessModelBase<T,M> = build(false)
-
-    abstract override fun build(pedantic: Boolean): ProcessModelBase<T, M>
 
     override fun toString(): String {
       return "${this.javaClass.name.split('.').last()}(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
@@ -133,7 +113,6 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
 
   }
 
-  private var _processNodes: IdentifyableSet<T>
   private var _name: String? = null
   private var _handle = -1L
 
@@ -147,21 +126,14 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     set(value) { _owner = value }
   private var _roles: MutableSet<String>? = null
   private var uuid: UUID?
-  private var _imports: List<XmlResultType> = ArrayList()
-  private var _exports: List<XmlDefineType> = ArrayList()
 
 
-  constructor(builder: Builder<T, M>, pedantic: Boolean) {
-    val newOwner = this.asM()
-    val newNodes = builder.apply { normalize(pedantic) }.nodes.map { it.build(newOwner).asT() }
-    this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
+  constructor(builder: Builder<T, M>, pedantic: Boolean): super(builder, pedantic) {
     this._name = builder.name
     this._handle = builder.handle
     this._owner = builder.owner
     this._roles = builder.roles.toMutableArraySet()
     this.uuid = builder.uuid
-    this._imports = builder.imports.map { XmlResultType.get(it) }
-    this._exports = builder.exports.map { XmlDefineType.get(it) }
   }
 
   /**
@@ -170,7 +142,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
    * *
    * @param modelNodes The "converted" model nodes.
    */
-  protected constructor(basepm: ProcessModelBase<*, *>, nodeFactory: (M, ProcessNode<*,*>)->T) : this(
+  protected constructor(basepm: ProcessModelBase<*, *>, nodeFactory: (ModelCommon<T,M>, ProcessNode<*,*>)->T) : this(
       basepm.getModelNodes(),
       basepm.getName(),
       basepm.handleValue,
@@ -189,22 +161,18 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
               uuid: UUID? = null,
               imports: Collection<IXmlResultType> = emptyList(),
               exports: Collection<IXmlDefineType> = emptyList(),
-              nodeFactory: (M, ProcessNode<*,*>)->T) {
-    val newOwner = this.asM()
-    this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, processNodes.asSequence().map { nodeFactory(newOwner, it) })
+              nodeFactory: (ModelCommon<T,M>, ProcessNode<*,*>)->T): super(processNodes, imports, exports, nodeFactory) {
     this._name = name
     this._handle = handle
     this._owner = owner
     this._roles = roles.toMutableArraySet()
     this.uuid = uuid
-    this._imports = imports.map { XmlResultType.get(it) }
-    this._exports = exports.map { XmlDefineType.get(it) }
   }
 
-  abstract fun builder(): Builder<T,M>
+  abstract override fun builder(): Builder<T,M>
 
   fun update(body: (Builder<T,M>)->Unit):M {
-    return builder().apply(body).build().asM()
+    return builder().apply(body).build().asM
   }
 
   override fun withPermission(): M {
@@ -214,25 +182,27 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {
 
-    if (_processNodes.any { it.id == null }) {
-      builder().build().serialize(out)
+    if (getModelNodes().any { it.id == null }) {
+      builder().build().asM!!.serialize(out)
+    } else {
+      out.smartStartTag(ELEMENTNAME)
+      out.writeAttribute("name", name)
+      out.writeAttribute("owner", _owner.name)
+      if (_roles != null && _roles!!.size > 0) {
+        out.writeAttribute(ATTR_ROLES, StringUtil.join(",", _roles))
+      }
+      if (uuid != null) {
+        out.writeAttribute("uuid", uuid!!.toString())
+      }
+      out.writeChildren(imports)
+      out.writeChildren(exports)
+      out.writeChildren(getModelNodes())
+      out.endTag(ELEMENTNAME)
     }
-    out.smartStartTag(ELEMENTNAME)
-    out.writeAttribute("name", name)
-    out.writeAttribute("owner", _owner.name)
-    if (_roles != null && _roles!!.size > 0) {
-      out.writeAttribute(ATTR_ROLES, StringUtil.join(",", _roles))
-    }
-    if (uuid != null) {
-      out.writeAttribute("uuid", uuid!!.toString())
-    }
-    out.writeChildren(imports)
-    out.writeChildren(exports)
-    out.writeChildren(_processNodes)
-    out.endTag(ELEMENTNAME)
   }
 
-  open fun removeNode(nodePos: Int): T {
+  @Deprecated("Use the builder to update models")
+  protected open fun removeNode(nodePos: Int): T {
     return _processNodes.removeAt(nodePos)
   }
 
@@ -249,7 +219,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     return uuid
   }
 
-  override fun setUuid(uuid: UUID) {
+  fun setUuid(uuid: UUID) {
     this.uuid = uuid
   }
 
@@ -287,14 +257,6 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     _handle = handleValue
   }
 
-  override fun getImports(): Collection<IXmlResultType> {
-    return _imports
-  }
-
-  override fun getExports(): Collection<IXmlDefineType> {
-    return _exports
-  }
-
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
      */
@@ -316,48 +278,26 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
    * @return An array of all nodes.
    */
   override fun getModelNodes(): Collection<T> {
-    return Collections.unmodifiableCollection(_processNodes)
+    return Collections.unmodifiableCollection(super.getModelNodes())
   }
 
-  /**
-   * Set the process nodes for the model. This will actually just retrieve the
-   * [XmlEndNode]s and sets the model accordingly. This does mean that only
-   * passing [XmlEndNode]s will have the same result, and the other nodes
-   * will be pulled in.
+  private val _processNodes: IdentifyableSet<T> get() = super.getModelNodes() as IdentifyableSet<T>
 
-   * @param processNodes The process nodes to base the model on.
-   */
-  open fun setModelNodes(processNodes: Collection<T>) {
-    _processNodes = IdentifyableSet.processNodeSet(processNodes)
-  }
-
-  open fun addNode(node: T): Boolean {
+  @Deprecated("Use the builder to update models")
+  protected open fun addNode(node: T): Boolean {
     if (_processNodes.add(node)) {
       return true
     }
     return false
   }
 
-  open fun removeNode(node: T): Boolean {
+  @Deprecated("Use the builder to update models")
+  protected open fun removeNode(node: T): Boolean {
     return _processNodes.remove(node)
   }
 
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
-     */
-  override fun getNode(nodeId: Identifiable): T? {
-    if (nodeId is ProcessNode<*, *>) {
-      @Suppress("UNCHECKED_CAST")
-      return nodeId as T
-    }
-    return _processNodes.get(nodeId)
-  }
-
-  fun getNode(pos: Int): T {
-    return _processNodes[pos]
-  }
-
-  open fun setNode(pos: Int, newValue: T): T {
+  @Deprecated("Use the builder to update models")
+  protected open fun setNode(pos: Int, newValue: T): T {
     return _processNodes.set(pos, newValue)
   }
 
@@ -365,14 +305,13 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
    * Initiate the notification that a node has changed. Actual implementations can override this.
    * @param node The node that has changed.
    */
+  @Deprecated("Use the builder to update models")
   open fun notifyNodeChanged(node: T) {
     // no implementation here
   }
 
-  fun asM(): M {
-    @Suppress("UNCHECKED_CAST")
-    return this as M
-  }
+  @Deprecated("Use the value", ReplaceWith("this.asM"))
+  fun asM() = this.asM
 
   companion object {
 
@@ -389,7 +328,7 @@ abstract class ProcessModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M
     @JvmStatic
     @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(builder, reader).build().asM()"))
     fun <T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> deserialize(builder: Builder<T, M>, reader: XmlReader): M {
-      return Builder.deserialize(builder, reader).build().asM()
+      return Builder.deserialize(builder, reader).build().asM
     }
   }
 }

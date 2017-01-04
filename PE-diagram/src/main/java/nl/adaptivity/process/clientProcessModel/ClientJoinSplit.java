@@ -18,6 +18,7 @@ package nl.adaptivity.process.clientProcessModel;
 
 
 import nl.adaptivity.process.processModel.JoinSplit;
+import nl.adaptivity.process.processModel.ModelCommon;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -27,7 +28,7 @@ public interface ClientJoinSplit<T extends ClientProcessNode<T, M>, M extends Cl
 
     @NotNull
     @Override
-    ClientJoinSplit<T, M> build(M newOwner);
+    ClientJoinSplit<T, M> build(@NotNull ModelCommon<T, M> newOwner);
   }
 
   @NotNull
