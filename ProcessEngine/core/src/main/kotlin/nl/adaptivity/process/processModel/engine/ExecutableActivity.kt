@@ -49,7 +49,7 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
 
     constructor(node: Activity<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon) = ExecutableActivity(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommonAlias) = ExecutableActivity(this, newOwner as ExecutableModelCommon)
   }
 
   private var _condition: ExecutableCondition? = builder.condition?.let(::ExecutableCondition)

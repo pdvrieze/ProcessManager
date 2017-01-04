@@ -23,7 +23,7 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableModelCommonAlias) : EndNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
@@ -37,7 +37,7 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
 
     constructor(node: EndNode<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon) = ExecutableEndNode(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommonAlias) = ExecutableEndNode(this, newOwner)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

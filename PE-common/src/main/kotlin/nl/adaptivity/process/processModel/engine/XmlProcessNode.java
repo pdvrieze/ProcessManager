@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
+import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.ProcessNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,7 @@ public interface XmlProcessNode extends ProcessNode<XmlProcessNode, XmlProcessMo
 
     @NotNull
     @Override
-    XmlProcessNode build(XmlProcessModel newOwner);
+    XmlProcessNode build(@NotNull ModelCommon<XmlProcessNode, XmlProcessModel> newOwner);
   }
 
   @NotNull

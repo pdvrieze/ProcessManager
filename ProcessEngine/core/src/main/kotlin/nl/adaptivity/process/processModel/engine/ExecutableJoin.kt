@@ -41,7 +41,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModel
                 y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, min, max, x, y)
     constructor(node: Join<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon) = ExecutableJoin(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommonAlias) = ExecutableJoin(this, newOwner as ExecutableModelCommon)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

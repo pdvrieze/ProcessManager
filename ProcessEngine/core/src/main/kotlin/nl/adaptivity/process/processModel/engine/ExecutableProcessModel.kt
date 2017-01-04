@@ -35,7 +35,7 @@ import java.security.Principal
 import java.util.*
 
 
-typealias ExecutableModelCommon = ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
+typealias ExecutableModelCommonAlias = ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
 
 /**
  * A class representing a process model.
@@ -43,9 +43,9 @@ typealias ExecutableModelCommon = ModelCommon<ExecutableProcessNode, ExecutableP
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ExecutableProcessModel.Factory::class)
-class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>, MutableHandleAware<ExecutableProcessModel>, SecureObject<ExecutableProcessModel> {
+class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableModelCommon, MutableHandleAware<ExecutableProcessModel>, SecureObject<ExecutableProcessModel> {
 
-  class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableProcessModel> {
+  class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableModelCommon.Builder {
     constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
                 name: String? = null,
                 handle: Long = -1L,
@@ -59,26 +59,6 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     override fun build(): ExecutableProcessModel = build(pedantic = true)
 
     override fun build(pedantic: Boolean) = ExecutableProcessModel(this, pedantic)
-
-    override fun startNodeBuilder() = ExecutableStartNode.Builder()
-
-    override fun startNodeBuilder(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
-
-    override fun splitBuilder() = ExecutableSplit.Builder()
-
-    override fun splitBuilder(split: Split<*, *>) = ExecutableSplit.Builder(split)
-
-    override fun joinBuilder() = ExecutableJoin.Builder()
-
-    override fun joinBuilder(join: Join<*, *>) = ExecutableJoin.Builder(join)
-
-    override fun activityBuilder() = ExecutableActivity.Builder()
-
-    override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
-
-    override fun endNodeBuilder() = ExecutableEndNode.Builder()
-
-    override fun endNodeBuilder(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
 
     companion object {
       @JvmStatic
@@ -269,7 +249,8 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
   }
 }
 
-fun toExecutableProcessNode(newOwner: ExecutableModelCommon, node: ProcessNode<*, *>): ExecutableProcessNode {
+fun toExecutableProcessNode(_newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>, node: ProcessNode<*, *>): ExecutableProcessNode {
+  val newOwner = _newOwner as ExecutableModelCommon
   return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
     override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode.builder(), newOwner)
 

@@ -42,8 +42,8 @@ class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableMod
                 y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
     constructor(node: Split<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon): ExecutableSplit {
-      return ExecutableSplit(this, newOwner)
+    override fun build(newOwner: ExecutableModelCommonAlias): ExecutableSplit {
+      return ExecutableSplit(this, newOwner as ExecutableModelCommon)
     }
   }
 

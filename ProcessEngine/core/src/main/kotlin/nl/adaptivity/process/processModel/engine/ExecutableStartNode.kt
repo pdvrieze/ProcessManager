@@ -43,7 +43,7 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
 
 
     override fun build(newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>): ExecutableStartNode {
-      return ExecutableStartNode(this, newOwner)
+      return ExecutableStartNode(this, newOwner as ExecutableModelCommon)
     }
   }
 

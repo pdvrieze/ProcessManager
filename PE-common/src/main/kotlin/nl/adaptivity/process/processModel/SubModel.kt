@@ -22,7 +22,7 @@ package nl.adaptivity.process.processModel
 interface SubModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon<T,M> {
 
   interface Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ModelCommon.Builder<T,M> {
-    fun build(ownerNode: T, pedantic: Boolean = false)
+    fun build(ownerNode: T, pedantic: Boolean = false): SubModel<T,M>
   }
 
   val ownerNode: T

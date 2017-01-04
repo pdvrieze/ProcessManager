@@ -40,7 +40,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
   override val ownerModel: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
 
   interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
-    override fun build(newOwner: ExecutableModelCommon): ProcessNode<ExecutableProcessNode, ExecutableProcessModel>
+    override fun build(newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>): ExecutableProcessNode
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {
