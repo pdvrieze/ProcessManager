@@ -16,12 +16,8 @@
 
 package nl.adaptivity.process.diagram
 
-import nl.adaptivity.diagram.*
-import nl.adaptivity.diagram.Canvas.TextPos
-import nl.adaptivity.process.processModel.JoinSplit
-import nl.adaptivity.process.processModel.JoinSplitBase
-
-import nl.adaptivity.process.diagram.RootDrawableProcessModel.*
+import nl.adaptivity.diagram.Drawable.STATE_DEFAULT
+import nl.adaptivity.diagram.ItemCache
 
 
 class DrawableJoinSplitDelegate {
@@ -30,7 +26,7 @@ class DrawableJoinSplitDelegate {
   var state: Int = 0
 
   constructor() {
-    this.state = RootDrawableProcessModel.STATE_DEFAULT
+    this.state = STATE_DEFAULT
   }
 
   constructor(orig: DrawableJoinSplitDelegate) {

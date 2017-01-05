@@ -58,8 +58,8 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
     }
   }
 
-  private static final double REFERENCE_OFFSET_X = STARTNODERADIUS+(STROKEWIDTH/2);
-  private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS+(STROKEWIDTH/2);
+  private static final double REFERENCE_OFFSET_X = STARTNODERADIUS + (STROKEWIDTH / 2);
+  private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS + (STROKEWIDTH / 2);
   public static final String IDBASE = "start";
   private int mState = STATE_DEFAULT;
 
@@ -111,7 +111,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
+    return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, STARTNODERADIUS * 2 + STROKEWIDTH, STARTNODERADIUS * 2 + STROKEWIDTH);
   }
 
   @Override
@@ -128,7 +128,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
 
   @Override
   public boolean isWithinBounds(final double x, final double y) {
-    final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
+    final double realradius= STARTNODERADIUS + (STROKEWIDTH / 2);
     return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius));
   }
 
@@ -150,7 +150,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
-      final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
+      final double realradius= STARTNODERADIUS + (STROKEWIDTH / 2);
       PEN_T fillPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, mState & ~STATE_TOUCHED);
 
       if ((mState&STATE_TOUCHED)!=0) {

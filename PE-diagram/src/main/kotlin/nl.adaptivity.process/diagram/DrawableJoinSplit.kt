@@ -19,9 +19,11 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
 import nl.adaptivity.diagram.Canvas.TextPos
+import nl.adaptivity.diagram.Drawable.STATE_TOUCHED
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit
-import nl.adaptivity.process.diagram.RootDrawableProcessModel.*
-import nl.adaptivity.process.processModel.JoinSplitBase
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIGHT
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.Split
 
 

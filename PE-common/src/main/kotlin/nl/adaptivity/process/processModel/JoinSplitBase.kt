@@ -74,7 +74,7 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
       } else if (StringUtil.isEqual("max", attributeLocalName)) {
         max = Integer.parseInt(attributeValue.toString())
       } else {
-        return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+        return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
       }
       return true
     }

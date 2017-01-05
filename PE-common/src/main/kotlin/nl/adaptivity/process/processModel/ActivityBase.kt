@@ -90,7 +90,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       when (attributeLocalName.toString()) {
         ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue.toString()))
         "name" -> name = attributeValue.toString()
-        else -> return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+        else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
       }
       return true
     }
@@ -106,9 +106,38 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
   }
 
+  abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?>(
+      id: String? = null,
+      override var childId: String? = null,
+      nodes: Collection<ProcessNode.Builder<NodeT, ModelT>> = emptyList(),
+      predecessors: Collection<Identified> = emptyList(),
+      successors: Collection<Identified> = emptyList(),
+      label: String? = null,
+      imports: Collection<IXmlResultType> = emptyList(),
+      defines: Collection<IXmlDefineType> = emptyList(),
+      exports: Collection<IXmlDefineType> = emptyList(),
+      results: Collection<IXmlResultType> = emptyList(),
+      x: Double = Double.NaN,
+      y: Double = Double.NaN) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y), Activity.ChildModelBuilder<NodeT,ModelT> {
+    override val nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>> = nodes.toMutableSet()
+    override val imports: MutableList<IXmlResultType> = imports.toMutableList()
+    override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
+    override var condition: String? = null
+
+    override val idBase:String get() = "child"
+
+    override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
+
+    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence)=false
+
+  }
+
+
   private var _message: XmlMessage? = null
 
   private var _name: String? = null
+
+  override val childModelId: Identifiable?
 
   override var name:String?
     get() = _name
@@ -132,11 +161,20 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
   // Object Initialization
   @Deprecated("Don't use")
-  constructor(ownerModel: ModelT) : super(ownerModel) { }
+  constructor(ownerModel: ModelT) : super(ownerModel) {
+    childModelId = null
+  }
 
   constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
+    this.childModelId = null
+  }
+
+  constructor(builder: Activity.ChildModelBuilder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
+    this._message = null
+    this._name = null
+    this.childModelId = builder.childId?.let(::Identifier) ?: throw IllegalArgumentException("No child id specified")
   }
   // Object Initialization end
 

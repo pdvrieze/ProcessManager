@@ -16,8 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.security.SecureObject
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlException
@@ -60,6 +61,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     fun splitBuilder(): Split.Builder<NodeT,ModelT>
     fun joinBuilder(): Join.Builder<NodeT,ModelT>
     fun activityBuilder(): Activity.Builder<NodeT,ModelT>
+    fun childModelBuilder(): Activity.ChildModelBuilder<NodeT, ModelT>
     fun endNodeBuilder(): EndNode.Builder<NodeT,ModelT>
 
     fun startNodeBuilder(startNode: StartNode<*,*>): StartNode.Builder<NodeT,ModelT>
@@ -82,6 +84,10 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
 
     fun activity(body: Activity.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
       return nodeHelper(activityBuilder(), body)
+    }
+
+    fun childModel(body: Activity.ChildModelBuilder<NodeT, ModelT>.()->Unit): Identifiable {
+      return nodeHelper(childModelBuilder(), body)
     }
 
     fun endNode(body: EndNode.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
@@ -117,8 +123,107 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
       return false
     }
 
-    fun validate()
-    fun normalize(pedantic: Boolean)
+    fun validate() {
+      val seen = hashSetOf<String>()
+      normalize(true)
+      val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
+
+      fun visitSuccessors(node: ProcessNode.Builder<NodeT, ModelT>) {
+        val id = node.id!!
+        if (id in seen) { throw ProcessException("Cycle in process model") }
+        seen += id
+        node.successors.forEach { visitSuccessors(nodeMap[it.id]!!) }
+      }
+
+      // First normalize pedantically
+
+      // Check for cycles and mark each node as seen
+      nodes.filter { it.predecessors.isEmpty().apply { if (it !is StartNode.Builder<NodeT, ModelT>) throw nl.adaptivity.process.engine.ProcessException("Non-start node without predecessors found")} }
+          .forEach(::visitSuccessors)
+
+      if (seen.size != nodes.size) { // We should have seen all nodes
+        val msg = nodes.asSequence().filter { it.id !in seen }.joinToString(prefix = "Disconnected nodes found: ")
+        throw ProcessException(msg)
+      }
+
+      // This DOES allow for multiple disconnected graphs when multiple start nodes are present.
+    }
+    fun normalize(pedantic: Boolean) {
+      val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
+
+      // Ensure all nodes are linked up and have ids
+      var lastId = 1
+      nodes.forEach { nodeBuilder ->
+        val curIdentifier = nodeBuilder.id?.let(::Identifier) ?: if(pedantic) {
+          throw IllegalArgumentException("Node without id found")
+        } else {
+          generateSequence(lastId) { lastId+=1; lastId }
+              .map { "node$it" }
+              .first { it !in nodeMap }
+              .apply { nodeBuilder.id = this }
+              .let(::Identifier)
+        }
+
+        if (pedantic) { // Pedantic will throw exceptions on missing things
+          if (nodeBuilder is StartNode.Builder<NodeT, ModelT> && ! nodeBuilder.predecessors.isEmpty()) {
+            throw ProcessException("Start nodes have no predecessors")
+          }
+          if (nodeBuilder is EndNode.Builder<NodeT, ModelT> && ! nodeBuilder.successors.isEmpty()) {
+            throw ProcessException("End nodes have no successors")
+          }
+
+          nodeBuilder.predecessors.firstOrNull { it.id !in nodeMap }?.let { missingPred ->
+            throw ProcessException("The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})")
+          }
+
+          nodeBuilder.successors.firstOrNull { it.id !in nodeMap }?.let { missingSuc ->
+            throw ProcessException("The node ${nodeBuilder.id} has a missing successor (${missingSuc.id})")
+          }
+        } else {
+          // Remove "missing" predecessors and successors
+          nodeBuilder.predecessors.removeAll { it.id !in nodeMap }
+          nodeBuilder.successors.removeAll { it.id !in nodeMap }
+        }
+
+        nodeBuilder.predecessors.asSequence()
+            .map { nodeMap[it.id]!! }
+            .forEach { pred ->
+              pred.successors.add(curIdentifier) // If existing, should ignore it
+            }
+
+        nodeBuilder.successors.asSequence()
+            .map { nodeMap[it.id]!! }
+            .forEach { successor ->
+              successor.predecessors.add(curIdentifier) // If existing, should ignore it
+            }
+      }
+
+      nodes.asSequence()
+          .filter { it.successors.size > 1 && it !is Split.Builder<NodeT, ModelT> }
+          .map { nodeBuilder ->
+            splitBuilder().apply {
+              successors.addAll(nodeBuilder.successors)
+
+              val curIdentifier = Identifier(nodeBuilder.id!!)
+
+              predecessor = curIdentifier
+
+              val newSplit = this
+
+              val splitId = Identifier(this@Builder.newId(this.idBase))
+
+              nodeBuilder.successors.asSequence()
+                  .map { nodeMap[it.id] }
+                  .filterNotNull()
+                  .forEach {
+                    it.predecessors.remove(curIdentifier)
+                    it.predecessors.add(splitId)
+                  }
+              nodeBuilder.successors.replaceBy(splitId)
+
+            }
+          }.toList().let { nodes.addAll(it) }
+    }
 
   }
 

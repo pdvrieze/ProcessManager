@@ -143,7 +143,7 @@ class ItemCache {
     return paths[strategyIdx]!![pathIdx] as PATH_T?
   }
 
-  fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPathList(strategy: S, index: Int, alternate: (S)->List<PATH_T>): List<PATH_T>? {
+  fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPathList(strategy: S, index: Int, alternate: (S)->List<PATH_T>): List<PATH_T> {
     val strategyIdx = getStrategyIndex(strategy)
     return getPathList<S, PEN_T, PATH_T>(strategyIdx, index) ?: alternate(strategy).apply { setPathList(strategyIdx, index, this) }
   }

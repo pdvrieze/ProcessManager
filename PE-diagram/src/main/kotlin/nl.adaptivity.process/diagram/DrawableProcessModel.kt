@@ -17,12 +17,17 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel
+import nl.adaptivity.process.processModel.Activity
 
 /**
  * Created by pdvrieze on 05/01/17.
  */
 interface DrawableProcessModel : ClientProcessModel<DrawableProcessNode, DrawableProcessModel?> {
-  interface Builder : ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>
+  interface Builder : ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?> {
+    override fun childModelBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
+      TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+  }
 
   fun notifyNodeChanged(node: DrawableProcessNode) = Unit
 }

@@ -65,7 +65,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>>(builde
         predecessor = Identifier(attributeValue.toString())
         return true
       }
-      return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+      return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
     }
 
     override fun deserializeChildText(elementText: CharSequence): Boolean {

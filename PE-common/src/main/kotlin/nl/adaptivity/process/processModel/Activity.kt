@@ -24,9 +24,7 @@ import javax.xml.namespace.QName
 
 interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
-    var message: IXmlMessage?
-    var name: String?
+  interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
     var condition: String?
 
     var predecessor: Identifiable?
@@ -36,7 +34,24 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
     var successor: Identifiable?
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }
+  }
 
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M> {
+    var message: IXmlMessage?
+    @Deprecated("Names are not used anymore")
+    var name: String?
+  }
+
+  interface ChildModelBuilder<NodeT : ProcessNode<NodeT,ModelT>, ModelT:ProcessModel<NodeT,ModelT>?> : IBuilder<NodeT,ModelT>, ChildProcessModel.Builder<NodeT, ModelT> {
+    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+      throw UnsupportedOperationException("The SubModelBuilder is a convenience builder that cannot be used in deserialization")
+    }
+
+    override val idBase: String get() = "sub"
+
+    override fun buildModel(ownerModel: ModelT, pedantic: Boolean): ChildProcessModel<NodeT, ModelT>
+
+    override fun build(newOwner: ModelT): Activity<NodeT, ModelT>
   }
 
   override fun builder(): Builder<NodeT, ModelT>
@@ -81,6 +96,8 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
    * able to actually invoke the service.
    */
   var message: IXmlMessage?
+
+  val childModelId: Identifiable?
 
   companion object {
 

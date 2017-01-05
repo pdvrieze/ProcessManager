@@ -15,11 +15,15 @@
  */
 
 package nl.adaptivity.process.diagram;
+
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.ProcessConsts.Endpoints;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -57,8 +61,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
   }
 
-  private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
-  private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
+  private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH + STROKEWIDTH) / 2;
+  private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT + STROKEWIDTH) / 2;
   public static final String IDBASE = "ac";
   private int mState = STATE_DEFAULT;
   private static Rectangle _bounds;
@@ -130,8 +134,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
   @Override
   public boolean isWithinBounds(final double x, final double y) {
-    double hwidth = (ACTIVITYWIDTH+STROKEWIDTH)/2;
-    double hheight = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
+    double hwidth = (ACTIVITYWIDTH + STROKEWIDTH) / 2;
+    double hheight = (ACTIVITYHEIGHT + STROKEWIDTH) / 2;
     return Math.abs(x - getX()) <= hwidth && Math.abs(y - getY()) <= hheight;
   }
 
@@ -165,7 +169,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
       PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState & ~STATE_TOUCHED);
       PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, mState);
 
-      if (_bounds==null) { _bounds = new Rectangle(STROKEWIDTH/2,STROKEWIDTH/2, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
+      if (_bounds==null) { _bounds = new Rectangle(STROKEWIDTH / 2, STROKEWIDTH / 2, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
 
       if ((mState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);

@@ -16,16 +16,29 @@
 
 package nl.adaptivity.process.processModel
 
+import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.util.Identifiable
+import javax.xml.namespace.QName
+
 /**
  * Created by pdvrieze on 02/01/17.
  */
 interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT> {
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModel.Builder<T,M> {
-    fun build(ownerNode: T, pedantic: Boolean = false): ChildProcessModel<T,M>
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
+    var childId: String?
+    fun buildModel(ownerModel: ModelT, pedantic: Boolean = false): ChildProcessModel<NodeT, ModelT>
   }
 
-  val ownerNode: NodeT
-  val parent: ModelT get() = ownerNode.ownerModel
-  override val rootModel: RootProcessModel<NodeT, ModelT>? get() = parent?.rootModel
+  val childId: Identifiable?
+
+  val ownerModel: ModelT
+
+  override val rootModel: RootProcessModel<NodeT, ModelT>? get() = ownerModel?.rootModel
+
+  companion object {
+    const val ELEMENTLOCALNAME="childModel"
+    val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
+  }
+
 }

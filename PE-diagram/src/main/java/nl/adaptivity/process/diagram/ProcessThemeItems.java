@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -24,12 +24,12 @@ import static nl.adaptivity.diagram.Drawable.*;
 
 public enum ProcessThemeItems implements ThemeItem {
   LINE(RootDrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
-                                         stateStroke(STATE_SELECTED, 0, 0, 255, 255, 2d),
-                                         stateStroke(STATE_TOUCHED, 255,255,0, 127, 7d),
-                                         state(STATE_CUSTOM1, 0,0,255),
-                                         state(STATE_CUSTOM2, 255,255,0),
-                                         state(STATE_CUSTOM3, 255, 0, 0),
-                                         state(STATE_CUSTOM4, 0,255,0)){
+       stateStroke(STATE_SELECTED, 0, 0, 255, 255, 2d),
+       stateStroke(STATE_TOUCHED, 255,255,0, 127, 7d),
+       state(STATE_CUSTOM1, 0,0,255),
+       state(STATE_CUSTOM2, 255,255,0),
+       state(STATE_CUSTOM3, 255, 0, 0),
+       state(STATE_CUSTOM4, 0,255,0)){
 
     @Override
     public int getEffectiveState(int state) {
@@ -40,7 +40,7 @@ public enum ProcessThemeItems implements ThemeItem {
     }
 
   },
-  INNERLINE(RootDrawableProcessModel.STROKEWIDTH*0.85, state(STATE_DEFAULT, 0, 0, 0x20, 0xb0)),
+  INNERLINE(RootDrawableProcessModel.STROKEWIDTH * 0.85, state(STATE_DEFAULT, 0, 0, 0x20, 0xb0)),
   BACKGROUND(state(STATE_DEFAULT, 255, 255, 255)) {
 
     @Override

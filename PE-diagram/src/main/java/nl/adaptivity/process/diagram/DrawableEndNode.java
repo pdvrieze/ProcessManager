@@ -106,7 +106,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-ENDNODEOUTERRADIUS, getY()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH);
+    return new Rectangle(getX() - ENDNODEOUTERRADIUS, getY() - ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS * 2 + ENDNODEOUTERSTROKEWIDTH, ENDNODEOUTERRADIUS * 2 + ENDNODEOUTERSTROKEWIDTH);
   }
 
   @Override
@@ -123,13 +123,13 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
   @Override
   public boolean isWithinBounds(final double x, final double y) {
-    final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
+    final double realradius= ENDNODEOUTERRADIUS + (ENDNODEOUTERSTROKEWIDTH / 2);
     return Math.abs(x - getX()) <= realradius && Math.abs(y - getY()) <= realradius;
   }
 
   @Override
   public Drawable getItemAt(double x, double y) {
-    final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
+    final double realradius= ENDNODEOUTERRADIUS + (ENDNODEOUTERSTROKEWIDTH / 2);
     return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius)) ? this : null;
   }
 
@@ -154,15 +154,15 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
       PEN_T outerLinePen = canvas.getTheme().getPen(ProcessThemeItems.ENDNODEOUTERLINE, mState & ~STATE_TOUCHED);
       PEN_T innerPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, mState & ~STATE_TOUCHED);
 
-      double hsw = ENDNODEOUTERSTROKEWIDTH/2;
+      double hsw = ENDNODEOUTERSTROKEWIDTH / 2;
 
       if ((mState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
-        canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, touchedPen);
-        canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, touchedPen);
+        canvas.drawCircle(ENDNODEOUTERRADIUS + hsw, ENDNODEOUTERRADIUS + hsw, ENDNODEOUTERRADIUS, touchedPen);
+        canvas.drawCircle(ENDNODEOUTERRADIUS + hsw, ENDNODEOUTERRADIUS + hsw, ENDNODEINNERRRADIUS, touchedPen);
       }
-      canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, outerLinePen);
-      canvas.drawFilledCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, innerPen);
+      canvas.drawCircle(ENDNODEOUTERRADIUS + hsw, ENDNODEOUTERRADIUS + hsw, ENDNODEOUTERRADIUS, outerLinePen);
+      canvas.drawFilledCircle(ENDNODEOUTERRADIUS + hsw, ENDNODEOUTERRADIUS + hsw, ENDNODEINNERRRADIUS, innerPen);
     }
   }
 

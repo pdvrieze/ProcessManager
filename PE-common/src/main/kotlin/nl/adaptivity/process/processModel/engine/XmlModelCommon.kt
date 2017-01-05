@@ -57,6 +57,10 @@ interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
       return XmlActivity.Builder(activity)
     }
 
+    override fun childModelBuilder(): Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon> {
+      return XmlActivity.ChildModelBuilder(condition = null)
+    }
+
     override fun endNodeBuilder(): XmlEndNode.Builder {
       return XmlEndNode.Builder()
     }

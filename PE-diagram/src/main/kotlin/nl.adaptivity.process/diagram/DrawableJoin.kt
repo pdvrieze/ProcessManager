@@ -18,20 +18,20 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode
-import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.ARROWCONTROLRATIO
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_X
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CURVED_ARROWS
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIGHT
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.*
-
-import nl.adaptivity.process.diagram.RootDrawableProcessModel.*
+import nl.adaptivity.xml.deserializeHelper
 
 
 class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>, Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
