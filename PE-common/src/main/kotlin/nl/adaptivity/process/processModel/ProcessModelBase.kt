@@ -241,7 +241,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Mod
   /**
    * Get the handle recorded for this model.
    */
-  override fun getHandle(): @JvmWildcard Handle<out ProcessModelBase<NodeT, ModelT>> {
+  override fun getHandle(): Handle<out @JvmWildcard ProcessModelBase<NodeT, ModelT>> {
     return Handles.handle(_handle)
   }
 
@@ -257,7 +257,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Mod
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
      */
-  override fun getRef(): IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>> {
+  override fun getRef(): IProcessModelRef<NodeT, ModelT, @JvmWildcard RootProcessModel<NodeT, ModelT>> {
     return ProcessModelRef(name, this.getHandle(), uuid)
   }
 

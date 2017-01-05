@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,14 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util
+package nl.adaptivity.process.diagram
+
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel
 
 /**
- * Created by pdvrieze on 27/11/16.
+ * Created by pdvrieze on 05/01/17.
  */
-interface ReadableHandleAware<out T: Any> {
-  fun getHandle(): Handle<out @JvmWildcard T>
-}
+interface DrawableProcessModel : ClientProcessModel<DrawableProcessNode, DrawableProcessModel> {
+  interface Builder : ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel>
 
-@Deprecated("Use getHandle()", ReplaceWith("this.getHandle()"))
-val <T:Any> ReadableHandleAware<T>.handle: Handle<out @JvmWildcard T> get() = getHandle()
+  fun notifyNodeChanged(node: DrawableProcessNode) = Unit
+}

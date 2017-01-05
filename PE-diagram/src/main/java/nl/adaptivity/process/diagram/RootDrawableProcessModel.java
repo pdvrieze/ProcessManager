@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -249,7 +249,7 @@ public class RootDrawableProcessModel extends RootClientProcessModel<DrawablePro
   }
 
   public static RootDrawableProcessModel get(final RootProcessModel<?, ?> src) {
-    if (src instanceof DrawableProcessModel) { return (RootDrawableProcessModel) src; }
+    if (src instanceof RootDrawableProcessModel) { return (RootDrawableProcessModel) src; }
     return src==null ? null : new RootDrawableProcessModel(src);
   }
 

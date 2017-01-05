@@ -62,7 +62,7 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCom
 
    * @return A reference node.
    */
-  fun getRef(): IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>>?
+  fun getRef(): IProcessModelRef<NodeT, ModelT, @JvmWildcard RootProcessModel<NodeT, ModelT>>?
 
   /**
    * Get the process node with the given id.
