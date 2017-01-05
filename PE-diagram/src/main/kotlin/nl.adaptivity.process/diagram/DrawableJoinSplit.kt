@@ -54,20 +54,19 @@ interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProce
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
-    val strategy = canvas.strategy
-    val dx = JOINWIDTH / 2
-    val hse = STROKEEXTEND / 2
-    val path = _delegate.itemCache.getPath(strategy, 0) ?: strategy.newPath().apply {
+    if (hasPos()) {
+      val dx = JOINWIDTH / 2
+      val hse = STROKEEXTEND / 2
+      val path = _delegate.itemCache.getPath(canvas.strategy, 0) {
         val dy = JOINHEIGHT / 2
+
         moveTo(hse, dy + hse)
-            .lineTo(dx + hse, hse)
-            .lineTo(JOINWIDTH + hse, dy + hse)
-            .lineTo(dx + hse, JOINHEIGHT + hse)
-            .close()
-        _delegate.itemCache.setPath(strategy, 0, this)
+        lineTo(dx + hse, hse)
+        lineTo(JOINWIDTH + hse, dy + hse)
+        lineTo(dx + hse, JOINHEIGHT + hse)
+        close()
       }
 
-    if (hasPos()) {
       val linePen = canvas.theme.getPen(ProcessThemeItems.LINE, _delegate.state and STATE_TOUCHED.inv())
       val bgPen = canvas.theme.getPen(ProcessThemeItems.BACKGROUND, _delegate.state)
 
