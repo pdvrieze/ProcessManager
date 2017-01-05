@@ -85,7 +85,7 @@ public class ServletProcessEngineClient {
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, XmlHandle.class, jaxbcontext);
   }
 
-  public static Future<ProcessModelRef<?,?>> updateProcessModel(long handle, RootProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
+  public static Future<ProcessModelRef<?,?,?>> updateProcessModel(long handle, RootProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
     final Tripple<String, Class<RootProcessModelBase>, RootProcessModelBase> param1 = Tripple.<String, Class<RootProcessModelBase>, RootProcessModelBase>tripple("processModel", RootProcessModelBase.class, processModel);
 
