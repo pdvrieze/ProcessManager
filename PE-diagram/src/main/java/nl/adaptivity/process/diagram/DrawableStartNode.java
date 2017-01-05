@@ -127,9 +127,14 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   }
 
   @Override
-  public Drawable getItemAt(double x, double y) {
+  public boolean isWithinBounds(final double x, final double y) {
     final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
-    return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius)) ? this : null;
+    return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius));
+  }
+
+  @Override
+  public Drawable getItemAt(double x, double y) {
+    return isWithinBounds(x, y) ? this : null;
   }
 
   @Override

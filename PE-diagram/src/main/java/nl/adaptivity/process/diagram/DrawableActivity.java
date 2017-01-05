@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -129,10 +129,15 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   }
 
   @Override
-  public Drawable getItemAt(double x, double y) {
+  public boolean isWithinBounds(final double x, final double y) {
     double hwidth = (ACTIVITYWIDTH+STROKEWIDTH)/2;
     double hheight = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
-    return ((Math.abs(x-getX())<=hwidth) && (Math.abs(y-getY())<=hheight)) ? this : null;
+    return Math.abs(x - getX()) <= hwidth && Math.abs(y - getY()) <= hheight;
+  }
+
+  @Override
+  public Drawable getItemAt(final double x, final double y) {
+    return isWithinBounds(x, y) ? this : null;
   }
 
   @Override

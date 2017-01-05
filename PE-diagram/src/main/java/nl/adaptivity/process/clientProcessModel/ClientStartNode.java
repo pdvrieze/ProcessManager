@@ -101,6 +101,11 @@ public class ClientStartNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mod
   }
 
   @Override
+  public void setId(@Nullable final String id) {
+    super.setId(id);
+  }
+
+  @Override
   public int getMaxSuccessorCount() {
     return isCompat() ? Integer.MAX_VALUE : 1;
   }

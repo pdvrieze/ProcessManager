@@ -16,6 +16,9 @@
 
 package nl.adaptivity.diagram;
 
+import org.jetbrains.annotations.Nullable;
+
+
 public interface Drawable extends Bounded, Cloneable {
 
   int STATE_DEFAULT=0x0;
@@ -41,6 +44,7 @@ public interface Drawable extends Bounded, Cloneable {
   <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds);
 
   @Override
+  @Nullable
   Drawable getItemAt(double x, double y);
 
   /**

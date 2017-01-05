@@ -16,13 +16,30 @@
 
 package nl.adaptivity.process.diagram
 
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel
+import nl.adaptivity.diagram.*
+import nl.adaptivity.diagram.Canvas.TextPos
+import nl.adaptivity.process.processModel.JoinSplit
+import nl.adaptivity.process.processModel.JoinSplitBase
 
-/**
- * Created by pdvrieze on 05/01/17.
- */
-interface DrawableProcessModel : ClientProcessModel<DrawableProcessNode, DrawableProcessModel?> {
-  interface Builder : ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.*
 
-  fun notifyNodeChanged(node: DrawableProcessNode) = Unit
+
+class DrawableJoinSplitDelegate {
+
+  val itemCache = ItemCache()
+  var state: Int = 0
+
+  constructor() {
+    this.state = RootDrawableProcessModel.STATE_DEFAULT
+  }
+
+  constructor(orig: DrawableJoinSplitDelegate) {
+    state = orig.state
+  }
+
+  fun setLogicalPos(elem: JoinSplitBase<*, *>, left: Double, top: Double) {
+    elem.setX(left + DrawableJoinSplit.REFERENCE_OFFSET_X)
+    elem.setY(left + DrawableJoinSplit.REFERENCE_OFFSET_Y)
+  }
+
 }

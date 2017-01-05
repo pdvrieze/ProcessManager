@@ -84,6 +84,11 @@ public class ClientEndNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Model
     return new Builder<>(this);
   }
 
+  @Override
+  public void setId(@Nullable final String id) {
+    super.setId(id);
+  }
+
 
   @Override
   public boolean isCompat() {

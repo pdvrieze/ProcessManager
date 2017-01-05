@@ -19,6 +19,7 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
@@ -30,7 +31,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
     DrawableProcessNode build(DrawableProcessModel newOwner);
   }
 
-  void setLabel(String label);
+//  void setLabel(@Nullable String label);
 
   <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top);
 
@@ -39,8 +40,10 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
   DrawableProcessNode clone();
 
-  @NotNull
+  @Nullable
   DrawableProcessModel getOwnerModel();
+
+  boolean isWithinBounds(double x, double y);
 
   @NotNull
   @Override

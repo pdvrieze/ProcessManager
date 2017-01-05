@@ -323,7 +323,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
   override val id: String? get() = mId
 
-  fun setId(id: String?) {
+  open protected fun setId(id: String?) {
     mId = id
   }
 

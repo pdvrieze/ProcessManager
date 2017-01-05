@@ -107,6 +107,11 @@ public class ClientActivityNode<NodeT extends ClientProcessNode<NodeT, ModelT>, 
   }
 
   @Override
+  public void setId(@Nullable final String id) {
+    super.setId(id);
+  }
+
+  @Override
   public String getCondition() {
     return mCondition;
   }

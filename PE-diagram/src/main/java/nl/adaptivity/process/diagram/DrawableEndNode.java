@@ -122,6 +122,12 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
   }
 
   @Override
+  public boolean isWithinBounds(final double x, final double y) {
+    final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
+    return Math.abs(x - getX()) <= realradius && Math.abs(y - getY()) <= realradius;
+  }
+
+  @Override
   public Drawable getItemAt(double x, double y) {
     final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
     return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius)) ? this : null;

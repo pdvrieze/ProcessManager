@@ -88,7 +88,7 @@ public class ClientJoinNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mode
     mCompat = compat;
   }
 
-  public ClientJoinNode(@NotNull final Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
+  public ClientJoinNode(@NotNull final Builder<?, ?> builder, final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
     mCompat = builder.isCompat();
   }
@@ -97,6 +97,11 @@ public class ClientJoinNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mode
   @Override
   public Builder<NodeT, ModelT> builder() {
     return new Builder<>(this);
+  }
+
+  @Override
+  public void setId(@Nullable final String id) {
+    super.setId(id);
   }
 
   @Override

@@ -62,7 +62,7 @@ public class ClientSplitNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mod
     }
   }
 
-  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
+  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @Nullable final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -72,7 +72,11 @@ public class ClientSplitNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mod
     return new Builder<>(this);
   }
 
-  
+  @Override
+  public void setId(@Nullable final String id) {
+    super.setId(id);
+  }
+
   @Override
   public int getMaxSuccessorCount() {
     return Integer.MAX_VALUE;
