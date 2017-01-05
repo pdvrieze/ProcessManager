@@ -20,6 +20,10 @@ import nl.adaptivity.diagram.*
 import nl.adaptivity.diagram.Canvas.TextPos
 import nl.adaptivity.process.clientProcessModel.ClientSplitNode
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion
+import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.ARROWCONTROLRATIO
+import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_X
+import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
+import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.HORIZONTALDECORATIONLEN
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Split
@@ -85,36 +89,33 @@ class DrawableSplit : ClientSplitNode<DrawableProcessNode, DrawableProcessModel?
     get() = IDBASE
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
-    super.draw(canvas, clipBounds)
+    if (hasPos()) {
+      super.draw(canvas, clipBounds)
 
-    val strategy = canvas.strategy
-    var path = _delegate.itemCache.getPath(strategy, 1)
-    if (path == null) {
-      path = strategy.newPath()
-      if (DrawableJoinSplit.CURVED_ARROWS) {
-        path!!.moveTo(DrawableJoinSplit.CENTERX - DrawableJoinSplit.HORIZONTALDECORATIONLEN, DrawableJoinSplit.CENTERY)
-            .lineTo(DrawableJoinSplit.CENTERX - INLEN, DrawableJoinSplit.CENTERY)
-            .cubicTo(DrawableJoinSplit.CENTERX - INLEN * (1 - DrawableJoinSplit.ARROWCONTROLRATIO), DrawableJoinSplit.CENTERY, DrawableJoinSplit.CENTERX + ARROWHEADDX * (1 - DrawableJoinSplit.ARROWCONTROLRATIO) - ARROWHEADADJUST, DrawableJoinSplit.CENTERY - ARROWHEADDY * (1 - DrawableJoinSplit.ARROWCONTROLRATIO) + ARROWHEADADJUST, DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWHEADADJUST, DrawableJoinSplit.CENTERY - ARROWHEADDY + ARROWHEADADJUST)
-            .moveTo(DrawableJoinSplit.CENTERX - INLEN, DrawableJoinSplit.CENTERY)
-            .cubicTo(DrawableJoinSplit.CENTERX - INLEN * (1 - DrawableJoinSplit.ARROWCONTROLRATIO), DrawableJoinSplit.CENTERY, DrawableJoinSplit.CENTERX + ARROWHEADDX * (1 - DrawableJoinSplit.ARROWCONTROLRATIO) - ARROWHEADADJUST, DrawableJoinSplit.CENTERY + ARROWHEADDY * (1 - DrawableJoinSplit.ARROWCONTROLRATIO) - ARROWHEADADJUST, DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWHEADADJUST, DrawableJoinSplit.CENTERY + ARROWHEADDY - ARROWHEADADJUST)
-      } else {
-        path!!.moveTo(DrawableJoinSplit.CENTERX - DrawableJoinSplit.HORIZONTALDECORATIONLEN, DrawableJoinSplit.CENTERY)
-            .lineTo(DrawableJoinSplit.CENTERX, DrawableJoinSplit.CENTERY)
-            .moveTo(DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWHEADADJUST, DrawableJoinSplit.CENTERY - ARROWHEADDY + ARROWHEADADJUST)
-            .lineTo(DrawableJoinSplit.CENTERX, DrawableJoinSplit.CENTERY)
-            .lineTo(DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWHEADADJUST, DrawableJoinSplit.CENTERY + ARROWHEADDY - ARROWHEADADJUST)
+      val path = _delegate.itemCache.getPath(canvas.strategy, 1) {
+        if (DrawableJoinSplit.CURVED_ARROWS) {
+          moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
+          lineTo(CENTER_X - INLEN, CENTER_Y)
+          cubicTo(CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY * (1 - ARROWCONTROLRATIO) + ARROWHEADADJUST, CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY + ARROWHEADADJUST)
+          moveTo(CENTER_X - INLEN, CENTER_Y)
+          cubicTo(CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST, CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY - ARROWHEADADJUST)
+        } else {
+          moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
+          lineTo(CENTER_X, CENTER_Y)
+          moveTo(CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY + ARROWHEADADJUST)
+          lineTo(CENTER_X, CENTER_Y)
+          lineTo(CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY - ARROWHEADADJUST)
+        }
+
+        moveTo(CENTER_X + ARROWHEADDX - ARROWDNEAR, CENTER_Y - ARROWHEADDY + ARROWDFAR)
+        lineTo(CENTER_X + ARROWHEADDX, CENTER_Y - ARROWHEADDY)
+        lineTo(CENTER_X + ARROWHEADDX - ARROWDFAR, CENTER_Y - ARROWHEADDY + ARROWDNEAR)
+        moveTo(CENTER_X + ARROWHEADDX - ARROWDFAR, CENTER_Y + ARROWHEADDY - ARROWDNEAR)
+        lineTo(CENTER_X + ARROWHEADDX, CENTER_Y + ARROWHEADDY)
+        lineTo(CENTER_X + ARROWHEADDX - ARROWDNEAR, CENTER_Y + ARROWHEADDY - ARROWDFAR)
+
       }
 
-      path.moveTo(DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWDNEAR, DrawableJoinSplit.CENTERY - ARROWHEADDY + ARROWDFAR)
-          .lineTo(DrawableJoinSplit.CENTERX + ARROWHEADDX, DrawableJoinSplit.CENTERY - ARROWHEADDY)
-          .lineTo(DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWDFAR, DrawableJoinSplit.CENTERY - ARROWHEADDY + ARROWDNEAR)
-          .moveTo(DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWDFAR, DrawableJoinSplit.CENTERY + ARROWHEADDY - ARROWDNEAR)
-          .lineTo(DrawableJoinSplit.CENTERX + ARROWHEADDX, DrawableJoinSplit.CENTERY + ARROWHEADDY)
-          .lineTo(DrawableJoinSplit.CENTERX + ARROWHEADDX - ARROWDNEAR, DrawableJoinSplit.CENTERY + ARROWHEADDY - ARROWDFAR)
-
-      _delegate.itemCache.setPath(strategy, 1, path)
-    }
-    if (hasPos()) {
       val linePen = canvas.theme.getPen(ProcessThemeItems.INNERLINE, _delegate.state and Drawable.STATE_TOUCHED.inv())
       canvas.drawPath(path, linePen, null)
     }

@@ -136,8 +136,8 @@ interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProce
     const val REFERENCE_OFFSET_X = (JOINWIDTH + STROKEEXTEND) / 2
     const val REFERENCE_OFFSET_Y = (JOINHEIGHT + STROKEEXTEND) / 2
     const val HORIZONTALDECORATIONLEN = JOINWIDTH * 0.4
-    const val CENTERX = (JOINWIDTH + STROKEEXTEND) / 2
-    const val CENTERY = (JOINHEIGHT + STROKEEXTEND) / 2
+    const val CENTER_X = (JOINWIDTH + STROKEEXTEND) / 2
+    const val CENTER_Y = (JOINHEIGHT + STROKEEXTEND) / 2
     const val ARROWHEADANGLE = 35 * Math.PI / 180
     const val ARROWLEN = JOINWIDTH * 0.15
     const val ARROWCONTROLRATIO = 0.85
