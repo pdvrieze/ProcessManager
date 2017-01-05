@@ -41,9 +41,7 @@ interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableM
 
     override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
 
-    override fun childModelBuilder(): Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon> {
-      TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun childModelBuilder() = ExecutableActivity.ChildModelBuilder()
 
     override fun endNodeBuilder() = ExecutableEndNode.Builder()
 

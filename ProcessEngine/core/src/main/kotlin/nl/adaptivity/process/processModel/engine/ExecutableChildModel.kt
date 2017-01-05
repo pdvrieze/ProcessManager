@@ -23,7 +23,7 @@ import nl.adaptivity.process.processModel.*
  */
 class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon {
 
-  class Builder(nodes: Collection<ProcessNode.Builder<ExecutableProcessNode, ExecutableModelCommon>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(null, nodes, imports, exports), ExecutableModelCommon.Builder {
+  open class Builder(childId:String?=null, nodes: Collection<ExecutableProcessNode.Builder>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(childId, nodes, imports, exports), ExecutableModelCommon.Builder {
 
     override fun buildModel(ownerModel: ExecutableModelCommon, pedantic: Boolean): ExecutableChildModel {
       return ExecutableChildModel(this, ownerModel, pedantic)
@@ -32,5 +32,5 @@ class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, Execut
 
   constructor(builder: Builder, ownerModel: ExecutableModelCommon, pedantic: Boolean) : super(builder, ownerModel, pedantic)
 
-  override fun builder() = ExecutableChildModel.Builder(modelNodes.map(ExecutableProcessNode::builder), imports, exports)
+  override fun builder() = ExecutableChildModel.Builder(childId?.id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)
 }

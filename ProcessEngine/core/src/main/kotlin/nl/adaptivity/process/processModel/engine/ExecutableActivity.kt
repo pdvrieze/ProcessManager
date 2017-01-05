@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.toMutableArraySet
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
@@ -26,12 +28,21 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
+import javax.xml.namespace.QName
 
 
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : ActivityBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode {
+
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : super(builder, newOwnerModel) {
+    this._condition = builder.condition?.let(::ExecutableCondition)
+  }
+
+  constructor(builder: Activity.ChildModelBuilder<*, *>, newOwnerModel: ExecutableModelCommon) : super(builder, newOwnerModel) {
+    this._condition = builder.condition?.let(::ExecutableCondition)
+  }
 
   class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
 
@@ -52,7 +63,48 @@ class ExecutableActivity(builder: Activity.Builder<*, *>, newOwnerModel: Executa
     override fun build(newOwner: ExecutableModelCommon) = ExecutableActivity(this, newOwner)
   }
 
-  private var _condition: ExecutableCondition? = builder.condition?.let(::ExecutableCondition)
+
+  class ChildModelBuilder(
+      override var id: String? = null,
+      childId: String? = null,
+      nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
+      predecessors: Collection<Identified> = emptyList(),
+      override var condition: String? = null,
+      successors: Collection<Identified> = emptyList(),
+      override var label: String? = null,
+      imports: Collection<IXmlResultType> = emptyList(),
+      defines: Collection<IXmlDefineType> = emptyList(),
+      exports: Collection<IXmlDefineType> = emptyList(),
+      results: Collection<IXmlResultType> = emptyList(),
+      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : ExecutableChildModel.Builder(childId, nodes, imports, exports), Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder, ExecutableModelCommon.Builder {
+
+    override var predecessors: MutableSet<Identified> = predecessors.toMutableArraySet()
+      set(value) { field.replaceBy(value) }
+
+    override var successors: MutableSet<Identified> = successors.toMutableArraySet()
+      set(value) { field.replaceBy(value) }
+
+    override var defines: MutableCollection<IXmlDefineType> = java.util.ArrayList(defines)
+      set(value) {field.replaceBy(value)}
+
+    override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
+      set(value) {field.replaceBy(value)}
+
+    override fun onBeforeDeserializeChildren(reader: XmlReader) = throw UnsupportedOperationException("Serializing child creation helpers is not possible")
+
+    override val elementName: QName get() = Activity.ELEMENTNAME
+
+    override fun buildModel(ownerModel: ExecutableModelCommon, pedantic: Boolean): ExecutableChildModel {
+      return ExecutableChildModel(this, ownerModel, pedantic)
+    }
+
+    override fun build(newOwner: ExecutableModelCommon): ExecutableActivity {
+      return ExecutableActivity(this, newOwner)
+    }
+  }
+
+
+  private var _condition: ExecutableCondition?
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
