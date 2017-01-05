@@ -37,9 +37,4 @@ class DrawableJoinSplitDelegate {
     state = orig.state
   }
 
-  fun setLogicalPos(elem: JoinSplitBase<*, *>, left: Double, top: Double) {
-    elem.setX(left + DrawableJoinSplit.REFERENCE_OFFSET_X)
-    elem.setY(left + DrawableJoinSplit.REFERENCE_OFFSET_Y)
-  }
-
 }

@@ -21,6 +21,7 @@ import nl.adaptivity.diagram.*
 import nl.adaptivity.diagram.Canvas.TextPos
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.*
+import nl.adaptivity.process.processModel.JoinSplitBase
 import nl.adaptivity.process.processModel.Split
 
 
@@ -112,6 +113,10 @@ interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProce
   override fun setPos(left: Double, top: Double) {
     x = left
     y = top
+  }
+
+  fun setLogicalPos(left: Double, top: Double) {
+    setPos(left + DrawableJoinSplit.REFERENCE_OFFSET_X, top + DrawableJoinSplit.REFERENCE_OFFSET_Y)
   }
 
   override fun getState(): Int {

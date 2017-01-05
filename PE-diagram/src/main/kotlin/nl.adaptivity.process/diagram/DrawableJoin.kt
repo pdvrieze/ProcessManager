@@ -112,15 +112,15 @@ class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>,
 
   companion object {
 
-    private val ARROWHEADDX = JOINWIDTH * 0.375
+    private const val ARROWHEADDX = JOINWIDTH * 0.375
     private val ARROWHEADADJUST = 0.5 * STROKEWIDTH / Math.sin(DrawableJoinSplit.ARROWHEADANGLE)
 
     /** The y coordinate if the line were horizontal.  */
     private val ARROWDFAR = DrawableJoinSplit.ARROWLEN * Math.sin(DrawableJoinSplit.ARROWHEADANGLE)
     /** The x coordinate if the line were horizontal.  */
     private val ARROWDNEAR = DrawableJoinSplit.ARROWLEN * Math.cos(DrawableJoinSplit.ARROWHEADANGLE)
-    private val INDX = JOINWIDTH * 0.2
-    private val INDY = JOINHEIGHT * 0.2
+    private const val INDX = JOINWIDTH * 0.2
+    private const val INDY = JOINHEIGHT * 0.2
     private val INLEN = Math.sqrt(INDX * INDX + INDY * INDY)
 
     @JvmStatic

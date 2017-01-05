@@ -73,12 +73,10 @@ class DrawableSplit : ClientSplitNode<DrawableProcessNode, DrawableProcessModel?
     if (javaClass == DrawableSplit::class.java) {
       return DrawableSplit(this)
     }
-    throw RuntimeException(CloneNotSupportedException())
+    throw CloneNotSupportedException()
   }
 
-  override fun isCompat(): Boolean {
-    return false
-  }
+  override fun isCompat() = false
 
   override val maxSuccessorCount: Int
     get() = Integer.MAX_VALUE
@@ -124,15 +122,16 @@ class DrawableSplit : ClientSplitNode<DrawableProcessNode, DrawableProcessModel?
 
   companion object {
 
-    private val ARROWHEADDX = JOINWIDTH * 0.2
-    private val ARROWHEADDY = JOINWIDTH * 0.2
+    private const val ARROWHEADDX = JOINWIDTH * 0.2
+    private const val ARROWHEADDY = JOINWIDTH * 0.2
+
     private val ARROWHEADADJUST = 0.5 * STROKEWIDTH * Math.sqrt(0.5 / (Math.sin(DrawableJoinSplit.ARROWHEADANGLE) * Math.sin(DrawableJoinSplit.ARROWHEADANGLE)))
     /** The y coordinate if the line were horizontal.  */
     private val ARROWDFAR = DrawableJoinSplit.ARROWLEN * Math.sin(0.25 * Math.PI - DrawableJoinSplit.ARROWHEADANGLE)
     /** The x coordinate if the line were horizontal.  */
     private val ARROWDNEAR = DrawableJoinSplit.ARROWLEN * Math.cos(0.25 * Math.PI - DrawableJoinSplit.ARROWHEADANGLE)
     private val INLEN = Math.sqrt(ARROWHEADDX * ARROWHEADDX + ARROWHEADDY * ARROWHEADDY)
-    val IDBASE = "split"
+    const val IDBASE = "split"
 
     @JvmStatic
     @Deprecated("")
