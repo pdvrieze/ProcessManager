@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,7 +19,6 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlException;

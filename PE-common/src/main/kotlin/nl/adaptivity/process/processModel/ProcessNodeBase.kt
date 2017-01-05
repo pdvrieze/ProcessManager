@@ -28,10 +28,10 @@ import javax.xml.XMLConstants
 
 
 /**
- * A base class for process nodes. Works like [ProcessModelBase]
+ * A base class for process nodes. Works like [RootProcessModelBase]
  * Created by pdvrieze on 23/11/15.
  */
-abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> @JvmOverloads
+abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> @JvmOverloads
     constructor(private var _ownerModel: ModelT,
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
@@ -45,7 +45,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Mode
   @Deprecated("Don't use this if it can be avoided")
   constructor(ownerModel: ModelT): this (ownerModel, id=null)
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?>(
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(
       override var id: String? = null,
       predecessors: Collection<Identified> = emptyList(),
       successors: Collection<Identified> = emptyList(),
@@ -296,9 +296,9 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Mode
     if (_ownerModel !== newOwnerModel) {
       _hashCode = 0
       val thisT = this.asT()
-      (_ownerModel as? MutableProcessModel<NodeT,ModelT>)?.removeNode(thisT)
+      (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.removeNode(thisT)
       _ownerModel = newOwnerModel
-      (newOwnerModel as? MutableProcessModel<NodeT,ModelT>)?.addNode(thisT)
+      (newOwnerModel as? MutableRootProcessModel<NodeT, ModelT>)?.addNode(thisT)
     }
   }
 
@@ -328,7 +328,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Mode
   }
 
   protected fun notifyChange() {
-    (_ownerModel as? MutableProcessModel<NodeT,ModelT>)?.notifyNodeChanged(this.asT())
+    (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.notifyNodeChanged(this.asT())
   }
 
   override fun getX(): Double {

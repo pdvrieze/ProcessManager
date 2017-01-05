@@ -21,9 +21,9 @@ import nl.adaptivity.process.processModel.*
 /**
  * Created by pdvrieze on 04/01/17.
  */
-interface XmlModelCommon: ModelCommon<XmlProcessNode, XmlModelCommon> {
+interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
 
-  interface Builder: ModelCommon.Builder<XmlProcessNode, XmlModelCommon> {
+  interface Builder: ProcessModel.Builder<XmlProcessNode, XmlModelCommon> {
 
     override fun startNodeBuilder(): XmlStartNode.Builder {
       return XmlStartNode.Builder()

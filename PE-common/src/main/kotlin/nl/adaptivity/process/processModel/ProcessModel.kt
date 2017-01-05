@@ -24,10 +24,13 @@ import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
+@DslMarker
+annotation class ProcessModelDSL
+
 /**
  * Created by pdvrieze on 02/01/17.
  */
-interface ModelCommon<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> {
+interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
   /**
    * Get the process node with the given id.
    * @param nodeId The node id to look up.
@@ -47,8 +50,8 @@ interface ModelCommon<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<N
     return this as ModelT
   }
 
-
-  interface Builder<NodeT : ProcessNode<NodeT,ModelT>, ModelT: ModelCommon<NodeT,ModelT>?> {
+  @ProcessModelDSL
+  interface Builder<NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> {
     val nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>>
     val imports: MutableList<IXmlResultType>
     val exports: MutableList<IXmlDefineType>
@@ -118,8 +121,10 @@ interface ModelCommon<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<N
     fun normalize(pedantic: Boolean)
 
   }
-}
 
-private fun <B: ProcessNode.Builder<NodeT,ModelT>, NodeT : ProcessNode<NodeT,ModelT>, ModelT: ModelCommon<NodeT,ModelT>?> ModelCommon.Builder<NodeT, ModelT>.nodeHelper(builder:B, body: B.()->Unit): Identifiable {
-  return builder.apply(body).ensureId().apply { this@nodeHelper.nodes.add(this) }.let { Identifier(it.id!!) }
+  companion object {
+    private fun <B: ProcessNode.Builder<NodeT,ModelT>, NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> ProcessModel.Builder<NodeT, ModelT>.nodeHelper(builder:B, body: B.()->Unit): Identifiable {
+      return builder.apply(body).ensureId().apply { this@nodeHelper.nodes.add(this) }.let { Identifier(it.id!!) }
+    }
+  }
 }

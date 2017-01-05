@@ -31,9 +31,9 @@ import javax.xml.namespace.QName
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, Activity<NodeT, ModelT> {
+abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, Activity<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ModelCommon<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, Activity.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, Activity.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
 
     override var message: IXmlMessage?
     override var name: String?

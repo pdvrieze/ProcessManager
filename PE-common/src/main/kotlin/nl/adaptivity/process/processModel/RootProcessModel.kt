@@ -25,9 +25,9 @@ import java.util.*
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
-interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ModelCommon<NodeT,ModelT> {
+interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT> {
 
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ModelCommon.Builder<NodeT,ModelT> {
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
     var name: String?
     var handle: Long
     var owner: Principal
@@ -93,25 +93,10 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCom
 
 }
 
-@Deprecated("Use builders instead")
-interface MutableProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?>: RootProcessModel<NodeT,ModelT> {
-
-  fun setUuid(uUID: UUID)
-
-  fun addNode(node: NodeT): Boolean
-  fun removeNode(node: NodeT): Boolean
-
-  /**
-   * Initiate the notification that a node has changed. Actual implementations can override this.
-   * @param node The node that has changed.
-   */
-  fun notifyNodeChanged(node: NodeT)
-}
-
 val RootProcessModel<*,*>.uuid get() = getUuid()
-val <T : ProcessNode<T, M>, M : ModelCommon<T, M>> RootProcessModel<T, M>.ref get() = getRef()
-val <T : ProcessNode<T, *>> ModelCommon<T, *>.modelNodes get() = getModelNodes()
+val <T : ProcessNode<T, M>, M : ProcessModel<T, M>> RootProcessModel<T, M>.ref get() = getRef()
+val <T : ProcessNode<T, *>> ProcessModel<T, *>.modelNodes get() = getModelNodes()
 val RootProcessModel<*,*>.name get() = getName()
 val RootProcessModel<*,*>.roles get() = getRoles()
-val ModelCommon<*,*>.imports get() = getImports()
-val ModelCommon<*,*>.exports get() = getExports()
+val ProcessModel<*,*>.imports get() = getImports()
+val ProcessModel<*,*>.exports get() = getExports()

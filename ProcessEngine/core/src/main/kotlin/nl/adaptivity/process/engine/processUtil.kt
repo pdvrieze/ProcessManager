@@ -20,7 +20,7 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.ModelCommon
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.util.Identifiable
@@ -35,9 +35,9 @@ fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw Proce
 
 inline fun <N: ProcessNode<*,*>> N?.mustExist(id:String): N = mustExist(Identifier(id))
 
-fun <T: ProcessNode<T, *>> ModelCommon<T, *>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
+fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
 
-inline fun <T: ProcessNode<T, *>> ModelCommon<T, *>.requireNode(id:String):T = requireNode(Identifier(id))
+inline fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:String):T = requireNode(Identifier(id))
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

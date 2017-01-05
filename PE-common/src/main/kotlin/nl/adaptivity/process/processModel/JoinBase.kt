@@ -25,9 +25,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Join<NodeT, ModelT> {
+abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Join<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Join.Builder<NodeT,ModelT> {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Join.Builder<NodeT,ModelT> {
     override val idBase:String
       get() = "join"
 

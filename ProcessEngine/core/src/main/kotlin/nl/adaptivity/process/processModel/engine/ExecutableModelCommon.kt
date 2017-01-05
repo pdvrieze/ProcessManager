@@ -21,9 +21,9 @@ import nl.adaptivity.process.processModel.*
 /**
  * Created by pdvrieze on 04/01/17.
  */
-interface ExecutableModelCommon: ModelCommon<ExecutableProcessNode, ExecutableModelCommon> {
+interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
 
-  interface Builder: ModelCommon.Builder<ExecutableProcessNode, ExecutableModelCommon> {
+  interface Builder: ProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon> {
 
     override fun startNodeBuilder() = ExecutableStartNode.Builder()
 

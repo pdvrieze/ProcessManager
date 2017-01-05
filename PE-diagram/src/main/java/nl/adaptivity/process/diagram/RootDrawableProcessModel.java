@@ -20,11 +20,9 @@ import kotlin.jvm.functions.Function2;
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import nl.adaptivity.diagram.*;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.ProcessModelBase.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
@@ -154,9 +152,9 @@ public class RootDrawableProcessModel extends RootClientProcessModel<DrawablePro
   private int mIdSeq =0;
   private boolean mFavourite;
 
-  private static final Function2<? super ModelCommon<DrawableProcessNode, DrawableProcessModel>, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> DRAWABLE_NODE_FACTORY = new Function2<ModelCommon<DrawableProcessNode, DrawableProcessModel>, ProcessNode<?, ?>, DrawableProcessNode>() {
+  private static final Function2<? super ProcessModel<DrawableProcessNode, DrawableProcessModel>, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> DRAWABLE_NODE_FACTORY = new Function2<ProcessModel<DrawableProcessNode, DrawableProcessModel>, ProcessNode<?, ?>, DrawableProcessNode>() {
     @Override
-    public DrawableProcessNode invoke(final ModelCommon<DrawableProcessNode, DrawableProcessModel> drawableProcessModel, final ProcessNode<?, ?> processNode) {
+    public DrawableProcessNode invoke(final ProcessModel<DrawableProcessNode, DrawableProcessModel> drawableProcessModel, final ProcessNode<?, ?> processNode) {
       return toDrawableNode(processNode);
     }
   };
@@ -175,7 +173,7 @@ public class RootDrawableProcessModel extends RootClientProcessModel<DrawablePro
     layout();
   }
 
-  public RootDrawableProcessModel(@NotNull final ProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
+  public RootDrawableProcessModel(@NotNull final RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
     super(builder);
   }
 
@@ -207,7 +205,7 @@ public class RootDrawableProcessModel extends RootClientProcessModel<DrawablePro
 
   @NotNull
   public static RootDrawableProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
-    return ProcessModelBase.Builder.<Builder>deserialize(new Builder(), in).build(false);
+    return RootProcessModelBase.Builder.<Builder>deserialize(new Builder(), in).build(false);
   }
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(final RootProcessModel<? extends ProcessNode<?,?>, ?> original) {

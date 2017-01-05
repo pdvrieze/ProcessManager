@@ -32,8 +32,8 @@ import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
 
-interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @kotlin.jvm.JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ModelCommon<NodeT, ModelT> {
-  interface Builder<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ModelCommon.Builder<NodeT, ModelT> {
+interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @kotlin.jvm.JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel<NodeT, ModelT> {
+  interface Builder<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel.Builder<NodeT, ModelT> {
 
   }
 
@@ -41,21 +41,21 @@ interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>
 }
 
 abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> :
-    ProcessModelBase<NodeT, ModelT>, MutableProcessModel<NodeT,ModelT> {
+    RootProcessModelBase<NodeT, ModelT>, MutableRootProcessModel<NodeT, ModelT> {
 
   var layoutAlgorithm: LayoutAlgorithm<NodeT>
 
-  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<NodeT> = emptyList(), layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm<NodeT>(), nodeFactory: (ModelCommon<NodeT,ModelT>, ProcessNode<*, *>) -> NodeT) :
+  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<NodeT> = emptyList(), layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm<NodeT>(), nodeFactory: (ProcessModel<NodeT,ModelT>, ProcessNode<*, *>) -> NodeT) :
     super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
     this.layoutAlgorithm = layoutAlgorithm
   }
 
   @JvmOverloads
-  constructor(builder: ProcessModelBase.Builder<NodeT, ModelT>, pedantic: Boolean = false) : super(builder, pedantic) {
+  constructor(builder: RootProcessModelBase.Builder<NodeT, ModelT>, pedantic: Boolean = false) : super(builder, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 
-  abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : ProcessModelBase.Builder<T,M>, ClientProcessModel.Builder<T,M> {
+  abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : RootProcessModelBase.Builder<T,M>, ClientProcessModel.Builder<T,M> {
     var  layoutAlgorithm: LayoutAlgorithm<T>
 
     constructor(): this(nodes= mutableSetOf())
@@ -77,7 +77,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
       this.layoutAlgorithm = (base as? ClientProcessModel<T,M>)?.layoutAlgorithm ?: LayoutAlgorithm<T>()
     }
 
-    abstract override fun build(pedantic: Boolean): ProcessModelBase<T, M>
+    abstract override fun build(pedantic: Boolean): RootProcessModelBase<T, M>
   }
 
   var topPadding = 5.0

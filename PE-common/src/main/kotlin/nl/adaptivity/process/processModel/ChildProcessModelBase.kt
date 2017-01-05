@@ -26,23 +26,23 @@ import javax.xml.namespace.QName
 /**
  * Base class for submodels
  */
-abstract class SubModelBase<T : ProcessNode<T, M>, M : ModelCommon<T, M>?> : ProcessCommonBase<T, M>, SubModel<T,M> {
+abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModelBase<T, M>, ChildProcessModel<T,M> {
 
   override val ownerNode: T
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ModelCommon<T, M>?>(nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
-                                                                             imports: Collection<IXmlResultType> = emptyList(),
-                                                                             exports: Collection<IXmlDefineType> = emptyList()) : ProcessCommonBase.Builder<T,M>(nodes, imports, exports), SubModel.Builder<T,M> {
-    override abstract fun build(ownerNode: T, pedantic: Boolean): SubModelBase<T, M>
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+                                                                         imports: Collection<IXmlResultType> = emptyList(),
+                                                                         exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
+    override abstract fun build(ownerNode: T, pedantic: Boolean): ChildProcessModelBase<T, M>
   }
 
-  constructor(builder: SubModel.Builder<T,M>, ownerNode: T, pedantic: Boolean):super(builder, pedantic) {
+  constructor(builder: ChildProcessModel.Builder<T,M>, ownerNode: T, pedantic: Boolean):super(builder, pedantic) {
     this.ownerNode = ownerNode
   }
 
-  abstract override fun builder(): SubModelBase.Builder<T, M>
+  abstract override fun builder(): ChildProcessModelBase.Builder<T, M>
 
-  abstract fun update(body: (ProcessCommonBase.Builder<T, M>) -> Unit): SubModelBase<T, M>
+  abstract fun update(body: (ProcessModelBase.Builder<T, M>) -> Unit): ChildProcessModelBase<T, M>
 
   override fun serialize(out: XmlWriter) {
 

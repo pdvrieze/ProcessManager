@@ -16,16 +16,19 @@
 
 package nl.adaptivity.process.processModel
 
-/**
- * Created by pdvrieze on 02/01/17.
- */
-interface SubModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ModelCommon<NodeT,ModelT> {
+import java.util.*
 
-  interface Builder<T : ProcessNode<T, M>, M : ModelCommon<T, M>?> : ModelCommon.Builder<T,M> {
-    fun build(ownerNode: T, pedantic: Boolean = false): SubModel<T,M>
-  }
+@Deprecated("Use builders instead")
+interface MutableRootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>: RootProcessModel<NodeT, ModelT> {
 
-  val ownerNode: NodeT
-  val parent: ModelT get() = ownerNode.ownerModel
-  override val rootModel: RootProcessModel<NodeT, ModelT>? get() = parent?.rootModel
+  fun setUuid(uUID: UUID)
+
+  fun addNode(node: NodeT): Boolean
+  fun removeNode(node: NodeT): Boolean
+
+  /**
+   * Initiate the notification that a node has changed. Actual implementations can override this.
+   * @param node The node that has changed.
+   */
+  fun notifyNodeChanged(node: NodeT)
 }

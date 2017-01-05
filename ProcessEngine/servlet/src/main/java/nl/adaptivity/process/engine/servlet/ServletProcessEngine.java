@@ -37,7 +37,7 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
@@ -588,7 +588,7 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
    * @return A reference to the model. This may include a newly generated uuid if not was provided.
    */
   @WebMethod(operationName = "updateProcessModel")
-  public ProcessModelRef<?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
+  public ProcessModelRef<?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final RootProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
     if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
       processModel.setHandleValue(handle);
@@ -622,7 +622,7 @@ public class ServletProcessEngine<T extends ProcessTransaction> extends Endpoint
    * @return A reference to the model with handle and a new uuid if none was provided.
    */
   @WebMethod(operationName = "postProcessModel")
-  public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
+  public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final RootProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
     if (owner==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
     if (processModel != null) {
       processModel.setHandleValue(-1); // The handle cannot be set

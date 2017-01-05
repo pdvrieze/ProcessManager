@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.ModelCommon;
 import nl.adaptivity.process.processModel.ProcessNode;
 import org.jetbrains.annotations.NotNull;
 

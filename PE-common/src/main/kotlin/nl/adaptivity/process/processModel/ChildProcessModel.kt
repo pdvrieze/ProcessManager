@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,20 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine
+package nl.adaptivity.process.processModel
 
-import net.devrieze.util.Handle
-import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.process.processModel.RootProcessModel
+/**
+ * Created by pdvrieze on 02/01/17.
+ */
+interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT> {
 
-import java.util.UUID
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModel.Builder<T,M> {
+    fun build(ownerNode: T, pedantic: Boolean = false): ChildProcessModel<T,M>
+  }
 
-
-interface IProcessModelRef<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?, out ObjectT: @JvmWildcard RootProcessModel<NodeT, ModelT>> : Handle<ObjectT> {
-
-  val name: String?
-
-  val uuid: UUID?
-
+  val ownerNode: NodeT
+  val parent: ModelT get() = ownerNode.ownerModel
+  override val rootModel: RootProcessModel<NodeT, ModelT>? get() = parent?.rootModel
 }

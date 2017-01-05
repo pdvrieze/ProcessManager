@@ -44,9 +44,9 @@ import java.util.*
  * @author Paul de Vrieze
  */
 @XmlDeserializer(XmlProcessModel.Factory::class)
-class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
+class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
-  class Builder : ProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+  class Builder : RootProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
 
     constructor(nodes: Set<ProcessNode.Builder<XmlProcessNode, XmlModelCommon>>, name: String?, handle: Long, owner: Principal, roles: List<String>, uuid: UUID?, imports: List<IXmlResultType>, exports: List<IXmlDefineType>) : super(nodes, name, handle, owner, roles, uuid, imports, exports) {}
 
@@ -66,7 +66,7 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlMod
 
       @Throws(XmlException::class)
       fun deserialize(reader: XmlReader): Builder {
-        return ProcessModelBase.Builder.deserialize(Builder(), reader)
+        return RootProcessModelBase.Builder.deserialize(Builder(), reader)
       }
     }
   }
@@ -116,7 +116,7 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlMod
   constructor(processNodes: Collection<XmlProcessNode>) : super(ArrayList(processNodes), null, -1L, SecurityProvider.SYSTEMPRINCIPAL, emptyList<String>(), null, emptyList<IXmlResultType>(), emptyList<IXmlDefineType>(), XML_NODE_FACTORY) {
   }
 
-  constructor(basepm: ProcessModelBase<*, *>) : super(basepm, XML_NODE_FACTORY) {}
+  constructor(basepm: RootProcessModelBase<*, *>) : super(basepm, XML_NODE_FACTORY) {}
 
   @JvmOverloads constructor(builder: Builder, pedantic: Boolean = false) : super(builder, pedantic) {}
 
@@ -216,7 +216,7 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlMod
 
   companion object {
 
-    private val XML_NODE_FACTORY = fun(newOwner: ModelCommon<XmlProcessNode, XmlModelCommon>, processNode: ProcessNode<*, *>): XmlProcessNode {
+    private val XML_NODE_FACTORY = fun(newOwner: ProcessModel<XmlProcessNode, XmlModelCommon>, processNode: ProcessNode<*, *>): XmlProcessNode {
       return toXmlNode(newOwner as XmlModelCommon, processNode)
     }
 

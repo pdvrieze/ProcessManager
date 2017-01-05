@@ -28,9 +28,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 24/11/15.
  */
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ModelCommon<T, M>>(builder: EndNode.Builder<*, *>, newOwnerModel: M) : ProcessNodeBase<T, M>(builder, newOwnerModel), EndNode<T, M> {
+abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>>(builder: EndNode.Builder<*, *>, newOwnerModel: M) : ProcessNodeBase<T, M>(builder, newOwnerModel), EndNode<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ModelCommon<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
 
     override val idBase:String
       get() = "end"

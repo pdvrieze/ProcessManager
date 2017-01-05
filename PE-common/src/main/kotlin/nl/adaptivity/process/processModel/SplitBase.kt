@@ -27,9 +27,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Split<NodeT, ModelT> {
+abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Split<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Split.Builder<NodeT,ModelT> {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Split.Builder<NodeT,ModelT> {
     override val idBase:String
       get() = "split"
 

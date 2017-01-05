@@ -29,10 +29,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 25/11/15.
  */
-abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> :
+abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
     ProcessNodeBase<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, JoinSplit.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, JoinSplit.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
 
     override var min:Int
     override var max:Int

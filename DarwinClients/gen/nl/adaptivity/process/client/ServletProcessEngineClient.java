@@ -18,7 +18,6 @@ import javax.xml.transform.Source;
 import net.devrieze.util.Tripple;
 
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.Endpoint;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
@@ -26,7 +25,7 @@ import nl.adaptivity.messaging.SendableSoapSource;
 import nl.adaptivity.process.engine.XmlHandle;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
-import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.xml.XmlException;
@@ -64,8 +63,8 @@ public class ServletProcessEngineClient {
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, XmlProcessNodeInstance.class, jaxbcontext);
   }
 
-  public static Future<ProcessModelRef> postProcessModel(ProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
-    final Tripple<String, Class<ProcessModelBase>, ProcessModelBase> param0 = Tripple.<String, Class<ProcessModelBase>, ProcessModelBase>tripple("processModel", ProcessModelBase.class, processModel);
+  public static Future<ProcessModelRef> postProcessModel(RootProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
+    final Tripple<String, Class<RootProcessModelBase>, RootProcessModelBase> param0 = Tripple.<String, Class<RootProcessModelBase>, RootProcessModelBase>tripple("processModel", RootProcessModelBase.class, processModel);
 
     Source message = SoapHelper.createMessage(new QName("postProcessModel"), Arrays.asList(new JAXBElement<String>(new QName("http://adaptivity.nl/ProcessEngine/","principal"), String.class, principal.getName())), Arrays.<Tripple<String, ? extends Class<?>, ?>>asList(param0));
 
@@ -86,9 +85,9 @@ public class ServletProcessEngineClient {
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, XmlHandle.class, jaxbcontext);
   }
 
-  public static Future<ProcessModelRef<?,?>> updateProcessModel(long handle, ProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
+  public static Future<ProcessModelRef<?,?>> updateProcessModel(long handle, RootProcessModelBase processModel, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
-    final Tripple<String, Class<ProcessModelBase>, ProcessModelBase> param1 = Tripple.<String, Class<ProcessModelBase>, ProcessModelBase>tripple("processModel", ProcessModelBase.class, processModel);
+    final Tripple<String, Class<RootProcessModelBase>, RootProcessModelBase> param1 = Tripple.<String, Class<RootProcessModelBase>, RootProcessModelBase>tripple("processModel", RootProcessModelBase.class, processModel);
 
     Source message = SoapHelper.createMessage(new QName("updateProcessModel"), Arrays.asList(new JAXBElement<String>(new QName("http://adaptivity.nl/ProcessEngine/","principal"), String.class, principal.getName())), Arrays.<Tripple<String, ? extends Class<?>, ?>>asList(param0, param1));
 

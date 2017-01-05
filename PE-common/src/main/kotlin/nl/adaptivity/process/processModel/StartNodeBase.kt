@@ -29,9 +29,9 @@ import javax.xml.namespace.QName
 /**
  * Base class for start nodes. It knows about the data
  */
-abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, StartNode<NodeT, ModelT> {
+abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, StartNode<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT, ModelT>, StartNode.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT, ModelT>, StartNode.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
     override val idBase:String
       get() = "start"
 

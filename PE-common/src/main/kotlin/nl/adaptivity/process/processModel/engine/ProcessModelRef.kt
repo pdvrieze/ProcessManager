@@ -19,7 +19,7 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.processModel.ModelCommon;
+import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.RootProcessModel;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
@@ -32,7 +32,7 @@ import javax.xml.namespace.QName;
 
 import java.util.UUID;
 
-@XmlDeserializer(ProcessModelRef.Factory::class) class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?, out ObjectT: @JvmWildcard RootProcessModel<NodeT, ModelT>>constructor(override var name:String?, var handle: Long, override var uuid: UUID?) : IProcessModelRef<NodeT, ModelT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
+@XmlDeserializer(ProcessModelRef.Factory::class) class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?, out ObjectT: @JvmWildcard RootProcessModel<NodeT, ModelT>>constructor(override var name:String?, var handle: Long, override var uuid: UUID?) : IProcessModelRef<NodeT, ModelT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
 
   override val valid: Boolean
     get() =  handleValue >=0L;
@@ -115,11 +115,11 @@ import java.util.UUID;
     @JvmField val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
 
-    fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> get(src: IProcessModelRef<NodeT, ModelT, ObjectT>) : ProcessModelRef<NodeT, ModelT, ObjectT> {
+    fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> get(src: IProcessModelRef<NodeT, ModelT, ObjectT>) : ProcessModelRef<NodeT, ModelT, ObjectT> {
       return src as? ProcessModelRef ?: ProcessModelRef(src)
     }
 
-    fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> deserialize(reader: XmlReader): ProcessModelRef<NodeT,ModelT, ObjectT> {
+    fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> deserialize(reader: XmlReader): ProcessModelRef<NodeT,ModelT, ObjectT> {
       return ProcessModelRef<NodeT, ModelT, ObjectT>().deserializeHelper(reader);
     }
 

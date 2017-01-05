@@ -20,7 +20,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-interface MutableProcessNode<NodeT : MutableProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>> : ProcessNode<NodeT, ModelT> {
+interface MutableProcessNode<NodeT : MutableProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>> : ProcessNode<NodeT, ModelT> {
 
   fun setId(id: String)
 

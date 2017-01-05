@@ -32,7 +32,7 @@ import java.security.Principal
 import java.util.*
 
 
-typealias ExecutableModelCommonAlias = ModelCommon<ExecutableProcessNode, ExecutableModelCommon>
+typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode, ExecutableModelCommon>
 
 /**
  * A class representing a process model.
@@ -40,9 +40,9 @@ typealias ExecutableModelCommonAlias = ModelCommon<ExecutableProcessNode, Execut
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ExecutableProcessModel.Factory::class)
-class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon/*, MutableHandleAware<ExecutableProcessModel>*/, SecureObject<ExecutableProcessModel> {
+class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon/*, MutableHandleAware<ExecutableProcessModel>*/, SecureObject<ExecutableProcessModel> {
 
-  class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
+  class Builder : RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
     constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
                 name: String? = null,
                 handle: Long = -1L,
@@ -60,7 +60,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     companion object {
       @JvmStatic
       fun deserialize(reader: XmlReader): Builder {
-        return ProcessModelBase.Builder.deserialize(ExecutableProcessModel.Builder(), reader)
+        return RootProcessModelBase.Builder.deserialize(ExecutableProcessModel.Builder(), reader)
       }
     }
   }
@@ -89,14 +89,14 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
   override fun withPermission() = this
 
-  constructor(basepm: ProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
+  constructor(basepm: RootProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
 
   @JvmOverloads
   constructor(builder: Builder, pedantic:Boolean = true) : super(builder, pedantic)
 
   override fun builder(): Builder = Builder(this)
 
-  override fun update(body: (ProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>) -> Unit): ExecutableProcessModel {
+  override fun update(body: (RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>) -> Unit): ExecutableProcessModel {
     return Builder(this).apply(body).build()
   }
 
@@ -205,7 +205,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
 
   companion object {
 
-    fun from(basepm: ProcessModelBase<*, *>): ExecutableProcessModel {
+    fun from(basepm: RootProcessModelBase<*, *>): ExecutableProcessModel {
       return ExecutableProcessModel(basepm)
     }
 
@@ -259,7 +259,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
   }
 }
 
-fun toExecutableProcessNode(_newOwner: ModelCommon<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
+fun toExecutableProcessNode(_newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
   val newOwner = _newOwner.asM
   return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
     override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode.builder(), newOwner)

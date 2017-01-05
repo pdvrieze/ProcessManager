@@ -27,10 +27,10 @@ import nl.adaptivity.xml.XmlSerializable
 /**
  * Created by pdvrieze on 27/11/16.
  */
-interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
+interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
 
   @ProcessModelDSL
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : XmlDeserializable {
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable {
     var predecessors: MutableSet<Identified>
     var successors: MutableSet<Identified>
     var id: String?

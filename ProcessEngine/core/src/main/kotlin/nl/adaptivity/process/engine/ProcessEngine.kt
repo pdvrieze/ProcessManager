@@ -29,7 +29,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
-import nl.adaptivity.process.processModel.ProcessModelBase
+import nl.adaptivity.process.processModel.RootProcessModelBase
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
 import org.w3c.dom.Node
@@ -244,7 +244,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun addProcessModel(transaction: TRXXX, basepm: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun addProcessModel(transaction: TRXXX, basepm: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user)
 
     return engineData.inWriteTransaction(transaction) {
@@ -313,7 +313,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(FileNotFoundException::class, SQLException::class)
-  fun updateProcessModel(transaction: TRXXX, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun updateProcessModel(transaction: TRXXX, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     engineData.inWriteTransaction(transaction) {
       val oldModel = processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
 

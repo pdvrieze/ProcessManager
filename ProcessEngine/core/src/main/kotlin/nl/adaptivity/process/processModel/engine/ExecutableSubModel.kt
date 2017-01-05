@@ -21,9 +21,9 @@ import nl.adaptivity.process.processModel.*
 /**
  * Created by pdvrieze on 04/01/17.
  */
-class ExecutableSubModel: SubModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon {
+class ExecutableSubModel: ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon {
 
-  class Builder(nodes: Collection<ProcessNode.Builder<ExecutableProcessNode, ExecutableModelCommon>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : SubModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(nodes, imports, exports), ExecutableModelCommon.Builder {
+  class Builder(nodes: Collection<ProcessNode.Builder<ExecutableProcessNode, ExecutableModelCommon>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(nodes, imports, exports), ExecutableModelCommon.Builder {
     override fun build(ownerNode: ExecutableProcessNode, pedantic: Boolean): ExecutableSubModel {
       return ExecutableSubModel(this, ownerNode, pedantic)
     }
@@ -33,7 +33,7 @@ class ExecutableSubModel: SubModelBase<ExecutableProcessNode, ExecutableModelCom
 
   override fun builder() = ExecutableSubModel.Builder(modelNodes.map(ExecutableProcessNode::builder), imports, exports)
 
-  override fun update(body: (ProcessCommonBase.Builder<ExecutableProcessNode, ExecutableModelCommon>) -> Unit): ExecutableSubModel {
+  override fun update(body: (ProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>) -> Unit): ExecutableSubModel {
     return builder().apply(body).build(ownerNode)
   }
 }
