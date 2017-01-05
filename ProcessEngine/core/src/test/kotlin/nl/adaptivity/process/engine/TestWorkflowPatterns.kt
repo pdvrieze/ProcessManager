@@ -27,7 +27,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 30/12/16.
  */
-class TestControlPatterns: Spek({
+class TestWorkflowPatterns : Spek({
 
   givenEngine {
 
