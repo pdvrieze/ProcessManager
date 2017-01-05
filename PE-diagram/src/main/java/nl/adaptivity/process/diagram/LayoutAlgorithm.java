@@ -45,9 +45,9 @@ public class LayoutAlgorithm<T extends Positioned> {
 
   private static final int PASSCOUNT = 9;
 
-  private double mVertSeparation = DrawableProcessModel.DEFAULT_VERT_SEPARATION;
+  private double mVertSeparation = RootDrawableProcessModel.DEFAULT_VERT_SEPARATION;
 
-  private double mHorizSeparation = DrawableProcessModel.DEFAULT_HORIZ_SEPARATION;
+  private double mHorizSeparation = RootDrawableProcessModel.DEFAULT_HORIZ_SEPARATION;
 
   private double mDefaultNodeWidth = 30d;
   private double mDefaultNodeHeight = 30d;

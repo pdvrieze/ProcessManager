@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 
-public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends StartNodeBase<T, M> implements ClientProcessNode<T, M> {
+public class ClientStartNode<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends StartNodeBase<NodeT, ModelT> implements ClientProcessNode<NodeT, ModelT> {
 
-  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends StartNodeBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
+  public static class Builder<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends StartNodeBase.Builder<NodeT, ModelT> implements ClientProcessNode.Builder<NodeT, ModelT> {
 
     public Builder() { }
 
@@ -50,8 +50,8 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
     @NotNull
     @Override
-    public ClientStartNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
-      return new ClientStartNode<T, M>(this, newOwner);
+    public ClientStartNode<NodeT, ModelT> build(@NotNull final ModelT newOwner) {
+      return new ClientStartNode<NodeT, ModelT>(this, newOwner);
     }
 
     @Override
@@ -69,23 +69,23 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
   private final boolean mCompat;
 
-  public ClientStartNode(final ModelCommon<T,M> ownerModel, final boolean compat) {
+  public ClientStartNode(final ModelT ownerModel, final boolean compat) {
     super(ownerModel);
     mCompat = compat;
   }
 
-  public ClientStartNode(final ModelCommon<T,M> ownerModel, final String id, final boolean compat) {
+  public ClientStartNode(final ModelT ownerModel, final String id, final boolean compat) {
     super(ownerModel);
     setId(id);
     mCompat = compat;
   }
 
-  protected ClientStartNode(final ClientStartNode<T, M> orig, final boolean compat) {
+  protected ClientStartNode(final ClientStartNode<NodeT, ModelT> orig, final boolean compat) {
     super(orig.builder(), null);
     mCompat = compat;
   }
 
-  public ClientStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
+  public ClientStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
     if (builder instanceof Builder) {
       mCompat = ((Builder) builder).compat;
@@ -96,7 +96,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
 
   @NotNull
   @Override
-  public Builder<T, M> builder() {
+  public Builder<NodeT, ModelT> builder() {
     return new Builder<>(this);
   }
 
@@ -111,7 +111,7 @@ public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+  public void setOwnerModel(@NotNull final ModelT newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

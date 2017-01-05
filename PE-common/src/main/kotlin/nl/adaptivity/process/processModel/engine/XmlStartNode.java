@@ -31,9 +31,9 @@ import java.util.List;
 
 
 @XmlDeserializer(XmlStartNode.Factory.class)
-public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
+public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
-  public static class Builder extends StartNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+  public static class Builder extends StartNodeBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
 
     public Builder() { }
 
@@ -43,7 +43,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
 
     @NotNull
     @Override
-    public XmlStartNode build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
+    public XmlStartNode build(@NotNull final XmlModelCommon newOwner) {
       return new XmlStartNode(this, newOwner);
     }
   }
@@ -57,12 +57,12 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
     }
   }
 
-  public XmlStartNode(@NotNull final StartNode.Builder<?,?> builder, @NotNull final XmlProcessModel newOwnerModel) {
+  public XmlStartNode(@NotNull final StartNode.Builder<?,?> builder, @NotNull final XmlModelCommon newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
   @NotNull
-  public static XmlStartNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
+  public static XmlStartNode deserialize(final XmlModelCommon ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.<Builder>deserializeHelper(new Builder(), in).build(ownerModel);
   }
@@ -90,7 +90,7 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlProcessModel> 
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+  public void setOwnerModel(@NotNull final XmlModelCommon newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

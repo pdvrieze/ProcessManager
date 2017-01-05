@@ -38,9 +38,9 @@ import java.util.Collection;
  * @author Paul de Vrieze
  */
 @XmlDeserializer(XmlActivity.Factory.class)
-public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> implements XmlProcessNode {
+public class XmlActivity extends ActivityBase<XmlProcessNode, XmlModelCommon> implements XmlProcessNode {
 
-  public static class Builder extends ActivityBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+  public static class Builder extends ActivityBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
 
     public Builder() { }
 
@@ -54,7 +54,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
 
     @NotNull
     @Override
-    public XmlActivity build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
+    public XmlActivity build(@NotNull final XmlModelCommon newOwner) {
       return new XmlActivity(this, newOwner);
     }
   }
@@ -70,7 +70,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
 
   @Nullable private XmlCondition mCondition;
 
-  public XmlActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
+  public XmlActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -105,7 +105,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   }
 
   @NotNull
-  public static XmlActivity deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader reader) throws
+  public static XmlActivity deserialize(final XmlModelCommon ownerModel, @NotNull final XmlReader reader) throws
           XmlException {
     return XmlUtil.<XmlActivity.Builder>deserializeHelper(new XmlActivity.Builder(), reader).build(ownerModel);
   }
@@ -117,7 +117,7 @@ public class XmlActivity extends ActivityBase<XmlProcessNode, XmlProcessModel> i
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+  public void setOwnerModel(@NotNull final XmlModelCommon newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

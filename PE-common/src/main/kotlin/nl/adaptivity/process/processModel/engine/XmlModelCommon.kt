@@ -21,15 +21,15 @@ import nl.adaptivity.process.processModel.*
 /**
  * Created by pdvrieze on 04/01/17.
  */
-interface XmlModelCommon: ModelCommon<XmlProcessNode, XmlProcessModel> {
+interface XmlModelCommon: ModelCommon<XmlProcessNode, XmlModelCommon> {
 
-  interface Builder: ModelCommon.Builder<XmlProcessNode, XmlProcessModel> {
+  interface Builder: ModelCommon.Builder<XmlProcessNode, XmlModelCommon> {
 
     override fun startNodeBuilder(): XmlStartNode.Builder {
       return XmlStartNode.Builder()
     }
 
-    override fun startNodeBuilder(startNode: StartNode<*, *>): StartNode.Builder<XmlProcessNode, XmlProcessModel> {
+    override fun startNodeBuilder(startNode: StartNode<*, *>): XmlStartNode.Builder {
       return XmlStartNode.Builder(startNode)
     }
 
@@ -37,7 +37,7 @@ interface XmlModelCommon: ModelCommon<XmlProcessNode, XmlProcessModel> {
       return XmlSplit.Builder()
     }
 
-    override fun splitBuilder(split: Split<*, *>): Split.Builder<XmlProcessNode, XmlProcessModel> {
+    override fun splitBuilder(split: Split<*, *>): XmlSplit.Builder {
       return XmlSplit.Builder(split)
     }
 

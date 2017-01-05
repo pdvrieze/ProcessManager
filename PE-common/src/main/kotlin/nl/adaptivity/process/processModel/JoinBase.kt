@@ -25,9 +25,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase<T, M>, Join<T, M> {
+abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Join<NodeT, ModelT> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase.Builder<T,M>, Join.Builder<T,M> {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Join.Builder<NodeT,ModelT> {
     override val idBase:String
       get() = "join"
 
@@ -45,8 +45,6 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
 
     constructor(node: Join<*, *>) : super(node)
 
-    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
-
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
       if (reader.isElement(Join.PREDELEMNAME)) {
@@ -63,11 +61,11 @@ abstract class JoinBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : Jo
   }
 
   @Deprecated("")
-  constructor(ownerModel: ModelCommon<T,M>) : super(ownerModel)
+  constructor(ownerModel: ModelT) : super(ownerModel)
 
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel)
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
 
-  override abstract fun builder(): Builder<T, M>
+  override abstract fun builder(): Builder<NodeT, ModelT>
 
   override val idBase: String
     get() = IDBASE

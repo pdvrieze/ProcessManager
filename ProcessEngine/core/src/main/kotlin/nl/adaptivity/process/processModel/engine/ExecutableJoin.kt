@@ -27,9 +27,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : JoinBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
 
-  class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+  class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
                 successor: Identified? = null, label: String? = null,
@@ -41,7 +41,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModel
                 y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, min, max, x, y)
     constructor(node: Join<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommonAlias) = ExecutableJoin(this, newOwner as ExecutableModelCommon)
+    override fun build(newOwner: ExecutableModelCommon) = ExecutableJoin(this, newOwner as ExecutableModelCommon)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

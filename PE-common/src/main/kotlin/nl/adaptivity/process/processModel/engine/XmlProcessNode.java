@@ -24,13 +24,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by pdvrieze on 27/11/16.
  */
-public interface XmlProcessNode extends ProcessNode<XmlProcessNode, XmlProcessModel> {
+public interface XmlProcessNode extends ProcessNode<XmlProcessNode, XmlModelCommon> {
 
-  interface Builder extends ProcessNode.Builder<XmlProcessNode, XmlProcessModel> {
+  interface Builder extends ProcessNode.Builder<XmlProcessNode, XmlModelCommon> {
 
     @NotNull
     @Override
-    XmlProcessNode build(@NotNull ModelCommon<XmlProcessNode, XmlProcessModel> newOwner);
+    XmlProcessNode build(@NotNull XmlModelCommon newOwner);
   }
 
   @NotNull

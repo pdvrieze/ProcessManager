@@ -28,7 +28,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
 
     @NotNull
     @Override
-    DrawableProcessNode build(ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner);
+    DrawableProcessNode build(DrawableProcessModel newOwner);
   }
 
   void setLabel(String label);
@@ -41,7 +41,7 @@ public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNo
   DrawableProcessNode clone();
 
   @NotNull
-  ModelCommon<DrawableProcessNode, DrawableProcessModel> getOwnerModel();
+  DrawableProcessModel getOwnerModel();
 
   @NotNull
   @Override

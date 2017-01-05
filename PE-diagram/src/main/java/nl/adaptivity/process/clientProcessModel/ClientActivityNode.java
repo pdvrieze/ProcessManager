@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 
-public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase<T, M> implements ClientProcessNode<T, M> {
+public class ClientActivityNode<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends ActivityBase<NodeT, ModelT> implements ClientProcessNode<NodeT, ModelT> {
 
   public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
 
@@ -54,7 +54,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
     @NotNull
     @Override
-    public ClientActivityNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
+    public ClientActivityNode<T, M> build(@NotNull final M newOwner) {
       return new ClientActivityNode<T, M>(this, newOwner);
     }
 
@@ -74,13 +74,13 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   private final boolean mCompat;
   private String mCondition;
 
-  public ClientActivityNode(final ModelCommon<T,M> owner, final boolean compat) {
+  public ClientActivityNode(final ModelT owner, final boolean compat) {
     super(owner);
     mCompat = compat;
   }
 
 
-  public ClientActivityNode(final ModelCommon<T,M> owner, String id, final boolean compat) {
+  public ClientActivityNode(final ModelT owner, String id, final boolean compat) {
     super(owner);
     setId(id);
     mCompat = compat;
@@ -91,7 +91,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
     mCompat = compat;
   }
 
-  public ClientActivityNode(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
+  public ClientActivityNode(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
     if (builder instanceof Builder) {
       mCompat = ((Builder) builder).compat;
@@ -102,7 +102,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
 
   @NotNull
   @Override
-  public Builder<T, M> builder() {
+  public Builder<NodeT, ModelT> builder() {
     return new Builder<>(this);
   }
 
@@ -134,7 +134,7 @@ public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+  public void setOwnerModel(@NotNull final ModelT newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

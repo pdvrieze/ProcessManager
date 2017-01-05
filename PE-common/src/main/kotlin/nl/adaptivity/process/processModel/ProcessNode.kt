@@ -27,10 +27,10 @@ import nl.adaptivity.xml.XmlSerializable
 /**
  * Created by pdvrieze on 27/11/16.
  */
-interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Positioned, Identifiable, XmlSerializable {
+interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
 
   @ProcessModelDSL
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : XmlDeserializable {
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : XmlDeserializable {
     var predecessors: MutableSet<Identified>
     var successors: MutableSet<Identified>
     var id: String?
@@ -47,7 +47,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Position
       }
     }
 
-    fun build(newOwner: ModelCommon<T,M>): ProcessNode<T, M>
+    fun build(newOwner: ModelT): ProcessNode<NodeT, ModelT>
 
     fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())
@@ -62,9 +62,9 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Position
     fun visitEndNode(endNode: EndNode<*, *>): R
   }
 
-  fun builder(): Builder<T,M>
+  fun builder(): Builder<NodeT,ModelT>
 
-  fun asT(): T
+  fun asT(): NodeT
 
   fun isPredecessorOf(node: ProcessNode<*, *>): Boolean
 
@@ -74,7 +74,7 @@ interface ProcessNode<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Position
 
   fun getDefine(name: String): XmlDefineType?
 
-  val ownerModel: ModelCommon<T, M>
+  val ownerModel: ModelT
 
   val predecessors: IdentifyableSet<out @JvmWildcard Identified>
 

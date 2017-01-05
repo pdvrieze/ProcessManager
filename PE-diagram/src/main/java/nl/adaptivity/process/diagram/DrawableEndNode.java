@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.RootDrawableProcessModel.*;
 
 
 
@@ -50,7 +50,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
 
     @NotNull
     @Override
-    public DrawableEndNode build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
+    public DrawableEndNode build(@NotNull final DrawableProcessModel newOwner) {
       return new DrawableEndNode(this, newOwner);
     }
   }
@@ -76,7 +76,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
     }
   }
 
-  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
+  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 

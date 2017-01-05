@@ -26,11 +26,11 @@ import javax.xml.namespace.QName
 /**
  * Base class for submodels
  */
-abstract class SubModelBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessCommonBase<T, M>, SubModel<T,M> {
+abstract class SubModelBase<T : ProcessNode<T, M>, M : ModelCommon<T, M>?> : ProcessCommonBase<T, M>, SubModel<T,M> {
 
   override val ownerNode: T
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+  abstract class Builder<T : ProcessNode<T, M>, M : ModelCommon<T, M>?>(nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
                                                                              imports: Collection<IXmlResultType> = emptyList(),
                                                                              exports: Collection<IXmlDefineType> = emptyList()) : ProcessCommonBase.Builder<T,M>(nodes, imports, exports), SubModel.Builder<T,M> {
     override abstract fun build(ownerNode: T, pedantic: Boolean): SubModelBase<T, M>

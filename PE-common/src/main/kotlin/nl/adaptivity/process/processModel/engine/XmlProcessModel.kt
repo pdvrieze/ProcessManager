@@ -44,15 +44,15 @@ import java.util.*
  * @author Paul de Vrieze
  */
 @XmlDeserializer(XmlProcessModel.Factory::class)
-class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, MutableHandleAware<XmlProcessModel>, SecureObject<XmlProcessModel>, XmlModelCommon {
+class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
-  class Builder : ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel>, XmlModelCommon.Builder {
+  class Builder : ProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
 
-    constructor(nodes: Set<ProcessNode.Builder<XmlProcessNode, XmlProcessModel>>, name: String?, handle: Long, owner: Principal, roles: List<String>, uuid: UUID?, imports: List<IXmlResultType>, exports: List<IXmlDefineType>) : super(nodes, name, handle, owner, roles, uuid, imports, exports) {}
+    constructor(nodes: Set<ProcessNode.Builder<XmlProcessNode, XmlModelCommon>>, name: String?, handle: Long, owner: Principal, roles: List<String>, uuid: UUID?, imports: List<IXmlResultType>, exports: List<IXmlDefineType>) : super(nodes, name, handle, owner, roles, uuid, imports, exports) {}
 
     constructor() {}
 
-    constructor(base: ProcessModelBase<XmlProcessNode, XmlProcessModel>) : super(base) {}
+    constructor(base: XmlProcessModel) : super(base) {}
 
     override fun build(): XmlProcessModel {
       return build(false)
@@ -81,6 +81,34 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, Mutab
 
   @Volatile private var mEndNodeCount = -1
 
+  override val rootModel: XmlProcessModel get() = this
+
+  /**
+   * Get the startnodes for this model.
+
+   * @return The start nodes.
+   */
+  val startNodes: Collection<XmlStartNode>
+    get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<XmlStartNode>(), getModelNodes(), XmlStartNode::class.java))
+
+  /* (non-Javadoc)
+     * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
+     */
+  val endNodeCount: Int
+    get() {
+      if (mEndNodeCount < 0) {
+        var endNodeCount = 0
+        for (node in getModelNodes()) {
+          if (node is XmlEndNode) {
+            ++endNodeCount
+          }
+        }
+        mEndNodeCount = endNodeCount
+      }
+
+      return mEndNodeCount
+    }
+
   /**
    * Create a new processModel based on the given nodes. These nodes should be complete
 
@@ -90,7 +118,7 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, Mutab
 
   constructor(basepm: ProcessModelBase<*, *>) : super(basepm, XML_NODE_FACTORY) {}
 
-  @JvmOverloads constructor(builder: ProcessModelBase.Builder<XmlProcessNode, XmlProcessModel>, pedantic: Boolean = false) : super(builder, pedantic) {}
+  @JvmOverloads constructor(builder: Builder, pedantic: Boolean = false) : super(builder, pedantic) {}
 
   override fun builder(): Builder {
     return Builder(this)
@@ -118,14 +146,6 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, Mutab
     throw UnsupportedOperationException("This will break in all kinds of ways")
   }
 
-  /**
-   * Get the startnodes for this model.
-
-   * @return The start nodes.
-   */
-  val startNodes: Collection<XmlStartNode>
-    get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<XmlStartNode>(), getModelNodes(), XmlStartNode::class.java))
-
   public override fun setModelNodes(processNodes: Collection<XmlProcessNode>) {
     super.setModelNodes(processNodes)
     var endNodeCount = 0
@@ -136,24 +156,6 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, Mutab
     }
     mEndNodeCount = endNodeCount
   }
-
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
-     */
-  val endNodeCount: Int
-    get() {
-      if (mEndNodeCount < 0) {
-        var endNodeCount = 0
-        for (node in getModelNodes()) {
-          if (node is XmlEndNode) {
-            ++endNodeCount
-          }
-        }
-        mEndNodeCount = endNodeCount
-      }
-
-      return mEndNodeCount
-    }
 
   fun cacheStrings(stringCache: StringCache) {
     if (owner is SimplePrincipal) {
@@ -214,7 +216,7 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, Mutab
 
   companion object {
 
-    private val XML_NODE_FACTORY = fun(newOwner: ModelCommon<XmlProcessNode, XmlProcessModel>, processNode: ProcessNode<*, *>): XmlProcessNode {
+    private val XML_NODE_FACTORY = fun(newOwner: ModelCommon<XmlProcessNode, XmlModelCommon>, processNode: ProcessNode<*, *>): XmlProcessNode {
       return toXmlNode(newOwner as XmlModelCommon, processNode)
     }
 
@@ -245,7 +247,7 @@ class XmlProcessModel : ProcessModelBase<XmlProcessNode, XmlProcessModel>, Mutab
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(reader: XmlReader): XmlProcessModel {
-      return Builder.deserialize(reader).build().asM()
+      return Builder.deserialize(reader).build()
     }
 
     /**

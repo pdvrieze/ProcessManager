@@ -19,7 +19,7 @@ package net.devrieze.util
 /**
  * @param  Type parameter that should help with compile time handle differentiation
  */
-interface Handle<T> {
+interface Handle<out T> {
 
   val handleValue: Long
   val valid:Boolean get() = handleValue>=0

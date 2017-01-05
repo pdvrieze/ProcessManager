@@ -26,7 +26,7 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -197,7 +197,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override val handleValue = processInstance.handle.handleValue
 
-    val processModel: Handle<out ProcessModel<*,*>> = processInstance.processModel.getHandle()
+    val processModel: Handle<out RootProcessModel<*, *>> = processInstance.processModel.getHandle()
 
     var name: String = processInstance.name.let { if (it.isNullOrBlank()) "${processInstance.processModel.name} instance $handleValue" else it!! }
 

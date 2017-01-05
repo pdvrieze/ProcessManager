@@ -29,9 +29,9 @@ import nl.adaptivity.xml.deserializeHelper
 import java.sql.SQLException
 
 
-class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : StartNodeBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
 
-  class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+  class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
                 successor: Identified? = null,
                 label: String? = null,
@@ -42,8 +42,8 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
     constructor(node: StartNode<*, *>) : super(node)
 
 
-    override fun build(newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>): ExecutableStartNode {
-      return ExecutableStartNode(this, newOwner as ExecutableModelCommon)
+    override fun build(newOwner: ExecutableModelCommon): ExecutableStartNode {
+      return ExecutableStartNode(this, newOwner)
     }
   }
 

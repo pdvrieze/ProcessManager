@@ -20,8 +20,9 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.ModelCommon
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import java.io.FileNotFoundException
@@ -34,9 +35,9 @@ fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw Proce
 
 inline fun <N: ProcessNode<*,*>> N?.mustExist(id:String): N = mustExist(Identifier(id))
 
-fun <T: ProcessNode<T, *>> ProcessModel<T,*>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
+fun <T: ProcessNode<T, *>> ModelCommon<T, *>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
 
-inline fun <T: ProcessNode<T, *>> ProcessModel<T,*>.requireNode(id:String):T = requireNode(Identifier(id))
+inline fun <T: ProcessNode<T, *>> ModelCommon<T, *>.requireNode(id:String):T = requireNode(Identifier(id))
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
@@ -85,11 +86,11 @@ fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: Comparable
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N: ProcessNode<N, M>, M: ProcessModel<N,M>> M?.mustExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.mustExist(handle: Handle<out RootProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <N: ProcessNode<N, M>, M: ProcessModel<N,M>> M?.shouldExist(handle: Handle<out ProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.shouldExist(handle: Handle<out RootProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")

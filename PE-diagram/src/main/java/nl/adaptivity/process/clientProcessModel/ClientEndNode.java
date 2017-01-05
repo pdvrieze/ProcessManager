@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 
-public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends EndNodeBase<T, M> implements EndNode<T, M>, ClientProcessNode<T, M> {
+public class ClientEndNode<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends EndNodeBase<NodeT, ModelT> implements EndNode<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
 
   public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends EndNodeBase.Builder<T,M> implements ClientProcessNode.Builder<T,M> {
 
@@ -45,7 +45,7 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
     @NotNull
     @Override
-    public ClientEndNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
+    public ClientEndNode<T, M> build(@NotNull final M newOwner) {
       return new ClientEndNode<T, M>(this, newOwner);
     }
 
@@ -61,11 +61,11 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
   }
 
-  public ClientEndNode(final ModelCommon<T,M> ownerModel) {
+  public ClientEndNode(final ModelT ownerModel) {
     super(new Builder(), ownerModel);
   }
 
-  public ClientEndNode(final ModelCommon<T,M> ownerModel, String id) {
+  public ClientEndNode(final ModelT ownerModel, String id) {
     super(new Builder<>(id), ownerModel);
     setId(id);
   }
@@ -74,13 +74,13 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
     super(orig.builder(), null);
   }
 
-  public ClientEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
+  public ClientEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
   @NotNull
   @Override
-  public Builder<T, M> builder() {
+  public Builder<NodeT, ModelT> builder() {
     return new Builder<>(this);
   }
 
@@ -92,7 +92,7 @@ public class ClientEndNode<T extends ClientProcessNode<T, M>, M extends ClientPr
 
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+  public void setOwnerModel(@NotNull final ModelT newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

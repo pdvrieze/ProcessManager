@@ -17,12 +17,17 @@
 package nl.adaptivity.process.diagram;
 
 import kotlin.jvm.functions.Function2;
+import net.devrieze.util.Handle;
+import net.devrieze.util.Handles;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessModelBase.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.xml.XmlDeserializerFactory;
@@ -35,9 +40,9 @@ import java.security.Principal;
 import java.util.*;
 
 
-public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode, DrawableProcessModel> implements Diagram {
+public class RootDrawableProcessModel extends RootClientProcessModel<DrawableProcessNode, DrawableProcessModel> implements Diagram, DrawableProcessModel {
 
-  public static class Builder extends ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel> {
+  public static class Builder extends RootClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessModel.Builder {
 
     public Builder() {}
 
@@ -45,7 +50,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       super(nodes, name, handle, owner, roles, uuid, imports, exports, layoutAlgorithm);
     }
 
-    public Builder(@NotNull final ProcessModel<?,?> base) {
+    public Builder(@NotNull final RootProcessModel<?,?> base) {
       super(base);
     }
 
@@ -111,16 +116,16 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @NotNull
     @Override
-    public DrawableProcessModel build(final boolean pedantic) {
-      return new DrawableProcessModel(this);
+    public RootDrawableProcessModel build(final boolean pedantic) {
+      return new RootDrawableProcessModel(this);
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<DrawableProcessModel> {
+  public static class Factory implements XmlDeserializerFactory<RootDrawableProcessModel> {
 
     @Override
-    public DrawableProcessModel deserialize(final XmlReader reader) throws XmlException {
-      return DrawableProcessModel.deserialize(reader);
+    public RootDrawableProcessModel deserialize(final XmlReader reader) throws XmlException {
+      return RootDrawableProcessModel.deserialize(reader);
     }
 
   }
@@ -156,21 +161,21 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
   };
 
-  private DrawableProcessModel() {
+  private RootDrawableProcessModel() {
     super(DRAWABLE_NODE_FACTORY);
   }
 
-  public DrawableProcessModel(final ProcessModel<?, ?> original) {
+  public RootDrawableProcessModel(final RootProcessModel<?, ?> original) {
     this(original, null, DRAWABLE_NODE_FACTORY);
   }
 
-  public DrawableProcessModel(final ProcessModel<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm, final Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> nodeFactory) {
+  public RootDrawableProcessModel(final RootProcessModel<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm, final Function2<? super DrawableProcessModel, ? super ProcessNode<?, ?>, ? extends DrawableProcessNode> nodeFactory) {
     this(new Builder(original));
     ensureIds();
     layout();
   }
 
-  public DrawableProcessModel(@NotNull final ProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
+  public RootDrawableProcessModel(@NotNull final ProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel> builder) {
     super(builder);
   }
 
@@ -178,6 +183,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public Builder builder() {
     return new Builder(this);
+  }
+
+  @NotNull
+  @Override
+  public IProcessModelRef<DrawableProcessNode, DrawableProcessModel, RootDrawableProcessModel> getRef() {
+    return new ProcessModelRef(getName(), this.getHandle(), getUuid());
+  }
+
+  @NotNull
+  @Override
+  public Handle<RootDrawableProcessModel> getHandle() {
+    return Handles.handle(getHandleValue());
   }
 
   public boolean isFavourite() {
@@ -189,16 +206,16 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @NotNull
-  public static DrawableProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
+  public static RootDrawableProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
     return ProcessModelBase.Builder.<Builder>deserialize(new Builder(), in).build(false);
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?,?>, ?> original) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(final RootProcessModel<? extends ProcessNode<?,?>, ?> original) {
     final Map<String,DrawableProcessNode> cache = new HashMap<>(original.getModelNodes().size());
     return cloneNodes(original, cache, original.getModelNodes());
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<?, ?> source, final Map<String, DrawableProcessNode> cache, final Collection<? extends Identifiable> nodes) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(final RootProcessModel<?, ?> source, final Map<String, DrawableProcessNode> cache, final Collection<? extends Identifiable> nodes) {
     final List<DrawableProcessNode> result = new ArrayList<>(nodes.size());
     for(final Identifiable origId: nodes) {
       final DrawableProcessNode val = cache.get(origId.getId());
@@ -217,11 +234,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return result;
   }
 
-  public DrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes) {
+  public RootDrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes) {
     this(uuid, name, nodes, null);
   }
 
-  public DrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  public RootDrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     super(uuid, name, nodes, layoutAlgorithm, DRAWABLE_NODE_FACTORY);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
@@ -231,14 +248,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  public static DrawableProcessModel get(final ProcessModel<?, ?> src) {
-    if (src instanceof DrawableProcessModel) { return (DrawableProcessModel) src; }
-    return src==null ? null : new DrawableProcessModel(src);
+  public static RootDrawableProcessModel get(final RootProcessModel<?, ?> src) {
+    if (src instanceof DrawableProcessModel) { return (RootDrawableProcessModel) src; }
+    return src==null ? null : new RootDrawableProcessModel(src);
   }
 
   @Override
-  public DrawableProcessModel clone() {
-	return new DrawableProcessModel(this);
+  public RootDrawableProcessModel clone() {
+	return new RootDrawableProcessModel(this);
   }
 
   private static DrawableProcessNode toDrawableNode(final ProcessNode<?,?> elem) {

@@ -27,9 +27,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase<T, M>, Split<T, M> {
+abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Split<NodeT, ModelT> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : JoinSplitBase.Builder<T,M>, Split.Builder<T,M> {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Split.Builder<NodeT,ModelT> {
     override val idBase:String
       get() = "split"
 
@@ -48,14 +48,12 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : J
 
     constructor(node: Split<*, *>) : super(node)
 
-    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
-
     override val elementName: QName
       get() = Split.ELEMENTNAME
 
   }
 
-  constructor(ownerModel: ModelCommon<T,M>,
+  constructor(ownerModel: ModelT,
               predecessor: Identified? = null,
               successors: Collection<Identified> = emptyList(),
               id: String?,
@@ -67,9 +65,9 @@ abstract class SplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : J
               min: Int = -1,
               max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id, label, x, y, defines, results, min, max)
 
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel)
+  constructor(builder: Split.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
 
-  override abstract fun builder(): Builder<T, M>
+  override abstract fun builder(): Builder<NodeT, ModelT>
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {

@@ -18,20 +18,19 @@ package nl.adaptivity.process.clientProcessModel;
 
 
 import nl.adaptivity.process.processModel.JoinSplit;
-import nl.adaptivity.process.processModel.ModelCommon;
 import org.jetbrains.annotations.NotNull;
 
 
-public interface ClientJoinSplit<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinSplit<T, M>, ClientProcessNode<T, M> {
+public interface ClientJoinSplit<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends JoinSplit<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
 
-  interface Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinSplit.Builder<T,M>, ClientProcessNode.Builder<T,M> {
+  interface Builder<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends JoinSplit.Builder<NodeT, ModelT>, ClientProcessNode.Builder<NodeT, ModelT> {
 
     @NotNull
     @Override
-    ClientJoinSplit<T, M> build(@NotNull ModelCommon<T, M> newOwner);
+    ClientJoinSplit<NodeT, ModelT> build(@NotNull ModelT newOwner);
   }
 
   @NotNull
   @Override
-  Builder<T, M> builder();
+  Builder<NodeT, ModelT> builder();
 }

@@ -29,9 +29,9 @@ import java.util.Set;
 
 
 @XmlDeserializer(XmlJoin.Factory.class)
-public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
+public class XmlJoin extends JoinBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
-  public static class Builder extends JoinBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+  public static class Builder extends JoinBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
 
     public Builder() {}
 
@@ -45,7 +45,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
 
     @NotNull
     @Override
-    public XmlJoin build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
+    public XmlJoin build(@NotNull final XmlModelCommon newOwner) {
       return new XmlJoin(this, newOwner);
     }
   }
@@ -75,7 +75,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
     super(ownerModel);
   }
 
-  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
+  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -97,7 +97,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlProcessModel> implements
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+  public void setOwnerModel(@NotNull final XmlModelCommon newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

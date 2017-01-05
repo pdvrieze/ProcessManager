@@ -17,9 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.processModel.ModelCommon.Builder
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
@@ -28,24 +26,24 @@ import nl.adaptivity.xml.*
 /**
  * Created by pdvrieze on 02/01/17.
  */
-abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ModelCommon<T, M>, XmlSerializable {
+abstract class ProcessCommonBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ModelCommon<NodeT, ModelT>, XmlSerializable {
 
   @ProcessModelDSL
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>(
-      nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?>(
+      nodes: Collection<ProcessNode.Builder<NodeT, ModelT>> = emptyList(),
       imports: Collection<IXmlResultType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList()) : ModelCommon.Builder<T, M> {
+      exports: Collection<IXmlDefineType> = emptyList()) : ModelCommon.Builder<NodeT, ModelT> {
 
-    override val nodes: MutableSet<ProcessNode.Builder<T, M>> = nodes.toMutableSet()
+    override val nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>> = nodes.toMutableSet()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
-    constructor(base:ProcessModel<*,*>) :
+    constructor(base:ModelCommon<*,*>) :
         this(emptyList(),
             base.imports.toMutableList(),
             base.exports.toMutableList()) {
 
-      base.getModelNodes().mapTo(nodes) { it.visit(object : ProcessNode.Visitor<ProcessNode.Builder<T, M>> {
+      base.getModelNodes().mapTo(nodes) { it.visit(object : ProcessNode.Visitor<ProcessNode.Builder<NodeT, ModelT>> {
         override fun visitStartNode(startNode: StartNode<*, *>) = startNodeBuilder(startNode)
         override fun visitActivity(activity: Activity<*, *>) = activityBuilder(activity)
         override fun visitSplit(split: Split<*, *>) = splitBuilder(split)
@@ -64,7 +62,7 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
       normalize(true)
       val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
 
-      fun visitSuccessors(node: ProcessNode.Builder<T,M>) {
+      fun visitSuccessors(node: ProcessNode.Builder<NodeT,ModelT>) {
         val id = node.id!!
         if (id in seen) { throw ProcessException("Cycle in process model") }
         seen += id
@@ -196,11 +194,11 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
 
   }
 
-  private val _processNodes: IdentifyableSet<T>
+  private val _processNodes: IdentifyableSet<NodeT>
   private var _imports: List<IXmlResultType>
   private var _exports: List<IXmlDefineType>
 
-  override fun getModelNodes(): Collection<T> = _processNodes
+  override fun getModelNodes(): Collection<NodeT> = _processNodes
 
   final override fun getImports(): Collection<IXmlResultType> = _imports
   protected fun setImports(value: Iterable<IXmlResultType>) {_imports = value.toList() }
@@ -208,35 +206,35 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
   final override fun getExports(): Collection<IXmlDefineType> = _exports
   protected fun setExports(value: Iterable<IXmlDefineType>) { _exports = value.toList() }
 
-  constructor(builder: ModelCommon.Builder<T, M>, pedantic: Boolean) {
-    val newOwner = this
+  constructor(builder: ModelCommon.Builder<NodeT, ModelT>, pedantic: Boolean) {
+    val newOwner = this.asM
     val newNodes = builder.apply { normalize(pedantic) }.nodes.map { it.build(newOwner).asT() }
     this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
     this._imports = builder.imports.map { XmlResultType.get(it) }
     this._exports = builder.exports.map { XmlDefineType.get(it) }
   }
 
-  constructor(processNodes: Iterable<ProcessNode<*,*>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>, nodeFactory: (ModelCommon<T,M>, ProcessNode<*,*>)->T) {
+  constructor(processNodes: Iterable<ProcessNode<*,*>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>, nodeFactory: (ModelCommon<NodeT,ModelT>, ProcessNode<*,*>)->NodeT) {
     val newOwner = this
     _processNodes = IdentifyableSet.processNodeSet(processNodes.asSequence().map { nodeFactory(newOwner, it) })
     _imports = imports.toList()
     _exports = exports.toList()
   }
 
-  abstract fun builder(): Builder<T, M>
+  abstract fun builder(): Builder<NodeT, ModelT>
 
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
      */
-  override fun getNode(nodeId: Identifiable): T? {
+  override fun getNode(nodeId: Identifiable): NodeT? {
     if (nodeId is ProcessNode<*, *>) {
       @Suppress("UNCHECKED_CAST")
-      return nodeId as T
+      return nodeId as NodeT
     }
     return _processNodes.get(nodeId)
   }
 
-  fun getNode(pos: Int): T {
+  fun getNode(pos: Int): NodeT {
     return _processNodes[pos]
   }
 
@@ -248,7 +246,7 @@ abstract class ProcessCommonBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, 
 
    * @param processNodes The process nodes to base the model on.
    */
-  protected open fun setModelNodes(processNodes: Collection<T>) {
+  protected open fun setModelNodes(processNodes: Collection<NodeT>) {
     (processNodes as IdentifyableSet).replaceBy(processNodes)
   }
 

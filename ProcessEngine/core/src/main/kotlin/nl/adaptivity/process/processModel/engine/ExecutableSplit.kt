@@ -28,9 +28,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : SplitBase<ExecutableProcessNode, ExecutableProcessModel>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : SplitBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
 
-  class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableProcessNode.Builder {
+  class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(), label: String? = null,
@@ -42,7 +42,7 @@ class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableMod
                 y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
     constructor(node: Split<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommonAlias): ExecutableSplit {
+    override fun build(newOwner: ExecutableModelCommon): ExecutableSplit {
       return ExecutableSplit(this, newOwner as ExecutableModelCommon)
     }
   }

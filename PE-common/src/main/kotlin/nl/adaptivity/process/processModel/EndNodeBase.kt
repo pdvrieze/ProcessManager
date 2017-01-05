@@ -28,9 +28,9 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 24/11/15.
  */
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(builder: EndNode.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : ProcessNodeBase<T, M>(builder, newOwnerModel), EndNode<T, M> {
+abstract class EndNodeBase<T : ProcessNode<T, M>, M : ModelCommon<T, M>>(builder: EndNode.Builder<*, *>, newOwnerModel: M) : ProcessNodeBase<T, M>(builder, newOwnerModel), EndNode<T, M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
+  abstract class Builder<T : ProcessNode<T, M>, M : ModelCommon<T, M>> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
 
     override val idBase:String
       get() = "end"
@@ -46,9 +46,6 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>>(bu
                 y: Double = Double.NaN) : super(id, listOfNotNull(predecessor), emptyList(), label, defines, results, x, y)
 
     constructor(node: EndNode<*, *>) : super(node)
-
-    abstract override fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
-
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {

@@ -26,7 +26,7 @@ import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
 
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
+import static nl.adaptivity.process.clientProcessModel.RootClientProcessModel.NS_PM;
 
 public class ClientMessage extends BaseMessage {
 

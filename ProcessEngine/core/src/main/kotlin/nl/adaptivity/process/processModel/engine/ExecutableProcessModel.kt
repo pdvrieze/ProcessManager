@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.CollectionUtil
-import net.devrieze.util.MutableHandleAware
-import net.devrieze.util.StringCache
-import net.devrieze.util.lookup
+import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -35,7 +32,7 @@ import java.security.Principal
 import java.util.*
 
 
-typealias ExecutableModelCommonAlias = ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
+typealias ExecutableModelCommonAlias = ModelCommon<ExecutableProcessNode, ExecutableModelCommon>
 
 /**
  * A class representing a process model.
@@ -43,9 +40,9 @@ typealias ExecutableModelCommonAlias = ModelCommon<ExecutableProcessNode, Execut
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ExecutableProcessModel.Factory::class)
-class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableProcessModel>, ExecutableModelCommon, MutableHandleAware<ExecutableProcessModel>, SecureObject<ExecutableProcessModel> {
+class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon/*, MutableHandleAware<ExecutableProcessModel>*/, SecureObject<ExecutableProcessModel> {
 
-  class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableProcessModel>, ExecutableModelCommon.Builder {
+  class Builder : ProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
     constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
                 name: String? = null,
                 handle: Long = -1L,
@@ -54,7 +51,7 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
                 uuid: UUID? = null,
                 imports: Collection<IXmlResultType> = emptyList(),
                 exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
-    constructor(base: ProcessModel<*, *>) : super(base)
+    constructor(base: RootProcessModel<*, *>) : super(base)
 
     override fun build(): ExecutableProcessModel = build(pedantic = true)
 
@@ -90,12 +87,25 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
     }
     private set
 
+  override fun withPermission() = this
+
   constructor(basepm: ProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
 
   @JvmOverloads
   constructor(builder: Builder, pedantic:Boolean = true) : super(builder, pedantic)
 
   override fun builder(): Builder = Builder(this)
+
+  override fun update(body: (ProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>) -> Unit): ExecutableProcessModel {
+    return Builder(this).apply(body).build()
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  override fun getHandle() = super.getHandle() as Handle<out ExecutableProcessModel>
+
+  override fun getRef(): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+    return ProcessModelRef(name, this.getHandle(), uuid)
+  }
 
   /**
    * Ensure that the given node is owned by this model.
@@ -249,8 +259,8 @@ class ExecutableProcessModel : ProcessModelBase<ExecutableProcessNode, Executabl
   }
 }
 
-fun toExecutableProcessNode(_newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>, node: ProcessNode<*, *>): ExecutableProcessNode {
-  val newOwner = _newOwner as ExecutableModelCommon
+fun toExecutableProcessNode(_newOwner: ModelCommon<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
+  val newOwner = _newOwner.asM
   return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
     override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode.builder(), newOwner)
 

@@ -14,11 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util;
+package nl.adaptivity.process.processModel.engine
 
-/**
- * Created by pdvrieze on 27/11/16.
- */
-public interface MutableHandleAware<T> extends ReadableHandleAware<T> {
-  void setHandleValue(long handleValue);
+import net.devrieze.util.Handle
+import nl.adaptivity.process.processModel.ModelCommon
+import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.RootProcessModel
+
+import java.util.UUID
+
+
+interface IProcessModelRef<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?, out ObjectT: @JvmWildcard RootProcessModel<NodeT, ModelT>> : Handle<ObjectT> {
+
+  val name: String?
+
+  val uuid: UUID?
+
 }

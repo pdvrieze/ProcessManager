@@ -29,11 +29,11 @@ import java.util.Collection;
  * A split node for clients. Note that ClientSplitNodes don't have a compat mode. They have multiple succesors
  * and compatibility concerns their absense.
  *
- * @param <T> The type of ProcessNode used.
+ * @param <NodeT> The type of ProcessNode used.
  */
-public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends SplitBase<T, M> implements ClientJoinSplit<T,M> {
+public class ClientSplitNode<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends SplitBase<NodeT, ModelT> implements ClientJoinSplit<NodeT, ModelT> {
 
-  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends SplitBase.Builder<T,M> implements ClientJoinSplit.Builder<T,M> {
+  public static class Builder<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends SplitBase.Builder<NodeT, ModelT> implements ClientJoinSplit.Builder<NodeT, ModelT> {
 
     public Builder() { }
 
@@ -47,8 +47,8 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
 
     @NotNull
     @Override
-    public ClientSplitNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
-      return new ClientSplitNode<T, M>(this, newOwner);
+    public ClientSplitNode<NodeT, ModelT> build(@NotNull final ModelT newOwner) {
+      return new ClientSplitNode<NodeT, ModelT>(this, newOwner);
     }
 
     @Override
@@ -62,13 +62,13 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
     }
   }
 
-  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
+  public ClientSplitNode(@NotNull final Split.Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
   @NotNull
   @Override
-  public Builder<T, M> builder() {
+  public Builder<NodeT, ModelT> builder() {
     return new Builder<>(this);
   }
 
@@ -84,7 +84,7 @@ public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends Client
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+  public void setOwnerModel(@NotNull final ModelT newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

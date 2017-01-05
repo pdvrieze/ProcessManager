@@ -31,9 +31,9 @@ import javax.xml.namespace.QName
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase<T, M>, Activity<T, M> {
+abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, Activity<NodeT, ModelT> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M: ProcessModelBase<T, M>?> : ProcessNodeBase.Builder<T,M>, Activity.Builder<T,M>, SimpleXmlDeserializable {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ModelCommon<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, Activity.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
 
     override var message: IXmlMessage?
     override var name: String?
@@ -64,8 +64,6 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> 
       this.name = node.name
       this.condition = node.condition
     }
-
-    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     override val elementName: QName get() = Activity.ELEMENTNAME
 
@@ -134,15 +132,15 @@ abstract class ActivityBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> 
 
   // Object Initialization
   @Deprecated("Don't use")
-  constructor(ownerModel: ModelCommon<T,M>) : super(ownerModel) { }
+  constructor(ownerModel: ModelT) : super(ownerModel) { }
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
   }
   // Object Initialization end
 
-  override abstract fun builder(): Builder<T, M>
+  override abstract fun builder(): Builder<NodeT, ModelT>
 
   override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
     return visitor.visitActivity(this)

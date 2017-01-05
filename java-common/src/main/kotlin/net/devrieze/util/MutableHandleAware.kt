@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,21 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine;
+package net.devrieze.util
 
-import net.devrieze.util.Handle;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
-
-
-public interface IProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Handle<M>{
-
-  String getName();
-
-  @Nullable
-  UUID getUuid();
-
+/**
+ * Created by pdvrieze on 27/11/16.
+ */
+interface MutableHandleAware<out T:Any> : ReadableHandleAware<T> {
+  fun setHandleValue(handleValue: Long)
 }

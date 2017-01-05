@@ -35,12 +35,10 @@ import java.sql.SQLException
 /**
  * Base type for any process node that can be executed
  */
-interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableProcessModel>, Identified {
+interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableModelCommon>, Identified {
 
-  override val ownerModel: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>
-
-  interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableProcessModel> {
-    override fun build(newOwner: ModelCommon<ExecutableProcessNode, ExecutableProcessModel>): ExecutableProcessNode
+  interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun build(newOwner: ExecutableModelCommon): ExecutableProcessNode
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {
@@ -54,6 +52,15 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
 
   }
 
+  override val ownerModel: ExecutableModelCommon
+
+  override val identifier: Identifier?
+    get() = Identifier(id)
+
+  override val results: List<XmlResultType>
+
+  override val defines: List<XmlDefineType>
+
   override fun builder(): ExecutableProcessNode.Builder
 
   /**
@@ -62,9 +69,6 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
    */
   fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): ProcessNodeInstance =
       processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, predecessor, processInstance)
-
-  override val identifier: Identifier?
-    get() = Identifier(id)
 
   /**
    * Should this node be able to be provided?
@@ -100,9 +104,5 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableP
   fun takeTask(instance: ProcessNodeInstance): Boolean = true
 
   fun startTask(instance: ProcessNodeInstance): Boolean = true
-
-  override val results: List<XmlResultType>
-
-  override val defines: List<XmlDefineType>
 }
 

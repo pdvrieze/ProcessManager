@@ -31,8 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
+import static nl.adaptivity.process.diagram.RootDrawableProcessModel.*;
 
 
 public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, DrawableProcessModel> implements Split<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
@@ -51,9 +50,10 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
 
     @NotNull
     @Override
-    public DrawableSplit build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
+    public DrawableSplit build(@NotNull final DrawableProcessModel newOwner) {
       return new DrawableSplit(this, newOwner);
     }
+
   }
 
   private static final double ARROWHEADDX = JOINWIDTH*0.2;
@@ -82,7 +82,7 @@ public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, Drawable
     }
   }
 
-  public DrawableSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
+  public DrawableSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }

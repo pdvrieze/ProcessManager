@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import net.devrieze.util.Handle
+import net.devrieze.util.Handles
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.diagram.Bounded
@@ -30,22 +32,30 @@ import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
 
-abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> :
-    ProcessModelBase<T, M>, MutableProcessModel<T,M> {
+interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @kotlin.jvm.JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ModelCommon<NodeT, ModelT> {
+  interface Builder<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ModelCommon.Builder<NodeT, ModelT> {
 
-  var layoutAlgorithm: LayoutAlgorithm<T>
+  }
 
-  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<T> = emptyList(), layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm<T>(), nodeFactory: (ModelCommon<T,M>, ProcessNode<*, *>) -> T) :
+  val layoutAlgorithm: LayoutAlgorithm<NodeT>
+}
+
+abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> :
+    ProcessModelBase<NodeT, ModelT>, MutableProcessModel<NodeT,ModelT> {
+
+  var layoutAlgorithm: LayoutAlgorithm<NodeT>
+
+  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<NodeT> = emptyList(), layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm<NodeT>(), nodeFactory: (ModelCommon<NodeT,ModelT>, ProcessNode<*, *>) -> NodeT) :
     super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
     this.layoutAlgorithm = layoutAlgorithm
   }
 
   @JvmOverloads
-  constructor(builder: ProcessModelBase.Builder<T, M>, pedantic: Boolean = false) : super(builder, pedantic) {
+  constructor(builder: ProcessModelBase.Builder<NodeT, ModelT>, pedantic: Boolean = false) : super(builder, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 
-  abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> : ProcessModelBase.Builder<T,M> {
+  abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : ProcessModelBase.Builder<T,M>, ClientProcessModel.Builder<T,M> {
     var  layoutAlgorithm: LayoutAlgorithm<T>
 
     constructor(): this(nodes= mutableSetOf())
@@ -63,7 +73,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
       this.layoutAlgorithm = layoutAlgorithm
     }
 
-    constructor(base: ProcessModel<*,*>) : super(base) {
+    constructor(base: RootProcessModel<*,*>) : super(base) {
       this.layoutAlgorithm = (base as? ClientProcessModel<T,M>)?.layoutAlgorithm ?: LayoutAlgorithm<T>()
     }
 
@@ -95,19 +105,19 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   var isInvalid = false
     private set
 
-  abstract fun asNode(id: Identifiable): T?
+  abstract fun asNode(id: Identifiable): NodeT?
 
-  override abstract fun builder(): Builder<T, M>
+  override abstract fun builder(): Builder<NodeT, ModelT>
 
   /**
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  fun normalize(): M {
+  fun normalize(): ModelT {
     return builder().apply { normalize(false) }.build().asM
   }
 
-  open fun setNodes(nodes: Collection<T>) {
+  open fun setNodes(nodes: Collection<NodeT>) {
     super.setModelNodes(IdentifyableSet.processNodeSet(nodes))
     invalidate()
   }
@@ -174,11 +184,15 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
       return i
     }
 
-  override fun getRef(): IProcessModelRef<T, M> {
+  override fun getRef(): IProcessModelRef<NodeT, ModelT, out @JvmWildcard RootClientProcessModel<NodeT,ModelT>> {
     throw UnsupportedOperationException("Not implemented")
   }
 
-  fun getNode(nodeId: String): T? {
+  override fun getHandle(): Handle<out @JvmWildcard RootClientProcessModel<NodeT, ModelT>> {
+    return Handles.handle(handleValue)
+  }
+
+  fun getNode(nodeId: String): NodeT? {
     for (n in modelNodes) {
       if (nodeId == n.id) {
         return n
@@ -191,18 +205,18 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     this.owner = SimplePrincipal(owner)
   }
 
-  val startNodes: Collection<ClientStartNode<out T, M>>
+  val startNodes: Collection<ClientStartNode<out NodeT, ModelT>>
     get() {
-      val result = ArrayList<ClientStartNode<out T, M>>()
+      val result = ArrayList<ClientStartNode<out NodeT, ModelT>>()
       for (n in modelNodes) {
         if (n is ClientStartNode<*, *>) {
-          result.add(n as ClientStartNode<out T, M>)
+          result.add(n as ClientStartNode<out NodeT, ModelT>)
         }
       }
       return result
     }
 
-  override fun addNode(node: T): Boolean {
+  override fun addNode(node: NodeT): Boolean {
     if (super.addNode(node)) {
       node.setOwnerModel(asM())
       // Make sure that children can know of the change.
@@ -213,7 +227,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
   }
 
   @Deprecated("Unsafe")
-  override fun setNode(pos: Int, newValue: T): T {
+  override fun setNode(pos: Int, newValue: NodeT): NodeT {
     val oldValue = setNode(pos, newValue)
 
     newValue.setOwnerModel(asM())
@@ -231,13 +245,13 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     return oldValue
   }
 
-  override fun removeNode(nodePos: Int): T {
+  override fun removeNode(nodePos: Int): NodeT {
     val node = super.removeNode(nodePos)
     disconnectNode(node)
     return node
   }
 
-  override fun removeNode(node: T): Boolean {
+  override fun removeNode(node: NodeT): Boolean {
     if (node == null) {
       return false
     }
@@ -248,7 +262,7 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     return false
   }
 
-  private fun disconnectNode(node: T) {
+  private fun disconnectNode(node: NodeT) {
     node.setPredecessors(emptyList<Identified>())
     node.setSuccessors(emptyList<Identified>())
     notifyNodeChanged(node)
@@ -268,9 +282,9 @@ abstract class ClientProcessModel<T : ClientProcessNode<T, M>, M : ClientProcess
     }
   }
 
-  private fun toDiagramNodes(modelNodes: Collection<T>): List<DiagramNode<T>> {
-    val map = HashMap<Identified, DiagramNode<T>>()
-    val result = ArrayList<DiagramNode<T>>()
+  private fun toDiagramNodes(modelNodes: Collection<NodeT>): List<DiagramNode<NodeT>> {
+    val map = HashMap<Identified, DiagramNode<NodeT>>()
+    val result = ArrayList<DiagramNode<NodeT>>()
     for (node in modelNodes) {
       val leftExtend: Double
       val rightExtend: Double

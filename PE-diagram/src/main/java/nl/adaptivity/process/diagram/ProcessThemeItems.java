@@ -23,7 +23,7 @@ import nl.adaptivity.diagram.ThemeItem;
 import static nl.adaptivity.diagram.Drawable.*;
 
 public enum ProcessThemeItems implements ThemeItem {
-  LINE(DrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
+  LINE(RootDrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
                                          stateStroke(STATE_SELECTED, 0, 0, 255, 255, 2d),
                                          stateStroke(STATE_TOUCHED, 255,255,0, 127, 7d),
                                          state(STATE_CUSTOM1, 0,0,255),
@@ -40,7 +40,7 @@ public enum ProcessThemeItems implements ThemeItem {
     }
 
   },
-  INNERLINE(DrawableProcessModel.STROKEWIDTH*0.85, state(STATE_DEFAULT, 0, 0, 0x20, 0xb0)),
+  INNERLINE(RootDrawableProcessModel.STROKEWIDTH*0.85, state(STATE_DEFAULT, 0, 0, 0x20, 0xb0)),
   BACKGROUND(state(STATE_DEFAULT, 255, 255, 255)) {
 
     @Override
@@ -49,10 +49,10 @@ public enum ProcessThemeItems implements ThemeItem {
     }
 
   },
-  ENDNODEOUTERLINE(DrawableProcessModel.ENDNODEOUTERSTROKEWIDTH, LINE),
+  ENDNODEOUTERLINE(RootDrawableProcessModel.ENDNODEOUTERSTROKEWIDTH, LINE),
   LINEBG(LINE),
-  DIAGRAMTEXT(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMTEXT_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
-  DIAGRAMLABEL(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMLABEL_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
+  DIAGRAMTEXT(RootDrawableProcessModel.STROKEWIDTH, RootDrawableProcessModel.DIAGRAMTEXT_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
+  DIAGRAMLABEL(RootDrawableProcessModel.STROKEWIDTH, RootDrawableProcessModel.DIAGRAMLABEL_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
   ;
 
   private StateSpecifier[] mSpecifiers;

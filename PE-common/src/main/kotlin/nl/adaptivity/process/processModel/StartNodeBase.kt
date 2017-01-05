@@ -29,9 +29,9 @@ import javax.xml.namespace.QName
 /**
  * Base class for start nodes. It knows about the data
  */
-abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase<T, M>, StartNode<T, M> {
+abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, StartNode<NodeT, ModelT> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase.Builder<T, M>, StartNode.Builder<T, M>, SimpleXmlDeserializable {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT, ModelT>, StartNode.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
     override val idBase:String
       get() = "start"
 
@@ -49,8 +49,6 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
                 y: Double = Double.NaN) : super(id, emptyList(), listOfNotNull(successor), label, defines, results, x, y)
 
     constructor(node: StartNode<*, *>) : super(node)
-
-    abstract override fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -71,7 +69,7 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
 
   }
 
-  constructor(_ownerModel: ModelCommon<T,M>,
+  constructor(ownerModel: ModelT,
               successor: Identified?=null,
               id: String?=null,
               label: String?=null,
@@ -79,17 +77,17 @@ abstract class StartNodeBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
               y: Double = Double.NaN,
               defines: Collection<IXmlDefineType> = emptyList(),
               results: Collection<IXmlResultType> = emptyList())
-      : super(_ownerModel,
+      : super(ownerModel,
               emptyList(),
               listOfNotNull(successor),
               id, label, x, y, defines, results)
   
   @Deprecated("Use the full constructor")
-  constructor(ownerModel: ModelCommon<T,M>) : super(ownerModel) { }
+  constructor(ownerModel: ModelT) : super(ownerModel) { }
 
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel)
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
 
-  override abstract fun builder(): Builder<T, M>
+  override abstract fun builder(): Builder<NodeT, ModelT>
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {

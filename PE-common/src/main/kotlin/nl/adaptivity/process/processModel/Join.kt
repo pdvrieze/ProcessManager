@@ -23,12 +23,12 @@ import nl.adaptivity.process.util.Identifiable
 import javax.xml.namespace.QName
 
 
-interface Join<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode<T, M>, JoinSplit<T, M> {
+interface Join<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
 
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : JoinSplit.Builder<T, M> {
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : JoinSplit.Builder<NodeT, ModelT> {
 
-    override fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
+    override fun build(newOwner: ModelT): Join<NodeT, ModelT>
 
     var successor: Identifiable?
       get() = successors.firstOrNull()
@@ -36,7 +36,7 @@ interface Join<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode<T, 
 
   }
 
-  override fun builder(): Builder<T, M>
+  override fun builder(): Builder<NodeT, ModelT>
 
   companion object {
 

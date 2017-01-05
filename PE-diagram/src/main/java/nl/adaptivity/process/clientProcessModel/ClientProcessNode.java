@@ -34,7 +34,7 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
     @NotNull
     @Override
-    ClientProcessNode<T, M> build(ModelCommon<T, M> newOwner);
+    ClientProcessNode<T, M> build(M newOwner);
   }
 
   boolean isCompat();
@@ -63,11 +63,11 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
   @Override
   IdentifyableSet<? extends Identified> getSuccessors();
 
-  void setOwnerModel(@Nullable ModelCommon<T,M> owner);
+  void setOwnerModel(@Nullable M owner);
 
   void setId(String id);
 
   @NotNull
-  ModelCommon<T, M> getOwnerModel();
+  M getOwnerModel();
 
 }

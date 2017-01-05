@@ -17,21 +17,17 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
-import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.xml.XmlDeserializer
-
 import java.security.Principal
-import java.util.UUID
+import java.util.*
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
-interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon<T,M>, SecureObject<M> {
+interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ModelCommon<NodeT,ModelT> {
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCommon.Builder<T,M> {
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ModelCommon.Builder<NodeT,ModelT> {
     var name: String?
     var handle: Long
     var owner: Principal
@@ -51,7 +47,7 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCo
     }
 
     fun build() = build(false)
-    fun build(pedantic: Boolean): ProcessModel<T,M>
+    fun build(pedantic: Boolean): RootProcessModel<NodeT,ModelT>
 
   }
 
@@ -66,7 +62,7 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCo
 
    * @return A reference node.
    */
-  fun getRef(): IProcessModelRef<T, M>?
+  fun getRef(): IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>>?
 
   /**
    * Get the process node with the given id.
@@ -74,13 +70,13 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCo
    * *
    * @return The process node with the id.
    */
-  override fun getNode(nodeId: Identifiable): T?
+  override fun getNode(nodeId: Identifiable): NodeT?
 
-  override fun getModelNodes(): Collection<T>
+  override fun getModelNodes(): Collection<NodeT>
 
   fun getName(): String?
 
-  override val owner: Principal
+  val owner: Principal
 
   fun getRoles(): Set<String>
 
@@ -88,12 +84,7 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCo
 
   override fun getExports(): Collection<IXmlDefineType>
 
-  val asM:M get() {
-    @Suppress("UNCHECKED_CAST")
-    return this as M
-  }
-
-  override val rootModel: M get() = asM
+  override val rootModel: RootProcessModel<NodeT, ModelT> get() = this
 
   companion object {
     const val ATTR_ROLES = "roles"
@@ -103,24 +94,24 @@ interface ProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ModelCo
 }
 
 @Deprecated("Use builders instead")
-interface MutableProcessModel<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>: ProcessModel<T,M> {
+interface MutableProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?>: RootProcessModel<NodeT,ModelT> {
 
   fun setUuid(uUID: UUID)
 
-  fun addNode(node: T): Boolean
-  fun removeNode(node: T): Boolean
+  fun addNode(node: NodeT): Boolean
+  fun removeNode(node: NodeT): Boolean
 
   /**
    * Initiate the notification that a node has changed. Actual implementations can override this.
    * @param node The node that has changed.
    */
-  fun notifyNodeChanged(node: T)
+  fun notifyNodeChanged(node: NodeT)
 }
 
-val ProcessModel<*,*>.uuid get() = getUuid()
-val <T : ProcessNode<T, M>, M : ProcessModel<T, M>> ProcessModel<T, M>.ref get() = getRef()
+val RootProcessModel<*,*>.uuid get() = getUuid()
+val <T : ProcessNode<T, M>, M : ModelCommon<T, M>> RootProcessModel<T, M>.ref get() = getRef()
 val <T : ProcessNode<T, *>> ModelCommon<T, *>.modelNodes get() = getModelNodes()
-val ProcessModel<*,*>.name get() = getName()
-val ProcessModel<*,*>.roles get() = getRoles()
+val RootProcessModel<*,*>.name get() = getName()
+val RootProcessModel<*,*>.roles get() = getRoles()
 val ModelCommon<*,*>.imports get() = getImports()
 val ModelCommon<*,*>.exports get() = getExports()

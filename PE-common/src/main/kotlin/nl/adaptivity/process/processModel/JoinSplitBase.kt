@@ -29,10 +29,10 @@ import java.util.*
 /**
  * Created by pdvrieze on 25/11/15.
  */
-abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> :
-    ProcessNodeBase<T, M>, JoinSplit<T, M> {
+abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> :
+    ProcessNodeBase<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?> : ProcessNodeBase.Builder<T,M>, JoinSplit.Builder<T,M>, SimpleXmlDeserializable {
+  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, JoinSplit.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
 
     override var min:Int
     override var max:Int
@@ -54,8 +54,6 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
       min = node.min
       max = node.max
     }
-
-    override abstract fun build(newOwner: ModelCommon<T, M>): ProcessNode<T, M>
 
     @Throws(XmlException::class)
     override fun deserializeChild(`in`: XmlReader): Boolean {
@@ -82,7 +80,7 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
     }
   }
 
-  constructor(ownerModel: ModelCommon<T,M>,
+  constructor(ownerModel: ModelT,
               predecessors: Collection<Identified> = emptyList(),
               successors: Collection<Identified> = emptyList(),
               id: String?,
@@ -104,17 +102,17 @@ abstract class JoinSplitBase<T : ProcessNode<T, M>, M : ProcessModelBase<T, M>?>
   override var max: Int
 
   @Deprecated("Use the main constructor")
-  constructor(ownerModel: ModelCommon<T,M>, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
+  constructor(ownerModel: ModelT, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel, predecessors=predecessors, id=null, max=max, min=min)
 
   @Deprecated("Use builders")
-  constructor(ownerModel: ModelCommon<T,M>) : this(ownerModel, id=null) { }
+  constructor(ownerModel: ModelT) : this(ownerModel, id=null) { }
 
-  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: ModelCommon<T,M>) : super(builder, newOwnerModel) {
+  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
     this.min = builder.min
     this.max = builder.max
   }
 
-  override abstract fun builder(): Builder<T, M>
+  override abstract fun builder(): Builder<NodeT, ModelT>
 
   @Deprecated("Don't use")
   open fun deserializeChildText(elementText: CharSequence): Boolean {

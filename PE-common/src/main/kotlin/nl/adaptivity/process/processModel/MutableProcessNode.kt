@@ -20,11 +20,11 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-interface MutableProcessNode<T : MutableProcessNode<T, M>, M : ProcessModel<T, M>> : ProcessNode<T, M> {
+interface MutableProcessNode<NodeT : MutableProcessNode<NodeT, ModelT>, ModelT : ModelCommon<NodeT, ModelT>> : ProcessNode<NodeT, ModelT> {
 
   fun setId(id: String)
 
-  fun setOwnerModel(ownerModel: ModelCommon<T,M>)
+  fun setOwnerModel(ownerModel: ModelT)
 
   fun setPredecessors(predecessors: Collection<Identifiable>)
 

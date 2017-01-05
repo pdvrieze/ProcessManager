@@ -32,9 +32,9 @@ import static nl.adaptivity.xml.XmlUtil.deserializeHelper;
 
 
 @XmlDeserializer(XmlSplit.Factory.class)
-public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
+public class XmlSplit extends SplitBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
-  public static class Builder extends SplitBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+  public static class Builder extends SplitBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
 
     public Builder(){}
 
@@ -48,7 +48,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
     @NotNull
     @Override
-    public XmlSplit build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
+    public XmlSplit build(@NotNull final XmlModelCommon newOwner) {
       return new XmlSplit(this, newOwner);
     }
   }
@@ -62,7 +62,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
     }
   }
 
-  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
+  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -74,7 +74,7 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlProcessModel> implemen
 
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+  public void setOwnerModel(@NotNull final XmlModelCommon newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.RootDrawableProcessModel.*;
 
 
 public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawableProcessModel> implements Join<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
@@ -55,7 +55,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
 
     @NotNull
     @Override
-    public DrawableJoin build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
+    public DrawableJoin build(@NotNull final DrawableProcessModel newOwner) {
       return new DrawableJoin(this, newOwner);
     }
   }
@@ -92,7 +92,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate(orig.mDrawableJoinSplitDelegate);
   }
 
-  public DrawableJoin(@NotNull final ClientJoinNode.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
+  public DrawableJoin(@NotNull final ClientJoinNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }

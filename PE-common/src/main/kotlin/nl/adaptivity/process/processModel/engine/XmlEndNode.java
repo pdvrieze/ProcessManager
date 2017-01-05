@@ -27,9 +27,9 @@ import java.util.Collection;
 
 
 @XmlDeserializer(XmlEndNode.Factory.class)
-public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> implements XmlProcessNode {
+public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
-  public static class Builder extends EndNodeBase.Builder<XmlProcessNode, XmlProcessModel> implements XmlProcessNode.Builder {
+  public static class Builder extends EndNodeBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
 
     public Builder() {
       super();
@@ -45,7 +45,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
 
     @NotNull
     @Override
-    public XmlEndNode build(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwner) {
+    public XmlEndNode build(@NotNull final XmlModelCommon newOwner) {
       return new XmlEndNode(this, newOwner);
     }
   }
@@ -59,7 +59,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
     }
   }
 
-  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final XmlProcessModel newOwnerModel) {
+  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -70,7 +70,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
   }
 
   @NotNull
-  public static XmlEndNode deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
+  public static XmlEndNode deserialize(final XmlModelCommon ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.<XmlEndNode.Builder>deserializeHelper(new XmlEndNode.Builder(), in).build(ownerModel);
   }
@@ -82,7 +82,7 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlProcessModel> impl
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<XmlProcessNode, XmlProcessModel> newOwnerModel) {
+  public void setOwnerModel(@NotNull final XmlModelCommon newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

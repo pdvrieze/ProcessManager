@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.RootDrawableProcessModel.*;
 
 
 
@@ -51,9 +51,10 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
     @NotNull
     @Override
-    public DrawableActivity build(@NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwner) {
+    public DrawableActivity build(@NotNull final DrawableProcessModel newOwner) {
       return new DrawableActivity(this, newOwner);
     }
+
   }
 
   private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
@@ -81,7 +82,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
     }
   }
 
-  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final ModelCommon<DrawableProcessNode, DrawableProcessModel> newOwnerModel) {
+  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 
@@ -143,8 +144,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   public void setState(int state) {
     if (state==mState) { return ; }
     mState = state;
-    if (getOwnerModel() instanceof DrawableProcessModel) {
-      ((DrawableProcessModel) getOwnerModel()).notifyNodeChanged(this);
+    if (getOwnerModel() != null) {
+      getOwnerModel().notifyNodeChanged(this);
     }
   }
 

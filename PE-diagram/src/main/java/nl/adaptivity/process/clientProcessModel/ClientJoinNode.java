@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 
-public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinBase<T, M> implements ClientJoinSplit<T, M> {
+public class ClientJoinNode<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends JoinBase<NodeT, ModelT> implements ClientJoinSplit<NodeT, ModelT> {
 
-  public static class Builder<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends JoinBase.Builder<T,M> implements ClientJoinSplit.Builder<T,M> {
+  public static class Builder<NodeT extends ClientProcessNode<NodeT, ModelT>, ModelT extends ClientProcessModel<NodeT, ModelT>> extends JoinBase.Builder<NodeT, ModelT> implements ClientJoinSplit.Builder<NodeT, ModelT> {
 
     private boolean compat;
 
@@ -50,8 +50,8 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
 
     @NotNull
     @Override
-    public ClientJoinNode<T, M> build(@NotNull final ModelCommon<T, M> newOwner) {
-      return new ClientJoinNode<T, M>(this, newOwner);
+    public ClientJoinNode<NodeT, ModelT> build(@NotNull final ModelT newOwner) {
+      return new ClientJoinNode<NodeT, ModelT>(this, newOwner);
     }
 
     @Override
@@ -68,12 +68,12 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
 
     private final boolean mCompat;
 
-  public ClientJoinNode(final ModelCommon<T,M> ownerModel, final boolean compat) {
+  public ClientJoinNode(final ModelT ownerModel, final boolean compat) {
     super(ownerModel);
     mCompat = compat;
   }
 
-  public ClientJoinNode(final ModelCommon<T,M> ownerModel, String id, final boolean compat) {
+  public ClientJoinNode(final ModelT ownerModel, String id, final boolean compat) {
     super(ownerModel);
     setId(id);
     mCompat = compat;
@@ -83,19 +83,19 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
     this(orig, null, compat);
   }
 
-  protected ClientJoinNode(Join<?,?> orig, ModelCommon<T,M> newOwner, final boolean compat) {
+  protected ClientJoinNode(Join<?,?> orig, ModelT newOwner, final boolean compat) {
     super(orig.builder(), newOwner);
     mCompat = compat;
   }
 
-  public ClientJoinNode(@NotNull final Builder<?, ?> builder, @NotNull final ModelCommon<T,M> newOwnerModel) {
+  public ClientJoinNode(@NotNull final Builder<?, ?> builder, @NotNull final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
     mCompat = builder.isCompat();
   }
 
   @NotNull
   @Override
-  public Builder<T, M> builder() {
+  public Builder<NodeT, ModelT> builder() {
     return new Builder<>(this);
   }
 
@@ -110,7 +110,7 @@ public class ClientJoinNode<T extends ClientProcessNode<T, M>, M extends ClientP
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ModelCommon<T, M> newOwnerModel) {
+  public void setOwnerModel(@NotNull final ModelT newOwnerModel) {
     super.setOwnerModel(newOwnerModel);
   }
 

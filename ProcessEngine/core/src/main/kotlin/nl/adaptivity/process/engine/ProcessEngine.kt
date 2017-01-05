@@ -30,12 +30,8 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.ProcessModelBase
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.processModel.engine.IProcessModelRef
-import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
-import nl.adaptivity.process.processModel.ref
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
@@ -214,7 +210,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
   private var mSecurityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
 
-  fun invalidateModelCache(handle: Handle<out ExecutableProcessModel>) {
+  fun invalidateModelCache(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
     engineData.invalidateCachePM(handle)
   }
 
@@ -248,7 +244,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun addProcessModel(transaction: TRXXX, basepm: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
+  fun addProcessModel(transaction: TRXXX, basepm: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user)
 
     return engineData.inWriteTransaction(transaction) {
@@ -317,7 +313,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(FileNotFoundException::class, SQLException::class)
-  fun updateProcessModel(transaction: TRXXX, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
+  fun updateProcessModel(transaction: TRXXX, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: ProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     engineData.inWriteTransaction(transaction) {
       val oldModel = processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
 
@@ -336,7 +332,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
       }
 
       return (processModel as? ExecutableProcessModel ?: ExecutableProcessModel.from(processModel)).apply {
-        processModels[handle]= this
+        val foo:ExecutableProcessModel = this
+        processModels[handle]= foo
       }.getRef()
     }
   }
