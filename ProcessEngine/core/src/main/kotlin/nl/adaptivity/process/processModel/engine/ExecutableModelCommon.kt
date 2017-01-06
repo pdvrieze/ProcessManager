@@ -25,6 +25,10 @@ interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableM
 
   interface Builder: ProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon> {
 
+    override val rootBuilder: ExecutableProcessModel.Builder
+
+    override val defaultPedantic get() = true
+
     override fun startNodeBuilder() = ExecutableStartNode.Builder()
 
     override fun startNodeBuilder(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
@@ -41,11 +45,13 @@ interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableM
 
     override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
 
-    override fun childModelBuilder() = ExecutableActivity.ChildModelBuilder()
+    override fun childModelBuilder() = ExecutableActivity.ChildModelBuilder(this.rootBuilder)
 
     override fun endNodeBuilder() = ExecutableEndNode.Builder()
 
     override fun endNodeBuilder(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
 
   }
+
+  override val rootModel: ExecutableProcessModel
 }

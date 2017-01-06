@@ -53,7 +53,9 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
 
   @ProcessModelDSL
   interface Builder<NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> {
-    val nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>>
+    val defaultPedantic get() = false
+    val rootBuilder: RootProcessModel.Builder<NodeT, ModelT>
+    val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>>
     val imports: MutableList<IXmlResultType>
     val exports: MutableList<IXmlDefineType>
 
@@ -87,7 +89,12 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     }
 
     fun childModel(body: Activity.ChildModelBuilder<NodeT, ModelT>.()->Unit): Identifiable {
-      return nodeHelper(childModelBuilder(), body)
+      val builder = childModelBuilder()
+      builder.apply(body)
+      builder.ensureChildId().ensureId()
+      rootBuilder.childModels.add(builder)
+      nodes.add(builder)
+      return Identifier(builder.id!!)
     }
 
     fun endNode(body: EndNode.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
@@ -98,7 +105,11 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
       return generateSequence(1, { it+1} ).map { "${base}${it}" }.first { candidateId -> nodes.none { it.id == candidateId } }
     }
 
-    fun <B: ProcessNode.Builder<*,*>> B.ensureId(): B = apply {
+    fun <B: ChildProcessModel.Builder<*,*>> B.ensureChildId(): B = apply {
+      if (childId==null) { childId = rootBuilder.newChildId(this.childIdBase) }
+    }
+
+    fun <B: ProcessNode.IBuilder<*,*>> B.ensureId(): B = apply {
       if (id ==null) { id = this@Builder.newId(this.idBase) }
     }
 
@@ -128,7 +139,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
       normalize(true)
       val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
 
-      fun visitSuccessors(node: ProcessNode.Builder<NodeT, ModelT>) {
+      fun visitSuccessors(node: ProcessNode.IBuilder<NodeT, ModelT>) {
         val id = node.id!!
         if (id in seen) { throw ProcessException("Cycle in process model") }
         seen += id

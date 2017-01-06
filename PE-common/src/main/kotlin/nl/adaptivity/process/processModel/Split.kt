@@ -29,6 +29,8 @@ interface Split<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT,
 
     override fun build(newOwner: ModelT): Split<NodeT, ModelT>
 
+    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitSplit(this)
+
     var predecessor: Identifiable?
       get() = predecessors.firstOrNull()
       set(value) { predecessors.replaceByNotNull(value?.identifier) }

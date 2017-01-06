@@ -35,76 +35,103 @@ class TestWorkflowPatterns : Spek({
       stubMessageService.clear()
     }
 
-    describe("Basic control-flow patterns") {
+    describe("Control flow patterns") {
 
-      describe("WCP1: A sequential process") {
-        testWCP1(processEngine, principal)
+      describe("Basic control-flow patterns") {
+
+        describe("WCP1: A sequential process") {
+          testWCP1(processEngine, principal)
+        }
+
+        describe("WCP2: Parallel split") {
+          testWCP2(processEngine, principal)
+        }
+
+        describe("WCP3: Synchronization / And join") {
+          testWCP3(processEngine, principal)
+        }
+
+        describe("WCP4: XOR split") {
+          testWCP4(processEngine, principal)
+        }
+
+        describe("WCP5: simple-merge") {
+          testWCP5(processEngine, principal)
+        }
       }
 
-      describe("WCP2: Parallel split") {
-        testWCP2(processEngine, principal)
+      describe("Advanced branching and synchronization patterns") {
+        describe("WCP6: multi-choice / or-split") {
+          given("ac1.condition=true, ac2.condition=false") {
+            testWCP6(processEngine, principal, true, false)
+          }
+          given("ac1.condition=false, ac2.condition=true") {
+            testWCP6(processEngine, principal, false, true)
+          }
+          given("ac1.condition=true, ac2.condition=true") {
+            testWCP6(processEngine, principal, true, true)
+          }
+
+        }
+
+        describe("WCP7: structured synchronized merge") {
+          given("ac1.condition=true, ac2.condition=false") {
+            testWCP7(processEngine, principal, true, false)
+          }
+          given("ac1.condition=false, ac2.condition=true") {
+            testWCP7(processEngine, principal, false, true)
+          }
+          given("ac1.condition=true, ac2.condition=true") {
+            testWCP7(processEngine, principal, true, true)
+          }
+
+        }
+
+        xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
+          testWCP8(processEngine, principal)
+        }
+
+        describe("WCP9: Structured Discriminator") {
+          testWCP9(processEngine, principal)
+        }
       }
 
-      describe("WCP3: Synchronization / And join") {
-        testWCP3(processEngine, principal)
-      }
+      describe("Structural patterns") {
+        xdescribe("WCP10: arbitrary cycles", "Multiple instantiations of a single node are not yet supported") {
 
-      describe("WCP4: XOR split") {
-        testWCP4(processEngine, principal)
-      }
+        }
 
-      describe("WCP5: simple-merge") {
-        testWCP5(processEngine, principal)
+        describe("WCP11: Implicit termination") {
+          testWCP11(processEngine, principal)
+        }
       }
     }
 
-    describe("Advanced branching and synchronization patterns") {
-      describe("WCP6: multi-choice / or-split") {
-        given("ac1.condition=true, ac2.condition=false") {
-          testWCP6(processEngine, principal, true, false)
-        }
-        given("ac1.condition=false, ac2.condition=true") {
-          testWCP6(processEngine, principal, false, true)
-        }
-        given("ac1.condition=true, ac2.condition=true") {
-          testWCP6(processEngine, principal, true, true)
-        }
-
-      }
-
-      describe("WCP7: structured synchronized merge") {
-        given("ac1.condition=true, ac2.condition=false") {
-          testWCP7(processEngine, principal, true, false)
-        }
-        given("ac1.condition=false, ac2.condition=true") {
-          testWCP7(processEngine, principal, false, true)
-        }
-        given("ac1.condition=true, ac2.condition=true") {
-          testWCP7(processEngine, principal, true, true)
+    describe("Abstract syntax patterns") {
+      describe("WASP4: Vertical modularisation (subprocesses)") {
+        val model = ExecutableProcessModel.build {
+          owner = principal
+          val start1 = startNode { id="start1" }
+          val ac1 = activity { id="ac1"; predecessor = start1 }
+          val comp1 = childModel { id="comp1"
+            childId="child1"
+            predecessor = ac1
+            val start2 = startNode { id="start2" }
+            val ac2 = activity { id="ac2"; predecessor=start2 }
+            val end2 = endNode { id="end2"; predecessor=ac2 }
+          }
+          val ac3 = activity { id="ac3"; predecessor=comp1 }
+          val end = endNode { id="end"; predecessor=ac3 }
         }
 
-      }
 
-      xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
-        testWCP8(processEngine, principal)
-      }
+        val validTraces = listOf(trace("start1", "ac1", "start2", "ac2", "end2", "comp1", "ac3", "end"))
+        val invalidTraces = listOf(trace("ac1"), trace("start2"))
+        testTraces(processEngine, model, principal, valid=validTraces, invalid=invalidTraces)
 
-      describe("WCP9: Structured Discriminator") {
-        testWCP9(processEngine, principal)
-      }
-    }
-
-    describe("Structural patterns") {
-      xdescribe("WCP10: arbitrary cycles", "Multiple instantiations of a single node are not yet supported") {
-
-      }
-
-      describe("WCP11: Implicit termination") {
-        testWCP11(processEngine, principal)
       }
     }
   }
-
 })
 
 private fun EngineTestingDsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {

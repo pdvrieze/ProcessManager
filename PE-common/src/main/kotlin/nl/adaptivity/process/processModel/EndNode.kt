@@ -33,6 +33,8 @@ interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Node
       get() = predecessors.firstOrNull()
       set(value) { predecessors.replaceByNotNull(value?.identifier) }
 
+    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitEndNode(this)
+
   }
 
   override fun builder(): Builder<NodeT, ModelT>

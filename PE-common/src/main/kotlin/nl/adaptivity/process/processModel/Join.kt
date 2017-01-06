@@ -34,6 +34,8 @@ interface Join<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, 
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }
 
+    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitJoin(this)
+
   }
 
   override fun builder(): Builder<NodeT, ModelT>

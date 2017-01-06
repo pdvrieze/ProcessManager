@@ -17,8 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.smartStartTag
 import nl.adaptivity.xml.writeChildren
@@ -29,32 +27,31 @@ import javax.xml.namespace.QName
  */
 abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModelBase<T, M>, ChildProcessModel<T,M> {
 
-  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(override var childId: String? = null,
-                                                                         nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
-                                                                         imports: Collection<IXmlResultType> = emptyList(), exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
-    override abstract fun buildModel(ownerModel: M, pedantic: Boolean): ChildProcessModelBase<T, M>
+  abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(
+      override val rootBuilder: RootProcessModel.Builder<T, M>,
+      override var childId: String? = null,
+      nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+      imports: Collection<IXmlResultType> = emptyList(),
+      exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
+    override abstract fun buildModel(ownerModel: RootProcessModel<T, M>, pedantic: Boolean): ChildProcessModel<T, M>
   }
 
-  constructor(builder: ChildProcessModel.Builder<T,M>, ownerModel: M, pedantic: Boolean):super(builder, pedantic) {
+  constructor(builder: ChildProcessModel.Builder<*, *>, ownerModel: RootProcessModel<T,M>, nodeFactory: NodeFactory<T,M>, pedantic: Boolean):super(builder, RootProcessModelBase.ChildModelProvider(builder.rootBuilder.childModels, nodeFactory, pedantic), pedantic) {
     this.ownerModel = ownerModel
-    this.childId = builder.childId?.let(::Identifier)
+    this.id = builder.childId
   }
 
-  override val ownerModel: M
+  override val ownerModel: RootProcessModel<T, M>
 
-  override val childId: Identifiable?
+  override val id: String?
 
-  abstract override fun builder(): ChildProcessModelBase.Builder<T, M>
+  override abstract fun builder(rootBuilder: RootProcessModel.Builder<T, M>): ChildProcessModelBase.Builder<T, M>
 
   override fun serialize(out: XmlWriter) {
-    if (getModelNodes().any { it.id == null }) {
-      builder().buildModel(ownerModel).serialize(out)
-    } else {
-      out.smartStartTag(ELEMENTNAME) {
-        writeChildren(imports)
-        writeChildren(exports)
-        writeChildren(getModelNodes())
-      }
+    out.smartStartTag(ELEMENTNAME) {
+      writeChildren(imports)
+      writeChildren(exports)
+      writeChildren(getModelNodes())
     }
   }
 

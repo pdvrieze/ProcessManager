@@ -119,7 +119,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       results: Collection<IXmlResultType> = emptyList(),
       x: Double = Double.NaN,
       y: Double = Double.NaN) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y), Activity.ChildModelBuilder<NodeT,ModelT> {
-    override val nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>> = nodes.toMutableSet()
+    override val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableSet()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
     override var condition: String? = null
@@ -137,7 +137,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
   private var _name: String? = null
 
-  override val childModelId: Identifiable?
+  override val childModel: ChildProcessModel<NodeT, ModelT>?
 
   override var name:String?
     get() = _name
@@ -162,19 +162,19 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   // Object Initialization
   @Deprecated("Don't use")
   constructor(ownerModel: ModelT) : super(ownerModel) {
-    childModelId = null
+    childModel = null
   }
 
   constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
-    this.childModelId = null
+    this.childModel = null
   }
 
-  constructor(builder: Activity.ChildModelBuilder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.ChildModelBuilder<*, *>, childModel: ChildProcessModel<NodeT, ModelT>) : super(builder, childModel.asM) {
     this._message = null
     this._name = null
-    this.childModelId = builder.childId?.let(::Identifier) ?: throw IllegalArgumentException("No child id specified")
+    this.childModel = childModel
   }
   // Object Initialization end
 

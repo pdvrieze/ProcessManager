@@ -30,7 +30,7 @@ import nl.adaptivity.xml.XmlSerializable
 interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
 
   @ProcessModelDSL
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable {
+  interface IBuilder<NodeT: ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
     var predecessors: MutableSet<Identified>
     var successors: MutableSet<Identified>
     var id: String?
@@ -47,11 +47,27 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
       }
     }
 
-    fun build(newOwner: ModelT): ProcessNode<NodeT, ModelT>
-
     fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())
     }
+
+    fun <R> visit(visitor: BuilderVisitor<R>):R
+  }
+
+  @ProcessModelDSL
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable, IBuilder<NodeT, ModelT> {
+
+    fun build(newOwner: ModelT): ProcessNode<NodeT, ModelT>
+
+  }
+
+  interface BuilderVisitor<R> {
+    fun visitStartNode(startNode: StartNode.Builder<*, *>): R
+    fun visitActivity(activity: Activity.Builder<*, *>): R
+    fun visitActivity(activity: Activity.ChildModelBuilder<*, *>): R
+    fun visitSplit(split: Split.Builder<*, *>): R
+    fun visitJoin(join: Join.Builder<*, *>): R
+    fun visitEndNode(endNode: EndNode.Builder<*, *>): R
   }
 
   interface Visitor<R> {

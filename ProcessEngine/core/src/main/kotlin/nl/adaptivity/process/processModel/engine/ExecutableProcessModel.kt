@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.*
+import net.devrieze.util.CollectionUtil
+import net.devrieze.util.Handle
+import net.devrieze.util.StringCache
+import net.devrieze.util.lookup
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -44,16 +47,17 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
   class Builder : RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
     constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
+                childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
                 name: String? = null,
                 handle: Long = -1L,
                 owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
                 roles: Collection<String> = emptyList(),
                 uuid: UUID? = null,
                 imports: Collection<IXmlResultType> = emptyList(),
-                exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, name, handle, owner, roles, uuid, imports, exports)
+                exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports)
     constructor(base: RootProcessModel<*, *>) : super(base)
 
-    override fun build(): ExecutableProcessModel = build(pedantic = true)
+    override val rootBuilder get() = this
 
     override fun build(pedantic: Boolean) = ExecutableProcessModel(this, pedantic)
 
@@ -87,12 +91,14 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     }
     private set
 
+  override val rootModel get() = this
+
   override fun withPermission() = this
 
-  constructor(basepm: RootProcessModelBase<*, *>) : super(basepm, ::toExecutableProcessNode)
+  constructor(basepm: RootProcessModelBase<*, *>) : super(basepm, toExecutableProcessNode)
 
   @JvmOverloads
-  constructor(builder: Builder, pedantic:Boolean = true) : super(builder, pedantic)
+  constructor(builder: Builder, pedantic:Boolean = true) : super(builder, EXEC_NODEFACTORY, pedantic)
 
   override fun builder(): Builder = Builder(this)
 
@@ -259,17 +265,54 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
   }
 }
 
-fun toExecutableProcessNode(_newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
-  val newOwner = _newOwner.asM
-  return node.visit(object : ProcessNode.Visitor<ExecutableProcessNode> {
-    override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode(startNode.builder(), newOwner)
 
-    override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity(activity.builder(), newOwner)
+val BUILDER_FACTORY = object : ProcessNode.Visitor<ExecutableProcessNode.Builder> {
+  override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
 
-    override fun visitSplit(split: Split<*, *>) = ExecutableSplit(split.builder(), newOwner)
+  override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
 
-    override fun visitJoin(join: Join<*, *>) = ExecutableJoin(join.builder(), newOwner)
+  override fun visitSplit(split: Split<*, *>) = ExecutableSplit.Builder(split)
 
-    override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode(endNode.builder(), newOwner)
-  })
+  override fun visitJoin(join: Join<*, *>) = ExecutableJoin.Builder(join)
+
+  override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
+}
+
+val toExecutableProcessNode = EXEC_NODEFACTORY
+
+object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableModelCommon> {
+
+  private fun visitor(newOwner: ExecutableModelCommon, childModel: ExecutableChildModel?=null) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
+    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = ExecutableStartNode(startNode, newOwner)
+
+    override fun visitActivity(activity: Activity.Builder<*, *>) = ExecutableActivity(activity, newOwner)
+
+    override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = ExecutableActivity(activity, childModel!!)
+
+    override fun visitSplit(split: Split.Builder<*, *>) = ExecutableSplit(split, newOwner)
+
+    override fun visitJoin(join: Join.Builder<*, *>) = ExecutableJoin(join, newOwner)
+
+    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = ExecutableEndNode(endNode, newOwner)
+  }
+
+
+  override operator fun invoke(_newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
+    if (node is ExecutableProcessNode && node.ownerModel===_newOwner) return node
+    return node.visit(BUILDER_FACTORY).build(_newOwner.asM)
+  }
+
+  override fun invoke(newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseNodeBuilder: ProcessNode.Builder<*, *>) = baseNodeBuilder.visit(visitor(newOwner.asM))
+
+  override fun invoke(newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseNodeBuilder: Activity.ChildModelBuilder<*, *>, childModel: ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
+    return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as ExecutableChildModel)) as ExecutableActivity
+  }
+
+  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+  }
+
+  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+  }
 }

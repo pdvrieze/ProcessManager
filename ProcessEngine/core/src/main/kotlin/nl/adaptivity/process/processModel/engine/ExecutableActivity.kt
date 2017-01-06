@@ -28,7 +28,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import java.sql.SQLException
-import javax.xml.namespace.QName
 
 
 /**
@@ -40,7 +39,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     this._condition = builder.condition?.let(::ExecutableCondition)
   }
 
-  constructor(builder: Activity.ChildModelBuilder<*, *>, newOwnerModel: ExecutableModelCommon) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.ChildModelBuilder<*, *>, childModel: ExecutableChildModel) : super(builder, childModel) {
     this._condition = builder.condition?.let(::ExecutableCondition)
   }
 
@@ -65,6 +64,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
 
 
   class ChildModelBuilder(
+      override val rootBuilder: ExecutableProcessModel.Builder,
       override var id: String? = null,
       childId: String? = null,
       nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
@@ -76,7 +76,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
       defines: Collection<IXmlDefineType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
-      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : ExecutableChildModel.Builder(childId, nodes, imports, exports), Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder, ExecutableModelCommon.Builder {
+      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
 
     override var predecessors: MutableSet<Identified> = predecessors.toMutableArraySet()
       set(value) { field.replaceBy(value) }
@@ -90,16 +90,12 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun onBeforeDeserializeChildren(reader: XmlReader) = throw UnsupportedOperationException("Serializing child creation helpers is not possible")
-
-    override val elementName: QName get() = Activity.ELEMENTNAME
-
-    override fun buildModel(ownerModel: ExecutableModelCommon, pedantic: Boolean): ExecutableChildModel {
-      return ExecutableChildModel(this, ownerModel, pedantic)
+    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+      return ExecutableChildModel(this, ownerModel.asM.rootModel, pedantic)
     }
 
-    override fun build(newOwner: ExecutableModelCommon): ExecutableActivity {
-      return ExecutableActivity(this, newOwner)
+    override fun buildActivity(childModel: ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
+      return ExecutableActivity(this, childModel as ExecutableChildModel)
     }
   }
 
@@ -139,7 +135,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
   override fun provideTask(engineData: MutableProcessEngineDataAccess,
                            processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
 
-    fun <V> doProvideTask(messageService: IMessageService<V>): Boolean {
+    fun <V> doProvideMessageTask(messageService: IMessageService<V>): Boolean {
       // TODO handle imports
       val preparedMessage = messageService.createMessage(message)
       try {
@@ -154,7 +150,9 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
       return false
 
     }
-    return doProvideTask(engineData.messageService())
+
+
+    return doProvideMessageTask(engineData.messageService())
   }
 
   /**

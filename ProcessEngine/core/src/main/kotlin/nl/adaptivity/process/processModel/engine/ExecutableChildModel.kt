@@ -23,14 +23,17 @@ import nl.adaptivity.process.processModel.*
  */
 class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon {
 
-  open class Builder(childId:String?=null, nodes: Collection<ExecutableProcessNode.Builder>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(childId, nodes, imports, exports), ExecutableModelCommon.Builder {
+  open class Builder(override val rootBuilder: ExecutableProcessModel.Builder, childId:String?=null, nodes: Collection<ExecutableProcessNode.Builder>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(rootBuilder, childId, nodes, imports, exports), ExecutableModelCommon.Builder {
 
-    override fun buildModel(ownerModel: ExecutableModelCommon, pedantic: Boolean): ExecutableChildModel {
-      return ExecutableChildModel(this, ownerModel, pedantic)
+    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+      return ExecutableChildModel(this, ownerModel as ExecutableProcessModel, pedantic)
     }
   }
 
-  constructor(builder: Builder, ownerModel: ExecutableModelCommon, pedantic: Boolean) : super(builder, ownerModel, pedantic)
+  override val rootModel get() = super.rootModel as ExecutableProcessModel
 
-  override fun builder() = ExecutableChildModel.Builder(childId?.id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)
+  constructor(builder: ChildProcessModel.Builder<*, *>, ownerModel: ExecutableProcessModel, pedantic: Boolean) : super(builder, ownerModel, EXEC_NODEFACTORY, pedantic)
+
+  override fun builder(rootBuilder: RootProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>)
+      = ExecutableChildModel.Builder(rootBuilder as ExecutableProcessModel.Builder, childId?.id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)
 }

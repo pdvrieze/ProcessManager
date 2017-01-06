@@ -51,7 +51,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
   }
 
   @JvmOverloads
-  constructor(builder: RootProcessModelBase.Builder<NodeT, ModelT>, pedantic: Boolean = false) : super(builder, pedantic) {
+  constructor(builder: RootProcessModelBase.Builder<NodeT, ModelT>, pedantic: Boolean = false) : super(builder, nodeFactory, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 

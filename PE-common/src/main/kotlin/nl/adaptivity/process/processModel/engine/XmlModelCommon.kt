@@ -25,6 +25,8 @@ interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
 
   interface Builder: ProcessModel.Builder<XmlProcessNode, XmlModelCommon> {
 
+    override val rootBuilder: XmlProcessModel.Builder
+
     override fun startNodeBuilder(): XmlStartNode.Builder {
       return XmlStartNode.Builder()
     }
@@ -58,7 +60,7 @@ interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
     }
 
     override fun childModelBuilder(): Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon> {
-      return XmlActivity.ChildModelBuilder(condition = null)
+      return XmlActivity.ChildModelBuilder(rootBuilder=this.rootBuilder)
     }
 
     override fun endNodeBuilder(): XmlEndNode.Builder {
@@ -70,4 +72,6 @@ interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
     }
 
   }
+
+  override val rootModel: XmlProcessModel
 }

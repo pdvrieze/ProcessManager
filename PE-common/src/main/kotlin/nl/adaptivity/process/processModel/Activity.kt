@@ -24,7 +24,7 @@ import javax.xml.namespace.QName
 
 interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-  interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
+  interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.IBuilder<T, M> {
     var condition: String?
 
     var predecessor: Identifiable?
@@ -36,10 +36,12 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
       set(value) { successors.replaceByNotNull(value?.identifier) }
   }
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M> {
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.Builder<T, M> {
     var message: IXmlMessage?
     @Deprecated("Names are not used anymore")
     var name: String?
+
+    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
   }
 
   interface ChildModelBuilder<NodeT : ProcessNode<NodeT,ModelT>, ModelT:ProcessModel<NodeT,ModelT>?> : IBuilder<NodeT,ModelT>, ChildProcessModel.Builder<NodeT, ModelT> {
@@ -49,9 +51,11 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
 
     override val idBase: String get() = "sub"
 
-    override fun buildModel(ownerModel: ModelT, pedantic: Boolean): ChildProcessModel<NodeT, ModelT>
+    override fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>, pedantic: Boolean): ChildProcessModel<NodeT, ModelT>
 
-    override fun build(newOwner: ModelT): Activity<NodeT, ModelT>
+    fun buildActivity(childModel: ChildProcessModel<NodeT,ModelT>): Activity<NodeT, ModelT>
+
+    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
   }
 
   override fun builder(): Builder<NodeT, ModelT>
@@ -97,7 +101,7 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
    */
   var message: IXmlMessage?
 
-  val childModelId: Identifiable?
+  val childModel: ChildProcessModel<NodeT, ModelT>?
 
   companion object {
 

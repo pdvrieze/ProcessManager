@@ -28,6 +28,8 @@ interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
   interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.Builder<NodeT, ModelT> {
     override fun build(newOwner: ModelT): StartNode<NodeT, ModelT>
 
+    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitStartNode(this)
+
     var successor: Identifiable?
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }

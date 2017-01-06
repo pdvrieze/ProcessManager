@@ -23,18 +23,24 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 02/01/17.
  */
-interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT> {
+interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT>, Identifiable {
 
   interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
+    val childIdBase: String get() = "child"
     var childId: String?
-    fun buildModel(ownerModel: ModelT, pedantic: Boolean = false): ChildProcessModel<NodeT, ModelT>
+    fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>, pedantic: Boolean = defaultPedantic): ChildProcessModel<NodeT, ModelT>
   }
 
-  val childId: Identifiable?
+  override val id: String?
 
-  val ownerModel: ModelT
+  @Deprecated("Use the object itself", ReplaceWith("this"))
+  val childId: Identifiable? get() = this
+
+  val ownerModel: RootProcessModel<NodeT, ModelT>
 
   override val rootModel: RootProcessModel<NodeT, ModelT>? get() = ownerModel?.rootModel
+
+  fun builder(rootBuilder: RootProcessModel.Builder<NodeT, ModelT>): Builder<NodeT, ModelT>
 
   companion object {
     const val ELEMENTLOCALNAME="childModel"

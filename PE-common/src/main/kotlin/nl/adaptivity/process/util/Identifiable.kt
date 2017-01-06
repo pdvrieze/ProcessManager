@@ -25,4 +25,12 @@ interface Identifiable : Comparable<Identifiable> {
 
   val identifier: Identifier? get() = id?.let(::Identifier)
 
+  override fun compareTo(other: Identifiable): Int {
+    val otherId = other.id
+    return if (otherId==null) {
+      id?.let { 1 } ?: 0
+    } else {
+      id?.let { it.compareTo(otherId) } ?: -1
+    }
+  }
 }

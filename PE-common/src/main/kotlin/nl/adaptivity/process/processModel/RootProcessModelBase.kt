@@ -21,6 +21,7 @@ import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
@@ -38,6 +39,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   @ProcessModelDSL
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+      childModels: Collection<ChildProcessModel.Builder<T,M>>,
       override var name: String? = null,
       override var handle: Long = -1L,
       override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
@@ -48,8 +50,11 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
     override val roles: MutableSet<String> = roles.toMutableSet()
 
+    override val childModels: MutableList<ChildProcessModel.Builder<T, M>> = childModels.toMutableList()
+
     constructor(base:RootProcessModel<*,*>) :
         this(emptyList(),
+            emptyList(),
             base.name,
             (base as? ReadableHandleAware<*>)?.getHandle()?.handleValue ?: -1L,
             base.owner,
@@ -66,9 +71,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         override fun visitEndNode(endNode: EndNode<*, *>) = endNodeBuilder(endNode)
       }) }
 
+      // XXX Set child models from the base
     }
-
-    override fun build() = build(false)
 
     override abstract fun build(pedantic: Boolean): RootProcessModelBase<T, M>
 
@@ -111,6 +115,18 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
   }
 
+  class ChildModelProvider<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(private val childModelBuilders: List<ChildProcessModel.Builder<*, *>>, val nodeFactory: NodeFactory<NodeT, ModelT>, private val pedantic: Boolean) {
+    private var data: IdentifyableSet<out ChildProcessModel<NodeT, ModelT>>? = null
+
+    operator fun invoke(newOwner:RootProcessModel<NodeT, ModelT>):IdentifyableSet<out ChildProcessModel<NodeT, ModelT>> {
+      return data?.let {
+        it
+      } ?: run {
+        IdentifyableSet.processNodeSet(childModelBuilders.asSequence().map { nodeFactory(newOwner, it) })
+      }.apply { data=this }
+    }
+  }
+
   private var _name: String? = null
   private var _handle = -1L
 
@@ -125,8 +141,14 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   private var _roles: MutableSet<String>? = null
   private var uuid: UUID?
 
+  override val childModels: Collection<ChildProcessModel<NodeT, ModelT>> get() = _childModels
+  private val _childModels: IdentifyableSet<out ChildProcessModel<NodeT, ModelT>>
 
-  constructor(builder: Builder<NodeT, ModelT>, pedantic: Boolean): super(builder, pedantic) {
+
+  constructor(builder: Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean): this(builder, ChildModelProvider(builder.childModels, nodeFactory, pedantic), pedantic)
+
+  private constructor(builder: Builder<*, *>, childModelProvider: ChildModelProvider<NodeT, ModelT>, pedantic: Boolean): super(builder, childModelProvider, pedantic) {
+    this._childModels = childModelProvider(this)
     this._name = builder.name
     this._handle = builder.handle
     this._owner = builder.owner
@@ -140,7 +162,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
    * *
    * @param modelNodes The "converted" model nodes.
    */
-  protected constructor(basepm: RootProcessModelBase<*, *>, nodeFactory: (ProcessModel<NodeT,ModelT>, ProcessNode<*,*>)->NodeT) : this(
+  protected constructor(basepm: RootProcessModelBase<*, *>, nodeFactory: NodeFactory<NodeT, ModelT>) : this(
       basepm.getModelNodes(),
       basepm.getName(),
       basepm.handleValue,
@@ -149,6 +171,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
       basepm.getUuid(),
       basepm.getImports(),
       basepm.getExports(),
+      basepm._childModels,
       nodeFactory)
 
   constructor(processNodes: Iterable<ProcessNode<*,*>>,
@@ -159,7 +182,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
               uuid: UUID? = null,
               imports: Collection<IXmlResultType> = emptyList(),
               exports: Collection<IXmlDefineType> = emptyList(),
-              nodeFactory: (ProcessModel<NodeT,ModelT>, ProcessNode<*,*>)->NodeT): super(processNodes, imports, exports, nodeFactory) {
+              childModels: Collection<ChildProcessModel<*, *>> = emptyList(),
+              nodeFactory: NodeFactory<NodeT, ModelT>): super(processNodes, imports, exports, nodeFactory) {
+    _childModels = IdentifyableSet.processNodeSet(childModels.map { child -> nodeFactory(ownerModel = this, baseModel = child) })
     this._name = name
     this._handle = handle
     this._owner = owner
@@ -167,7 +192,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     this.uuid = uuid
   }
 
-  abstract override fun builder(): Builder<NodeT,ModelT>
+  abstract fun builder(): Builder<NodeT,ModelT>
 
   open fun update(body: (Builder<NodeT,ModelT>)->Unit):ModelT {
     return builder().apply(body).build().asM
@@ -208,6 +233,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     }
     return false
   }
+
+  override fun getChildModel(childId: Identifiable) = _childModels[childId]
 
   override fun getUuid(): UUID? {
     return uuid

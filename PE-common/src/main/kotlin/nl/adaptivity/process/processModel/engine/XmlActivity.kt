@@ -23,7 +23,6 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.schema.annotations.XmlName
-import javax.xml.namespace.QName
 
 
 /**
@@ -41,7 +40,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
 
   constructor(builder: Activity.Builder<*, *>, newOwnerModel: XmlModelCommon) : super(builder, newOwnerModel)
 
-  constructor(builder: Activity.ChildModelBuilder<*, *>, newOwnerModel: XmlModelCommon) : super(builder, newOwnerModel)
+  constructor(builder: Activity.ChildModelBuilder<*, *>, childModel: XmlChildModel) : super(builder, childModel)
 
   class Builder : ActivityBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
 
@@ -57,6 +56,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
   }
 
   class ChildModelBuilder(
+      rootBuilder: XmlProcessModel.Builder,
       override var id: String? = null,
       childId: String? = null,
       nodes: Collection<XmlProcessNode.Builder> = emptyList(),
@@ -68,7 +68,8 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
       defines: Collection<IXmlDefineType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
-      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : XmlChildModel.Builder(childId, nodes, imports, exports), Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder, XmlModelCommon.Builder {
+      override var x: Double = Double.NaN,
+      override var y: Double = Double.NaN) : XmlChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
 
     override var predecessors: MutableSet<Identified> = predecessors.toMutableArraySet()
       set(value) { field.replaceBy(value) }
@@ -82,16 +83,12 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun onBeforeDeserializeChildren(reader: XmlReader) = throw UnsupportedOperationException("Serializing child creation helpers is not possible")
-
-    override val elementName: QName get() = Activity.ELEMENTNAME
-
-    override fun buildModel(ownerModel: XmlModelCommon, pedantic: Boolean): XmlChildModel {
-      return XmlChildModel(this, ownerModel, pedantic)
+    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, pedantic: Boolean): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
+      return XmlChildModel(this, ownerModel as XmlProcessModel, pedantic)
     }
 
-    override fun build(newOwner: XmlModelCommon): XmlActivity {
-      return XmlActivity(this, newOwner)
+    override fun buildActivity(childModel: ChildProcessModel<XmlProcessNode, XmlModelCommon>): Activity<XmlProcessNode, XmlModelCommon> {
+      return XmlActivity(this, childModel as XmlChildModel)
     }
   }
 

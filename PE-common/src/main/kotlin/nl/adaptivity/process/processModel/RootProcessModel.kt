@@ -28,6 +28,10 @@ import java.util.*
 interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT> {
 
   interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
+    override val rootBuilder: Builder<NodeT, ModelT> get() = this
+
+    val childModels: MutableList<ChildProcessModel.Builder<NodeT, ModelT>>
+
     var name: String?
     var handle: Long
     var owner: Principal
@@ -46,8 +50,14 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
       return true
     }
 
-    fun build() = build(false)
-    fun build(pedantic: Boolean): RootProcessModel<NodeT,ModelT>
+
+    fun newChildId(base:String):String {
+      return generateSequence(1, { it+1} ).map { "${base}${it}" }.first { candidateId ->
+        (childModels.asSequence()).none { it.childId == candidateId }
+      }
+    }
+
+    fun build(pedantic: Boolean = defaultPedantic): RootProcessModel<NodeT,ModelT>
 
   }
 
@@ -75,6 +85,10 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
   override fun getModelNodes(): Collection<NodeT>
 
   fun getName(): String?
+
+  val childModels: Collection<ChildProcessModel<NodeT, ModelT>>
+
+  fun getChildModel(childId: Identifiable): ChildProcessModel<NodeT, ModelT>?
 
   val owner: Principal
 
