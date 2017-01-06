@@ -18,6 +18,7 @@ import javax.xml.transform.Source;
 import net.devrieze.util.Tripple;
 
 import nl.adaptivity.messaging.CompletionListener;
+import nl.adaptivity.messaging.Endpoint;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
