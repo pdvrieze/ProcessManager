@@ -23,7 +23,15 @@ import nl.adaptivity.process.processModel.*
  */
 class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon {
 
-  open class Builder(override val rootBuilder: ExecutableProcessModel.Builder, childId:String?=null, nodes: Collection<ExecutableProcessNode.Builder>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(rootBuilder, childId, nodes, imports, exports), ExecutableModelCommon.Builder {
+  open class Builder(
+      override val rootBuilder: ExecutableProcessModel.Builder,
+      childId:String?=null,
+      nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
+      imports: Collection<IXmlResultType> = emptyList(),
+      exports: Collection<IXmlDefineType> = emptyList()) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(rootBuilder, childId, nodes, imports, exports), ExecutableModelCommon.Builder {
+
+    constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.childId?.id, base.getModelNodes().map { it.visit(EXEC_BUILDER_VISITOR) }, base.imports, base.exports)
+
 
     override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
       return ExecutableChildModel(this, ownerModel as ExecutableProcessModel, pedantic)

@@ -45,13 +45,13 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
 
   var layoutAlgorithm: LayoutAlgorithm<NodeT>
 
-  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<NodeT> = emptyList(), layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm<NodeT>(), nodeFactory: (ProcessModel<NodeT,ModelT>, ProcessNode<*, *>) -> NodeT) :
+  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<NodeT> = emptyList(), layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm<NodeT>(), nodeFactory: NodeFactory<NodeT, ModelT>) :
     super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
     this.layoutAlgorithm = layoutAlgorithm
   }
 
   @JvmOverloads
-  constructor(builder: RootProcessModelBase.Builder<NodeT, ModelT>, pedantic: Boolean = false) : super(builder, nodeFactory, pedantic) {
+  constructor(builder: RootProcessModelBase.Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 
@@ -62,6 +62,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
 
     constructor(
         nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
+        childModels: MutableSet<ChildProcessModel.Builder<T,M>> = mutableSetOf(),
         name: String? = null,
         handle: Long = -1L,
         owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
@@ -69,7 +70,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
         uuid: UUID? = null,
         imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
         exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
-        layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm()) : super(nodes, name, handle, owner, roles, uuid, imports, exports) {
+        layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
       this.layoutAlgorithm = layoutAlgorithm
     }
 

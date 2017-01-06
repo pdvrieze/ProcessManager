@@ -75,7 +75,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
     }
   }
 
-  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableEndNode(@NotNull final EndNode.Builder<?, ?> builder, @Nullable final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 

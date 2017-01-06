@@ -145,9 +145,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   private val _childModels: IdentifyableSet<out ChildProcessModel<NodeT, ModelT>>
 
 
-  constructor(builder: Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean): this(builder, ChildModelProvider(builder.childModels, nodeFactory, pedantic), pedantic)
+  constructor(builder: Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic): this(builder, ChildModelProvider(builder.childModels, nodeFactory, pedantic), pedantic)
 
-  private constructor(builder: Builder<*, *>, childModelProvider: ChildModelProvider<NodeT, ModelT>, pedantic: Boolean): super(builder, childModelProvider, pedantic) {
+  private constructor(builder: Builder<*, *>, childModelProvider: ChildModelProvider<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic): super(builder, childModelProvider, pedantic) {
     this._childModels = childModelProvider(this)
     this._name = builder.name
     this._handle = builder.handle
@@ -194,7 +194,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
   abstract fun builder(): Builder<NodeT,ModelT>
 
-  open fun update(body: (Builder<NodeT,ModelT>)->Unit):ModelT {
+  open fun update(body: (Builder<NodeT,ModelT>)->Unit): ModelT {
     return builder().apply(body).build().asM
   }
 

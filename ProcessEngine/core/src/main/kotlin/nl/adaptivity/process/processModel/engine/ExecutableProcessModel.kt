@@ -36,7 +36,6 @@ import java.util.*
 
 
 typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode, ExecutableModelCommon>
-
 /**
  * A class representing a process model.
 
@@ -102,7 +101,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
   override fun builder(): Builder = Builder(this)
 
-  override fun update(body: (RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>) -> Unit): ExecutableProcessModel {
+  override fun update(body: RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>.() -> Unit): ExecutableProcessModel {
     return Builder(this).apply(body).build()
   }
 
@@ -266,7 +265,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 }
 
 
-val BUILDER_FACTORY = object : ProcessNode.Visitor<ExecutableProcessNode.Builder> {
+val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ExecutableProcessNode.Builder> {
   override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
 
   override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
@@ -299,7 +298,7 @@ object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, Exe
 
   override operator fun invoke(_newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
     if (node is ExecutableProcessNode && node.ownerModel===_newOwner) return node
-    return node.visit(BUILDER_FACTORY).build(_newOwner.asM)
+    return node.visit(EXEC_BUILDER_VISITOR).build(_newOwner.asM)
   }
 
   override fun invoke(newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseNodeBuilder: ProcessNode.Builder<*, *>) = baseNodeBuilder.visit(visitor(newOwner.asM))
@@ -309,10 +308,13 @@ object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, Exe
   }
 
   override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    return ExecutableChildModel(baseChildBuilder, ownerModel.asM.rootModel, pedantic)
   }
 
   override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    val rootBuilder = ExecutableProcessModel.Builder()
+    val builder = ExecutableChildModel.Builder(rootBuilder, baseModel)
+    val provider = RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>(listOf(builder), this, pedantic)
+    return builder.buildModel(ownerModel, pedantic)
   }
 }

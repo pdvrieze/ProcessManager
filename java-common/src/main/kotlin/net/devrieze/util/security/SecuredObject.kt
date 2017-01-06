@@ -16,6 +16,7 @@
 
 package net.devrieze.util.security
 
+import net.devrieze.util.security.SecurityProvider.Permission
 import java.security.Principal
 
 /**
@@ -26,8 +27,23 @@ interface SecuredObject<out T> {
   fun withPermission():T
 }
 
-inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: SecurityProvider.Permission, subject:Principal, body: (T)->R):R {
-  val o = withPermission()
-  securityProvider.ensurePermission(permission, subject, o)
-  return body(o)
+private val defaultAlternate = fun  (securityProvider: SecurityProvider, permission: Permission, subject: Principal, o: SecureObject<*>) {securityProvider.ensurePermission(permission, subject, o); throw IllegalStateException() }
+
+inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: Permission, subject:Principal, body: (T)->R):R {
+  securityProvider.ensurePermission(permission, subject, this)
+  return body(withPermission())
+}
+
+inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: Permission, subject:Principal, alternate: (SecurityProvider, Permission, Principal, SecureObject<T>)->R, body: (T)->R):R {
+  return when {
+    securityProvider.hasPermission(permission, subject, this) -> body(this.withPermission())
+    else -> alternate(securityProvider, permission, subject, this)
+  }
+}
+
+inline fun <T:SecureObject<T>> SecureObject<T>.ifPermitted(securityProvider: SecurityProvider, permission: Permission, subject:Principal):T? {
+  return when {
+    securityProvider.hasPermission(permission, subject, this) -> withPermission()
+    else -> null
+  }
 }

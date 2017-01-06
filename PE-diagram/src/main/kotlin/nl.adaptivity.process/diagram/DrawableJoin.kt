@@ -65,7 +65,7 @@ class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>,
     _delegate = DrawableJoinSplitDelegate(orig._delegate)
   }
 
-  constructor(builder: ClientJoinNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
     _delegate = DrawableJoinSplitDelegate()
   }
 

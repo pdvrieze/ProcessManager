@@ -80,7 +80,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
     mState = orig.mState;
   }
 
-  public DrawableStartNode(@NotNull final StartNode.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableStartNode(@NotNull final StartNode.Builder<?, ?> builder, @Nullable final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 

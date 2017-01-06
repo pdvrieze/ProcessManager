@@ -86,7 +86,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
     }
   }
 
-  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @NotNull final DrawableProcessModel newOwnerModel) {
+  public DrawableActivity(@NotNull final Activity.Builder<?, ?> builder, @Nullable final DrawableProcessModel newOwnerModel) {
     super(builder, newOwnerModel);
   }
 

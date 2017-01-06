@@ -114,11 +114,12 @@ import java.util.UUID;
 
     @JvmField val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-
+    @JvmStatic
     fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> get(src: IProcessModelRef<NodeT, ModelT, ObjectT>) : ProcessModelRef<NodeT, ModelT, ObjectT> {
       return src as? ProcessModelRef ?: ProcessModelRef(src)
     }
 
+    @JvmStatic
     fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> deserialize(reader: XmlReader): ProcessModelRef<NodeT,ModelT, ObjectT> {
       return ProcessModelRef<NodeT, ModelT, ObjectT>().deserializeHelper(reader);
     }

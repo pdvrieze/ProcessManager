@@ -29,9 +29,11 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
+import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.RootProcessModelBase
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
+import nl.adaptivity.process.processModel.uuid
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
@@ -199,6 +201,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     VIEW_ALL_INSTANCES,
     CANCEL_ALL,
     UPDATE_MODEL,
+    LIST_MODELS,
     CHANGE_OWNERSHIP,
     VIEW_INSTANCE,
     CANCEL,
@@ -229,8 +232,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * *
    * @param transaction
    */
-  fun getProcessModels(transaction: TRXXX): Iterable<SecuredObject<ExecutableProcessModel>> {
-    return engineData.inReadonlyTransaction(transaction) { processModels }
+  fun getProcessModels(engineData: ProcessEngineDataAccess, user: Principal): Iterable<SecuredObject<ExecutableProcessModel>> {
+    mSecurityProvider.ensurePermission(Permissions.LIST_MODELS, user)
+    if (user == SecurityProvider.SYSTEMPRINCIPAL) return engineData.processModels
+    return engineData.processModels.mapNotNull {
+      it.ifPermitted(mSecurityProvider, SecureObject.Permissions.READ, user)
+    }
   }
 
   /**
@@ -282,14 +289,18 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   @Throws(SQLException::class)
   fun getProcessModel(transaction: TRXXX, handle: Handle<out ExecutableProcessModel>, user: Principal): ExecutableProcessModel? {
     return engineData.inWriteTransaction(transaction) {
-      processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
+      getProcessModel(this, handle, user)
+    }
+  }
 
-        return processModel.update { builder ->
-          if (builder.uuid==null) {
-            builder.uuid = UUID.randomUUID()
-          }
-        }
-
+  fun getProcessModel(dataAccess: ProcessEngineDataAccess, handle: Handle<out ExecutableProcessModel>, user: Principal): ExecutableProcessModel? {
+    return dataAccess.processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
+      if (processModel.uuid ==null && dataAccess is MutableProcessEngineDataAccess) {
+        processModel.update {
+          uuid = UUID.randomUUID()
+        }.apply { dataAccess.processModels[handle] = this }
+      } else {
+        processModel
       }
     }
   }
@@ -315,27 +326,30 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   @Throws(FileNotFoundException::class, SQLException::class)
   fun updateProcessModel(transaction: TRXXX, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     engineData.inWriteTransaction(transaction) {
-      val oldModel = processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
-
-      if (oldModel.owner==SecurityProvider.SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
-
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel)
-      mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
-
-      if (processModel.owner == SecurityProvider.SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
-        processModel.owner=oldModel.owner
-      } else if (oldModel.owner.name != processModel.owner.name) {
-        mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
-      }
-      if (!processModels.contains(handle)) {
-        throw FileNotFoundException("The process model with handle $handle could not be found")
-      }
-
-      return (processModel as? ExecutableProcessModel ?: ExecutableProcessModel.from(processModel)).apply {
-        val foo:ExecutableProcessModel = this
-        processModels[handle]= foo
-      }.getRef()
+      return updateProcessModel(this, handle, processModel, user)
     }
+  }
+
+  fun updateProcessModel(engineData: MutableProcessEngineDataAccess, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+    val oldModel = engineData.processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
+
+    if (oldModel.owner == SecurityProvider.SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
+
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel)
+    mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
+
+    if (processModel.owner == SecurityProvider.SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
+      processModel.owner = oldModel.owner
+    } else if (oldModel.owner.name != processModel.owner.name) {
+      mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
+    }
+    if (!engineData.processModels.contains(handle)) {
+      throw FileNotFoundException("The process model with handle $handle could not be found")
+    }
+
+    return (processModel as? ExecutableProcessModel ?: ExecutableProcessModel.from(processModel)).apply {
+      engineData.processModels[handle] = this
+    }.getRef()
   }
 
   @Throws(SQLException::class)
@@ -729,7 +743,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
     @JvmStatic
-    fun newInstance(messageService: IMessageService<*>): ProcessEngine<*> {
+    fun newInstance(messageService: IMessageService<*>): ProcessEngine<ProcessDBTransaction> {
       // TODO enable optional caching
       val engineData = DBProcessEngineData(messageService)
       val pe = ProcessEngine(messageService, engineData)

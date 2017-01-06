@@ -88,9 +88,9 @@ public class ClientJoinNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mode
     mCompat = compat;
   }
 
-  public ClientJoinNode(@NotNull final Builder<?, ?> builder, final ModelT newOwnerModel) {
+  public ClientJoinNode(@NotNull final Join.Builder<?, ?> builder, final ModelT newOwnerModel) {
     super(builder, newOwnerModel);
-    mCompat = builder.isCompat();
+    mCompat = (builder instanceof Builder) && ((Builder) builder).isCompat();
   }
 
   @NotNull

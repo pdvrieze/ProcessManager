@@ -111,7 +111,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
   final override fun getExports(): Collection<IXmlDefineType> = _exports
   protected fun setExports(value: Iterable<IXmlDefineType>) { _exports = value.toList() }
 
-  constructor(builder: ProcessModel.Builder<*, *>, childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>, pedantic: Boolean) {
+  constructor(builder: ProcessModel.Builder<*, *>, childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic) {
     val nodeFactory = childModelProvider.nodeFactory
     builder.normalize(pedantic)
 
