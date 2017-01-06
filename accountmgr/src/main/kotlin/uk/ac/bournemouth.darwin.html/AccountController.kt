@@ -613,7 +613,7 @@ class AccountController : HttpServlet() {
                 form(action = "/resetpasswd", method = FormMethod.post) {
                     table {
                         tr {
-                            tr {
+                            th {
                                 label { for_ = FIELD_USERNAME; +"User name:" }
                             }
                             td {
