@@ -32,16 +32,20 @@ import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
 
-interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @kotlin.jvm.JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel<NodeT, ModelT> {
+interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel<NodeT, ModelT> {
   interface Builder<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel.Builder<NodeT, ModelT> {
 
   }
+
+  override val rootModel: RootClientProcessModel<NodeT, ModelT>?
 
   val layoutAlgorithm: LayoutAlgorithm<NodeT>
 }
 
 abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> :
     RootProcessModelBase<NodeT, ModelT>, MutableRootProcessModel<NodeT, ModelT> {
+
+  override val rootModel: RootClientProcessModel<NodeT, ModelT> get() = this
 
   var layoutAlgorithm: LayoutAlgorithm<NodeT>
 

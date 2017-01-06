@@ -35,7 +35,7 @@ import java.security.Principal
 import java.util.*
 
 
-class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, DrawableProcessModel?>, Diagram, DrawableProcessModel {
+class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel {
 
   class Builder : RootClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel.Builder {
 
@@ -105,6 +105,8 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     }
 
   }
+
+  override val rootModel: RootDrawableProcessModel get() = this
 
   private val mItems = ItemCache()
   private var mBounds: Rectangle = Rectangle(java.lang.Double.NaN, java.lang.Double.NaN, java.lang.Double.NaN, java.lang.Double.NaN)
@@ -210,6 +212,10 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
       mBounds!!.left = java.lang.Double.NaN
     }
     super.setNodes(nodes)
+  }
+
+  public override fun setNode(pos: Int, newValue: DrawableProcessNode): DrawableProcessNode {
+    return super.setNode(pos, newValue)
   }
 
   override fun layout() {
@@ -370,6 +376,17 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
         return src
       }
       return if (src == null) null else RootDrawableProcessModel(src)
+    }
+
+    @JvmStatic
+    fun get(src: ProcessModel<*, *>?): DrawableProcessModel? {
+      return when (src) {
+        null -> null
+        is DrawableProcessModel -> src
+        is ChildProcessModel -> TODO("Support child models")
+        is RootDrawableProcessModel -> RootDrawableProcessModel(src)
+        else -> throw UnsupportedOperationException("Unknown process model subtype")
+      }
     }
 
     @JvmStatic
