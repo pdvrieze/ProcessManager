@@ -39,7 +39,10 @@ interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>
 
   override val rootModel: RootClientProcessModel<NodeT, ModelT>?
 
-  val layoutAlgorithm: LayoutAlgorithm<NodeT>
+  var layoutAlgorithm: LayoutAlgorithm<NodeT>
+
+  fun layout()
+
 }
 
 abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> :

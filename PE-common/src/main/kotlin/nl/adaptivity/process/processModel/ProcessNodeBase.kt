@@ -123,12 +123,16 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     get() = "id"
 
 
-  override var label: String? = label
-    set(value) {
-      field = value
+  private var _label:String? = label
+
+  override val label: String? get() = _label
+
+  protected open fun setLabel(value: String?) {
+      _label = value
       _hashCode = 0
       notifyChange()
     }
+
 
   override val maxSuccessorCount: Int get() = Integer.MAX_VALUE
 

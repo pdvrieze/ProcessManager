@@ -89,6 +89,8 @@ public class ClientEndNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Model
     super.setId(id);
   }
 
+  @Override
+  public void setLabel(@Nullable final String value) { super.setLabel(value); }
 
   @Override
   public boolean isCompat() {

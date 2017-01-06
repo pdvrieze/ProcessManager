@@ -554,12 +554,12 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static DrawableProcessModel getProcessModelForId(final Context context, final long id) {
+  public static RootDrawableProcessModel getProcessModelForId(final Context context, final long id) {
     final Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
     return getProcessModel(context, uri);
   }
 
-  public static DrawableProcessModel getProcessModel(final Context context, final Uri uri) {
+  public static RootDrawableProcessModel getProcessModel(final Context context, final Uri uri) {
     final ContentResolver contentResolver = context.getContentResolver();
     final Cursor cursor = contentResolver.query(uri, new String[] {ProcessModels.COLUMN_FAVOURITE}, null, null, null);
     try {
@@ -574,7 +574,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static DrawableProcessModel getProcessModel(final Context context, final Uri uri, final boolean favourite) {
+  public static RootDrawableProcessModel getProcessModel(final Context context, final Uri uri, final boolean favourite) {
     try {
       final InputStream in;
       if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())||

@@ -42,6 +42,7 @@ import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -153,7 +154,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
 
   private void getAccessibleVariablesFromPredecessors(final DrawableProcessNode reference, final List<DrawableProcessNode> seen, final List<ResultReference> gather) {
     for(final Identifiable predId: reference.getPredecessors()) {
-      final DrawableProcessNode pred = reference.getOwnerModel().asNode(predId);
+      final @Nullable DrawableProcessNode pred = reference.getOwnerModel().getNode(predId);
       if (! seen.contains(pred)) {
         for(final IXmlResultType result: pred.getResults()) {
           gather.add(VariableReference.newResultReference(pred, result));

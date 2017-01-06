@@ -45,13 +45,13 @@ public class PMParcelable implements Parcelable {
       return new PMParcelable(source);
     }
   };
-  private final ClientProcessModel<?, ?> mProcessModel;
+  private final RootClientProcessModel<?, ?> mProcessModel;
 
   public PMParcelable(final Parcel source) {
     this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
-  public PMParcelable(final ClientProcessModel<?, ?> processModel) {
+  public PMParcelable(final RootClientProcessModel<?, ?> processModel) {
     mProcessModel = processModel;
   }
 

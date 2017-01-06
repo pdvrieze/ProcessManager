@@ -18,6 +18,7 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode
+import nl.adaptivity.process.clientProcessModel.ClientJoinSplit
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.ARROWCONTROLRATIO
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_X
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
@@ -61,7 +62,7 @@ class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>,
     _delegate = DrawableJoinSplitDelegate()
   }
 
-  constructor(orig: DrawableJoin, compat: Boolean) : super(orig, compat) {
+  constructor(orig: DrawableJoin, newOwner: DrawableProcessModel?, compat: Boolean) : super(orig, newOwner, compat) {
     _delegate = DrawableJoinSplitDelegate(orig._delegate)
   }
 
@@ -75,7 +76,7 @@ class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>,
 
   override fun clone(): DrawableJoin {
     if (javaClass == DrawableJoin::class.java) {
-      return DrawableJoin(this, isCompat)
+      return DrawableJoin(this, this.ownerModel, isCompat)
     }
     throw RuntimeException(CloneNotSupportedException())
   }

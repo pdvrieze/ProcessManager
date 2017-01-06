@@ -106,6 +106,9 @@ public class ClientStartNode<NodeT extends ClientProcessNode<NodeT, ModelT>, Mod
   }
 
   @Override
+  public void setLabel(@Nullable final String value) { super.setLabel(value); }
+
+  @Override
   public int getMaxSuccessorCount() {
     return isCompat() ? Integer.MAX_VALUE : 1;
   }

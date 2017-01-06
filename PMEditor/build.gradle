@@ -28,7 +28,8 @@ configurations {
 dependencies {
 //    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3.1' // or 1.4-beta1
 //    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3.1' // or 1.4-beta1
-    compile files("${buildDir}/libs/annotations-cleaned.jar") { builtBy 'cleanAnnotationsJar' }
+//    compile files("${buildDir}/libs/annotations-cleaned.jar") { builtBy 'cleanAnnotationsJar' }
+    compile 'org.jetbrains:annotations-java5:15.0'
 
     compile project(':PE-diagram')
     compile project(':PE-common')
@@ -52,31 +53,35 @@ dependencies {
     compile "com.android.support:recyclerview-v7:${androidCompatVersion}"
     compile "com.android.support:cardview-v7:${androidCompatVersion}"
 
-    cleanedAnnotations 'org.jetbrains:annotations:13.0'
+    cleanedAnnotations 'org.jetbrains:annotations-java5:15.0'
 }
 
 ext {
     if (!rootProject.hasProperty('androidCompatVersion')) {
-        androidCompatVersion = '24.2.1'
+        androidCompatVersion = '25.0.1'
     }
     if (!rootProject.hasProperty('androidPluginVersion')) {
-        androidPluginVersion = '2.2.2'
+//        androidPluginVersion = '2.2.2'
+        androidPluginVersion = '2.3.0-beta1'
     }
     if (!rootProject.hasProperty('androidBuildToolsVersion')) {
-        androidBuildToolsVersion = '25.0.0'
+        androidBuildToolsVersion = '25.0.2'
     }
 }
 
 android {
-    compileSdkVersion 24
+    compileSdkVersion 25
     buildToolsVersion "${androidBuildToolsVersion}"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion 25
         versionCode 2
         versionName version
         manifestPlaceholders = [ serverScheme:'https', serverHost:'darwin.bournemouth.ac.uk' ]
+//        jackOptions {
+//            enabled = true
+//        }
     }
 
     dataBinding {

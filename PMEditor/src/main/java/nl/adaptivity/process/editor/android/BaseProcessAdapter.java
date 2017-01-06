@@ -31,6 +31,7 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.IdentifyableSet;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,19 +85,20 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   }
 
-  private final RootDrawableProcessModel mDiagram;
+  private final DrawableProcessModel mDiagram;
   protected final Map<DrawableProcessNode, LWDrawableView> mViewCache = new HashMap<>();
   private LightView mBackground;
   private final RectF   mBounds  = new RectF();
   private       boolean mInvalid = true;
   private AndroidTheme mTheme;
 
-  public BaseProcessAdapter(final RootDrawableProcessModel diagram) {
+  public BaseProcessAdapter(final DrawableProcessModel diagram) {
     mDiagram = diagram;
   }
 
   public void updateItem(final int pos, final DrawableProcessNode newValue) {
-    mDiagram.setNode(pos, newValue);
+    // TODO do this better
+    ((List<DrawableProcessNode>) mDiagram.getModelNodes()).set(pos, newValue);
     invalidate();
   }
 
@@ -108,7 +110,8 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   @Override
   public DrawableProcessNode getItem(final int pos) {
-    return mDiagram.getNode(pos);
+    // TODO do this better
+    return ((List<DrawableProcessNode>) mDiagram.getModelNodes()).get(pos);
   }
 
   @Override

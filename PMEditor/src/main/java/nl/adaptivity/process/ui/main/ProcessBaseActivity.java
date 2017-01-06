@@ -228,7 +228,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   public void requestShareFile(final RootClientProcessModel<?, ?> processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
     final FileStoreTask task = new FileStoreTask(TYPE_FILE, new FileStoreListener("*/*", UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE));
-    task.execute(processModel);
+    task.execute((ClientProcessModel<?,?>) processModel);
   }
 
   @Override
@@ -346,7 +346,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   @Override
   protected void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (mProcessModel!=null) { outState.putParcelable(UIConstants.KEY_PROCESSMODEL, new PMParcelable(mProcessModel)); }
+    if (mProcessModel!=null) { outState.putParcelable(UIConstants.KEY_PROCESSMODEL, new PMParcelable(mProcessModel.getRootModel())); }
     if (mTmpFile!=null) { outState.putString(UIConstants.KEY_TMPFILE, mTmpFile.getPath()); }
   }
 

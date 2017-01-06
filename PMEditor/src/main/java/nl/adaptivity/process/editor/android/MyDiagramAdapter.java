@@ -30,10 +30,7 @@ import nl.adaptivity.diagram.android.AndroidDrawableLightView;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.LightView;
 import nl.adaptivity.diagram.android.RelativeLightView;
-import nl.adaptivity.process.diagram.DrawableActivity;
-import nl.adaptivity.process.diagram.DrawableJoinSplit;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identified;
 
@@ -180,7 +177,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   private void removeNode(final int position) {
     final DrawableProcessNode item = getItem(position);
     mViewCache.remove(item);
-    getDiagram().removeNode(position);
+    ((RootDrawableProcessModel)getDiagram()).removeNode(item);
     if (item.equals(mCachedDecorationItem)) {
       mCachedDecorationItem=null;
     }
@@ -188,7 +185,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
 
   private void doEditNode(final int position) {
     if (mContext instanceof Activity) {
-      final DrawableProcessNode node = getDiagram().getNode(position);
+      final DrawableProcessNode node = ((List<DrawableProcessNode>) getDiagram().getModelNodes()).get(position);
       final DialogFragment fragment;
       if (node instanceof DrawableJoinSplit) {
         fragment = JoinSplitNodeEditDialogFragment.newInstance(position);
@@ -205,7 +202,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   public void onDecorationMove(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
     if (decoration==mCachedDecorations[2]) {
       final DrawableProcessNode start = mCachedDecorationItem;
-      final float x1 = (float) (start.getBounds().right() - DrawableProcessModel.STROKEWIDTH);
+      final float x1 = (float) (start.getBounds().right() - RootDrawableProcessModel.STROKEWIDTH);
       final float y1 = (float) (start.getY());
       final float x2 = x;
       final float y2 = y;

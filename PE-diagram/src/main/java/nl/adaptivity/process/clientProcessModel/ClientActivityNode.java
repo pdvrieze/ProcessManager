@@ -112,6 +112,9 @@ public class ClientActivityNode<NodeT extends ClientProcessNode<NodeT, ModelT>, 
   }
 
   @Override
+  public void setLabel(@Nullable final String value) { super.setLabel(value); }
+
+  @Override
   public String getCondition() {
     return mCondition;
   }

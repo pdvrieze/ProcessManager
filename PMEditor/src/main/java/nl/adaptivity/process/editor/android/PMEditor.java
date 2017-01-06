@@ -45,7 +45,6 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
-import nl.adaptivity.xml.XmlException;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -732,7 +731,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     if(savedInstanceState!=null) {
       final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
       if (pmparcelable!=null) {
-        setPm(DrawableProcessModel.get(pmparcelable.getProcessModel()));
+        setPm(RootDrawableProcessModel.get(pmparcelable.getProcessModel()));
       }
       mPmUri = savedInstanceState.getParcelable(KEY_PROCESSMODEL_URI);
     } else {
@@ -816,8 +815,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         if (bounds.bottom()>maxY) { maxY = bounds.bottom(); }
       }
     }
-    final double offsetX= Double.isInfinite(minX)? 0 : minX - getPm().getLeftPadding();
-    final double offsetY= Double.isInfinite(minY)? 0 : minY - getPm().getTopPadding();
+    final double offsetX= Double.isInfinite(minX)? 0 : minX - getPm().getRootModel().getLeftPadding();
+    final double offsetY= Double.isInfinite(minY)? 0 : minY - getPm().getRootModel().getTopPadding();
     diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
     diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
@@ -881,7 +880,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           try {
             out = getContentResolver().openOutputStream(mPmUri);
             try {
-              PMParser.serializeProcessModel(out, getPm());
+              PMParser.serializeProcessModel(out, getPm().getRootModel());
             } finally {
               out.close();
             }
@@ -891,7 +890,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         }
       }
       if (getPm() != null) {
-        final PMParcelable parcelable = new PMParcelable(getPm());
+        final PMParcelable parcelable = new PMParcelable(getPm().getRootModel());
         data.putExtra(EXTRA_PROCESS_MODEL, parcelable);
       }
       setResult(RESULT_OK, data);
@@ -974,7 +973,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   @Override
   protected void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
-    outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(getPm()));
+    outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(getPm().getRootModel()));
     if (mPmUri!=null) {
       outState.putParcelable(KEY_PROCESSMODEL_URI, mPmUri);
     }

@@ -16,14 +16,12 @@
 
 package nl.adaptivity.process.models;
 
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
-import net.devrieze.util.Tupple;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
@@ -64,7 +62,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   @Override
   public ProcessModelHolder loadInBackground() {
     Long handle = mHandle>=0 ? Long.valueOf(mHandle) : null;
-    final DrawableProcessModel processModel;
+    final RootDrawableProcessModel processModel;
     final long id;
     final ProcessModelHolder modelHolder;
     if (handle!=null) {
