@@ -25,7 +25,7 @@ import android.view.ViewGroup;
 import nl.adaptivity.diagram.android.AndroidStrategy;
 import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DrawableDrawable;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.OverviewModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
@@ -73,7 +73,7 @@ public final class OverviewPMCursorAdapter extends BasePMCursorAdapter<OverviewP
     viewHolder.binding.setName(mNameColumn >= 0 ? cursor.getString(mNameColumn) : null);
     viewHolder.binding.setInstanceCount(mCountColumn>=0 ? cursor.getInt(mCountColumn): 0);
     if (mModelColumn>=0) try {
-      final DrawableProcessModel model = DrawableProcessModel.deserialize(XmlStreaming.newReader(new StringReader(cursor.getString(mModelColumn))));
+      final RootDrawableProcessModel model = RootDrawableProcessModel.deserialize(XmlStreaming.newReader(new StringReader(cursor.getString(mModelColumn))));
       if (model.hasUnpositioned()) {
         model.layout();
       }

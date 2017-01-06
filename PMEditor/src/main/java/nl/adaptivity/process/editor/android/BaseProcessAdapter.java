@@ -29,6 +29,7 @@ import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.util.Identifiable;
 
 import java.util.Collections;
@@ -83,14 +84,14 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   }
 
-  private final DrawableProcessModel mDiagram;
+  private final RootDrawableProcessModel mDiagram;
   protected final Map<DrawableProcessNode, LWDrawableView> mViewCache = new HashMap<>();
   private LightView mBackground;
   private final RectF   mBounds  = new RectF();
   private       boolean mInvalid = true;
   private AndroidTheme mTheme;
 
-  public BaseProcessAdapter(final DrawableProcessModel diagram) {
+  public BaseProcessAdapter(final RootDrawableProcessModel diagram) {
     mDiagram = diagram;
   }
 

@@ -19,6 +19,7 @@ package nl.adaptivity.process.editor.android;
 import android.os.Parcel;
 import android.os.Parcelable;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.xml.XmlException;
@@ -89,7 +90,7 @@ public class PMParcelable implements Parcelable {
     }
   }
 
-  public ClientProcessModel<?, ?> getProcessModel() {
+  public RootClientProcessModel<?, ?> getProcessModel() {
     return mProcessModel;
   }
 

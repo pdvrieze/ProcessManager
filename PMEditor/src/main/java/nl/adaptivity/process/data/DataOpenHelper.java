@@ -22,9 +22,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
@@ -35,7 +35,6 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.tasks.data.TasksOpenHelper;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.CharArrayWriter;
@@ -143,7 +142,7 @@ public class DataOpenHelper extends SQLiteOpenHelper {
       final ContentValues                        cv              = new ContentValues();
       final InputStream                          in              = mContext.getResources().openRawResource(R.raw.processmodel);
       final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
-      final DrawableProcessModel                 model           = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+      final RootDrawableProcessModel             model           = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
       model.setName(modelName);
       final CharArrayWriter out = new CharArrayWriter();
       try {

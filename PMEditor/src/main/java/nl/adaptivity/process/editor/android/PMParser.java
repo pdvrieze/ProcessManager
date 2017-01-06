@@ -18,9 +18,13 @@ package nl.adaptivity.process.editor.android;
 
 import android.util.Log;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
+import nl.adaptivity.process.processModel.RootProcessModel;
+import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.xml.*;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
@@ -34,32 +38,32 @@ public final class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  public static void serializeProcessModel(final OutputStream out, final ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
+  public static void serializeProcessModel(final OutputStream out, final RootClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
     final XmlSerializer serializer = getSerializer(out);
     final AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
     processModel.serialize(writer);
     writer.close();
   }
 
-  public static void serializeProcessModel(final Writer out, final ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
+  public static void serializeProcessModel(final Writer out, final RootClientProcessModel<?,?> processModel) throws XmlPullParserException, IOException, XmlException {
     final XmlSerializer serializer = getSerializer(out);
     final AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
     processModel.serialize(writer);
     writer.close();
   }
 
-  public static void exportProcessModel(final OutputStream out, final ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
-    ClientProcessModel<?,?> sanitizedModel = sanitizeForExport(processModel);
+  public static void exportProcessModel(final OutputStream out, final RootProcessModel<?,?> processModel) throws XmlPullParserException, IOException, XmlException {
+    RootDrawableProcessModel sanitizedModel = sanitizeForExport(processModel);
     serializeProcessModel(out, sanitizedModel);
   }
 
-  public static void exportProcessModel(final Writer out, final ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
-    ClientProcessModel<?,?> sanitizedModel = sanitizeForExport(processModel);
+  public static void exportProcessModel(final Writer out, final RootProcessModel<?,?> processModel) throws XmlPullParserException, IOException, XmlException {
+    RootDrawableProcessModel sanitizedModel = sanitizeForExport(processModel);
     serializeProcessModel(out, sanitizedModel);
   }
 
-  private static ClientProcessModel<?, ?> sanitizeForExport(final ClientProcessModel<?, ?> processModel) {
-    ClientProcessModel<?, ?> result = DrawableProcessModel.get(processModel);
+  private static RootDrawableProcessModel sanitizeForExport(final RootProcessModel<?,?> processModel) {
+    RootDrawableProcessModel result = RootDrawableProcessModel.get(processModel);
     if (result.getUuid()==null) { result.setUuid(UUID.randomUUID()); }
     result.setHandleValue(-1);
     return result;
@@ -91,7 +95,7 @@ public final class PMParser {
     return serializer;
   }
 
-  public static DrawableProcessModel parseProcessModel(final Reader in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  public static RootDrawableProcessModel parseProcessModel(final Reader in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     try {
       return parseProcessModel(new AndroidXmlReader(in), simpleLayoutAlgorithm, advancedAlgorithm);
     } catch (Exception e){
@@ -100,7 +104,7 @@ public final class PMParser {
     }
   }
 
-  public static DrawableProcessModel parseProcessModel(final InputStream in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  public static RootDrawableProcessModel parseProcessModel(final InputStream in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     try {
       return parseProcessModel(new AndroidXmlReader(in, "UTF-8"), simpleLayoutAlgorithm, advancedAlgorithm);
     } catch (Exception e){
@@ -109,8 +113,8 @@ public final class PMParser {
     }
   }
 
-  public static DrawableProcessModel parseProcessModel(final XmlReader in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) throws XmlException {
-    final DrawableProcessModel result = DrawableProcessModel.deserialize(in);
+  public static RootDrawableProcessModel parseProcessModel(final XmlReader in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) throws XmlException {
+    final RootDrawableProcessModel result = RootDrawableProcessModel.deserialize(in);
     if (result.hasUnpositioned()) {
       result.setLayoutAlgorithm(advancedAlgorithm);
       result.layout();

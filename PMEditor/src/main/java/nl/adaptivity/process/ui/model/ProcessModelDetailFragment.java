@@ -37,6 +37,7 @@ import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCal
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.BaseProcessAdapter;
@@ -204,7 +205,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
     } else {
       mBinding.diagramView1.getParent().requestLayout(); // Do a layout
-      mItem = new BaseProcessAdapter(DrawableProcessModel.get(data.model));
+      mItem = new BaseProcessAdapter(RootDrawableProcessModel.get(data.model));
       mModelHandle = data.handle;
       mBinding.diagramView1.setAdapter(mItem);
       updateDiagramScale();
@@ -266,18 +267,21 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   protected void cloneWithName(final String newName) {
     // TODO Auto-generated method stub
     final DrawableProcessModel currentModel = ((BaseProcessAdapter) mBinding.diagramView1.getAdapter()).getDiagram();
-    final DrawableProcessModel newModel     = currentModel.clone();
-    newModel.setName(newName);
-    newModel.setUuid(UUID.randomUUID());
+    if (currentModel instanceof RootDrawableProcessModel) {
 
-    final Uri uri;
-    try {
-      uri = ProcessModelProvider.newProcessModel(getActivity(), newModel);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    if (mCallbacks!=null) {
-      mCallbacks.onProcessModelSelected(ContentUris.parseId(uri));
+      final RootDrawableProcessModel newModel = ((RootDrawableProcessModel) currentModel).clone();
+      newModel.setName(newName);
+      newModel.setUuid(UUID.randomUUID());
+
+      final Uri uri;
+      try {
+        uri = ProcessModelProvider.newProcessModel(getActivity(), newModel);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      if (mCallbacks != null) {
+        mCallbacks.onProcessModelSelected(ContentUris.parseId(uri));
+      }
     }
   }
 

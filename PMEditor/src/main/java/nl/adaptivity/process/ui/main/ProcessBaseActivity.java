@@ -41,6 +41,9 @@ import nl.adaptivity.diagram.svg.SVGPath;
 import nl.adaptivity.diagram.svg.SVGPen;
 import nl.adaptivity.diagram.svg.SVGStrategy;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
+import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.BuildConfig;
@@ -111,9 +114,9 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
         final FileOutputStream out = new FileOutputStream(mFile);
         try {
           if (mType == TYPE_SVG) {
-            doExportSVG(out, DrawableProcessModel.get(params[0]));
+            doExportSVG(out, RootDrawableProcessModel.get(params[0]));
           } else {
-            doSaveFile(out, params[0]);
+            doSaveFile(out, params[0].getRootModel());
           }
         } finally {
           out.close();
@@ -158,7 +161,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
       if (savedInstanceState.containsKey(UIConstants.KEY_PROCESSMODEL)) {
         final PMParcelable pm = savedInstanceState.getParcelable(UIConstants.KEY_PROCESSMODEL);
         if (pm!=null) {
-          mProcessModel = DrawableProcessModel.get(pm.getProcessModel());
+          mProcessModel = RootDrawableProcessModel.get(pm.getProcessModel());
         }
       }
 
@@ -176,12 +179,12 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
         break;
       case UIConstants.REQUEST_SAVE_PROCESSMODEL:
         if (resultCode == Activity.RESULT_OK) {
-          doSaveFile(data, mProcessModel);
+          doSaveFile(data, (RootClientProcessModel<?,?>)mProcessModel);
         }
         break;
       case UIConstants.REQUEST_EXPORT_PROCESSMODEL_SVG:
         if (resultCode==Activity.RESULT_OK) {
-          doExportSVG(data, DrawableProcessModel.get(mProcessModel));
+          doExportSVG(data, RootDrawableProcessModel.get(mProcessModel));
         }
         break;
     }
@@ -192,7 +195,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     return getContentResolver().openOutputStream(data.getData());
   }
 
-  protected void doSaveFile(final Intent data, final ClientProcessModel<?, ?> processModel) {
+  protected void doSaveFile(final Intent data, final RootClientProcessModel<?, ?> processModel) {
     try {
       final OutputStream out = getOutputStreamFromSave(data);
       try {
@@ -205,7 +208,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     }
   }
 
-  private void doSaveFile(final Writer out, final ClientProcessModel<?, ?> processModel) throws IOException {
+  private void doSaveFile(final Writer out, final RootClientProcessModel<?, ?> processModel) throws IOException {
     try {
       PMParser.exportProcessModel(out , processModel);
     } catch (XmlPullParserException | XmlException e) {
@@ -213,7 +216,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     }
   }
 
-  private void doSaveFile(final OutputStream out, final ClientProcessModel<?, ?> processModel) throws IOException {
+  private void doSaveFile(final OutputStream out, final RootClientProcessModel<?, ?> processModel) throws IOException {
     try {
       PMParser.exportProcessModel(out , processModel);
     } catch (XmlException | XmlPullParserException e) {
@@ -222,16 +225,16 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   }
 
   @Override
-  public void requestShareFile(final ClientProcessModel<?, ?> processModel) {
+  public void requestShareFile(final RootClientProcessModel<?, ?> processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
     final FileStoreTask task = new FileStoreTask(TYPE_FILE, new FileStoreListener("*/*", UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE));
     task.execute(processModel);
   }
 
   @Override
-  public void requestSaveFile(final ClientProcessModel<?, ?> processModel) {
+  public void requestSaveFile(final RootClientProcessModel<?, ?> processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
-    mProcessModel = processModel;
+    mProcessModel = (ClientProcessModel<?, ?>) processModel;
     requestSaveFile("*/*", UIConstants.REQUEST_SAVE_PROCESSMODEL);
   }
 
@@ -265,7 +268,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
           intent.putExtra("com.estrongs.intent.extra.TITLE", getString(R.string.title_saveas));
 //          intent.setData(Uri.withAppendedPath(Uri.fromFile(Compat.getDocsDirectory()),"/"));
         } else {
-          requestShareFile(mProcessModel);
+          requestShareFile(mProcessModel.getRootModel());
 //          Toast.makeText(getActivity(), "Saving not yet supported without implementation", Toast.LENGTH_LONG).show();
           return;
         }

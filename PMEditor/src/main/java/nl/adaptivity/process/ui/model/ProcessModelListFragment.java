@@ -41,6 +41,7 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -242,7 +243,7 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
         try {
           final InputStream in = getActivity().getContentResolver().openInputStream(data.getData());
           try {
-            final DrawableProcessModel pm  = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
+            final RootDrawableProcessModel pm  = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
             pm.setHandleValue(-1);
             final Uri                  uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
             final long                 id  = ContentUris.parseId(uri);
@@ -275,7 +276,7 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
 
   void createNewPM(final String name) {
 
-    final DrawableProcessModel model = new DrawableProcessModel(UUID.randomUUID(), name, new ArrayList<DrawableProcessNode>());
+    final RootDrawableProcessModel model = new RootDrawableProcessModel(UUID.randomUUID(), name, new ArrayList<DrawableProcessNode>());
     final Uri                  uri;
     try {
       uri = ProcessModelProvider.newProcessModel(getActivity(), model);

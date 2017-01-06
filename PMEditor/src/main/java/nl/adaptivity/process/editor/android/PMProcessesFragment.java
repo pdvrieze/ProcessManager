@@ -24,6 +24,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 
 import java.io.File;
 
@@ -39,9 +40,9 @@ public class PMProcessesFragment extends Fragment {
 
   public interface ProcessesCallback {
 
-    void requestShareFile(ClientProcessModel<?, ?> processModel);
+    void requestShareFile(RootClientProcessModel<?, ?> processModel);
 
-    void requestSaveFile(ClientProcessModel<?, ?> processModel);
+    void requestSaveFile(RootClientProcessModel<?, ?> processModel);
 
     void requestShareSVG(ClientProcessModel<?, ?> processModel);
 
@@ -52,7 +53,7 @@ public class PMProcessesFragment extends Fragment {
     ClientProcessModel<?, ?> getProcessModel();
   }
 
-  private ClientProcessModel<?, ?> mProcessModel;
+  private RootClientProcessModel<?, ?> mProcessModel;
   protected File mTmpFile;
   private boolean mMenu;
   private PMProvider mProvider;
@@ -111,11 +112,11 @@ public class PMProcessesFragment extends Fragment {
 
 
 
-  public void doShareFile(final ClientProcessModel<?, ?> processModel) {
+  public void doShareFile(final RootClientProcessModel<?, ?> processModel) {
     mCallback.requestShareFile(processModel);
   }
 
-  public void doSaveFile(final ClientProcessModel<?, ?> processModel) {
+  public void doSaveFile(final RootClientProcessModel<?, ?> processModel) {
     mCallback.requestSaveFile(processModel);
   }
 
@@ -149,13 +150,13 @@ public class PMProcessesFragment extends Fragment {
     }
     switch (item.getItemId()) {
       case R.id.ac_export:
-        doSaveFile(pm);
+        doSaveFile(pm.getRootModel());
         return true;
       case R.id.ac_export_svg:
         doExportSVG(pm);
         return true;
       case R.id.ac_share_pm:
-        doShareFile(pm);
+        doShareFile(pm.getRootModel());
         return true;
       case R.id.ac_share_pm_svg:
         doShareSVG(pm);
@@ -167,7 +168,7 @@ public class PMProcessesFragment extends Fragment {
 
   @Override
   public void onSaveInstanceState(final Bundle outState) {
-    if (mProcessModel!=null) outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mProcessModel));
+    if (mProcessModel!=null) outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mProcessModel.getRootModel()));
     if (mTmpFile!=null)  outState.putString(KEY_FILE, mTmpFile.toString());
   }
 

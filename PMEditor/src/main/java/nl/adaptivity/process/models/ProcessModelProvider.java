@@ -23,16 +23,15 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
-import net.devrieze.util.Tupple;
-import nl.adaptivity.process.data.ProcessModelPipeProvider;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.data.DataOpenHelper;
+import nl.adaptivity.process.data.ProcessModelPipeProvider;
 import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMParser;
-import nl.adaptivity.sync.DelegatingRemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.xml.XmlException;
@@ -596,14 +595,14 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static DrawableProcessModel getProcessModel(final InputStream in, final boolean favourite) {
+  private static RootDrawableProcessModel getProcessModel(final InputStream in, final boolean favourite) {
     final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
-    final DrawableProcessModel drawableProcessModel = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+    final RootDrawableProcessModel drawableProcessModel = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
     drawableProcessModel.setFavourite(favourite);
     return drawableProcessModel;
   }
 
-  public static Uri newProcessModel(final Context context, final ClientProcessModel<?, ?> processModel) throws IOException {
+  public static Uri newProcessModel(final Context context, final RootClientProcessModel<?, ?> processModel) throws IOException {
     final CharArrayWriter out = new CharArrayWriter();
     try {
       PMParser.serializeProcessModel(out, processModel);
@@ -616,8 +615,8 @@ public class ProcessModelProvider extends ContentProvider {
       values.put(ProcessModels.COLUMN_NAME, processModel.getName());
       values.put(ProcessModels.COLUMN_MODEL, out.toString());
       values.put(ProcessModels.COLUMN_UUID, processModel.getUuid().toString());
-      if (processModel instanceof DrawableProcessModel) {
-        values.put(ProcessModels.COLUMN_FAVOURITE, ((DrawableProcessModel) processModel).isFavourite());
+      if (processModel instanceof RootDrawableProcessModel) {
+        values.put(ProcessModels.COLUMN_FAVOURITE, ((RootDrawableProcessModel) processModel).isFavourite());
       }
       try {
         return client.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
