@@ -21,6 +21,7 @@
 
 package uk.ac.bournemouth.darwin.util
 
+import kotlinx.html.TagConsumer
 import org.w3c.dom.*
 import kotlin.dom.childElements
 import kotlin.dom.children

@@ -16,6 +16,8 @@
 
 package nl.adaptivity.darwin
 
+import kotlinx.html.*
+import kotlinx.html.dom.create
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
@@ -24,6 +26,7 @@ import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.JSServiceContext
 import uk.ac.bournemouth.darwin.LoginDialog
 import uk.ac.bournemouth.darwin.accountsLoc
+import uk.ac.bournemouth.darwin.sharedhtml.*
 import uk.ac.bournemouth.darwin.util.*
 import kotlin.browser.document
 import kotlin.browser.window
@@ -32,7 +35,7 @@ import kotlin.dom.*
 object html {
   val context: JSServiceContext = JSServiceContext()
 
-  val shared:shared = uk.ac.bournemouth.darwin.sharedhtml.shared
+  val shared: shared = uk.ac.bournemouth.darwin.sharedhtml.shared
 
   @JsName("onLinkClick")
   fun onLinkClick(event: MouseEvent) {
@@ -89,7 +92,7 @@ private fun onMenuReceived(request: XMLHttpRequest) {
     val m = menu
     m.clear()
     var first = true
-    for (child in holder.firstElementChild?.childElements()) {
+    for (child in holder.firstElementChild?.childElements()?: emptyList()) {
       if (child !is Text) {
         if (first) first = false else m.appendChild(document.createTextNode("\n"))
         m.appendChild(child)
@@ -242,8 +245,8 @@ private fun onLoginDialogConfirm(event: Event) {
   }
 
   val postData = FormData().apply {
-    append("username", username)
-    append("password", password)
+    username?.let { append("username", it) }
+    password?.let { append("password", it) }
   }
 
   try {
@@ -381,7 +384,7 @@ inline fun <T,C:TagConsumer<out T>> C.withContext(context:JSServiceContext) = JS
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
 inline fun <T: Tag> T.withContext(context:JSServiceContext) = (consumer as TagConsumer<out T>).withContext(context)
 
-class JSButton(label:String, id:String, val handler: (Event)->dynamic):SharedButton(label, id) {}
+class JSButton(label:String, id:String, val handler: (Event)->dynamic): SharedButton(label, id) {}
 
 /**
  * @category ui_elements
@@ -556,7 +559,7 @@ private fun setContentOld(vararg newContent: Node) {
 
 private fun setContentOld(newContent: NodeList) {
   val contentPanel = mContentPanel!!
-  for (node in newContent) {
+  newContent.forEach { node ->
     contentPanel.appendChild(node)
   }
 }

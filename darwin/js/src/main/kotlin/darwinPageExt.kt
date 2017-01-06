@@ -20,7 +20,11 @@
 
 package uk.ac.bournemouth.darwin
 
+import kotlinx.html.dom.create
 import org.w3c.dom.*
+import uk.ac.bournemouth.darwin.sharedhtml.ServiceContext
+import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
+import uk.ac.bournemouth.darwin.sharedhtml.withContext
 import uk.ac.bournemouth.darwin.util.visitDescendants
 import kotlin.browser.document
 import kotlin.dom.appendText
