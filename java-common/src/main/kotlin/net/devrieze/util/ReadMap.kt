@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,99 +19,112 @@
  *
  */
 
-package net.devrieze.util;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+package net.devrieze.util
 
 
 /**
- * <p>
  * The ReadMap interface is an interface that tries to maximally add the reading
- * methods from the Map interface to the combination of the Set and Collecion
+ * methods from the [Map] interface to the combination of the [Set] and [Collection]
  * interfaces. This interface aims to provide the possibility to use the fact
  * that elements of the set are uniquely adressable by a key which is a subset
- * of the VALUETYPE.
- * </p>
+ * of the value type [V].
  *
- * @param <K> The K generic specifies the type of the keys of the map.
- * @param <V> The V generic specifies the type of the values.
+ * @param K The K generic specifies the type of the keys of the map. This cannot be null.
+ *
+ * @param V The V generic specifies the type of the values.
+ *
  * @author Paul de Vrieze
+ *
  * @version 1.1 $Revision$
  */
-public interface ReadMap<K, V> extends Set<V> {
+interface ReadMap<K:Any, V> : Set<V> {
 
   /**
    * Check whether there are elements in the ReadMap.
-   *
-   * @return <code>true</code> if empty, <code>false</code> if not
-   * @see Map#isEmpty()
+
+   * @return `true` if empty, `false` if not
+   * *
+   * @see Map.isEmpty
    */
-  @Override
-  boolean isEmpty();
+  override fun isEmpty(): Boolean
 
   /**
    * Checks whether the specified key is available in the map.
-   *
+
    * @param pKey The key to check.
-   * @return <code>true</code> if the key is contained
-   * @see Map#containsKey(Object)
+   * *
+   * @return `true` if the key is contained
+   * *
+   * @see Map.containsKey
    */
-  boolean containsKey(K pKey);
+  fun containsKey(pKey: K): Boolean
 
   /**
    * Check whether the value is contained in the ReadMap.
-   *
+
    * @param pValue The value to check
-   * @return <code>true</code> if contained, <code>false</code> if not.
-   * @see Map#containsValue(Object)
+   * *
+   * @return `true` if contained, `false` if not.
+   * *
+   * @see Map.containsValue
    */
-  boolean containsValue(V pValue);
+  fun containsValue(pValue: V): Boolean
 
   /**
    * Check whether the map equals another map.
-   *
+
    * @param pObject The element to compare to
-   * @return <code>true</code> if equal, <code>false</code> if not
-   * @see Map#equals(Object)
+   * *
+   * @return `true` if equal, `false` if not
+   * *
+   * @see Map.equals
    */
-  @Override
-  boolean equals(Object pObject);
+  override fun equals(pObject: Any?): Boolean
 
   /**
    * Get the value corresponding to the specified key.
-   *
+
    * @param pKey The key of the value that needs to be retrieved.
+   * *
    * @return the value corresponding to the key, or null if it does not exist.
-   * @see Map#get(Object)
+   * *
+   * @see Map.get
    */
-  V get(K pKey);
+  operator fun get(pKey: K): V?
 
   /**
    * Get a set of all keys that are used in this ReadMap.
-   *
+
    * @return The set of all keys
-   * @see Map#keySet()
+   * *
+   * @see Map.keySet
    */
-  Set<K> keySet();
+  @Deprecated("Use property instead of the function", ReplaceWith("keys"))
+  fun keySet(): Set<K> = keys
+
+  val keys: Set<K>
 
   /**
    * Get the amount of elements in this ReadMap.
-   *
+
    * @return the amount of elements
-   * @see Map#size()
+   * *
+   * @see Map.size
    */
-  @Override
-  int size();
+  override val size:Int
 
   /**
    * Get the set of all values contained in this ReadMap. As ReadMap itself
    * implements Collection, returning this should be a sufficient
    * implementation. If that is not the case, the implementation is wrong.
-   *
+
    * @return A collection of all values in this map.
-   * @see Map#values()
+   * *
+   * @see Map.values
    */
-  Collection<V> values();
+  fun values(): Set<V> = this
+
+  val values: Set<V> get() = this
 }
+
+interface MutableReadMap<K:Any, V>: ReadMap<K,V>, MutableSet<V>

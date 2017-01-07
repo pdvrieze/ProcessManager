@@ -24,30 +24,50 @@ import java.util.*
 
 class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
 
-  private inner class ArraySetIterator:MutableIterator<T> {
-    private var pos=0
-
-    override fun hasNext(): Boolean {
-      return pos < size
+  private inner class ArraySetIterator(private var pos:Int = 0):MutableListIterator<T> {
+    init {
+      if (pos<0 || pos>size) throw IndexOutOfBoundsException()
     }
+
+    override fun hasNext() = pos < size
+
+    override fun hasPrevious() = pos>0
 
     override fun next(): T {
       if (pos>=size) throw NoSuchElementException("The iterator is at the end")
-      val result = this@ArraySet[pos]
-      pos++;
-      return result
+      return this@ArraySet[pos++]
     }
 
+    override fun previous(): T {
+      if (pos<=0) throw NoSuchElementException("The iterator is at the end")
+      --pos
+      return this@ArraySet[pos]
+    }
+
+    override fun nextIndex() = pos
+
+    override fun previousIndex() = pos -1
+
     override fun remove() {
-      remove(pos-1)
+      removeAt(pos-1)
+    }
+
+    override fun add(element: T) {
+      TODO("Implement add in listIterator for arraySet. It is not implemented yet. This depends on too much implementation details")
+    }
+
+    override fun set(element: T) {
+      TODO("Not implemented yet. Due to Set semantics this is a bit tricky")
     }
   }
 
-  private var buffer = arrayOfNulls<Any?>(Math.max(2,initCapacity))
+  @Suppress("UNCHECKED_CAST")
+  private var buffer = arrayOfNulls<Any?>(Math.max(2,initCapacity)) as Array<T?>
+
   private var firstElemIdx =0
   private var nextElemIdx = 0
 
-  constructor(base: Iterable<T>) : this((base as? Collection)?.size ?: 10) {
+  constructor(base: Iterable<T>) : this((base as? Collection)?.let { it.size +5 } ?: 10) {
     addAll(base)
   }
 
@@ -60,7 +80,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   operator fun get(pos: Int): T {
     if (pos<0 || pos>=size) throw IndexOutOfBoundsException("This index is invalid")
     val offset = (firstElemIdx +pos)%buffer.size
-    return buffer[offset] as T;
+    return buffer[offset]!!
   }
 
   private fun isInRange(offset:Int):Boolean {
@@ -75,11 +95,13 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   override val size: Int
     get() = (nextElemIdx +buffer.size- firstElemIdx)%buffer.size
 
-  override fun iterator(): MutableIterator<T> {
-    return ArraySetIterator()
-  }
+  override fun iterator(): MutableIterator<T> = listIterator()
 
-  override fun contains(element: T) = if (indexOf(element)>=0) true else false
+  fun listIterator() = listIterator(0)
+
+  fun listIterator(initPos: Int) : MutableListIterator<T> = ArraySetIterator(initPos)
+
+  override fun contains(element: T) = indexOf(element)>=0
 
   override fun add(element: T): Boolean {
     if (contains(element)) { return false }
@@ -96,7 +118,8 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   private fun reserve(reservation: Int) {
     assert(reservation>1) { "The reservation was ${reservation} but should be larger than 1"}
     if (reservation+1<size) { reserve(size+1); return }
-    val newBuffer = arrayOfNulls<Any?>(reservation)
+    @Suppress("UNCHECKED_CAST")
+    val newBuffer = arrayOfNulls<Any?>(reservation) as Array<T?>
 
     if (firstElemIdx <= nextElemIdx) {
       System.arraycopy(buffer, firstElemIdx, newBuffer, 0, nextElemIdx - firstElemIdx)
@@ -114,23 +137,26 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   override fun remove(element: T): Boolean {
     indexOf(element).let { pos ->
       if (pos<0) { return false; }
-      remove(pos)
+      removeAt(pos)
       return true
     }
   }
 
-  fun remove(index:Int) = removeAtOffset((index+ firstElemIdx)%buffer.size)
+  @Deprecated("Use removeAt instead", ReplaceWith("removeAt(index)"), DeprecationLevel.WARNING)
+  fun remove(index:Int) = removeAt(index)
+
+  fun removeAt(index:Int) = removeAtOffset((index+ firstElemIdx)%buffer.size)
 
   private fun removeAtOffset(offset: Int): T {
-    val result = buffer[offset] as T
+    val result = buffer[offset]!!
 
     val bufferSize = buffer.size
     if (offset + 1 == nextElemIdx) { // optimize removing the last element
       nextElemIdx--
       if (nextElemIdx < 0) nextElemIdx += bufferSize
-      buffer[nextElemIdx] = null;
+      buffer[nextElemIdx] = null
     } else if (offset == firstElemIdx) { // optimize removing the first element
-      buffer[firstElemIdx++] = null;
+      buffer[firstElemIdx++] = null
       if (firstElemIdx >= bufferSize) firstElemIdx -= bufferSize
     } else if (firstElemIdx < nextElemIdx) { // Default non-wrapped case, don't attempt to optimize smallest copy ___EEEOEEEE___
       System.arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx - offset -1)
@@ -145,7 +171,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     return result
   }
 
-  public fun indexOf(element: T):Int {
+  fun indexOf(element: T):Int {
     if(firstElemIdx <= nextElemIdx) {
       for(i in firstElemIdx until nextElemIdx) {
         if (buffer[i]==element) { return i- firstElemIdx; }
@@ -180,13 +206,11 @@ fun <T> Sequence<T>.toMutableArraySet(): MutableSet<T> {
   }
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T> Sequence<T>.toArraySet(): Set<T> = toMutableArraySet()
 
 
-fun <T> Iterable<T>.toMutableArraySet(): MutableSet<T> {
-  return ArraySet<T>().apply {
-    for(item in this@toMutableArraySet) add(item)
-  }
-}
+fun <T> Iterable<T>.toMutableArraySet(): MutableSet<T> = ArraySet<T>(this)
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T> Iterable<T>.toArraySet(): Set<T> = toMutableArraySet()
