@@ -88,8 +88,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
   }
 
 
-  @NotNull
-  @Contract("null -> null")
+  @Contract("null -> null; !null -> !null")
   public static XmlMessage get(final IXmlMessage message) {
     if (message==null) { return null; }
     if (message instanceof XmlMessage) { return (XmlMessage) message; }
