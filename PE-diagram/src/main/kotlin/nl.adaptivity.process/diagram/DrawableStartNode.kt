@@ -133,7 +133,7 @@ class DrawableStartNode : ClientStartNode<DrawableProcessNode, DrawableProcessMo
       clipBounds: Rectangle?,
       left: Double,
       top: Double) {
-    DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top)
+    defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
 
   companion object {
