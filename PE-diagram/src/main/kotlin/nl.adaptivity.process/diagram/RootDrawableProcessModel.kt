@@ -287,7 +287,7 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
               val y1 = start.y
               val x2 = end.bounds.left/*+STROKEWIDTH*/
               val y2 = end.y
-              Connectors.getArrow(strategy, x1, y1, x2, y2, arcPen)
+              Connectors.getArrow(strategy, x1, y1, 0.0, x2, y2, Math.PI, arcPen)
             }
           }.toList()
     }

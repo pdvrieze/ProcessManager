@@ -69,7 +69,7 @@ AbstractLightView implements LightView {
 
   public static void drawArrow(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final float canvasX1, final float canvasY1, final float canvasX2, final float canvasY2, final double scale) {
     final IAndroidCanvas androidCanvas = new AndroidCanvas(canvas, theme).childCanvas(0d, 0d, scale);
-    Connectors.drawArrow(androidCanvas, theme, canvasX1/scale, canvasY1/scale, 0, canvasX2/scale, canvasY2/scale, 0);
+    Connectors.drawArrow(androidCanvas, canvasX1 / scale, canvasY1 / scale, 0, canvasX2 / scale, canvasY2 / scale, Math.PI);
     return;
   }
 
