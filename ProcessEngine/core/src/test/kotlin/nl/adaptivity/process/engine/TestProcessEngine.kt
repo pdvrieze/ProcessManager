@@ -163,7 +163,7 @@ class TestProcessEngine {
 
   private fun ProcessInstance.assertFinished(vararg handles: ProcessNodeInstance) = apply {
     val actual = ArrayList(sortedFinished)
-    val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
+    val expected = handles.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
     try {
       assertEquals(actual, expected)
     } catch (e: AssertionError) {
@@ -177,7 +177,7 @@ class TestProcessEngine {
 
   private fun ProcessInstance.assertActive(vararg handles: ProcessNodeInstance) = apply {
     val actual = ArrayList(sortedActive)
-    val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
+    val expected = handles.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
     try {
       assertEquals(actual, expected)
     } catch (e:AssertionError) {
