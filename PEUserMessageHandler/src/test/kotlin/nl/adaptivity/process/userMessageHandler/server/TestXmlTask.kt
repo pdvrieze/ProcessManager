@@ -79,8 +79,8 @@ class TestXmlTask {
   @Test
   @Throws(XmlException::class)
   fun testDeserialize() {
-    val `in` = StringReader("<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />")
-    val result = XmlStreaming.deSerialize(`in`, XmlTask::class.java)
+    val reader = StringReader("<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />")
+    val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
     assertEquals(result.state, Complete)
     assertEquals(result.handleValue, -1L)
     assertEquals(result.handle, Handles.getInvalid<Any>())
@@ -93,8 +93,8 @@ class TestXmlTask {
   @Test
   @Throws(XmlException::class)
   fun testDeserialize2() {
-    val `in` = StringReader("<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>")
-    val result = XmlStreaming.deSerialize(`in`, XmlTask::class.java)
+    val reader = StringReader("<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>")
+    val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
     assertEquals(result.state, Complete)
     assertEquals(result.handleValue, 1L)
     assertEquals(result.handle, Handles.handle<Any>(1L))

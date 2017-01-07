@@ -56,7 +56,7 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
     }
 
     @Throws(XmlException::class)
-    override fun deserializeChild(`in`: XmlReader): Boolean {
+    override fun deserializeChild(reader: XmlReader): Boolean {
       return false
     }
 
