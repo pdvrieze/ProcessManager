@@ -87,7 +87,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   public ParcelableActivity(final Activity<?, ?> orig, final boolean compat) {
-    super(orig, , compat);
+    super(orig, null, compat);
   }
 
   public EditableUserTask getUserTask() {
