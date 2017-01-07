@@ -168,7 +168,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(@NotNull Canvas<S, PEN_T, PATH_T> canvas, @Nullable Rectangle clipBounds, double left, double top) {
     DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 

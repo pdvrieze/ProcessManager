@@ -34,7 +34,7 @@ open class ClientActivityNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT :
             this.isCompat = compat
         }
 
-        constructor(predecessor: Identified?, successor: Identified?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, message: XmlMessage?, condition: String?, name: String?, compat: Boolean) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y) {
+        constructor(id: String?, predecessor: Identified?, successor: Identified?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, message: XmlMessage?, condition: String?, name: String?, compat: Boolean) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y) {
             this.isCompat = compat
         }
 
