@@ -26,11 +26,11 @@ import java.util.ArrayList
  * @property topExtend    Get the size to the top of the gravity point.
  * @property bottomExtend Get the size to the bottom of the gravity point.
  */
-class DiagramNode<T : Positioned>(val target: T, private var x:Double = 0.0, private var y: Double = 0.0, val leftExtend: Double, val rightExtend: Double, val topExtend: Double, val bottomExtend: Double) : Positioned {
+class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0, private var y: Double = 0.0, val leftExtend: Double, val rightExtend: Double, val topExtend: Double, val bottomExtend: Double) : Positioned {
 
-  val leftNodes: MutableList<DiagramNode<T>> = mutableListOf()
+  val leftNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 
-  val rightNodes: MutableList<DiagramNode<T>> = mutableListOf()
+  val rightNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 
   val left get() = x - leftExtend
 

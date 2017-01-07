@@ -56,14 +56,14 @@ public class LayoutAlgorithm<T extends Positioned> {
 
   private boolean mTighten = false;
 
-  private LayoutStepper<T> mLayoutStepper = new LayoutStepper<>();
+  private LayoutStepper<T> mLayoutStepper = new AbstractLayoutStepper<>();
 
   public LayoutStepper<T> getLayoutStepper() {
     return mLayoutStepper;
   }
 
   public void setLayoutStepper(LayoutStepper<T> layoutStepper) {
-    mLayoutStepper = layoutStepper !=null ? layoutStepper : new LayoutStepper<T>();
+    mLayoutStepper = layoutStepper !=null ? layoutStepper : new AbstractLayoutStepper<T>();
   }
 
 

@@ -227,11 +227,11 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     }
   }
 
-  private class MyStepper extends LayoutStepper<DrawableProcessNode> {
+  private class MyStepper extends AbstractLayoutStepper<DrawableProcessNode> {
 
     private boolean mImmediate = false;
     private AndroidPen mXMostPen;
-    private DiagramNode<DrawableProcessNode> mLayoutNode;
+    private DiagramNode<? extends DrawableProcessNode> mLayoutNode;
     private double mMinX = Double.NaN;
     private double mMinY = Double.NaN;
     private double mMaxX = Double.NaN;
@@ -239,7 +239,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     private LineDrawable mMinMaxOverlay = null;
 
     @Override
-    public void reportLayoutNode(final DiagramNode<DrawableProcessNode> node) {
+    public void reportLayoutNode(final DiagramNode<? extends DrawableProcessNode> node) {
       mMinX = Double.NaN;
       mMinY = Double.NaN;
       mMaxX = Double.NaN;
@@ -261,59 +261,59 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     }
 
     @Override
-    public void reportLowest(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final DiagramNode<DrawableProcessNode> node) {
+    public void reportLowest(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final DiagramNode<? extends DrawableProcessNode> node) {
       setLabel("lowest");
       reportXMost(nodes, node);
     }
 
     @Override
-    public void reportHighest(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final DiagramNode<DrawableProcessNode> node) {
+    public void reportHighest(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final DiagramNode<? extends DrawableProcessNode> node) {
       setLabel("highest");
       reportXMost(nodes, node);
     }
 
     @Override
-    public void reportRightmost(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final DiagramNode<DrawableProcessNode> node) {
+    public void reportRightmost(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final DiagramNode<? extends DrawableProcessNode> node) {
       setLabel("rightmost");
       reportXMost(nodes, node);
     }
 
     @Override
-    public void reportLeftmost(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final DiagramNode<DrawableProcessNode> node) {
+    public void reportLeftmost(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final DiagramNode<? extends DrawableProcessNode> node) {
       setLabel("leftmost");
       reportXMost(nodes, node);
     }
 
     @Override
-    public void reportMinX(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final double x) {
+    public void reportMinX(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final double x) {
       setLabel("minX");
       mMinX = x;
       reportMinMax(nodes);
     }
 
     @Override
-    public void reportMaxX(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final double x) {
+    public void reportMaxX(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final double x) {
       setLabel("maxX");
       mMaxX=x;
       reportMinMax(nodes);
     }
 
     @Override
-    public void reportMinY(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final double y) {
+    public void reportMinY(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final double y) {
       setLabel("minY");
       mMinY = y;
       reportMinMax(nodes);
     }
 
     @Override
-    public void reportMaxY(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final double y) {
+    public void reportMaxY(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final double y) {
       setLabel("maxY");
       mMaxY = y;
       reportMinMax(nodes);
     }
 
-    private void reportMinMax(final List<? extends DiagramNode<DrawableProcessNode>> nodes) {
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+    private void reportMinMax(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()|STATE_GROUP);
       }
@@ -326,14 +326,14 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         mMinMaxOverlay.mY2 = mMaxY;
       }
       waitForNextClicked(mMinMaxOverlay);
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~STATE_GROUP);
       }
     }
 
-    private void reportXMost(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final DiagramNode<DrawableProcessNode> activeNode) {
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+    private void reportXMost(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final DiagramNode<? extends DrawableProcessNode> activeNode) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setX(node.getX());
         target.setY(node.getY());
@@ -348,14 +348,14 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       }
       updateDiagramBounds();
       waitForNextClicked(mMinMaxOverlay);
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~(STATE_XMOST|STATE_GROUP));
       }
     }
 
     @Override
-    public void reportMove(final DiagramNode<DrawableProcessNode> node, final double newX, final double newY) {
+    public void reportMove(final DiagramNode<? extends DrawableProcessNode> node, final double newX, final double newY) {
       setLabel("move");
       final DrawableProcessNode target = node.getTarget();
       target.setState(target.getState()|STATE_MOVED);
@@ -391,9 +391,9 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
 
     @Override
-    public void reportMoveX(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final double offset) {
+    public void reportMoveX(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final double offset) {
       setLabel("moveX");
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setX(node.getX()+offset);
         target.setY(node.getY());
@@ -401,16 +401,16 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       }
       updateDiagramBounds();
       waitForNextClicked(moveDrawable(mMinMaxOverlay, nodes));
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~STATE_MOVED);
       }
     }
 
     @Override
-    public void reportMoveY(final List<? extends DiagramNode<DrawableProcessNode>> nodes, final double offset) {
+    public void reportMoveY(final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes, final double offset) {
       setLabel("moveY");
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setX(node.getX());
         target.setY(node.getY()+offset);
@@ -418,7 +418,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       }
       updateDiagramBounds();
       waitForNextClicked(moveDrawable(mMinMaxOverlay, nodes));
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~STATE_MOVED);
       }
@@ -427,10 +427,10 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
 
     @Override
-    public void reportSiblings(final DiagramNode<DrawableProcessNode> currentNode, final List<? extends DiagramNode<DrawableProcessNode>> nodes,
+    public void reportSiblings(final DiagramNode<? extends DrawableProcessNode> currentNode, final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes,
                                final boolean above) {
       setLabel(above ? "Siblings above" : "Siblings below");
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setX(node.getX());
         target.setY(node.getY());
@@ -445,7 +445,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       }
       updateDiagramBounds();
       waitForNextClicked(mMinMaxOverlay);
-      for(final DiagramNode<DrawableProcessNode> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~(STATE_ACTIVE|STATE_GROUP));
       }
