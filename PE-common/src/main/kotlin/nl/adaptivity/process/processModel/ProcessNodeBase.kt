@@ -18,10 +18,7 @@ package nl.adaptivity.process.processModel
 
 import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.*
 import nl.adaptivity.xml.*
 import java.util.*
 import javax.xml.XMLConstants
@@ -98,14 +95,14 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
   @Suppress("LeakingThis")
   private var _predecessors = toIdentifiers(maxPredecessorCount, predecessors)
 
-  override val predecessors: IdentifyableSet<@JvmWildcard Identified>
+  override val predecessors: IdentifyableSet<out @JvmWildcard Identified>
     get() = _predecessors
 
 
   @Suppress("LeakingThis")
   private var _successors = toIdentifiers(maxSuccessorCount, successors)
 
-  override val successors: IdentifyableSet<@JvmWildcard Identified>
+  override val successors: IdentifyableSet<out @JvmWildcard Identified>
     get() = _successors
 
   private var _x = x
@@ -505,10 +502,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
     const val ATTR_PREDECESSOR = "predecessor"
 
-    private fun toIdentifiers(maxSize: Int,
-                              identifiables: Iterable<Identified>): IdentifyableSet<Identified> {
-      return IdentifyableSet.processNodeSet(maxSize, identifiables.map { it as? Identifier ?: Identifier(it.id) })
-    }
+    private fun toIdentifiers(maxSize: Int, identifiables: Iterable<Identified>): MutableIdentifyableSet<Identified> =
+            IdentifyableSet.processNodeSet(maxSize, identifiables.map { it as? Identifier ?: Identifier(it.id) })
 
     fun toExportableDefines(exports: Collection<IXmlDefineType>)
         = exports.asSequence().map { XmlDefineType.get(it) }.toMutableList()

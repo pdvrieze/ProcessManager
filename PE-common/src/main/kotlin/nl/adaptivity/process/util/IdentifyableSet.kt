@@ -33,6 +33,7 @@ interface MutableIdentifyableSet<T: Identifiable> : IdentifyableSet<T>, MutableS
 
   fun addAll(c: Iterable<T>) = c.map { add(it) }.reduce(Boolean::or)
 
+  operator fun set(index: Int, value:T): T
 
   fun addAll(sequence: Sequence<T>) = sequence.map { add(it) }.reduce(Boolean::or)
 
@@ -45,7 +46,7 @@ interface MutableIdentifyableSet<T: Identifiable> : IdentifyableSet<T>, MutableS
   override fun iterator(): MutableIterator<T>
 }
 
-interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, RandomAccess, Cloneable {
+interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, RandomAccess, Cloneable {
 
   private class ReadonlyIterator<T> constructor(private val mIterator: ListIterator<T>) : ListIterator<T> {
 
@@ -143,6 +144,8 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
       return true
     }
 
+    override fun set(index: Int, value: V) = data.set(index, value)
+
     override fun removeAll(elements: Collection<V>) = data.removeAll(elements)
 
     override fun retainAll(elements: Collection<V>) = data.removeAll(elements)
@@ -188,7 +191,7 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
     }
   }
 
-  private object EmptyIdentifyableSet : IdentifyableSet<Identifiable> {
+  private object EmptyIdentifyableSet : MutableIdentifyableSet<Identifiable> {
 
     override fun clone() = this
 
@@ -199,6 +202,7 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
     override fun values() = this
 
     override fun get(index: Int) = throw IndexOutOfBoundsException()
+    override fun set(index: Int, value: Identifiable) = throw IndexOutOfBoundsException()
 
     override val size: Int get() = 0
 
@@ -209,6 +213,8 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
     override fun indexOf(element: Identifiable)= -1
 
     override fun lastIndexOf(element: Identifiable) = -1
+
+    override fun spliterator(): Spliterator<Identifiable> = Spliterators.emptySpliterator()
 
     override fun iterator() = Collections.emptyIterator<Identifiable>()
 
@@ -221,6 +227,17 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
     fun subList(fromIndex: Int, toIndex: Int): EmptyIdentifyableSet {
       if (fromIndex!=0 || toIndex !=0) throw IndexOutOfBoundsException() else return this
     }
+
+    override fun removeAt(index: Int) = throw IndexOutOfBoundsException()
+
+    override fun add(element: Identifiable) = throw IllegalStateException("No elements can be added to this list")
+
+    override fun addAll(elements: Collection<Identifiable>)
+            = if (elements.isEmpty()) false else throw IllegalStateException("No elements can be added to this list")
+
+    override fun clear() = Unit // No meaning
+
+    override fun remove(element: Identifiable) = false
 
     override fun hashCode() = 1
 
@@ -275,8 +292,8 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
       }
     }
 
-    fun set(index: Int, element: V): V {
-      element.let {
+    override fun set(index: Int, element: V): V {
+      this.element.let {
         if (it == null || index != 0) throw IndexOutOfBoundsException()
         this.element = element
         return it
@@ -396,13 +413,13 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
 
   }
 
-  override fun containsAll(elements: Collection<T>) = elements.all { contains(it) }
+  override fun containsAll(elements: Collection<@kotlin.UnsafeVariance T>) = elements.all { contains(it) }
 
   override fun containsKey(key: String): Boolean {
     return get(key) != null
   }
 
-  override fun containsValue(value: T): Boolean {
+  override fun containsValue(value: @kotlin.UnsafeVariance T): Boolean {
     return contains(value)
   }
 
@@ -433,9 +450,9 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
     return null
   }
 
-  fun indexOf(element: T) : Int = indexOfFirst { it == element }
+  fun indexOf(element: @kotlin.UnsafeVariance T) : Int = indexOfFirst { it == element }
 
-  fun lastIndexOf(element: T) : Int = indexOfLast { it == element }
+  fun lastIndexOf(element: @kotlin.UnsafeVariance T) : Int = indexOfLast { it == element }
 
   override val keys: Set<String> get() = MyKeySet(this)
 
@@ -445,7 +462,7 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
 
   fun listIterator(initialPos:Int): ListIterator<T>
 
-  override fun spliterator(): Spliterator<T> {
+  override fun spliterator(): Spliterator<@kotlin.UnsafeVariance T> {
     return Spliterators.spliterator(this, Spliterator.DISTINCT or Spliterator.NONNULL)
   }
 
@@ -461,23 +478,23 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
 
   companion object {
 
-    fun <V : Identifiable> processNodeSet(): IdentifyableSet<V> {
+    fun <V : Identifiable> processNodeSet(): MutableIdentifyableSet<V> {
       return BaseIdentifyableSet()
     }
 
-    fun <V : Identifiable> processNodeSet(size: Int): IdentifyableSet<V> {
-      return BaseIdentifyableSet(size)
+    fun <V : Identifiable> processNodeSet(initialCapacity: Int): MutableIdentifyableSet<V> {
+      return BaseIdentifyableSet(initialCapacity)
     }
 
-    fun <V : Identifiable> processNodeSet(collection: Sequence<V>): IdentifyableSet<V> {
+    fun <V : Identifiable> processNodeSet(collection: Sequence<V>): MutableIdentifyableSet<V> {
       return BaseIdentifyableSet(collection)
     }
 
-    fun <V : Identifiable> processNodeSet(collection: Iterable<V>): IdentifyableSet<V> {
+    fun <V : Identifiable> processNodeSet(collection: Iterable<V>): MutableIdentifyableSet<V> {
       return BaseIdentifyableSet(collection)
     }
 
-    fun <V : Identifiable> processNodeSet(maxSize: Int, elements: Collection<V>): IdentifyableSet<V> {
+    fun <V : Identifiable> processNodeSet(maxSize: Int, elements: Collection<V>): MutableIdentifyableSet<V> {
       when (maxSize) {
         0 -> {
           if (elements.isNotEmpty()) {
@@ -532,16 +549,16 @@ interface IdentifyableSet<T : Identifiable> : Set<T>, ReadMap<String, T>, Random
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <V : Identifiable> empty(): IdentifyableSet<V> {
+    fun <V : Identifiable> empty(): MutableIdentifyableSet<V> {
       // This can be unsafe as it is actually empty
-      return EmptyIdentifyableSet as IdentifyableSet<V>
+      return EmptyIdentifyableSet as MutableIdentifyableSet<V>
     }
 
-    fun <V : Identifiable> singleton(): IdentifyableSet<V> {
+    fun <V : Identifiable> singleton(): MutableIdentifyableSet<V> {
       return SingletonIdentifyableSet()
     }
 
-    fun <V : Identifiable> singleton(element: V): IdentifyableSet<V> {
+    fun <V : Identifiable> singleton(element: V): MutableIdentifyableSet<V> {
       return SingletonIdentifyableSet(element)
     }
   }

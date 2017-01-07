@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.xml.*
 
 /**
@@ -121,7 +122,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
       when (it) {
         is ProcessNode.Builder<*, *> -> nodeFactory(this, it)
         is Activity.ChildModelBuilder<*, *> -> {
-          val childModel = childModels[it.childId] ?: throw ProcessException("Activity refers to missing child")
+          val childModel = childModels[it.childId!!] ?: throw ProcessException("Activity refers to missing child")
           nodeFactory(this, it, childModel).asT()
         }
         else -> throw UnsupportedOperationException("Node builders are either for activities or for childModels")
@@ -163,7 +164,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
    * @param processNodes The process nodes to base the model on.
    */
   protected open fun setModelNodes(processNodes: Collection<NodeT>) {
-    (processNodes as IdentifyableSet).replaceBy(processNodes)
+    (processNodes as MutableIdentifyableSet).replaceBy(processNodes)
   }
 
 }

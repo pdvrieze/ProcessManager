@@ -37,7 +37,7 @@ package net.devrieze.util
  *
  * @version 1.1 $Revision$
  */
-interface ReadMap<K:Any, V> : Set<V> {
+interface ReadMap<K:Any, out V> : Set<V> {
 
   /**
    * Check whether there are elements in the ReadMap.
@@ -68,18 +68,18 @@ interface ReadMap<K:Any, V> : Set<V> {
    * *
    * @see Map.containsValue
    */
-  fun containsValue(pValue: V): Boolean
+  fun containsValue(pValue: @kotlin.UnsafeVariance V): Boolean
 
   /**
    * Check whether the map equals another map.
 
-   * @param pObject The element to compare to
+   * @param other The element to compare to
    * *
    * @return `true` if equal, `false` if not
    * *
    * @see Map.equals
    */
-  override fun equals(pObject: Any?): Boolean
+  override fun equals(other: Any?): Boolean
 
   /**
    * Get the value corresponding to the specified key.

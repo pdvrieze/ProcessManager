@@ -24,6 +24,7 @@ import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlStreaming.EventType
 import java.security.Principal
@@ -302,7 +303,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     return Collections.unmodifiableCollection(super.getModelNodes())
   }
 
-  private val _processNodes: IdentifyableSet<NodeT> get() = super.getModelNodes() as IdentifyableSet<NodeT>
+  private val _processNodes: MutableIdentifyableSet<NodeT> get() = super.getModelNodes() as MutableIdentifyableSet<NodeT>
 
   @Deprecated("Use the builder to update models")
   protected open fun addNode(node: NodeT): Boolean {

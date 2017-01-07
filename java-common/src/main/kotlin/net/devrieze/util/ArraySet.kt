@@ -22,9 +22,12 @@ import java.util.*
  * Created by pdvrieze on 11/10/16.
  */
 
+private typealias BufferPos = Int
+private typealias OuterPos = Int
+
 class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
 
-  private inner class ArraySetIterator(private var pos:Int = 0):MutableListIterator<T> {
+  private inner class ArraySetIterator(private var pos:OuterPos = 0):MutableListIterator<T> {
     init {
       if (pos<0 || pos>size) throw IndexOutOfBoundsException()
     }
@@ -77,10 +80,22 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
 
   constructor(vararg items:T) : this(items.asList())
 
-  operator fun get(pos: Int): T {
+  operator fun get(pos: OuterPos): T {
     if (pos<0 || pos>=size) throw IndexOutOfBoundsException("This index is invalid")
     val offset = (firstElemIdx +pos)%buffer.size
     return buffer[offset]!!
+  }
+
+  operator fun set(pos: OuterPos, value: T): T {
+    return get(pos).apply {
+      if (this!=value) {
+        if (! contains(value)) {
+          buffer[pos.toBufferPos()] = value
+        } else { // It's already contained, so just remove the previous value, don't add the new one
+          removeAt(pos)
+        }
+      }
+    }
   }
 
   private fun isInRange(offset:Int):Boolean {
@@ -99,7 +114,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
 
   fun listIterator() = listIterator(0)
 
-  fun listIterator(initPos: Int) : MutableListIterator<T> = ArraySetIterator(initPos)
+  fun listIterator(initPos: OuterPos) : MutableListIterator<T> = ArraySetIterator(initPos)
 
   override fun contains(element: T) = indexOf(element)>=0
 
@@ -142,12 +157,17 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
   }
 
+  @Suppress("NOTHING_TO_INLINE")
+  private inline fun OuterPos.toBufferPos(): BufferPos = (toInt() + firstElemIdx)% buffer.size
+
+  private inline fun BufferPos.toOuterPos(): OuterPos = (buffer.size + this - firstElemIdx) % buffer.size
+
   @Deprecated("Use removeAt instead", ReplaceWith("removeAt(index)"), DeprecationLevel.WARNING)
-  fun remove(index:Int) = removeAt(index)
+  fun remove(index:OuterPos) = removeAt(index)
 
-  fun removeAt(index:Int) = removeAtOffset((index+ firstElemIdx)%buffer.size)
+  fun removeAt(index:OuterPos) = removeAtOffset(index.toBufferPos())
 
-  private fun removeAtOffset(offset: Int): T {
+  private fun removeAtOffset(offset: BufferPos): T {
     val result = buffer[offset]!!
 
     val bufferSize = buffer.size
@@ -171,17 +191,17 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     return result
   }
 
-  fun indexOf(element: T):Int {
+  fun indexOf(element: T):OuterPos {
     if(firstElemIdx <= nextElemIdx) {
       for(i in firstElemIdx until nextElemIdx) {
-        if (buffer[i]==element) { return i- firstElemIdx; }
+        if (buffer[i]==element) { return i.toOuterPos() }
       }
     } else {
       for(i in (firstElemIdx until buffer.size)) {
-        if (buffer[i]==element) { return i- firstElemIdx; }
+        if (buffer[i]==element) { return i.toOuterPos() }
       }
       for(i in (0 until nextElemIdx)) {
-        if (buffer[i]==element) { return i+buffer.size- firstElemIdx; }
+        if (buffer[i]==element) { return i.toOuterPos() }
       }
     }
     return -1
