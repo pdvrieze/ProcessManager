@@ -20,6 +20,18 @@ import nl.adaptivity.diagram.Positioned
 
 import java.util.ArrayList
 
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T : Positioned> DiagramNode(orig: DiagramNode<T>,
+                                        x: Double = orig.x,
+                                        y: Double = orig.y,
+                                        target: T = orig.target,
+                                        leftExtend: Double = orig.leftExtend,
+                                        rightExtend: Double = orig.rightExtend,
+                                        topExtend: Double = orig.topExtend,
+                                        bottomExtend: Double = orig.bottomExtend) =
+  DiagramNode(target, x, y, leftExtend, rightExtend, topExtend, bottomExtend)
+
+
 /**
  * @property leftExtend   Get the size to the left of the gravity point.
  * @property rightExtend  Get the size to the right of the gravity point.
@@ -42,9 +54,6 @@ class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0,
 
   constructor(target: T, leftExtend: Double, rightExtend: Double, topExtend: Double, bottomExtend: Double):
     this(target, target.x, target.y, leftExtend, rightExtend, topExtend, bottomExtend)
-
-  private constructor(diagramNode: DiagramNode<T>, x: Double, y: Double):
-    this(diagramNode.target, x, y, diagramNode.leftExtend, diagramNode.rightExtend, diagramNode.topExtend, diagramNode.bottomExtend)
 
   fun withX(x: Double) = DiagramNode(this, x, y)
 
@@ -88,21 +97,19 @@ class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0,
 
   override fun hasPos() = x.isFinite() && y.isFinite()
 
-  override fun toString(): String {
-    return buildString {
-      append('[')
-      target?.let { append(it).append(' ')}
-      if (x.isFinite()) append("x=$x, ")
+  override fun toString() = buildString {
+    append("[$target ")
 
-      if (y.isFinite()) {
-        append("y=$y - ")
-      } else {
-        if (x.isFinite()) append(" - ")
-      }
+    if (x.isFinite()) append("x=$x, ")
 
-      val effX = if (x.isNaN()) 0.0 else x
-      val effY = if (y.isNaN()) 0.0 else y
-      append("((${effX - leftExtend}, ${effY - topExtend}),(${effX + rightExtend}, ${effY + bottomExtend}))")
+    if (y.isFinite()) {
+      append("y=$y - ")
+    } else {
+      if (x.isFinite()) append(" - ")
     }
+
+    val effX = if (x.isNaN()) 0.0 else x
+    val effY = if (y.isNaN()) 0.0 else y
+    append("((${effX - leftExtend}, ${effY - topExtend}),(${effX + rightExtend}, ${effY + bottomExtend}))")
   }
 }

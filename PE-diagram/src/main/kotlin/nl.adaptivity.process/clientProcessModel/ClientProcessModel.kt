@@ -294,13 +294,8 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
   }
 
   private fun toDiagramNodes(modelNodes: Collection<NodeT>): List<DiagramNode<NodeT>> {
-    val map = HashMap<Identified, DiagramNode<NodeT>>()
-    val result = ArrayList<DiagramNode<NodeT>>()
-    for (node in modelNodes) {
-      val leftExtend: Double
-      val rightExtend: Double
-      val topExtend: Double
-      val bottomExtend: Double
+    val nodeMap = HashMap<Identified, DiagramNode<NodeT>>()
+    val result = modelNodes.map { node  ->
       if (node is Bounded) {
         val tempCoords = java.lang.Double.isNaN(node.x) || java.lang.Double.isNaN(node.y)
         var tmpX = 0.0
@@ -313,33 +308,35 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
           isInvalid = true // we need layout as we have undefined coordinates.
         }
         val bounds = node.bounds
-        leftExtend = node.x - bounds.left
-        rightExtend = bounds.right() - node.x
-        topExtend = node.y - bounds.top
-        bottomExtend = bounds.bottom() - node.y
+        val leftExtend = node.x - bounds.left
+        val rightExtend = bounds.right() - node.x
+        val topExtend = node.y - bounds.top
+        val bottomExtend = bounds.bottom() - node.y
         if (tempCoords) {
           node.x = tmpX
           node.y = tmpY
         }
+
+        DiagramNode<NodeT>(node, leftExtend, rightExtend, topExtend, bottomExtend).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
       } else {
-        rightExtend = layoutAlgorithm.defaultNodeWidth / 2
-        leftExtend = rightExtend
-        bottomExtend = layoutAlgorithm.defaultNodeHeight / 2
-        topExtend = bottomExtend
+        val rightExtend = layoutAlgorithm.defaultNodeWidth / 2
+        val leftExtend = rightExtend
+        val bottomExtend = layoutAlgorithm.defaultNodeHeight / 2
+        val topExtend = bottomExtend
+
+        DiagramNode(node, leftExtend, rightExtend, topExtend, bottomExtend).apply { node.identifier?.let { nodeMap[it] = this } }
       }
-      val dn = DiagramNode(node, leftExtend, rightExtend, topExtend, bottomExtend)
-      node.id?.let(::Identifier)?.let { map.put(it, dn) }
-      result.add(dn)
+
     }
 
     for (diagramNode in result) {
       val modelNode = diagramNode.target
       modelNode.successors.asSequence()
-          .map { map[it] }
+          .map { nodeMap[it] }
           .filterNotNullTo(diagramNode.rightNodes)
 
       modelNode.predecessors.asSequence()
-          .map { map[it] }
+          .map { nodeMap[it] }
           .filterNotNullTo(diagramNode.leftNodes)
     }
     return result
