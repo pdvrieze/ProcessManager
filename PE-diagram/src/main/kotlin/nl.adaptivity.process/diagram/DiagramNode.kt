@@ -25,35 +25,35 @@ inline fun <T : Positioned> DiagramNode(orig: DiagramNode<T>,
                                         x: Double = orig.x,
                                         y: Double = orig.y,
                                         target: T = orig.target,
-                                        leftExtend: Double = orig.leftExtend,
-                                        rightExtend: Double = orig.rightExtend,
-                                        topExtend: Double = orig.topExtend,
-                                        bottomExtend: Double = orig.bottomExtend) =
-  DiagramNode(target, x, y, leftExtend, rightExtend, topExtend, bottomExtend)
+                                        leftExtent: Double = orig.leftExtent,
+                                        rightExtent: Double = orig.rightExtent,
+                                        topExtent: Double = orig.topExtent,
+                                        bottomExtent: Double = orig.bottomExtent) =
+  DiagramNode(target, x, y, leftExtent, rightExtent, topExtent, bottomExtent)
 
 
 /**
- * @property leftExtend   Get the size to the left of the gravity point.
- * @property rightExtend  Get the size to the right of the gravity point.
- * @property topExtend    Get the size to the top of the gravity point.
- * @property bottomExtend Get the size to the bottom of the gravity point.
+ * @property leftExtent   Get the size to the left of the gravity point.
+ * @property rightExtent  Get the size to the right of the gravity point.
+ * @property topExtent    Get the size to the top of the gravity point.
+ * @property bottomExtent Get the size to the bottom of the gravity point.
  */
-class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0, private var y: Double = 0.0, val leftExtend: Double, val rightExtend: Double, val topExtend: Double, val bottomExtend: Double) : Positioned {
+class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0, private var y: Double = 0.0, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
 
   val leftNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 
   val rightNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 
-  val left get() = x - leftExtend
+  val left get() = x - leftExtent
 
-  val right get() = x + rightExtend
+  val right get() = x + rightExtent
 
-  val top get() = y - topExtend
+  val top get() = y - topExtent
 
-  val bottom get() = y + bottomExtend
+  val bottom get() = y + bottomExtent
 
-  constructor(target: T, leftExtend: Double, rightExtend: Double, topExtend: Double, bottomExtend: Double):
-    this(target, target.x, target.y, leftExtend, rightExtend, topExtend, bottomExtend)
+  constructor(target: T, leftExtent: Double, rightExtent: Double, topExtent: Double, bottomExtent: Double):
+    this(target, target.x, target.y, leftExtent, rightExtent, topExtent, bottomExtent)
 
   fun withX(x: Double) = DiagramNode(this, x, y)
 
@@ -110,6 +110,6 @@ class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0,
 
     val effX = if (x.isNaN()) 0.0 else x
     val effY = if (y.isNaN()) 0.0 else y
-    append("((${effX - leftExtend}, ${effY - topExtend}),(${effX + rightExtend}, ${effY + bottomExtend}))")
+    append("((${effX - leftExtent}, ${effY - topExtent}),(${effX + rightExtent}, ${effY + bottomExtent}))")
   }
 }
