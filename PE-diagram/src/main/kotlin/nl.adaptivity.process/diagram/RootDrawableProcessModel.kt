@@ -24,13 +24,13 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 import nl.adaptivity.process.clientProcessModel.RootClientProcessModel
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.engine.IProcessModelRef
+import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
-
 import java.security.Principal
 import java.util.*
 
@@ -69,7 +69,7 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     }
 
     override fun joinBuilder(): DrawableJoin.Builder {
-      return DrawableJoin.Builder()
+      return DrawableJoin.Builder(state = Drawable.STATE_DEFAULT)
     }
 
     override fun joinBuilder(join: Join<*, *>): DrawableJoin.Builder {
@@ -391,6 +391,7 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
 
     @JvmStatic
     @JvmName("copyProcessNodeAttrs")
+    @Deprecated("Use builders for this instead")
     internal fun copyProcessNodeAttrs(from: ProcessNode<*, *>, to: DrawableProcessNode) {
       from.id?.let { to.setId(it) }
       to.x = from.getX()

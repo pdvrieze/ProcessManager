@@ -37,15 +37,28 @@ class DrawableSplit : ClientSplitNode<DrawableProcessNode, DrawableProcessModel?
 
   class Builder : ClientSplitNode.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
 
-    constructor() {}
+    override var state: DrawableState
 
-    constructor(predecessors: Collection<Identified>, successors: Collection<Identified>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(predecessors, successors, id, label, x, y, defines, results, min, max) {}
-
-    constructor(node: Split<*, *>) : super(node) {}
-
-    override fun build(newOwner: DrawableProcessModel?): DrawableSplit {
-      return DrawableSplit(this, newOwner)
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
+                successors: Collection<Identified> = emptyList(),
+                label: String? = null,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                min: Int = 1,
+                max: Int = -1,
+                state: DrawableState = Drawable.STATE_DEFAULT) : super(id, predecessor, successors, label, defines,
+                                                                                                     results, x, y, min, max) {
+      this.state = state
     }
+
+    constructor(node: Split<*, *>) : super(node) {
+      state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+    }
+
+    override fun build(newOwner: DrawableProcessModel?) = DrawableSplit(this, newOwner)
 
   }
 

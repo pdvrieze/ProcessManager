@@ -16,30 +16,37 @@
 
 package nl.adaptivity.process.clientProcessModel
 
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.Join
+import nl.adaptivity.process.processModel.JoinBase
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
 abstract class ClientJoinNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinBase<NodeT, ModelT>, ClientJoinSplit<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinBase.Builder<NodeT, ModelT>, ClientJoinSplit.Builder<NodeT, ModelT> {
+  abstract class Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinBase.Builder<NodeT, ModelT>,
+                                                                                                                  ClientJoinSplit.Builder<NodeT, ModelT>  {
 
     override var isCompat: Boolean = false
 
-    constructor(compat: Boolean = false) {
-      this.isCompat = compat
-    }
-
-    constructor(predecessors: Collection<Identified>, successor: Identified, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(id, predecessors, successor, label, defines, results, min, max, x, y) {
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
+                successor: Identified? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                min: Int = 1,
+                max: Int = -1,
+                compat: Boolean = false) : super(id, predecessors, successor, label, defines, results, min, max, x, y) {
       isCompat = false
     }
 
     constructor(node: Join<*, *>) : super(node) {
-      isCompat = when (node) {
-          is ClientProcessNode<*, *> -> node.isCompat
-          else -> false
-      }
+      isCompat = (node as? ClientProcessNode<*,*>)?.isCompat ?: false
     }
 
     abstract override fun build(newOwner: ModelT): ClientJoinNode<NodeT, ModelT>

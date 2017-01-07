@@ -18,7 +18,6 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode
-import nl.adaptivity.process.clientProcessModel.ClientJoinSplit
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.ARROWCONTROLRATIO
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_X
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
@@ -39,17 +38,29 @@ class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>,
 
   class Builder : ClientJoinNode.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
 
-    constructor() {}
+    override var state: DrawableState
 
-    constructor(compat: Boolean) : super(compat) {}
-
-    constructor(predecessors: Collection<Identified>, successor: Identified, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(predecessors, successor, id, label, x, y, defines, results, min, max) {}
-
-    constructor(node: Join<*, *>) : super(node) {}
-
-    override fun build(newOwner: DrawableProcessModel?): DrawableJoin {
-      return DrawableJoin(this, newOwner)
+    constructor(id: String? = null,
+                predecessors: Collection<Identified> = emptyList(),
+                successor: Identified? = null,
+                label: String? = null,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                min: Int = 1,
+                max: Int = -1,
+                state: DrawableState = Drawable.STATE_DEFAULT,
+                compat: Boolean = false) : super(id, predecessors, successor, label, x, y,
+                                                        defines, results, min, max, compat) {
+      this.state = state
     }
+
+    constructor(node: Join<*, *>) : super(node) {
+      state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+    }
+
+    override fun build(newOwner: DrawableProcessModel?) = DrawableJoin(this, newOwner)
   }
 
   override val _delegate: DrawableJoinSplitDelegate
@@ -134,13 +145,13 @@ class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>,
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(ownerModel: DrawableProcessModel?, reader: XmlReader): DrawableJoin {
-      return Builder(true).deserializeHelper(reader).build(ownerModel)
+      return Builder(state = Drawable.STATE_DEFAULT, compat = true).deserializeHelper(reader).build(ownerModel)
     }
 
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(reader: XmlReader): Builder {
-      return Builder(true).deserializeHelper(reader)
+      return Builder(state = Drawable.STATE_DEFAULT, compat = true).deserializeHelper(reader)
     }
   }
 }

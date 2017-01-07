@@ -19,25 +19,30 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 
+typealias DrawableState = Int
 
 interface DrawableProcessNode : ClientProcessNode<DrawableProcessNode, DrawableProcessModel?>, Drawable {
 
-    interface Builder : ClientProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
-        override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
-    }
+  interface Builder : ClientProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
+    override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
 
-    //  void setLabel(@Nullable String label);
+    var state: DrawableState
+  }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double)
+  //  void setLabel(@Nullable String label);
 
-    /** Get the base to use for generating ID's.  */
-    override val idBase: String
+  fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
+    PEN_T : Pen<PEN_T>,
+    PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double)
 
-    override fun clone(): DrawableProcessNode
+  /** Get the base to use for generating ID's.  */
+  override val idBase: String
 
-    override val ownerModel: DrawableProcessModel?
+  override fun clone(): DrawableProcessNode
 
-    fun isWithinBounds(x: Double, y: Double): Boolean
+  override val ownerModel: DrawableProcessModel?
 
-    override fun builder(): Builder
+  fun isWithinBounds(x: Double, y: Double): Boolean
+
+  override fun builder(): Builder
 }

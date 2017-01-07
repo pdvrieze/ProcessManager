@@ -16,18 +16,21 @@
 
 package nl.adaptivity.process.clientProcessModel
 
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.EndNodeBase
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-open class ClientEndNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>> : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
+open class ClientEndNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
 
-    open class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>> : EndNodeBase.Builder<T, M>, ClientProcessNode.Builder<T, M> {
+    open class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : EndNodeBase.Builder<T, M>, ClientProcessNode.Builder<T, M> {
 
         constructor()
 
-        constructor(id: String,
+        constructor(id: String?,
                     predecessor: Identified? = null,
                     label: String? = null,
                     defines: Collection<IXmlDefineType> = emptyList(),

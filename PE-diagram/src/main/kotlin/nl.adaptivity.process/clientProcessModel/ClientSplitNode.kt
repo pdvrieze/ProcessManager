@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.clientProcessModel
 
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.Split
+import nl.adaptivity.process.processModel.SplitBase
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
@@ -33,7 +36,16 @@ abstract class ClientSplitNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT 
 
     constructor() {}
 
-    constructor(predecessors: Collection<Identified>, successors: Collection<Identified>, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(id, predecessors, successors, label, defines, results, min, max, x, y) {}
+    constructor(id: String?,
+                predecessor: Identified? = null,
+                successors: Collection<Identified>,
+                label: String?,
+                defines: Collection<IXmlDefineType>,
+                results: Collection<IXmlResultType>,
+                x: Double,
+                y: Double,
+                min: Int,
+                max: Int) : super(id, predecessor, successors, label, defines, results, x, y, min, max) {}
 
     constructor(node: Split<*, *>) : super(node) {}
 

@@ -35,8 +35,9 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
 
     constructor() : this(id = null)
 
+    @Deprecated("use the constructor that takes a single predecessor")
     constructor(id: String? = null,
-                predecessors: Collection<Identified> = emptyList(),
+                predecessors: Collection<Identified>,
                 successors: Collection<Identified> = emptyList(),
                 label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
@@ -44,7 +45,19 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
                 min: Int = -1,
                 max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
+                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, x, y, min, max)
+
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
+                successors: Collection<Identified> = emptyList(),
+                label: String? = null,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                min: Int = -1,
+                max: Int = -1) : super(id, listOfNotNull(predecessor), successors, label, defines, results, x,
+                                              y, min, max)
 
     constructor(node: Split<*, *>) : super(node)
 

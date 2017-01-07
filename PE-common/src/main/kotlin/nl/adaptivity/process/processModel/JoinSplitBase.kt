@@ -39,13 +39,14 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
 
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
-                successors: Collection<Identified> = emptyList(), label: String? = null,
+                successors: Collection<Identified> = emptyList(),
+                label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
-                min: Int = -1,
-                max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, x, y) {
+                y: Double = Double.NaN,
+                min: Int = -1,
+                max: Int = -1) : super(id, predecessors, successors, label, defines, results, x, y) {
       this.min = min
       this.max = max
     }
