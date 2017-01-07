@@ -51,7 +51,7 @@ interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProce
 
   override fun getBounds() = Rectangle(this.getX() - REFERENCE_OFFSET_X, this.getY() - REFERENCE_OFFSET_Y, JOINHEIGHT + STROKEEXTEND, JOINWIDTH + STROKEEXTEND)
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>?, PEN_T : Pen<PEN_T>?, PATH_T : DiagramPath<PATH_T>?> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>?, clipBounds: Rectangle?, left: Double, top: Double) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double) {
     DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
 
