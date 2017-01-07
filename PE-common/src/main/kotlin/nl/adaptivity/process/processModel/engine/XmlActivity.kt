@@ -133,20 +133,20 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     super.setPredecessors(predecessors)
   }
 
-  public override fun removePredecessor(node: Identified) {
-    super.removePredecessor(node)
+  public override fun removePredecessor(predecessorId: Identified) {
+    super.removePredecessor(predecessorId)
   }
 
-  public override fun addPredecessor(nodeId: Identified) {
-    super.addPredecessor(nodeId)
+  public override fun addPredecessor(predecessorId: Identified) {
+    super.addPredecessor(predecessorId)
   }
 
-  public override fun addSuccessor(node: Identified) {
-    super.addSuccessor(node)
+  public override fun addSuccessor(successorId: Identified) {
+    super.addSuccessor(successorId)
   }
 
-  public override fun removeSuccessor(node: Identified) {
-    super.removeSuccessor(node)
+  public override fun removeSuccessor(successorId: Identified) {
+    super.removeSuccessor(successorId)
   }
 
   public override fun setSuccessors(successors: Collection<Identified>) {

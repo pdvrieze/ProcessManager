@@ -80,7 +80,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   }
 
   public DrawableActivity(Activity<?, ?> orig, final boolean compat) {
-    super(orig, compat);
+    super(orig, null, compat);
     if (orig instanceof DrawableActivity) {
       mState = ((DrawableActivity) orig).mState;
     }

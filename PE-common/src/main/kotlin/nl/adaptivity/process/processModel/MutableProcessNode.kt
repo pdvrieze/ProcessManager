@@ -19,23 +19,31 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
+@Deprecated("Use builders instead of mutable process models")
+interface MutableProcessNode<NodeT : MutableProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-interface MutableProcessNode<NodeT : MutableProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>> : ProcessNode<NodeT, ModelT> {
-
+  @Deprecated("Use builders instead of mutable process models")
   fun setId(id: String)
 
-  fun setOwnerModel(ownerModel: ModelT)
+  @Deprecated("Use builders instead of mutable process models")
+  fun setOwnerModel(newOwnerModel: ModelT)
 
+  @Deprecated("Use builders instead of mutable process models")
   fun setPredecessors(predecessors: Collection<Identifiable>)
 
-  fun removePredecessor(node: Identified)
+  @Deprecated("Use builders instead of mutable process models")
+  fun removePredecessor(predecessorId: Identified)
 
-  fun addPredecessor(nodeId: Identified)
+  @Deprecated("Use builders instead of mutable process models")
+  fun addPredecessor(predecessorId: Identified)
 
-  fun addSuccessor(node: Identified)
+  @Deprecated("Use builders instead of mutable process models")
+  fun addSuccessor(successorId: Identified)
 
-  fun removeSuccessor(node: Identified)
+  @Deprecated("Use builders instead of mutable process models")
+  fun removeSuccessor(successorId: Identified)
 
+  @Deprecated("Use builders instead of mutable process models")
   fun setSuccessors(successors: Collection<Identified>)
 
 }

@@ -69,7 +69,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
   }
 
   public DrawableEndNode(EndNode<?,?> orig) {
-    super(orig);
+    super(orig, null);
     if (orig instanceof DrawableEndNode) {
       mState = ((DrawableEndNode) orig).mState;
     }

@@ -124,8 +124,9 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
   override val label: String? get() = _label
 
-  protected open fun setLabel(value: String?) {
-      _label = value
+  @Deprecated("Use builders instead of mutable process models")
+  protected open fun setLabel(label: String?) {
+      _label = label
       _hashCode = 0
       notifyChange()
     }
@@ -181,7 +182,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     // do nothing
   }
 
-  @Deprecated("")
+  @Deprecated("Use builders instead of mutable process models")
   protected fun swapPredecessors(predecessors: Collection<NodeT>) {
     _hashCode = 0
     _predecessors = IdentifyableSet.processNodeSet(maxPredecessorCount, emptyList())
@@ -190,6 +191,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     setPredecessors(tmp)
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   protected open fun addPredecessor(predecessorId: Identified) {
     _hashCode = 0
     if (predecessorId === this || predecessorId.id == id) {
@@ -213,6 +215,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   protected open fun removePredecessor(predecessorId: Identified) {
     _hashCode = 0
     if (_predecessors.remove(predecessorId)) {
@@ -228,26 +231,28 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     // TODO perhaps make this reciprocal
   }
 
-  protected open fun addSuccessor(nodeId: Identified) {
+  @Deprecated("Use builders instead of mutable process models")
+  protected open fun addSuccessor(successorId: Identified) {
     _hashCode = 0
 
-    if (nodeId in _successors) return
+    if (successorId in _successors) return
 
     if (_successors.size + 1 > maxSuccessorCount) throw IllegalProcessModelException("Can not add more successors")
 
-    _successors.add(nodeId)
+    _successors.add(successorId)
 
-    val mutableNode = nodeId as? MutableProcessNode<*,*> ?: _ownerModel?.getNode(nodeId) as? MutableProcessNode<*, *>
+    val mutableNode = successorId as? MutableProcessNode<*,*> ?: _ownerModel?.getNode(successorId) as? MutableProcessNode<*, *>
     identifier?.let {
       mutableNode?.addPredecessor(it)
     }
   }
 
-  protected open fun removeSuccessor(node: Identified) {
-    if (_successors.remove(node)) {
+  @Deprecated("Use builders instead of mutable process models")
+  protected open fun removeSuccessor(successorId: Identified) {
+    if (_successors.remove(successorId)) {
       _hashCode = 0
-      val successorNode = node as? MutableProcessNode<*, *> ?: if (_ownerModel == null) null else _ownerModel!!.getNode(
-            node) as MutableProcessNode<*, *>
+      val successorNode = successorId as? MutableProcessNode<*, *> ?: if (_ownerModel == null) null else _ownerModel!!.getNode(
+              successorId) as MutableProcessNode<*, *>
       identifier?.let { successorNode?.removePredecessor(it) }
     }
   }
@@ -255,6 +260,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
      */
+  @Deprecated("Use builders instead of mutable process models")
   protected open fun setPredecessors(predecessors: Collection<Identifiable>) {
     if (predecessors.size > maxPredecessorCount) {
       throw IllegalArgumentException()
@@ -272,6 +278,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     }
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   protected open fun setSuccessors(successors: Collection<Identified>) {
     if (successors.size > maxSuccessorCount) {
       throw IllegalArgumentException()
@@ -285,11 +292,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     } else {
       successors.forEach { addSuccessor(it) }
     }
-  }
-
-  fun unsetPos() {
-    x = java.lang.Double.NaN
-    y = java.lang.Double.NaN
   }
 
   @Deprecated("Use builders instead")
@@ -324,10 +326,12 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
   override val id: String? get() = mId
 
-  open protected fun setId(id: String?) {
+  @Deprecated("Use builders instead of mutable process models")
+  open protected fun setId(id: String) {
     mId = id
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   protected fun notifyChange() {
     (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.notifyNodeChanged(this.asT())
   }
@@ -340,6 +344,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     return !java.lang.Double.isNaN(x) && !java.lang.Double.isNaN(y)
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   fun setX(x: Double) {
     _x = x
     _hashCode = 0
@@ -350,6 +355,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     return _y
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   fun setY(y: Double) {
     _y = y
     _hashCode = 0
@@ -375,6 +381,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     }
   }
 
+  @Deprecated("Use builders instead of mutable process models")
   protected open fun setDefines(defines: Collection<IXmlDefineType>) {
     _hashCode = 0
     _defines = toExportableDefines(defines)

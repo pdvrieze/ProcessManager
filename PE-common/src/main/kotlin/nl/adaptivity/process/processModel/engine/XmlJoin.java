@@ -107,23 +107,23 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlModelCommon> implements 
   }
 
   @Override
-  public void removePredecessor(@NotNull final Identified node) {
-    super.removePredecessor(node);
+  public void removePredecessor(@NotNull final Identified predecessorId) {
+    super.removePredecessor(predecessorId);
   }
 
   @Override
-  public void addPredecessor(final Identified nodeId) {
-    super.addPredecessor(nodeId);
+  public void addPredecessor(final Identified predecessorId) {
+    super.addPredecessor(predecessorId);
   }
 
   @Override
-  public void addSuccessor(final Identified node) {
-    super.addSuccessor(node);
+  public void addSuccessor(final Identified successorId) {
+    super.addSuccessor(successorId);
   }
 
   @Override
-  public void removeSuccessor(@NotNull final Identified node) {
-    super.removeSuccessor(node);
+  public void removeSuccessor(@NotNull final Identified successorId) {
+    super.removeSuccessor(successorId);
   }
 
   @Override

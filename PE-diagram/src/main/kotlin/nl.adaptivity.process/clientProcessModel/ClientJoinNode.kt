@@ -25,95 +25,69 @@ abstract class ClientJoinNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT :
 
   abstract class Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinBase.Builder<NodeT, ModelT>, ClientJoinSplit.Builder<NodeT, ModelT> {
 
-    private var compat: Boolean = false
+    override var isCompat: Boolean = false
 
     constructor(compat: Boolean = false) {
-      this.compat = compat
+      this.isCompat = compat
     }
 
     constructor(predecessors: Collection<Identified>, successor: Identified, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, min: Int, max: Int) : super(id, predecessors, successor, label, defines, results, min, max, x, y) {
-      compat = false
+      isCompat = false
     }
 
     constructor(node: Join<*, *>) : super(node) {
-      if (node is ClientProcessNode<*, *>) {
-        compat = node.isCompat()
-      } else
-        compat = false
+      isCompat = when (node) {
+          is ClientProcessNode<*, *> -> node.isCompat
+          else -> false
+      }
     }
 
-    abstract override fun build(newOwner: ModelT?): ClientJoinNode<NodeT, ModelT> /* {
-      return new ClientJoinNode<NodeT, ModelT>(this, newOwner);
-    }*/
-
-    override fun isCompat() = compat
-
-    override fun setCompat(value: Boolean) { compat = value }
+    abstract override fun build(newOwner: ModelT): ClientJoinNode<NodeT, ModelT>
   }
 
 
-  private val mCompat: Boolean
-
-  constructor(ownerModel: ModelT, compat: Boolean) : super(ownerModel) {
-    mCompat = compat
-  }
-
-  constructor(ownerModel: ModelT, id: String, compat: Boolean) : super(ownerModel) {
-    setId(id)
-    mCompat = compat
-  }
-
-  protected constructor(orig: Join<*, *>, newOwner: ModelT, compat: Boolean) : super(orig.builder(), newOwner) {
-    mCompat = compat
-  }
-
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
-    mCompat = builder is Builder<*, *> && builder.isCompat()
-  }
-
-  abstract override fun builder(): Builder<NodeT, ModelT> /* {
-    return new Builder<>(this);
-  }*/
-
-  override fun setId(id: String?) {
-    super.setId(id)
-  }
-
-  override fun setLabel(value: String?) { super.setLabel(value) }
+  override val isCompat: Boolean
 
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
-  override fun isCompat(): Boolean {
-    return mCompat
+  @Deprecated("Use builders")
+  constructor(ownerModel: ModelT, compat: Boolean) : super(ownerModel) {
+    isCompat = compat
   }
 
-  override fun setOwnerModel(newOwnerModel: ModelT) {
-    super.setOwnerModel(newOwnerModel)
+  @Deprecated("Use builders")
+  constructor(ownerModel: ModelT, id: String, compat: Boolean) : super(ownerModel) {
+    setId(id)
+    isCompat = compat
   }
 
-  override fun setPredecessors(predecessors: Collection<Identifiable>) {
-    super.setPredecessors(predecessors)
+  protected constructor(orig: Join<*, *>, newOwner: ModelT, compat: Boolean) : super(orig.builder(), newOwner) {
+    isCompat = compat
   }
 
-  override fun removePredecessor(node: Identified) {
-    super.removePredecessor(node)
+  constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
+    isCompat = builder is Builder<*, *> && builder.isCompat
   }
 
-  override fun addPredecessor(nodeId: Identified) {
-    super.addPredecessor(nodeId)
-  }
+  abstract override fun builder(): Builder<NodeT, ModelT>
 
-  override fun addSuccessor(node: Identified) {
-    super.addSuccessor(node)
-  }
+  override fun setId(id: String) = super.setId(id)
 
-  override fun removeSuccessor(node: Identified) {
-    super.removeSuccessor(node)
-  }
+  override fun setLabel(label: String?) = super.setLabel(label)
 
-  override fun setSuccessors(successors: Collection<Identified>) {
-    super.setSuccessors(successors)
-  }
+  override fun setOwnerModel(newOwnerModel: ModelT) = super.setOwnerModel(newOwnerModel)
+
+  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+
+  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+
+  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+
+  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+
+  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+
+  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
 }

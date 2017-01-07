@@ -24,7 +24,7 @@ interface ClientJoinSplit<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : Cli
 
   interface Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinSplit.Builder<NodeT, ModelT>, ClientProcessNode.Builder<NodeT, ModelT> {
 
-    override fun build(newOwner: ModelT?): ClientJoinSplit<NodeT, ModelT>
+    override fun build(newOwner: ModelT): ClientJoinSplit<NodeT, ModelT>
   }
 
   override fun builder(): Builder<NodeT, ModelT>

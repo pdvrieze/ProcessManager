@@ -21,14 +21,19 @@ import java.util.*
 @Deprecated("Use builders instead")
 interface MutableRootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>: RootProcessModel<NodeT, ModelT> {
 
+  @Deprecated("Use builders instead of mutable process models")
   fun setUuid(uUID: UUID)
 
+  @Deprecated("Use builders instead of mutable process models")
   fun addNode(node: NodeT): Boolean
+
+  @Deprecated("Use builders instead of mutable process models")
   fun removeNode(node: NodeT): Boolean
 
   /**
    * Initiate the notification that a node has changed. Actual implementations can override this.
    * @param node The node that has changed.
    */
+  @Deprecated("Use builders instead of mutable process models")
   fun notifyNodeChanged(node: NodeT)
 }

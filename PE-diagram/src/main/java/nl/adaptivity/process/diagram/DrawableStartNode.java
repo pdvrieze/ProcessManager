@@ -76,7 +76,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   }
 
   public DrawableStartNode(DrawableStartNode orig, final boolean compat) {
-    super(orig, compat);
+    super(orig, null , compat);
     mState = orig.mState;
   }
 

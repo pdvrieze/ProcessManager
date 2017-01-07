@@ -22,6 +22,8 @@ import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.diagram.Bounded
 import nl.adaptivity.process.diagram.DiagramNode
+import nl.adaptivity.process.diagram.DrawableProcessModel
+import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.diagram.LayoutAlgorithm
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
@@ -241,7 +243,8 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
     newValue.setOwnerModel(asM())
     oldValue.setSuccessors(emptySet<Identified>())
     oldValue.setPredecessors(emptySet<Identified>())
-    oldValue.setOwnerModel(null)
+    // TODO this is fundamentally unsafe, but we should get rid of [ClientProcessModel] anyway
+    (oldValue as ClientProcessNode<DrawableProcessNode, DrawableProcessModel?>).setOwnerModel(null)
 
     for (pred in newValue.predecessors) {
       getNode(pred)!!.addSuccessor(newValue.identifier!!)

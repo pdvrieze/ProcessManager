@@ -392,7 +392,7 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     @JvmStatic
     @JvmName("copyProcessNodeAttrs")
     internal fun copyProcessNodeAttrs(from: ProcessNode<*, *>, to: DrawableProcessNode) {
-      to.setId(from.id)
+      from.id?.let { to.setId(it) }
       to.x = from.getX()
       to.y = from.getY()
 

@@ -78,8 +78,6 @@ class DrawableSplit : ClientSplitNode<DrawableProcessNode, DrawableProcessModel?
     throw CloneNotSupportedException()
   }
 
-  override fun isCompat() = false
-
   override val maxSuccessorCount: Int
     get() = Integer.MAX_VALUE
 
