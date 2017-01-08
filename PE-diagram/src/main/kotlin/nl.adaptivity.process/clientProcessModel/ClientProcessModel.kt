@@ -240,7 +240,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
     oldValue.setSuccessors(emptySet<Identified>())
     oldValue.setPredecessors(emptySet<Identified>())
     // TODO this is fundamentally unsafe, but we should get rid of [ClientProcessModel] anyway
-    (oldValue as ClientProcessNode).setOwnerModel(null)
+    (oldValue as DrawableProcessNode).setOwnerModel(null)
 
     for (pred in newValue.predecessors) {
       getNode(pred)!!.addSuccessor(newValue.identifier!!)

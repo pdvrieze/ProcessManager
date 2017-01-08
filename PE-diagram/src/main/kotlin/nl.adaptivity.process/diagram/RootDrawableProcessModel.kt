@@ -20,7 +20,6 @@ import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 import nl.adaptivity.process.clientProcessModel.RootClientProcessModel
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
@@ -173,7 +172,7 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
     }
   }
 
-  private fun <T : ClientProcessNode> ensureId(node: T): T {
+  private fun <T : DrawableProcessNode> ensureId(node: T): T {
     if (node.id == null) {
       val idBase = node.idBase
       var newId = idBase + mIdSeq++

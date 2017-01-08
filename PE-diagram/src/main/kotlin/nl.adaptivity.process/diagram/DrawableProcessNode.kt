@@ -17,14 +17,17 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.clientProcessModel.ClientProcessNode
+import nl.adaptivity.process.processModel.MutableProcessNode
+import nl.adaptivity.process.processModel.ProcessNode
 
 typealias DrawableState = Int
 
-interface DrawableProcessNode : ClientProcessNode, Drawable {
+interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?>, Drawable {
 
-  interface Builder : ClientProcessNode.Builder {
+  interface Builder : ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
     override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
+
+    var isCompat: Boolean
 
     var state: DrawableState
   }
@@ -34,6 +37,26 @@ interface DrawableProcessNode : ClientProcessNode, Drawable {
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
     PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double)
+
+  val isCompat: Boolean
+
+  /**
+   * Set the X coordinate of the reference point of the element. This is
+   * normally the center.
+
+   * @param x The x coordinate
+   */
+  @Deprecated("Use builders")
+  fun setX(x: Double)
+
+  /**
+   * Set the Y coordinate of the reference point of the element. This is
+   * normally the center of the symbol (excluding text).
+
+   * @param y
+   */
+  @Deprecated("Use builders")
+  fun setY(y: Double)
 
   /** Get the base to use for generating ID's.  */
   override val idBase: String

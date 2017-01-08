@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import nl.adaptivity.process.diagram.DrawableActivity
 import nl.adaptivity.process.diagram.DrawableProcessModel
 import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.processModel.*
@@ -26,9 +27,9 @@ import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.*
 
 
-abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode {
+abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-    abstract class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode.Builder {
+    abstract class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
         constructor() {}
 
@@ -41,7 +42,7 @@ abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawablePr
         }
 
         constructor(node: Activity<*, *>) : super(node) {
-            if (node is ClientProcessNode) {
+            if (node is DrawableProcessNode) {
                 isCompat = node.isCompat
             } else {
                 isCompat = false
@@ -76,7 +77,9 @@ abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawablePr
         }
     }
 
-    override fun setId(id: String) = super.setId(id)
+  override abstract fun builder(): DrawableActivity.Builder
+
+  override fun setId(id: String) = super.setId(id)
 
     override fun setLabel(label: String?) = super.setLabel(label)
 

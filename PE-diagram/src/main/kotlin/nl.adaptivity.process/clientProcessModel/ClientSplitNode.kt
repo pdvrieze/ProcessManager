@@ -32,9 +32,9 @@ import nl.adaptivity.process.util.Identified
 
  * @param <NodeT> The type of ProcessNode used.
 </NodeT> */
-abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : SplitBase<DrawableProcessNode, DrawableProcessModel?>(builder, newOwnerModel), ClientProcessNode {
+abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : SplitBase<DrawableProcessNode, DrawableProcessModel?>(builder, newOwnerModel), DrawableProcessNode {
 
-  abstract class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode.Builder {
+  abstract class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
     constructor() {}
 

@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 import nl.adaptivity.process.diagram.ProcessThemeItems.ENDNODEOUTERLINE
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEINNERRRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERRADIUS
@@ -35,7 +34,7 @@ import nl.adaptivity.xml.deserializeHelper
 
 class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-  class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, ClientProcessNode.Builder {
+  class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,

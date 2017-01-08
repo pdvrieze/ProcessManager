@@ -26,10 +26,10 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-abstract class ClientJoinNode : JoinBase<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode {
+abstract class ClientJoinNode : JoinBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
   abstract class Builder : JoinBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
-                           ClientProcessNode.Builder {
+                           DrawableProcessNode.Builder {
 
     override var isCompat: Boolean = false
 
@@ -48,7 +48,7 @@ abstract class ClientJoinNode : JoinBase<DrawableProcessNode, DrawableProcessMod
     }
 
     constructor(node: Join<*, *>) : super(node) {
-      isCompat = (node as? ClientProcessNode)?.isCompat ?: false
+      isCompat = (node as? DrawableProcessNode)?.isCompat ?: false
     }
 
     abstract override fun build(newOwner: DrawableProcessModel?): ClientJoinNode
