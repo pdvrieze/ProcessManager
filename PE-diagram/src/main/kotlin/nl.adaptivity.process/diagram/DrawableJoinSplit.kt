@@ -24,10 +24,16 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIG
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.JoinSplit
+import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.Split
 
-
 interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+
+  class Delegate(builder: ProcessNode.Builder<*, *>): DrawableProcessNode.Delegate(builder) {
+
+    val itemCache = ItemCache()
+
+  }
 
   interface Builder : DrawableProcessNode.Builder, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?> {
 
@@ -36,11 +42,9 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
 
   override fun builder(): Builder
 
-  val _delegate: DrawableJoinSplitDelegate
+  override val _delegate: Delegate
 
   val maxSiblings: Int get() = if (this is Split<*,*>) successors.size else predecessors.size
-
-  override val isCompat: Boolean get() = _delegate.isCompat
 
   /** Determine whether the node represents an or split.  */
   fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings

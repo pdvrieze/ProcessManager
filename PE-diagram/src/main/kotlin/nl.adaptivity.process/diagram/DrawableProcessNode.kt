@@ -22,23 +22,60 @@ import nl.adaptivity.process.processModel.ProcessNode
 
 typealias DrawableState = Int
 
+
+
 interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?>, Drawable {
 
+  open class Delegate(builder: ProcessNode.Builder<*, *>) {
+
+    var state: Int = (builder as? DrawableProcessNode.Builder)?.state ?: Drawable.STATE_DEFAULT
+    var isCompat: Boolean = (builder as? DrawableProcessNode.Builder)?.isCompat ?: false
+
+  }
+
   interface Builder : ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
-    override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
+
+    class Delegate(var state: Int, var isCompat: Boolean) {
+      constructor(node: ProcessNode<*, *>) :
+        this ((node as? Drawable)?.state ?: Drawable.STATE_DEFAULT,
+              (node as? DrawableProcessNode)?.isCompat ?: false
+      )
+    }
+
+    val _delegate: Delegate
 
     var isCompat: Boolean
+      get() = _delegate.isCompat
+      set(value) { _delegate.isCompat  = value }
 
     var state: DrawableState
+      get() = _delegate.state
+      set(value) { _delegate.state = value }
+
+    override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
   }
 
   //  void setLabel(@Nullable String label);
+
+  val _delegate: Delegate
+
+  val isCompat: Boolean get()= _delegate.isCompat
+  override fun getState():DrawableState = _delegate.state
+  override fun setState(state: DrawableState) {
+    if (_delegate.state == state) {
+      return
+    }
+    _delegate.state = state
+    ownerModel?.notifyNodeChanged(this)
+  }
 
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
     PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double)
 
-  val isCompat: Boolean
+  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
+
+  override fun builder(): Builder
 
   /**
    * Set the X coordinate of the reference point of the element. This is
@@ -58,19 +95,12 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
   @Deprecated("Use builders")
   fun setY(y: Double)
 
-  /** Get the base to use for generating ID's.  */
-  override val idBase: String
+  @Deprecated("This does not work that correctly because it resets the owner")
+  override fun clone(): DrawableProcessNode = builder().build(null)
 
-  override fun clone(): DrawableProcessNode
-
-  override val ownerModel: DrawableProcessModel?
-
-  override fun builder(): Builder
-
+  @Deprecated("Use builders")
   override fun setPos(left: Double, top: Double)  {
     setX(left + leftExtent)
     setY(top + topExtent)
   }
-
-  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 }

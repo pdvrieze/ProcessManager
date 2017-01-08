@@ -36,8 +36,7 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
 
   class Builder : JoinBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
 
-    override var state: DrawableState
-    override var isCompat: kotlin.Boolean = false
+    override val _delegate: DrawableProcessNode.Builder.Delegate
 
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
@@ -50,36 +49,35 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
                 min: Int = 1,
                 max: Int = -1,
                 state: DrawableState = Drawable.STATE_DEFAULT,
-                compat: Boolean = false) : super(id, predecessors, successor, label, defines, results,
-                                                 x, y, min, max) {
-      this.isCompat = compat
-      this.state = state
+                isCompat: Boolean = false) : super(id, predecessors, successor, label, defines, results,
+                                                   x, y, min, max) {
+      _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
     }
 
     constructor(node: Join<*, *>) : super(node) {
-      state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
-      isCompat = (node as? DrawableProcessNode)?.isCompat ?: false
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
     override fun build(newOwner: DrawableProcessModel?) = DrawableJoin(this, newOwner)
   }
 
-  override val _delegate: DrawableJoinSplitDelegate
+  override val _delegate: DrawableJoinSplit.Delegate
 
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
   @Deprecated("Use builders")
-  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : this(Builder(compat = compat), ownerModel)
+  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : this(Builder(
+    isCompat = compat), ownerModel)
 
   @Deprecated("Use builders")
-  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, compat=compat), ownerModel)
+  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, isCompat =compat), ownerModel)
 
   @Deprecated("Use builders")
   constructor(orig: DrawableJoin, newOwner: DrawableProcessModel?, compat: Boolean) : this(Builder(orig).apply { isCompat = compat }, newOwner)
 
   constructor(builder: Join.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
-    _delegate = DrawableJoinSplitDelegate(builder)
+    _delegate = DrawableJoinSplit.Delegate(builder)
   }
 
   override fun builder(): Builder {
@@ -87,10 +85,7 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
   }
 
   override fun clone(): DrawableJoin {
-    if (javaClass == DrawableJoin::class.java) {
-      return DrawableJoin(this, this.ownerModel, isCompat)
-    }
-    throw RuntimeException(CloneNotSupportedException())
+    return builder().build(null)
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
@@ -147,6 +142,7 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
     private const val IND_Y = JOINHEIGHT * 0.2
     private val INLEN = Math.sqrt(IND_X * IND_X + IND_Y * IND_Y)
 
+    @Deprecated("Use the builder")
     @JvmStatic
     fun from(elem: Join<*, *>, compat: Boolean): DrawableJoin {
       val owner: DrawableProcessModel? = (elem as? DrawableProcessNode)?.ownerModel
@@ -156,13 +152,13 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(ownerModel: DrawableProcessModel?, reader: XmlReader): DrawableJoin {
-      return Builder(state = Drawable.STATE_DEFAULT, compat = true).deserializeHelper(reader).build(ownerModel)
+      return Builder(state = Drawable.STATE_DEFAULT, isCompat = true).deserializeHelper(reader).build(ownerModel)
     }
 
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(reader: XmlReader): Builder {
-      return Builder(state = Drawable.STATE_DEFAULT, compat = true).deserializeHelper(reader)
+      return Builder(state = Drawable.STATE_DEFAULT, isCompat = true).deserializeHelper(reader)
     }
   }
 }

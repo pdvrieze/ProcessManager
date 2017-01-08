@@ -47,19 +47,16 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
                 message: XmlMessage? = null,
                 condition: String? = null,
                 name: String? = null,
-                stateP: DrawableState = Drawable.STATE_DEFAULT,
-                compat: Boolean = false) : super(id, predecessor, successor, label, defines, results, message,
-                                                        condition, name, x, y) {
-      this.state = stateP
-      this.isCompat = compat
+                state: DrawableState = Drawable.STATE_DEFAULT,
+                isCompat: Boolean = false) : super(id, predecessor, successor, label, defines, results, message,
+                                                   condition, name, x, y) {
+      _delegate = DrawableProcessNode.Builder.Delegate(state = state, isCompat = isCompat)
     }
 
-    override var state: DrawableState
-    override var isCompat = false
+    override val _delegate: DrawableProcessNode.Builder.Delegate
 
     constructor(node: Activity<*, *>) : super(node) {
-      state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
-      isCompat = (node as? DrawableProcessNode)?.isCompat ?: false
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
     override fun build(newOwner: DrawableProcessModel?): DrawableActivity {
@@ -68,10 +65,9 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
 
   }
 
-  private var state = Drawable.STATE_DEFAULT
+  override val _delegate: DrawableProcessNode.Delegate
 
-  val isBodySpecified: Boolean
-    get() = message != null
+  val isBodySpecified get() = message != null
 
   val isUserTask: Boolean
     get() {
@@ -79,53 +75,34 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
       return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.endpointDescriptor)
     }
 
-  val isService: Boolean
-    get() = isBodySpecified && !isUserTask
-  override val isCompat: Boolean
+  val isService get() = isBodySpecified && !isUserTask
+
+  val isComposite get() = this.childModel!=null
+
   override var condition: String? = null
+
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
-  override fun getState(): Int {
-    return state
-  }
-
-  override fun setState(state: Int) {
-    if (state == state) {
-      return
-    }
-    this.state = state
-    ownerModel?.notifyNodeChanged(this)
-  }
+  @Deprecated("Use the builder")
+  @JvmOverloads constructor(owner: DrawableProcessModel?, compat: Boolean = false) : this(Builder(isCompat = compat), owner)
 
   @Deprecated("Use the builder")
-  @JvmOverloads constructor(owner: DrawableProcessModel?, compat: Boolean = false) : this(Builder(compat = compat),owner)
+  constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, isCompat = compat), owner)
 
   @Deprecated("Use the builder")
-  constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, compat = compat),owner)
-
-  @Deprecated("Use the builder")
-  constructor(orig: Activity<*, *>, compat: Boolean) : this(Builder(orig).apply { isCompat=compat }, null)  {
-    if (orig is DrawableActivity) {
-      state = orig.state
-    }
-  }
+  constructor(orig: Activity<*, *>, compat: Boolean) : this(Builder(orig).apply { isCompat=compat }, null)
 
   constructor(builder: Activity.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
-    isCompat = (builder as? Builder)?.isCompat ?: false
-    state = (builder as? Builder)?.state ?: Drawable.STATE_DEFAULT
+    _delegate = DrawableProcessNode.Delegate(builder)
   }
 
   override fun builder(): Builder {
     return Builder(this)
   }
 
-  override fun clone(): DrawableActivity {
-    if (javaClass == DrawableActivity::class.java) {
-      return DrawableActivity(this, isCompat)
-    }
-    throw RuntimeException(CloneNotSupportedException())
-  }
+  @Deprecated("This does not set the owner, be careful")
+  override fun clone() = Builder(this).build(null)
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val hwidth = (ACTIVITYWIDTH + STROKEWIDTH) / 2
@@ -184,8 +161,6 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
            ?: "<$id>".apply { textPen.isTextItalics = true }
   }
 
-  override fun setId(id: String) = super.setId(id)
-  override fun setLabel(label: String?) = super.setLabel(label)
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {
     if (!condition.isNullOrEmpty()) {
@@ -193,18 +168,31 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
     }
   }
 
+  @Deprecated("Use the builder")
+  override fun setId(id: String) = super.setId(id)
+
+  @Deprecated("Use the builder")
+  override fun setLabel(label: String?) = super.setLabel(label)
+
+  @Deprecated("Use the builder")
   override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
 
+  @Deprecated("Use the builder")
   override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
 
+  @Deprecated("Use the builder")
   override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
 
+  @Deprecated("Use the builder")
   override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
 
+  @Deprecated("Use the builder")
   override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
 
+  @Deprecated("Use the builder")
   override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
 
+  @Deprecated("Use the builder")
   override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
@@ -218,26 +206,19 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
     @Deprecated("")
     @Throws(XmlException::class)
     fun deserialize(ownerModel: DrawableProcessModel, reader: XmlReader): DrawableActivity {
-      return DrawableActivity.Builder(compat = true).deserializeHelper(reader).build(ownerModel)
+      return DrawableActivity.Builder(isCompat = true).deserializeHelper(reader).build(ownerModel)
     }
 
     @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(reader: XmlReader): Builder {
-      return DrawableActivity.Builder(compat = true).deserializeHelper(reader)
+      return DrawableActivity.Builder(isCompat = true).deserializeHelper(reader)
     }
 
+    @Deprecated("Use the builder")
     @JvmStatic
     fun from(elem: Activity<*, *>, compat: Boolean): DrawableActivity {
-      val result = DrawableActivity(elem, compat)
-      copyProcessNodeAttrs(elem, result)
-      result.name = elem.name
-      result.setLabel(elem.label)
-      result.condition = elem.condition
-      result.setDefines(elem.defines)
-      result.setResults(elem.results)
-      result.message = elem.message
-      return result
+      return Builder(elem).apply { isCompat = compat }.build(null)
     }
   }
 

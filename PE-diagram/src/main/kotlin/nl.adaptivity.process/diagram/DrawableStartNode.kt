@@ -34,8 +34,7 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
 
   class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
-    override var state: DrawableState
-    override var isCompat = false
+    override val _delegate: DrawableProcessNode.Builder.Delegate
 
     constructor(id: String? = null,
                 successor: Identified? = null,
@@ -44,51 +43,22 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
                 results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
-                state: DrawableState = Drawable.STATE_DEFAULT) : super(id, successor, label, defines, results, x, y) {
-      this.state = state
+                state: DrawableState = Drawable.STATE_DEFAULT,
+                isCompat: Boolean = false) : super(id, successor, label, defines, results, x, y) {
+      _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
     }
 
     constructor(node: StartNode<*, *>) : super(node) {
-      state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
     override fun build(newOwner: DrawableProcessModel?) = DrawableStartNode(this, newOwner)
   }
 
-  private var mState = Drawable.STATE_DEFAULT
-
-  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : super(ownerModel) {
-    isCompat = compat
-  }
-
-  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean = false) : super(ownerModel, id=id) {
-    isCompat = compat
-  }
-
-  @Deprecated("Use the constructor that takes a builder")
-  constructor(orig: DrawableStartNode, newOwner: DrawableProcessModel? = null) : this(orig.builder(), newOwner)
-
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
-    val dsnBuilder = builder as? Builder
-    isCompat = dsnBuilder?.isCompat ?: false
-    mState = dsnBuilder?.state ?: Drawable.STATE_DEFAULT
-  }
-
-  override fun builder(): Builder {
-    return Builder(this)
-  }
-
-  override fun clone(): DrawableStartNode {
-    if (javaClass == DrawableStartNode::class.java) {
-      return DrawableStartNode(this)
-    }
-    throw RuntimeException(CloneNotSupportedException())
-  }
+  override val _delegate: DrawableProcessNode.Delegate
 
   override val idBase: String
     get() = IDBASE
-
-  override val isCompat: Boolean
 
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
@@ -98,26 +68,39 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
   override val topExtent get() = REFERENCE_OFFSET_Y
   override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
 
+  @Deprecated("Use builders")
+  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : this(Builder(isCompat=compat), ownerModel)
+
+  @Deprecated("Use builders")
+  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean = false) : this(Builder(id=id, isCompat = compat), ownerModel)
+
+  @Deprecated("Use the constructor that takes a builder")
+  constructor(orig: DrawableStartNode, newOwner: DrawableProcessModel? = null) : this(orig.builder(), newOwner)
+
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+    _delegate = DrawableProcessNode.Delegate(builder)
+  }
+
+  override fun builder(): Builder {
+    return Builder(this)
+  }
+
+  override fun clone(): DrawableStartNode {
+    return builder().build(null)
+  }
+
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val realradius = STARTNODERADIUS + STROKEWIDTH / 2
     return Math.abs(x - x) <= realradius && Math.abs(y - y) <= realradius
-  }
-
-  override fun getState(): Int {
-    return mState
-  }
-
-  override fun setState(state: Int) {
-    mState = state
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>,
                                                                                                               clipBounds: Rectangle) {
     if (hasPos()) {
       val realradius = STARTNODERADIUS + STROKEWIDTH / 2
-      val fillPen = canvas.theme.getPen(ProcessThemeItems.LINEBG, mState and Drawable.STATE_TOUCHED.inv())
+      val fillPen = canvas.theme.getPen(ProcessThemeItems.LINEBG, state and Drawable.STATE_TOUCHED.inv())
 
-      if (mState and Drawable.STATE_TOUCHED != 0) {
+      if (state and Drawable.STATE_TOUCHED != 0) {
         val touchedPen = canvas.theme.getPen(ProcessThemeItems.LINE, Drawable.STATE_TOUCHED)
         canvas.drawCircle(realradius, realradius, STARTNODERADIUS, touchedPen)
       }
@@ -134,14 +117,23 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
     defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
 
+  @Deprecated("Use builders")
   override fun setId(id: String) = super.setId(id!!)
+  @Deprecated("Use builders")
   override fun setLabel(label: String?) = super.setLabel(label)
+  @Deprecated("Use builders")
   override fun setOwnerModel(newOwnerModel: DrawableProcessModel??) = super.setOwnerModel(newOwnerModel)
+  @Deprecated("Use builders")
   override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+  @Deprecated("Use builders")
   override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+  @Deprecated("Use builders")
   override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+  @Deprecated("Use builders")
   override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+  @Deprecated("Use builders")
   override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+  @Deprecated("Use builders")
   override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
@@ -151,14 +143,16 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
     val IDBASE = "start"
 
     @Throws(XmlException::class)
-    fun deserialize(`in`: XmlReader): Builder {
-      return Builder().deserializeHelper(`in`)
+    @JvmStatic
+    fun deserialize(reader: XmlReader): Builder {
+      return DrawableStartNode.Builder().deserializeHelper(reader)
     }
 
     @Deprecated("")
     @Throws(XmlException::class)
-    fun deserialize(ownerModel: DrawableProcessModel, `in`: XmlReader): DrawableStartNode {
-      return DrawableStartNode.Builder().deserializeHelper(`in`).build(ownerModel)
+    @JvmStatic
+    fun deserialize(ownerModel: DrawableProcessModel, reader: XmlReader): DrawableStartNode {
+      return DrawableStartNode.Builder().deserializeHelper(reader).build(ownerModel)
     }
 
     @JvmStatic

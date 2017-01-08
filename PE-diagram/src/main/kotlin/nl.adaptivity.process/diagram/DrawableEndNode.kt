@@ -36,6 +36,14 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
 
   class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
+    override val _delegate: DrawableProcessNode.Builder.Delegate
+
+    override var isCompat: kotlin.Boolean
+      get() = false
+      set(compat) {
+        if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
+      }
+
     constructor(id: String? = null,
                 predecessor: Identified? = null,
                 label: String? = null,
@@ -44,25 +52,17 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 state: Int = Drawable.STATE_DEFAULT) : super(id, predecessor, label, defines, results, x, y) {
-      this.state = state
+      _delegate = DrawableProcessNode.Builder.Delegate(state, false)
     }
 
-    override var state: Int
-
-    override var isCompat: kotlin.Boolean
-        get() = false
-        set(compat) {
-            if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
-        }
-
     constructor(node: EndNode<*, *>) : super(node) {
-      this.state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
     override fun build(newOwner: DrawableProcessModel?) = DrawableEndNode(this, newOwner)
   }
 
-  private var state = Drawable.STATE_DEFAULT
+  override val _delegate: DrawableProcessNode.Delegate
 
   override val idBase: String get() = IDBASE
   override val isCompat: Boolean
@@ -78,9 +78,7 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
   constructor(orig: EndNode<*, *>) : this(Builder(orig), null)
 
   constructor(builder: EndNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel!!) {
-    if (builder is Builder) {
-      state = builder.state
-    }
+    _delegate = DrawableProcessNode.Delegate(builder)
   }
 
   override fun builder(): Builder {
@@ -98,14 +96,6 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
     val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
 
     return Math.abs(x - x) <= realradius && Math.abs(y - y) <= realradius
-  }
-
-  override fun getState(): Int {
-    return state
-  }
-
-  override fun setState(state: Int) {
-    this.state = state
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
@@ -145,14 +135,23 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
     defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
 
+  @Deprecated("Use the builder")
   override fun setId(id: String) = super.setId(id)
+  @Deprecated("Use the builder")
   override fun setLabel(label: String?) = super.setLabel(label)
+  @Deprecated("Use the builder")
   override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
+  @Deprecated("Use the builder")
   override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+  @Deprecated("Use the builder")
   override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+  @Deprecated("Use the builder")
   override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+  @Deprecated("Use the builder")
   override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+  @Deprecated("Use the builder")
   override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+  @Deprecated("Use the builder")
   override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
@@ -174,6 +173,7 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
       return DrawableEndNode.Builder(state = Drawable.STATE_DEFAULT).deserializeHelper(reader)
     }
 
+    @Deprecated("Use the builder")
     fun from(elem: EndNode<*, *>): DrawableEndNode {
       val result = DrawableEndNode(elem)
       return result

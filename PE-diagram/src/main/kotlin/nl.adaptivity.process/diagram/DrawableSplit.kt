@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.clientProcessModel.ClientSplitNode
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.ARROWCONTROLRATIO
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_X
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
@@ -27,17 +26,19 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWI
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Split
+import nl.adaptivity.process.processModel.SplitBase
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableSplit : ClientSplitNode, Split<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
+class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Split<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
 
-  class Builder : ClientSplitNode.Builder, DrawableJoinSplit.Builder {
+  class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
 
-    override var state: DrawableState
+    override val _delegate: DrawableProcessNode.Builder.Delegate
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -51,40 +52,34 @@ class DrawableSplit : ClientSplitNode, Split<DrawableProcessNode, DrawableProces
                 max: Int = -1,
                 state: DrawableState = Drawable.STATE_DEFAULT) : super(id, predecessor, successors, label, defines,
                                                                                                      results, x, y, min, max) {
-      this.state = state
+      _delegate = DrawableProcessNode.Builder.Delegate(state, false)
     }
 
     constructor(node: Split<*, *>) : super(node) {
-      state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
     override fun build(newOwner: DrawableProcessModel?) = DrawableSplit(this, newOwner)
 
   }
 
-  override val _delegate : DrawableJoinSplitDelegate
+  override val _delegate : DrawableJoinSplit.Delegate
 
+  @Deprecated("Use builders")
   constructor(ownerModel: DrawableProcessModel?) : this(Builder(), ownerModel)
 
+  @Deprecated("Use builders")
   constructor(orig: Split<*, *>) : this(orig.builder(), null)
 
   constructor(builder: Split.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
-    _delegate = DrawableJoinSplitDelegate(builder)
+    _delegate = DrawableJoinSplit.Delegate(builder)
   }
 
   override fun builder(): Builder {
     return Builder(this)
   }
 
-  override fun clone(): DrawableSplit {
-    if (javaClass == DrawableSplit::class.java) {
-      return DrawableSplit(this)
-    }
-    throw CloneNotSupportedException()
-  }
-
-  override val maxSuccessorCount: Int
-    get() = Integer.MAX_VALUE
+  override fun clone(): DrawableSplit { return builder().build(null) }
 
   override val idBase: String
     get() = IDBASE
@@ -121,6 +116,25 @@ class DrawableSplit : ClientSplitNode, Split<DrawableProcessNode, DrawableProces
       canvas.drawPath(path, linePen, null)
     }
   }
+
+  @Deprecated("Use builders")
+  override fun setId(id: String) = super.setId(id)
+  @Deprecated("Use builders")
+  override fun setLabel(label: String?) = super.setLabel(label)
+  @Deprecated("Use builders")
+  override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
+  @Deprecated("Use builders")
+  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+  @Deprecated("Use builders")
+  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+  @Deprecated("Use builders")
+  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+  @Deprecated("Use builders")
+  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+  @Deprecated("Use builders")
+  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+  @Deprecated("Use builders")
+  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
 
