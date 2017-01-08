@@ -24,12 +24,16 @@ import nl.adaptivity.process.processModel.RootProcessModel
 /**
  * Created by pdvrieze on 05/01/17.
  */
-interface DrawableProcessModel : ClientProcessModel<DrawableProcessNode, DrawableProcessModel?>, Diagram {
-  interface Builder : ClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?> {
+interface DrawableProcessModel : ClientProcessModel, Diagram {
+  interface Builder : ClientProcessModel.Builder {
     override fun childModelBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
       TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
   }
+
+  override val x: Double get() = 0.0
+
+  override val y: Double get() = 0.0
 
   fun notifyNodeChanged(node: DrawableProcessNode) = Unit
 }

@@ -68,10 +68,10 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
 
   public static final int ANIMATION_DURATION = 200;
   private FragmentUserTaskEditorBinding mBinding;
-  private UserTaskEditAdapter mAdapter;
-  private ParcelableActivity<?, ?> mActivity;
+  private UserTaskEditAdapter           mAdapter;
+  private ParcelableActivity            mActivity;
   /** The list of possible variables to use in here. */
-  private List<ResultReference> mVariables;
+  private List<ResultReference>         mVariables;
 
   // Object Initialization
   public UserTaskEditorFragment() {

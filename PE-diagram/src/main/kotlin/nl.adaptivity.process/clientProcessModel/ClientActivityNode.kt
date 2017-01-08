@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import nl.adaptivity.process.diagram.DrawableProcessModel
+import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -24,9 +26,9 @@ import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.*
 
 
-open class ClientActivityNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : ActivityBase<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
+abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode {
 
-    open class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : ActivityBase.Builder<T, M>, ClientProcessNode.Builder<T, M> {
+    abstract class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode.Builder {
 
         constructor() {}
 
@@ -39,15 +41,11 @@ open class ClientActivityNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT :
         }
 
         constructor(node: Activity<*, *>) : super(node) {
-            if (node is ClientProcessNode<*, *>) {
+            if (node is ClientProcessNode) {
                 isCompat = node.isCompat
             } else {
                 isCompat = false
             }
-        }
-
-        override fun build(newOwner: M): ClientActivityNode<T, M> {
-            return ClientActivityNode(this, newOwner)
         }
 
         override var isCompat = false
@@ -71,14 +69,12 @@ open class ClientActivityNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT :
     }
 
     constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
-        if (builder is Builder<*, *>) {
+        if (builder is Builder) {
             isCompat = builder.isCompat
         } else {
             isCompat = false
         }
     }
-
-    override fun builder() = Builder<NodeT, ModelT>(this)
 
     override fun setId(id: String) = super.setId(id)
 

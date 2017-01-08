@@ -30,7 +30,6 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
@@ -43,7 +42,6 @@ import nl.adaptivity.diagram.svg.SVGStrategy;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
-import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.BuildConfig;
@@ -85,7 +83,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
 
   }
 
-  public class FileStoreTask extends AsyncTask<ClientProcessModel<?, ?>, Object, File> {
+  public class FileStoreTask extends AsyncTask<ClientProcessModel, Object, File> {
     private       File              mFile;
     private final FileStoreListener mPostSave;
     private final int               mType;
@@ -101,7 +99,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     }
 
     @Override
-    protected File doInBackground(final ClientProcessModel<?, ?>... params) {
+    protected File doInBackground(final ClientProcessModel... params) {
       if (mFile == null) {
         try {
           final String ext = mType==TYPE_SVG ? ".svg" :".pm";
@@ -146,10 +144,10 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   private static final int TYPE_FILE = 0;
   private static final int TYPE_SVG = 1;
   /** Process model that needs to be saved/exported. */
-  protected ClientProcessModel<?, ?> mProcessModel;
+  protected ClientProcessModel mProcessModel;
   /** Temporary file for sharing. */
-  protected File mTmpFile;
-  private ProcessSyncManager mSyncManager;
+  protected File               mTmpFile;
+  private ProcessSyncManager   mSyncManager;
 
   @Override
   protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -179,7 +177,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
         break;
       case UIConstants.REQUEST_SAVE_PROCESSMODEL:
         if (resultCode == Activity.RESULT_OK) {
-          doSaveFile(data, (RootClientProcessModel<?,?>)mProcessModel);
+          doSaveFile(data, (RootClientProcessModel)mProcessModel);
         }
         break;
       case UIConstants.REQUEST_EXPORT_PROCESSMODEL_SVG:
@@ -195,7 +193,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     return getContentResolver().openOutputStream(data.getData());
   }
 
-  protected void doSaveFile(final Intent data, final RootClientProcessModel<?, ?> processModel) {
+  protected void doSaveFile(final Intent data, final RootClientProcessModel processModel) {
     try {
       final OutputStream out = getOutputStreamFromSave(data);
       try {
@@ -208,7 +206,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     }
   }
 
-  private void doSaveFile(final Writer out, final RootClientProcessModel<?, ?> processModel) throws IOException {
+  private void doSaveFile(final Writer out, final RootClientProcessModel processModel) throws IOException {
     try {
       PMParser.exportProcessModel(out , processModel);
     } catch (XmlPullParserException | XmlException e) {
@@ -216,7 +214,7 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
     }
   }
 
-  private void doSaveFile(final OutputStream out, final RootClientProcessModel<?, ?> processModel) throws IOException {
+  private void doSaveFile(final OutputStream out, final RootClientProcessModel processModel) throws IOException {
     try {
       PMParser.exportProcessModel(out , processModel);
     } catch (XmlException | XmlPullParserException e) {
@@ -225,28 +223,28 @@ public abstract class ProcessBaseActivity extends AuthenticatedActivity implemen
   }
 
   @Override
-  public void requestShareFile(final RootClientProcessModel<?, ?> processModel) {
+  public void requestShareFile(final RootClientProcessModel processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
     final FileStoreTask task = new FileStoreTask(TYPE_FILE, new FileStoreListener("*/*", UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE));
-    task.execute((ClientProcessModel<?,?>) processModel);
+    task.execute((ClientProcessModel) processModel);
   }
 
   @Override
-  public void requestSaveFile(final RootClientProcessModel<?, ?> processModel) {
+  public void requestSaveFile(final RootClientProcessModel processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
-    mProcessModel = (ClientProcessModel<?, ?>) processModel;
+    mProcessModel = (ClientProcessModel) processModel;
     requestSaveFile("*/*", UIConstants.REQUEST_SAVE_PROCESSMODEL);
   }
 
   @Override
-  public void requestShareSVG(final ClientProcessModel<?, ?> processModel) {
+  public void requestShareSVG(final ClientProcessModel processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
     final FileStoreTask task = new FileStoreTask(TYPE_SVG, new FileStoreListener("image/svg", UIConstants.REQUEST_SHARE_PROCESSMODEL_SVG));
     task.execute(processModel);
   }
 
   @Override
-  public void requestExportSVG(final ClientProcessModel<?, ?> processModel) {
+  public void requestExportSVG(final ClientProcessModel processModel) {
     if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
     mProcessModel = processModel;
     requestSaveFile("image/svg", UIConstants.REQUEST_EXPORT_PROCESSMODEL_SVG);

@@ -37,9 +37,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableActivity : ClientActivityNode<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+open class DrawableActivity : ClientActivityNode, DrawableProcessNode {
 
-  class Builder : ClientActivityNode.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
+  class Builder : ClientActivityNode.Builder, DrawableProcessNode.Builder {
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -84,9 +84,9 @@ class DrawableActivity : ClientActivityNode<DrawableProcessNode, DrawableProcess
     ownerModel?.notifyNodeChanged(this)
   }
 
-  @JvmOverloads constructor(owner: DrawableProcessModel, compat: Boolean = false) : super(owner, compat) {}
+  @JvmOverloads constructor(owner: DrawableProcessModel?, compat: Boolean = false) : super(owner, compat) {}
 
-  constructor(owner: DrawableProcessModel, id: String, compat: Boolean) : super(owner, id, compat) {}
+  constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : super(owner, id, compat) {}
 
   constructor(orig: Activity<*, *>, compat: Boolean) : super(orig, null, compat) {
     if (orig is DrawableActivity) {
@@ -107,30 +107,10 @@ class DrawableActivity : ClientActivityNode<DrawableProcessNode, DrawableProcess
     throw RuntimeException(CloneNotSupportedException())
   }
 
-  override fun getBounds(): Rectangle {
-
-    return Rectangle(x - REFERENCE_OFFSET_X, y - REFERENCE_OFFSET_Y, ACTIVITYWIDTH + STROKEWIDTH,
-                     ACTIVITYHEIGHT + STROKEWIDTH)
-  }
-
-  override fun translate(dX: Double, dY: Double) {
-    x = x + dX
-    y = y + dY
-  }
-
-  override fun setPos(left: Double, top: Double) {
-    x = left + REFERENCE_OFFSET_X
-    y = left + REFERENCE_OFFSET_Y
-  }
-
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val hwidth = (ACTIVITYWIDTH + STROKEWIDTH) / 2
     val hheight = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
-    return Math.abs(x - getX()) <= hwidth && Math.abs(y - getY()) <= hheight
-  }
-
-  override fun getItemAt(x: Double, y: Double): Drawable? {
-    return if (isWithinBounds(x, y)) this else null
+    return Math.abs(x - x) <= hwidth && Math.abs(y - y) <= hheight
   }
 
   override val idBase: String

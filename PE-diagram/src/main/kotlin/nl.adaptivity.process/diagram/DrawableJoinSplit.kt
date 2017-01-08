@@ -27,9 +27,9 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWI
 import nl.adaptivity.process.processModel.Split
 
 
-interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+interface DrawableJoinSplit : ClientJoinSplit, DrawableProcessNode {
 
-  interface Builder : DrawableProcessNode.Builder, ClientJoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?> {
+  interface Builder : DrawableProcessNode.Builder, ClientJoinSplit.Builder {
 
     override fun build(newOwner: DrawableProcessModel?): DrawableJoinSplit
   }
@@ -48,8 +48,6 @@ interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProce
 
   /** Determine whether the node represents an and split.  */
   fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
-
-  override fun getBounds() = Rectangle(this.getX() - REFERENCE_OFFSET_X, this.getY() - REFERENCE_OFFSET_Y, JOINHEIGHT + STROKEEXTEND, JOINWIDTH + STROKEEXTEND)
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double) {
     defaultDrawLabel(this, canvas, clipBounds, left, top)
@@ -109,11 +107,6 @@ interface DrawableJoinSplit : ClientJoinSplit<DrawableProcessNode, DrawableProce
     val realradiusX = (JOINWIDTH + STROKEEXTEND) / 2
     val realradiusY = (JOINHEIGHT + STROKEEXTEND) / 2
     return Math.abs(x - this.x) <= realradiusX && Math.abs(y - this.y) <= realradiusY
-  }
-
-  override fun setPos(left: Double, top: Double) {
-    x = left
-    y = top
   }
 
   fun setLogicalPos(left: Double, top: Double) {

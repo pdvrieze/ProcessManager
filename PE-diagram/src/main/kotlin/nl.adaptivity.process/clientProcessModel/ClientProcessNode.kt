@@ -16,19 +16,20 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import nl.adaptivity.process.diagram.DrawableProcessModel
+import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.processModel.MutableProcessNode
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 
 
-interface ClientProcessNode<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : MutableProcessNode<T, M> {
+interface ClientProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?> {
 
-    interface Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : ProcessNode.Builder<T, M> {
+    interface Builder : ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
 
         var isCompat: Boolean
 
-        override fun build(newOwner: M): ClientProcessNode<T, M>
     }
 
     val isCompat: Boolean
@@ -39,6 +40,7 @@ interface ClientProcessNode<T : ClientProcessNode<T, M>, M : ClientProcessModel<
 
      * @param x The x coordinate
      */
+    @Deprecated("Use builders")
     fun setX(x: Double)
 
     /**
@@ -47,6 +49,7 @@ interface ClientProcessNode<T : ClientProcessNode<T, M>, M : ClientProcessModel<
 
      * @param y
      */
+    @Deprecated("Use builders")
     fun setY(y: Double)
 
     fun setLabel(label: String?)

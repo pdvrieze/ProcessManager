@@ -29,9 +29,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableStartNode : ClientStartNode<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+class DrawableStartNode : ClientStartNode, DrawableProcessNode {
 
-  class Builder : ClientStartNode.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
+  class Builder : ClientStartNode.Builder, DrawableProcessNode.Builder {
 
     override var state: DrawableState
 
@@ -77,29 +77,14 @@ class DrawableStartNode : ClientStartNode<DrawableProcessNode, DrawableProcessMo
     throw RuntimeException(CloneNotSupportedException())
   }
 
-  override fun getBounds(): Rectangle {
-    return Rectangle(x - REFERENCE_OFFSET_X, y - REFERENCE_OFFSET_Y,
-                     STARTNODERADIUS * 2 + STROKEWIDTH,
-                     STARTNODERADIUS * 2 + STROKEWIDTH)
-  }
-
-  override fun translate(dX: Double, dY: Double) {
-    x += dX
-    y += dY
-  }
-
-  override fun setPos(left: Double, top: Double) {
-    x = left + REFERENCE_OFFSET_X
-    y = left + REFERENCE_OFFSET_Y
-  }
+  override val leftExtent get() = REFERENCE_OFFSET_X
+  override val rightExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_X
+  override val topExtent get() = REFERENCE_OFFSET_Y
+  override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val realradius = STARTNODERADIUS + STROKEWIDTH / 2
-    return Math.abs(x - getX()) <= realradius && Math.abs(y - getY()) <= realradius
-  }
-
-  override fun getItemAt(x: Double, y: Double): Drawable? {
-    return if (isWithinBounds(x, y)) this else null
+    return Math.abs(x - x) <= realradius && Math.abs(y - y) <= realradius
   }
 
   override fun getState(): Int {

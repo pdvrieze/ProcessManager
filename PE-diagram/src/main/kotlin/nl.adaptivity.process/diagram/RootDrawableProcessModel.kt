@@ -35,9 +35,9 @@ import java.security.Principal
 import java.util.*
 
 
-class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel {
+class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
 
-  class Builder : RootClientProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel.Builder {
+  class Builder : RootClientProcessModel.Builder, DrawableProcessModel.Builder {
 
     constructor(nodes: MutableSet<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
                 childModels: MutableSet<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
@@ -150,7 +150,7 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     return RootDrawableProcessModel(this)
   }
 
-  override fun getBounds(): Rectangle {
+  override val bounds: Rectangle get() {
     if (java.lang.Double.isNaN(mBounds.left) && getModelNodes().isNotEmpty()) {
       updateBounds()
     }
@@ -173,7 +173,7 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     }
   }
 
-  private fun <T : ClientProcessNode<*, *>> ensureId(node: T): T {
+  private fun <T : ClientProcessNode> ensureId(node: T): T {
     if (node.id == null) {
       val idBase = node.idBase
       var newId = idBase + mIdSeq++
@@ -189,13 +189,8 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     if (getModelNodes().size == 0) {
       return if (bounds.contains(x, y)) this else null
     }
-    for (candidate in childElements) {
-      val result = candidate.getItemAt(x, y)
-      if (result != null) {
-        return result
-      }
-    }
-    return null
+    // TODO this can break as children are not guaranteed to be drawable.
+    return childElements.asSequence().mapNotNull { it.getItemAt(x,y) }.firstOrNull()
   }
 
   override fun getState(): Int {
@@ -394,8 +389,8 @@ class RootDrawableProcessModel : RootClientProcessModel<DrawableProcessNode, Dra
     @Deprecated("Use builders for this instead")
     internal fun copyProcessNodeAttrs(from: ProcessNode<*, *>, to: DrawableProcessNode) {
       from.id?.let { to.setId(it) }
-      to.x = from.getX()
-      to.y = from.getY()
+      to.setX(from.x)
+      to.setY(from.y)
 
       val predecessors = from.predecessors
       val successors = from.successors

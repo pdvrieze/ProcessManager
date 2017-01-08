@@ -34,12 +34,15 @@ import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
 
-interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel<NodeT, ModelT> {
-  interface Builder<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>, ModelT: @JvmWildcard ClientProcessModel<NodeT,ModelT>?> : ProcessModel.Builder<NodeT, ModelT> {
+typealias NodeT = DrawableProcessNode
+typealias ModelT = DrawableProcessModel?
+
+interface ClientProcessModel : ProcessModel<NodeT, ModelT> {
+  interface Builder : ProcessModel.Builder<NodeT, ModelT> {
 
   }
 
-  override val rootModel: RootClientProcessModel<NodeT, ModelT>?
+  override val rootModel: RootClientProcessModel?
 
   var layoutAlgorithm: LayoutAlgorithm<NodeT>
 
@@ -47,10 +50,35 @@ interface ClientProcessModel<NodeT: @JvmWildcard ClientProcessNode<NodeT,ModelT>
 
 }
 
-abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> :
-    RootProcessModelBase<NodeT, ModelT>, MutableRootProcessModel<NodeT, ModelT> {
+abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, MutableRootProcessModel<NodeT, ModelT> {
 
-  override val rootModel: RootClientProcessModel<NodeT, ModelT> get() = this
+  abstract class Builder : RootProcessModelBase.Builder<NodeT,ModelT>, ClientProcessModel.Builder {
+    var  layoutAlgorithm: LayoutAlgorithm<NodeT>
+
+    constructor(): this(nodes= mutableSetOf())
+
+    constructor(
+      nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>> = mutableSetOf(),
+      childModels: MutableSet<ChildProcessModel.Builder<NodeT,ModelT>> = mutableSetOf(),
+      name: String? = null,
+      handle: Long = -1L,
+      owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+      roles: MutableList<String> = mutableListOf<String>(),
+      uuid: UUID? = null,
+      imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
+      exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
+      layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
+      this.layoutAlgorithm = layoutAlgorithm
+    }
+
+    constructor(base: RootProcessModel<*,*>) : super(base) {
+      this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm<NodeT>()
+    }
+
+    abstract override fun build(pedantic: Boolean): RootProcessModelBase<NodeT, ModelT>
+  }
+
+  override val rootModel: RootClientProcessModel get() = this
 
   var layoutAlgorithm: LayoutAlgorithm<NodeT>
 
@@ -64,37 +92,11 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 
-  abstract class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : RootProcessModelBase.Builder<T,M>, ClientProcessModel.Builder<T,M> {
-    var  layoutAlgorithm: LayoutAlgorithm<T>
-
-    constructor(): this(nodes= mutableSetOf())
-
-    constructor(
-        nodes: MutableSet<ProcessNode.Builder<T, M>> = mutableSetOf(),
-        childModels: MutableSet<ChildProcessModel.Builder<T,M>> = mutableSetOf(),
-        name: String? = null,
-        handle: Long = -1L,
-        owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
-        roles: MutableList<String> = mutableListOf<String>(),
-        uuid: UUID? = null,
-        imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
-        exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
-        layoutAlgorithm: LayoutAlgorithm<T> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
-      this.layoutAlgorithm = layoutAlgorithm
-    }
-
-    constructor(base: RootProcessModel<*,*>) : super(base) {
-      this.layoutAlgorithm = (base as? ClientProcessModel<T,M>)?.layoutAlgorithm ?: LayoutAlgorithm<T>()
-    }
-
-    abstract override fun build(pedantic: Boolean): RootProcessModelBase<T, M>
-  }
-
   var topPadding = 5.0
     set(topPadding) {
       val offset = topPadding - this.topPadding
       for (n in modelNodes) {
-        n.y = n.y + offset
+        n.setY(n.y + offset)
       }
       field = topPadding
     }
@@ -103,7 +105,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
     set(leftPadding) {
       val offset = leftPadding - this.leftPadding
       for (n in modelNodes) {
-        n.x = n.x + offset
+        n.setX(n.x + offset)
       }
       field = leftPadding
     }
@@ -117,7 +119,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
 
   abstract fun asNode(id: Identifiable): NodeT?
 
-  override abstract fun builder(): Builder<NodeT, ModelT>
+  override abstract fun builder(): Builder
 
   /**
    * Normalize the process model. By default this may do nothing.
@@ -177,8 +179,8 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
 
   fun resetLayout() {
     for (n in modelNodes) {
-      n.x = java.lang.Double.NaN
-      n.y = java.lang.Double.NaN
+      n.setX(Double.NaN)
+      n.setY(Double.NaN)
     }
     invalidate()
   }
@@ -194,11 +196,11 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
       return i
     }
 
-  override fun getRef(): IProcessModelRef<NodeT, ModelT, out @JvmWildcard RootClientProcessModel<NodeT,ModelT>> {
+  override fun getRef(): IProcessModelRef<NodeT, ModelT, out @JvmWildcard RootClientProcessModel> {
     throw UnsupportedOperationException("Not implemented")
   }
 
-  override fun getHandle(): Handle<out @JvmWildcard RootClientProcessModel<NodeT, ModelT>> {
+  override fun getHandle(): Handle<out @JvmWildcard RootClientProcessModel> {
     return Handles.handle(handleValue)
   }
 
@@ -215,12 +217,12 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
     this.owner = SimplePrincipal(owner)
   }
 
-  val startNodes: Collection<ClientStartNode<out NodeT, ModelT>>
+  val startNodes: Collection<ClientStartNode>
     get() {
-      val result = ArrayList<ClientStartNode<out NodeT, ModelT>>()
+      val result = ArrayList<ClientStartNode>()
       for (n in modelNodes) {
-        if (n is ClientStartNode<*, *>) {
-          result.add(n as ClientStartNode<out NodeT, ModelT>)
+        if (n is ClientStartNode) {
+          result.add(n as ClientStartNode)
         }
       }
       return result
@@ -244,7 +246,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
     oldValue.setSuccessors(emptySet<Identified>())
     oldValue.setPredecessors(emptySet<Identified>())
     // TODO this is fundamentally unsafe, but we should get rid of [ClientProcessModel] anyway
-    (oldValue as ClientProcessNode<DrawableProcessNode, DrawableProcessModel?>).setOwnerModel(null)
+    (oldValue as ClientProcessNode).setOwnerModel(null)
 
     for (pred in newValue.predecessors) {
       getNode(pred)!!.addSuccessor(newValue.identifier!!)
@@ -285,8 +287,8 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
       var maxX = java.lang.Double.MIN_VALUE
       var maxY = java.lang.Double.MIN_VALUE
       for (n in diagramNodes) {
-        n.target.x = n.x + leftPadding
-        n.target.y = n.y + topPadding
+        n.target.setX(n.x + leftPadding)
+        n.target.setY(n.y + topPadding)
         maxX = Math.max(n.right, maxX)
         maxY = Math.max(n.bottom, maxY)
       }
@@ -296,37 +298,7 @@ abstract class RootClientProcessModel<NodeT : ClientProcessNode<NodeT, ModelT>, 
   private fun toDiagramNodes(modelNodes: Collection<NodeT>): List<DiagramNode<NodeT>> {
     val nodeMap = HashMap<Identified, DiagramNode<NodeT>>()
     val result = modelNodes.map { node  ->
-      if (node is Bounded) {
-        val tempCoords = java.lang.Double.isNaN(node.x) || java.lang.Double.isNaN(node.y)
-        var tmpX = 0.0
-        var tmpY = 0.0
-        if (tempCoords) {
-          tmpX = node.x
-          node.x = 0.0
-          tmpY = node.y
-          node.y = 0.0
-          isInvalid = true // we need layout as we have undefined coordinates.
-        }
-        val bounds = node.bounds
-        val leftExtend = node.x - bounds.left
-        val rightExtend = bounds.right() - node.x
-        val topExtend = node.y - bounds.top
-        val bottomExtend = bounds.bottom() - node.y
-        if (tempCoords) {
-          node.x = tmpX
-          node.y = tmpY
-        }
-
-        DiagramNode<NodeT>(node, leftExtend, rightExtend, topExtend, bottomExtend).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
-      } else {
-        val rightExtend = layoutAlgorithm.defaultNodeWidth / 2
-        val leftExtend = rightExtend
-        val bottomExtend = layoutAlgorithm.defaultNodeHeight / 2
-        val topExtend = bottomExtend
-
-        DiagramNode(node, leftExtend, rightExtend, topExtend, bottomExtend).apply { node.identifier?.let { nodeMap[it] = this } }
-      }
-
+      DiagramNode(node).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
     }
 
     for (diagramNode in result) {

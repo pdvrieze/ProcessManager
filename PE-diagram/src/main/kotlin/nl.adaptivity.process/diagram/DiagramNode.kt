@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.diagram
 
+import nl.adaptivity.diagram.HasExtent
 import nl.adaptivity.diagram.Positioned
 
 import java.util.ArrayList
@@ -32,13 +33,19 @@ inline fun <T : Positioned> DiagramNode(orig: DiagramNode<T>,
   DiagramNode(target, x, y, leftExtent, rightExtent, topExtent, bottomExtent)
 
 
+fun <T> DiagramNode(target: T) : DiagramNode<T> where T: HasExtent, T: Positioned {
+  return DiagramNode<T>(target, target.x, target.y, target.leftExtent, target.rightExtent, target.topExtent, target.bottomExtent)
+}
+
+
 /**
  * @property leftExtent   Get the size to the left of the gravity point.
  * @property rightExtent  Get the size to the right of the gravity point.
  * @property topExtent    Get the size to the top of the gravity point.
  * @property bottomExtent Get the size to the bottom of the gravity point.
  */
-class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0, private var y: Double = 0.0, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
+class DiagramNode<out T : Positioned>(val target: T, override var x:Double = 0.0, override var y: Double = 0.0, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
+
 
   val leftNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 
@@ -58,18 +65,6 @@ class DiagramNode<out T : Positioned>(val target: T, private var x:Double = 0.0,
   fun withX(x: Double) = DiagramNode(this, x, y)
 
   fun withY(y: Double) = DiagramNode(this, x, y)
-
-  fun setX(x: Double) {
-    this.x = x
-  }
-
-  override fun getX() = x
-
-  fun setY(y: Double) {
-    this.y = y
-  }
-
-  override fun getY() = y
 
   /** Determine whether the region overlaps this node and is not positioned to its right.  */
   fun leftOverlaps(region: DiagramNode<*>, xSep: Double, ySep: Double): Boolean {

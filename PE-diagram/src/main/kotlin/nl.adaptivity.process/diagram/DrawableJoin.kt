@@ -34,9 +34,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableJoin : ClientJoinNode<DrawableProcessNode, DrawableProcessModel?>, Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
+class DrawableJoin : ClientJoinNode, Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
 
-  class Builder : ClientJoinNode.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
+  class Builder : ClientJoinNode.Builder, DrawableJoinSplit.Builder {
 
     override var state: DrawableState
 

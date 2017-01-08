@@ -101,7 +101,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     mBinding.editAcService.setOnClickListener(this);
 
     if (savedInstanceState!=null && savedInstanceState.containsKey(UIConstants.KEY_ACTIVITY)) {
-      mActivityNode = DrawableActivity.from(savedInstanceState.<ParcelableActivity<?,?>>getParcelable(UIConstants.KEY_ACTIVITY), false);
+      mActivityNode = DrawableActivity.from(savedInstanceState.<ParcelableActivity>getParcelable(UIConstants.KEY_ACTIVITY), false);
     } else if (getActivity() instanceof NodeEditListener) {
       final NodeEditListener listener = (NodeEditListener) getActivity();
       mActivityNode = (DrawableActivity) listener.getNode(mPos);

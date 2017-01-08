@@ -995,7 +995,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   }
 
   @Override
-  public ClientProcessModel<?, ?> getProcessModel() {
+  public ClientProcessModel getProcessModel() {
     return getPm();
   }
 

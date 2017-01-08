@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,31 +14,16 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.diagram;
+package nl.adaptivity.diagram
 
+/**
+ * Created by pdvrieze on 07/01/17.
+ */
+interface HasExtent {
 
-public interface Positioned {
-
-  /**
-   * Determine whether the element actually has a real position.
-   * @return <code>true</code> if it has, <code>false</code> if not.
-   */
-  boolean hasPos();
-
-  /**
-   * Get the X coordinate of the gravity point of the element. The point is
-   * generally the center, but it is element dependent.
-   *
-   * @return The X coordinate
-   */
-  double getX();
-
-  /**
-   * Get the Y coordinate of the gravity point of the element. The point is
-   * generally the center, but it is element dependent.
-   *
-   * @return The Y coordinate
-   */
-  double getY();
+  val leftExtent: Double get() = 0.0
+  val rightExtent: Double get() = 0.0
+  val topExtent: Double get() = 0.0
+  val bottomExtent: Double get() = 0.0
 
 }

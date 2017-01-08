@@ -30,9 +30,9 @@ import nl.adaptivity.process.util.Identified
 
  * @param <NodeT> The type of ProcessNode used.
 </NodeT> */
-abstract class ClientSplitNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?>(builder: Split.Builder<*, *>, newOwnerModel: ModelT) : SplitBase<NodeT, ModelT>(builder, newOwnerModel), ClientJoinSplit<NodeT, ModelT> {
+abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: ModelT) : SplitBase<NodeT, ModelT>(builder, newOwnerModel), ClientJoinSplit {
 
-  abstract class Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : SplitBase.Builder<NodeT, ModelT>, ClientJoinSplit.Builder<NodeT, ModelT> {
+  abstract class Builder : SplitBase.Builder<NodeT, ModelT>, ClientJoinSplit.Builder {
 
     constructor() {}
 
@@ -49,7 +49,7 @@ abstract class ClientSplitNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT 
 
     constructor(node: Split<*, *>) : super(node) {}
 
-    abstract override fun build(newOwner: ModelT): ClientSplitNode<NodeT, ModelT>
+    abstract override fun build(newOwner: ModelT): ClientSplitNode
 
     override var isCompat:Boolean
       get() = false
@@ -58,7 +58,7 @@ abstract class ClientSplitNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT 
       }
   }
 
-  abstract override fun builder(): Builder<NodeT, ModelT> /* {
+  abstract override fun builder(): Builder /* {
     return new Builder<>(this);
   }*/
 

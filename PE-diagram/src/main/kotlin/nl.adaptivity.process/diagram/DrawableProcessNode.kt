@@ -21,9 +21,9 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 
 typealias DrawableState = Int
 
-interface DrawableProcessNode : ClientProcessNode<DrawableProcessNode, DrawableProcessModel?>, Drawable {
+interface DrawableProcessNode : ClientProcessNode, Drawable {
 
-  interface Builder : ClientProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
+  interface Builder : ClientProcessNode.Builder {
     override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
 
     var state: DrawableState
@@ -42,7 +42,12 @@ interface DrawableProcessNode : ClientProcessNode<DrawableProcessNode, DrawableP
 
   override val ownerModel: DrawableProcessModel?
 
-  fun isWithinBounds(x: Double, y: Double): Boolean
-
   override fun builder(): Builder
+
+  override fun setPos(left: Double, top: Double)  {
+    setX(left + leftExtent)
+    setY(top + topExtent)
+  }
+
+  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 }

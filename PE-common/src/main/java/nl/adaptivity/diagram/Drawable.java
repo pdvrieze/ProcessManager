@@ -43,10 +43,6 @@ public interface Drawable extends Bounded, Cloneable {
    */
   <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds);
 
-  @Override
-  @Nullable
-  Drawable getItemAt(double x, double y);
-
   /**
    * Override the definition of {@link Object#clone()} to ensure the right
    * return type and make it public.
@@ -73,4 +69,7 @@ public interface Drawable extends Bounded, Cloneable {
 
   void setPos(double left, double top);
 
+  @Nullable
+  @Override
+  Drawable getItemAt(double x, double y);
 }

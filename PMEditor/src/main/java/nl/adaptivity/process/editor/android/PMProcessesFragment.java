@@ -40,24 +40,24 @@ public class PMProcessesFragment extends Fragment {
 
   public interface ProcessesCallback {
 
-    void requestShareFile(RootClientProcessModel<?, ?> processModel);
+    void requestShareFile(RootClientProcessModel processModel);
 
-    void requestSaveFile(RootClientProcessModel<?, ?> processModel);
+    void requestSaveFile(RootClientProcessModel processModel);
 
-    void requestShareSVG(ClientProcessModel<?, ?> processModel);
+    void requestShareSVG(ClientProcessModel processModel);
 
-    void requestExportSVG(ClientProcessModel<?, ?> processModel);
+    void requestExportSVG(ClientProcessModel processModel);
   }
 
   public interface PMProvider {
-    ClientProcessModel<?, ?> getProcessModel();
+    ClientProcessModel getProcessModel();
   }
 
-  private RootClientProcessModel<?, ?> mProcessModel;
-  protected File mTmpFile;
-  private boolean mMenu;
-  private PMProvider mProvider;
-  private ProcessesCallback mCallback;
+  private RootClientProcessModel mProcessModel;
+  protected File                 mTmpFile;
+  private boolean                mMenu;
+  private PMProvider             mProvider;
+  private ProcessesCallback      mCallback;
 
   @Override
   public void onCreate(final Bundle savedInstanceState) {
@@ -112,19 +112,19 @@ public class PMProcessesFragment extends Fragment {
 
 
 
-  public void doShareFile(final RootClientProcessModel<?, ?> processModel) {
+  public void doShareFile(final RootClientProcessModel processModel) {
     mCallback.requestShareFile(processModel);
   }
 
-  public void doSaveFile(final RootClientProcessModel<?, ?> processModel) {
+  public void doSaveFile(final RootClientProcessModel processModel) {
     mCallback.requestSaveFile(processModel);
   }
 
-  public void doShareSVG(final ClientProcessModel<?, ?> processModel) {
+  public void doShareSVG(final ClientProcessModel processModel) {
     mCallback.requestShareSVG(processModel);
   }
 
-  public void doExportSVG(final ClientProcessModel<?, ?> processModel) {
+  public void doExportSVG(final ClientProcessModel processModel) {
     mCallback.requestExportSVG(processModel);
   }
 
@@ -142,7 +142,7 @@ public class PMProcessesFragment extends Fragment {
 
   @Override
   public boolean onOptionsItemSelected(final MenuItem item) {
-    ClientProcessModel<?, ?> pm = null;
+    ClientProcessModel pm = null;
     if ((item.getItemId()==R.id.ac_export||item.getItemId()==R.id.ac_export_svg||item.getItemId()==R.id.ac_share_pm||item.getItemId()==R.id.ac_share_pm_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
       Toast.makeText(getActivity(), "No process model available", Toast.LENGTH_LONG).show();

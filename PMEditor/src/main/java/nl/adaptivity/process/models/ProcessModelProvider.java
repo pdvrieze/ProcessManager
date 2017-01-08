@@ -27,7 +27,6 @@ import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.data.ProcessModelPipeProvider;
 import nl.adaptivity.process.data.ProviderHelper;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
@@ -602,7 +601,7 @@ public class ProcessModelProvider extends ContentProvider {
     return drawableProcessModel;
   }
 
-  public static Uri newProcessModel(final Context context, final RootClientProcessModel<?, ?> processModel) throws IOException {
+  public static Uri newProcessModel(final Context context, final RootClientProcessModel processModel) throws IOException {
     final CharArrayWriter out = new CharArrayWriter();
     try {
       PMParser.serializeProcessModel(out, processModel);

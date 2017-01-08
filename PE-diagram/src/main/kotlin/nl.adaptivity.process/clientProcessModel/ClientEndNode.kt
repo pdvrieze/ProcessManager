@@ -24,9 +24,9 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-open class ClientEndNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
+open class ClientEndNode : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, ClientProcessNode {
 
-    open class Builder<T : ClientProcessNode<T, M>, M : ClientProcessModel<T, M>?> : EndNodeBase.Builder<T, M>, ClientProcessNode.Builder<T, M> {
+    open class Builder : EndNodeBase.Builder<NodeT, ModelT>, ClientProcessNode.Builder {
 
         constructor()
 
@@ -40,7 +40,7 @@ open class ClientEndNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : Clie
 
         constructor(node: EndNode<*, *>) : super(node)
 
-        override fun build(newOwner: M): ClientEndNode<T, M> {
+        override fun build(newOwner: ModelT): ClientEndNode {
             return ClientEndNode(this, newOwner)
         }
 
@@ -52,15 +52,15 @@ open class ClientEndNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : Clie
 
     }
 
-    constructor(ownerModel: ModelT) : super(Builder<NodeT, ModelT>(), ownerModel)
+    constructor(ownerModel: ModelT) : super(Builder(), ownerModel)
 
-    constructor(ownerModel: ModelT, id: String) : super(Builder<NodeT, ModelT>(id), ownerModel)
+    constructor(ownerModel: ModelT, id: String) : super(Builder(id), ownerModel)
 
     protected constructor(orig: EndNode<*, *>, newOwnerModel: ModelT) : super(orig.builder(), newOwnerModel)
 
     constructor(builder: EndNode.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
 
-    override fun builder() = Builder<NodeT, ModelT>(this)
+    override fun builder() = Builder(this)
 
     override val isCompat: Boolean
         get() = false

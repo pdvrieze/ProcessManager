@@ -14,18 +14,33 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.clientProcessModel
+package nl.adaptivity.diagram
 
 
-import nl.adaptivity.process.processModel.JoinSplit
+interface Positioned {
 
+  /**
+   * Determine whether the element actually has a real position.
+   * @return `true` if it has, `false` if not.
+   */
+  val hasPos get() = !x.isNaN() && !y.isNaN()
 
-interface ClientJoinSplit : JoinSplit<NodeT, ModelT>, ClientProcessNode {
+  fun hasPos() = x.isFinite() && y.isFinite()
 
-  interface Builder : JoinSplit.Builder<NodeT, ModelT>, ClientProcessNode.Builder {
+  /**
+   * Get the X coordinate of the gravity point of the element. The point is
+   * generally the center, but it is element dependent.
 
-    override fun build(newOwner: ModelT): ClientJoinSplit
-  }
+   * @return The X coordinate
+   */
+  val x: Double
 
-  override fun builder(): Builder
+  /**
+   * Get the Y coordinate of the gravity point of the element. The point is
+   * generally the center, but it is element dependent.
+
+   * @return The Y coordinate
+   */
+  val y: Double
+
 }

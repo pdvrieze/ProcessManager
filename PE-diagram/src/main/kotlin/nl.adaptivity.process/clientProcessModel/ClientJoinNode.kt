@@ -24,10 +24,10 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-abstract class ClientJoinNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinBase<NodeT, ModelT>, ClientJoinSplit<NodeT, ModelT> {
+abstract class ClientJoinNode : JoinBase<NodeT, ModelT>, ClientJoinSplit {
 
-  abstract class Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : JoinBase.Builder<NodeT, ModelT>,
-                                                                                                                  ClientJoinSplit.Builder<NodeT, ModelT>  {
+  abstract class Builder : JoinBase.Builder<NodeT, ModelT>,
+                           ClientJoinSplit.Builder {
 
     override var isCompat: Boolean = false
 
@@ -46,10 +46,10 @@ abstract class ClientJoinNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT :
     }
 
     constructor(node: Join<*, *>) : super(node) {
-      isCompat = (node as? ClientProcessNode<*,*>)?.isCompat ?: false
+      isCompat = (node as? ClientProcessNode)?.isCompat ?: false
     }
 
-    abstract override fun build(newOwner: ModelT): ClientJoinNode<NodeT, ModelT>
+    abstract override fun build(newOwner: ModelT): ClientJoinNode
   }
 
 
@@ -74,10 +74,10 @@ abstract class ClientJoinNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT :
   }
 
   constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
-    isCompat = builder is Builder<*, *> && builder.isCompat
+    isCompat = builder is Builder && builder.isCompat
   }
 
-  abstract override fun builder(): Builder<NodeT, ModelT>
+  abstract override fun builder(): Builder
 
   override fun setId(id: String) = super.setId(id)
 

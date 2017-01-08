@@ -20,16 +20,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
-import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
+import nl.adaptivity.process.diagram.DrawableActivity;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.process.util.IdentifyableSet;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
 import org.w3.soapEnvelope.Envelope;
@@ -38,13 +36,15 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 
 /**
  * Activity implementation that is parcelable (can be passed along to other activities.
  * Created by pdvrieze on 15/01/16.
  */
-public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientActivityNode<T,M> implements Parcelable {
+public class ParcelableActivity extends DrawableActivity
+  implements Parcelable {
 
   private static final String TAG = "ParcelableActivity";
 
@@ -61,7 +61,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   };
 
   private ParcelableActivity(final Parcel source) {
-    super((M) null, source.readByte()!=0);
+    super((DrawableProcessModel) null, source.readByte()!=0);
     setId(source.readString());
     setLabel(source.readString());
     setName(source.readString());
@@ -87,7 +87,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
   public ParcelableActivity(final Activity<?, ?> orig, final boolean compat) {
-    super(orig, null, compat);
+    super(orig, compat);
   }
 
   public EditableUserTask getUserTask() {
@@ -105,8 +105,8 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     return null;
   }
 
-  public static <T extends ClientProcessNode<T,M>, M extends ClientProcessModel<T,M>> ParcelableActivity<T,M> newInstance(final Activity<T,M> orig, final boolean compat) {
-    return new ParcelableActivity<>(orig, compat);
+  public static ParcelableActivity newInstance(final Activity<?,?> orig, final boolean compat) {
+    return new ParcelableActivity(orig, compat);
   }
 
   @Override
@@ -180,7 +180,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   }
 
 
-  private static String[] toIdStrings(final IdentifyableSet<? extends Identifiable> set) {
+  private static String[] toIdStrings(final Set<? extends Identifiable> set) {
     final String[] result = new String[set.size()];
     int i=0;
     for(final Identifiable elem:set) {

@@ -61,7 +61,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     override var results: MutableCollection<IXmlResultType> = ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.getX(), node.getY())
+    constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.x, node.y)
 
     override abstract fun build(newOwner: ModelT): ProcessNode<NodeT, ModelT>
 
@@ -106,7 +106,11 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     get() = _successors
 
   private var _x = x
+  override val x: Double get() = _x
+
   private var _y = y
+
+  override val y: Double get() = _y
 
   private var _defines: MutableList<XmlDefineType> = toExportableDefines(defines)
   override val defines: List<XmlDefineType> get() = _defines
@@ -141,15 +145,15 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
    * @param orig Original
    */
   constructor(orig: ProcessNode<*, *>, newOwnerModel: ModelT) : this(newOwnerModel,
-                                                                 toIdentifiers(orig.maxPredecessorCount,
+                                                                     toIdentifiers(orig.maxPredecessorCount,
                                                                                orig.predecessors),
-                                                                 toIdentifiers(orig.maxSuccessorCount, orig.successors),
-                                                                 orig.id,
-                                                                 orig.label,
-                                                                 orig.getX(),
-                                                                 orig.getY(),
-                                                                 orig.defines,
-                                                                 orig.results) {
+                                                                     toIdentifiers(orig.maxSuccessorCount, orig.successors),
+                                                                     orig.id,
+                                                                     orig.label,
+                                                                     orig.x,
+                                                                     orig.y,
+                                                                     orig.defines,
+                                                                     orig.results) {
   }
 
   constructor(builder: ProcessNode.IBuilder<*,*>, newOwnerModel: ModelT): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
@@ -158,8 +162,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
   override abstract fun builder(): Builder<NodeT, ModelT>
 
   fun offset(offsetX: Int, offsetY: Int) {
-    x += offsetX
-    y += offsetY
+    _x += offsetX
+    _y += offsetY
     notifyChange()
   }
 
@@ -336,12 +340,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.notifyNodeChanged(this.asT())
   }
 
-  override fun getX(): Double {
-    return _x
-  }
-
   override fun hasPos(): Boolean {
-    return !java.lang.Double.isNaN(x) && !java.lang.Double.isNaN(y)
+    return x.isFinite() && y.isFinite()
   }
 
   @Deprecated("Use builders instead of mutable process models")
@@ -351,9 +351,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     notifyChange()
   }
 
-  override fun getY(): Double {
-    return _y
-  }
 
   @Deprecated("Use builders instead of mutable process models")
   fun setY(y: Double) {

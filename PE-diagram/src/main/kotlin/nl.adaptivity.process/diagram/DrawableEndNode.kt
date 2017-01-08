@@ -31,9 +31,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableEndNode : ClientEndNode<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+class DrawableEndNode : ClientEndNode, DrawableProcessNode {
 
-  class Builder : ClientEndNode.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
+  class Builder : ClientEndNode.Builder, DrawableProcessNode.Builder {
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -57,6 +57,7 @@ class DrawableEndNode : ClientEndNode<DrawableProcessNode, DrawableProcessModel?
 
   private var state = Drawable.STATE_DEFAULT
 
+  override val idBase: String get() = IDBASE
 
   constructor(ownerModel: DrawableProcessModel) : super(ownerModel) {}
 
@@ -81,32 +82,10 @@ class DrawableEndNode : ClientEndNode<DrawableProcessNode, DrawableProcessModel?
     throw CloneNotSupportedException()
   }
 
-  override fun getBounds(): Rectangle {
-    return Rectangle(x - ENDNODEOUTERRADIUS, y - ENDNODEOUTERRADIUS,
-                     ENDNODEOUTERRADIUS * 2 + ENDNODEOUTERSTROKEWIDTH,
-                     ENDNODEOUTERRADIUS * 2 + ENDNODEOUTERSTROKEWIDTH)
-  }
-
-  override fun setPos(left: Double, top: Double) {
-    x = left + REFERENCE_OFFSET_X
-    y = left + REFERENCE_OFFSET_Y
-  }
-
-  override fun translate(dX: Double, dY: Double) {
-    x += dX
-    y += dY
-  }
-
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
 
-    return Math.abs(x - getX()) <= realradius && Math.abs(y - getY()) <= realradius
-  }
-
-  override fun getItemAt(x: Double, y: Double): Drawable? {
-    val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
-
-    return if (Math.abs(x - getX()) <= realradius && Math.abs(y - getY()) <= realradius) this else null
+    return Math.abs(x - x) <= realradius && Math.abs(y - y) <= realradius
   }
 
   override fun getState(): Int {
@@ -116,8 +95,6 @@ class DrawableEndNode : ClientEndNode<DrawableProcessNode, DrawableProcessModel?
   override fun setState(state: Int) {
     this.state = state
   }
-
-  override val idBase: String get() = IDBASE
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,

@@ -16,14 +16,16 @@
 
 package nl.adaptivity.process.clientProcessModel
 
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.StartNode
+import nl.adaptivity.process.processModel.StartNodeBase
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
+open class ClientStartNode : StartNodeBase<NodeT, ModelT>, ClientProcessNode {
 
-open class ClientStartNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : StartNodeBase<NodeT, ModelT>, ClientProcessNode<NodeT, ModelT> {
-
-    open class Builder<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : ClientProcessModel<NodeT, ModelT>?> : StartNodeBase.Builder<NodeT, ModelT>, ClientProcessNode.Builder<NodeT, ModelT> {
+    open class Builder : StartNodeBase.Builder<NodeT, ModelT>, ClientProcessNode.Builder {
 
         constructor() {}
 
@@ -34,14 +36,14 @@ open class ClientStartNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : Cl
         constructor(successor: Identified?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>) : super(id, successor, label, defines, results, x, y) {}
 
         constructor(node: StartNode<*, *>) : super(node) {
-            if (node is ClientStartNode<*, *>) {
+            if (node is ClientStartNode) {
                 isCompat = node.isCompat
             } else {
                 isCompat = false
             }
         }
 
-        override fun build(newOwner: ModelT): ClientStartNode<NodeT, ModelT> {
+        override fun build(newOwner: ModelT): ClientStartNode {
             return ClientStartNode(this, newOwner)
         }
 
@@ -58,19 +60,19 @@ open class ClientStartNode<NodeT : ClientProcessNode<NodeT, ModelT>, ModelT : Cl
         isCompat = compat
     }
 
-    protected constructor(orig: ClientStartNode<NodeT, ModelT>, newOwnerModel: ModelT, compat: Boolean) : super(orig.builder(), newOwnerModel) {
+    protected constructor(orig: ClientStartNode, newOwnerModel: ModelT, compat: Boolean) : super(orig.builder(), newOwnerModel) {
         isCompat = compat
     }
 
     constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
-        if (builder is Builder<*, *>) {
+        if (builder is Builder) {
             isCompat = builder.isCompat
         } else {
             isCompat = false
         }
     }
 
-    override fun builder(): Builder<NodeT, ModelT> {
+    override fun builder(): Builder {
         return Builder(this)
     }
 
