@@ -16,36 +16,100 @@
 
 package nl.adaptivity.process.diagram
 
+import nl.adaptivity.diagram.Bounded
 import nl.adaptivity.diagram.HasExtent
 import nl.adaptivity.diagram.Positioned
 
-import java.util.ArrayList
-
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T : Positioned> DiagramNode(orig: DiagramNode<T>,
-                                        x: Double = orig.x,
-                                        y: Double = orig.y,
-                                        target: T = orig.target,
-                                        leftExtent: Double = orig.leftExtent,
-                                        rightExtent: Double = orig.rightExtent,
-                                        topExtent: Double = orig.topExtent,
-                                        bottomExtent: Double = orig.bottomExtent) =
+inline fun <T> DiagramNode(orig: DiagramNode<T>,
+                           x: Double = orig.x,
+                           y: Double = orig.y,
+                           target: T = orig.target,
+                           leftExtent: Double = orig.leftExtent,
+                           rightExtent: Double = orig.rightExtent,
+                           topExtent: Double = orig.topExtent,
+                           bottomExtent: Double = orig.bottomExtent) =
   DiagramNode(target, x, y, leftExtent, rightExtent, topExtent, bottomExtent)
 
 
 fun <T> DiagramNode(target: T) : DiagramNode<T> where T: HasExtent, T: Positioned {
-  return DiagramNode<T>(target, target.x, target.y, target.leftExtent, target.rightExtent, target.topExtent, target.bottomExtent)
+  return DiagramNode(target= target, x=target.x, y=target.y,
+                        leftExtent = target.leftExtent, rightExtent = target.rightExtent,
+                        topExtent = target.topExtent, bottomExtent = target.bottomExtent)
+}
+
+
+fun <T : Positioned> DiagramNode(positionedTarget: T,
+                                 leftExtent: Double,
+                                 rightExtent: Double,
+                                 topExtent: Double,
+                                 bottomExtent: Double,
+                                 x: Double = positionedTarget.x,
+                                 y: Double = positionedTarget.y): DiagramNode<T> {
+  return DiagramNode(target = positionedTarget,
+                     leftExtent = leftExtent,
+                     rightExtent = rightExtent,
+                     topExtent = topExtent,
+                     bottomExtent = bottomExtent,
+                     x = positionedTarget.x,
+                     y = positionedTarget.y)
+}
+
+fun <T : Bounded> DiagramNode(boundedTarget: T,
+                              x: Double = boundedTarget.x,
+                              y: Double = boundedTarget.y,
+                              leftExtent: Double = boundedTarget.leftExtent,
+                              rightExtent: Double = boundedTarget.rightExtent,
+                              topExtent: Double = boundedTarget.topExtent,
+                              bottomExtent: Double = boundedTarget.bottomExtent): DiagramNode<T> {
+  return DiagramNode<T>(target = boundedTarget,
+                        x= x,
+                        y= y,
+                        leftExtent = leftExtent,
+                        rightExtent = rightExtent,
+                        topExtent = topExtent,
+                        bottomExtent = bottomExtent)
+}
+
+fun <T : HasExtent> DiagramNode(extentTarget: T,
+                                x: Double,
+                                y: Double,
+                              leftExtent: Double = extentTarget.leftExtent,
+                              rightExtent: Double = extentTarget.rightExtent,
+                              topExtent: Double = extentTarget.topExtent,
+                              bottomExtent: Double = extentTarget.bottomExtent): DiagramNode<T> {
+  return DiagramNode(target = extentTarget,
+                     x = x,
+                     y = y,
+                     leftExtent = leftExtent,
+                     rightExtent = rightExtent,
+                     topExtent = topExtent,
+                     bottomExtent = bottomExtent)
 }
 
 
 /**
+ * Class that represents a single node in the diagram. The node represents an element with extents, and a logical point
+ * position. It is important to realise that the layout algorithm assumes that nodes are part of a digraph (that may
+ * have multiple disconnected groups.
+ *
+ * @param T               The type of the item for layout, or any handle to it.
  * @property leftExtent   Get the size to the left of the gravity point.
  * @property rightExtent  Get the size to the right of the gravity point.
  * @property topExtent    Get the size to the top of the gravity point.
  * @property bottomExtent Get the size to the bottom of the gravity point.
+ * @property target       The node that is layed out
+ * @property x            The x coordinate of the item
+ * @property y            The y coordinate of the item
+ * @property leftNodes    The nodes that are logically smaller than the current one in the partial order/digraph
+ * @property rightNodes   The nodes that are logically larger than the current one in the partial order/digraph
  */
-class DiagramNode<out T : Positioned>(val target: T, override var x:Double = 0.0, override var y: Double = 0.0, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
-
+class DiagramNode<T>(val target: T, override var x:Double, override var y: Double, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
+//
+//  constructor(orig: DiagramNode<T>, x: Double = orig.x, y: Double = orig.y) :
+//    this(target = orig.target, x = x, y = y,
+//         leftExtent = orig.leftExtent, rightExtent = orig.rightExtent,
+//         topExtent = orig.topExtent, bottomExtent = orig.bottomExtent)
 
   val leftNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 
@@ -59,14 +123,15 @@ class DiagramNode<out T : Positioned>(val target: T, override var x:Double = 0.0
 
   val bottom get() = y + bottomExtent
 
-  constructor(target: T, leftExtent: Double, rightExtent: Double, topExtent: Double, bottomExtent: Double):
-    this(target, target.x, target.y, leftExtent, rightExtent, topExtent, bottomExtent)
+  @Deprecated("As these nodes are for modfying the positions they don't need this function")
+  fun withX(x: Double) = DiagramNode(orig=this, x=x)
 
-  fun withX(x: Double) = DiagramNode(this, x, y)
+  @Deprecated("As these nodes are for modfying the positions they don't need this function")
+  fun withY(y: Double) = DiagramNode(orig=this, y=y)
 
-  fun withY(y: Double) = DiagramNode(this, x, y)
-
-  /** Determine whether the region overlaps this node and is not positioned to its right.  */
+  /**
+   *  Determine whether the region overlaps this node and is not positioned to its right.
+   */
   fun leftOverlaps(region: DiagramNode<*>, xSep: Double, ySep: Double): Boolean {
     return overlaps(region, left - xSep, top - ySep, right + xSep, bottom + ySep) && region.x < x
   }
