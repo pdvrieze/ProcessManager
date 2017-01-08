@@ -17,23 +17,28 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
+import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 import nl.adaptivity.process.clientProcessModel.ClientStartNode
+import nl.adaptivity.process.clientProcessModel.ModelT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STARTNODERADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.StartNode
+import nl.adaptivity.process.processModel.StartNodeBase
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableStartNode : ClientStartNode, DrawableProcessNode {
+class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-  class Builder : ClientStartNode.Builder, DrawableProcessNode.Builder {
+  class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
     override var state: DrawableState
+    override var isCompat = false
 
     constructor(id: String? = null,
                 successor: Identified? = null,
@@ -42,7 +47,7 @@ class DrawableStartNode : ClientStartNode, DrawableProcessNode {
                 results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
-                state: DrawableState = Drawable.STATE_DEFAULT) : super(successor, id, label, x, y, defines, results) {
+                state: DrawableState = Drawable.STATE_DEFAULT) : super(id, successor, label, defines, results, x, y) {
       this.state = state
     }
 
@@ -55,16 +60,22 @@ class DrawableStartNode : ClientStartNode, DrawableProcessNode {
 
   private var mState = Drawable.STATE_DEFAULT
 
-  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : super(ownerModel, compat) {}
-
-  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean = false) : super(ownerModel, id, compat) {}
-
-  constructor(orig: DrawableStartNode,
-              newOwner: DrawableProcessModel? = null) : super(orig, newOwner, orig.isCompat) {
-    mState = orig.mState
+  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : super(ownerModel) {
+    isCompat = compat
   }
 
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {}
+  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean = false) : super(ownerModel, id=id) {
+    isCompat = compat
+  }
+
+  @Deprecated("Use the constructor that takes a builder")
+  constructor(orig: DrawableStartNode, newOwner: DrawableProcessModel? = null) : this(orig.builder(), newOwner)
+
+  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+    val dsnBuilder = builder as? Builder
+    isCompat = dsnBuilder?.isCompat ?: false
+    mState = dsnBuilder?.state ?: Drawable.STATE_DEFAULT
+  }
 
   override fun builder(): Builder {
     return Builder(this)
@@ -76,6 +87,14 @@ class DrawableStartNode : ClientStartNode, DrawableProcessNode {
     }
     throw RuntimeException(CloneNotSupportedException())
   }
+
+  override val idBase: String
+    get() = IDBASE
+
+  override val isCompat: Boolean
+
+  override val maxSuccessorCount: Int
+    get() = if (isCompat) Integer.MAX_VALUE else 1
 
   override val leftExtent get() = REFERENCE_OFFSET_X
   override val rightExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_X
@@ -110,9 +129,6 @@ class DrawableStartNode : ClientStartNode, DrawableProcessNode {
     }
   }
 
-  override val idBase: String
-    get() = IDBASE
-
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(
       canvas: Canvas<S, PEN_T, PATH_T>,
       clipBounds: Rectangle?,
@@ -120,6 +136,16 @@ class DrawableStartNode : ClientStartNode, DrawableProcessNode {
       top: Double) {
     defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
+
+  override fun setId(id: String) = super.setId(id!!)
+  override fun setLabel(label: String?) = super.setLabel(label)
+  override fun setOwnerModel(newOwnerModel: ModelT?) = super.setOwnerModel(newOwnerModel)
+  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
 
