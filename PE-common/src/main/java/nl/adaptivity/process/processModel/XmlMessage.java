@@ -106,22 +106,6 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
     return XmlUtil.<XmlMessage>deserializeHelper(new XmlMessage(), in);
   }
 
-  @NotNull
-  @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
-  }
-
-  @Override
-  protected void serializeStartElement(@NotNull final XmlWriter out) throws XmlException {
-    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
-  }
-
-  @Override
-  protected void serializeEndElement(@NotNull final XmlWriter out) throws XmlException {
-    XmlWriterUtil.endTag(out, ELEMENTNAME);
-  }
-
   @Nullable
   @Override
   public EndpointDescriptor getEndpointDescriptor() {
