@@ -27,6 +27,7 @@ import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -111,6 +112,8 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
 
   }
 
+  override var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
+
   override val rootModel: RootDrawableProcessModel get() = this
 
   private val mItems = ItemCache()
@@ -118,17 +121,34 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
   private var mState = Drawable.STATE_DEFAULT
   private var mIdSeq = 0
   var isFavourite: Boolean = false
+  override var isInvalid: Boolean = false
+    private set
 
-  private constructor() : super(nodeFactory = DRAWABLE_NODE_FACTORY) {}
+  private constructor() : this(Builder()) {}
 
   @JvmOverloads
-  constructor(original: RootProcessModel<*, *>) : this(Builder(original)) {
+  constructor(original: RootProcessModel<*, *>) : this(Builder(original))
+
+  @JvmOverloads
+  constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>) : super(builder, DRAWABLE_NODE_FACTORY) {
+    layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+  }
+
+  @JvmOverloads constructor(uuid: UUID, name: String, nodes: Collection<DrawableProcessNode>, layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>? = null) :
+    super(uuid, name, nodes, DRAWABLE_NODE_FACTORY) {
+    this.layoutAlgorithm = layoutAlgorithm?: LayoutAlgorithm()
+
+    with(this.layoutAlgorithm) {
+      defaultNodeWidth = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
+                                                  Math.max(ACTIVITYWIDTH, JOINWIDTH))
+      defaultNodeHeight = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
+                                                   Math.max(ACTIVITYHEIGHT, JOINHEIGHT))
+      horizSeparation = DEFAULT_HORIZ_SEPARATION
+      vertSeparation = DEFAULT_VERT_SEPARATION
+    }
     ensureIds()
     layout()
   }
-
-  @JvmOverloads
-  constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>) : super(builder, DRAWABLE_NODE_FACTORY) {}
 
   override fun builder(): Builder {
     return Builder(this)
@@ -140,15 +160,6 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
 
   override fun getHandle(): Handle<RootDrawableProcessModel> {
     return Handles.handle<RootDrawableProcessModel>(handleValue)
-  }
-
-  @JvmOverloads constructor(uuid: UUID, name: String, nodes: Collection<DrawableProcessNode>, layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>? = null) : super(uuid, name, nodes, layoutAlgorithm!!, DRAWABLE_NODE_FACTORY) {
-    defaultNodeWidth = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH))
-    defaultNodeHeight = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT))
-    horizSeparation = DEFAULT_HORIZ_SEPARATION
-    vertSeparation = DEFAULT_VERT_SEPARATION
-    ensureIds()
-    layout()
   }
 
   override fun clone(): RootDrawableProcessModel {
@@ -178,11 +189,12 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
     }
   }
 
+  @Deprecated("This is already done by builders")
   private fun <T : DrawableProcessNode> ensureId(node: T): T {
     if (node.id == null) {
       val idBase = node.idBase
       var newId = idBase + mIdSeq++
-      while (getNode(newId) != null) {
+      while (getNode(Identifier(newId)) != null) {
         newId = idBase + mIdSeq++
       }
       node.setId(newId)
@@ -191,11 +203,9 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
   }
 
   override fun getItemAt(x: Double, y: Double): Drawable? {
-    if (getModelNodes().size == 0) {
-      return if (bounds.contains(x, y)) this else null
-    }
-    // TODO this can break as children are not guaranteed to be drawable.
-    return childElements.asSequence().mapNotNull { it.getItemAt(x,y) }.firstOrNull()
+    childElements.asSequence().mapNotNull { it.getItemAt(x,y) }.firstOrNull()?.let { return it }
+
+    return if (isWithinBounds(x,y)) this else null
   }
 
   override fun getState(): Int {
@@ -258,7 +268,7 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
   }
 
   override fun invalidate() {
-    super.invalidate()
+    isInvalid = true
     invalidateConnectors()
     if (mBounds != null) {
       mBounds!!.left = java.lang.Double.NaN
@@ -280,7 +290,7 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
       modelNodes.asSequence()
           .filter { it.x.isFinite() && it.y.isFinite() }
           .flatMap { start ->
-            start.successors.asSequence().map { asNode(it) }.filterNotNull().filter {
+            start.successors.asSequence().map { getNode(it) }.filterNotNull().filter {
               it.x.isFinite() && it.y.isFinite()
             }.map { end ->
               val x1 = start.bounds.right()/*-STROKEWIDTH*/
@@ -312,11 +322,12 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
     return getModelNodes()
   }
 
-  override fun asNode(id: Identifiable): DrawableProcessNode? {
-    if (id is DrawableProcessNode) {
-      return id
-    }
-    return getNode(id)
+  /**
+   * Normalize the process model. By default this may do nothing.
+   * @return The model (this).
+   */
+  fun normalize(): DrawableProcessModel? {
+    return builder().apply { normalize(false) }.build().asM
   }
 
   companion object {

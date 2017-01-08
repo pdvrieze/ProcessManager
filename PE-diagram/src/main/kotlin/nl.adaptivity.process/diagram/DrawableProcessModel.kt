@@ -17,11 +17,8 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.Diagram
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel
-import nl.adaptivity.process.clientProcessModel.RootClientProcessModel
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.RootProcessModel
 
 /**
  * Created by pdvrieze on 05/01/17.
@@ -36,7 +33,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
     }
   }
 
-  var  layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
+  var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
   override val x: Double get() = 0.0
 

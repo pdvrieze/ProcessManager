@@ -31,20 +31,17 @@ import java.util.*
 
 abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>, MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
-  override val rootModel: RootClientProcessModel get() = this
+  abstract val layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
-  var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
-
-  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<DrawableProcessNode> = emptyList(), layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm<DrawableProcessNode>(), nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>) :
+  @JvmOverloads constructor(uuid: UUID? = null,
+                            name: String? = null,
+                            nodes: Collection<DrawableProcessNode> = emptyList(),
+                            nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>) :
     super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
-    this.layoutAlgorithm = layoutAlgorithm
   }
 
   @JvmOverloads
-  constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic) {
-    this.layoutAlgorithm = (builder as? RootDrawableProcessModel.Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
-  }
-
+  constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic)
   var topPadding = 5.0
     set(topPadding) {
       val offset = topPadding - this.topPadding
@@ -67,104 +64,20 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
 
   var rightPadding = 5.0
 
-  var isInvalid = false
-    private set
-
-  abstract fun asNode(id: Identifiable): DrawableProcessNode?
+  abstract val isInvalid:Boolean
 
   override abstract fun builder(): RootDrawableProcessModel.Builder
 
-  /**
-   * Normalize the process model. By default this may do nothing.
-   * @return The model (this).
-   */
-  fun normalize(): DrawableProcessModel? {
-    return builder().apply { normalize(false) }.build().asM
-  }
-
   open fun setNodes(nodes: Collection<DrawableProcessNode>) {
-    super.setModelNodes(IdentifyableSet.processNodeSet(nodes))
+    super.setModelNodes(nodes)
     invalidate()
   }
 
-  var vertSeparation: Double
-    get() = layoutAlgorithm.vertSeparation
-    set(vertSeparation) {
-      if (layoutAlgorithm.vertSeparation != vertSeparation) {
-        invalidate()
-      }
-      layoutAlgorithm.vertSeparation = vertSeparation
-    }
 
+  abstract fun invalidate()
 
-  var horizSeparation: Double
-    get() = layoutAlgorithm.horizSeparation
-    set(horizSeparation) {
-      if (layoutAlgorithm.horizSeparation != horizSeparation) {
-        invalidate()
-      }
-      layoutAlgorithm.horizSeparation = horizSeparation
-    }
-
-  var defaultNodeWidth: Double
-    get() = layoutAlgorithm.defaultNodeWidth
-    set(defaultNodeWidth) {
-      if (layoutAlgorithm.defaultNodeWidth != defaultNodeWidth) {
-        invalidate()
-      }
-      layoutAlgorithm.defaultNodeWidth = defaultNodeWidth
-    }
-
-
-  var defaultNodeHeight: Double
-    get() = layoutAlgorithm.defaultNodeHeight
-    set(defaultNodeHeight) {
-      if (layoutAlgorithm.defaultNodeHeight != defaultNodeHeight) {
-        invalidate()
-      }
-      layoutAlgorithm.defaultNodeHeight = defaultNodeHeight
-    }
-
-
-  open fun invalidate() {
-    isInvalid = true
-  }
-
-  fun resetLayout() {
-    for (n in modelNodes) {
-      n.setX(Double.NaN)
-      n.setY(Double.NaN)
-    }
-    invalidate()
-  }
-
-  val endNodeCount: Int
-    get() {
-      var i = 0
-      for (node in modelNodes) {
-        if (node is EndNode<*, *>) {
-          ++i
-        }
-      }
-      return i
-    }
-
-  override fun getRef(): IProcessModelRef<DrawableProcessNode, DrawableProcessModel?, out @JvmWildcard RootClientProcessModel> {
-    throw UnsupportedOperationException("Not implemented")
-  }
-
-  override fun getHandle(): Handle<out @JvmWildcard RootClientProcessModel> {
-    return Handles.handle(handleValue)
-  }
-
-  fun getNode(nodeId: String): DrawableProcessNode? {
-    for (n in modelNodes) {
-      if (nodeId == n.id) {
-        return n
-      }
-    }
-    return null
-  }
+  @Deprecated("Use the version taking an identifier", ReplaceWith("getNode(Identifier(nodeId))", "nl.adaptivity.process.util.Identifier"))
+  fun getNode(nodeId: String) = getNode(Identifier(nodeId))
 
   fun setOwner(owner: String) {
     this.owner = SimplePrincipal(owner)
