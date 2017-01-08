@@ -22,7 +22,7 @@ import java.util.*
 interface MutableRootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>: RootProcessModel<NodeT, ModelT> {
 
   @Deprecated("Use builders instead of mutable process models")
-  fun setUuid(uUID: UUID)
+  fun setUuid(uuid: UUID)
 
   @Deprecated("Use builders instead of mutable process models")
   fun addNode(node: NodeT): Boolean
