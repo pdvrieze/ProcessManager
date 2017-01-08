@@ -117,7 +117,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
   }
 
   @Override
-  public void serialize(@NotNull final XmlWriter out) throws XmlException {
+  public final void serialize(@NotNull final XmlWriter out) throws XmlException {
     serializeStartElement(out);
     serializeAttributes(out);
     final NamespaceContext outNs = out.getNamespaceContext();

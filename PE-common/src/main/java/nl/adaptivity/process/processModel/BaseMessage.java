@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.xml.XmlException;
@@ -23,8 +24,7 @@ import nl.adaptivity.xml.XmlWriter;
 import nl.adaptivity.xml.XmlWriterUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -33,8 +33,13 @@ import java.io.CharArrayReader;
 import java.io.IOException;
 import java.util.Arrays;
 
+import static nl.adaptivity.xml.XmlWriterUtil.endTag;
+import static nl.adaptivity.xml.XmlWriterUtil.smartStartTag;
+
 
 public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
+
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, "message", "pm");
 
   private QName mService;
   private String mEndpoint;
@@ -101,6 +106,16 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     }
     return false;
   }
+
+  protected final void serializeStartElement(@NotNull XmlWriter out) throws XmlException {
+    smartStartTag(out, getElementName());
+  }
+
+  protected final void serializeEndElement(@NotNull XmlWriter out) throws XmlException {
+    endTag(out, getElementName());
+  }
+
+  public final QName getElementName() { return ELEMENTNAME; }
 
   @Nullable
   @Override

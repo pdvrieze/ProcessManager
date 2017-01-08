@@ -21,13 +21,11 @@ import net.devrieze.util.Handles
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.diagram.Bounded
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.diagram.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.*
 import java.security.Principal
 import java.util.*
 
@@ -312,9 +310,9 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
 
     const val NS_JBI = "http://adaptivity.nl/ProcessEngine/activity"
 
-    const val NS_UMH = "http://adaptivity.nl/userMessageHandler"
+    const val NS_UMH = Constants.USER_MESSAGE_HANDLER_NS
 
-    const val NS_PM = "http://adaptivity.nl/ProcessEngine/"
+    const val NS_PM = ProcessConsts.Engine.NAMESPACE
 
     internal const val PROCESSMODEL_NS = NS_PM
   }
