@@ -39,6 +39,7 @@ dependencies {
     compile project(':xmlutil:core')
     compile project(':xmlutil:android')
 
+    testCompile project(':java-common')
     testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'junit:junit:4.12'
     testCompile project(path: ':PE-common', configuration: 'testJarConfig')
