@@ -90,7 +90,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ExecutableChildModel {
       return ExecutableChildModel(this, ownerModel.asM.rootModel, pedantic)
     }
 

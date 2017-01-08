@@ -17,9 +17,8 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.smartStartTag
-import nl.adaptivity.xml.writeChildren
+import nl.adaptivity.util.xml.SimpleXmlDeserializable
+import nl.adaptivity.xml.*
 import javax.xml.namespace.QName
 
 /**
@@ -33,15 +32,43 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
       nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
       imports: Collection<IXmlResultType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
+
+    override val elementName: QName get() = ELEMENTNAME
+
+    /**
+     * When this is overridden and it returns a non-`null` value, it will allow childmodels to be nested in eachother.
+     * Note that this does not actually introduce a scope. The nesting is not retained.
+     */
+    open fun nestedBuilder(): ChildProcessModelBase.Builder<T,M>? = null
+
     override abstract fun buildModel(ownerModel: RootProcessModel<T, M>, pedantic: Boolean): ChildProcessModel<T, M>
+
+    override fun deserializeChild(reader: XmlReader): Boolean {
+      if (reader.isElement(ProcessConsts.Engine.NAMESPACE,
+                       ChildProcessModel.ELEMENTLOCALNAME)) {
+        nestedBuilder()?.deserializeHelper(reader) ?: reader.unhandledEvent("Child models are not currently allowed to be nested")
+        return true
+      } else {
+        return super.deserializeChild(reader)
+      }
+    }
+
+    override fun deserializeAttribute(attributeNamespace: CharSequence,
+                                      attributeLocalName: CharSequence,
+                                      attributeValue: CharSequence): Boolean {
+      return when(attributeLocalName) {
+        ATTR_ID -> { childId = attributeValue.toString(); true }
+        else -> super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+      }
+    }
   }
 
-  constructor(builder: ChildProcessModel.Builder<*, *>, ownerModel: RootProcessModel<T,M>, nodeFactory: NodeFactory<T,M>, pedantic: Boolean):super(builder, RootProcessModelBase.ChildModelProvider(builder.rootBuilder.childModels, nodeFactory, pedantic), pedantic) {
-    this.ownerModel = ownerModel
+  constructor(builder: ChildProcessModel.Builder<*, *>, ownerModel: RootProcessModelBase<T,M>, nodeFactory: NodeFactory<T,M>, pedantic: Boolean):super(builder, RootProcessModelBase.ChildModelProvider(builder.rootBuilder.childModels, nodeFactory, pedantic), pedantic) {
+    this.rootModel = ownerModel
     this.id = builder.childId
   }
 
-  override val ownerModel: RootProcessModel<T, M>
+  override val rootModel: RootProcessModelBase<T, M>?
 
   override val id: String?
 
@@ -49,6 +76,8 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
   override fun serialize(out: XmlWriter) {
     out.smartStartTag(ELEMENTNAME) {
+      writeAttribute(ATTR_ID, id)
+
       writeChildren(imports)
       writeChildren(exports)
       writeChildren(getModelNodes())
@@ -56,8 +85,9 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
   }
 
   companion object {
+    const val ATTR_ID = "id"
+    const val ELEMENTLOCALNAME = "childModel"
     @JvmField
-    val ELEMENTLOCALNAME = "childModel"
     val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
   }
 

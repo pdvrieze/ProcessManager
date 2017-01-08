@@ -30,12 +30,11 @@ class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, Execut
       imports: Collection<IXmlResultType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList()) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(rootBuilder, childId, nodes, imports, exports), ExecutableModelCommon.Builder {
 
-    constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.childId?.id, base.getModelNodes().map { it.visit(EXEC_BUILDER_VISITOR) }, base.imports, base.exports)
+    constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.id, base.getModelNodes().map { it.visit(EXEC_BUILDER_VISITOR) }, base.imports, base.exports)
 
 
-    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
-      return ExecutableChildModel(this, ownerModel as ExecutableProcessModel, pedantic)
-    }
+    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean)
+      = ExecutableChildModel(this, ownerModel as ExecutableProcessModel, pedantic)
   }
 
   override val rootModel get() = super.rootModel as ExecutableProcessModel
@@ -43,5 +42,5 @@ class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, Execut
   constructor(builder: ChildProcessModel.Builder<*, *>, ownerModel: ExecutableProcessModel, pedantic: Boolean) : super(builder, ownerModel, EXEC_NODEFACTORY, pedantic)
 
   override fun builder(rootBuilder: RootProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>)
-      = ExecutableChildModel.Builder(rootBuilder as ExecutableProcessModel.Builder, childId?.id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)
+      = ExecutableChildModel.Builder(rootBuilder as ExecutableProcessModel.Builder, id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)
 }

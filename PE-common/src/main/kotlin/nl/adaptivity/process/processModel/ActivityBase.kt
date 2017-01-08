@@ -159,12 +159,6 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     _message = message
   }
 
-  // Object Initialization
-  @Deprecated("Don't use")
-  constructor(ownerModel: ModelT) : super(ownerModel) {
-    childModel = null
-  }
-
   constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name

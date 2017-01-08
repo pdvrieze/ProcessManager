@@ -45,7 +45,7 @@ interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableM
 
     override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
 
-    override fun childModelBuilder() = ExecutableActivity.ChildModelBuilder(this.rootBuilder)
+    override fun compositeActivityBuilder() = ExecutableActivity.ChildModelBuilder(this.rootBuilder)
 
     override fun endNodeBuilder() = ExecutableEndNode.Builder()
 

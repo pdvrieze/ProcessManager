@@ -83,7 +83,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, pedantic: Boolean): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
+    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, pedantic: Boolean): XmlChildModel {
       return XmlChildModel(this, ownerModel as XmlProcessModel, pedantic)
     }
 

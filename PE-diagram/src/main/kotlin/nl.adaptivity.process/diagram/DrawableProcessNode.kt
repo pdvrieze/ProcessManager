@@ -103,4 +103,7 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
     setX(left + leftExtent)
     setY(top + topExtent)
   }
+
+  @Deprecated("Use builders")
+  fun setLabel(label: String?)
 }

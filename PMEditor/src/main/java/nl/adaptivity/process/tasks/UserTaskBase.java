@@ -23,6 +23,7 @@ import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -64,11 +65,11 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   @CallSuper
   @Override
-  public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (XmlReaderUtil.isElement(in, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
+  public boolean deserializeChild(@NotNull final XmlReader reader) throws XmlException {
+    if (XmlReaderUtil.isElement(reader, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
                                                                                                                  .getLocalPart(), TaskItem.ELEMENTNAME
                                                                                                                                           .getPrefix())) {
-      parseTaskItem(in);
+      parseTaskItem(reader);
       return true;
     }
     return false;

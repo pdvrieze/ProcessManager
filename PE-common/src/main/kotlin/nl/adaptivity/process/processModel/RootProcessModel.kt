@@ -38,18 +38,6 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
     var uuid: UUID?
     val roles: MutableSet<String>
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-      val value = attributeValue.toString()
-      when (attributeLocalName.toString()) {
-        "name" -> name=value
-        "owner" -> owner = SimplePrincipal(value)
-        ATTR_ROLES -> roles.replaceBy(value.split(" *, *".toRegex()).filter { it.isEmpty() })
-        "uuid" -> uuid = UUID.fromString(value)
-        else -> return false
-      }
-      return true
-    }
-
 
     fun newChildId(base:String):String {
       return generateSequence(1, { it+1} ).map { "${base}${it}" }.first { candidateId ->

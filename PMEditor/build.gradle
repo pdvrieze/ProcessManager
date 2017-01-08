@@ -38,8 +38,8 @@ dependencies {
     compile project(':JavaCommonApi')
     compile project(':xmlutil:core')
     compile project(':xmlutil:android')
+    compile project(':java-common')
 
-    testCompile project(':java-common')
     testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'junit:junit:4.12'
     testCompile project(path: ':PE-common', configuration: 'testJarConfig')

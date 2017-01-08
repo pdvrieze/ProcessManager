@@ -113,7 +113,7 @@ class TestWorkflowPatterns : Spek({
           owner = principal
           val start1 = startNode { id="start1" }
           val ac1 = activity { id="ac1"; predecessor = start1 }
-          val comp1 = childModel { id="comp1"
+          val comp1 = compositeActivity { id="comp1"
             childId="child1"
             predecessor = ac1
             val start2 = startNode { id="start2" }

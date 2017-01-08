@@ -60,6 +60,8 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
     override fun build(pedantic: Boolean) = ExecutableProcessModel(this, pedantic)
 
+    override fun childModelBuilder() = ExecutableChildModel.Builder(rootBuilder)
+
     companion object {
       @JvmStatic
       fun deserialize(reader: XmlReader): Builder {
@@ -307,11 +309,11 @@ object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, Exe
     return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as ExecutableChildModel)) as ExecutableActivity
   }
 
-  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon> {
     return ExecutableChildModel(baseChildBuilder, ownerModel.asM.rootModel, pedantic)
   }
 
-  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ExecutableChildModel {
     val rootBuilder = ExecutableProcessModel.Builder()
     val builder = ExecutableChildModel.Builder(rootBuilder, baseModel)
     val provider = RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>(listOf(builder), this, pedantic)

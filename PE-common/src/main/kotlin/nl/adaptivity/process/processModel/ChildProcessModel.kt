@@ -31,14 +31,10 @@ interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>, pedantic: Boolean = defaultPedantic): ChildProcessModel<NodeT, ModelT>
   }
 
-  override val id: String?
+  @Deprecated("Not needed as childmodels are not nested")
+  val ownerModel: RootProcessModel<NodeT, ModelT>? get() = rootModel
 
-  @Deprecated("Use the object itself", ReplaceWith("this"))
-  val childId: Identifiable? get() = this
-
-  val ownerModel: RootProcessModel<NodeT, ModelT>
-
-  override val rootModel: RootProcessModel<NodeT, ModelT>? get() = ownerModel?.rootModel
+  override val rootModel: RootProcessModel<NodeT, ModelT>?
 
   fun builder(rootBuilder: RootProcessModel.Builder<NodeT, ModelT>): Builder<NodeT, ModelT>
 

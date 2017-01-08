@@ -28,7 +28,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
     var  layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
 
-    override fun childModelBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
+    override fun compositeActivityBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
       TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
   }

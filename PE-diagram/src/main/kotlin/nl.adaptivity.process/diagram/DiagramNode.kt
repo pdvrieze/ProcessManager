@@ -104,7 +104,7 @@ fun <T : HasExtent> DiagramNode(extentTarget: T,
  * @property leftNodes    The nodes that are logically smaller than the current one in the partial order/digraph
  * @property rightNodes   The nodes that are logically larger than the current one in the partial order/digraph
  */
-class DiagramNode<T>(val target: T, override var x:Double, override var y: Double, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
+class DiagramNode<out T>(val target: T, override var x:Double, override var y: Double, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
 //
 //  constructor(orig: DiagramNode<T>, x: Double = orig.x, y: Double = orig.y) :
 //    this(target = orig.target, x = x, y = y,

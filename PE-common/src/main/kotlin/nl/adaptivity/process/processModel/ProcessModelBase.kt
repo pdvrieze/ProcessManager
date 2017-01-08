@@ -17,11 +17,15 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.replaceBy
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.ProcessException
+import nl.adaptivity.process.processModel.engine.XmlModelCommon
+import nl.adaptivity.process.processModel.engine.XmlProcessNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
+import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
 
 /**
@@ -33,15 +37,15 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNodeBuilder: ProcessNode.Builder<*,*>): NodeT
     operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNodeBuilder: Activity.ChildModelBuilder<*,*>, childModel: ChildProcessModel<NodeT, ModelT>): Activity<NodeT, ModelT>
     operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNode: ProcessNode<*,*>) = invoke(newOwner, baseNode.builder())
-    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean = false): ChildProcessModel<NodeT, ModelT>
-    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean = false): ChildProcessModel<NodeT, ModelT>
+    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean = false): ChildProcessModelBase<NodeT, ModelT>
+    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean = false): ChildProcessModelBase<NodeT, ModelT>
   }
 
   @ProcessModelDSL
   abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(
       nodes: Collection<ProcessNode.Builder<NodeT, ModelT>> = emptyList(),
       imports: Collection<IXmlResultType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList()) : ProcessModel.Builder<NodeT, ModelT> {
+      exports: Collection<IXmlDefineType> = emptyList()) : ProcessModel.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
 
     override val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableSet()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
@@ -62,6 +66,23 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
     }
 
+    @Throws(XmlException::class)
+    override fun deserializeChild(reader: XmlReader): Boolean {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
+        val newNode = when (reader.localName.toString()) {
+          EndNode.ELEMENTLOCALNAME -> endNodeBuilder().deserializeHelper(reader)
+          Activity.ELEMENTLOCALNAME -> activityBuilder().deserializeHelper(reader)
+          StartNode.ELEMENTLOCALNAME -> startNodeBuilder().deserializeHelper(reader)
+          Join.ELEMENTLOCALNAME -> joinBuilder().deserializeHelper(reader)
+          Split.ELEMENTLOCALNAME -> splitBuilder().deserializeHelper(reader)
+          else -> return false
+        }
+        nodes.add(newNode)
+        return true
+      }
+      return false
+    }
+
     override fun toString(): String {
       return "${this.javaClass.name.split('.').last()}(nodes=$nodes, imports=$imports, exports=$exports)"
     }
@@ -70,7 +91,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
       @Throws(XmlException::class)
       @JvmStatic
-      fun <B: ProcessModel.Builder<*, *>> deserialize(builder: B, reader: XmlReader): B {
+      @Deprecated("Poor approach")
+      fun <B: ProcessModelBase.Builder<*, *>> deserialize(builder: B, reader: XmlReader): B {
 
         reader.skipPreamble()
         val elementName = RootProcessModelBase.ELEMENTNAME

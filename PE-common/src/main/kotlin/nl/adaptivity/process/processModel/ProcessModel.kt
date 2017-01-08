@@ -63,7 +63,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     fun splitBuilder(): Split.Builder<NodeT,ModelT>
     fun joinBuilder(): Join.Builder<NodeT,ModelT>
     fun activityBuilder(): Activity.Builder<NodeT,ModelT>
-    fun childModelBuilder(): Activity.ChildModelBuilder<NodeT, ModelT>
+    fun compositeActivityBuilder(): Activity.ChildModelBuilder<NodeT, ModelT>
     fun endNodeBuilder(): EndNode.Builder<NodeT,ModelT>
 
     fun startNodeBuilder(startNode: StartNode<*,*>): StartNode.Builder<NodeT,ModelT>
@@ -88,8 +88,8 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
       return nodeHelper(activityBuilder(), body)
     }
 
-    fun childModel(body: Activity.ChildModelBuilder<NodeT, ModelT>.()->Unit): Identifiable {
-      val builder = childModelBuilder()
+    fun compositeActivity(body: Activity.ChildModelBuilder<NodeT, ModelT>.()->Unit): Identifiable {
+      val builder = compositeActivityBuilder()
       builder.apply(body)
       builder.ensureChildId().ensureId()
       rootBuilder.childModels.add(builder)
@@ -111,27 +111,6 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
 
     fun <B: ProcessNode.IBuilder<*,*>> B.ensureId(): B = apply {
       if (id ==null) { id = this@Builder.newId(this.idBase) }
-    }
-
-    @Throws(XmlException::class)
-    fun deserializeChild(reader: XmlReader): Boolean {
-      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-        val newNode = when (reader.localName.toString()) {
-          EndNode.ELEMENTLOCALNAME -> endNodeBuilder().deserializeHelper(reader)
-          Activity.ELEMENTLOCALNAME -> activityBuilder().deserializeHelper(reader)
-          StartNode.ELEMENTLOCALNAME -> startNodeBuilder().deserializeHelper(reader)
-          Join.ELEMENTLOCALNAME -> joinBuilder().deserializeHelper(reader)
-          Split.ELEMENTLOCALNAME -> splitBuilder().deserializeHelper(reader)
-          else -> return false
-        }
-        nodes.add(newNode)
-        return true
-      }
-      return false
-    }
-
-    fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-      return false
     }
 
     fun validate() {

@@ -24,6 +24,7 @@ import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -108,17 +109,17 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public boolean deserializeChild(final XmlReader in) throws XmlException {
-    if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS,in.getNamespaceUri())) {
-      switch (in.getLocalName().toString()) {
+  public boolean deserializeChild(@NotNull final XmlReader reader) throws XmlException {
+    if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceUri())) {
+      switch (reader.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
-          mReplies = XmlReaderUtil.elementContentToFragment(in);
+          mReplies = XmlReaderUtil.elementContentToFragment(reader);
           return true;
         case TASKPARAM_LOCALNAME:
-          in.next();//The param tag has been handled.
-          mTask = EditableUserTask.deserialize(in);
-          in.nextTag();
-          in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME);
+          reader.next();//The param tag has been handled.
+          mTask = EditableUserTask.deserialize(reader);
+          reader.nextTag();
+          reader.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME);
           return true;
       }
     }

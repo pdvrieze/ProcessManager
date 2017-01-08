@@ -36,10 +36,8 @@ import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.diagram.RootDrawableProcessModel;
-import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.BaseProcessAdapter;
 import nl.adaptivity.process.editor.android.PMEditor;
 import nl.adaptivity.process.editor.android.PMProcessesFragment;
@@ -50,6 +48,7 @@ import nl.adaptivity.process.models.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import java.io.IOException;
@@ -334,7 +333,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public ClientProcessModel getProcessModel() {
+  public DrawableProcessModel getProcessModel() {
     return mItem.getDiagram();
   }
 }

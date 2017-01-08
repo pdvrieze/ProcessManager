@@ -133,7 +133,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   final static LayoutAlgorithm<DrawableProcessNode> NULL_LAYOUT_ALGORITHM = new LayoutAlgorithm<DrawableProcessNode>(){
 
     @Override
-    public boolean layout(final List<? extends DiagramNode<DrawableProcessNode>> nodes) {
+    public boolean layout(@NotNull final List<? extends DiagramNode<? extends DrawableProcessNode>> diagramNodes) {
       return false; // don't do any layout
     }
 
@@ -373,9 +373,9 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     }
 
     @NotNull
-    private MoveDrawable moveDrawable(@Nullable final Drawable minMaxOverlay, @NotNull final List<? extends DiagramNode<?>> nodes) {
+    private MoveDrawable moveDrawable(@Nullable final Drawable minMaxOverlay, @NotNull final List<? extends DiagramNode<? extends DrawableProcessNode>> nodes) {
       final List<float[]> arrows = new ArrayList<>(nodes.size());
-      for(final DiagramNode<?> node: nodes) {
+      for(final DiagramNode<? extends DrawableProcessNode> node: nodes) {
         if (! (Double.isNaN(node.getX())|| Double.isNaN(node.getY()))) {
           final double scale = diagramView1.getScale();
           arrows.add(new float[]{(float) ((node.getX()+(diagramView1.getOffsetX()*scale))*scale),

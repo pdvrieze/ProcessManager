@@ -20,7 +20,7 @@ import nl.adaptivity.process.processModel.*
 
 class XmlChildModel(
     builder: ChildProcessModel.Builder<*,*>,
-    ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>,
+    ownerModel: XmlProcessModel,
     pedantic: Boolean) :
     ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(
         builder,
@@ -30,20 +30,19 @@ class XmlChildModel(
 
   open class Builder(rootBuilder: XmlProcessModel.Builder,
                      childId:String?=null,
-                     nodes: Collection<XmlProcessNode.Builder>,
-                     imports: Collection<IXmlResultType>,
-                     exports: Collection<IXmlDefineType>) : ChildProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>(rootBuilder, childId, nodes, imports, exports), XmlModelCommon.Builder {
-    constructor(rootBuilder: XmlProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.childId?.id, base.getModelNodes().map { it.visit(XML_BUILDER_VISITOR) }, base.imports, base.exports)
+                     nodes: Collection<XmlProcessNode.Builder> = emptyList(),
+                     imports: Collection<IXmlResultType> = emptyList(),
+                     exports: Collection<IXmlDefineType> = emptyList()) : ChildProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>(rootBuilder, childId, nodes, imports, exports), XmlModelCommon.Builder {
+    constructor(rootBuilder: XmlProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.id, base.getModelNodes().map { it.visit(XML_BUILDER_VISITOR) }, base.imports, base.exports)
 
     override val rootBuilder: XmlProcessModel.Builder get() = super.rootBuilder as XmlProcessModel.Builder
 
-    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, pedantic: Boolean): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
-      return XmlChildModel(this, ownerModel, pedantic)
+    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, pedantic: Boolean): XmlChildModel {
+      return XmlChildModel(this, ownerModel.asM.rootModel, pedantic)
     }
   }
 
-  override val rootModel: XmlProcessModel
-    get() = super<ChildProcessModelBase>.rootModel as XmlProcessModel
+  override val rootModel: XmlProcessModel get() = super.rootModel as XmlProcessModel
 
   override fun builder(rootBuilder: RootProcessModel.Builder<XmlProcessNode, XmlModelCommon>): XmlChildModel.Builder {
     return Builder(rootBuilder as XmlProcessModel.Builder, this)

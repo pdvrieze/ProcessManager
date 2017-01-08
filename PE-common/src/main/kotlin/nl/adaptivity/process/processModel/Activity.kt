@@ -45,9 +45,6 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
   }
 
   interface ChildModelBuilder<NodeT : ProcessNode<NodeT,ModelT>, ModelT:ProcessModel<NodeT,ModelT>?> : IBuilder<NodeT,ModelT>, ChildProcessModel.Builder<NodeT, ModelT> {
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
-      throw UnsupportedOperationException("The SubModelBuilder is a convenience builder that cannot be used in deserialization")
-    }
 
     override val idBase: String get() = "sub"
 

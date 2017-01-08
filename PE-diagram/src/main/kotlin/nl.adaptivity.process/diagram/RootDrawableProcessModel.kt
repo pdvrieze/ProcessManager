@@ -58,6 +58,10 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
       this.layoutAlgorithm = (base as? DrawableProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
     }
 
+    override fun childModelBuilder(): ChildProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> {
+      TODO("DrawableChildModels still need to be implemented")
+    }
+
     override fun startNodeBuilder(): DrawableStartNode.Builder {
       return DrawableStartNode.Builder()
     }
@@ -447,16 +451,15 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 //    return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as DrawableChildModel)) as DrawableActivity
   }
 
-  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
     TODO("Child models are not implemented yet for drawables")
 //    return DrawableChildModel(baseChildBuilder, ownerModel, pedantic)
   }
 
-  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ChildProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
     TODO("Child models are not implemented yet for drawables")
 //    val rootBuilder = DrawableProcessModel.Builder()
 //    val builder = DrawableChildModel.Builder(rootBuilder, baseModel)
-//    val provider = RootProcessModelBase.ChildModelProvider<DrawableProcessNode, DrawableProcessModel?>(listOf(builder), this, pedantic)
 //    return builder.buildModel(ownerModel, pedantic)
   }
 
