@@ -17,7 +17,6 @@
 package nl.adaptivity.process.editor.android;
 
 import android.util.Log;
-import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
@@ -35,14 +34,14 @@ public final class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  public static void serializeProcessModel(final OutputStream out, final RootClientProcessModel processModel) throws XmlPullParserException, IOException, XmlException {
+  public static void serializeProcessModel(final OutputStream out, final RootDrawableProcessModel processModel) throws XmlPullParserException, IOException, XmlException {
     final XmlSerializer serializer = getSerializer(out);
     final AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
     processModel.serialize(writer);
     writer.close();
   }
 
-  public static void serializeProcessModel(final Writer out, final RootClientProcessModel processModel) throws XmlPullParserException, IOException, XmlException {
+  public static void serializeProcessModel(final Writer out, final RootDrawableProcessModel processModel) throws XmlPullParserException, IOException, XmlException {
     final XmlSerializer serializer = getSerializer(out);
     final AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
     processModel.serialize(writer);

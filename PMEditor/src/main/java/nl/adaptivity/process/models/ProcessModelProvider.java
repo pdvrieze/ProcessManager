@@ -23,7 +23,6 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
-import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.data.ProcessModelPipeProvider;
 import nl.adaptivity.process.data.ProviderHelper;
@@ -601,7 +600,7 @@ public class ProcessModelProvider extends ContentProvider {
     return drawableProcessModel;
   }
 
-  public static Uri newProcessModel(final Context context, final RootClientProcessModel processModel) throws IOException {
+  public static Uri newProcessModel(final Context context, final RootDrawableProcessModel processModel) throws IOException {
     final CharArrayWriter out = new CharArrayWriter();
     try {
       PMParser.serializeProcessModel(out, processModel);

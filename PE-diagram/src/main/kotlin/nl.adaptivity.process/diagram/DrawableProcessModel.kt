@@ -18,22 +18,35 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.Diagram
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel
+import nl.adaptivity.process.clientProcessModel.RootClientProcessModel
 import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.RootProcessModel
 
 /**
  * Created by pdvrieze on 05/01/17.
  */
-interface DrawableProcessModel : ClientProcessModel, Diagram {
-  interface Builder : ClientProcessModel.Builder {
+interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?>, Diagram {
+  interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?> {
+    var  layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
+
+
     override fun childModelBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
       TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
   }
 
+  var  layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
+
   override val x: Double get() = 0.0
 
   override val y: Double get() = 0.0
+
+
+  override val rootModel: RootDrawableProcessModel?
+
+  @Deprecated("Do this on a builder")
+  fun layout()
 
   fun notifyNodeChanged(node: DrawableProcessNode) = Unit
 }

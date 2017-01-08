@@ -29,46 +29,7 @@ import nl.adaptivity.process.util.*
 import java.security.Principal
 import java.util.*
 
-interface ClientProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?> {
-  interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?> {
-
-  }
-
-  override val rootModel: RootClientProcessModel?
-
-  var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
-
-  fun layout()
-
-}
-
 abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>, MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
-
-  abstract class Builder : RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessModel.Builder {
-    var  layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
-
-    constructor(): this(nodes= mutableSetOf())
-
-    constructor(
-      nodes: MutableSet<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
-      childModels: MutableSet<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
-      name: String? = null,
-      handle: Long = -1L,
-      owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
-      roles: MutableList<String> = mutableListOf<String>(),
-      uuid: UUID? = null,
-      imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
-      exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
-      layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
-      this.layoutAlgorithm = layoutAlgorithm
-    }
-
-    constructor(base: RootProcessModel<*,*>) : super(base) {
-      this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm<DrawableProcessNode>()
-    }
-
-    abstract override fun build(pedantic: Boolean): RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>
-  }
 
   override val rootModel: RootClientProcessModel get() = this
 
@@ -81,7 +42,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
 
   @JvmOverloads
   constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic) {
-    this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+    this.layoutAlgorithm = (builder as? RootDrawableProcessModel.Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 
   var topPadding = 5.0
@@ -111,7 +72,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
 
   abstract fun asNode(id: Identifiable): DrawableProcessNode?
 
-  override abstract fun builder(): Builder
+  override abstract fun builder(): RootDrawableProcessModel.Builder
 
   /**
    * Normalize the process model. By default this may do nothing.

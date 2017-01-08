@@ -36,7 +36,9 @@ import java.util.*
 
 class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
 
-  class Builder : RootClientProcessModel.Builder, DrawableProcessModel.Builder {
+  class Builder : RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel.Builder {
+
+    override var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
     constructor(nodes: MutableSet<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
                 childModels: MutableSet<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
@@ -47,9 +49,13 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
                 uuid: UUID? = null,
                 imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
                 exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
-                layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, layoutAlgorithm) {}
+                layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
+      this. layoutAlgorithm = layoutAlgorithm
+    }
 
-    constructor(base: RootProcessModel<*, *>) : super(base) {}
+    constructor(base: RootProcessModel<*, *>) : super(base) {
+      this.layoutAlgorithm = (base as? DrawableProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
+    }
 
     override fun startNodeBuilder(): DrawableStartNode.Builder {
       return DrawableStartNode.Builder()

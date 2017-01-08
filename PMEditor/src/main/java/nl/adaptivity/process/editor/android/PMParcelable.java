@@ -18,9 +18,9 @@ package nl.adaptivity.process.editor.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import nl.adaptivity.process.clientProcessModel.RootClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
@@ -43,13 +43,13 @@ public class PMParcelable implements Parcelable {
       return new PMParcelable(source);
     }
   };
-  private final RootClientProcessModel mProcessModel;
+  private final RootDrawableProcessModel mProcessModel;
 
   public PMParcelable(final Parcel source) {
     this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
-  public PMParcelable(final RootClientProcessModel processModel) {
+  public PMParcelable(final RootDrawableProcessModel processModel) {
     mProcessModel = processModel;
   }
 
@@ -88,7 +88,7 @@ public class PMParcelable implements Parcelable {
     }
   }
 
-  public RootClientProcessModel getProcessModel() {
+  public RootDrawableProcessModel getProcessModel() {
     return mProcessModel;
   }
 

@@ -41,7 +41,6 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
@@ -995,7 +994,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   }
 
   @Override
-  public ClientProcessModel getProcessModel() {
+  public DrawableProcessModel getProcessModel() {
     return getPm();
   }
 
