@@ -118,7 +118,7 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
   }
 
   @Deprecated("Use builders")
-  override fun setId(id: String) = super.setId(id!!)
+  override fun setId(id: String) = super.setId(id)
   @Deprecated("Use builders")
   override fun setLabel(label: String?) = super.setLabel(label)
   @Deprecated("Use builders")
