@@ -19,7 +19,6 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 import nl.adaptivity.process.clientProcessModel.ClientStartNode
-import nl.adaptivity.process.clientProcessModel.ModelT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STARTNODERADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.IXmlDefineType
@@ -139,7 +138,7 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
 
   override fun setId(id: String) = super.setId(id!!)
   override fun setLabel(label: String?) = super.setLabel(label)
-  override fun setOwnerModel(newOwnerModel: ModelT?) = super.setOwnerModel(newOwnerModel)
+  override fun setOwnerModel(newOwnerModel: DrawableProcessModel??) = super.setOwnerModel(newOwnerModel)
   override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
   override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
   override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)

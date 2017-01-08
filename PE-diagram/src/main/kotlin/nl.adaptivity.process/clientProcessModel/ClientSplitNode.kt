@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import nl.adaptivity.process.diagram.DrawableProcessModel
+import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Split
@@ -30,9 +32,9 @@ import nl.adaptivity.process.util.Identified
 
  * @param <NodeT> The type of ProcessNode used.
 </NodeT> */
-abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: ModelT) : SplitBase<NodeT, ModelT>(builder, newOwnerModel), ClientJoinSplit {
+abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : SplitBase<DrawableProcessNode, DrawableProcessModel?>(builder, newOwnerModel), ClientProcessNode {
 
-  abstract class Builder : SplitBase.Builder<NodeT, ModelT>, ClientJoinSplit.Builder {
+  abstract class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode.Builder {
 
     constructor() {}
 
@@ -49,7 +51,7 @@ abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: Mode
 
     constructor(node: Split<*, *>) : super(node) {}
 
-    abstract override fun build(newOwner: ModelT): ClientSplitNode
+    abstract override fun build(newOwner: DrawableProcessModel?): ClientSplitNode
 
     override var isCompat:Boolean
       get() = false
@@ -72,7 +74,7 @@ abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: Mode
 
   override fun setLabel(label: String?) = super.setLabel(label)
 
-  override fun setOwnerModel(newOwnerModel: ModelT) = super.setOwnerModel(newOwnerModel)
+  override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
 
   override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
 

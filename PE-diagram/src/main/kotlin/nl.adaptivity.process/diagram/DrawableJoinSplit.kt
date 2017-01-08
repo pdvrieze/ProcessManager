@@ -20,16 +20,16 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.*
 import nl.adaptivity.diagram.Canvas.TextPos
 import nl.adaptivity.diagram.Drawable.STATE_TOUCHED
-import nl.adaptivity.process.clientProcessModel.ClientJoinSplit
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIGHT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
+import nl.adaptivity.process.processModel.JoinSplit
 import nl.adaptivity.process.processModel.Split
 
 
-interface DrawableJoinSplit : ClientJoinSplit, DrawableProcessNode {
+interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-  interface Builder : DrawableProcessNode.Builder, ClientJoinSplit.Builder {
+  interface Builder : DrawableProcessNode.Builder, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?> {
 
     override fun build(newOwner: DrawableProcessModel?): DrawableJoinSplit
   }

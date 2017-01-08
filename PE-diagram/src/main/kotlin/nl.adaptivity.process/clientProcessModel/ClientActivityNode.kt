@@ -54,21 +54,21 @@ abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawablePr
     override val isCompat: Boolean
     override var condition: String? = null
 
-    constructor(owner: ModelT, compat: Boolean) : super(owner) {
+    constructor(owner: DrawableProcessModel?, compat: Boolean) : super(owner) {
         isCompat = compat
     }
 
 
-    constructor(owner: ModelT, id: String, compat: Boolean) : super(owner) {
+    constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : super(owner) {
         setId(id)
         isCompat = compat
     }
 
-    protected constructor(orig: Activity<*, *>, newOwnerModel: ModelT, compat: Boolean) : super(builder = orig.builder(), newOwnerModel = newOwnerModel) {
+    protected constructor(orig: Activity<*, *>, newOwnerModel: DrawableProcessModel?, compat: Boolean) : super(builder = orig.builder(), newOwnerModel = newOwnerModel) {
         isCompat = compat
     }
 
-    constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
+    constructor(builder: Activity.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
         if (builder is Builder) {
             isCompat = builder.isCompat
         } else {
@@ -90,7 +90,7 @@ abstract class ClientActivityNode : ActivityBase<DrawableProcessNode, DrawablePr
     override val maxSuccessorCount: Int
         get() = if (isCompat) Integer.MAX_VALUE else 1
 
-    override fun setOwnerModel(newOwnerModel: ModelT) {
+    override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) {
         super.setOwnerModel(newOwnerModel)
     }
 

@@ -34,32 +34,29 @@ import nl.adaptivity.process.util.IdentifyableSet
 import java.security.Principal
 import java.util.*
 
-typealias NodeT = DrawableProcessNode
-typealias ModelT = DrawableProcessModel?
-
-interface ClientProcessModel : ProcessModel<NodeT, ModelT> {
-  interface Builder : ProcessModel.Builder<NodeT, ModelT> {
+interface ClientProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+  interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?> {
 
   }
 
   override val rootModel: RootClientProcessModel?
 
-  var layoutAlgorithm: LayoutAlgorithm<NodeT>
+  var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
   fun layout()
 
 }
 
-abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, MutableRootProcessModel<NodeT, ModelT> {
+abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>, MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
-  abstract class Builder : RootProcessModelBase.Builder<NodeT,ModelT>, ClientProcessModel.Builder {
-    var  layoutAlgorithm: LayoutAlgorithm<NodeT>
+  abstract class Builder : RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessModel.Builder {
+    var  layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
     constructor(): this(nodes= mutableSetOf())
 
     constructor(
-      nodes: MutableSet<ProcessNode.Builder<NodeT, ModelT>> = mutableSetOf(),
-      childModels: MutableSet<ChildProcessModel.Builder<NodeT,ModelT>> = mutableSetOf(),
+      nodes: MutableSet<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
+      childModels: MutableSet<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
       name: String? = null,
       handle: Long = -1L,
       owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
@@ -67,28 +64,28 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
       uuid: UUID? = null,
       imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
       exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
-      layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
+      layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
       this.layoutAlgorithm = layoutAlgorithm
     }
 
     constructor(base: RootProcessModel<*,*>) : super(base) {
-      this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm<NodeT>()
+      this.layoutAlgorithm = (base as? ClientProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm<DrawableProcessNode>()
     }
 
-    abstract override fun build(pedantic: Boolean): RootProcessModelBase<NodeT, ModelT>
+    abstract override fun build(pedantic: Boolean): RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>
   }
 
   override val rootModel: RootClientProcessModel get() = this
 
-  var layoutAlgorithm: LayoutAlgorithm<NodeT>
+  var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
-  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<NodeT> = emptyList(), layoutAlgorithm: LayoutAlgorithm<NodeT> = LayoutAlgorithm<NodeT>(), nodeFactory: NodeFactory<NodeT, ModelT>) :
+  @JvmOverloads constructor(uuid: UUID? = null, name: String? = null, nodes: Collection<DrawableProcessNode> = emptyList(), layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm<DrawableProcessNode>(), nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>) :
     super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
     this.layoutAlgorithm = layoutAlgorithm
   }
 
   @JvmOverloads
-  constructor(builder: RootProcessModelBase.Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic) {
+  constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic) {
     this.layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 
@@ -117,7 +114,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
   var isInvalid = false
     private set
 
-  abstract fun asNode(id: Identifiable): NodeT?
+  abstract fun asNode(id: Identifiable): DrawableProcessNode?
 
   override abstract fun builder(): Builder
 
@@ -125,11 +122,11 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  fun normalize(): ModelT {
+  fun normalize(): DrawableProcessModel? {
     return builder().apply { normalize(false) }.build().asM
   }
 
-  open fun setNodes(nodes: Collection<NodeT>) {
+  open fun setNodes(nodes: Collection<DrawableProcessNode>) {
     super.setModelNodes(IdentifyableSet.processNodeSet(nodes))
     invalidate()
   }
@@ -196,7 +193,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
       return i
     }
 
-  override fun getRef(): IProcessModelRef<NodeT, ModelT, out @JvmWildcard RootClientProcessModel> {
+  override fun getRef(): IProcessModelRef<DrawableProcessNode, DrawableProcessModel?, out @JvmWildcard RootClientProcessModel> {
     throw UnsupportedOperationException("Not implemented")
   }
 
@@ -204,7 +201,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
     return Handles.handle(handleValue)
   }
 
-  fun getNode(nodeId: String): NodeT? {
+  fun getNode(nodeId: String): DrawableProcessNode? {
     for (n in modelNodes) {
       if (nodeId == n.id) {
         return n
@@ -228,7 +225,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
       return result
     }
 
-  override fun addNode(node: NodeT): Boolean {
+  override fun addNode(node: DrawableProcessNode): Boolean {
     if (super.addNode(node)) {
       node.setOwnerModel(asM())
       // Make sure that children can know of the change.
@@ -239,7 +236,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
   }
 
   @Deprecated("Unsafe")
-  override fun setNode(pos: Int, newValue: NodeT): NodeT {
+  override fun setNode(pos: Int, newValue: DrawableProcessNode): DrawableProcessNode {
     val oldValue = setNode(pos, newValue)
 
     newValue.setOwnerModel(asM())
@@ -258,13 +255,13 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
     return oldValue
   }
 
-  override fun removeNode(nodePos: Int): NodeT {
+  override fun removeNode(nodePos: Int): DrawableProcessNode {
     val node = super.removeNode(nodePos)
     disconnectNode(node)
     return node
   }
 
-  override fun removeNode(node: NodeT): Boolean {
+  override fun removeNode(node: DrawableProcessNode): Boolean {
     if (node == null) {
       return false
     }
@@ -275,7 +272,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
     return false
   }
 
-  private fun disconnectNode(node: NodeT) {
+  private fun disconnectNode(node: DrawableProcessNode) {
     node.setPredecessors(emptyList<Identified>())
     node.setSuccessors(emptyList<Identified>())
     notifyNodeChanged(node)
@@ -295,8 +292,8 @@ abstract class RootClientProcessModel : RootProcessModelBase<NodeT, ModelT>, Mut
     }
   }
 
-  private fun toDiagramNodes(modelNodes: Collection<NodeT>): List<DiagramNode<NodeT>> {
-    val nodeMap = HashMap<Identified, DiagramNode<NodeT>>()
+  private fun toDiagramNodes(modelNodes: Collection<DrawableProcessNode>): List<DiagramNode<DrawableProcessNode>> {
+    val nodeMap = HashMap<Identified, DiagramNode<DrawableProcessNode>>()
     val result = modelNodes.map { node  ->
       DiagramNode(node).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
     }

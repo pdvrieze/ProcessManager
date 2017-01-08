@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.clientProcessModel
 
+import nl.adaptivity.process.diagram.DrawableProcessModel
+import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
 import nl.adaptivity.process.processModel.IXmlDefineType
@@ -24,9 +26,9 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
 
-open class ClientEndNode : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, ClientProcessNode {
+open class ClientEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, EndNode<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode {
 
-    open class Builder : EndNodeBase.Builder<NodeT, ModelT>, ClientProcessNode.Builder {
+    open class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, ClientProcessNode.Builder {
 
         constructor()
 
@@ -40,7 +42,7 @@ open class ClientEndNode : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, C
 
         constructor(node: EndNode<*, *>) : super(node)
 
-        override fun build(newOwner: ModelT): ClientEndNode {
+        override fun build(newOwner: DrawableProcessModel?): ClientEndNode {
             return ClientEndNode(this, newOwner)
         }
 
@@ -52,13 +54,13 @@ open class ClientEndNode : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, C
 
     }
 
-    constructor(ownerModel: ModelT) : super(Builder(), ownerModel)
+    constructor(ownerModel: DrawableProcessModel?) : super(Builder(), ownerModel)
 
-    constructor(ownerModel: ModelT, id: String) : super(Builder(id), ownerModel)
+    constructor(ownerModel: DrawableProcessModel?, id: String) : super(Builder(id), ownerModel)
 
-    protected constructor(orig: EndNode<*, *>, newOwnerModel: ModelT) : super(orig.builder(), newOwnerModel)
+    protected constructor(orig: EndNode<*, *>, newOwnerModel: DrawableProcessModel?) : super(orig.builder(), newOwnerModel)
 
-    constructor(builder: EndNode.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
+    constructor(builder: EndNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel)
 
     override fun builder() = Builder(this)
 
@@ -69,7 +71,7 @@ open class ClientEndNode : EndNodeBase<NodeT, ModelT>, EndNode<NodeT, ModelT>, C
 
     override fun setLabel(label: String?) = super.setLabel(label)
 
-    override fun setOwnerModel(newOwnerModel: ModelT) = super.setOwnerModel(newOwnerModel)
+    override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
 
     override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
 
