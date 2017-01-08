@@ -72,7 +72,7 @@ public class EndpointDescriptorImpl implements EndpointDescriptor, XmlSerializab
   }
 
   @Override
-  public boolean deserializeChild(final XmlReader in) throws XmlException {
+  public boolean deserializeChild(@NotNull final XmlReader reader) {
     return false; // No children
   }
 

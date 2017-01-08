@@ -41,7 +41,7 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
   }
 
   @Override
-  public boolean deserializeChild(final XmlReader in) throws XmlException {
+  public boolean deserializeChild(@NotNull final XmlReader reader) {
     return false;
   }
 
