@@ -32,7 +32,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.*
 
 
-open class DrawableActivity : DrawableActivity, DrawableProcessNode {
+open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
   class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
