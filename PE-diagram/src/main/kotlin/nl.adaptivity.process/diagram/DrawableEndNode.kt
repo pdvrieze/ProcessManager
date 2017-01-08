@@ -17,23 +17,25 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.clientProcessModel.ClientEndNode
+import nl.adaptivity.process.clientProcessModel.ClientProcessNode
 import nl.adaptivity.process.diagram.ProcessThemeItems.ENDNODEOUTERLINE
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEINNERRRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERSTROKEWIDTH
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.EndNodeBase
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableEndNode : ClientEndNode, DrawableProcessNode {
+class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-  class Builder : ClientEndNode.Builder, DrawableProcessNode.Builder {
+  class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, ClientProcessNode.Builder {
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -48,6 +50,12 @@ class DrawableEndNode : ClientEndNode, DrawableProcessNode {
 
     override var state: Int
 
+    override var isCompat: kotlin.Boolean
+        get() = false
+        set(compat) {
+            if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
+        }
+
     constructor(node: EndNode<*, *>) : super(node) {
       this.state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
     }
@@ -58,18 +66,23 @@ class DrawableEndNode : ClientEndNode, DrawableProcessNode {
   private var state = Drawable.STATE_DEFAULT
 
   override val idBase: String get() = IDBASE
+  override val isCompat: Boolean
+    get() = false
 
-  constructor(ownerModel: DrawableProcessModel) : super(ownerModel) {}
+  @Deprecated("Use the builder")
+  constructor(ownerModel: DrawableProcessModel) : this(Builder(), ownerModel) {}
 
-  constructor(ownerModel: DrawableProcessModel, id: String) : super(ownerModel, id) {}
+  @Deprecated("Use the builder")
+  constructor(ownerModel: DrawableProcessModel, id: String) : this(Builder(id=id), ownerModel) {}
 
-  constructor(orig: EndNode<*, *>) : super(orig, null) {
-    if (orig is DrawableEndNode) {
-      state = orig.state
+  @Deprecated("Use the builder")
+  constructor(orig: EndNode<*, *>) : this(Builder(orig), null)
+
+  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel!!) {
+    if (builder is Builder) {
+      state = builder.state
     }
   }
-
-  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel!!) {}
 
   override fun builder(): Builder {
     return Builder(this)
@@ -132,6 +145,16 @@ class DrawableEndNode : ClientEndNode, DrawableProcessNode {
       top: Double) {
     defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
+
+  override fun setId(id: String) = super.setId(id)
+  override fun setLabel(label: String?) = super.setLabel(label)
+  override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
+  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
 

@@ -21,10 +21,7 @@ import net.devrieze.util.Handles
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.diagram.Bounded
-import nl.adaptivity.process.diagram.DiagramNode
-import nl.adaptivity.process.diagram.DrawableProcessModel
-import nl.adaptivity.process.diagram.DrawableProcessNode
-import nl.adaptivity.process.diagram.LayoutAlgorithm
+import nl.adaptivity.process.diagram.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
@@ -214,12 +211,12 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
     this.owner = SimplePrincipal(owner)
   }
 
-  val startNodes: Collection<ClientStartNode>
+  val startNodes: Collection<DrawableStartNode>
     get() {
-      val result = ArrayList<ClientStartNode>()
+      val result = ArrayList<DrawableStartNode>()
       for (n in modelNodes) {
-        if (n is ClientStartNode) {
-          result.add(n as ClientStartNode)
+        if (n is DrawableStartNode) {
+          result.add(n as DrawableStartNode)
         }
       }
       return result
