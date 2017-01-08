@@ -19,7 +19,6 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.*
 import nl.adaptivity.diagram.Canvas.TextPos
 import nl.adaptivity.process.ProcessConsts.Endpoints
-import nl.adaptivity.process.clientProcessModel.ClientActivityNode
 import nl.adaptivity.process.diagram.ProcessThemeItems.*
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITYHEIGHT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITYROUNDX
@@ -27,19 +26,15 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITY
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITYWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.copyProcessNodeAttrs
-import nl.adaptivity.process.processModel.Activity
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.XmlMessage
+import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
+import nl.adaptivity.xml.*
 
 
-open class DrawableActivity : ClientActivityNode, DrawableProcessNode {
+open class DrawableActivity : DrawableActivity, DrawableProcessNode {
 
-  class Builder : ClientActivityNode.Builder, DrawableProcessNode.Builder {
+  class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -53,15 +48,18 @@ open class DrawableActivity : ClientActivityNode, DrawableProcessNode {
                 condition: String? = null,
                 name: String? = null,
                 stateP: DrawableState = Drawable.STATE_DEFAULT,
-                compat: Boolean = false) : super(id, predecessor, successor, label, x, y, defines, results, message,
-                                                        condition, name, compat) {
+                compat: Boolean = false) : super(id, predecessor, successor, label, defines, results, message,
+                                                        condition, name, x, y) {
       this.state = stateP
+      this.isCompat = compat
     }
 
     override var state: DrawableState
+    override var isCompat = false
 
     constructor(node: Activity<*, *>) : super(node) {
       state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+      isCompat = (node as? DrawableProcessNode)?.isCompat ?: false
     }
 
     override fun build(newOwner: DrawableProcessModel?): DrawableActivity {
@@ -71,6 +69,22 @@ open class DrawableActivity : ClientActivityNode, DrawableProcessNode {
   }
 
   private var state = Drawable.STATE_DEFAULT
+
+  val isBodySpecified: Boolean
+    get() = message != null
+
+  val isUserTask: Boolean
+    get() {
+      val message = XmlMessage.get(message)
+      return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.endpointDescriptor)
+    }
+
+  val isService: Boolean
+    get() = isBodySpecified && !isUserTask
+  override val isCompat: Boolean
+  override var condition: String? = null
+  override val maxSuccessorCount: Int
+    get() = if (isCompat) Integer.MAX_VALUE else 1
 
   override fun getState(): Int {
     return state
@@ -84,17 +98,23 @@ open class DrawableActivity : ClientActivityNode, DrawableProcessNode {
     ownerModel?.notifyNodeChanged(this)
   }
 
-  @JvmOverloads constructor(owner: DrawableProcessModel?, compat: Boolean = false) : super(owner, compat) {}
+  @Deprecated("Use the builder")
+  @JvmOverloads constructor(owner: DrawableProcessModel?, compat: Boolean = false) : this(Builder(compat = compat),owner)
 
-  constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : super(owner, id, compat) {}
+  @Deprecated("Use the builder")
+  constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, compat = compat),owner)
 
-  constructor(orig: Activity<*, *>, compat: Boolean) : super(orig, null, compat) {
+  @Deprecated("Use the builder")
+  constructor(orig: Activity<*, *>, compat: Boolean) : this(Builder(orig).apply { isCompat=compat }, null)  {
     if (orig is DrawableActivity) {
       state = orig.state
     }
   }
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {}
+  constructor(builder: Activity.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+    isCompat = (builder as? Builder)?.isCompat ?: false
+    state = (builder as? Builder)?.state ?: Drawable.STATE_DEFAULT
+  }
 
   override fun builder(): Builder {
     return Builder(this)
@@ -164,17 +184,28 @@ open class DrawableActivity : ClientActivityNode, DrawableProcessNode {
            ?: "<$id>".apply { textPen.isTextItalics = true }
   }
 
-  val isBodySpecified: Boolean
-    get() = message != null
-
-  val isUserTask: Boolean
-    get() {
-      val message = XmlMessage.get(message)
-      return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.endpointDescriptor)
+  override fun setId(id: String) = super.setId(id)
+  override fun setLabel(label: String?) = super.setLabel(label)
+  @Throws(XmlException::class)
+  override fun serializeCondition(out: XmlWriter) {
+    if (!condition.isNullOrEmpty()) {
+      out.writeSimpleElement(Condition.ELEMENTNAME, condition)
     }
+  }
 
-  val isService: Boolean
-    get() = isBodySpecified && !isUserTask
+  override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
+
+  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+
+  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+
+  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+
+  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+
+  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+
+  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
 
