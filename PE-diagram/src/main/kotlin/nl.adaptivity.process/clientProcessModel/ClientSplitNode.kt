@@ -67,9 +67,6 @@ abstract class ClientSplitNode(builder: Split.Builder<*, *>, newOwnerModel: Draw
   override val maxSuccessorCount: Int
     get() = Integer.MAX_VALUE
 
-  override val isCompat: Boolean
-    get() = false
-
   override fun setId(id: String) = super.setId(id)
 
   override fun setLabel(label: String?) = super.setLabel(label)

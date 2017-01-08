@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.clientProcessModel.ClientJoinNode
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.ARROWCONTROLRATIO
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_X
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
@@ -25,20 +24,20 @@ import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CURVED_ARROWS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIGHT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.Join
+import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableJoin : ClientJoinNode, Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
+class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
 
-  class Builder : ClientJoinNode.Builder, DrawableJoinSplit.Builder {
+  class Builder : JoinBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
 
     override var state: DrawableState
+    override var isCompat: kotlin.Boolean = false
 
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
@@ -51,13 +50,15 @@ class DrawableJoin : ClientJoinNode, Join<DrawableProcessNode, DrawableProcessMo
                 min: Int = 1,
                 max: Int = -1,
                 state: DrawableState = Drawable.STATE_DEFAULT,
-                compat: Boolean = false) : super(id, predecessors, successor, label, x, y,
-                                                        defines, results, min, max, compat) {
+                compat: Boolean = false) : super(id, predecessors, successor, label, defines, results,
+                                                 x, y, min, max) {
+      this.isCompat = compat
       this.state = state
     }
 
     constructor(node: Join<*, *>) : super(node) {
       state = (node as? Drawable)?.state ?: Drawable.STATE_DEFAULT
+      isCompat = (node as? DrawableProcessNode)?.isCompat ?: false
     }
 
     override fun build(newOwner: DrawableProcessModel?) = DrawableJoin(this, newOwner)
@@ -65,20 +66,20 @@ class DrawableJoin : ClientJoinNode, Join<DrawableProcessNode, DrawableProcessMo
 
   override val _delegate: DrawableJoinSplitDelegate
 
-  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : super(ownerModel, compat) {
-    _delegate = DrawableJoinSplitDelegate()
-  }
+  override val maxSuccessorCount: Int
+    get() = if (isCompat) Integer.MAX_VALUE else 1
 
-  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean) : super(ownerModel, id, compat) {
-    _delegate = DrawableJoinSplitDelegate()
-  }
+  @Deprecated("Use builders")
+  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : this(Builder(compat = compat), ownerModel)
 
-  constructor(orig: DrawableJoin, newOwner: DrawableProcessModel?, compat: Boolean) : super(orig, newOwner, compat) {
-    _delegate = DrawableJoinSplitDelegate(orig._delegate)
-  }
+  @Deprecated("Use builders")
+  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, compat=compat), ownerModel)
+
+  @Deprecated("Use builders")
+  constructor(orig: DrawableJoin, newOwner: DrawableProcessModel?, compat: Boolean) : this(Builder(orig).apply { isCompat = compat }, newOwner)
 
   constructor(builder: Join.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
-    _delegate = DrawableJoinSplitDelegate()
+    _delegate = DrawableJoinSplitDelegate(builder)
   }
 
   override fun builder(): Builder {
@@ -122,6 +123,16 @@ class DrawableJoin : ClientJoinNode, Join<DrawableProcessNode, DrawableProcessMo
       canvas.drawPath(path, linePen, null)
     }
   }
+
+  override fun setId(id: String) = super.setId(id)
+  override fun setLabel(label: String?) = super.setLabel(label)
+  override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
+  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
+  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
+  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
+  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
+  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
+  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
 

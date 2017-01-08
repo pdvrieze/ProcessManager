@@ -38,7 +38,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModel
                 min: Int = -1,
                 max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, min, max, x, y)
+                y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, x, y, min, max)
     constructor(node: Join<*, *>) : super(node)
 
     override fun build(newOwner: ExecutableModelCommon) = ExecutableJoin(this, newOwner as ExecutableModelCommon)

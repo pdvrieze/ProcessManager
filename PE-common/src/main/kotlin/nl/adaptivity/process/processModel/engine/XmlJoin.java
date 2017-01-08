@@ -40,7 +40,7 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlModelCommon> implements 
     }
 
     public Builder(@NotNull final Collection<? extends Identified> predecessors, @NotNull final Identified successor, @Nullable final String id, @Nullable final String label, final double x, final double y, @NotNull final Collection<? extends IXmlDefineType> defines, @NotNull final Collection<? extends IXmlResultType> results, final int min, final int max) {
-      super(id, predecessors, successor, label, defines, results, min, max, x, y);
+      super(id, predecessors, successor, label, defines, results, x, y, min, max);
     }
 
     @NotNull

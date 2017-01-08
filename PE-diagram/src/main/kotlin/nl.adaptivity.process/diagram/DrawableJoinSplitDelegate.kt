@@ -16,21 +16,16 @@
 
 package nl.adaptivity.process.diagram
 
+import nl.adaptivity.diagram.Drawable
 import nl.adaptivity.diagram.Drawable.STATE_DEFAULT
 import nl.adaptivity.diagram.ItemCache
+import nl.adaptivity.process.processModel.ProcessNode
 
 
-class DrawableJoinSplitDelegate {
+class DrawableJoinSplitDelegate(builder: ProcessNode.Builder<*, *>) {
 
   val itemCache = ItemCache()
-  var state: Int = 0
-
-  constructor() {
-    this.state = STATE_DEFAULT
-  }
-
-  constructor(orig: DrawableJoinSplitDelegate) {
-    state = orig.state
-  }
+  var state: Int = (builder as? Drawable)?.state ?: STATE_DEFAULT
+  var isCompat: Boolean = (builder as? DrawableProcessNode.Builder)?.isCompat ?: false
 
 }

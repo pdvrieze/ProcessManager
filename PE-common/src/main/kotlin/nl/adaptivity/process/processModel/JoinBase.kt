@@ -38,11 +38,11 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
                 successor: Identified? = null, label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
-                min: Int = -1,
-                max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
-                                                y, min, max)
+                y: Double = Double.NaN,
+                min: Int = -1,
+                max: Int = -1) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
+                                              y, min, max)
 
     constructor(node: Join<*, *>) : super(node)
 

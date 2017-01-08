@@ -64,20 +64,12 @@ class DrawableSplit : ClientSplitNode, Split<DrawableProcessNode, DrawableProces
 
   override val _delegate : DrawableJoinSplitDelegate
 
-  constructor(ownerModel: DrawableProcessModel?) : super(Builder(), ownerModel) {
-    _delegate = DrawableJoinSplitDelegate()
-  }
+  constructor(ownerModel: DrawableProcessModel?) : this(Builder(), ownerModel)
 
-  constructor(orig: Split<*, *>) : super(orig.builder(), null) {
-    if (orig is DrawableSplit) {
-      _delegate = DrawableJoinSplitDelegate(orig._delegate)
-    } else {
-      _delegate = DrawableJoinSplitDelegate()
-    }
-  }
+  constructor(orig: Split<*, *>) : this(orig.builder(), null)
 
   constructor(builder: Split.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
-    _delegate = DrawableJoinSplitDelegate()
+    _delegate = DrawableJoinSplitDelegate(builder)
   }
 
   override fun builder(): Builder {

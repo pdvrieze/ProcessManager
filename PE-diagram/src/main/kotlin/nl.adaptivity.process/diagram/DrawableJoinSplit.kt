@@ -40,6 +40,8 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
 
   val maxSiblings: Int get() = if (this is Split<*,*>) successors.size else predecessors.size
 
+  override val isCompat: Boolean get() = _delegate.isCompat
+
   /** Determine whether the node represents an or split.  */
   fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings
 
