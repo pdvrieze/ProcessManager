@@ -141,27 +141,11 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  override fun provideTask(engineData: MutableProcessEngineDataAccess,
+  override fun provideTask(engineData: ProcessEngineDataAccess,
                            processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
 
-    fun <V> doProvideMessageTask(messageService: IMessageService<V>): Boolean {
-      // TODO handle imports
-      val preparedMessage = messageService.createMessage(message)
-      try {
-        if (!messageService.sendMessage(engineData, preparedMessage, instance)) {
-          instance.failTaskCreation(engineData, processInstance, MessagingException("Failure to send message"))
-        }
-      } catch (e: RuntimeException) {
-        instance.failTaskCreation(engineData, processInstance, e)
-        throw e
-      }
-
-      return false
-
-    }
-
     return childModel.let { when (it) {
-      null -> doProvideMessageTask(engineData.messageService())
+      null -> false // The instance will take care of this
       else -> true // Let the instance create the process
     }}
 

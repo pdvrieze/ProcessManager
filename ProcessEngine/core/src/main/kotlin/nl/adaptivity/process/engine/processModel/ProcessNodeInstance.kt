@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
+import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
@@ -26,6 +27,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
@@ -254,14 +256,22 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   @Throws(SQLException::class)
   open fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
 
+    val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
+
     fun <MSG_T> impl(messageService: IMessageService<MSG_T>):PNIPair<ProcessNodeInstance> {
 
       val shouldProgress = tryCreate(engineData, processInstance) {
         node.provideTask(engineData, processInstance, this)
       }
 
-      val pniPair = run {
-        // TODO, get the updated state out of provideTask
+      if (node is ExecutableActivity) {
+        val preparedMessage = messageService.createMessage(node.message)
+        if (! tryCreate(engineData, processInstance) { messageService.sendMessage(engineData, preparedMessage, this) }) {
+          failTaskCreation(engineData, processInstance, MessagingException("Failure to send message"))
+        }
+      }
+
+      val pniPair = run { // Unfortunately sendMessage will invalidate the current instance
         val newInstance = engineData.instance(hProcessInstance).withPermission()
         val newNodeInstance = engineData.nodeInstance(handle).withPermission()
         newNodeInstance.update(engineData, newInstance) { state = NodeInstanceState.Sent }.apply { engineData.commit() }

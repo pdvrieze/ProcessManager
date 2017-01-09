@@ -57,7 +57,7 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = ConditionResult.TRUE
 
   @Throws(SQLException::class)
-  override fun provideTask(engineData: MutableProcessEngineDataAccess,
+  override fun provideTask(engineData: ProcessEngineDataAccess,
                            processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
     return true
   }

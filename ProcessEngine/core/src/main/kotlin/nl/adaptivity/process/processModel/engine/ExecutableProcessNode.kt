@@ -91,7 +91,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * @return `true` if the task can/must be automatically taken
    */
   @Throws(SQLException::class)
-  fun provideTask(engineData: MutableProcessEngineDataAccess,
+  fun provideTask(engineData: ProcessEngineDataAccess,
                   processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean = true
 
   /**
