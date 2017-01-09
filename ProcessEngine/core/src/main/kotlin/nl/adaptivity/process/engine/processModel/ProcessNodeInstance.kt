@@ -31,6 +31,7 @@ import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
+import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import java.io.CharArrayWriter
 import java.security.Principal
 import java.sql.SQLException
@@ -255,17 +256,10 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
     fun <MSG_T> impl(messageService: IMessageService<MSG_T>):PNIPair<ProcessNodeInstance> {
 
-      val shouldProgress = try {
+      val shouldProgress = tryCreate(engineData, processInstance) {
         node.provideTask(engineData, processInstance, this)
-      } catch (e: Exception) {
-        // TODO later move failretry to fail
-        try {
-          failTaskCreation(engineData, engineData.instance(processInstance.getHandle()).withPermission(), e)
-        } catch (f:Exception) {
-          e.addSuppressed(f)
-        }
-        throw e
       }
+
       val pniPair = run {
         // TODO, get the updated state out of provideTask
         val newInstance = engineData.instance(hProcessInstance).withPermission()
@@ -284,7 +278,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   @Throws(SQLException::class)
   open fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
-    val startNext = node.startTask(this)
+    val startNext = tryTask(engineData, processInstance) { node.startTask(this) }
     val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Started }
     return if (startNext) {
       updatedInstances.instance.finishTask(engineData, updatedInstances.node, null)
@@ -459,6 +453,31 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     result = 31 * result + directPredecessors.hashCode()
     result = 31 * result + owner.hashCode()
     return result
+  }
+
+  protected inline fun <R> tryCreate(engineData: MutableProcessEngineDataAccess,
+                           processInstance: ProcessInstance,
+                           body: () -> R): R =
+    _tryHelper(engineData, processInstance, body) { d, i, e -> failTaskCreation(d, i, e) }
+
+  protected inline fun <R> tryTask(engineData: MutableProcessEngineDataAccess,
+                         processInstance: ProcessInstance,
+                         body: () -> R): R = _tryHelper(engineData, processInstance, body) { d, i, e -> failTask(d, i, e) }
+
+  @PublishedApi
+  internal inline fun <R> _tryHelper(engineData: MutableProcessEngineDataAccess,
+                                     processInstance: ProcessInstance,
+                                     body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception)->Unit): R {
+    return try {
+      body()
+    } catch (e: Exception) {
+      try {
+        failHandler(engineData, processInstance, e)
+      } catch (f: Exception) {
+        e.addSuppressed(f)
+      }
+      throw e
+    }
   }
 
   companion object {

@@ -16,13 +16,16 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.ComparableHandle
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.security.SecureObject
 import net.devrieze.util.toMutableArraySet
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -99,7 +102,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     }
   }
 
-
+  override val childModel: ExecutableChildModel? get() = super.childModel?.let { it as ExecutableChildModel }
   private var _condition: ExecutableCondition?
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
@@ -118,6 +121,12 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    */
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult {
     return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
+  }
+
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                                     processInstance: ProcessInstance,
+                                     predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): ProcessNodeInstance {
+    return processInstance.getNodeInstance(this) ?: if(childModel==null) ProcessNodeInstance(this, predecessor, processInstance) else CompositeInstance(this, predecessor, processInstance)
   }
 
   /**
@@ -151,8 +160,11 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
 
     }
 
+    return childModel.let { when (it) {
+      null -> doProvideMessageTask(engineData.messageService())
+      else -> true // Let the instance create the process
+    }}
 
-    return doProvideMessageTask(engineData.messageService())
   }
 
   /**

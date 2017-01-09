@@ -80,7 +80,11 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   }
 
-  data class PNIPair<out T: IProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T)
+  data class PNIPair<out T: ProcessNodeInstance>(val instance:ProcessInstance, val node: T) {
+    @Suppress("UNCHECKED_CAST")
+    fun startTask(engineData: MutableProcessEngineDataAccess): PNIPair<T> = node.startTask(engineData, instance) as PNIPair<T>
+    fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?=null): PNIPair<T> = node.finishTask(engineData, instance, resultPayload) as PNIPair<T>
+  }
 
   class InstanceFuture<T:ProcessNodeInstance>(internal val orig: T, val store:Boolean) : Future<T> {
     private var cancelled = false
@@ -331,18 +335,23 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   constructor(data: MutableProcessEngineDataAccess,
               processModel: ExecutableModelCommon,
-              parentActivity: ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+              parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance>>,
               body: Builder.() -> Unit) : this(data, BaseBuilder(processModel=processModel, parentActivity = parentActivity).apply(body))
 
   override fun withPermission() = this
 
-  @Synchronized @Throws(SQLException::class)
-  fun initialize(transaction: ProcessTransaction):ProcessInstance {
+  @Suppress("NOTHING_TO_INLINE")
+  @Deprecated("Use data access", ReplaceWith("initialize(transaction.writableEngineData)"))
+  inline fun initialize(transaction: ProcessTransaction) = initialize(transaction.writableEngineData)
+
+  @Throws(SQLException::class)
+  @Synchronized
+  fun initialize(engineData: MutableProcessEngineDataAccess): ProcessInstance {
     if (state != State.NEW || active.isNotEmpty()) {
       throw IllegalStateException("The instance already appears to be initialised")
     }
 
-    return update(transaction.writableEngineData ) {
+    return update(engineData) {
       (processModel as ExecutableProcessModel).startNodes.forEach { node ->
         addChild(node.createOrReuseInstance(this@ProcessInstance))
       }
@@ -441,15 +450,18 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun start(transaction: ProcessTransaction, messageService: IMessageService<*>, payload: Node?):ProcessInstance {
-    return (if (state == null) { initialize(transaction) } else this)
-        .update(transaction.writableEngineData) { state = State.STARTED; inputs.addAll(processModel.toInputs(payload)) }
-        .let { self ->
-          self.active.asSequence()
-              .map { transaction.readableEngineData.nodeInstance(it).withPermission() }
-              .filter { !it.state.isFinal }
-              .fold(self) { self, task -> task.provideTask(transaction.writableEngineData, self).instance }
-        }
+  @Deprecated("Use data access", ReplaceWith("start(transaction.writableEngineData, messageService, payload)"))
+  inline fun start(transaction: ProcessTransaction, messageService: IMessageService<*>, payload: Node?=null) = start(transaction.writableEngineData, payload)
+
+  fun start(engineData: MutableProcessEngineDataAccess, payload: Node? = null): ProcessInstance {
+    return (if (state == State.NEW) initialize(engineData) else this)
+      .update(engineData) { state = State.STARTED; inputs.addAll(processModel.toInputs(payload)) }
+      .run { // need run as the this needs to be captured at fold
+        active.asSequence()
+          .map { engineData.nodeInstance(it).withPermission() }
+          .filter { !it.state.isFinal }
+          .fold(this) { self, task -> task.provideTask(engineData, self).instance }
+      }
   }
 
   @Synchronized @Throws(SQLException::class)

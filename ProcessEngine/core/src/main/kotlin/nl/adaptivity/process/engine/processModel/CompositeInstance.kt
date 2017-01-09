@@ -22,10 +22,16 @@ import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.process.processModel.engine.ExecutableChildModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import org.w3c.dom.DocumentFragment
 import java.security.Principal
+import javax.swing.text.Document
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Created by pdvrieze on 09/01/17.
@@ -39,7 +45,7 @@ class CompositeInstance : ProcessNodeInstance {
                 childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
                 owner: Principal,
                 handle: ComparableHandle<SecureObject<ProcessNodeInstance>>,
-                state: IProcessNodeInstance.NodeInstanceState) : super(node, predecessors, hProcessInstance, owner,
+                state: NodeInstanceState) : super(node, predecessors, hProcessInstance, owner,
                                                                                                                  handle, state)
   }
 
@@ -47,14 +53,14 @@ class CompositeInstance : ProcessNodeInstance {
 
     override var node: ExecutableProcessNode by overlay { base.node }
 
-    var childInstance: ComparableHandle<SecureObject<ProcessInstance>> = base.childInstance
+    var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = base.hChildInstance
 
     override fun build(): CompositeInstance {
       return CompositeInstance(this)
     }
   }
 
-  val childInstance: ComparableHandle<SecureObject<ProcessInstance>>
+  val hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
 
   override val node: ExecutableActivity get() = super.node as ExecutableActivity
 
@@ -63,11 +69,11 @@ class CompositeInstance : ProcessNodeInstance {
               processInstance: ProcessInstance,
               childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, predecessor,
                                                                                       processInstance) {
-    this.childInstance = childInstance
+    this.hChildInstance = childInstance
   }
 
   constructor(builder: ExtBuilder) : super(builder) {
-    childInstance = builder.childInstance
+    hChildInstance = builder.hChildInstance
   }
 
   override fun builder() = ExtBuilder(this)
@@ -78,11 +84,59 @@ class CompositeInstance : ProcessNodeInstance {
     return super.update(writableEngineData, instance, { (this as ExtBuilder).body() })
   }
 
-  fun withChildInstance(engineData: MutableProcessEngineDataAccess, childHandle: ComparableHandle<SecureObject<ProcessInstance>>): CompositeInstance {
-    // In this case we know that the child handle is not actually stored in the node instance as the reference is the other way around
-    // As such this method hacks to not update the process instance
-    return builder().apply { this.childInstance = childHandle }.build().apply { (engineData.nodeInstances as MutableHandleMap)[getHandle()]=this }
+  override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
+    val shouldProgress = tryCreate(engineData, processInstance) {
+      node.provideTask(engineData, processInstance, this)
+    }
+    val pniPair = tryCreate(engineData, processInstance) {
+      val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel!!, getHandle()) {})
+      updateComposite(engineData, processInstance) {
+        state = NodeInstanceState.Sent
+        hChildInstance = childHandle
+      }
+    }
+    return when {
+      shouldProgress -> pniPair.startTask(engineData)
+      else           -> pniPair
+    }
   }
 
+  override fun startTask(engineData: MutableProcessEngineDataAccess,
+                         processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
+    val shouldProgress = tryTask(engineData, processInstance) {
+      node.startTask(this)
+    }
+    val pniPair = tryTask(engineData, processInstance) {
+      engineData.instance(hChildInstance)
+        .withPermission()
+        .start(engineData, getPayload(engineData))
+      update(engineData, processInstance) {
+        state = NodeInstanceState.Started
+      }
+    }
+    return when {
+      shouldProgress -> pniPair.finishTask(engineData, null)
+      else -> pniPair
+    }
+  }
 
+  fun getPayload(engineData: ProcessEngineDataAccess):DocumentFragment? {
+    val defines = getDefines(engineData)
+    if (defines.isEmpty()) return null
+
+    val doc = DocumentBuilderFactory
+      .newInstance()
+      .apply { isNamespaceAware=true }
+      .newDocumentBuilder()
+      .newDocument()
+
+    val frag = doc.createDocumentFragment()
+
+    for (data in defines) {
+      val owner = doc.createElement(data.name)
+      owner.appendChild(doc.adoptNode(data.contentFragment))
+    }
+
+    return frag
+  }
 }
