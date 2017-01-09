@@ -395,7 +395,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
           assertEquals(NodeInstanceState.Complete, nodeInstance.state)
         }
         dsl.test("$nodeId should be part of the completion nodes") {
-          assertTrue(dsl.instance.completedNodeInstances.any { it.node.id==nodeId }) { "Instance is: ${dsl.instance.toDebugString()}" }
+          assertTrue(dsl.instance.completedNodeInstances.any { it.withPermission().node.id==nodeId }) { "Instance is: ${dsl.instance.toDebugString()}" }
         }
       }
       is Join<*, *> -> dsl.test("Join $nodeId should already be finished") {
@@ -510,7 +510,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
 internal fun ProcessInstance.toDebugString():String {
   return buildString {
     append("process(")
-    append(processModel.getName())
+    append(processModel.rootModel.getName())
     name?.let {
       append(", instance: ")
       append(it)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,17 +14,16 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util
+package nl.adaptivity.process.util
 
-/**
- * @param  Type parameter that should help with compile time handle differentiation
+import net.devrieze.util.Handle
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.writeAttribute
+
+/*
+ * Some additional utilities for process model xml
  */
-interface Handle<out T: @JvmWildcard Any?> {
 
-  val handleValue: Long
-  val valid:Boolean get() = handleValue>=0
-}
-
-interface ComparableHandle<out T> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
-  override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>) = handleValue.compareTo(other.handleValue)
+fun XmlWriter.writeHandleAttr(name: String, handle: Handle<*>) {
+  if (handle.valid) attribute(null, name, null, handle.handleValue.toString())
 }

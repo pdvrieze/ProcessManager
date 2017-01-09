@@ -184,16 +184,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     }
   }
 
-  /**
-   * Faster method that doesn't require an [intermediate][nl.adaptivity.process.util.Identifier]
-   * @param nodeId
-   * *
-   * @return
-   */
-  fun getNode(nodeId: String): XmlProcessNode? {
-    return getNode(Identifier(nodeId))
-  }
-
   fun toInputs(payload: Node): List<ProcessData> {
     // TODO make this work properly
     val imports = getImports()

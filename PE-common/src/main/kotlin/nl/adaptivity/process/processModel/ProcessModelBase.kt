@@ -173,6 +173,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     return _processNodes.get(nodeId)
   }
 
+  open fun getNode(nodeId: String) = _processNodes.get(nodeId)
+
   fun getNode(pos: Int): NodeT {
     return _processNodes[pos]
   }

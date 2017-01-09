@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
+import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
@@ -23,6 +24,7 @@ import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
@@ -42,6 +44,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
   companion object {
     private val tbl_pni = ProcessEngineDB.processNodeInstances
+    private val tbl_pi = ProcessEngineDB.processInstances
     private val tbl_pred = ProcessEngineDB.pnipredecessors
     private val tbl_nd = ProcessEngineDB.nodedata
     const val FAILURE_CAUSE = "failureCause"
@@ -60,10 +63,10 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
   override fun create(transaction: ProcessDBTransaction,
              columns: List<Column<*, *, *>>,
              values: List<Any?>): ProcessNodeInstance.Builder<out ExecutableProcessNode> {
-    val pnihandle = Handles.handle<ProcessNodeInstance>(tbl_pni.pnihandle.value(columns, values)!!)
-    val nodeId = tbl_pni.nodeid.value(columns, values)!!
-    val pihandle = Handles.handle<ProcessInstance>(tbl_pni.pihandle.value(columns, values)!!)
-    val state = tbl_pni.state.value(columns, values)!!.let { IProcessNodeInstance.NodeInstanceState.valueOf(it) }
+    val pnihandle = Handles.handle<ProcessNodeInstance>(tbl_pni.pnihandle.value(columns, values))
+    val nodeId = tbl_pni.nodeid.value(columns, values)
+    val pihandle = Handles.handle<ProcessInstance>(tbl_pni.pihandle.value(columns, values))
+    val state = tbl_pni.state.value(columns, values).let { IProcessNodeInstance.NodeInstanceState.valueOf(it) }
 
     val processInstance = processEngine.getProcessInstance(transaction, pihandle, SecurityProvider.SYSTEMPRINCIPAL)
 
@@ -76,7 +79,15 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .map { it?.let { Handles.handle<ProcessNodeInstance>(it)} }
           .requireNoNulls()
 
-    return if (node is ExecutableJoin) {
+    return if (node is ExecutableActivity && node.childModel!=null) {
+      val childInstance = ProcessEngineDB
+        .SELECT(tbl_pi.pihandle)
+        .WHERE { tbl_pi.parentActivity eq pnihandle.handleValue }
+        .getSingleOrNull(transaction.connection)?.let { Handles.handle<SecureObject<ProcessInstance>>(it) } ?: Handles.getInvalid()
+
+      CompositeInstance.BaseBuilder(node, predecessors, processInstance.getHandle(), childInstance, processInstance.owner,
+                                    Handles.handle(pnihandle.handleValue), state)
+    } else if (node is ExecutableJoin) {
       JoinInstance.BaseBuilder(node, predecessors, processInstance.getHandle(), processInstance.owner, Handles.handle(pnihandle.handleValue), state)
     } else {
       ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(node, predecessors, processInstance.getHandle(), processInstance.owner, Handles.handle(pnihandle.handleValue), state)
@@ -188,7 +199,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    val handle = tbl_pni.pnihandle.value(columns, values)!!
+    val handle = tbl_pni.pnihandle.value(columns, values)
     preRemove(transaction, Handles.handle<ProcessNodeInstance>(handle))
   }
 

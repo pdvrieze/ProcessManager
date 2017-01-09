@@ -21,10 +21,8 @@ import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.security.AuthenticationNeededException;
 import net.devrieze.util.security.SecureObject;
-import net.devrieze.util.security.SecureObject.Permissions;
 import net.devrieze.util.security.SecuredObject;
 import net.devrieze.util.security.SecurityProvider;
-import net.devrieze.util.security.SecurityProvider.Permission;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
@@ -684,7 +682,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
          @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws FileNotFoundException {
     try (TRXXX transaction = mProcessEngine.startTransaction()){
       final UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
-      return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ExecutableProcessModel>handle(handle), name, uuid, null));
+      return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ExecutableProcessModel>handle(handle), name, uuid,
+                                                            null));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error starting process", e);
       throw new HttpResponseException(500, e);

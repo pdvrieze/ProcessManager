@@ -47,8 +47,8 @@ public final class Handles {
     }
 
     @Override
-    public int compareTo(@NotNull ComparableHandle<?> o) {
-      return Long.compare(getHandleValue(), o.getHandleValue());
+    public int compareTo(@NotNull final ComparableHandle<? extends T> other) {
+      return Long.compare(getHandleValue(), other.getHandleValue());
     }
 
     @Override

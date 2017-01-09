@@ -16,7 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.CollectionUtil
+import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
+import org.w3c.dom.Node
+import java.util.*
 
 /**
  * Created by pdvrieze on 04/01/17.
@@ -54,4 +58,36 @@ interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableM
   }
 
   override val rootModel: ExecutableProcessModel
+  /**
+   * Get the startnodes for this model.
+
+   * @return The start nodes.
+   */
+  val startNodes: Collection<ExecutableStartNode>
+    get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<ExecutableStartNode>(),
+                                                                             modelNodes,
+                                                                             ExecutableStartNode::class.java))
+  val endNodeCount: Int
+  fun toInputs(payload: Node?): List<ProcessData> {
+    // TODO make this work properly
+    val imports = imports
+    val result = ArrayList<ProcessData>(imports.size)
+    for (import_ in imports) {
+      result.add(XmlResultType.get(import_).apply(payload))
+    }
+    return result
+  }
+
+  fun toOutputs(payload: Node?): List<ProcessData> {
+    // TODO make this work properly
+    val exports = exports
+    val result = ArrayList<ProcessData>(exports.size)
+    for (export in exports) {
+      //      result.add(XmlDefineType.get(export).apply(pPayload));
+    }
+    return result
+  }
+
+  fun getNode(nodeId: String) : ExecutableProcessNode?
+
 }

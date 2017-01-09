@@ -96,8 +96,8 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
     // XXX  This needs some serious overhaul
     override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): XmlTask {
-      val handle = u.taskhandle.value(columns,values)!!
-      val remoteHandle = u.remotehandle.value(columns, values)!!
+      val handle = u.taskhandle.value(columns, values)
+      val remoteHandle = u.remotehandle.value(columns, values)
 
       val instance: XmlProcessNodeInstance?
       try {
@@ -210,7 +210,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     }
 
     override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-      val handleVal = u.taskhandle.value(columns, values)!!
+      val handleVal = u.taskhandle.value(columns, values)
       preRemove(transaction, Handles.handle<XmlTask>(handleVal))
     }
 

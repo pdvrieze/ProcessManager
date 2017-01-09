@@ -52,15 +52,16 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid)
 
   override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.BaseBuilder {
-    val owner = SimplePrincipal(pi.owner.value(columns, values))
-    val hProcessModel = Handles.handle<ExecutableProcessModel>(pi.pmhandle.value(columns, values)!!)
+    val owner = SimplePrincipal(pi.owner.nullableValue(columns, values))
+    val hProcessModel = Handles.handle<ExecutableProcessModel>(pi.pmhandle.value(columns, values))
+    val parentActivity = Handles.handle<ProcessNodeInstance>(pi.parentActivity.value(columns, values))
     val processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
-    val instancename = pi.name.value(columns, values)
-    val piHandle = Handles.handle<ProcessInstance>(pi.pihandle.value(columns, values)!!)
-    val state = toState(pi.state.value(columns, values))
-    val uuid = toUUID(pi.uuid.value(columns, values)) ?: throw IllegalStateException("Missing UUID")
+    val instancename = pi.name.nullableValue(columns, values)
+    val piHandle = Handles.handle<ProcessInstance>(pi.pihandle.value(columns, values))
+    val state = toState(pi.state.nullableValue(columns, values))
+    val uuid = toUUID(pi.uuid.nullableValue(columns, values)) ?: throw IllegalStateException("Missing UUID")
 
-    return ProcessInstance.BaseBuilder(piHandle, owner, processModel, instancename, uuid, state)
+    return ProcessInstance.BaseBuilder(piHandle, owner, processModel, instancename, uuid, state, parentActivity)
   }
 
   private fun toUUID(string: String?): UUID? {
@@ -105,7 +106,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    preRemove(transaction, Handles.handle(pi.pihandle.value(columns, values)!!))
+    preRemove(transaction, Handles.handle(pi.pihandle.value(columns, values)))
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out SecureObject<ProcessInstance>>) {
@@ -143,8 +144,9 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
 
   override fun insertStatement(value: SecureObject<ProcessInstance>): Database.Insert {
     return value.withPermission().let { value -> ProcessEngineDB
-          .INSERT(pi.pmhandle, pi.name, pi.owner, pi.state, pi.uuid)
-          .VALUES(value.processModel.handleValue, value.name, value.owner.name, value.state?.name, value.uuid.toString()) }
+          .INSERT(pi.pmhandle, pi.parentActivity, pi.name, pi.owner, pi.state, pi.uuid)
+          .VALUES(value.processModel.rootModel.handleValue, value.parentActivity.handleValue, value.name, value.owner.name,
+                  value.state.name, value.uuid.toString()) }
   }
 
   override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
@@ -152,10 +154,11 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
 
   override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessInstance>) {
     update.run { value.withPermission().let { value ->
-        SET(pi.pmhandle, value.processModel.handleValue)
+        SET(pi.pmhandle, value.processModel.rootModel.handleValue)
+        SET(pi.parentActivity, value.parentActivity.handleValue)
         SET(pi.name, value.name)
         SET(pi.owner, value.owner.name)
-        SET(pi.state, value.state?.name)
+        SET(pi.state, value.state.name)
         SET(pi.uuid, value.uuid.toString())
       }
     }

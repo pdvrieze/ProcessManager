@@ -27,12 +27,11 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.RootProcessModel
-import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.writeHandleAttr
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
 import java.io.FileNotFoundException
@@ -120,11 +119,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     val generation: Int
     val pendingChildren: List<Future<out ProcessNodeInstance>>
     var handle: ComparableHandle<out SecureObject<ProcessInstance>>
+    var parentActivity: ComparableHandle<out SecureObject<ProcessNodeInstance>>
     var owner: Principal
-    var processModel: ExecutableProcessModel
+    var processModel: ExecutableModelCommon
     var instancename: String?
     var uuid: UUID
-    var state: State?
+    var state: State
     val children: List<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     val   inputs: MutableList<ProcessData>
     val  outputs: MutableList<ProcessData>
@@ -135,10 +135,11 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   data class BaseBuilder(override var handle: ComparableHandle<out SecureObject<ProcessInstance>> = Handles.getInvalid(),
                          override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
-                         override var processModel: ExecutableProcessModel,
+                         override var processModel: ExecutableModelCommon,
                          override var instancename: String? = null,
                          override var uuid: UUID = UUID.randomUUID(),
-                         override var state: State?=null) : Builder {
+                         override var state: State=State.NEW,
+                         override var parentActivity: ComparableHandle<out SecureObject<ProcessNodeInstance>> /*= Handles.getInvalid()*/) : Builder {
     override var generation: Int = 0
     private val _pendingChildren = mutableListOf<Future<out ProcessNodeInstance>>()
     override val pendingChildren: List<Future<out ProcessNodeInstance>> get() = _pendingChildren
@@ -162,6 +163,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     private val _pendingChildren = mutableListOf<Future<out ProcessNodeInstance>>()
     override val pendingChildren: List<Future<out ProcessNodeInstance>> get() = _pendingChildren
     override var handle by overlay { base.handle }
+    override var parentActivity by overlay { base.parentActivity }
 
     override var owner by overlay { base.owner }
     override var processModel by overlay { base.processModel }
@@ -197,17 +199,26 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override val handleValue = processInstance.handle.handleValue
 
-    val processModel: Handle<out RootProcessModel<*, *>> = processInstance.processModel.getHandle()
+    val processModel = processInstance.processModel.rootModel.getHandle()
 
-    var name: String = processInstance.name.let { if (it.isNullOrBlank()) "${processInstance.processModel.name} instance $handleValue" else it!! }
+    val name: String = processInstance.name.let { if (it.isNullOrBlank()) {
+      buildString {
+        append(processInstance.processModel.rootModel.name)
+        if (processInstance.processModel !is ExecutableProcessModel) append(" child") else append(' ')
+        append("instance ").append(handleValue)
+      }
+    } else it!! }
+
+    val parentActivity = processInstance.parentActivity
 
     var uuid: UUID = processInstance.uuid
 
     @Throws(XmlException::class)
     override fun serialize(out: XmlWriter) {
       out.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
-        if (handleValue >= 0) writeAttribute("handle", java.lang.Long.toString(handleValue))
-        writeAttribute("processModel", processModel)
+        writeHandleAttr("handle", this@ProcessInstanceRef)
+        writeHandleAttr("processModel", processModel)
+        writeHandleAttr("parentActivity", parentActivity)
         writeAttribute("name", name)
         writeAttribute("uuid", uuid)
       }
@@ -215,17 +226,15 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override val valid: Boolean
       get() = handleValue >= 0L
-
-    override fun compareTo(other: ComparableHandle<*>): Int {
-      return super.compareTo(other)
-    }
   }
 
   val generation: Int
 
-  val processModel: ExecutableProcessModel
+  val processModel: ExecutableModelCommon
 
   val childNodes: Collection<SecureObject<ProcessNodeInstance>>
+
+  val parentActivity: ComparableHandle<out SecureObject<ProcessNodeInstance>>
 
   val children: Sequence<ComparableHandle<out SecureObject<ProcessNodeInstance>>>
     get() = childNodes.asSequence().map { it.withPermission().getHandle() }
@@ -246,12 +255,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       .map { it.getHandle() }
       .toList()
 
-  val completedNodeInstances get() = childNodes.asSequence()
+  val completedNodeInstances: Sequence<SecureObject<ProcessNodeInstance>> get() = childNodes.asSequence()
       .map { it.withPermission() }
       .filter { it.state.isFinal && it.node is EndNode<*,*> }
 
   val completedEndnodes: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> get() = completedNodeInstances
-      .map { it.getHandle() }
+      .map { it.withPermission().getHandle() }
       .toList()
 
   private val pendingJoinNodes get() = childNodes.asSequence()
@@ -278,7 +287,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   override val owner: Principal
 
-  val state: State?
+  val state: State
 
   val uuid: UUID
 
@@ -293,6 +302,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     processModel = builder.processModel
     state = builder.state
     handle = Handles.handle(builder.handle)
+    parentActivity = builder.parentActivity
 
     val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*> }.toList()
 
@@ -319,7 +329,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     outputs = builder.outputs.toList()
   }
 
-  constructor(data: MutableProcessEngineDataAccess, processModel: ExecutableProcessModel, body: Builder.() -> Unit) : this(data, BaseBuilder(processModel=processModel).apply(body))
+  constructor(data: MutableProcessEngineDataAccess,
+              processModel: ExecutableModelCommon,
+              parentActivity: ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+              body: Builder.() -> Unit) : this(data, BaseBuilder(processModel=processModel, parentActivity = parentActivity).apply(body))
 
   override fun withPermission() = this
 
@@ -330,7 +343,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     return update(transaction.writableEngineData ) {
-      processModel.startNodes.forEach { node ->
+      (processModel as ExecutableProcessModel).startNodes.forEach { node ->
         addChild(node.createOrReuseInstance(this@ProcessInstance))
       }
       state = State.INITIALIZED
@@ -603,9 +616,14 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   fun serialize(transaction: ProcessTransaction, writer: XmlWriter) {
     //
     writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
-      writeAttribute("handle", if (!handle.valid) null else java.lang.Long.toString(handle.handleValue))
+      writeHandleAttr("handle", handle)
       writeAttribute("name", name)
-      writeAttribute("processModel", java.lang.Long.toString(processModel.handleValue))
+      when (processModel) {
+        is ExecutableProcessModel -> writeHandleAttr("processModel", processModel.getHandle())
+        else -> writeHandleAttr("parentActivity", parentActivity)
+      }
+
+
       writeAttribute("owner", owner.name)
       writeAttribute("state", state!!.name)
 

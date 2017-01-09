@@ -82,15 +82,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     }
   }
 
-  @Volatile var endNodeCount: Int = -1
-    get() {
-      if (field < 0) {
-        field = modelNodes.count { it is ExecutableEndNode }
-      }
-
-      return field
-    }
-    private set
+  override val endNodeCount by lazy { modelNodes.count { it is ExecutableEndNode } }
 
   override val rootModel get() = this
 
@@ -134,19 +126,8 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     throw UnsupportedOperationException("This will break in all kinds of ways")
   }
 
-  /**
-   * Get the startnodes for this model.
-
-   * @return The start nodes.
-   */
-  val startNodes: Collection<ExecutableStartNode>
-    get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<ExecutableStartNode>(),
-                                                                             modelNodes,
-                                                                             ExecutableStartNode::class.java))
-
   override fun setModelNodes(processNodes: Collection<ExecutableProcessNode>) {
-    super.setModelNodes(processNodes)
-    endNodeCount = processNodes.count { it is ExecutableEndNode }
+    throw UnsupportedOperationException("This is broken")
   }
 
   /* (non-Javadoc)
@@ -178,36 +159,6 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
       }
       setRoles(newRoles)
     }
-  }
-
-  /**
-   * Faster method that doesn't require an [intermediate][Identifier]
-   * @param nodeId
-   * *
-   * @return
-   */
-  fun getNode(nodeId: String): ExecutableProcessNode? {
-    return getNode(Identifier(nodeId))
-  }
-
-  fun toInputs(payload: Node?): List<ProcessData> {
-    // TODO make this work properly
-    val imports = imports
-    val result = ArrayList<ProcessData>(imports.size)
-    for (import_ in imports) {
-      result.add(XmlResultType.get(import_).apply(payload))
-    }
-    return result
-  }
-
-  fun toOutputs(payload: Node?): List<ProcessData> {
-    // TODO make this work properly
-    val exports = exports
-    val result = ArrayList<ProcessData>(exports.size)
-    for (export in exports) {
-      //      result.add(XmlDefineType.get(export).apply(pPayload));
-    }
-    return result
   }
 
   companion object {

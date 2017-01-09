@@ -37,8 +37,12 @@ abstract class AbstractElementFactory<BUILDER, T:Any, TR:DBTransaction> : HMElem
 
   companion object {
 
-    inline fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.value(columns:List<Column<*,*,*>>, values:List<Any?>):T? {
+    inline fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.nullableValue(columns:List<Column<*,*,*>>, values:List<Any?>):T? {
       return values[columns.indexOf(this)]?.let{ type.cast(it) }
+    }
+
+    inline fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.value(columns:List<Column<*,*,*>>, values:List<Any?>):T {
+      return type.cast(values[columns.indexOf(this)]!!)
     }
 
   }

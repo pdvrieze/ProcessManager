@@ -456,13 +456,14 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                            model: SecureObject<ExecutableProcessModel>,
                            name: String,
                            uuid: UUID,
+                           parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance>>,
                            payload: Node?): HProcessInstance {
 
     if (user == null) {
       throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes")
     }
     val instance = model.withPermission(mSecurityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
-      ProcessInstance(transaction.writableEngineData, it) {
+      ProcessInstance(transaction.writableEngineData, it, parentActivity) {
         this.instancename = name
         this.uuid = uuid
         this.state = State.NEW
@@ -508,14 +509,14 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   @Throws(SQLException::class, FileNotFoundException::class)
   fun startProcess(transaction: TRXXX,
                    user: Principal,
-                   handle: Handle<out SecureObject<ExecutableProcessModel>>,
+                   handle: Handle<SecureObject<ExecutableProcessModel>>,
                    name: String,
                    uuid: UUID,
                    payload: Node?): HProcessInstance {
     engineData.inWriteTransaction(transaction) {
       processModels[handle].shouldExist(handle)
     }.let { processModel ->
-      return startProcess(transaction, user, processModel, name, uuid, payload)
+      return startProcess(transaction, user, processModel, name, uuid, Handles.getInvalid(), payload)
     }
   }
 

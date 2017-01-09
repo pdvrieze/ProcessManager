@@ -44,9 +44,9 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     get() = listOf(pm.pmhandle, pm.owner, pm.model)
 
   override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ExecutableProcessModel.Builder {
-    val owner = pm.owner.value(columns, values)?.let { SimplePrincipal(it) }
-    val handle = pm.pmhandle.value(columns, values)!!
-    return pm.model.value(columns, values)
+    val owner = pm.owner.nullableValue(columns, values)?.let { SimplePrincipal(it) }
+    val handle = pm.pmhandle.value(columns, values)
+    return pm.model.nullableValue(columns, values)
           ?.let { ExecutableProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it)))}
        ?: ExecutableProcessModel.Builder().apply {
       owner?.let { this.owner = it }
