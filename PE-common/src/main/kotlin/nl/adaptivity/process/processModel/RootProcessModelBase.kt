@@ -101,7 +101,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     override fun deserializeChild(reader: XmlReader): Boolean {
       return when {
         reader.isElement(ProcessConsts.Engine.NAMESPACE,
-                         ChildProcessModel.ELEMENTLOCALNAME) -> { childModelBuilder().deserializeHelper(reader); true }
+                         ChildProcessModel.ELEMENTLOCALNAME) -> { childModels.add(childModelBuilder().deserializeHelper(reader)); true }
         else                                                 -> super.deserializeChild(reader)
       }
     }

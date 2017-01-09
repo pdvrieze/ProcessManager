@@ -44,9 +44,9 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
     override abstract fun buildModel(ownerModel: RootProcessModel<T, M>, pedantic: Boolean): ChildProcessModel<T, M>
 
     override fun deserializeChild(reader: XmlReader): Boolean {
-      if (reader.isElement(ProcessConsts.Engine.NAMESPACE,
-                       ChildProcessModel.ELEMENTLOCALNAME)) {
-        nestedBuilder()?.deserializeHelper(reader) ?: reader.unhandledEvent("Child models are not currently allowed to be nested")
+      if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
+        nestedBuilder()?.let { rootBuilder.childModels.add(deserializeHelper(reader)) } ?:
+            reader.unhandledEvent("Child models are not currently allowed to be nested")
         return true
       } else {
         return super.deserializeChild(reader)
