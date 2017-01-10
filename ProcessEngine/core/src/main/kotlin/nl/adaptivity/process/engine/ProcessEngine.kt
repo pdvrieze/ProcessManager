@@ -24,6 +24,7 @@ import nl.adaptivity.messaging.HttpResponseException
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstance.State
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.processModel.AbstractProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
@@ -37,7 +38,6 @@ import nl.adaptivity.process.processModel.uuid
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -71,7 +71,7 @@ private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHan
   if (cacheSize <= 0) {
     return base
   }
-  return CachingHandleMap<SecureObject<ProcessNodeInstance>, T>(base, cacheSize, { pni, handle -> if (pni.withPermission().getHandleValue()==handle) pni else pni.withPermission().builder().apply{ this.handle = Handles.handle(handle)}.build() })
+  return CachingHandleMap<SecureObject<ProcessNodeInstance>, T>(base, cacheSize, { pni, handle -> if (pni.withPermission().getHandle()==handle) pni else pni.withPermission().builder().apply{ this.handle = Handles.handle(handle)}.build() })
 }
 
 private fun <T : ProcessTransaction, V:Any> wrapModelCache(base: IMutableProcessModelMap<T>,
@@ -293,7 +293,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     }
   }
 
-  fun getProcessModel(dataAccess: ProcessEngineDataAccess, handle: Handle<out ExecutableProcessModel>, user: Principal): ExecutableProcessModel? {
+  fun getProcessModel(dataAccess: ProcessEngineDataAccess, handle: Handle<out SecureObject<ExecutableProcessModel>>, user: Principal): ExecutableProcessModel? {
     return dataAccess.processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
       if (processModel.uuid ==null && dataAccess is MutableProcessEngineDataAccess) {
         processModel.update {

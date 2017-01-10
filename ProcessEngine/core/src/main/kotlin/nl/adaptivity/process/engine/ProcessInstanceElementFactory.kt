@@ -24,15 +24,11 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.util.xml.CompactFragment
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
 import uk.ac.bournemouth.kotlinsql.Column
-import uk.ac.bournemouth.kotlinsql.ColumnType
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Table
-import java.util.*
 
 
 /**
@@ -42,7 +38,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
 
   override fun getHandleCondition(where: Database._Where,
                                   handle: Handle<out SecureObject<ProcessInstance>>): Database.WhereClause? {
-    return where.run { pi.pihandle eq handle.handleValue }
+    return where.run { pi.pihandle eq handle }
   }
 
   override val table: Table
@@ -53,33 +49,26 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
 
   override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.BaseBuilder {
     val owner = SimplePrincipal(pi.owner.nullableValue(columns, values))
-    val hProcessModel = Handles.handle<ExecutableProcessModel>(pi.pmhandle.value(columns, values))
-    val parentActivity = Handles.handle<ProcessNodeInstance>(pi.parentActivity.value(columns, values))
-    val processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
+    val hProcessModel = pi.pmhandle.value(columns, values)
+    val parentActivity = pi.parentActivity.value(columns, values)
+    val processModel = mProcessEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
     val instancename = pi.name.nullableValue(columns, values)
-    val piHandle = Handles.handle<ProcessInstance>(pi.pihandle.value(columns, values))
-    val state = toState(pi.state.nullableValue(columns, values))
-    val uuid = toUUID(pi.uuid.nullableValue(columns, values)) ?: throw IllegalStateException("Missing UUID")
+    val piHandle = pi.pihandle.value(columns, values)
+    val state = pi.state.nullableValue(columns, values)?: State.NEW
+    val uuid = pi.uuid.nullableValue(columns, values) ?: throw IllegalStateException("Missing UUID")
 
-    return ProcessInstance.BaseBuilder(piHandle, owner, processModel, instancename, uuid, state, parentActivity)
-  }
-
-  private fun toUUID(string: String?): UUID? {
-    if (string == null) {
-      return null
-    }
-    return UUID.fromString(string)
+    return ProcessInstance.BaseBuilder(Handles.handle(piHandle), owner, processModel, instancename, uuid, state, Handles.handle(parentActivity))
   }
 
   override fun postCreate(transaction: ProcessDBTransaction, builder: ProcessInstance.BaseBuilder):ProcessInstance {
-    val handleValue = builder.handle.handleValue
+    val builderHandle = builder.handle
     ProcessEngineDB
           .SELECT(pni.pnihandle)
-          .WHERE { pni.pihandle eq handleValue }
+          .WHERE { pni.pihandle eq builderHandle }
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .mapTo(builder.children.apply { clear() }) {Handles.handle<ProcessNodeInstance>(it) }
+          .mapTo(builder.children.apply { clear() }) {Handles.handle(it) }
 
     run {
 
@@ -88,7 +77,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
 
       ProcessEngineDB
             .SELECT(id.name, id.data, id.isoutput)
-            .WHERE { id.pihandle eq handleValue }
+            .WHERE { id.pihandle eq builderHandle }
             .execute(transaction.connection) { name, data, isoutput ->
               val procdata = ProcessData(name, CompactFragment(data!!))
               if (isoutput ?: false) {
@@ -112,16 +101,16 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out SecureObject<ProcessInstance>>) {
     ProcessEngineDB
           .DELETE_FROM(id)
-          .WHERE { id.pihandle eq handle.handleValue }
+          .WHERE { id.pihandle eq handle }
           .executeUpdate(transaction.connection)
 
     val nodes = ProcessEngineDB
           .SELECT(pni.pnihandle)
-          .WHERE { pni.pihandle eq handle.handleValue }
+          .WHERE { pni.pihandle eq handle }
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .map { Handles.handle<ProcessNodeInstance>(it) }
+          .map { Handles.handle(it) }
 
     for (node in nodes) { // Delete through the process engine so caches get invalidated.
       (transaction.writableEngineData.nodeInstances as MutableHandleMap).remove(node)
@@ -145,21 +134,20 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   override fun insertStatement(value: SecureObject<ProcessInstance>): Database.Insert {
     return value.withPermission().let { value -> ProcessEngineDB
           .INSERT(pi.pmhandle, pi.parentActivity, pi.name, pi.owner, pi.state, pi.uuid)
-          .VALUES(value.processModel.rootModel.handleValue, value.parentActivity.handleValue, value.name, value.owner.name,
-                  value.state.name, value.uuid.toString()) }
+          .VALUES(value.processModel.rootModel.getHandle(), value.parentActivity, value.name, value.owner.name,
+                  value.state, value.uuid) }
   }
 
-  override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
-    get() = pi.pihandle
+  override val keyColumn get() = pi.pihandle
 
   override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessInstance>) {
     update.run { value.withPermission().let { value ->
-        SET(pi.pmhandle, value.processModel.rootModel.handleValue)
-        SET(pi.parentActivity, value.parentActivity.handleValue)
+        SET(pi.pmhandle, value.processModel.rootModel.getHandle())
+        SET(pi.parentActivity, value.parentActivity)
         SET(pi.name, value.name)
         SET(pi.owner, value.owner.name)
-        SET(pi.state, value.state.name)
-        SET(pi.uuid, value.uuid.toString())
+        SET(pi.state, value.state)
+        SET(pi.uuid, value.uuid)
       }
     }
     // TODO Store inputs and outputs in postStore
@@ -183,11 +171,6 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     private val pi = ProcessEngineDB.processInstances
     private val pni = ProcessEngineDB.processNodeInstances
     private val id = ProcessEngineDB.instancedata
-
-    @JvmStatic
-    private fun toState(string: String?): State {
-      return State.valueOf(string?: throw NullPointerException("Missing state"))
-    }
   }
 
 }

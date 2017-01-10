@@ -493,12 +493,12 @@ class TestProcessEngine {
 
   companion object {
 
-    internal val PNI_SET_HANDLE = fun(pni: SecureObject<ProcessNodeInstance>, handle: Long?): SecureObject<ProcessNodeInstance> {
-      if (pni.withPermission().getHandleValue() == handle) {
+    internal val PNI_SET_HANDLE = fun(pni: SecureObject<ProcessNodeInstance>, handle: Handle<SecureObject<ProcessNodeInstance>>): SecureObject<ProcessNodeInstance> {
+      if (pni.withPermission().getHandle() == handle) {
         return pni
       }
       val builder = pni.withPermission().builder()
-      builder.handle = Handles.handle<SecureObject<ProcessNodeInstance>>(handle!!)
+      builder.handle = Handles.handle<SecureObject<ProcessNodeInstance>>(handle)
       return builder.build()
     }
 

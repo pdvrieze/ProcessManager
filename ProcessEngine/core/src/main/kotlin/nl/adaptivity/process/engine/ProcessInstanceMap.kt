@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 
 
 internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :

@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.StringUtil
 import net.devrieze.util.security.SecureObject
+import java.util.*
 import javax.xml.bind.annotation.XmlRootElement
 
 
@@ -90,6 +91,7 @@ interface IProcessNodeInstance<out V : IProcessNodeInstance<V>> : ReadableHandle
     SkippedFail(true, false, false)
     ;
 
+    val lcname = name.toLowerCase(Locale.ENGLISH)
 
     companion object {
 

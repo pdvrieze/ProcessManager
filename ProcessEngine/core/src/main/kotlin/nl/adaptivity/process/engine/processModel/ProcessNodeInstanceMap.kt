@@ -22,7 +22,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessDBTransaction
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 
 
 class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :

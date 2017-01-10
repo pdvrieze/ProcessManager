@@ -24,7 +24,7 @@ import java.sql.SQLException
 /**
  * Created by pdvrieze on 09/12/15.
  */
-open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigner: (T, Long)->T = ::HANDLE_AWARE_ASSIGNER) : MemHandleMap<T>(handleAssigner=handleAssigner), net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
+open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigner: (T, Handle<T>)->T = ::HANDLE_AWARE_ASSIGNER) : MemHandleMap<T>(handleAssigner=handleAssigner), net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
 
   interface TransactionFactory<TR : StubTransaction> {
     fun newTransaction(): TR

@@ -22,13 +22,10 @@ import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.xml.XmlStreaming
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
-import uk.ac.bournemouth.kotlinsql.Column
-import uk.ac.bournemouth.kotlinsql.ColumnType
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.Table
+import uk.ac.bournemouth.kotlinsql.*
 import java.io.StringReader
 
 
@@ -60,7 +57,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<out SecureObject<ExecutableProcessModel>>): Database.WhereClause? {
-    return where.run { pm.pmhandle eq handle.handleValue }
+    return where.run { pm.pmhandle eq handle }
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where, instance: SecureObject<ExecutableProcessModel>): Database.WhereClause? {
@@ -76,7 +73,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     }
   }
 
-  override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
+  override val keyColumn: CustomColumnType<Handle<SecureObject<ExecutableProcessModel>>, Long, ColumnType.NumericColumnType.BIGINT_T, *, *>.CustomColumn
     get() = pm.pmhandle
 
   override fun insertStatement(value: SecureObject<ExecutableProcessModel>): Database.Insert {

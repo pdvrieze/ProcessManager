@@ -19,16 +19,16 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.db.ProcessEngineDB
+import nl.adaptivity.process.engine.db.ProcessEngineDB.processModels
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB
-import uk.ac.bournemouth.ac.db.darwin.processengine.ProcessEngineDB.processModels
 import java.util.*
 
 
 internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ExecutableProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>(
       transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<ProcessDBTransaction> {
 
-  override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<ExecutableProcessModel>? {
+  override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     val candidates = ProcessEngineDB
           .SELECT(processModels.pmhandle)
           .WHERE { processModels.model LIKE "%${uuid.toString()}%" }
@@ -36,7 +36,7 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
 
     return candidates.asSequence()
           .filterNotNull()
-          .map { Handles.handle<ExecutableProcessModel>(it) }
+          .map { Handles.handle(it) }
           .firstOrNull {
       val candidate:ExecutableProcessModel? = get(transaction, it)?.withPermission()
       uuid == candidate?.getUuid()
