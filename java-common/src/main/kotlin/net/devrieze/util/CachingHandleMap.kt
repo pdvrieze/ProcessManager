@@ -36,7 +36,7 @@ import java.util.concurrent.CopyOnWriteArraySet
 open class CachingHandleMap<V:Any, T : Transaction>(
       protected open val delegate: MutableTransactionedHandleMap<V, T>,
       cacheSize: Int,
-      val handleAssigner: (V, Long)->V) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+      val handleAssigner: (V, Handle<V>)->V) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
   constructor(delegate: MutableTransactionedHandleMap<V, T>,
               cacheSize: Int): this(delegate, cacheSize, { v, h -> HANDLE_AWARE_ASSIGNER(v,h) })
@@ -154,7 +154,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   private fun putCache(transaction: T, handle: Handle<out V>, nonUpdatedValue: V?) {
     if (nonUpdatedValue != null) { // never store null
       if (handle.valid) {
-        val updatedValue = handleAssigner(nonUpdatedValue, handle.handleValue)
+        val updatedValue = handleAssigner(nonUpdatedValue, handle)
 
         // Don't cache if the updated value has a handle that does not match
         if (updatedValue is ReadableHandleAware<*> && updatedValue.getHandle()!=handle) return

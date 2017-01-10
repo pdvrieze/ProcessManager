@@ -49,7 +49,7 @@ import java.util.*
 open class MemHandleMap<V:Any>
 @JvmOverloads constructor(pCapacity: Int = MemHandleMap._DEFAULT_CAPACITY,
                           pLoadFactor: Float = MemHandleMap._DEFAULT_LOADFACTOR,
-                          val handleAssigner: (V, Long)->V = ::HANDLE_AWARE_ASSIGNER) : MutableHandleMap<V>, MutableIterable<V> {
+                          val handleAssigner: (V, Handle<V>)->V = ::HANDLE_AWARE_ASSIGNER) : MutableHandleMap<V>, MutableIterable<V> {
 
   internal class MapCollection<T:Any>(private val handleMap: MemHandleMap<T>) : MutableCollection<T> {
 
@@ -388,7 +388,7 @@ open class MemHandleMap<V:Any>
         }
       }
       val h = (generation.toLong() shl 32) + handleFromIndex(index)
-      val updatedValue = handleAssigner(value, h)
+      val updatedValue = handleAssigner(value, Handles.handle(h))
 
       values[index] = updatedValue
       generations[index] = generation
@@ -444,7 +444,7 @@ open class MemHandleMap<V:Any>
         throw ArrayIndexOutOfBoundsException("Generation mismatch" + generation)
       }
 
-      val updatedValue = handleAssigner(value, handle)
+      val updatedValue = handleAssigner(value, Handles.handle(handle))
 
       // Just get the element out of the map.
       values[index] = updatedValue

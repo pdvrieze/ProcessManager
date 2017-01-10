@@ -27,7 +27,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
       transactionFactory: TransactionFactory<out TR>,
       database: Database,
       elementFactory: HMElementFactory<TMP, V, TR>,
-      handleAssigner: (V, Long)->V = ::HANDLE_AWARE_ASSIGNER) :
+      handleAssigner: (V, Handle<V>)->V = ::HANDLE_AWARE_ASSIGNER) :
       DbSet<TMP, V, TR>(transactionFactory, database, elementFactory, handleAssigner), MutableTransactionedHandleMap<V, TR> {
 
 
@@ -98,7 +98,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
       return newValue
     }
 
-    val newValueWithHandle = handleAssigner(newValue, handle.handleValue)
+    val newValueWithHandle = handleAssigner(newValue, handle)
 
     database
           .UPDATE { elementFactory.store(this, newValueWithHandle) }

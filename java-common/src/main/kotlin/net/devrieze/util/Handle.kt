@@ -28,3 +28,5 @@ interface Handle<out T: @JvmWildcard Any?> {
 interface ComparableHandle<out T> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
   override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>) = handleValue.compareTo(other.handleValue)
 }
+
+inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = Handles.handle(handleValue)

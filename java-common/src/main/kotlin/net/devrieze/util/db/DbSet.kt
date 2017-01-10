@@ -35,7 +35,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
       transactionFactory: TransactionFactory<out TR>,
       val database: Database,
       protected open val elementFactory: ElementFactory<TMP, T, TR>,
-      val handleAssigner: (T, Long)->T = ::HANDLE_AWARE_ASSIGNER) : AutoCloseable, Closeable {
+      val handleAssigner: (T, Handle<T>)->T = ::HANDLE_AWARE_ASSIGNER) : AutoCloseable, Closeable {
 
 
   /**
@@ -265,7 +265,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
     return stmt.execute(transaction.connection, elementFactory.keyColumn) { handle ->
       if (handle!=null) {
         val newElem = handleAssigner(elem, handle)
-        elementFactory.postStore(transaction.connection, Handles.handle<T>(handle), null, newElem)
+        elementFactory.postStore(transaction.connection, handle, null, newElem)
         true
       } else false
     }.let { it.isNotEmpty() && it.all { it } }
@@ -352,7 +352,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
     return stmt.execute(transaction.connection, elementFactory.keyColumn) {
       it?.let { handle ->
         val newElem = handleAssigner(elem, handle)
-        Handles.handle<W>(handle).apply {
+        Handles.handle<W>(handle.handleValue).apply {
           elementFactory.postStore(transaction.connection, this, null, newElem)
         }
       }

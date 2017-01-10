@@ -17,15 +17,21 @@
 package net.devrieze.util.db
 
 import net.devrieze.util.Handle
-import uk.ac.bournemouth.kotlinsql.Column
-import uk.ac.bournemouth.kotlinsql.ColumnType
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.Table
+import uk.ac.bournemouth.kotlinsql.*
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import java.sql.SQLException
 
 
-interface ElementFactory<BUILDER, T:Any, TR: DBTransaction> {
+/**
+ * Base interface for factories to help serialization/deserialization with a database
+ *
+ * @param BUILDER The type of the intermediate "Builder" that results from the [#create] step and must be transformed to T
+ *                [#postCreate] step.
+ * @param T       The actual type the factory works on.
+ * @param TR      The transaction type to use for database interaction.
+ * @param KEY     The type of the primary key used
+ */
+interface ElementFactory<BUILDER, T:Any, in TR: DBTransaction> {
 
   val table: Table
 
@@ -134,7 +140,7 @@ interface ElementFactory<BUILDER, T:Any, TR: DBTransaction> {
   @Throws(SQLException::class)
   fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T)
 
-  val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
+  val keyColumn: Column<Handle<T>, *, *>
 
   /**
    * Determine whether the two values are equal as far as storage is concerned. By default only on object identity
