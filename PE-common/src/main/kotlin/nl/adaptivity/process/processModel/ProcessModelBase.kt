@@ -138,7 +138,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     val nodeFactory = childModelProvider.nodeFactory
     builder.normalize(pedantic)
 
-    val childModels = childModelProvider(this as RootProcessModel<NodeT, ModelT>)
+    val childModels = childModelProvider(rootModel)
 
     val newNodes = builder.nodes.map {
       when (it) {

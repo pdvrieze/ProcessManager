@@ -44,7 +44,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
   fun getImports(): Collection<IXmlResultType>
   fun getExports(): Collection<IXmlDefineType>
 
-  val rootModel: RootProcessModel<NodeT, ModelT>?
+  val rootModel: RootProcessModel<NodeT, ModelT>
 
   val asM:ModelT get() {
     @Suppress("UNCHECKED_CAST")

@@ -43,6 +43,8 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.dom.DOMResult
 
 
 class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance> {
@@ -415,6 +417,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         return newInstance.update(engineData) {
           state = State.FINISHED
         }.apply {
+          if (parentActivity.valid) {
+            val parentNode = engineData.nodeInstance(parentActivity).withPermission()
+            val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
+            parentInstance.finishTask(engineData, parentNode, getOutputPayload())
+          }
+
           engineData.commit()
           // TODO don't remove old transactions
           engineData.handleFinishedInstance(handle)
@@ -447,6 +455,21 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   fun getChild(nodeId: String): SecureObject<ProcessNodeInstance>? {
     return childNodes.firstOrNull { it.withPermission().node.id == nodeId }
+  }
+
+  /**
+   * Get the output of this instance as an xml node or `null` if there is no output
+   */
+  fun getOutputPayload(): Node? {
+    if (outputs.isEmpty()) return null
+    val document = DocumentBuilderFactory.newInstance().apply { isNamespaceAware=true }.newDocumentBuilder().newDocument()
+    return document.createDocumentFragment().apply {
+      XmlStreaming.newWriter(DOMResult(this)).use { writer ->
+        outputs.forEach { output ->
+          output.serialize(writer)
+        }
+      }
+    }
   }
 
   @Synchronized @Throws(SQLException::class)

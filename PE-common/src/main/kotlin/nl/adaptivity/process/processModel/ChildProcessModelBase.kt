@@ -68,7 +68,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
     this.id = builder.childId
   }
 
-  override val rootModel: RootProcessModelBase<T, M>?
+  override val rootModel: RootProcessModel<T, M>
 
   override val id: String?
 

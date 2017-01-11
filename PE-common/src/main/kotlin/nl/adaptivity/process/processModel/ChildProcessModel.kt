@@ -34,7 +34,7 @@ interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   @Deprecated("Not needed as childmodels are not nested")
   val ownerModel: RootProcessModel<NodeT, ModelT>? get() = rootModel
 
-  override val rootModel: RootProcessModel<NodeT, ModelT>?
+  override val rootModel: RootProcessModel<NodeT, ModelT>
 
   fun builder(rootBuilder: RootProcessModel.Builder<NodeT, ModelT>): Builder<NodeT, ModelT>
 

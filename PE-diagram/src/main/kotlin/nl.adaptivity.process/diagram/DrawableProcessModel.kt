@@ -19,6 +19,7 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.Diagram
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.RootProcessModel
 
 /**
  * Created by pdvrieze on 05/01/17.
@@ -40,7 +41,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
   override val y: Double get() = 0.0
 
 
-  override val rootModel: RootDrawableProcessModel?
+  override val rootModel: RootDrawableProcessModel
 
   @Deprecated("Do this on a builder")
   fun layout()
