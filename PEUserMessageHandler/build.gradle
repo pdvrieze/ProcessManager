@@ -159,7 +159,7 @@ dependencies {
 
     apiCompile project(':PE-common')
 
-    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
+    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
     runtime project(':xmlutil:jvm')
 
     compile project(':DarwinClients')
@@ -169,7 +169,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'xmlunit:xmlunit:1.6'
     testCompile project(path: ':PE-common', configuration:'compileOnly')
-    testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
+    testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
     wsDoc project(":PE-common:endpointDoclet")
     wsDocOutput files(wsDestDir) { builtBy 'wsDoc' }
