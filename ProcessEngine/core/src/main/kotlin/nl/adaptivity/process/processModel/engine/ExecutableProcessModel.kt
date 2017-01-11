@@ -88,8 +88,6 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
   override fun withPermission() = this
 
-  constructor(basepm: RootProcessModelBase<*, *>) : super(basepm, toExecutableProcessNode)
-
   @JvmOverloads
   constructor(builder: Builder, pedantic:Boolean = true) : super(builder, EXEC_NODEFACTORY, pedantic)
 
@@ -164,7 +162,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
   companion object {
 
     fun from(basepm: RootProcessModelBase<*, *>): ExecutableProcessModel {
-      return ExecutableProcessModel(basepm)
+      return ExecutableProcessModel(Builder(basepm))
     }
 
     @Throws(XmlException::class)
@@ -260,14 +258,11 @@ object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, Exe
     return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as ExecutableChildModel)) as ExecutableActivity
   }
 
-  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon> {
-    return ExecutableChildModel(baseChildBuilder, ownerModel.asM.rootModel, pedantic)
+  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>,
+                      baseChildBuilder: ChildProcessModel.Builder<*, *>,
+                      childModelProvider: RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>,
+                      pedantic: Boolean): ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon> {
+    return ExecutableChildModel(baseChildBuilder, ownerModel.asM.rootModel,childModelProvider, pedantic)
   }
 
-  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ExecutableChildModel {
-    val rootBuilder = ExecutableProcessModel.Builder()
-    val builder = ExecutableChildModel.Builder(rootBuilder, baseModel)
-    val provider = RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>(listOf(builder), this, pedantic)
-    return builder.buildModel(ownerModel, pedantic)
-  }
 }

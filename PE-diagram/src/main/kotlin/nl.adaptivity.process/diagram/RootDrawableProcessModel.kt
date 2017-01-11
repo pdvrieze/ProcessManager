@@ -451,16 +451,12 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 //    return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as DrawableChildModel)) as DrawableActivity
   }
 
-  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
+  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>,
+                      baseChildBuilder: ChildProcessModel.Builder<*, *>,
+                      childModelProvider: RootProcessModelBase.ChildModelProvider<DrawableProcessNode, DrawableProcessModel?>,
+                      pedantic: Boolean): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
     TODO("Child models are not implemented yet for drawables")
 //    return DrawableChildModel(baseChildBuilder, ownerModel, pedantic)
-  }
-
-  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
-    TODO("Child models are not implemented yet for drawables")
-//    val rootBuilder = DrawableProcessModel.Builder()
-//    val builder = DrawableChildModel.Builder(rootBuilder, baseModel)
-//    return builder.buildModel(ownerModel, pedantic)
   }
 
 }

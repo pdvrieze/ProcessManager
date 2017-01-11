@@ -20,9 +20,6 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.toMutableArraySet
-import nl.adaptivity.messaging.MessagingException
-import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -93,8 +90,10 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>, pedantic: Boolean): ExecutableChildModel {
-      return ExecutableChildModel(this, ownerModel.asM.rootModel, pedantic)
+    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>,
+                            childModelProvider: RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>,
+                            pedantic: Boolean): ExecutableChildModel {
+      return ExecutableChildModel(this, ownerModel.asM.rootModel,childModelProvider, pedantic)
     }
 
     override fun buildActivity(childModel: ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {

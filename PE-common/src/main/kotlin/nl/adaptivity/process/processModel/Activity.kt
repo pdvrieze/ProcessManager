@@ -48,7 +48,9 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
 
     override val idBase: String get() = "sub"
 
-    override fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>, pedantic: Boolean): ChildProcessModel<NodeT, ModelT>
+    override fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>,
+                            childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>,
+                            pedantic: Boolean): ChildProcessModel<NodeT, ModelT>
 
     fun buildActivity(childModel: ChildProcessModel<NodeT,ModelT>): Activity<NodeT, ModelT>
 

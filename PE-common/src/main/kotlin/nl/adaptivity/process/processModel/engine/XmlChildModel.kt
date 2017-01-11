@@ -17,15 +17,17 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.RootProcessModelBase.ChildModelProvider
 
 class XmlChildModel(
-    builder: ChildProcessModel.Builder<*,*>,
-    ownerModel: XmlProcessModel,
-    pedantic: Boolean) :
+  builder: ChildProcessModel.Builder<*, *>,
+  ownerModel: XmlProcessModel,
+  childModelProvider: ChildModelProvider<XmlProcessNode, XmlModelCommon>,
+  pedantic: Boolean) :
     ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(
         builder,
         ownerModel,
-        XML_NODE_FACTORY,
+        childModelProvider,
         pedantic), ChildProcessModel<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
   open class Builder(rootBuilder: XmlProcessModel.Builder,
@@ -37,8 +39,10 @@ class XmlChildModel(
 
     override val rootBuilder: XmlProcessModel.Builder get() = super.rootBuilder as XmlProcessModel.Builder
 
-    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, pedantic: Boolean): XmlChildModel {
-      return XmlChildModel(this, ownerModel.asM.rootModel, pedantic)
+    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>,
+                            childModelProvider: ChildModelProvider<XmlProcessNode, XmlModelCommon>,
+                            pedantic: Boolean): XmlChildModel {
+      return XmlChildModel(this, ownerModel.asM.rootModel, childModelProvider, pedantic)
     }
   }
 

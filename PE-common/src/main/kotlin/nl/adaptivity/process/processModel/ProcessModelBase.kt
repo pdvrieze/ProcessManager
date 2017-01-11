@@ -37,8 +37,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNodeBuilder: ProcessNode.Builder<*,*>): NodeT
     operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNodeBuilder: Activity.ChildModelBuilder<*,*>, childModel: ChildProcessModel<NodeT, ModelT>): Activity<NodeT, ModelT>
     operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNode: ProcessNode<*,*>) = invoke(newOwner, baseNode.builder())
-    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean = false): ChildProcessModelBase<NodeT, ModelT>
-    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean = false): ChildProcessModelBase<NodeT, ModelT>
+    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseChildBuilder: ChildProcessModel.Builder<*, *>, childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>, pedantic: Boolean = false): ChildProcessModelBase<NodeT, ModelT>
   }
 
   @ProcessModelDSL
@@ -122,7 +121,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
   }
 
-  private val _processNodes: IdentifyableSet<NodeT>
+  protected abstract val _processNodes: IdentifyableSet<NodeT>
   private var _imports: List<IXmlResultType>
   private var _exports: List<IXmlDefineType>
 
@@ -134,30 +133,15 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
   final override fun getExports(): Collection<IXmlDefineType> = _exports
   protected fun setExports(value: Iterable<IXmlDefineType>) { _exports = value.toList() }
 
-  constructor(builder: ProcessModel.Builder<*, *>, childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic) {
-    val nodeFactory = childModelProvider.nodeFactory
+  constructor(builder: ProcessModel.Builder<*, *>, pedantic: Boolean = builder.defaultPedantic) {
     builder.normalize(pedantic)
 
-    val childModels = childModelProvider(rootModel)
-
-    val newNodes = builder.nodes.map {
-      when (it) {
-        is ProcessNode.Builder<*, *> -> nodeFactory(this, it)
-        is Activity.ChildModelBuilder<*, *> -> {
-          val childModel = childModels[it.childId!!] ?: throw ProcessException("Activity refers to missing child")
-          nodeFactory(this, it, childModel).asT()
-        }
-        else -> throw UnsupportedOperationException("Node builders are either for activities or for childModels")
-      }
-    }
-    this._processNodes = IdentifyableSet.processNodeSet(Int.MAX_VALUE, newNodes)
     this._imports = builder.imports.map { XmlResultType.get(it) }
     this._exports = builder.exports.map { XmlDefineType.get(it) }
   }
 
   constructor(processNodes: Iterable<ProcessNode<*,*>>, imports: Collection<IXmlResultType>, exports: Collection<IXmlDefineType>, nodeFactory: NodeFactory<NodeT, ModelT>) {
     val newOwner = this
-    _processNodes = IdentifyableSet.processNodeSet(processNodes.asSequence().map { nodeFactory(newOwner, it) })
     _imports = imports.toList()
     _exports = exports.toList()
   }
@@ -191,5 +175,27 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     (processNodes as MutableIdentifyableSet).replaceBy(processNodes)
   }
 
+
+  companion object {
+
+    @JvmStatic
+    protected fun <NodeT : ProcessNode<NodeT, ModelT>,
+      ModelT : ProcessModel<NodeT, ModelT>?> buildNodes(newOwner: ProcessModel<NodeT, ModelT>,
+                                                        builder: ProcessModel.Builder<*, *>,
+                                                        childProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>): MutableIdentifyableSet<NodeT> {
+      val newNodes = builder.nodes.map {
+        when (it) {
+          is ProcessNode.Builder<*, *>        -> childProvider.nodeFactory(newOwner, it)
+          is Activity.ChildModelBuilder<*, *> -> {
+            val childId = it.childId ?: throw IllegalProcessModelException("Child process model must have ids")
+            val childModel = childProvider[childId] //?: throw ProcessException("Activity refers to missing child")
+            childProvider.nodeFactory(newOwner, it, childModel).asT()
+          }
+          else                                -> throw UnsupportedOperationException( "Node builders are either for activities or for childModels")
+        }
+      }.let { IdentifyableSet.processNodeSet(Int.MAX_VALUE, it) }
+      return newNodes
+    }
+  }
 }
 

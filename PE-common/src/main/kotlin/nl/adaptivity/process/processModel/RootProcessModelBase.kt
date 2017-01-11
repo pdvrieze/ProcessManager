@@ -34,6 +34,8 @@ import nl.adaptivity.xml.XmlStreaming.EventType
 import java.security.Principal
 import java.util.*
 import javax.xml.namespace.QName
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 
 /**
  * Created by pdvrieze on 21/11/15.
@@ -144,19 +146,62 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
   }
 
-  class ChildModelProvider<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(private val childModelBuilders: List<ChildProcessModel.Builder<*, *>>, val nodeFactory: NodeFactory<NodeT, ModelT>, private val pedantic: Boolean) {
-    private var data: IdentifyableSet<out ChildProcessModelBase<NodeT, ModelT>>? = null
+  class ChildModelProvider<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : Sequence<ChildProcessModelBase<NodeT, ModelT>> {
 
-    operator fun invoke(newOwner:RootProcessModel<NodeT, ModelT>):IdentifyableSet<out ChildProcessModelBase<NodeT, ModelT>> {
-      return data?.let {
-        it
-      } ?: run {
-        IdentifyableSet.processNodeSet(childModelBuilders.asSequence().map { nodeFactory(newOwner, it) })
-      }.apply { data=this }
+    val nodeFactory: NodeFactory<NodeT, ModelT>
+    private val pedantic: Boolean
+    private val newOwner: RootProcessModel<NodeT, ModelT>
+
+    constructor(childModelBuilders: List<ChildProcessModel.Builder<*, *>>,
+                nodeFactory: NodeFactory<NodeT, ModelT>,
+                pedantic: Boolean,
+                newOwner: RootProcessModel<NodeT, ModelT>) {
+      this.nodeFactory = nodeFactory
+      this.pedantic = pedantic
+      this.newOwner = newOwner
+      this.data = childModelBuilders.associateByTo(LinkedHashMap(childModelBuilders.size), ChildProcessModel.Builder<*, *>::childId, this::Node)
     }
+
+    constructor(childModels: Collection<ChildProcessModelBase<NodeT, ModelT>>,
+                nodeFactory: NodeFactory<NodeT, ModelT>,
+                newOwner: RootProcessModelBase<NodeT, ModelT>, dummy:Boolean) {
+      this.nodeFactory = nodeFactory
+      this.pedantic = false
+      this.newOwner = newOwner
+      val childModels = childModels
+      this.data = childModels.associateByTo(LinkedHashMap(childModels.size), ChildProcessModelBase<NodeT, ModelT>::id, this::Node)
+    }
+
+    private inner class Node {
+      constructor(builder: ChildProcessModel.Builder<*, *>) {
+        this.builder = builder
+      }
+      constructor(model:ChildProcessModelBase<NodeT, ModelT>) {
+        builder = null
+        this.model = model
+      }
+
+      var builder:ChildProcessModel.Builder<*,*>?
+      var model: ChildProcessModelBase<NodeT, ModelT>? = null
+
+      operator fun invoke():ChildProcessModelBase<NodeT, ModelT> {
+        model?.let { return it }
+        val b = builder ?: throw IllegalProcessModelException("The process model has cyclic/recursive child models. This is not allowed")
+        builder = null
+        return nodeFactory(ownerModel = newOwner, baseChildBuilder = b, childModelProvider = this@ChildModelProvider, pedantic = pedantic).apply { model = this }
+      }
+    }
+
+    private val data: LinkedHashMap<String?, Node>
+
+    operator fun get(id:String): ChildProcessModel<NodeT, ModelT> {
+      return data[id]?.invoke() ?: throw IllegalProcessModelException("No child model with id ${id} exists")
+    }
+
+    override fun iterator() = data.values.asSequence().map{it.invoke()}.iterator()
   }
 
-  private var _name: String? = null
+    private var _name: String? = null
   private var _handle = -1L
 
   /**
@@ -173,52 +218,20 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   override val childModels: Collection<ChildProcessModelBase<NodeT, ModelT>> get() = _childModels
   private val _childModels: IdentifyableSet<out ChildProcessModelBase<NodeT, ModelT>>
 
+  override val _processNodes: MutableIdentifyableSet<NodeT>
 
-  constructor(builder: Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic): this(builder, ChildModelProvider(builder.childModels, nodeFactory, pedantic), pedantic)
+  constructor(builder: Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic): super(builder, pedantic) {
+    @Suppress("LeakingThis")
+    val childModelProvider = ChildModelProvider(builder.childModels, nodeFactory, pedantic, this)
+    @Suppress("LeakingThis")
+    _processNodes = buildNodes(this, builder, childModelProvider)
+    this._childModels = IdentifyableSet.processNodeSet(childModelProvider)
 
-  private constructor(builder: Builder<*, *>, childModelProvider: ChildModelProvider<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic): super(builder, childModelProvider, pedantic) {
-    this._childModels = childModelProvider(this)
     this._name = builder.name
     this._handle = builder.handle
     this._owner = builder.owner
     this._roles = builder.roles.toMutableArraySet()
     this.uuid = builder.uuid
-  }
-
-  /**
-   * Copy constructor, but generics mean that the right type of child needs to be provided as parameter
-   * @param basepm The base process model
-   * *
-   * @param modelNodes The "converted" model nodes.
-   */
-  protected constructor(basepm: RootProcessModelBase<*, *>, nodeFactory: NodeFactory<NodeT, ModelT>) : this(
-      basepm.getModelNodes(),
-      basepm.getName(),
-      basepm.handleValue,
-      basepm.owner,
-      basepm.getRoles(),
-      basepm.getUuid(),
-      basepm.getImports(),
-      basepm.getExports(),
-      basepm._childModels,
-      nodeFactory)
-
-  constructor(processNodes: Iterable<ProcessNode<*,*>>,
-              name: String? = null,
-              handle: Long = -1L,
-              owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
-              roles: Collection<String> = emptyList(),
-              uuid: UUID? = null,
-              imports: Collection<IXmlResultType> = emptyList(),
-              exports: Collection<IXmlDefineType> = emptyList(),
-              childModels: Collection<ChildProcessModel<*, *>> = emptyList(),
-              nodeFactory: NodeFactory<NodeT, ModelT>): super(processNodes, imports, exports, nodeFactory) {
-    _childModels = IdentifyableSet.processNodeSet(childModels.map { child -> nodeFactory(ownerModel = this, baseModel = child) })
-    this._name = name
-    this._handle = handle
-    this._owner = owner
-    this._roles = roles.toMutableArraySet()
-    this.uuid = uuid
   }
 
   abstract fun builder(): Builder<NodeT,ModelT>
@@ -333,8 +346,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   override fun getModelNodes(): Collection<NodeT> {
     return Collections.unmodifiableCollection(super.getModelNodes())
   }
-
-  private val _processNodes: MutableIdentifyableSet<NodeT> get() = super.getModelNodes() as MutableIdentifyableSet<NodeT>
 
   @Deprecated("Use the builder to update models")
   protected open fun addNode(node: NodeT): Boolean {

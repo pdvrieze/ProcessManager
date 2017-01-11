@@ -112,8 +112,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
       return mEndNodeCount
     }
 
-  constructor(basepm: RootProcessModelBase<*, *>) : super(basepm, XML_NODE_FACTORY) {}
-
   @JvmOverloads constructor(builder: Builder, pedantic: Boolean = false) : super(builder, XML_NODE_FACTORY, pedantic) {}
 
   override fun builder(): Builder {
@@ -296,13 +294,11 @@ object XML_NODE_FACTORY:ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelCom
     return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as XmlChildModel)) as XmlActivity
   }
 
-  override fun invoke(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, baseChildBuilder: ChildProcessModel.Builder<*, *>, pedantic: Boolean): ChildProcessModelBase<XmlProcessNode, XmlModelCommon> {
-    return XmlChildModel(baseChildBuilder, ownerModel.asM.rootModel, pedantic)
+  override fun invoke(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>,
+                      baseChildBuilder: ChildProcessModel.Builder<*, *>,
+                      childModelProvider: RootProcessModelBase.ChildModelProvider<XmlProcessNode, XmlModelCommon>,
+                      pedantic: Boolean): ChildProcessModelBase<XmlProcessNode, XmlModelCommon> {
+    return XmlChildModel(baseChildBuilder, ownerModel.asM.rootModel,childModelProvider, pedantic)
   }
 
-  override fun invoke(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>, baseModel: ChildProcessModel<*, *>, pedantic: Boolean): XmlChildModel {
-    val rootBuilder = XmlProcessModel.Builder()
-    val builder = XmlChildModel.Builder(rootBuilder, baseModel)
-    return builder.buildModel(ownerModel, pedantic)
-  }
 }

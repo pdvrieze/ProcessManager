@@ -17,21 +17,46 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
+import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xml.*
 import javax.xml.namespace.QName
 
 /**
  * Base class for submodels
  */
-abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModelBase<T, M>, ChildProcessModel<T,M> {
+abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
+  M : ProcessModel<T, M>?>(builder: ChildProcessModel.Builder<*, *>,
+                           override val rootModel: RootProcessModel<T, M>,
+                           childModelProvider: RootProcessModelBase.ChildModelProvider<T,M>,
+                           pedantic: Boolean) :
+    ProcessModelBase<T, M>(builder, pedantic), ChildProcessModel<T,M> {
+
+  override val _processNodes: IdentifyableSet<T>
+
+  init {
+    _processNodes = buildNodes(rootModel, builder, childModelProvider)
+  }
+
+  override val id: String? = builder.childId
+
+  override abstract fun builder(rootBuilder: RootProcessModel.Builder<T, M>): ChildProcessModelBase.Builder<T, M>
+
+  override fun serialize(out: XmlWriter) {
+    out.smartStartTag(ELEMENTNAME) {
+      writeAttribute(ATTR_ID, id)
+
+      writeChildren(imports)
+      writeChildren(exports)
+      writeChildren(getModelNodes())
+    }
+  }
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(
-      override val rootBuilder: RootProcessModel.Builder<T, M>,
-      override var childId: String? = null,
-      nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
-      imports: Collection<IXmlResultType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
+    override val rootBuilder: RootProcessModel.Builder<T, M>,
+    override var childId: String? = null,
+    nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+    imports: Collection<IXmlResultType> = emptyList(),
+    exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
 
     override val elementName: QName get() = ELEMENTNAME
 
@@ -41,12 +66,14 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
      */
     open fun nestedBuilder(): ChildProcessModelBase.Builder<T,M>? = null
 
-    override abstract fun buildModel(ownerModel: RootProcessModel<T, M>, pedantic: Boolean): ChildProcessModel<T, M>
+    override abstract fun buildModel(ownerModel: RootProcessModel<T, M>,
+                                     childModelProvider: RootProcessModelBase.ChildModelProvider<T, M>,
+                                     pedantic: Boolean): ChildProcessModel<T, M>
 
     override fun deserializeChild(reader: XmlReader): Boolean {
       if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
         nestedBuilder()?.let { rootBuilder.childModels.add(deserializeHelper(reader)) } ?:
-            reader.unhandledEvent("Child models are not currently allowed to be nested")
+        reader.unhandledEvent("Child models are not currently allowed to be nested")
         return true
       } else {
         return super.deserializeChild(reader)
@@ -60,27 +87,6 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
         ATTR_ID -> { childId = attributeValue.toString(); true }
         else -> super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
       }
-    }
-  }
-
-  constructor(builder: ChildProcessModel.Builder<*, *>, ownerModel: RootProcessModelBase<T,M>, nodeFactory: NodeFactory<T,M>, pedantic: Boolean):super(builder, RootProcessModelBase.ChildModelProvider(builder.rootBuilder.childModels, nodeFactory, pedantic), pedantic) {
-    this.rootModel = ownerModel
-    this.id = builder.childId
-  }
-
-  override val rootModel: RootProcessModel<T, M>
-
-  override val id: String?
-
-  override abstract fun builder(rootBuilder: RootProcessModel.Builder<T, M>): ChildProcessModelBase.Builder<T, M>
-
-  override fun serialize(out: XmlWriter) {
-    out.smartStartTag(ELEMENTNAME) {
-      writeAttribute(ATTR_ID, id)
-
-      writeChildren(imports)
-      writeChildren(exports)
-      writeChildren(getModelNodes())
     }
   }
 
