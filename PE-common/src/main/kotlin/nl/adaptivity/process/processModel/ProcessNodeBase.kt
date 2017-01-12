@@ -50,7 +50,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
       defines: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
       override var x: Double = Double.NaN,
-      override var y: Double = Double.NaN) : ProcessNode.Builder<NodeT,ModelT>, XmlDeserializable {
+      override var y: Double = Double.NaN) : ProcessNode.IBuilder<NodeT,ModelT>, XmlDeserializable {
 
     override var predecessors: MutableSet<Identified> = ArraySet(predecessors)
       set(value) {field.replaceBy(value)}
@@ -63,7 +63,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
     constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.x, node.y)
 
-    override abstract fun build(newOwner: ModelT): ProcessNode<NodeT, ModelT>
+    override abstract fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
     override fun onBeforeDeserializeChildren(reader: XmlReader) {
       // By default do nothing
@@ -156,8 +156,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
                                                                      orig.results) {
   }
 
-  constructor(builder: ProcessNode.IBuilder<*,*>, newOwnerModel: ModelT): this(newOwnerModel, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y
-                                                        , builder.defines, builder.results)
+  constructor(builder: ProcessNode.IBuilder<*,*>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>):
+    this(buildHelper.newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y, builder.defines, builder.results)
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 

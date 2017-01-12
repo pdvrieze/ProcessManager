@@ -35,12 +35,11 @@ import nl.adaptivity.xml.schema.annotations.XmlName
 
  * @author Paul de Vrieze
  */
-@XmlDeserializer(XmlActivity.Factory::class)
 class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: XmlModelCommon) : super(builder, newOwnerModel)
+  constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder, buildHelper)
 
-  constructor(builder: Activity.ChildModelBuilder<*, *>, childModel: XmlChildModel) : super(builder, childModel)
+  constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder, buildHelper)
 
   class Builder : ActivityBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
 
@@ -50,8 +49,8 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
 
     constructor(node: Activity<*, *>) : super(node) {}
 
-    override fun build(newOwner: XmlModelCommon): XmlActivity {
-      return XmlActivity(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): XmlActivity {
+      return XmlActivity(this, buildHelper)
     }
   }
 
@@ -83,22 +82,12 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>,
-                            childModelProvider: RootProcessModelBase.ChildModelProvider<XmlProcessNode, XmlModelCommon>,
-                            pedantic: Boolean): XmlChildModel {
-      return XmlChildModel(this, ownerModel as XmlProcessModel,childModelProvider, pedantic)
+    override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
+      return XmlChildModel(this, buildHelper)
     }
 
-    override fun buildActivity(childModel: ChildProcessModel<XmlProcessNode, XmlModelCommon>): Activity<XmlProcessNode, XmlModelCommon> {
-      return XmlActivity(this, childModel as XmlChildModel)
-    }
-  }
-
-  class Factory : XmlDeserializerFactory<XmlActivity> {
-
-    @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): XmlActivity {
-      return XmlActivity.deserialize(null, reader)
+    override fun buildActivity(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): Activity<XmlProcessNode, XmlModelCommon> {
+      return XmlActivity(this, buildHelper)
     }
   }
 
@@ -158,8 +147,9 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
   companion object {
 
     @Throws(XmlException::class)
-    fun deserialize(ownerModel: XmlModelCommon?, reader: XmlReader): XmlActivity {
-      return XmlActivity.Builder().deserializeHelper(reader).build(ownerModel!!)
+    fun deserialize(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>,
+                    reader: XmlReader): XmlActivity {
+      return XmlActivity.Builder().deserializeHelper(reader).build(buildHelper)
     }
 
     @Throws(XmlException::class)

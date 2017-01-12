@@ -18,6 +18,7 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.processModel.MutableProcessNode
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 
 typealias DrawableState = Int
@@ -26,14 +27,14 @@ typealias DrawableState = Int
 
 interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?>, Drawable {
 
-  open class Delegate(builder: ProcessNode.Builder<*, *>) {
+  open class Delegate(builder: ProcessNode.IBuilder<*, *>) {
 
     var state: Int = (builder as? DrawableProcessNode.Builder)?.state ?: Drawable.STATE_DEFAULT
     var isCompat: Boolean = (builder as? DrawableProcessNode.Builder)?.isCompat ?: false
 
   }
 
-  interface Builder : ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?> {
+  interface Builder : ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?> {
 
     class Delegate(var state: Int, var isCompat: Boolean) {
       constructor(node: ProcessNode<*, *>) :
@@ -52,7 +53,7 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
       get() = _delegate.state
       set(value) { _delegate.state = value }
 
-    override fun build(newOwner: DrawableProcessModel?): DrawableProcessNode
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableProcessNode
   }
 
   //  void setLabel(@Nullable String label);
@@ -96,7 +97,7 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
   fun setY(y: Double)
 
   @Deprecated("This does not work that correctly because it resets the owner")
-  override fun clone(): DrawableProcessNode = builder().build(null)
+  override fun clone(): DrawableProcessNode = builder().build(STUB_DRAWABLE_BUILD_HELPER)
 
   @Deprecated("Use builders")
   override fun setPos(left: Double, top: Double)  {

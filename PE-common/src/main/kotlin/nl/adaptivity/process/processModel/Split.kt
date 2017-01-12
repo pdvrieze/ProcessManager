@@ -27,7 +27,7 @@ interface Split<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT,
 
   interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplit.Builder<NodeT, ModelT> {
 
-    override fun build(newOwner: ModelT): Split<NodeT, ModelT>
+    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
     override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitSplit(this)
 

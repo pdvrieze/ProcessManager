@@ -16,22 +16,19 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
+import nl.adaptivity.process.processModel.Split;
+import nl.adaptivity.process.processModel.SplitBase;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.XmlDeserializer;
-import nl.adaptivity.xml.XmlDeserializerFactory;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-import static nl.adaptivity.xml.XmlUtil.deserializeHelper;
 
-
-@XmlDeserializer(XmlSplit.Factory.class)
 public class XmlSplit extends SplitBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
   public static class Builder extends SplitBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
@@ -48,22 +45,13 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlModelCommon> implement
 
     @NotNull
     @Override
-    public XmlSplit build(@NotNull final XmlModelCommon newOwner) {
-      return new XmlSplit(this, newOwner);
+    public XmlSplit build(@NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+      return new XmlSplit(this, buildHelper);
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<XmlSplit> {
-
-    @NotNull
-    @Override
-    public XmlSplit deserialize(final XmlReader reader) throws XmlException {
-      return XmlSplit.deserialize(null, reader);
-    }
-  }
-
-  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
-    super(builder, newOwnerModel);
+  public XmlSplit(@NotNull final Split.Builder<?, ?> builder, final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+    super(builder, buildHelper);
   }
 
   @NotNull
@@ -107,13 +95,4 @@ public class XmlSplit extends SplitBase<XmlProcessNode,XmlModelCommon> implement
   public void setSuccessors(@NotNull final Collection<? extends Identified> successors) {
     super.setSuccessors(successors);
   }
-
-  public static XmlSplit deserialize(XmlProcessModel owner, XmlReader reader) throws XmlException {
-    return deserialize(reader).build(owner);
-  }
-
-  public static XmlSplit.Builder deserialize(XmlReader reader) throws XmlException {
-    return deserializeHelper(new XmlSplit.Builder(), reader);
-  }
-
 }

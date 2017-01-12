@@ -25,8 +25,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
@@ -41,8 +39,10 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
 
     override var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
-    constructor(nodes: MutableSet<ProcessNode.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
-                childModels: MutableSet<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
+    constructor(): this(name=null)
+
+    constructor(nodes: Collection<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
+                childModels: Collection<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
                 name: String? = null,
                 handle: Long = -1L,
                 owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
@@ -59,6 +59,10 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
     }
 
     override fun childModelBuilder(): ChildProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> {
+      TODO("DrawableChildModels still need to be implemented")
+    }
+
+    override fun childModelBuilder(base: ChildProcessModel<*, *>): ChildProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> {
       TODO("DrawableChildModels still need to be implemented")
     }
 
@@ -139,8 +143,7 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
   }
 
   @JvmOverloads constructor(uuid: UUID, name: String, nodes: Collection<DrawableProcessNode>, layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>? = null) :
-    super(uuid, name, nodes, DRAWABLE_NODE_FACTORY) {
-    this.layoutAlgorithm = layoutAlgorithm?: LayoutAlgorithm()
+    this(Builder(name=name, uuid=uuid, nodes=nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) }, layoutAlgorithm = layoutAlgorithm?: LayoutAlgorithm())) {
 
     with(this.layoutAlgorithm) {
       defaultNodeWidth = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
@@ -360,31 +363,6 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
       return RootProcessModelBase.Builder.deserialize(Builder(), reader).build(false)
     }
 
-    private fun cloneNodes(original: RootProcessModel<out ProcessNode<*, *>, *>): Collection<DrawableProcessNode> {
-      val cache = HashMap<String, DrawableProcessNode>(original.getModelNodes().size)
-      return cloneNodes(original, cache, original.getModelNodes())
-    }
-
-    private fun cloneNodes(source: RootProcessModel<*, *>, cache: MutableMap<String, DrawableProcessNode>, nodes: Collection<Identifiable>): Collection<DrawableProcessNode> {
-      val result = ArrayList<DrawableProcessNode>(nodes.size)
-      for (origId in nodes) {
-        val value = cache[origId.id]
-        if (value == null) {
-          source.getNode(origId)?.let { orig->
-            val cpy = toDrawableNode(orig)
-            result.add(cpy)
-            cpy.id?.let{ cache[it] = cpy }
-            cpy.setSuccessors(emptyList<Identified>())
-            cpy.setPredecessors(cloneNodes(source, cache, orig.predecessors))
-          }
-        } else {
-          result.add(value)
-        }
-
-      }
-      return result
-    }
-
     @JvmStatic
     fun get(src: RootProcessModel<*, *>?): RootDrawableProcessModel? {
       if (src is RootDrawableProcessModel) {
@@ -404,57 +382,49 @@ class RootDrawableProcessModel : RootClientProcessModel, DrawableProcessModel {
       }
     }
 
-    @JvmStatic
-    @JvmName("copyProcessNodeAttrs")
-    @Deprecated("Use builders for this instead")
-    internal fun copyProcessNodeAttrs(from: ProcessNode<*, *>, to: DrawableProcessNode) {
-      from.id?.let { to.setId(it) }
-      to.setX(from.x)
-      to.setY(from.y)
+  }
+}
 
-      val predecessors = from.predecessors
-      val successors = from.successors
-      to.setPredecessors(predecessors)
-      to.setSuccessors(successors)
-    }
+internal object STUB_DRAWABLE_BUILD_HELPER: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> {
+  override val newOwner: DrawableProcessModel?
+    get() = null
+
+  override fun childModel(childId: String): ChildProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+    TODO("Drawables don't support child models yet")
+  }
+
+  override fun node(builder: ProcessNode.IBuilder<*, *>): DrawableProcessNode {
+    return DRAWABLE_NODE_FACTORY.invoke(builder, this)
+  }
+
+  override fun withOwner(newOwner: DrawableProcessModel?): ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 }
 
 object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode, DrawableProcessModel?> {
 
-  private fun visitor(newOwner: DrawableProcessModel?, childModel: ChildProcessModel<DrawableProcessNode, DrawableProcessModel?>?=null) = object : ProcessNode.BuilderVisitor<DrawableProcessNode> {
-    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = DrawableStartNode(startNode, newOwner)
+  private fun visitor(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = object : ProcessNode.BuilderVisitor<DrawableProcessNode> {
+    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = DrawableStartNode(startNode, buildHelper)
 
-    override fun visitActivity(activity: Activity.Builder<*, *>) = DrawableActivity(activity, newOwner)
+    override fun visitActivity(activity: Activity.Builder<*, *>) = DrawableActivity(activity, buildHelper)
 
     override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = TODO("Child models are not implemented yet for drawables")
 //        DrawableActivity(activity, childModel!!)
 
-    override fun visitSplit(split: Split.Builder<*, *>) = DrawableSplit(split, newOwner)
+    override fun visitSplit(split: Split.Builder<*, *>) = DrawableSplit(split, buildHelper)
 
-    override fun visitJoin(join: Join.Builder<*, *>) = DrawableJoin(join, newOwner)
+    override fun visitJoin(join: Join.Builder<*, *>) = DrawableJoin(join, buildHelper)
 
-    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = DrawableEndNode(endNode, newOwner)
+    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = DrawableEndNode(endNode, buildHelper)
   }
 
-  override fun invoke(newOwner: ProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseNode: ProcessNode<*, *>): DrawableProcessNode {
-    if (baseNode is DrawableProcessNode && baseNode.ownerModel== newOwner) return baseNode
-    return toDrawableNode(newOwner.asM, baseNode)
+  override fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableProcessNode {
+    return baseNodeBuilder.visit(visitor(buildHelper))
   }
 
-  override fun invoke(newOwner: ProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseNodeBuilder: ProcessNode.Builder<*, *>): DrawableProcessNode {
-    return baseNodeBuilder.visit(visitor(newOwner.asM))
-  }
-
-  override fun invoke(newOwner: ProcessModel<DrawableProcessNode, DrawableProcessModel?>, baseNodeBuilder: Activity.ChildModelBuilder<*, *>, childModel: ChildProcessModel<DrawableProcessNode, DrawableProcessModel?>): DrawableActivity {
-    TODO("Child models are not implemented yet for drawables")
-//    return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as DrawableChildModel)) as DrawableActivity
-  }
-
-  override fun invoke(ownerModel: RootProcessModel<DrawableProcessNode, DrawableProcessModel?>,
-                      baseChildBuilder: ChildProcessModel.Builder<*, *>,
-                      childModelProvider: RootProcessModelBase.ChildModelProvider<DrawableProcessNode, DrawableProcessModel?>,
-                      pedantic: Boolean): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
+  override fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
+                      buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): ChildProcessModelBase<DrawableProcessNode, DrawableProcessModel?> {
     TODO("Child models are not implemented yet for drawables")
 //    return DrawableChildModel(baseChildBuilder, ownerModel, pedantic)
   }
@@ -475,13 +445,8 @@ val DRAWABLE_BUILDER_VISITOR: ProcessNode.Visitor<DrawableProcessNode.Builder> =
 }
 
 
-private inline fun toDrawableNode(newOwner: DrawableProcessModel?, node: ProcessNode<*, *>): DrawableProcessNode {
-  return node.visit(DRAWABLE_BUILDER_VISITOR).build(newOwner)
-}
+private fun toDrawableNode(elem: ProcessNode<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableProcessNode {
 
-
-
-private fun toDrawableNode(elem: ProcessNode<*, *>): DrawableProcessNode {
   return elem.visit(object : Visitor<DrawableProcessNode> {
 
     override fun visitStartNode(startNode: StartNode<*, *>): DrawableProcessNode {
@@ -489,7 +454,7 @@ private fun toDrawableNode(elem: ProcessNode<*, *>): DrawableProcessNode {
     }
 
     override fun visitActivity(activity: Activity<*, *>): DrawableProcessNode {
-      return DrawableActivity.from(activity, true)
+      return DrawableActivity.Builder(activity).build(buildHelper)
     }
 
     override fun visitSplit(split: Split<*, *>): DrawableProcessNode {

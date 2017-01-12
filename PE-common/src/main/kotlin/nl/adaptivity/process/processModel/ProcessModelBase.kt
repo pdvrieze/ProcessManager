@@ -18,9 +18,6 @@ package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.processModel.engine.XmlModelCommon
-import nl.adaptivity.process.processModel.engine.XmlProcessNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
@@ -34,15 +31,14 @@ import nl.adaptivity.xml.*
 abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT, ModelT>, XmlSerializable {
 
   interface NodeFactory<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
-    operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNodeBuilder: ProcessNode.Builder<*,*>): NodeT
-    operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNodeBuilder: Activity.ChildModelBuilder<*,*>, childModel: ChildProcessModel<NodeT, ModelT>): Activity<NodeT, ModelT>
-    operator fun invoke(newOwner: ProcessModel<NodeT,ModelT>, baseNode: ProcessNode<*,*>) = invoke(newOwner, baseNode.builder())
-    operator fun invoke(ownerModel: RootProcessModel<NodeT, ModelT>, baseChildBuilder: ChildProcessModel.Builder<*, *>, childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>, pedantic: Boolean = false): ChildProcessModelBase<NodeT, ModelT>
+    operator fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): NodeT
+
+    operator fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModelBase<NodeT, ModelT>
   }
 
   @ProcessModelDSL
   abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(
-      nodes: Collection<ProcessNode.Builder<NodeT, ModelT>> = emptyList(),
+      nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
       imports: Collection<IXmlResultType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList()) : ProcessModel.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
 
@@ -55,7 +51,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
             base.imports.toMutableList(),
             base.exports.toMutableList()) {
 
-      base.getModelNodes().mapTo(nodes) { it.visit(object : ProcessNode.Visitor<ProcessNode.Builder<NodeT, ModelT>> {
+      base.getModelNodes().mapTo(nodes) { it.visit(object : ProcessNode.Visitor<ProcessNode.IBuilder<NodeT, ModelT>> {
         override fun visitStartNode(startNode: StartNode<*, *>) = startNodeBuilder(startNode)
         override fun visitActivity(activity: Activity<*, *>) = activityBuilder(activity)
         override fun visitSplit(split: Split<*, *>) = splitBuilder(split)
@@ -133,7 +129,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
   final override fun getExports(): Collection<IXmlDefineType> = _exports
   protected fun setExports(value: Iterable<IXmlDefineType>) { _exports = value.toList() }
 
-  constructor(builder: ProcessModel.Builder<*, *>, pedantic: Boolean = builder.defaultPedantic) {
+  constructor(builder: ProcessModel.Builder<*, *>, pedantic: Boolean) {
     builder.normalize(pedantic)
 
     this._imports = builder.imports.map { XmlResultType.get(it) }
@@ -180,19 +176,10 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
     @JvmStatic
     protected fun <NodeT : ProcessNode<NodeT, ModelT>,
-      ModelT : ProcessModel<NodeT, ModelT>?> buildNodes(newOwner: ProcessModel<NodeT, ModelT>,
-                                                        builder: ProcessModel.Builder<*, *>,
-                                                        childProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>): MutableIdentifyableSet<NodeT> {
+      ModelT : ProcessModel<NodeT, ModelT>?> buildNodes(builder: ProcessModel.Builder<*, *>,
+                                                        buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): MutableIdentifyableSet<NodeT> {
       val newNodes = builder.nodes.map {
-        when (it) {
-          is ProcessNode.Builder<*, *>        -> childProvider.nodeFactory(newOwner, it)
-          is Activity.ChildModelBuilder<*, *> -> {
-            val childId = it.childId ?: throw IllegalProcessModelException("Child process model must have ids")
-            val childModel = childProvider[childId] //?: throw ProcessException("Activity refers to missing child")
-            childProvider.nodeFactory(newOwner, it, childModel).asT()
-          }
-          else                                -> throw UnsupportedOperationException( "Node builders are either for activities or for childModels")
-        }
+        buildHelper.node(it)
       }.let { IdentifyableSet.processNodeSet(Int.MAX_VALUE, it) }
       return newNodes
     }

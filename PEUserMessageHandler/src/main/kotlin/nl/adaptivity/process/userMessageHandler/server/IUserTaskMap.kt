@@ -31,7 +31,7 @@ import java.sql.SQLException
 interface IUserTaskMap<T : Transaction> : TransactionedHandleMap<XmlTask, T> {
 
   @Throws(SQLException::class)
-  fun containsRemoteHandle(transaction: T, remoteHandle: Long): Handle<XmlTask>?
+  fun containsRemoteHandle(transaction: T, remoteHandle: Handle<*>): Handle<XmlTask>?
 }
 
 interface IMutableUserTaskMap<T : Transaction> : IUserTaskMap<T>, MutableTransactionedHandleMap<XmlTask, T>

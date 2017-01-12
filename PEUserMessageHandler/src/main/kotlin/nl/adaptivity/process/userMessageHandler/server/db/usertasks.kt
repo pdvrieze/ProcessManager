@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,8 +17,11 @@
 package uk.ac.bournemouth.ac.db.darwin.usertasks
 
 
+import net.devrieze.util.Handle
+import nl.adaptivity.process.userMessageHandler.server.XmlTask
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.MutableTable
+import uk.ac.bournemouth.kotlinsql.customType
 
 /**
  * Created by pdvrieze on 31/03/16.
@@ -26,12 +29,16 @@ import uk.ac.bournemouth.kotlinsql.MutableTable
 
 const val EXTRACONF="ENGINE=InnoDB CHARSET=utf8"
 
+private val X_TASKHANDLE = customType({BIGINT}, Handle<XmlTask>::handleValue, { Handle<XmlTask>(it) })
+@Suppress("USELESS_CAST") // The cast is not useless as it changes the result type
+private val X_REMOTEHANDLE = customType({BIGINT}, Handle<*>::handleValue, { Handle<Any>(it) as Handle<*> })
 
 object UserTaskDB1: Database(1) {
 
+
   object usertasks : MutableTable("usertasks", EXTRACONF) {
-    val taskhandle by BIGINT("taskhandle") { NOT_NULL; AUTO_INCREMENT }
-    val remotehandle by BIGINT("remotehandle") { NOT_NULL }
+    val taskhandle by X_TASKHANDLE { NOT_NULL; AUTO_INCREMENT }
+    val remotehandle by X_REMOTEHANDLE { NOT_NULL }
 
     override fun init() {
       PRIMARY_KEY(taskhandle)
@@ -40,8 +47,8 @@ object UserTaskDB1: Database(1) {
 
 
   object nodedata : MutableTable("nodedata", EXTRACONF) {
-    val name by VARCHAR("name", 30) { NOT_NULL }
-    val taskhandle by BIGINT("taskhandle") { NOT_NULL }
+    val name by VARCHAR(30) { NOT_NULL }
+    val taskhandle by reference(usertasks.taskhandle) { NOT_NULL }
     val data by TEXT("data")
 
     override fun init() {
@@ -55,9 +62,9 @@ object UserTaskDB1: Database(1) {
 object UserTaskDB: Database(2) {
 
   object usertasks : MutableTable("usertasks", EXTRACONF) {
-    val taskhandle by BIGINT("taskhandle") { NOT_NULL; AUTO_INCREMENT }
-    val remotehandle by BIGINT("remotehandle") { NOT_NULL }
-    val version by INT("version") { NOT_NULL }
+    val taskhandle by X_TASKHANDLE { NOT_NULL; AUTO_INCREMENT }
+    val remotehandle by X_REMOTEHANDLE { NOT_NULL }
+    val version by INT { NOT_NULL }
 
     override fun init() {
       usertasks.PRIMARY_KEY(taskhandle)

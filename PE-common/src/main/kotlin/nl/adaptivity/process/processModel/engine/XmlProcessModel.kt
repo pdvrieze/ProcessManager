@@ -24,7 +24,6 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
@@ -45,7 +44,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     override val rootBuilder: Builder get() = this
 
     constructor(
-      nodes: Collection<ProcessNode.Builder<XmlProcessNode, XmlModelCommon>> = emptySet(),
+      nodes: Collection<ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon>> = emptySet(),
       childModels : Collection<XmlChildModel.Builder> = emptySet(),
       name: String? = null,
       handle: Long = -1L,
@@ -61,8 +60,12 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
       return XmlProcessModel(this)
     }
 
-    override fun childModelBuilder(): ChildProcessModelBase.Builder<XmlProcessNode, XmlModelCommon> {
+    override fun childModelBuilder(): XmlChildModel.Builder {
       return XmlChildModel.Builder(rootBuilder)
+    }
+
+    override fun childModelBuilder(base: ChildProcessModel<*, *>): XmlChildModel.Builder {
+      return XmlChildModel.Builder(rootBuilder, base)
     }
 
     companion object {
@@ -261,44 +264,30 @@ val XML_BUILDER_VISITOR: ProcessNode.Visitor<XmlProcessNode.Builder> = object : 
 }
 
 
-private inline fun toXmlNode(newOwner: XmlModelCommon, node: ProcessNode<*, *>): XmlProcessNode {
-  return node.visit(XML_BUILDER_VISITOR).build(newOwner)
-}
-
 object XML_NODE_FACTORY:ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelCommon> {
 
-  private fun visitor(newOwner: XmlModelCommon, childModel: XmlChildModel?=null) = object : ProcessNode.BuilderVisitor<XmlProcessNode> {
-    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = XmlStartNode(startNode, newOwner)
+  private fun visitor(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) = object : ProcessNode.BuilderVisitor<XmlProcessNode> {
+    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = XmlStartNode(startNode, buildHelper)
 
-    override fun visitActivity(activity: Activity.Builder<*, *>) = XmlActivity(activity, newOwner)
+    override fun visitActivity(activity: Activity.Builder<*, *>) = XmlActivity(activity, buildHelper)
 
-    override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = XmlActivity(activity, childModel!!)
+    override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = XmlActivity(activity, buildHelper)
 
-    override fun visitSplit(split: Split.Builder<*, *>) = XmlSplit(split, newOwner)
+    override fun visitSplit(split: Split.Builder<*, *>) = XmlSplit(split, buildHelper)
 
-    override fun visitJoin(join: Join.Builder<*, *>) = XmlJoin(join, newOwner)
+    override fun visitJoin(join: Join.Builder<*, *>) = XmlJoin(join, buildHelper)
 
-    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = XmlEndNode(endNode, newOwner)
+    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = XmlEndNode(endNode, buildHelper)
   }
 
-  override fun invoke(newOwner: ProcessModel<XmlProcessNode, XmlModelCommon>, baseNode: ProcessNode<*, *>): XmlProcessNode {
-    if (baseNode is XmlProcessNode && baseNode.ownerModel== newOwner) return baseNode
-    return toXmlNode(newOwner.asM, baseNode)
+  override fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
+                      buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): XmlProcessNode {
+    return baseNodeBuilder.visit(visitor(buildHelper))
   }
 
-  override fun invoke(newOwner: ProcessModel<XmlProcessNode, XmlModelCommon>, baseNodeBuilder: ProcessNode.Builder<*, *>): XmlProcessNode {
-    return baseNodeBuilder.visit(visitor(newOwner.asM))
-  }
-
-  override fun invoke(newOwner: ProcessModel<XmlProcessNode, XmlModelCommon>, baseNodeBuilder: Activity.ChildModelBuilder<*, *>, childModel: ChildProcessModel<XmlProcessNode, XmlModelCommon>): Activity<XmlProcessNode, XmlModelCommon> {
-    return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as XmlChildModel)) as XmlActivity
-  }
-
-  override fun invoke(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>,
-                      baseChildBuilder: ChildProcessModel.Builder<*, *>,
-                      childModelProvider: RootProcessModelBase.ChildModelProvider<XmlProcessNode, XmlModelCommon>,
-                      pedantic: Boolean): ChildProcessModelBase<XmlProcessNode, XmlModelCommon> {
-    return XmlChildModel(baseChildBuilder, ownerModel.asM.rootModel,childModelProvider, pedantic)
+  override fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
+                      buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModelBase<XmlProcessNode, XmlModelCommon> {
+    return XmlChildModel(baseChildBuilder, buildHelper)
   }
 
 }

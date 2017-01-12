@@ -33,20 +33,15 @@ class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, Execut
     constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.id, base.getModelNodes().map { it.visit(EXEC_BUILDER_VISITOR) }, base.imports, base.exports)
 
 
-    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>,
-                            childModelProvider: RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>,
-                            pedantic: Boolean)
-      = ExecutableChildModel(this, ownerModel as ExecutableProcessModel,childModelProvider, pedantic)
+    override fun buildModel(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
+      = ExecutableChildModel(this, buildHelper)
   }
 
   override val rootModel get() = super.rootModel as ExecutableProcessModel
 
   override val endNodeCount by lazy { modelNodes.count { it is ExecutableEndNode } }
 
-  constructor(builder: ChildProcessModel.Builder<*, *>,
-              ownerModel: ExecutableProcessModel,
-              childModelProvider: RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>,
-              pedantic: Boolean) : super(builder, ownerModel, childModelProvider, pedantic)
+  constructor(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : super(builder, buildHelper)
 
   override fun builder(rootBuilder: RootProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>)
       = ExecutableChildModel.Builder(rootBuilder as ExecutableProcessModel.Builder, id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)

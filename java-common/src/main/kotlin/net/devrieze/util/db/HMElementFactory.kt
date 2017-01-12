@@ -22,7 +22,7 @@ import java.sql.SQLException
 
 interface HMElementFactory<BUILDER, T:Any, TR:DBTransaction> : ElementFactory<BUILDER, T, TR> {
   fun getHandleCondition(where: Database._Where,
-                         handle: Handle<out T>): Database.WhereClause?
+                         handle: Handle<T>): Database.WhereClause?
 
   /**
    * Called before removing an element with the given handle
@@ -30,6 +30,5 @@ interface HMElementFactory<BUILDER, T:Any, TR:DBTransaction> : ElementFactory<BU
    */
   @Throws(SQLException::class)
   fun preRemove(transaction: TR, handle: Handle<out T>)
-
 
 }

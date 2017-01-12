@@ -25,11 +25,12 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITY
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITYROUNDY
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITYWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
-import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.copyProcessNodeAttrs
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.writeSimpleElement
 
 
 open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
@@ -59,8 +60,8 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
       _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
-    override fun build(newOwner: DrawableProcessModel?): DrawableActivity {
-      return DrawableActivity(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableActivity {
+      return DrawableActivity(this, buildHelper)
     }
 
   }
@@ -84,25 +85,14 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
-  @Deprecated("Use the builder")
-  @JvmOverloads constructor(owner: DrawableProcessModel?, compat: Boolean = false) : this(Builder(isCompat = compat), owner)
-
-  @Deprecated("Use the builder")
-  constructor(owner: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, isCompat = compat), owner)
-
-  @Deprecated("Use the builder")
-  constructor(orig: Activity<*, *>, compat: Boolean) : this(Builder(orig).apply { isCompat=compat }, null)
-
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>,
+              buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
     _delegate = DrawableProcessNode.Delegate(builder)
   }
 
   override fun builder(): Builder {
     return Builder(this)
   }
-
-  @Deprecated("This does not set the owner, be careful")
-  override fun clone() = Builder(this).build(null)
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val hwidth = (ACTIVITYWIDTH + STROKEWIDTH) / 2
@@ -202,23 +192,10 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
     const val IDBASE = "ac"
     private val _bounds by lazy { Rectangle(STROKEWIDTH / 2, STROKEWIDTH / 2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
 
-    @JvmStatic
-    @Deprecated("")
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: DrawableProcessModel, reader: XmlReader): DrawableActivity {
-      return DrawableActivity.Builder(isCompat = true).deserializeHelper(reader).build(ownerModel)
-    }
-
-    @JvmStatic
-    @Throws(XmlException::class)
-    fun deserialize(reader: XmlReader): Builder {
-      return DrawableActivity.Builder(isCompat = true).deserializeHelper(reader)
-    }
-
     @Deprecated("Use the builder")
     @JvmStatic
     fun from(elem: Activity<*, *>, compat: Boolean): DrawableActivity {
-      return Builder(elem).apply { isCompat = compat }.build(null)
+      return Builder(elem).apply { isCompat = compat }.build(STUB_DRAWABLE_BUILD_HELPER)
     }
   }
 

@@ -19,10 +19,7 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STARTNODERADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.StartNode
-import nl.adaptivity.process.processModel.StartNodeBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
@@ -52,7 +49,8 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
       _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
-    override fun build(newOwner: DrawableProcessModel?) = DrawableStartNode(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableStartNode(
+      this, buildHelper)
   }
 
   override val _delegate: DrawableProcessNode.Delegate
@@ -68,16 +66,7 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
   override val topExtent get() = REFERENCE_OFFSET_Y
   override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
 
-  @Deprecated("Use builders")
-  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : this(Builder(isCompat=compat), ownerModel)
-
-  @Deprecated("Use builders")
-  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean = false) : this(Builder(id=id, isCompat = compat), ownerModel)
-
-  @Deprecated("Use the constructor that takes a builder")
-  constructor(orig: DrawableStartNode, newOwner: DrawableProcessModel? = null) : this(orig.builder(), newOwner)
-
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+  constructor(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
     _delegate = DrawableProcessNode.Delegate(builder)
   }
 
@@ -86,7 +75,7 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
   }
 
   override fun clone(): DrawableStartNode {
-    return builder().build(null)
+    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
   }
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
@@ -148,16 +137,9 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
       return DrawableStartNode.Builder().deserializeHelper(reader)
     }
 
-    @Deprecated("")
-    @Throws(XmlException::class)
-    @JvmStatic
-    fun deserialize(ownerModel: DrawableProcessModel, reader: XmlReader): DrawableStartNode {
-      return DrawableStartNode.Builder().deserializeHelper(reader).build(ownerModel)
-    }
-
     @JvmStatic
     fun from(n: StartNode<*, *>, compat: Boolean = false)
-      = Builder(n).apply { this.isCompat = compat }.build(null)
+      = Builder(n).apply { this.isCompat = compat }.build(STUB_DRAWABLE_BUILD_HELPER)
   }
 
 }

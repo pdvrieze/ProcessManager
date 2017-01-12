@@ -85,7 +85,7 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
   @Deprecated("Use the full constructor")
   constructor(ownerModel: ModelT) : super(ownerModel) { }
 
-  constructor(builder: StartNode.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
+  constructor(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper)
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 

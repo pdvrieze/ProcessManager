@@ -108,7 +108,8 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
   @Deprecated("Use builders")
   constructor(ownerModel: ModelT) : this(ownerModel, id=null) { }
 
-  constructor(builder: JoinSplit.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
+  constructor(builder: JoinSplit.Builder<*, *>,
+              buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
     this.min = builder.min
     this.max = builder.max
   }

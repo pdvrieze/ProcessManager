@@ -26,7 +26,9 @@ import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.writeChild
 import java.sql.SQLException
 
 
@@ -35,11 +37,13 @@ import java.sql.SQLException
  */
 class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode {
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>,
+              buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : super(builder, buildHelper) {
     this._condition = builder.condition?.let(::ExecutableCondition)
   }
 
-  constructor(builder: Activity.ChildModelBuilder<*, *>, childModel: ExecutableChildModel) : super(builder, childModel) {
+  constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : super(builder,
+                                                                                                                                                      buildHelper) {
     this._condition = builder.condition?.let(::ExecutableCondition)
   }
 
@@ -59,7 +63,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
 
     constructor(node: Activity<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon) = ExecutableActivity(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableActivity(
+      this, buildHelper)
   }
 
 
@@ -90,14 +95,10 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
       set(value) {field.replaceBy(value)}
 
-    override fun buildModel(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>,
-                            childModelProvider: RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>,
-                            pedantic: Boolean): ExecutableChildModel {
-      return ExecutableChildModel(this, ownerModel.asM.rootModel,childModelProvider, pedantic)
-    }
+    override fun buildModel(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableChildModel(this, buildHelper)
 
-    override fun buildActivity(childModel: ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
-      return ExecutableActivity(this, childModel as ExecutableChildModel)
+    override fun buildActivity(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
+      return ExecutableActivity(this, buildHelper)
     }
   }
 
@@ -141,14 +142,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    */
   @Throws(SQLException::class)
   override fun provideTask(engineData: ProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean {
-
-    return childModel.let { when (it) {
-      null -> false // The instance will take care of this
-      else -> true // Let the instance create the process
-    }}
-
-  }
+                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean = childModel != null
 
   /**
    * Take the task. Tasks are either process aware or finished when a reply is
@@ -156,7 +150,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    *
    * @return `false`
    */
-  override fun takeTask(instance: ProcessNodeInstance) = false
+  override fun takeTask(instance: ProcessNodeInstance) = childModel!=null
 
   /**
    * Start the task. Tasks are either process aware or finished when a reply is
@@ -169,16 +163,6 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {
     out.writeChild(_condition)
-  }
-
-  companion object {
-
-    @JvmStatic
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableActivity {
-      return ExecutableActivity.Builder().deserializeHelper(reader).build(ownerModel)
-    }
-
   }
 
 }

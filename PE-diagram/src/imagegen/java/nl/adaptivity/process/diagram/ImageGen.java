@@ -38,11 +38,11 @@ public class ImageGen {
   public static void main(String[] args) throws IOException {
     DrawableProcessModel owner = new DrawableProcessModel(UUID.randomUUID(), "", Collections.<DrawableProcessNode>emptyList());
 
-    drawNode(new DrawableStartNode.Builder().build(owner), "startNode.svg");
-    drawNode(new DrawableSplit.Builder().build(owner), "split.svg");
-    drawNode(new DrawableJoin.Builder().build(owner), "join.svg");
-    drawNode(new DrawableActivity.Builder().build(owner), "activity.svg");
-    drawNode(new DrawableEndNode.Builder().build(owner), "endNode.svg");
+    drawNode(new DrawableStartNode.Builder().build(buildHelper), "startNode.svg");
+    drawNode(new DrawableSplit.Builder().build(buildHelper), "split.svg");
+    drawNode(new DrawableJoin.Builder().build(buildHelper), "join.svg");
+    drawNode(new DrawableActivity.Builder().build(buildHelper), "activity.svg");
+    drawNode(new DrawableEndNode.Builder().build(buildHelper), "endNode.svg");
   }
 
   private static void drawNode(final DrawableProcessNode processNode, final String fileName) throws IOException {

@@ -16,10 +16,16 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.JoinBase;
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 
 
-@XmlDeserializer(XmlJoin.Factory.class)
 public class XmlJoin extends JoinBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
   public static class Builder extends JoinBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
@@ -45,24 +50,16 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlModelCommon> implements 
 
     @NotNull
     @Override
-    public XmlJoin build(@NotNull final XmlModelCommon newOwner) {
-      return new XmlJoin(this, newOwner);
-    }
-  }
-
-  public static class Factory implements XmlDeserializerFactory<XmlJoin> {
-
-    @NotNull
-    @Override
-    public XmlJoin deserialize(@NotNull final XmlReader reader) throws XmlException {
-      return XmlJoin.deserialize(null, reader);
+    public XmlJoin build(@NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+      return new XmlJoin(this, buildHelper);
     }
   }
 
   @NotNull
-  public static XmlJoin deserialize(final XmlProcessModel ownerModel, @NotNull final XmlReader in) throws
+  public static XmlJoin deserialize(@NotNull final XmlReader in,
+                                    final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) throws
           XmlException {
-    return deserialize(in).build(ownerModel);
+    return deserialize(in).build(buildHelper);
   }
 
   @NotNull
@@ -75,8 +72,8 @@ public class XmlJoin extends JoinBase<XmlProcessNode,XmlModelCommon> implements 
     super(ownerModel);
   }
 
-  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
-    super(builder, newOwnerModel);
+  public XmlJoin(@NotNull final Join.Builder<?, ?> builder, @NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+    super(builder, buildHelper);
   }
 
   @NotNull

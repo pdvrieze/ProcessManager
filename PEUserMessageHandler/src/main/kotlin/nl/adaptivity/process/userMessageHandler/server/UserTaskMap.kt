@@ -32,10 +32,8 @@ import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlStreaming.EventType
 import org.w3.soapEnvelope.Envelope
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
-import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB.usertasks
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.kotlinsql.Column
-import uk.ac.bournemouth.kotlinsql.ColumnType
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Table
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
@@ -91,7 +89,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       return listOf(u.taskhandle, u.remotehandle)
     }
 
-    override val keyColumn: Column<Long, ColumnType.NumericColumnType.BIGINT_T, *>
+    override val keyColumn: Column<Handle<XmlTask>, *, *>
       get() = u.taskhandle
 
     // XXX  This needs some serious overhaul
@@ -102,7 +100,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       val instance: XmlProcessNodeInstance?
       try {
         val future = ServletProcessEngineClient
-              .getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL,
+              .getProcessNodeInstance(remoteHandle.handleValue, SecurityProvider.SYSTEMPRINCIPAL,
                                       null, XmlTask::class.java, Envelope::class.java)
         instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
         if (instance == null) {
@@ -143,7 +141,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         val reader = XMLFragmentStreamReader.from(body)
         val env = Envelope.deserialize(reader, PostTaskFactory())
         val task = env.body.bodyContent
-        task.setHandleValue(handle)
+        task.setHandleValue(handle.handleValue)
         task.remoteHandle = remoteHandle
         task.state = instance.state
         return task
@@ -154,7 +152,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
     @Throws(SQLException::class)
     override fun postCreate(transaction: DBTransaction, element: XmlTask): XmlTask {
-      UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handleValue }.execute(transaction.connection) {
+      UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.getHandle() }.execute(transaction.connection) {
         name, data ->
         if (name!=null) {
           element[name]?.let { it.value = data }
@@ -167,7 +165,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
           getHandleCondition(where, instance.getHandle())
 
     override fun getHandleCondition(where: Database._Where, handle: Handle<out XmlTask>) = where.run {
-      u.taskhandle eq handle.handleValue
+      u.taskhandle eq handle
     }
 
     override fun asInstance(obj: Any) = obj as? XmlTask
@@ -187,7 +185,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         if (itemName !=null && item.type!="label") {
           oldValue?.getItem(itemName)?.let { oldItem ->
             if (!(oldItem.value == null && item.value == null)) {
-              insert.VALUES(handle.handleValue, itemName, item.value)
+              insert.VALUES(handle, itemName, item.value)
             }
           }
         }
@@ -200,8 +198,8 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       WebAuthDB.DELETE_FROM(nd).executeUpdate(transaction.connection)
     }
 
-    override fun preRemove(transaction: DBTransaction, handle: Handle<out XmlTask>) {
-      WebAuthDB.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle.handleValue }.executeUpdate(transaction.connection)
+    override fun preRemove(transaction: DBTransaction, handle: Handle<XmlTask>) {
+      WebAuthDB.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle }.executeUpdate(transaction.connection)
     }
 
     @Throws(SQLException::class)
@@ -221,16 +219,8 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
   }
 
   @Throws(SQLException::class)
-  override fun containsRemoteHandle(transaction: DBTransaction, remoteHandle: Long): Handle<XmlTask>? {
-    transaction.connection.prepareStatement("SELECT $COL_HANDLE FROM $TABLE WHERE $COL_REMOTEHANDLE = ?") {
-      setLong(1, remoteHandle)
-      execute { rs ->
-        if (!rs.next()) {
-          return null
-        }
-        return Handles.handle<XmlTask>(rs.getLong(1))
-      }
-    }
+  override fun containsRemoteHandle(transaction: DBTransaction, remoteHandle: Handle<*>): Handle<XmlTask>? {
+    return UserTaskDB.SELECT(u.taskhandle).WHERE { u.remotehandle eq remoteHandle }.getSingleOrNull(transaction.connection)
   }
 
   companion object {
@@ -238,11 +228,5 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     val u = UserTaskDB.usertasks
     val nd = UserTaskDB.nodedata
 
-    val TABLE = usertasks._name
-    val TABLEDATA = UserTaskDB.nodedata._name
-    val COL_HANDLE = "taskhandle"
-    val COL_REMOTEHANDLE = "remotehandle"
-    val COL_NAME = "name"
-    val COL_DATA = "data"
   }
 }

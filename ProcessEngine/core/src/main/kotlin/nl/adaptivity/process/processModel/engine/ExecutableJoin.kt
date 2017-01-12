@@ -22,12 +22,10 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
+  : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
 
   class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
@@ -41,7 +39,8 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModel
                 y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, x, y, min, max)
     constructor(node: Join<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon) = ExecutableJoin(this, newOwner as ExecutableModelCommon)
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableJoin(
+      this, buildHelper)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
@@ -50,14 +49,5 @@ class ExecutableJoin(builder: Join.Builder<*, *>, newOwnerModel: ExecutableModel
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
       = processInstance.getNodeInstance(this) ?: processInstance.getJoinInstance(this, predecessor)
-
-  companion object {
-
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableJoin {
-      return ExecutableJoin.Builder().deserializeHelper(reader).build(ownerModel)
-    }
-
-  }
 
 }

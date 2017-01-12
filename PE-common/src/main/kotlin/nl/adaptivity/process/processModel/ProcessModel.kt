@@ -17,13 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
 
 @DslMarker
 annotation class ProcessModelDSL
@@ -217,8 +213,17 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
 
   }
 
+  /** Interface that helps collating all the elements needed to build child nodes and child models*/
+  interface BuildHelper<NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> {
+    val newOwner: ModelT
+    val pedantic: Boolean get() = false
+    fun childModel(childId: String): ChildProcessModel<NodeT, ModelT>
+    fun node(builder: ProcessNode.IBuilder<*, *>): NodeT
+    fun  withOwner(newOwner: ModelT): BuildHelper<NodeT, ModelT>
+  }
+
   companion object {
-    private fun <B: ProcessNode.Builder<NodeT,ModelT>, NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> ProcessModel.Builder<NodeT, ModelT>.nodeHelper(builder:B, body: B.()->Unit): Identifiable {
+    private fun <B: ProcessNode.IBuilder<NodeT,ModelT>, NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> ProcessModel.Builder<NodeT, ModelT>.nodeHelper(builder:B, body: B.()->Unit): Identifiable {
       return builder.apply(body).ensureId().apply { this@nodeHelper.nodes.add(this) }.let { Identifier(it.id!!) }
     }
   }

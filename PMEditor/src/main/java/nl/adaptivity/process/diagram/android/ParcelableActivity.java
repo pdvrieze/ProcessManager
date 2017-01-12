@@ -21,8 +21,10 @@ import android.os.Parcelable;
 import android.util.Log;
 import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.diagram.DrawableActivity;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.process.util.Identifiable;
@@ -61,7 +63,7 @@ public class ParcelableActivity extends DrawableActivity
   };
 
   private ParcelableActivity(final Parcel source) {
-    super((DrawableProcessModel) null, source.readByte()!=0);
+    super();
     setId(source.readString());
     setLabel(source.readString());
     setName(source.readString());

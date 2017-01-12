@@ -42,6 +42,7 @@ import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.process.diagram.*;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import org.jetbrains.annotations.NotNull;
@@ -718,11 +719,19 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
       final AndroidTheme theme = new AndroidTheme(AndroidStrategy.INSTANCE);
 
-      addNodeView(theme, new DrawableStartNode((DrawableProcessModel) null, false));
-      addNodeView(theme, new DrawableActivity((DrawableProcessModel) null, false));
-      addNodeView(theme, new DrawableSplit((DrawableProcessModel) null));
-      addNodeView(theme, new DrawableJoin((DrawableProcessModel) null, false));
-      addNodeView(theme, new DrawableEndNode((DrawableProcessModel)null));
+      final DrawableProcessModel viewOwner;
+      {
+        final Builder builder = new Builder();
+        builder.getNodes().add(builder.activityBuilder());
+        builder.getNodes().add(builder.startNodeBuilder());
+        builder.getNodes().add(builder.splitBuilder());
+        builder.getNodes().add(builder.joinBuilder());
+        builder.getNodes().add(builder.endNodeBuilder());
+        viewOwner = builder.build(false);
+      }
+      for(DrawableProcessNode node: viewOwner.getModelNodes()) {
+        addNodeView(theme, node);
+      }
 
       elementsView.requestLayout();
     }

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.Handle
 import net.devrieze.util.MutableHandleAware
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
@@ -51,9 +52,9 @@ interface UserTask<T : UserTask<T>> : MutableHandleAware<T> {
 
   val items: List<out TaskItem>
 
-  val remoteHandle: Long
+  val remoteHandle: Handle<*>
 
-  val instanceHandle: Long
+  val instanceHandle: Handle<*>
 
   val handleValue: Long
 

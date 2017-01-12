@@ -28,7 +28,8 @@ import javax.xml.namespace.QName
 /**
  * Created by pdvrieze on 24/11/15.
  */
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(builder: EndNode.Builder<*, *>, newOwnerModel: M) : ProcessNodeBase<T, M>(builder, newOwnerModel), EndNode<T, M> {
+abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(builder: EndNode.Builder<*, *>,
+                                                                           buildHelper: ProcessModel.BuildHelper<T, M>) : ProcessNodeBase<T, M>(builder, buildHelper), EndNode<T, M> {
 
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
 

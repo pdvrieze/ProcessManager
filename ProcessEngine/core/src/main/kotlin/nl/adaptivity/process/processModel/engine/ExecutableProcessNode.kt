@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -37,8 +36,8 @@ import java.sql.SQLException
  */
 interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableModelCommon>, Identified {
 
-  interface Builder : ProcessNode.Builder<ExecutableProcessNode, ExecutableModelCommon> {
-    override fun build(newOwner: ExecutableModelCommon): ExecutableProcessNode
+  interface Builder : ProcessNode.IBuilder<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon>
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {

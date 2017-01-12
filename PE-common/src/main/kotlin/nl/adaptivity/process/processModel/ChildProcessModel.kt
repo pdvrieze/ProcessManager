@@ -28,9 +28,7 @@ interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
     val childIdBase: String get() = "child"
     var childId: String?
-    fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>,
-                   childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>,
-                   pedantic: Boolean = defaultPedantic): ChildProcessModel<NodeT, ModelT>
+    fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
   }
 
   @Deprecated("Not needed as childmodels are not nested")

@@ -34,9 +34,11 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
     var successor: Identifiable?
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }
+
+    var childId: String?
   }
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.Builder<T, M> {
+  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.IBuilder<T, M> {
     var message: IXmlMessage?
     @Deprecated("Names are not used anymore")
     var name: String?
@@ -48,11 +50,11 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
 
     override val idBase: String get() = "sub"
 
-    override fun buildModel(ownerModel: RootProcessModel<NodeT, ModelT>,
-                            childModelProvider: RootProcessModelBase.ChildModelProvider<NodeT, ModelT>,
-                            pedantic: Boolean): ChildProcessModel<NodeT, ModelT>
+    override fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
 
-    fun buildActivity(childModel: ChildProcessModel<NodeT,ModelT>): Activity<NodeT, ModelT>
+    fun buildActivity(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): Activity<NodeT, ModelT>
+
+    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) = buildActivity(buildHelper)
 
     override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
   }

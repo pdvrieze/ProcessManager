@@ -21,10 +21,7 @@ import nl.adaptivity.process.diagram.ProcessThemeItems.ENDNODEOUTERLINE
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEINNERRRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERSTROKEWIDTH
-import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.EndNodeBase
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
@@ -59,7 +56,7 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
       _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
-    override fun build(newOwner: DrawableProcessModel?) = DrawableEndNode(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableEndNode(this, buildHelper)
   }
 
   override val _delegate: DrawableProcessNode.Delegate
@@ -68,16 +65,11 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
   override val isCompat: Boolean
     get() = false
 
-  @Deprecated("Use the builder")
-  constructor(ownerModel: DrawableProcessModel) : this(Builder(), ownerModel) {}
+  @Deprecated("Use the builder", ReplaceWith("this(Builder(orig))"))
+  constructor(orig: EndNode<*, *>) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
 
-  @Deprecated("Use the builder")
-  constructor(ownerModel: DrawableProcessModel, id: String) : this(Builder(id=id), ownerModel) {}
-
-  @Deprecated("Use the builder")
-  constructor(orig: EndNode<*, *>) : this(Builder(orig), null)
-
-  constructor(builder: EndNode.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel!!) {
+  constructor(builder: EndNode.Builder<*, *>,
+              buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
     _delegate = DrawableProcessNode.Delegate(builder)
   }
 
@@ -159,13 +151,6 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
     private const val REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS
     private const val REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS
     const val IDBASE = "end"
-
-    @Deprecated("")
-    @JvmStatic
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: DrawableProcessModel, reader: XmlReader): DrawableEndNode {
-      return DrawableEndNode.Builder(state = Drawable.STATE_DEFAULT).deserializeHelper(reader).build(ownerModel)
-    }
 
     @Throws(XmlException::class)
     @JvmStatic

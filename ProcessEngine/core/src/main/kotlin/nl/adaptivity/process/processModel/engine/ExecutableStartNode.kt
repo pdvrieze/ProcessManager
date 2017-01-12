@@ -17,19 +17,16 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.Handles
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
 import java.sql.SQLException
 
 
-class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
+  builder, buildHelper), ExecutableProcessNode {
 
   class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
@@ -42,8 +39,8 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
     constructor(node: StartNode<*, *>) : super(node)
 
 
-    override fun build(newOwner: ExecutableModelCommon): ExecutableStartNode {
-      return ExecutableStartNode(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon> {
+      return ExecutableStartNode(this, buildHelper)
     }
   }
 
@@ -65,13 +62,5 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, newOwnerModel: Execu
   override fun takeTask(instance: ProcessNodeInstance) = true
 
   override fun startTask(instance: ProcessNodeInstance) = true
-
-  companion object {
-
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableStartNode {
-      return Builder().deserializeHelper(reader).build(ownerModel)
-    }
-  }
 
 }

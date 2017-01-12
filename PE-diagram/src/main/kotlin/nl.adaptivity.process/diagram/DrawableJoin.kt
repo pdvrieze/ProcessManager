@@ -27,9 +27,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWI
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
 
 
 class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
@@ -58,7 +55,8 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
       _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
-    override fun build(newOwner: DrawableProcessModel?) = DrawableJoin(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableJoin(
+      this, buildHelper)
   }
 
   override val _delegate: DrawableJoinSplit.Delegate
@@ -66,17 +64,7 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
-  @Deprecated("Use builders")
-  @JvmOverloads constructor(ownerModel: DrawableProcessModel?, compat: Boolean = false) : this(Builder(
-    isCompat = compat), ownerModel)
-
-  @Deprecated("Use builders")
-  constructor(ownerModel: DrawableProcessModel?, id: String, compat: Boolean) : this(Builder(id=id, isCompat =compat), ownerModel)
-
-  @Deprecated("Use builders")
-  constructor(orig: DrawableJoin, newOwner: DrawableProcessModel?, compat: Boolean) : this(Builder(orig).apply { isCompat = compat }, newOwner)
-
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+  constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
     _delegate = DrawableJoinSplit.Delegate(builder)
   }
 
@@ -85,7 +73,7 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
   }
 
   override fun clone(): DrawableJoin {
-    return builder().build(null)
+    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
@@ -145,20 +133,8 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
     @Deprecated("Use the builder")
     @JvmStatic
     fun from(elem: Join<*, *>, compat: Boolean): DrawableJoin {
-      val owner: DrawableProcessModel? = (elem as? DrawableProcessNode)?.ownerModel
-      return DrawableJoin(owner, compat)
+      return Builder(elem).build(STUB_DRAWABLE_BUILD_HELPER)
     }
 
-    @JvmStatic
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: DrawableProcessModel?, reader: XmlReader): DrawableJoin {
-      return Builder(state = Drawable.STATE_DEFAULT, isCompat = true).deserializeHelper(reader).build(ownerModel)
-    }
-
-    @JvmStatic
-    @Throws(XmlException::class)
-    fun deserialize(reader: XmlReader): Builder {
-      return Builder(state = Drawable.STATE_DEFAULT, isCompat = true).deserializeHelper(reader)
-    }
   }
 }

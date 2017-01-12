@@ -16,32 +16,24 @@
 
 package nl.adaptivity.process.clientProcessModel
 
-import net.devrieze.util.Handle
-import net.devrieze.util.Handles
-import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.diagram.Bounded
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.diagram.*
-import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.engine.IProcessModelRef
-import nl.adaptivity.process.util.*
-import java.security.Principal
+import nl.adaptivity.process.processModel.MutableRootProcessModel
+import nl.adaptivity.process.processModel.RootProcessModelBase
+import nl.adaptivity.process.processModel.modelNodes
+import nl.adaptivity.process.util.Constants
+import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import java.util.*
 
 abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>, MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
   abstract val layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
-  @JvmOverloads constructor(uuid: UUID? = null,
-                            name: String? = null,
-                            nodes: Collection<DrawableProcessNode> = emptyList(),
-                            nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>) :
-    super(nodes, uuid = uuid ?: UUID.randomUUID(), name = name, nodeFactory = nodeFactory) {
-  }
-
   @JvmOverloads
   constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic)
+
   var topPadding = 5.0
     set(topPadding) {
       val offset = topPadding - this.topPadding
@@ -77,7 +69,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
   abstract fun invalidate()
 
   @Deprecated("Use the version taking an identifier", ReplaceWith("getNode(Identifier(nodeId))", "nl.adaptivity.process.util.Identifier"))
-  fun getNode(nodeId: String) = getNode(Identifier(nodeId))
+  override fun getNode(nodeId: String) = getNode(Identifier(nodeId))
 
   fun setOwner(owner: String) {
     this.owner = SimplePrincipal(owner)

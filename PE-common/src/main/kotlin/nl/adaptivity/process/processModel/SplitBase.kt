@@ -16,10 +16,11 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.processModel.engine.XmlProcessModel
-import nl.adaptivity.process.processModel.engine.XmlSplit
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.smartStartTag
+import nl.adaptivity.xml.writeAttribute
 import java.util.*
 import javax.xml.namespace.QName
 
@@ -78,7 +79,7 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
               min: Int = -1,
               max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id, label, x, y, defines, results, min, max)
 
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
+  constructor(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper)
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 
@@ -105,12 +106,4 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
   override val maxSuccessorCount: Int
     get() = Integer.MAX_VALUE
 
-  companion object {
-
-    @Deprecated("Use a final class deserializer such as XmlSplit.deserialize")
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: XmlProcessModel, reader: XmlReader): XmlSplit {
-      return XmlSplit.deserialize(ownerModel, reader)
-    }
-  }
 }

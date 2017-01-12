@@ -25,17 +25,12 @@ import javax.xml.namespace.QName
  * Base class for submodels
  */
 abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
-  M : ProcessModel<T, M>?>(builder: ChildProcessModel.Builder<*, *>,
-                           override val rootModel: RootProcessModel<T, M>,
-                           childModelProvider: RootProcessModelBase.ChildModelProvider<T,M>,
-                           pedantic: Boolean) :
-    ProcessModelBase<T, M>(builder, pedantic), ChildProcessModel<T,M> {
+  M : ProcessModel<T, M>?>(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) :
+  ProcessModelBase<T, M>(builder, buildHelper.pedantic), ChildProcessModel<T,M> {
 
-  override val _processNodes: IdentifyableSet<T>
+  override val _processNodes: IdentifyableSet<T> = buildNodes(builder, buildHelper.withOwner(asM))
 
-  init {
-    _processNodes = buildNodes(rootModel, builder, childModelProvider)
-  }
+  override val rootModel: RootProcessModel<T, M> = buildHelper.newOwner?.rootModel ?: throw IllegalProcessModelException("Childmodels must have roots")
 
   override val id: String? = builder.childId
 
@@ -54,7 +49,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
   abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(
     override val rootBuilder: RootProcessModel.Builder<T, M>,
     override var childId: String? = null,
-    nodes: Collection<ProcessNode.Builder<T, M>> = emptyList(),
+    nodes: Collection<ProcessNode.IBuilder<T, M>> = emptyList(),
     imports: Collection<IXmlResultType> = emptyList(),
     exports: Collection<IXmlDefineType> = emptyList()) : ProcessModelBase.Builder<T,M>(nodes, imports, exports), ChildProcessModel.Builder<T,M> {
 
@@ -66,9 +61,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
      */
     open fun nestedBuilder(): ChildProcessModelBase.Builder<T,M>? = null
 
-    override abstract fun buildModel(ownerModel: RootProcessModel<T, M>,
-                                     childModelProvider: RootProcessModelBase.ChildModelProvider<T, M>,
-                                     pedantic: Boolean): ChildProcessModel<T, M>
+    override abstract fun buildModel(buildHelper: ProcessModel.BuildHelper<T, M>): ChildProcessModel<T, M>
 
     override fun deserializeChild(reader: XmlReader): Boolean {
       if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {

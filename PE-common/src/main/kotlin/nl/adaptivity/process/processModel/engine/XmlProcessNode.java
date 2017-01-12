@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine;
 
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.processModel.ProcessNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,11 +26,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface XmlProcessNode extends ProcessNode<XmlProcessNode, XmlModelCommon> {
 
-  interface Builder extends ProcessNode.Builder<XmlProcessNode, XmlModelCommon> {
+  interface Builder extends ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon> {
 
     @NotNull
     @Override
-    XmlProcessNode build(@NotNull XmlModelCommon newOwner);
+    XmlProcessNode build(@NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper);
   }
 
   @NotNull

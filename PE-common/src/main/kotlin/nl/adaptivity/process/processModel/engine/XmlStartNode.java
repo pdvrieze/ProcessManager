@@ -16,12 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine;
 
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.StartNodeBase;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.List;
 
 
-@XmlDeserializer(XmlStartNode.Factory.class)
 public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
   public static class Builder extends StartNodeBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
@@ -42,35 +41,13 @@ public class XmlStartNode extends StartNodeBase<XmlProcessNode,XmlModelCommon> i
 
     @NotNull
     @Override
-    public XmlStartNode build(@NotNull final XmlModelCommon newOwner) {
-      return new XmlStartNode(this, newOwner);
+    public XmlStartNode build(@NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+      return new XmlStartNode(this, buildHelper);
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<XmlStartNode> {
-
-    @NotNull
-    @Override
-    public XmlStartNode deserialize(@NotNull final XmlReader reader) throws XmlException {
-      return XmlStartNode.deserialize(null, reader);
-    }
-  }
-
-  public XmlStartNode(@NotNull final StartNode.Builder<?,?> builder, @NotNull final XmlModelCommon newOwnerModel) {
-    super(builder, newOwnerModel);
-  }
-
-  @NotNull
-  public static XmlStartNode deserialize(final XmlModelCommon ownerModel, @NotNull final XmlReader in) throws
-          XmlException {
-    return XmlUtil.<Builder>deserializeHelper(new Builder(), in).build(ownerModel);
-  }
-
-  @NotNull
-  public static XmlStartNode.Builder deserialize(@NotNull final XmlReader in) throws
-          XmlException {
-
-    return XmlUtil.deserializeHelper(new XmlStartNode.Builder(), in);
+  public XmlStartNode(@NotNull final StartNode.Builder<?, ?> builder, final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+    super(builder, buildHelper);
   }
 
   public XmlStartNode(final @Nullable XmlProcessModel ownerModel) {

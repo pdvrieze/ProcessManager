@@ -64,7 +64,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
   @Deprecated("")
   constructor(ownerModel: ModelT) : super(ownerModel)
 
-  constructor(builder: Join.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel)
+  constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper)
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 

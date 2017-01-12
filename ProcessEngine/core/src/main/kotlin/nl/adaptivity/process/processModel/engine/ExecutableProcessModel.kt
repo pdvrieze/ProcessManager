@@ -16,21 +16,17 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.CollectionUtil
 import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
 import net.devrieze.util.lookup
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
-import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
 
@@ -61,6 +57,8 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     override fun build(pedantic: Boolean) = ExecutableProcessModel(this, pedantic)
 
     override fun childModelBuilder() = ExecutableChildModel.Builder(rootBuilder)
+
+    override fun childModelBuilder(base: ChildProcessModel<*, *>) = ExecutableChildModel.Builder(rootBuilder, base)
 
     companion object {
       @JvmStatic
@@ -162,7 +160,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
   companion object {
 
     fun from(basepm: RootProcessModelBase<*, *>): ExecutableProcessModel {
-      return ExecutableProcessModel(Builder(basepm))
+      return basepm as? ExecutableProcessModel ?: ExecutableProcessModel(Builder(basepm))
     }
 
     @Throws(XmlException::class)
@@ -232,37 +230,28 @@ val toExecutableProcessNode = EXEC_NODEFACTORY
 
 object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableModelCommon> {
 
-  private fun visitor(newOwner: ExecutableModelCommon, childModel: ExecutableChildModel?=null) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
-    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = ExecutableStartNode(startNode, newOwner)
+  private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
+    override fun visitStartNode(startNode: StartNode.Builder<*, *>) = ExecutableStartNode(startNode, buildHelper)
 
-    override fun visitActivity(activity: Activity.Builder<*, *>) = ExecutableActivity(activity, newOwner)
+    override fun visitActivity(activity: Activity.Builder<*, *>) = ExecutableActivity(activity, buildHelper)
 
-    override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = ExecutableActivity(activity, childModel!!)
+    override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = ExecutableActivity(activity, buildHelper)
 
-    override fun visitSplit(split: Split.Builder<*, *>) = ExecutableSplit(split, newOwner)
+    override fun visitSplit(split: Split.Builder<*, *>) = ExecutableSplit(split, buildHelper)
 
-    override fun visitJoin(join: Join.Builder<*, *>) = ExecutableJoin(join, newOwner)
+    override fun visitJoin(join: Join.Builder<*, *>) = ExecutableJoin(join, buildHelper)
 
-    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = ExecutableEndNode(endNode, newOwner)
+    override fun visitEndNode(endNode: EndNode.Builder<*, *>) = ExecutableEndNode(endNode, buildHelper)
   }
 
 
-  override operator fun invoke(_newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, node: ProcessNode<*, *>): ExecutableProcessNode {
-    if (node is ExecutableProcessNode && node.ownerModel===_newOwner) return node
-    return node.visit(EXEC_BUILDER_VISITOR).build(_newOwner.asM)
-  }
+  override fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
+                      buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = baseNodeBuilder.visit(visitor(
+    buildHelper))
 
-  override fun invoke(newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseNodeBuilder: ProcessNode.Builder<*, *>) = baseNodeBuilder.visit(visitor(newOwner.asM))
-
-  override fun invoke(newOwner: ProcessModel<ExecutableProcessNode, ExecutableModelCommon>, baseNodeBuilder: Activity.ChildModelBuilder<*, *>, childModel: ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
-    return baseNodeBuilder.visit(visitor(newOwner.asM, childModel as ExecutableChildModel)) as ExecutableActivity
-  }
-
-  override fun invoke(ownerModel: RootProcessModel<ExecutableProcessNode, ExecutableModelCommon>,
-                      baseChildBuilder: ChildProcessModel.Builder<*, *>,
-                      childModelProvider: RootProcessModelBase.ChildModelProvider<ExecutableProcessNode, ExecutableModelCommon>,
-                      pedantic: Boolean): ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon> {
-    return ExecutableChildModel(baseChildBuilder, ownerModel.asM.rootModel,childModelProvider, pedantic)
+  override fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
+                      buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon> {
+    return ExecutableChildModel(baseChildBuilder, buildHelper)
   }
 
 }

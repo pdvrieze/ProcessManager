@@ -26,8 +26,8 @@ import javax.xml.namespace.QName
 
 interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.Builder<NodeT, ModelT> {
-    override fun build(newOwner: ModelT): EndNode<NodeT, ModelT>
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
+    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
     var predecessor: Identifiable?
       get() = predecessors.firstOrNull()

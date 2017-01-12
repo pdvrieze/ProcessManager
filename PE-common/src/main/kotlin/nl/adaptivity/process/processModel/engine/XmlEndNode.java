@@ -16,17 +16,22 @@
 
 package nl.adaptivity.process.processModel.engine;
 
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.EndNodeBase;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
 
-@XmlDeserializer(XmlEndNode.Factory.class)
 public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlModelCommon> implements XmlProcessNode {
 
   public static class Builder extends EndNodeBase.Builder<XmlProcessNode, XmlModelCommon> implements XmlProcessNode.Builder {
@@ -45,34 +50,19 @@ public class XmlEndNode extends EndNodeBase<XmlProcessNode,XmlModelCommon> imple
 
     @NotNull
     @Override
-    public XmlEndNode build(@NotNull final XmlModelCommon newOwner) {
-      return new XmlEndNode(this, newOwner);
+    public XmlEndNode build(@NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+      return new XmlEndNode(this, buildHelper);
     }
   }
 
-  public static class Factory implements XmlDeserializerFactory<XmlEndNode> {
-
-    @NotNull
-    @Override
-    public XmlEndNode deserialize(@NotNull final XmlReader reader) throws XmlException {
-      return XmlEndNode.deserialize(null, reader);
-    }
-  }
-
-  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, @NotNull final XmlModelCommon newOwnerModel) {
-    super(builder, newOwnerModel);
+  public XmlEndNode(@NotNull final EndNode.Builder<?, ?> builder, final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper) {
+    super(builder, buildHelper);
   }
 
   @NotNull
   @Override
   public Builder builder() {
     return new Builder(this);
-  }
-
-  @NotNull
-  public static XmlEndNode deserialize(final XmlModelCommon ownerModel, @NotNull final XmlReader in) throws
-          XmlException {
-    return XmlUtil.<XmlEndNode.Builder>deserializeHelper(new XmlEndNode.Builder(), in).build(ownerModel);
   }
 
   @NotNull

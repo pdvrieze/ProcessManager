@@ -23,12 +23,10 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : SplitBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
+  : SplitBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
 
   class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
@@ -42,8 +40,8 @@ class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableMod
                 y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
     constructor(node: Split<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon): ExecutableSplit {
-      return ExecutableSplit(this, newOwner as ExecutableModelCommon)
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon> {
+      return ExecutableSplit(this, buildHelper)
     }
   }
 
@@ -55,13 +53,5 @@ class ExecutableSplit(builder: Split.Builder<*, *>, newOwnerModel: ExecutableMod
       = processInstance.getNodeInstance(this) ?: SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
 
   override fun startTask(instance: ProcessNodeInstance) = false
-
-  companion object {
-
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableModelCommon, reader: XmlReader): ExecutableSplit {
-      return ExecutableSplit.Builder().deserializeHelper(reader).build(ownerModel)
-    }
-  }
 
 }

@@ -41,6 +41,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     override val idBase:String
         get() = "ac"
 
+    override var childId: String? = null
+
     constructor(): this(id = null)
 
     constructor(id: String? = null,
@@ -63,6 +65,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       this.message = XmlMessage.get(node.message)
       this.name = node.name
       this.condition = node.condition
+      this.childId = node.childModel?.id
     }
 
     override val elementName: QName get() = Activity.ELEMENTNAME
@@ -109,7 +112,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?>(
       id: String? = null,
       override var childId: String? = null,
-      nodes: Collection<ProcessNode.Builder<NodeT, ModelT>> = emptyList(),
+      nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
       predecessors: Collection<Identified> = emptyList(),
       successors: Collection<Identified> = emptyList(),
       label: String? = null,
@@ -159,16 +162,17 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     _message = message
   }
 
-  constructor(builder: Activity.Builder<*, *>, newOwnerModel: ModelT) : super(builder, newOwnerModel) {
+  constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+    if(builder.message!=null && builder.childId!=null) throw IllegalProcessModelException("Activities can not have child models as well as messages")
     this._message = XmlMessage.get(builder.message)
     this._name = builder.name
-    this.childModel = null
+    this.childModel = builder.childId?.let{ buildHelper.childModel(it) }
   }
 
-  constructor(builder: Activity.ChildModelBuilder<*, *>, childModel: ChildProcessModel<NodeT, ModelT>) : super(builder, childModel.asM) {
+  constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
     this._message = null
     this._name = null
-    this.childModel = childModel
+    this.childModel = buildHelper.childModel(builder.childId!!)
   }
   // Object Initialization end
 

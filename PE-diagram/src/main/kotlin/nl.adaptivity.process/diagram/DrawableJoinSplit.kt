@@ -24,12 +24,13 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIG
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.JoinSplit
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.Split
 
 interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-  class Delegate(builder: ProcessNode.Builder<*, *>): DrawableProcessNode.Delegate(builder) {
+  class Delegate(builder: ProcessNode.IBuilder<*, *>): DrawableProcessNode.Delegate(builder) {
 
     val itemCache = ItemCache()
 
@@ -37,7 +38,7 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
 
   interface Builder : DrawableProcessNode.Builder, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?> {
 
-    override fun build(newOwner: DrawableProcessModel?): DrawableJoinSplit
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableJoinSplit
   }
 
   override fun builder(): Builder

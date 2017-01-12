@@ -30,7 +30,7 @@ import nl.adaptivity.xml.XmlSerializable
 interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
 
   @ProcessModelDSL
-  interface IBuilder<NodeT: ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
+  interface IBuilder<NodeT: ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>: XmlDeserializable {
     var predecessors: MutableSet<Identified>
     var successors: MutableSet<Identified>
     var id: String?
@@ -51,13 +51,14 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
       results.add(XmlResultType.Builder().apply(builder).build())
     }
 
+    fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+
     fun <R> visit(visitor: BuilderVisitor<R>):R
   }
 
   @ProcessModelDSL
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable, IBuilder<NodeT, ModelT> {
+  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : IBuilder<NodeT, ModelT> {
 
-    fun build(newOwner: ModelT): ProcessNode<NodeT, ModelT>
 
   }
 
@@ -78,7 +79,7 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
     fun visitEndNode(endNode: EndNode<*, *>): R
   }
 
-  fun builder(): Builder<NodeT,ModelT>
+  fun builder(): IBuilder<NodeT,ModelT>
 
   fun asT(): NodeT
 

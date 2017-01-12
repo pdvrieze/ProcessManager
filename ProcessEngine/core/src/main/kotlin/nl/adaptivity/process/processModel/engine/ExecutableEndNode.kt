@@ -18,12 +18,11 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
 
 
-class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: ExecutableModelCommon) : EndNodeBase<ExecutableProcessNode, ExecutableModelCommon>(builder, newOwnerModel), ExecutableProcessNode {
+class ExecutableEndNode(builder: EndNode.Builder<*, *>,
+                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : EndNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
+  builder, buildHelper), ExecutableProcessNode {
 
   class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
@@ -37,19 +36,12 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>, newOwnerModel: Executabl
 
     constructor(node: EndNode<*, *>) : super(node)
 
-    override fun build(newOwner: ExecutableModelCommon) = ExecutableEndNode(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableEndNode(
+      this, buildHelper)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   override fun builder() = Builder(this)
-
-  companion object {
-
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: ExecutableProcessModel, reader: XmlReader): ExecutableEndNode {
-      return ExecutableEndNode.Builder().deserializeHelper(reader).build(ownerModel)
-    }
-  }
 
 }

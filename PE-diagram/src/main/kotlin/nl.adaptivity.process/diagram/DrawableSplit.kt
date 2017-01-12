@@ -23,10 +23,7 @@ import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.CENTER_Y
 import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.HORIZONTALDECORATIONLEN
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.Split
-import nl.adaptivity.process.processModel.SplitBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
@@ -59,19 +56,14 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
       _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
-    override fun build(newOwner: DrawableProcessModel?) = DrawableSplit(this, newOwner)
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableSplit(
+      this, buildHelper)
 
   }
 
   override val _delegate : DrawableJoinSplit.Delegate
 
-  @Deprecated("Use builders")
-  constructor(ownerModel: DrawableProcessModel?) : this(Builder(), ownerModel)
-
-  @Deprecated("Use builders")
-  constructor(orig: Split<*, *>) : this(orig.builder(), null)
-
-  constructor(builder: Split.Builder<*, *>, newOwnerModel: DrawableProcessModel?) : super(builder, newOwnerModel) {
+  constructor(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
     _delegate = DrawableJoinSplit.Delegate(builder)
   }
 
@@ -79,7 +71,7 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
     return Builder(this)
   }
 
-  override fun clone(): DrawableSplit { return builder().build(null) }
+  override fun clone(): DrawableSplit { return builder().build(STUB_DRAWABLE_BUILD_HELPER) }
 
   override val idBase: String
     get() = IDBASE
@@ -150,13 +142,6 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
     const val IDBASE = "split"
 
     @JvmStatic
-    @Deprecated("")
-    @Throws(XmlException::class)
-    fun deserialize(ownerModel: DrawableProcessModel?, reader: XmlReader): DrawableSplit {
-      return DrawableSplit.Builder().deserializeHelper(reader).build(ownerModel)
-    }
-
-    @JvmStatic
     @Throws(XmlException::class)
     fun deserialize(reader: XmlReader): Builder {
       return Builder().deserializeHelper(reader)
@@ -164,7 +149,7 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
 
     @JvmStatic
     fun from(elem: Split<*, *>): DrawableSplit {
-      return DrawableSplit(elem)
+      return DrawableSplit.Builder(elem).build(STUB_DRAWABLE_BUILD_HELPER)
     }
   }
 

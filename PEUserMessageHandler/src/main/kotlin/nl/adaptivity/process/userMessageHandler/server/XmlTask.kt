@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SimplePrincipal
@@ -62,9 +63,9 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     if (handle.handleValue!=handleValue) this.handle = Handles.handle(handleValue)
   }
 
-  override var remoteHandle = -1L
+  override var remoteHandle: Handle<*> = Handles.getInvalid<Any>()
 
-  override var instanceHandle = -1L
+  override var instanceHandle: Handle<*> = Handles.getInvalid<Any>()
 
   override var state: NodeInstanceState? = NodeInstanceState.Sent
 
@@ -116,29 +117,30 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
   override fun deserializeAttribute(attributeNamespace: CharSequence,
                                     attributeLocalName: CharSequence,
                                     attributeValue: CharSequence): Boolean {
+    val attrString = attributeValue.toString()
     when (attributeLocalName.toString()) {
       "state"          -> {
-        state = NodeInstanceState.valueOf(attributeValue.toString())
+        state = NodeInstanceState.valueOf(attrString)
         return true
       }
       "handle"         -> {
-        setHandleValue(java.lang.Long.parseLong(attributeValue.toString()))
+        setHandleValue(attrString.toLong())
         return true
       }
       "remotehandle"   -> {
-        remoteHandle = java.lang.Long.parseLong(attributeValue.toString())
+        remoteHandle = Handles.handle<Any>(attrString.toLong())
         return true
       }
       "instancehandle" -> {
-        instanceHandle = java.lang.Long.parseLong(attributeValue.toString())
+        instanceHandle = Handles.handle<Any>(attrString.toLong())
         return true
       }
       "summary"        -> {
-        summary = attributeValue.toString()
+        summary = attrString
         return true
       }
       "owner"          -> {
-        owner = attributeValue?.let { SimplePrincipal(it.toString()) }
+        owner = attributeValue.let { SimplePrincipal(it.toString()) }
         return true
       }
     }
@@ -160,10 +162,10 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     if (handleValue >= 0) {
       out.writeAttribute("handle", handleValue)
     }
-    if (remoteHandle >= 0) {
+    if (remoteHandle.valid) {
       out.writeAttribute("remotehandle", remoteHandle)
     }
-    if (instanceHandle >= 0) {
+    if (instanceHandle.valid) {
       out.writeAttribute("instancehandle", instanceHandle)
     }
     out.writeAttribute("summary", summary)
@@ -202,12 +204,12 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
 
   @Throws(JAXBException::class, MessagingException::class, XmlException::class)
   private fun updateRemoteTaskState(state: NodeInstanceState, user: Principal): Future<NodeInstanceState> {
-    return ServletProcessEngineClient.updateTaskState(remoteHandle, state, user, null)
+    return ServletProcessEngineClient.updateTaskState(remoteHandle.handleValue, state, user, null)
   }
 
   @Throws(JAXBException::class, MessagingException::class, XmlException::class)
   private fun finishRemoteTask(user: Principal): Future<NodeInstanceState> {
-    return ServletProcessEngineClient.finishTask(remoteHandle, createResult(), user, null) // Ignore completion???
+    return ServletProcessEngineClient.finishTask(remoteHandle.handleValue, createResult(), user, null) // Ignore completion???
   }
 
   private fun createResult(): DocumentFragment {
@@ -251,7 +253,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     result = prime * result + (handleValue xor handleValue.ushr(32)).toInt()
     result = prime * result + if (_items.isEmpty()) 0 else _items.hashCode()
     result = prime * result + if (owner == null) 0 else owner!!.hashCode()
-    result = prime * result + (remoteHandle xor remoteHandle.ushr(32)).toInt()
+    result = prime * result + (remoteHandle.handleValue xor remoteHandle.handleValue.ushr(32)).toInt()
     result = prime * result + if (state == null) 0 else state!!.hashCode()
     result = prime * result + if (summary == null) 0 else summary!!.hashCode()
     return result

@@ -17,18 +17,9 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.RootProcessModelBase.ChildModelProvider
 
-class XmlChildModel(
-  builder: ChildProcessModel.Builder<*, *>,
-  ownerModel: XmlProcessModel,
-  childModelProvider: ChildModelProvider<XmlProcessNode, XmlModelCommon>,
-  pedantic: Boolean) :
-    ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(
-        builder,
-        ownerModel,
-        childModelProvider,
-        pedantic), ChildProcessModel<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
+class XmlChildModel(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) :
+    ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(builder, buildHelper), ChildProcessModel<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
   open class Builder(rootBuilder: XmlProcessModel.Builder,
                      childId:String?=null,
@@ -39,10 +30,8 @@ class XmlChildModel(
 
     override val rootBuilder: XmlProcessModel.Builder get() = super.rootBuilder as XmlProcessModel.Builder
 
-    override fun buildModel(ownerModel: RootProcessModel<XmlProcessNode, XmlModelCommon>,
-                            childModelProvider: ChildModelProvider<XmlProcessNode, XmlModelCommon>,
-                            pedantic: Boolean): XmlChildModel {
-      return XmlChildModel(this, ownerModel.asM.rootModel, childModelProvider, pedantic)
+    override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
+      return XmlChildModel(this, buildHelper)
     }
   }
 

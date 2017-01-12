@@ -20,14 +20,15 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.RootProcessModel
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.engine.ExecutableJoin
+import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
@@ -354,7 +355,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     return update(engineData) {
-      (processModel as ExecutableProcessModel).startNodes.forEach { node ->
+      processModel.startNodes.forEach { node ->
         addChild(node.createOrReuseInstance(this@ProcessInstance))
       }
       state = State.INITIALIZED
