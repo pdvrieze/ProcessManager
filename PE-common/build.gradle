@@ -79,7 +79,7 @@ dependencies {
     compile project(':xmlutil:core')
     compile project(':java-common')
     compile 'org.codehaus.woodstox:stax2-api:3.1.4'
-    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
+    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
     testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'junit:junit:4.12' // needed for xmlunit
     testCompile 'xmlunit:xmlunit:1.6'
