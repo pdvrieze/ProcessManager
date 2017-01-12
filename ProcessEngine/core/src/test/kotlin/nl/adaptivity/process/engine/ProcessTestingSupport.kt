@@ -21,14 +21,13 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.Join
-import nl.adaptivity.process.processModel.Split
-import nl.adaptivity.process.processModel.StartNode
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.Gettable
 import org.jetbrains.spek.api.dsl.Dsl
@@ -277,14 +276,17 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
   }
 
   fun ProcessNodeInstance.take(): ProcessNodeInstance {
+    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     return this.update(transaction.writableEngineData, instance) { state= NodeInstanceState.Taken }.node
   }
 
   fun ProcessNodeInstance.start(): ProcessNodeInstance {
+    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     return startTask(transaction.writableEngineData, instance).node
   }
 
   fun ProcessNodeInstance.finish(payload: Node? = null): ProcessNodeInstance {
+    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     return instance.finishTask(transaction.writableEngineData, this, payload).node
   }
 
@@ -297,12 +299,14 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
   }
 
   fun  ProcessInstance.assertFinished(vararg nodeIds: String) {
-    val finished = this.finished.mapNotNull {
-      val nodeInstance = transaction.readableEngineData.nodeInstance(it).withPermission()
-      Assertions.assertTrue(nodeInstance.state.isFinal, { "The node instance state should be final (but is ${nodeInstance.state})" })
-      Assertions.assertTrue(nodeInstance.node !is EndNode<*, *>, { "Completed nodes should not be endnodes" })
-      if (nodeInstance.state != NodeInstanceState.Skipped) nodeInstance.node.id else null
-    }.sorted()
+    val finished = allChildren()
+      .filter { it.state.isFinal && it.node !is EndNode<*, *> }
+      .mapNotNull { nodeInstance ->
+        Assertions.assertTrue(nodeInstance.state.isFinal,
+                              { "The node instance state should be final (but is ${nodeInstance.state})" })
+        Assertions.assertTrue(nodeInstance.node !is EndNode<*, *>, { "Completed nodes should not be endnodes" })
+        if (nodeInstance.state != NodeInstanceState.Skipped) nodeInstance.node.id else null
+      }.sorted().toList()
     Assertions.assertEquals(nodeIds.sorted(), finished, { "The list of finished nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${finished.joinToString()}])" })
   }
 
@@ -315,12 +319,14 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
   }
 
   fun  ProcessInstance.assertComplete(vararg nodeIds: String) {
-    val complete = completedEndnodes.mapNotNull {
-      val nodeInstance = transaction.readableEngineData.nodeInstance(it).withPermission()
-      Assertions.assertTrue(nodeInstance.state.isFinal, { "The node instance state should be final (but is ${nodeInstance.state})" })
-      Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
-      if (nodeInstance.state == NodeInstanceState.Skipped) null else nodeInstance.node.id
-    }.sorted()
+    val complete = allChildren()
+      .filter { it.state.isFinal && it.node is EndNode<*, *> }
+      .mapNotNull { nodeInstance ->
+        Assertions.assertTrue(nodeInstance.state.isFinal,
+                              { "The node instance state should be final (but is ${nodeInstance.state})" })
+        Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
+        if (nodeInstance.state == NodeInstanceState.Skipped) null else nodeInstance.node.id
+      }.sorted().toList()
     Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${instance.toDebugString()})" })
   }
 
@@ -333,19 +339,48 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
   }
 
   fun  ProcessInstance.assertActive(vararg nodeIds: String) {
-    val active = active.map {
-      val nodeInstance = transaction.readableEngineData.nodeInstance(it).withPermission()
-      Assertions.assertTrue(nodeInstance.state.isActive, { "The node instance state should be active (but is ${nodeInstance.state})" })
-      Assertions.assertFalse(nodeInstance.state.isFinal, { "The node instance state should not be final (but is ${nodeInstance.state})" })
-      nodeInstance.node.id
-    }.sorted()
+    val active = allChildren()
+      .filter { !it.state.isFinal }
+      .mapNotNull { nodeInstance ->
+        Assertions.assertTrue(nodeInstance.state.isActive,
+                              { "The node instance state should be active (but is ${nodeInstance.state})" })
+        Assertions.assertFalse(nodeInstance.state.isFinal,
+                               { "The node instance state should not be final (but is ${nodeInstance.state})" })
+        nodeInstance.node.id
+      }.sorted().toList()
     Assertions.assertEquals(nodeIds.sorted(), active, { "The list of active nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${active.joinToString()}])" })
   }
 
+  fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance> {
+    return childNodes.asSequence().flatMap { val child = it.withPermission()
+      when (child) {
+        is CompositeInstance -> sequenceOf(child) +
+                                transaction.readableEngineData.instance(child.hChildInstance).withPermission().allChildren()
+        else                 -> sequenceOf(child)
+      }
+    }
+  }
+
+  internal fun ProcessInstance.toDebugString():String {
+    return buildString {
+      append("process(")
+      append(processModel.rootModel.getName())
+      name?.let {
+        append(", instance: ")
+        append(it)
+      }
+      append(", allnodes: [")
+      this@toDebugString.allChildren().joinTo(this) { val inst = it.withPermission()
+        "${inst.node.id}:${inst.state}"
+      }
+      append("])")
+    }
+  }
 
   inner class ProcessNodeInstanceDelegate(val instanceHandle: ComparableHandle<out SecureObject<ProcessInstance>>, val nodeId: Identifier) {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance {
-      return instance.getNodeInstance(nodeId)
+      val idString = nodeId.id
+      return instance.allChildren().firstOrNull { it.node.id == idString }
           ?: kfail("The process node instance for node id $nodeId could not be found. Instance is: ${instance.toDebugString()}")
     }
   }
@@ -364,7 +399,7 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
   }
 
   fun assertTracePossible(trace: Trace) {
-    val childIds = instance.childNodes.asSequence().map { it.withPermission() }.filter { it.state.isFinal }.map { it.node.id }.toSet()
+    val childIds = instance.allChildren().map { it.withPermission() }.filter { it.state.isFinal }.map { it.node.id }.toSet()
     val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in childIds }
     val lastPos = seen.lastIndexOf(true)
     assertTrue(seen.slice(0 .. lastPos).all { it }) { "All trace elements should be in the trace: [${trace.mapIndexed { i, s -> "$s=${seen[i]}" }.joinToString()}]"}
@@ -378,12 +413,18 @@ fun trace(vararg trace:String):Trace {
   return trace
 }
 
+fun findNode(model: ExecutableProcessModel, nodeId: String): ExecutableProcessNode? {
+  return model.getModelNodes().firstOrNull { it.id==nodeId }?:
+    model.childModels.asSequence().flatMap { it.getModelNodes().asSequence() }.firstOrNull{ it.id==nodeId }
+}
+
 @ProcessTestingDslMarker
 fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
+
   fun addStartedNodeContext(dsl: ProcessTestingDsl, trace: nl.adaptivity.process.engine.Trace, i: kotlin.Int):ProcessTestingDsl {
-    val nodeId = trace[i]
+    val nodeId = trace[i].splitToSequence(':').first()
     val nodeInstance by with(dsl) { instance.nodeInstance[nodeId] }
-    val node = model.getNode(nodeId)
+    val node = findNode(model, nodeId) ?: throw AssertionError("No node with id ${nodeId} was defined in the tested model")
     when(node) {
       is StartNode<*,*> -> {
         dsl.test("$nodeId should be finished") {
@@ -395,19 +436,36 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
           assertEquals(NodeInstanceState.Complete, nodeInstance.state)
         }
         dsl.test("$nodeId should be part of the completion nodes") {
-          assertTrue(dsl.instance.completedNodeInstances.any { it.withPermission().node.id==nodeId }) { "Instance is: ${dsl.instance.toDebugString()}" }
+          val parentInstance = dsl.transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+          assertTrue(parentInstance.completedNodeInstances.any { it.withPermission().node.id==nodeId }) { "Instance is: ${with(dsl) { parentInstance.toDebugString()} }" }
         }
       }
       is Join<*, *> -> dsl.test("Join $nodeId should already be finished") {
         assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "There are still active predecessors: ${dsl.instance.getActivePredecessorsFor(dsl.transaction.readableEngineData, nodeInstance as JoinInstance)}" }
       }
       is Split<*,*> -> dsl.test("Split $nodeId should already be finished") {
-        assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "Node $nodeId should be finished. The current nodes are: ${dsl.instance.toDebugString()}"}
+        assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "Node $nodeId should be finished. The current nodes are: ${with(dsl) {instance.toDebugString()}}"}
+      }
+      is Activity<*,*> -> {
+        if (node.childModel==null) {
+          dsl.test("$nodeId should not be in a final state") {
+            assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
+          }
+        }
       }
       else -> {
         dsl.test("$nodeId should not be in a final state") {
-          assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} is in final state ${nodeInstance.state}" }
+          assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
         }
+      }
+    }
+    if (node is Activity<*,*> && node.childModel!=null) {
+      dsl.test("A child instance should have been created") {
+        assertTrue((nodeInstance as CompositeInstance).hChildInstance.valid) {"No child instance was recorded"}
+      }
+      dsl.test("The child instance was finished") {
+        val childInstance = dsl.transaction.readableEngineData.instance((nodeInstance as CompositeInstance).hChildInstance).withPermission()
+        assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
       }
     }
     dsl.test("The trace should still be possible") {
@@ -425,7 +483,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
       else -> {
         dsl.test("$nodeId should be committed after starting") {
           with(dsl) { nodeInstance.start() }
-          assertTrue(nodeInstance.state.isCommitted)
+          assertTrue(nodeInstance.state.isCommitted) { "The instance state was ${with(dsl){ instance.toDebugString()}}" }
           assertEquals(NodeInstanceState.Started, nodeInstance.state)
         }
         dsl.group("After Finishing ${nodeId}") {
@@ -457,7 +515,9 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
             assertTracePossible(validTrace)
           }
           test("All non-endnodes are finished") {
-            val expectedFinishedNodes = validTrace.asSequence().map { model.getNode(it)!! }.filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
+            val expectedFinishedNodes = validTrace.asSequence()
+              .map { findNode(model, it)!! }
+              .filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
             instance.assertFinished(*expectedFinishedNodes)
           }
           test("No nodes are active") {
@@ -465,11 +525,11 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
           }
           test("All endNodes in the trace are complete, skipped, cancelled or failed") {
             val expectedCompletedNodes = validTrace.asSequence()
-                .map { model.getNode(it)!! }
+                .map { findNode(model,it)!! }
                 .filterIsInstance(EndNode::class.java)
-                .filter {
-                  val node = instance.getNodeInstance(it.identifier!!)?: kfail("Nodeinstance ${it.identifier} does not exist")
-                  node.state !in listOf(NodeInstanceState.Skipped, NodeInstanceState.SkippedCancel, NodeInstanceState.SkippedFail)
+                .filter { endNode ->
+                  val nodeInstance = instance.allChildren().firstOrNull { it.node.id== endNode.id} ?: kfail("Nodeinstance ${endNode.identifier} does not exist, the instance is ${instance.toDebugString()}")
+                  nodeInstance.state !in listOf(NodeInstanceState.Skipped, NodeInstanceState.SkippedCancel, NodeInstanceState.SkippedFail)
                 }
                 .map { it.id!! }
                 .toList().toTypedArray()
@@ -504,22 +564,6 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
         if (! success) kfail("The invalid trace ${trace.joinToString(prefix = "[", postfix = "]")} could be executed")
       }
     }
-  }
-}
-
-internal fun ProcessInstance.toDebugString():String {
-  return buildString {
-    append("process(")
-    append(processModel.rootModel.getName())
-    name?.let {
-      append(", instance: ")
-      append(it)
-    }
-    append(", nodes: [")
-    childNodes.joinTo(this) { val inst = it.withPermission()
-      "${inst.node.id}:${inst.state}"
-    }
-    append("])")
   }
 }
 
