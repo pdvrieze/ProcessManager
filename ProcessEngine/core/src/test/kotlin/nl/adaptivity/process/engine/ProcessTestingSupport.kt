@@ -576,6 +576,23 @@ val ProcessInstance.trace:Trace get(){
 
 typealias Trace = Array<out String>
 
+const val ANYINSTANCE = -1
+const val SINGLEINSTANCE = -2
+const val LASTINSTANCE = -3
+
+private fun String.toTraceNo(): Int {
+  return when (this) {
+    "*" -> ANYINSTANCE
+    "#" -> LASTINSTANCE
+    else -> this.toInt()
+  }
+}
+
+class TraceElement(val nodeId: String, val intanceNo:Int, val outputs:List<ProcessData> = emptyList()) {
+  private constructor(stringdescrs: Iterator<String>) : this(stringdescrs.next(), if (stringdescrs.hasNext()) stringdescrs.next().toInt() else SINGLEINSTANCE)
+  constructor(stringdescr: String): this(stringdescr.splitToSequence(':').iterator())
+}
+
 @ProcessTestingDslMarker
 fun EngineTestingDsl.givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = this.principal, payload: Node? = null, body: ProcessTestingDsl.() -> Unit) {
   val transaction = processEngine.startTransaction()
