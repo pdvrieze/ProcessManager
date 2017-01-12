@@ -109,25 +109,7 @@ class TestWorkflowPatterns : Spek({
 
     describe("Abstract syntax patterns") {
       describe("WASP4: Vertical modularisation (subprocesses)") {
-        val model = ExecutableProcessModel.build {
-          owner = principal
-          val start1 = startNode { id="start1" }
-          val ac1 = activity { id="ac1"; predecessor = start1 }
-          val comp1 = compositeActivity { id="comp1"
-            childId="child1"
-            predecessor = ac1
-            val start2 = startNode { id="start2" }
-            val ac2 = activity { id="ac2"; predecessor=start2 }
-            val end2 = endNode { id="end2"; predecessor=ac2 }
-          }
-          val ac3 = activity { id="ac3"; predecessor=comp1 }
-          val end = endNode { id="end"; predecessor=ac3 }
-        }
-
-
-        val validTraces = listOf(trace("start1", "ac1", "start2", "ac2", "end2", "comp1", "ac3", "end"))
-        val invalidTraces = listOf(trace("ac1"), trace("start2"))
-        testTraces(processEngine, model, principal, valid=validTraces, invalid=invalidTraces)
+        testWASP4()
 
       }
     }
@@ -343,19 +325,19 @@ private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start1 = startNode { id = "start1" }
-    val start2 = startNode { id = "start2" }
-    val ac1 = activity { id = "ac1"; predecessor = start1 }
-    val ac2 = activity { id = "ac2"; predecessor = start2 }
-    val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
-    val ac3 = activity { id = "ac3"; predecessor = join }
-    val end = endNode { id = "end"; predecessor = ac3 }
+  val model = object : Model(principal, "WCP8") {
+    val start1 by startNode
+    val start2 by startNode
+    val ac1    by activity(start1)
+    val ac2    by activity(start2)
+    val join   by join(ac1, ac2) { min = 1; max = 1 }
+    val ac3    by activity(join)
+    val end    by endNode(ac3)
   }
+
   testTraces(processEngine, model, principal,
       valid = listOf(
-          trace("start1", "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
+          trace(model.start1.id, "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
           trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
           trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"),
           trace("start1", "start2", "ac2", "join:1", "ac3:1", "end:1", "ac1", "join:1", "ac3:2", "end:2"),
@@ -407,6 +389,29 @@ private fun EngineTestingDsl.testWCP11(processEngine: ProcessEngine<StubProcessT
               trace("start1", "start2", "ac1", "end1", "end2"),
               trace("start1", "start2", "ac2", "end1"),
               trace("start1", "start2", "ac2", "end2", "end1")))
+}
+
+private fun EngineTestingDsl.testWASP4() {
+  val model = ExecutableProcessModel.build {
+    owner = principal
+    val start1 = startNode { id = "start1" }
+    val ac1 = activity { id = "ac1"; predecessor = start1 }
+    val comp1 = compositeActivity {
+      id = "comp1"
+      childId = "child1"
+      predecessor = ac1
+      val start2 = startNode { id = "start2" }
+      val ac2 = activity { id = "ac2"; predecessor = start2 }
+      val end2 = endNode { id = "end2"; predecessor = ac2 }
+    }
+    val ac3 = activity { id = "ac3"; predecessor = comp1 }
+    val end = endNode { id = "end"; predecessor = ac3 }
+  }
+
+
+  val validTraces = listOf(trace("start1", "ac1", "start2", "ac2", "end2", "comp1", "ac3", "end"))
+  val invalidTraces = listOf(trace("ac1"), trace("start2"))
+  testTraces(processEngine, model, principal, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun Boolean.toXPath() = if (this) "true()" else "false()"

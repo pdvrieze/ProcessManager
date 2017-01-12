@@ -30,14 +30,14 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
 
   class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
-                predecessors: Collection<Identified> = emptyList(),
+                predecessor: Identified? = null,
                 successors: Collection<Identified> = emptyList(), label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
                 max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, min, max, x, y)
+                y: Double = Double.NaN) : super(id, predecessor, successors, label, defines, results, x, y, min, max)
     constructor(node: Split<*, *>) : super(node)
 
     override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon> {

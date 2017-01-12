@@ -73,7 +73,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
       override var id: String? = null,
       childId: String? = null,
       nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
-      predecessors: Collection<Identified> = emptyList(),
+      predecessor: Identified? = null,
       override var condition: String? = null,
       successors: Collection<Identified> = emptyList(),
       override var label: String? = null,
@@ -81,9 +81,9 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
       defines: Collection<IXmlDefineType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
-      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
+      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder, ExecutableProcessNode.Builder {
 
-    override var predecessors: MutableSet<Identified> = predecessors.toMutableArraySet()
+    override var predecessors: MutableSet<Identified> = listOfNotNull(predecessor).toMutableArraySet()
       set(value) { field.replaceBy(value) }
 
     override var successors: MutableSet<Identified> = successors.toMutableArraySet()
@@ -100,6 +100,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     override fun buildActivity(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
       return ExecutableActivity(this, buildHelper)
     }
+
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = buildActivity(buildHelper)
   }
 
   override val childModel: ExecutableChildModel? get() = super.childModel?.let { it as ExecutableChildModel }

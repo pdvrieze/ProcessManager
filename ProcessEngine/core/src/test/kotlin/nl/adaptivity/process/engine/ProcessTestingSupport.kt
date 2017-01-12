@@ -418,6 +418,12 @@ fun findNode(model: ExecutableProcessModel, nodeId: String): ExecutableProcessNo
     model.childModels.asSequence().flatMap { it.getModelNodes().asSequence() }.firstOrNull{ it.id==nodeId }
 }
 
+@Suppress("NOTHING_TO_INLINE")
+@ProcessTestingDslMarker
+inline fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:RootProcessModel<*,*>, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
+  return testTraces(engine, ExecutableProcessModel.from(model.rootModel), owner, valid, invalid)
+}
+
 @ProcessTestingDslMarker
 fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
 

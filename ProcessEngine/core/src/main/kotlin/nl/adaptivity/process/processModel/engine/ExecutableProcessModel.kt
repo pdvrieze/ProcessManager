@@ -159,7 +159,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
   companion object {
 
-    fun from(basepm: RootProcessModelBase<*, *>): ExecutableProcessModel {
+    fun from(basepm: RootProcessModel<*, *>): ExecutableProcessModel {
       return basepm as? ExecutableProcessModel ?: ExecutableProcessModel(Builder(basepm))
     }
 
