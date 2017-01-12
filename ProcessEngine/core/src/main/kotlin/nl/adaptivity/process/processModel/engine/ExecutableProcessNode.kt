@@ -53,7 +53,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
 
   override val ownerModel: ExecutableModelCommon
 
-  override val identifier: Identifier?
+  override val identifier: Identifier
     get() = Identifier(id)
 
   override val results: List<XmlResultType>

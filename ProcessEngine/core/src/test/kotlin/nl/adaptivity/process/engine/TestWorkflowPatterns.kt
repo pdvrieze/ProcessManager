@@ -370,14 +370,13 @@ private fun EngineTestingDsl.testWCP9(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP11(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start1 = startNode { id = "start1" }
-    val start2 = startNode { id = "start2" }
-    val ac1 = activity { id = "ac1"; predecessor = start1 }
-    val ac2 = activity { id = "ac2"; predecessor = start2 }
-    val end1 = endNode { id = "end1"; predecessor = ac1 }
-    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  val model = object: Model(principal, "WCP11") {
+    val start1 by startNode
+    val start2 by startNode
+    val ac1    by activity(start1)
+    val ac2    by activity(start2)
+    val end1   by endNode(ac1)
+    val end2   by endNode(ac2)
   }
   testTraces(processEngine, model, principal,
       valid = listOf(
@@ -392,22 +391,19 @@ private fun EngineTestingDsl.testWCP11(processEngine: ProcessEngine<StubProcessT
 }
 
 private fun EngineTestingDsl.testWASP4() {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start1 = startNode { id = "start1" }
-    val ac1 = activity { id = "ac1"; predecessor = start1 }
-    val comp1 = compositeActivity {
-      id = "comp1"
-      childId = "child1"
-      predecessor = ac1
-      val start2 = startNode { id = "start2" }
-      val ac2 = activity { id = "ac2"; predecessor = start2 }
-      val end2 = endNode { id = "end2"; predecessor = ac2 }
-    }
-    val ac3 = activity { id = "ac3"; predecessor = comp1 }
-    val end = endNode { id = "end"; predecessor = ac3 }
-  }
 
+  val model = object : Model(principal, "WASP4") {
+    val start1 by startNode
+    val ac1    by activity(start1)
+
+    val comp1 = object : CompositeActivity(ac1, "comp1", "child1") {
+      val start2 by startNode
+      val ac2    by activity(start2)
+      val end2   by endNode(ac2)
+    }
+    val ac3    by activity(comp1)
+    val end    by endNode(ac3)
+  }
 
   val validTraces = listOf(trace("start1", "ac1", "start2", "ac2", "end2", "comp1", "ac3", "end"))
   val invalidTraces = listOf(trace("ac1"), trace("start2"))

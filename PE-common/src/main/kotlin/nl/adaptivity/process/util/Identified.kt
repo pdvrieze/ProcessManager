@@ -21,4 +21,5 @@ package nl.adaptivity.process.util
  */
 interface Identified : Identifiable {
   override val id: String
+  override val identifier: Identifier get() = Identifier(id)
 }

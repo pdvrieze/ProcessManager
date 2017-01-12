@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.util
 
+import org.jetbrains.annotations.Contract
+
 /**
  * Interface for objects that may have identifiers.
  */
@@ -23,6 +25,7 @@ interface Identifiable : Comparable<Identifiable> {
 
   val id: String?
 
+  @get:Contract("null -> null; !null -> !null")
   val identifier: Identifier? get() = id?.let(::Identifier)
 
   override fun compareTo(other: Identifiable): Int {
