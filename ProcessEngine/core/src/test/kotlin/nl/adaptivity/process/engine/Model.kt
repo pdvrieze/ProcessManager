@@ -141,7 +141,7 @@ internal abstract class ConfigurableModel(
 
 
   protected abstract inner class CompositeActivity(predecessor: Identified,
-                                                   childId: String,
+                                                   childId: String?=null,
                                                    id: String?=null): Identified /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/{
 
     private inline fun rootBuilder() = this@ConfigurableModel.builder
