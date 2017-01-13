@@ -20,20 +20,25 @@ package net.devrieze.util
 import java.io.*
 import java.nio.charset.Charset
 
-
+@Deprecated("Compatibility with Java interface", ReplaceWith("inputStream.readString(charset)"))
 @Throws(IOException::class)
-fun toString(pInputStream: InputStream, pCharset: Charset): String {
-  return toString(InputStreamReader(pInputStream, pCharset))
+fun toString(inputStream: InputStream, charset: Charset):String = inputStream.readString(charset)
+
+fun InputStream.readString(charset: Charset): String {
+  return InputStreamReader(this, charset).readString()
 }
 
+@Deprecated("Compatibility with Java interface", ReplaceWith("reader.readString()"))
 @Throws(IOException::class)
-fun toString(pReader: Reader): String {
+fun toString(reader: Reader):String = reader.readString()
+
+fun Reader.readString(): String {
   val result = StringBuilder()
   val buffer = CharArray(0x8ff)
-  var count = pReader.read(buffer)
+  var count = read(buffer)
   while (count >= 0) {
     result.append(buffer, 0, count)
-    count = pReader.read(buffer)
+    count = read(buffer)
   }
   return result.toString()
 }
