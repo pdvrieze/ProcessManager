@@ -173,11 +173,13 @@ private fun EngineTestingDsl.testWCP3(processEngine: ProcessEngine<StubProcessTr
     val join  by join(ac1, ac2){ min = 2; max = 2 }
     val end   by endNode(join)
   }
+  val validTraces =  with(model) { trace {
+    start + (ac1 % ac2) + (split % join % end)
+  } }
+
   testTraces(processEngine, model, principal,
-      valid = listOf(
-          trace("start", "ac1", "ac2", "split", "join", "end"),
-          trace("start", "ac2", "ac1", "split", "join", "end")),
-      invalid = listOf("ac1", "ac2", "join", "end", "split").map { trace(it) } +
+             valid = validTraces,
+             invalid = listOf("ac1", "ac2", "join", "end", "split").map { trace(it) } +
           listOf("split", "end", "join").map { trace("start", it) } +
           listOf("split", "join", "end").map { trace("start", "ac1", it) } +
           listOf("split", "join", "end").map { trace("start", "ac2", it) })
