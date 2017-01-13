@@ -396,7 +396,7 @@ private fun EngineTestingDsl.testWASP4() {
     val start1 by startNode
     val ac1    by activity(start1)
 
-    val comp1 = object : CompositeActivity(ac1, "comp1", "child1") {
+    val comp1 by object : CompositeActivity(ac1, "child1") {
       val start2 by startNode
       val ac2    by activity(start2)
       val end2   by endNode(ac2)

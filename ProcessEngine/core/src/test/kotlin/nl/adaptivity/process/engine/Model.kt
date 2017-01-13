@@ -132,9 +132,17 @@ internal abstract class ConfigurableModel(
 
   override fun getExports() = model.getExports()
 
+
+  inline operator fun <T:CompositeActivity> T.provideDelegate(thisRef:ConfigurableModel, property: KProperty<*>):T {
+    setIdIfEmpty(property.name)
+    return this
+  }
+  inline operator fun <T:CompositeActivity> T.getValue(thisRef: ConfigurableModel, property: KProperty<*>):T = this
+
+
   protected abstract inner class CompositeActivity(predecessor: Identified,
-                                                   id: String,
-                                                   childId: String): Identified /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/{
+                                                   childId: String,
+                                                   id: String?=null): Identified /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/{
 
     private inline fun rootBuilder() = this@ConfigurableModel.builder
 
@@ -145,9 +153,15 @@ internal abstract class ConfigurableModel(
       rootBuilder().nodes.add(builder)
     }
 
-    val childId = Identifier(childId)
-    private val _id = id
-    override val id: String get() = builder.id ?: _id
+    var childId: Identifier
+      get() = Identifier(with(rootBuilder()) {  builder.ensureChildId() }.childId!!)
+      set(value) {builder.childId=value.id}
+
+    override var id: String
+      get() = with (rootBuilder()) { builder.ensureId().id !! }
+      set(value) {builder.id = id}
+
+    fun setIdIfEmpty(value:String) { if (builder.id==null) { builder.id = value }}
 
     operator fun ExecutableProcessNode.Builder.provideDelegate(thisRef:CompositeActivity, property: KProperty<*>): Identifier {
       val modelBuilder = builder
