@@ -146,13 +146,19 @@ private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTr
     val end1  by endNode(ac1)
     val end2  by endNode(ac2)
   }
+  val validTraces = with(model) { trace {
+    start + ((ac1 + end1 + ac2 + (split % end2)) or (ac2 + end2 + ac1 + (split % end1)))
+  } }
+
+//  val validTraces = listOf(
+//    trace("start", "ac1", "end1", "ac2", "split", "end2"),
+//    trace("start", "ac1", "end1", "ac2", "end2", "split"),
+//    trace("start", "ac2", "end2", "ac1", "split", "end1"),
+//    trace("start", "ac2", "end2", "ac1", "end1", "split"))
+
   testTraces(processEngine, model, principal,
-      valid = listOf(
-          trace("start", "ac1", "end1", "ac2", "split", "end2"),
-          trace("start", "ac1", "end1", "ac2", "end2", "split"),
-          trace("start", "ac2", "end2", "ac1", "split", "end1"),
-          trace("start", "ac2", "end2", "ac1", "end1", "split")),
-      invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
+             valid = validTraces,
+             invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
           listOf("split", "end1", "end2").map { trace("start", it) } +
           listOf("split", "end2").map { trace("start", "ac1", it) } +
           listOf("split", "end1").map { trace("start", "ac2", it) } +
