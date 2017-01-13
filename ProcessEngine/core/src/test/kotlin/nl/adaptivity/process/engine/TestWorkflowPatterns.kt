@@ -117,30 +117,34 @@ class TestWorkflowPatterns : Spek({
 })
 
 private fun EngineTestingDsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val ac1 = activity { id = "ac1"; predecessor = start }
-    val ac2 = activity { id = "ac2"; predecessor = ac1 }
-    endNode { id = "end"; predecessor = ac2 }
+  val model = object :Model(principal, "WCP1") {
+    val start by startNode
+    val ac1 by activity(start)
+    val ac2 by activity(ac1)
+    val end by endNode(ac2)
   }
 
   it("should have 4 children") {
     assertEquals(4, model.getModelNodes().size)
   }
 
-  testTraces(processEngine, model, principal, valid = listOf(trace("start", "ac1", "ac2", "end")), invalid = listOf(trace("ac1", "ac2", "end"), trace("start", "ac2", "ac1", "end")))
+  val validTraces = with(model) { trace{ start + ac1 + ac2 + end } }
+
+  val invalidTraces = with(model) {
+    trace { ac1 or ac2 or end or (start * (ac2 or end)) or (start + ac1 + end)}
+  }
+
+  testTraces(processEngine, model, principal, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val split = split { id = "split"; predecessor = start; min = 2; max = 2 }
-    val ac1 = activity { id = "ac1"; predecessor = split }
-    val ac2 = activity { id = "ac2"; predecessor = split }
-    val end1 = endNode { id = "end1"; predecessor = ac1 }
-    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  val model = object : Model(principal, "WCP2") {
+    val start by startNode
+    val split by split(start) { min = 2; max = 2 }
+    val ac1   by activity(split)
+    val ac2   by activity(split)
+    val end1  by endNode(ac1)
+    val end2  by endNode(ac2)
   }
   testTraces(processEngine, model, principal,
       valid = listOf(
@@ -157,14 +161,13 @@ private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP3(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val split = split { id = "split"; predecessor = start; min = 2; max = 2 }
-    val ac1 = activity { id = "ac1"; predecessor = split }
-    val ac2 = activity { id = "ac2"; predecessor = split }
-    val join = join { id = "join"; predecessors(ac1, ac2); min = 2; max = 2 }
-    val end = endNode { id = "end"; predecessor = join }
+  val model = object: Model(principal, "WCP3") {
+    val start by startNode
+    val split by split(start) { min = 2; max = 2 }
+    val ac1   by activity(split)
+    val ac2   by activity(split)
+    val join  by join(ac1, ac2){ min = 2; max = 2 }
+    val end   by endNode(join)
   }
   testTraces(processEngine, model, principal,
       valid = listOf(
@@ -177,14 +180,13 @@ private fun EngineTestingDsl.testWCP3(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP4(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val split = split { id = "split"; predecessor = start; min = 1; max = 1 }
-    val ac1 = activity { id = "ac1"; predecessor = split }
-    val ac2 = activity { id = "ac2"; predecessor = split }
-    val end1 = endNode { id = "end1"; predecessor = ac1 }
-    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  val model = object: Model(principal, "WCP4") {
+    val start by startNode
+    val split by split(start) { min = 1; max = 1 }
+    val ac1 by activity(split)
+    val ac2 by activity(split)
+    val end1 by endNode(ac1)
+    val end2 by endNode(ac2)
   }
   testTraces(processEngine, model, principal,
       valid = listOf(
@@ -199,15 +201,14 @@ private fun EngineTestingDsl.testWCP4(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP5(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val split = split { id = "split"; predecessor = start; min = 1; max = 1 }
-    val ac1 = activity { id = "ac1"; predecessor = split }
-    val ac2 = activity { id = "ac2"; predecessor = split }
-    val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
-    val ac3 = activity { id = "ac3"; predecessor = join }
-    val end = endNode { id = "end"; predecessor = ac3 }
+  val model = object: Model(principal, "WCP5") {
+    val start by startNode
+    val split by split(start) { min = 1; max = 1 }
+    val ac1 by activity(split)
+    val ac2 by activity(split)
+    val join by join(ac1, ac2) { min = 1; max = 1 }
+    val ac3 by activity(join )
+    val end by endNode(ac3 )
   }
   testTraces(processEngine, model, principal,
       valid = listOf(
@@ -222,14 +223,13 @@ private fun EngineTestingDsl.testWCP5(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val split = split { id = "split"; predecessor = start; min = 1; max = 2 }
-    val ac1 = activity { id = "ac1"; predecessor = split; condition = ac1Condition.toXPath() }
-    val ac2 = activity { id = "ac2"; predecessor = split; condition = ac2Condition.toXPath() }
-    val end1 = endNode { id = "end1"; predecessor = ac1 }
-    val end2 = endNode { id = "end2"; predecessor = ac2 }
+  val model = object : Model(principal, "WCP6") {
+    val start by startNode
+    val split by split(start) { min = 1; max = 2 }
+    val ac1 by activity(split) { condition = ac1Condition.toXPath() }
+    val ac2 by activity(split) { condition = ac2Condition.toXPath() }
+    val end1 by endNode(ac1 )
+    val end2 by endNode(ac2 )
   }
   val invalidTraces = mutableListOf<Trace>()
   val validTraces = when {
@@ -275,14 +275,13 @@ private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start = startNode { id = "start" }
-    val split = split { id = "split"; predecessor = start; min = 1; max = 2 }
-    val ac1 = activity { id = "ac1"; predecessor = split; condition = ac1Condition.toXPath() }
-    val ac2 = activity { id = "ac2"; predecessor = split; condition = ac2Condition.toXPath() }
-    val join = join { id="join"; predecessors(ac1, ac2); min = 1; max=2 }
-    val end = endNode { id = "end"; predecessor = join }
+  val model = object: Model(principal, "WCP7") {
+    val start by startNode
+    val split by split(start) { min = 1; max = 2 }
+    val ac1 by activity(split) { condition = ac1Condition.toXPath() }
+    val ac2 by activity(split) { condition = ac2Condition.toXPath() }
+    val join by join(ac1, ac2) {  min = 1; max=2 }
+    val end by endNode(join)
   }
   val invalidTraces = mutableListOf<Trace>()
   val validTraces = when {
@@ -348,15 +347,14 @@ private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTr
 }
 
 private fun EngineTestingDsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = ExecutableProcessModel.build {
-    owner = principal
-    val start1 = startNode { id = "start1" }
-    val start2 = startNode { id = "start2" }
-    val ac1 = activity { id = "ac1"; predecessor = start1 }
-    val ac2 = activity { id = "ac2"; predecessor = start2 }
-    val join = join { id = "join"; predecessors(ac1, ac2); min = 1; max = 1 }
-    val ac3 = activity { id = "ac3"; predecessor = join }
-    val end = endNode { id = "end"; predecessor = ac3 }
+  val model = object : Model(principal, "WCP9") {
+    val start1 by startNode
+    val start2 by startNode
+    val ac1 by activity(start1)
+    val ac2 by activity(start2)
+    val join by join(ac1, ac2){ min = 1; max = 1 }
+    val ac3 by activity(join)
+    val end by endNode(ac3)
   }
   testTraces(processEngine, model, principal,
       valid = listOf(
@@ -396,7 +394,7 @@ private fun EngineTestingDsl.testWASP4() {
     val start1 by startNode
     val ac1    by activity(start1)
 
-    val comp1 by object : CompositeActivity(ac1/*, "child1"*/) {
+    val comp1 by object : CompositeActivity(ac1) {
       val start2 by startNode
       val ac2    by activity(start2)
       val end2   by endNode(ac2)
