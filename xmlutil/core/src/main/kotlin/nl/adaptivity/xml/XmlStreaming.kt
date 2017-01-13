@@ -163,9 +163,7 @@ object XmlStreaming {
 
   private val factory: XmlStreamingFactory
     get() {
-      val currentFactory = _factory
-      if (currentFactory !=null) return currentFactory
-      return serviceLoader.first()
+      return _factory ?: serviceLoader.first().apply { _factory = this }
     }
 
   @Throws(XmlException::class)
