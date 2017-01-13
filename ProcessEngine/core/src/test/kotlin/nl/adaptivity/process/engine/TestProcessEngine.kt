@@ -272,7 +272,7 @@ class TestProcessEngine {
     } catch (e: AssertionError) {
       e.printStackTrace()
       try {
-        assertEquals(String(receivedChars), Streams.toString(getXml("testModel1_task1.xml"), defaultCharset()))
+        assertEquals(String(receivedChars), getXml("testModel1_task1.xml")?.readString(defaultCharset()))
       } catch (f: Exception) {
         f.initCause(e)
         throw f
