@@ -152,12 +152,22 @@ private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTr
   } }
 
   val invalidTraces = with(model) { trace {
-    ac1 or ac2 or end1 or end2 or split or
-      (start .. (split or end1 or end2 or
-          (((ac1 or (ac1..end1)) .. (split or end2)) or
-            ((ac2 or (ac2..end1)) .. (split or end1))
-          ))
+    ac1 or
+    ac2 or
+    end1 or
+    end2 or
+    split or
+    (start ..(split or
+              end1 or
+              end2 or
+              ((ac1 or
+               (ac1..end1)) .. (split or
+                                end2)) or
+              ((ac2 or
+               (ac2..end1)) .. (split or
+                                end1))
       )
+    )
   } }
 
   testTraces(processEngine, model, principal,
