@@ -32,6 +32,7 @@ import kotlin.reflect.KProperty
 
 internal typealias Model = ConfigurableModel
 
+@Suppress("NOTHING_TO_INLINE")
 internal abstract class ConfigurableModel(
     override val owner: Principal,
     private val name: String? = null,
@@ -66,12 +67,19 @@ internal abstract class ConfigurableModel(
     inline operator fun provideDelegate(thisRef: Any?, property: KProperty<*>)= childRef(property.name)
   }
 
-  private var builder: ExecutableProcessModel.Builder? = null
+  private var _builder: ExecutableProcessModel.Builder? = null
+  private val builder: ExecutableProcessModel.Builder get() {
+    return _builder ?: if (!_model.isInitialized()) ExecutableProcessModel.Builder().apply { _builder = this } else throw IllegalStateException("The model has already been built")
+  }
 
-  private val model: ExecutableProcessModel by lazy { builder!!.build(false).apply { builder=null } }
+  private val _model: Lazy<ExecutableProcessModel> = lazy {
+    builder.build(false).apply { _builder=null }
+  }
+
+  private val model: ExecutableProcessModel get() = _model.value
 
   operator fun ExecutableProcessNode.Builder.provideDelegate(thisRef:ConfigurableModel, property: KProperty<*>): Identifier {
-    val modelBuilder = builder?:let { ExecutableProcessModel.Builder().apply{builder = this} }
+    val modelBuilder = builder
     val nodeBuilder = this
     if (id==null && modelBuilder.nodes.firstOrNull { it.id == property.name }==null) id = property.name
     with(modelBuilder) {
@@ -89,29 +97,22 @@ internal abstract class ConfigurableModel(
   override fun getName() = name
   override fun getUuid() = uuid
 
-  @Suppress("NOTHING_TO_INLINE")
   inline fun childRef(childId:String) = lazy { model.getChildModel(Identifier(childId)) }
   inline val childRef get() = ChildBinder()
-  @Suppress("NOTHING_TO_INLINE")
   inline fun nodeRef(nodeId:String) = lazy { (model.getModelNodes().asSequence() + model.childModels.asSequence().flatMap { it.getModelNodes().asSequence() }).firstOrNull { it.id==nodeId } }
   inline val nodeRef get() = NodeBinder()
   inline protected val startNode get() = ExecutableStartNode.Builder()
   inline protected fun startNode(config: ExecutableStartNode.Builder.()->Unit) = ExecutableStartNode.Builder().apply(config)
-  @Suppress("NOTHING_TO_INLINE")
   inline protected fun activity(predecessor: Identified) = ExecutableActivity.Builder(predecessor = predecessor)
   inline protected fun activity(predecessor: Identified, config: ExecutableActivity.Builder.()->Unit) = ExecutableActivity.Builder(predecessor = predecessor).apply(config)
-  @Suppress("NOTHING_TO_INLINE")
   inline protected fun compositeActivity(predecessor: Identified) = ExecutableActivity.ChildModelBuilder(builder!!, predecessor = predecessor)
   inline protected fun compositeActivity(predecessor: Identified, config: ExecutableActivity.ChildModelBuilder.()->Unit) = ExecutableActivity.ChildModelBuilder(builder!!, predecessor = predecessor).apply(config)
-  @Suppress("NOTHING_TO_INLINE")
   inline protected fun split(predecessor: Identified) = ExecutableSplit.Builder(predecessor = predecessor)
   inline protected fun split(predecessor: Identified, config: ExecutableSplit.Builder.()->Unit) = ExecutableSplit.Builder(predecessor = predecessor).apply(config)
-  @Suppress("NOTHING_TO_INLINE")
   inline protected fun join(vararg predecessors: Identified) = ExecutableJoin.Builder(predecessors = Arrays.asList(*predecessors))
   inline protected fun join(predecessors: Collection<Identified>) = ExecutableJoin.Builder(predecessors = predecessors)
   inline protected fun join(vararg predecessors: Identified, config: ExecutableJoin.Builder.()->Unit) = ExecutableJoin.Builder(predecessors = Arrays.asList(*predecessors)).apply(config)
   inline protected fun join(predecessors: Collection<Identified>, config: ExecutableJoin.Builder.()->Unit) = ExecutableJoin.Builder(predecessors = predecessors).apply(config)
-  @Suppress("NOTHING_TO_INLINE")
   inline protected fun endNode(predecessor: Identified) = ExecutableEndNode.Builder(predecessor = predecessor)
   inline protected fun endNode(predecessor: Identified, config: ExecutableEndNode.Builder.()->Unit) = ExecutableEndNode.Builder(predecessor = predecessor).apply(config)
 
@@ -132,14 +133,21 @@ internal abstract class ConfigurableModel(
   override fun getExports() = model.getExports()
 
   protected abstract inner class CompositeActivity(predecessor: Identified,
-                                                   override val id: String,
+                                                   id: String,
                                                    childId: String): Identified /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/{
 
-    private inline fun rootBuilder() = this@ConfigurableModel.builder?:let { ExecutableProcessModel.Builder().apply{this@ConfigurableModel.builder = this} }
+    private inline fun rootBuilder() = this@ConfigurableModel.builder
 
-    private val builder: ExecutableActivity.ChildModelBuilder by lazy { ExecutableActivity.ChildModelBuilder(rootBuilder(), childId = childId) }
+    private val builder: ExecutableActivity.ChildModelBuilder = ExecutableActivity.ChildModelBuilder(rootBuilder(), childId = childId, id=id, predecessor = predecessor)
+
+    init {
+      rootBuilder().childModels.add(builder)
+      rootBuilder().nodes.add(builder)
+    }
 
     val childId = Identifier(childId)
+    private val _id = id
+    override val id: String get() = builder.id ?: _id
 
     operator fun ExecutableProcessNode.Builder.provideDelegate(thisRef:CompositeActivity, property: KProperty<*>): Identifier {
       val modelBuilder = builder
@@ -159,21 +167,16 @@ internal abstract class ConfigurableModel(
 
     inline protected val startNode get() = ExecutableStartNode.Builder()
     inline protected fun startNode(config: ExecutableStartNode.Builder.()->Unit) = ExecutableStartNode.Builder().apply(config)
-    @Suppress("NOTHING_TO_INLINE")
     inline protected fun activity(predecessor: Identified) = ExecutableActivity.Builder(predecessor = predecessor)
     inline protected fun activity(predecessor: Identified, config: ExecutableActivity.Builder.()->Unit) = ExecutableActivity.Builder(predecessor = predecessor).apply(config)
-    @Suppress("NOTHING_TO_INLINE")
     inline protected fun compositeActivity(predecessor: Identified) = ExecutableActivity.ChildModelBuilder(rootBuilder(), predecessor = predecessor)
     inline protected fun compositeActivity(predecessor: Identified, config: ExecutableActivity.ChildModelBuilder.()->Unit) = ExecutableActivity.ChildModelBuilder(rootBuilder(), predecessor = predecessor).apply(config)
-    @Suppress("NOTHING_TO_INLINE")
     inline protected fun split(predecessor: Identified) = ExecutableSplit.Builder(predecessor = predecessor)
     inline protected fun split(predecessor: Identified, config: ExecutableSplit.Builder.()->Unit) = ExecutableSplit.Builder(predecessor = predecessor).apply(config)
-    @Suppress("NOTHING_TO_INLINE")
     inline protected fun join(vararg predecessors: Identified) = ExecutableJoin.Builder(predecessors = Arrays.asList(*predecessors))
     inline protected fun join(predecessors: Collection<Identified>) = ExecutableJoin.Builder(predecessors = predecessors)
     inline protected fun join(vararg predecessors: Identified, config: ExecutableJoin.Builder.()->Unit) = ExecutableJoin.Builder(predecessors = Arrays.asList(*predecessors)).apply(config)
     inline protected fun join(predecessors: Collection<Identified>, config: ExecutableJoin.Builder.()->Unit) = ExecutableJoin.Builder(predecessors = predecessors).apply(config)
-    @Suppress("NOTHING_TO_INLINE")
     inline protected fun endNode(predecessor: Identified) = ExecutableEndNode.Builder(predecessor = predecessor)
     inline protected fun endNode(predecessor: Identified, config: ExecutableEndNode.Builder.()->Unit) = ExecutableEndNode.Builder(predecessor = predecessor).apply(config)
 
