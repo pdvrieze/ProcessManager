@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
 import java.security.Principal
@@ -47,6 +45,16 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
 
     fun build(pedantic: Boolean = defaultPedantic): RootProcessModel<NodeT,ModelT>
 
+    override fun normalize(pedantic: Boolean) {
+      super.normalize(pedantic)
+      childModels.filter { it.childId==null }.forEach {
+        if (pedantic) {
+          throw IllegalProcessModelException("No child id for child model defined")
+        } else {
+          it.ensureChildId()
+        }
+      }
+    }
   }
 
   /**
