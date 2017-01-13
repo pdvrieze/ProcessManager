@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
+import net.devrieze.util.writer
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -30,6 +31,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.Gettable
+import nl.adaptivity.xml.XmlStreaming
 import org.jetbrains.spek.api.dsl.Dsl
 import org.jetbrains.spek.api.dsl.Pending
 import org.junit.jupiter.api.Assertions
@@ -373,7 +375,9 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
       this@toDebugString.allChildren().joinTo(this) { val inst = it.withPermission()
         "${inst.node.id}:${inst.state}"
       }
-      append("])")
+      appendln("])\n\nModel:")
+      XmlStreaming.newWriter(this.writer()).use { processModel.rootModel.serialize(it) }
+      appendln("\n")
     }
   }
 
@@ -430,7 +434,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
   fun addStartedNodeContext(dsl: ProcessTestingDsl, trace: nl.adaptivity.process.engine.Trace, i: kotlin.Int):ProcessTestingDsl {
     val nodeId = trace[i].splitToSequence(':').first()
     val nodeInstance by with(dsl) { instance.nodeInstance[nodeId] }
-    val node = findNode(model, nodeId) ?: throw AssertionError("No node with id ${nodeId} was defined in the tested model")
+    val node = findNode(model, nodeId) ?: throw AssertionError("No node with id $nodeId was defined in the tested model\n\n${XmlStreaming.toString(model).prependIndent(">  ")}\n")
     when(node) {
       is StartNode<*,*> -> {
         dsl.test("$nodeId should be finished") {
