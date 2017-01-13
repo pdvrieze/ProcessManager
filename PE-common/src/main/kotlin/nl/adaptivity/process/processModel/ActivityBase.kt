@@ -93,6 +93,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       when (attributeLocalName.toString()) {
         ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue.toString()))
         "name" -> name = attributeValue.toString()
+        ATTR_CHILDID -> childId = attributeValue.toString()
         else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
       }
       return true
@@ -194,6 +195,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   override fun serializeAttributes(out: XmlWriter) {
     super.serializeAttributes(out)
     out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, predecessor?.id)
+    out.writeAttribute("childId", childModel?.id)
     out.writeAttribute("name", name)
   }
 
@@ -247,4 +249,9 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   }
 
   // Property acccessors end
+
+  companion object {
+    const val ATTR_CHILDID = "childId"
+  }
+
 }
