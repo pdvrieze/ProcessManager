@@ -139,9 +139,13 @@ class TraceBuilder {
   inline infix fun Identified.or(other: String)         = this.toTraceElem().or(other.toTraceElem())
   inline infix fun Identified.or(other: Identified)     = this.toTraceElem().or(other.toTraceElem())
   inline infix fun Identified.or(other: TraceElement)   = this.toTraceElem().or(other)
+  inline infix fun Identified.or(other: BTrace)         = this.toTraceElem().or(other)
+  inline infix fun Identified.or(other: Traces)         = this.toTraceElem().or(other)
   inline infix fun TraceElement.or(other: String)       = this.or(other.toTraceElem())
   inline infix fun TraceElement.or(other: Identified)   = this.or(other.toTraceElem())
   inline infix fun TraceElement.or(other: TraceElement) = listOf(trace(this), trace(other))
+  inline infix fun TraceElement.or(other: BTrace)       = listOf(trace(this)).or(other)
+  inline infix fun TraceElement.or(other: Traces)       = listOf(trace(this)).or(other)
 
 
   inline infix fun Traces.or(other: String): Traces       = this.or(other.toTraceElem())
