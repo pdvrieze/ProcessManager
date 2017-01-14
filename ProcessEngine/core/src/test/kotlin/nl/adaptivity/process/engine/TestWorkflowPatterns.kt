@@ -262,41 +262,41 @@ private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTr
     val end2 by endNode(ac2 )
   }
   val invalidTraces = mutableListOf<Trace>()
-  val validTraces = when {
+  val validTraces = with (model) { when {
     ac1Condition && ac2Condition -> {
-      invalidTraces.add(trace("start", "ac1", "end2"))
-      invalidTraces.add(trace("start", "ac2", "end1"))
-      invalidTraces.add(trace("start", "ac1", "end1", "end2"))
-      invalidTraces.add(trace("start", "ac2", "end2", "end1"))
 
-      listOf(
-          trace("start", "ac1", "end1", "ac2", "split", "end2"),
-          trace("start", "ac1", "end1", "ac2", "end2", "split"),
-          trace("start", "ac2", "end2", "ac1", "split", "end1"),
-          trace("start", "ac2", "end2", "ac1", "end1", "split"))
+      invalidTraces.addAll(trace {
+        start .. ((ac1 .. end1.opt .. end2) or
+          (ac2 .. end2.opt .. end1))
+      })
+
+      trace { start .. ( // these are valid
+        (ac1 .. end1 .. ac2) or
+        (ac2 .. end2 .. ac1)) .. (split % (end1 or end2))
+      }.removeInvalid()
     }
     ac1Condition && !ac2Condition -> {
-      listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", it)) }
-      invalidTraces.add(trace("start", "ac2"))
-      listOf("ac2", "end2").forEach { invalidTraces.add(trace("start", "ac1", "end1", it)) }
+      invalidTraces.addAll(trace{
+        start .. (end1 or ((ac1 .. end1.opt).opt .. (ac2 or end2)))
+      })
 
-      listOf(
-          trace("start", "ac1", "end1", "split"),
-          trace("start", "ac1", "split", "end1"))
+      trace {
+        start .. ac1 .. (split % end1)
+      }
 
     }
     !ac1Condition && ac2Condition -> {
-      listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", it)) }
-      invalidTraces.add(trace("start", "ac1"))
-      listOf("ac1", "end1").forEach { invalidTraces.add(trace("start", "ac2", "end2", it)) }
+      invalidTraces.addAll(trace{
+        start .. (end2 or ((ac2 .. end2.opt).opt .. (ac1 or end1)))
+      })
 
-      listOf(
-          trace("start", "ac2", "end2", "split"),
-          trace("start", "ac2", "split", "end2"))
+      trace {
+        start .. ac2 .. (split % end2)
+      }
 
     }
     else -> kfail("All cases need valid traces")
-  }
+  } }
 
   testTraces(processEngine, model, principal,
       valid = validTraces,
