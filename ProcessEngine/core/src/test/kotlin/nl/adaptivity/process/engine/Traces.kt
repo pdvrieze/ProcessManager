@@ -102,6 +102,8 @@ private operator fun <T> T.plus(array:Array<T>): Array<T> {
 
 @Suppress("NOTHING_TO_INLINE")
 class TraceBuilder {
+  internal inline operator fun Identified.get(instanceNo:Int) = TraceElement(id, instanceNo)
+
   @PublishedApi
   internal inline fun String.toTraceElem() = TraceElement(this)
   @PublishedApi
@@ -214,8 +216,10 @@ fun trace(builder: TraceBuilder.()->List<BTrace>): List<Trace> {
 
 fun List<Trace>.removeInvalid(): List<Trace> {
   fun Trace.isValid():Boolean {
-    val seen = HashSet<TraceElement>()
-    return this.asSequence().all { seen.add(it) }
+    return this.isNotEmpty() && run {
+      val seen = HashSet<TraceElement>()
+      this.asSequence().all { seen.add(it) }
+    }
   }
 
   return filter{it.isValid()}
