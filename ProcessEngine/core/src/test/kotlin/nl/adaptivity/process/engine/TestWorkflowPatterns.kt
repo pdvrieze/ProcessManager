@@ -366,16 +366,33 @@ private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTr
     val end    by endNode(ac3)
   }
 
+  val validTraces = with(model) { trace {
+    val t1 = ac3[1] .. end[1]
+    val t2 = ac3[2] .. end[2]
+    val h2 = (ac1 or ac2) .. join[2]
+
+    (start1 % start2) .. (ac1 or ac2) .. join[1] ..
+      ((t1 % h2).. t2) or (h2 .. t2 .. t1)
+  }}.removeInvalid()
+
+  val oldvalidTraces = listOf(
+    trace(model.start1.id, "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
+    trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
+    trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"),
+    trace("start1", "start2", "ac2", "join:1", "ac3:1", "end:1", "ac1", "join:1", "ac3:2", "end:2"),
+    trace("start1", "start2", "ac2", "join:1", "ac1", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
+    trace("start1", "start2", "ac2", "join:1", "ac1", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"))
+
+  val invalidTraces = with(model) { trace{
+    ac1 or ac2 or ac3 or end or join or
+      (((start1 % start2) or start1 or start2) .. (join or ac3 or end))
+  }}
+
+  val oldInvalidTraces = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
+                         listOf("join", "ac3", "end").map { trace("start1", "start2", it) }
   testTraces(processEngine, model, principal,
-      valid = listOf(
-          trace(model.start1.id, "start2", "ac1", "join:1", "ac3:1", "end:1", "ac2", "join:2", "ac3:2", "end:2"),
-          trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:1", "end:1", "ac3:2", "end:2"),
-          trace("start1", "start2", "ac1", "join:1", "ac2", "join:2", "ac3:2", "end:2", "ac3:1", "end:1"),
-          trace("start1", "start2", "ac2", "join:1", "ac3:1", "end:1", "ac1", "join:1", "ac3:2", "end:2"),
-          trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:1", "end:1", "ac3:2", "end:2"),
-          trace("start1", "start2", "ac2", "join:1", "ac1", "join:1", "ac3:2", "end:2", "ac3:1", "end:1")),
-      invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
-          listOf("join", "ac3", "end").map { trace("start1", "start2", it) })
+             valid = validTraces,
+             invalid = invalidTraces)
 }
 
 private fun EngineTestingDsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
