@@ -237,16 +237,19 @@ private fun EngineTestingDsl.testWCP5(processEngine: ProcessEngine<StubProcessTr
     val ac3 by activity(join )
     val end by endNode(ac3 )
   }
-  testTraces(processEngine, model, principal,
-      valid = listOf(
-          trace("start", "ac1", "split", "join", "ac3", "end"),
-          trace("start", "ac2", "split", "join", "ac3", "end")),
-      invalid = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
-          listOf("join", "ac3", "end").map { trace("start", it) } +
-          listOf(trace("start", "ac1", "ac2"),
-              trace("start", "ac2", "ac1"))
+  val validTraces = with(model) { trace {
+    start .. ((ac1 or ac2) .. (((split % join).. ac3 ..end)))
+  } }
+  val invalidTraces = with(model) { trace {
+    ac1 or ac2 or ac3 or end or join or split or
+      (start .. (ac3 or join or split or end or
+//        ((ac1 or ac2) .. ac3) or, this passes as the system verify nonexistence of join/split/end nodes
+        (ac1 % ac2)))
+  } }
 
-  )
+  testTraces(processEngine, model, principal,
+             valid = validTraces,
+             invalid = invalidTraces)
 }
 
 private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
