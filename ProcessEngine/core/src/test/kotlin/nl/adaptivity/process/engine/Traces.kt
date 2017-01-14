@@ -111,21 +111,21 @@ class TraceBuilder {
   inline operator fun Identified.unaryPlus() = this.toTraceElem().unaryPlus()
   inline operator fun TraceElement.unaryPlus() = listOf(trace(this))
   
-  inline operator fun String.rangeTo(other: String)                   = this.toTraceElem()..other.toTraceElem()
-  inline operator fun String.rangeTo(other: Identified)               = this.toTraceElem()..other.toTraceElem()
-  inline operator fun String.rangeTo(other: TraceElement)             = this.toTraceElem()..other
-  inline operator fun String.rangeTo(other: BTrace)                   = this.toTraceElem()..other
-  inline operator fun String.rangeTo(other: Traces)                   = this.toTraceElem()..other
-  inline operator fun Identified.rangeTo(other: String)               = this.toTraceElem()..other.toTraceElem()
-  inline operator fun Identified.rangeTo(other: Identified)           = this.toTraceElem()..other.toTraceElem()
-  inline operator fun Identified.rangeTo(other: TraceElement)         = this.toTraceElem()..other
-  inline operator fun Identified.rangeTo(other: BTrace)               = this.toTraceElem()..other
-  inline operator fun Identified.rangeTo(other: Traces)               = this.toTraceElem()..other
-  inline operator fun TraceElement.rangeTo(other: String)             = this..other.toTraceElem()
-  inline operator fun TraceElement.rangeTo(other: Identified)         = this..other.toTraceElem()
-  inline operator fun TraceElement.rangeTo(other: TraceElement)       = listOf(trace(this, other))
-         operator fun TraceElement.rangeTo(other: BTrace)             = listOf(BTrace(this + other.elems))
-         operator fun TraceElement.rangeTo(other: Traces)             = other.map { BTrace(this + it.elems) }
+  inline operator fun String.rangeTo(other: String): Traces                   = this.toTraceElem()..other.toTraceElem()
+  inline operator fun String.rangeTo(other: Identified): Traces               = this.toTraceElem()..other.toTraceElem()
+  inline operator fun String.rangeTo(other: TraceElement): Traces             = this.toTraceElem()..other
+  inline operator fun String.rangeTo(other: BTrace): Traces                   = this.toTraceElem()..other
+  inline operator fun String.rangeTo(other: Traces): Traces                   = this.toTraceElem()..other
+  inline operator fun Identified.rangeTo(other: String): Traces               = this.toTraceElem()..other.toTraceElem()
+  inline operator fun Identified.rangeTo(other: Identified): Traces           = this.toTraceElem()..other.toTraceElem()
+  inline operator fun Identified.rangeTo(other: TraceElement): Traces         = this.toTraceElem()..other
+  inline operator fun Identified.rangeTo(other: BTrace): Traces               = this.toTraceElem()..other
+  inline operator fun Identified.rangeTo(other: Traces): Traces               = this.toTraceElem()..other
+  inline operator fun TraceElement.rangeTo(other: String): Traces             = this..other.toTraceElem()
+  inline operator fun TraceElement.rangeTo(other: Identified): Traces         = this..other.toTraceElem()
+  inline operator fun TraceElement.rangeTo(other: TraceElement): Traces       = listOf(trace(this, other))
+         operator fun TraceElement.rangeTo(other: BTrace): Traces             = listOf(BTrace(this + other.elems))
+         operator fun TraceElement.rangeTo(other: Traces): Traces             = other.map { BTrace(this + it.elems) }
 
   inline operator fun Traces.rangeTo(other: String):Traces       = this..other.toTraceElem()
   inline operator fun Traces.rangeTo(other: Identified):Traces   = this..other.toTraceElem()
@@ -135,19 +135,19 @@ class TraceBuilder {
   operator        fun Traces.rangeTo(other: Traces):Traces       = flatMap { left -> other.map { right -> left + right} }
 
 
-  inline infix fun String.or(other: String)             = this.toTraceElem().or(other.toTraceElem())
-  inline infix fun String.or(other: Identified)         = this.toTraceElem().or(other.toTraceElem())
-  inline infix fun String.or(other: TraceElement)       = this.toTraceElem().or(other)
-  inline infix fun Identified.or(other: String)         = this.toTraceElem().or(other.toTraceElem())
-  inline infix fun Identified.or(other: Identified)     = this.toTraceElem().or(other.toTraceElem())
-  inline infix fun Identified.or(other: TraceElement)   = this.toTraceElem().or(other)
-  inline infix fun Identified.or(other: BTrace)         = this.toTraceElem().or(other)
-  inline infix fun Identified.or(other: Traces)         = this.toTraceElem().or(other)
-  inline infix fun TraceElement.or(other: String)       = this.or(other.toTraceElem())
-  inline infix fun TraceElement.or(other: Identified)   = this.or(other.toTraceElem())
-  inline infix fun TraceElement.or(other: TraceElement) = listOf(trace(this), trace(other))
-  inline infix fun TraceElement.or(other: BTrace)       = listOf(trace(this)).or(other)
-  inline infix fun TraceElement.or(other: Traces)       = listOf(trace(this)).or(other)
+  inline infix fun String.or(other: String): Traces             = this.toTraceElem().or(other.toTraceElem())
+  inline infix fun String.or(other: Identified): Traces         = this.toTraceElem().or(other.toTraceElem())
+  inline infix fun String.or(other: TraceElement): Traces       = this.toTraceElem().or(other)
+  inline infix fun Identified.or(other: String): Traces         = this.toTraceElem().or(other.toTraceElem())
+  inline infix fun Identified.or(other: Identified): Traces     = this.toTraceElem().or(other.toTraceElem())
+  inline infix fun Identified.or(other: TraceElement): Traces   = this.toTraceElem().or(other)
+  inline infix fun Identified.or(other: BTrace): Traces         = this.toTraceElem().or(other)
+  inline infix fun Identified.or(other: Traces): Traces         = this.toTraceElem().or(other)
+  inline infix fun TraceElement.or(other: String): Traces       = this.or(other.toTraceElem())
+  inline infix fun TraceElement.or(other: Identified): Traces   = this.or(other.toTraceElem())
+  inline infix fun TraceElement.or(other: TraceElement): Traces = listOf(trace(this), trace(other))
+  inline infix fun TraceElement.or(other: BTrace): Traces       = listOf(trace(this)).or(other)
+  inline infix fun TraceElement.or(other: Traces): Traces       = listOf(trace(this)).or(other)
 
 
   inline infix fun Traces.or(other: String): Traces       = this.or(other.toTraceElem())
@@ -173,21 +173,21 @@ class TraceBuilder {
 
 
 
-  inline operator fun String.rem(other: String)             = this.toTraceElem().rem(other.toTraceElem())
-  inline operator fun String.rem(other: Identified)         = this.toTraceElem().rem(other.toTraceElem())
-  inline operator fun String.rem(other: TraceElement)       = this.toTraceElem().rem(other)
-  inline operator fun String.rem(other: BTrace)             = this.toTraceElem().rem(other)
-  inline operator fun String.rem(other: Traces)             = this.toTraceElem().rem(other)
-  inline operator fun Identified.rem(other: String)         = this.toTraceElem().rem(other.toTraceElem())
-  inline operator fun Identified.rem(other: Identified)     = this.toTraceElem().rem(other.toTraceElem())
-  inline operator fun Identified.rem(other: TraceElement)   = this.toTraceElem().rem(other)
-  inline operator fun Identified.rem(other: BTrace)         = this.toTraceElem().rem(other)
-  inline operator fun Identified.rem(other: Traces)         = this.toTraceElem().rem(other)
-  inline operator fun TraceElement.rem(other: String)       = this.rem(other.toTraceElem())
-  inline operator fun TraceElement.rem(other: Identified)   = this.rem(other.toTraceElem())
-         operator fun TraceElement.rem(other: TraceElement) = listOf(trace(this, other), trace(other, this))
-         operator fun TraceElement.rem(other: BTrace)       = listOf((trace(this) + other), (other + trace(this)))
-         operator fun TraceElement.rem(other: Traces)       = other.flatMap { listOf(this .. it, it .. this) }
+  inline operator fun String.rem(other: String): Traces             = this.toTraceElem().rem(other.toTraceElem())
+  inline operator fun String.rem(other: Identified): Traces         = this.toTraceElem().rem(other.toTraceElem())
+  inline operator fun String.rem(other: TraceElement): Traces       = this.toTraceElem().rem(other)
+  inline operator fun String.rem(other: BTrace): Traces             = this.toTraceElem().rem(other)
+  inline operator fun String.rem(other: Traces): Traces             = this.toTraceElem().rem(other)
+  inline operator fun Identified.rem(other: String): Traces         = this.toTraceElem().rem(other.toTraceElem())
+  inline operator fun Identified.rem(other: Identified): Traces     = this.toTraceElem().rem(other.toTraceElem())
+  inline operator fun Identified.rem(other: TraceElement): Traces   = this.toTraceElem().rem(other)
+  inline operator fun Identified.rem(other: BTrace): Traces         = this.toTraceElem().rem(other)
+  inline operator fun Identified.rem(other: Traces): Traces         = this.toTraceElem().rem(other)
+  inline operator fun TraceElement.rem(other: String): Traces       = this.rem(other.toTraceElem())
+  inline operator fun TraceElement.rem(other: Identified): Traces   = this.rem(other.toTraceElem())
+         operator fun TraceElement.rem(other: TraceElement): Traces = listOf(trace(this, other), trace(other, this))
+         operator fun TraceElement.rem(other: BTrace): Traces       = listOf((trace(this) + other), (other + trace(this)))
+         operator fun TraceElement.rem(other: Traces): Traces       = other.flatMap { (this .. it) or (it .. this) }
 
 
   inline operator fun Traces.rem(other: String): Traces       = this.rem(trace(other.toTraceElem()))
@@ -210,6 +210,15 @@ class TraceBuilder {
 
 fun trace(builder: TraceBuilder.()->List<BTrace>): List<Trace> {
   return TraceBuilder().run(builder).map { it.elems }
+}
+
+fun List<Trace>.removeInvalid(): List<Trace> {
+  fun Trace.isValid():Boolean {
+    val seen = HashSet<TraceElement>()
+    return this.asSequence().all { seen.add(it) }
+  }
+
+  return filter{it.isValid()}
 }
 
 fun trace(vararg trace:String):Trace {
