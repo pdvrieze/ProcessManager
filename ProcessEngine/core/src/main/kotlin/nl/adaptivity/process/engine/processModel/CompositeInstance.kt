@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
-import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
@@ -26,11 +25,9 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
-import nl.adaptivity.process.processModel.engine.ExecutableChildModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import org.w3c.dom.DocumentFragment
 import java.security.Principal
-import javax.swing.text.Document
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
@@ -81,7 +78,7 @@ class CompositeInstance : ProcessNodeInstance {
   fun updateComposite(writableEngineData: MutableProcessEngineDataAccess,
                       instance: ProcessInstance,
                       body: ExtBuilder.() -> Unit): ProcessInstance.PNIPair<ProcessNodeInstance> {
-    return super.update(writableEngineData, instance, { (this as ExtBuilder).body() })
+    return super.update(writableEngineData, { (this as ExtBuilder).body() })
   }
 
   override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
@@ -110,7 +107,7 @@ class CompositeInstance : ProcessNodeInstance {
       engineData.instance(hChildInstance)
         .withPermission()
         .start(engineData, getPayload(engineData))
-      update(engineData, processInstance) {
+      update(engineData) {
         state = NodeInstanceState.Started
       }
     }

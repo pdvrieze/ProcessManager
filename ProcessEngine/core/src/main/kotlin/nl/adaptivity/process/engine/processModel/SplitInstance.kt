@@ -84,7 +84,9 @@ class SplitInstance : ProcessNodeInstance {
     return ExtBuilder(this)
   }
 
-  override fun update(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: ProcessNodeInstance.Builder<*>.() -> Unit): ProcessInstance.PNIPair<SplitInstance> {
+  override fun update(writableEngineData: MutableProcessEngineDataAccess,
+                      body: ProcessNodeInstance.Builder<*>.() -> Unit): ProcessInstance.PNIPair<SplitInstance> {
+    val instance = writableEngineData.instance(hProcessInstance).withPermission()
     val origHandle = getHandle()
     val builder = builder().apply(body)
     if (builder.changed) {
@@ -132,7 +134,7 @@ class SplitInstance : ProcessNodeInstance {
   }
 
   override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
-    return update(engineData, processInstance){ state=NodeInstanceState.Started }.let {
+    return update(engineData){ state=NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)
     }
   }
@@ -193,7 +195,7 @@ class SplitInstance : ProcessNodeInstance {
           .filter { ! it.state.isFinal }
           .fold(processInstance) { processInstance, it -> it.tryCancelTask(engineData, processInstance).instance }
 
-      return update(engineData, processInstance) { state = NodeInstanceState.Failed }
+      return update(engineData) { state = NodeInstanceState.Failed }
     }
 
     if (successorInstances(engineData).filter { isActiveOrCompleted(it) }.count()>=node.max) {
@@ -202,7 +204,7 @@ class SplitInstance : ProcessNodeInstance {
           .filter { !isActiveOrCompleted(it) }
           .fold(processInstance) { processInstance, successor -> successor.cancelAndSkip(engineData, processInstance).instance }
 
-      return update(engineData, processInstance) { state = NodeInstanceState.Complete }
+      return update(engineData) { state = NodeInstanceState.Complete }
     }
 
     return ProcessInstance.PNIPair(processInstance, this) // the state is whatever it should be

@@ -167,7 +167,9 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   /** Update the node. This will store the update based on the transaction. It will return the new object. The old object
    *  may be invalid afterwards.
    */
-  open fun update(writableEngineData: MutableProcessEngineDataAccess, instance:ProcessInstance, body: Builder<*>.() -> Unit): PNIPair<ProcessNodeInstance> {
+  open fun update(writableEngineData: MutableProcessEngineDataAccess,
+                  body: Builder<*>.() -> Unit): PNIPair<ProcessNodeInstance> {
+    val instance = writableEngineData.instance(hProcessInstance).withPermission()
     val origHandle = handle
     val builder:ExtBuilderBase<*> = builder().apply(body)
     if (builder.changed) {
@@ -273,7 +275,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
       val pniPair = run { // Unfortunately sendMessage will invalidate the current instance
         val newInstance = engineData.instance(hProcessInstance).withPermission()
         val newNodeInstance = engineData.nodeInstance(handle).withPermission()
-        newNodeInstance.update(engineData, newInstance) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
+        newNodeInstance.update(engineData) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
       }
       if (shouldProgress) {
         return ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
@@ -288,7 +290,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   @Throws(SQLException::class)
   open fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     val startNext = tryTask(engineData, processInstance) { node.startTask(this) }
-    val updatedInstances = update(engineData, processInstance) { state = NodeInstanceState.Started }
+    val updatedInstances = update(engineData) { state = NodeInstanceState.Started }
     return if (startNext) {
       updatedInstances.instance.finishTask(engineData, updatedInstances.node, null)
     } else updatedInstances
@@ -300,7 +302,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     if (state.isFinal) {
       throw ProcessException("instance ${node.id}:${handle}(${state}) cannot be finished as it is already in a final state.")
     }
-    return update(engineData, processInstance) {
+    return update(engineData) {
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
       state = NodeInstanceState.Complete
     }.apply { engineData.commit() }
@@ -309,7 +311,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   fun cancelAndSkip(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     return when (state) {
       NodeInstanceState.Pending,
-      NodeInstanceState.FailRetry -> update(engineData, processInstance) { state = NodeInstanceState.Skipped }
+      NodeInstanceState.FailRetry -> update(engineData) { state = NodeInstanceState.Skipped }
       NodeInstanceState.Sent,
       NodeInstanceState.Taken,
       NodeInstanceState.Acknowledged ->
@@ -320,7 +322,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   @Throws(SQLException::class)
   open fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
-    return update(engineData, processInstance) { state = NodeInstanceState.Cancelled }
+    return update(engineData) { state = NodeInstanceState.Cancelled }
   }
 
   @Throws(SQLException::class)
@@ -339,7 +341,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   @Throws(SQLException::class)
   open fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
-    return update(engineData, processInstance) {
+    return update(engineData) {
       failureCause = cause
       state = if (state == NodeInstanceState.Pending) NodeInstanceState.FailRetry else NodeInstanceState.Failed
     }
@@ -347,7 +349,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   @Throws(SQLException::class)
   open fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<ProcessNodeInstance> {
-    return update(engineData, processInstance) {
+    return update(engineData) {
       failureCause = cause
       state = NodeInstanceState.FailRetry
     }.apply { engineData.commit() }

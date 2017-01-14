@@ -30,7 +30,6 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
-import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.RootProcessModelBase
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
@@ -627,7 +626,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         synchronized(pi) { // XXX Should not be needed if pi is immutable
           when (newState) {
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
-            Acknowledged -> return task.update(transaction.writableEngineData, pi) { state = newState }.node.state // Record the state, do nothing else.
+            Acknowledged -> return task.update(transaction.writableEngineData) { state = newState }.node.state // Record the state, do nothing else.
             Taken        -> ProcessInstance.Updater(pi).takeTask(transaction.writableEngineData, task).node.state
             Started      -> task.startTask(this, pi)
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")

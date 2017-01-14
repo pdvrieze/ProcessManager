@@ -76,7 +76,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
     _messages.add(ExtMessage(processedMessage, instance.getHandle()))
     val processInstance = engineData.instance(instance.hProcessInstance).withPermission()
-    instance.update(engineData, processInstance) { state = NodeInstanceState.Sent }
+    instance.update(engineData) { state = NodeInstanceState.Sent }
     return true
   }
 }

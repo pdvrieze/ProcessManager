@@ -52,9 +52,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   class Updater(private var instance: ProcessInstance) {
 
-    private fun <N:ProcessNodeInstance> N.update(engineData: MutableProcessEngineDataAccess, body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): N {
+    private fun <N:ProcessNodeInstance> N.managedUpdate(engineData: MutableProcessEngineDataAccess, body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): N {
       @Suppress("UNCHECKED_CAST")
-      return update(engineData, instance, body).let {
+      return update(engineData, body).let {
         instance = it.instance
         it.node as N
       }
@@ -69,7 +69,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun <N:ProcessNodeInstance> takeTask(engineData: MutableProcessEngineDataAccess, origNodeInstance: N ): PNIPair<N> {
       val startNext = origNodeInstance.node.takeTask(origNodeInstance)
 
-      val updatedNode = origNodeInstance.update(engineData) { state = NodeInstanceState.Taken }
+      val updatedNode = origNodeInstance.managedUpdate(engineData) { state = NodeInstanceState.Taken }
 
       if (startNext) {
         @Suppress("DEPRECATION")
@@ -343,6 +343,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   override fun withPermission() = this
 
+  private fun checkOwnership(node: ProcessNodeInstance) {
+    if (node.hProcessInstance!=handle) throw ProcessException("The node is not owned by this instance")
+  }
+
   @Suppress("NOTHING_TO_INLINE")
   @Deprecated("Use data access", ReplaceWith("initialize(transaction.writableEngineData)"))
   inline fun initialize(transaction: ProcessTransaction) = initialize(transaction.writableEngineData)
@@ -391,6 +395,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   fun <T:ProcessNodeInstance> updateNode(writableEngineData: MutableProcessEngineDataAccess, processNodeInstance: T): ProcessInstance.PNIPair<T> {
+    checkOwnership(processNodeInstance)
     return PNIPair(update(writableEngineData) {
       addChild(processNodeInstance)
     }, processNodeInstance)/* XXX .apply {
@@ -492,6 +497,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   fun <N: ProcessNodeInstance>finishTask(engineData: MutableProcessEngineDataAccess,
                  node: N,
                  resultPayload: Node?): PNIPair<N> {
+    checkOwnership(node)
     if (node.state === NodeInstanceState.Complete) {
       throw IllegalStateException("Task was already complete")
     }
@@ -518,7 +524,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     if (node.state.isFinal) {
       throw ProcessException("Instance $this is already in a final state and cannot be skipped anymore")
     }
-    return node.update(engineData, this) {
+    return node.update(engineData) {
       this.state = newState
     }.let { pnipair ->
       engineData.commit()
@@ -564,7 +570,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   @Synchronized @Throws(SQLException::class)
   private fun startSuccessors(engineData: MutableProcessEngineDataAccess,
                               predecessor: ProcessNodeInstance):ProcessInstance {
-
     val startedTasks = ArrayList<ProcessNodeInstance>(predecessor.node.successors.size)
     val joinsToEvaluate = ArrayList<JoinInstance>()
 
@@ -572,7 +577,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     for (successorId in predecessor.node.successors) {
       val nodeInstance:ProcessNodeInstance = run {
         val nonRegisteredNodeInstance = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(engineData, this@ProcessInstance, predecessor.getHandle())
-        val pair = nonRegisteredNodeInstance.update(engineData, self) {
+        val pair = nonRegisteredNodeInstance.update(engineData) {
           predecessors.add(predecessor.getHandle())
         }
         self = pair.instance
@@ -620,6 +625,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   @Synchronized @Throws(SQLException::class)
   fun getDirectSuccessors(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance): Collection<ComparableHandle<out SecureObject<ProcessNodeInstance>>> {
+    checkOwnership(predecessor)
     // TODO rewrite, this can be better with the children in the instance
     val result = ArrayList<ComparableHandle<out SecureObject<ProcessNodeInstance>>>(predecessor.node.successors.size)
 
@@ -837,5 +843,5 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
 internal fun <T:ProcessNodeInstance> ProcessInstance.PNIPair<T>.update(writableEngineData: MutableProcessEngineDataAccess, body: ProcessNodeInstance.Builder<out ExecutableProcessNode>.() -> Unit): ProcessInstance.PNIPair<T> {
   @Suppress("UNCHECKED_CAST")
-  return node.update(writableEngineData, instance, body) as ProcessInstance.PNIPair<T>
+  return node.update(writableEngineData, body) as ProcessInstance.PNIPair<T>
 }

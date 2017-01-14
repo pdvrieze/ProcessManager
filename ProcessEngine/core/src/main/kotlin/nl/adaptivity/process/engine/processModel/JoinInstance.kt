@@ -106,7 +106,9 @@ class JoinInstance : ProcessNodeInstance {
 
   @Deprecated("Use updateJoin when using this function directly.", ReplaceWith("updateJoin(transaction, body)"))
 
-  override fun update(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: ProcessNodeInstance.Builder<*>.() -> Unit): PNIPair<JoinInstance> {
+  override fun update(writableEngineData: MutableProcessEngineDataAccess,
+                      body: ProcessNodeInstance.Builder<*>.() -> Unit): PNIPair<JoinInstance> {
+    val instance = writableEngineData.instance(hProcessInstance).withPermission()
     val origHandle = getHandle()
     val builder = builder().apply(body)
     if (builder.changed) {
