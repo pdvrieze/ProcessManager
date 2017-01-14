@@ -295,10 +295,12 @@ private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTr
     else -> kfail("All cases need valid traces")
   } }
 
+  val baseInvalid = with(model) { trace {
+    ac1 or ac2 or (start.opt .. (end1 or end2 or split))
+  } }
   testTraces(processEngine, model, principal,
-      valid = validTraces,
-      invalid = listOf("ac1", "ac2", "end1", "end2", "split").map { trace(it) } +
-          listOf("split", "end1", "end2").map { trace("start", it) } + invalidTraces)
+             valid = validTraces,
+             invalid = baseInvalid + invalidTraces)
 }
 
 private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
@@ -310,44 +312,47 @@ private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTr
     val join by join(ac1, ac2) {  min = 1; max=2 }
     val end by endNode(join)
   }
-  val invalidTraces = mutableListOf<Trace>()
-  val validTraces = when {
-    ac1Condition && ac2Condition -> {
-      listOf("ac1", "ac2").forEach { ac ->
-        listOf("end", "join", "split").forEach { invalidTraces.add(trace("start", ac, it)) }
-      }
 
-      listOf(
-          trace("start", "ac1", "ac2", "split", "join", "end"),
-          trace("start", "ac1", "ac2", "join", "split", "end"),
-          trace("start", "ac2", "ac1", "split", "join", "end"),
-          trace("start", "ac2", "ac1", "join", "split", "end"))
+  val invalidTraces = mutableListOf<Trace>()
+  val validTraces = with(model) { when {
+    ac1Condition && ac2Condition -> {
+      invalidTraces.addAll(trace {
+        start .. (ac1 or ac2) .. (end or join or split)
+      })
+
+      trace {
+        start .. (ac1 % ac2) .. (split % join % end)
+      }
     }
     ac1Condition && !ac2Condition -> {
-      invalidTraces.add(trace("start", "ac2"))
-      invalidTraces.add(trace("start", "ac1", "ac2"))
+      invalidTraces.addAll(trace{
+        start .. ac1.opt .. ac2
+      })
 
-      listOf(
-          trace("start", "ac1", "join", "split", "end"),
-          trace("start", "ac1", "split", "join", "end"))
+      trace {
+        start .. ac1 .. (join % split % end)
+      }
 
     }
     !ac1Condition && ac2Condition -> {
-      invalidTraces.add(trace("start", "ac1"))
-      invalidTraces.add(trace("start", "ac2", "ac1"))
+      invalidTraces.addAll(trace{
+        start .. ac2.opt .. ac1
+      })
 
-      listOf(
-          trace("start", "ac2", "join", "split", "end"),
-          trace("start", "ac2", "split", "join", "end"))
 
+      trace {
+        start .. ac2 .. (split % join % end)
+      }
     }
     else -> kfail("All cases need valid traces")
-  }
+  }}
 
+  val baseInvalid = with(model) { trace {
+    ac1 or ac2 or ( start.opt .. (end or join or split))
+  }}
   testTraces(processEngine, model, principal,
-      valid = validTraces,
-      invalid = listOf("ac1", "ac2", "end", "join", "split").map { trace(it) } +
-          listOf("split", "end", "join").map { trace("start", it) } + invalidTraces)
+             valid = validTraces,
+             invalid = baseInvalid + invalidTraces)
 }
 
 private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
