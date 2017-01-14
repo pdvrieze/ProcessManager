@@ -458,9 +458,20 @@ private fun EngineTestingDsl.testWASP4() {
     val ac3    by activity(comp1)
     val end    by endNode(ac3)
   }
+  val start2 = model.comp1.start2
+  val ac2 = model.comp1.ac2
+  val end2 = model.comp1.end2
 
-  val validTraces = listOf(trace("start1", "ac1", "start2", "ac2", "end2", "comp1", "ac3", "end"))
-  val invalidTraces = listOf(trace("ac1"), trace("start2"))
+  val validTraces = with(model) { trace{
+    start1 .. ac1 .. start2 .. ac2 .. (end2 % comp1) .. ac3 ..end
+  }}
+  val invalidTraces = with(model) { trace {
+    ac1 or
+      (start1.opt .. (start2 or ac2 or comp1 or
+        (ac1.opt ..
+          (start2.opt .. (end2 or ac3 or end or ac2)))))
+  }}
+
   testTraces(processEngine, model, principal, valid = validTraces, invalid = invalidTraces)
 }
 
