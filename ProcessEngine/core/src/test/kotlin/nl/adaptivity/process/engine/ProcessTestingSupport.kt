@@ -569,26 +569,30 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
       test("Executing the trace should fail") {
         var success = false
         try {
-          assertTracePossible(trace)
+          try {
+            assertTracePossible(trace)
+          } catch (e:AssertionError) { throw ProcessTestingException(e)}
           for (nodeId in trace) {
-            val nodeInstance by instance.nodeInstance[nodeId]
-            assertNotNull(nodeInstance, "The node instance should exist")
+            val nodeInstance = instance.findChild(nodeId)?: throw ProcessTestingException("The node instance should exist")
+
             if (nodeInstance.state != NodeInstanceState.Complete) {
               if (! (nodeInstance.node is Join<*,*> || nodeInstance.node is Split<*,*>)) {
                 instance.finishTask(transaction.writableEngineData, nodeInstance, null)
               }
             }
-            assertEquals(NodeInstanceState.Complete, nodeInstance.state)
+            if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException("State not complete")
           }
-        } catch (e: ProcessException) {
-          success = true
-        } catch (e: AssertionError) {
+        } catch (e: ProcessTestingException) {
           success = true
         }
         if (! success) kfail("The invalid trace ${trace.joinToString(prefix = "[", postfix = "]")} could be executed")
       }
     }
   }
+}
+
+private class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
+  constructor(cause: Throwable): this(cause.message, cause)
 }
 
 @ProcessTestingDslMarker
