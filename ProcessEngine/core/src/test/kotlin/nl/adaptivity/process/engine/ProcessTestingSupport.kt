@@ -577,6 +577,16 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
 
             if (nodeInstance.state != NodeInstanceState.Complete) {
               if (! (nodeInstance.node is Join<*,*> || nodeInstance.node is Split<*,*>)) {
+                if (nodeInstance.state.isFinal && nodeInstance.state!=NodeInstanceState.Complete) {
+                  try {
+                    instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+                  } catch (e: ProcessException) {
+                    assertNotNull(e.message)
+                    assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") ?: false &&
+                               e.message!!.endsWith(" cannot be finished as it is already in a final state."))
+                  }
+                  throw ProcessTestingException("The node is final but not complete (failed, skipped)")
+                }
                 instance.finishTask(transaction.writableEngineData, nodeInstance, null)
               }
             }
