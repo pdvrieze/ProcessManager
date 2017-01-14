@@ -162,7 +162,11 @@ class TraceBuilder {
 
   operator fun Traces.times(other: Traces):Traces = flatMap { left -> other.map { right -> left + right } }
 
-
+  inline val       String.opt: Traces get() = this.toTraceElem().opt
+  inline val   Identified.opt: Traces get() = this.toTraceElem().opt
+  inline val TraceElement.opt: Traces get() = trace(this).opt
+         val       BTrace.opt: Traces get() = listOf(this, trace())
+         val       Traces.opt: Traces get() = this or trace()
 
 
 
