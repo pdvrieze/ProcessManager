@@ -298,7 +298,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   @Deprecated("This is dangerous, it will not update the instance")
   internal open fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node? = null): PNIPair<ProcessNodeInstance> {
     if (state.isFinal) {
-      throw ProcessException("instance $this cannot be finished as it is already in a final state: ${state}")
+      throw ProcessException("instance ${node.id}:${handle}(${state}) cannot be finished as it is already in a final state.")
     }
     return update(engineData, processInstance) {
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
