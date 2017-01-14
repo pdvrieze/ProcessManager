@@ -279,7 +279,7 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
 
   fun ProcessNodeInstance.take(): ProcessNodeInstance {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    return this.update(transaction.writableEngineData, instance) { state= NodeInstanceState.Taken }.node
+    return this.update(transaction.writableEngineData) { state= NodeInstanceState.Taken }.node
   }
 
   fun ProcessNodeInstance.start(): ProcessNodeInstance {
@@ -564,39 +564,71 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
 
     }
   }
+  mutableSetOf<List<TraceElement>>().let { seen ->
+    valid.flatMap { trace ->
+      (1 until trace.size)
+        .map { trace.slice(0..it) }
+        .filter { it !in seen }
+    }.forEach {
+      val trace: Trace = it.toTypedArray()
+      givenProcess(model, "Given subtrace [${trace.joinToString()}]") {
+        it("should not throw an exception") {
+          try {
+            testTraceExceptionThrowing(trace)
+          } catch (e: Exception) {
+            throw AssertionError("the subtrace checking failed with model \n\n${XmlStreaming.toString(model).prependIndent("> ")}", e)
+          }
+        }
+      }
+    }
+
+  }
+
   for(trace in invalid) {
     givenProcess(model, description = "For invalid trace: ${trace.joinToString(prefix = "[", postfix = "]")}") {
       test("Executing the trace should fail") {
         var success = false
         try {
-          try {
-            assertTracePossible(trace)
-          } catch (e:AssertionError) { throw ProcessTestingException(e)}
-          for (nodeId in trace) {
-            val nodeInstance = instance.findChild(nodeId)?: throw ProcessTestingException("The node instance should exist")
-
-            if (nodeInstance.state != NodeInstanceState.Complete) {
-              if (! (nodeInstance.node is Join<*,*> || nodeInstance.node is Split<*,*>)) {
-                if (nodeInstance.state.isFinal && nodeInstance.state!=NodeInstanceState.Complete) {
-                  try {
-                    instance.finishTask(transaction.writableEngineData, nodeInstance, null)
-                  } catch (e: ProcessException) {
-                    assertNotNull(e.message)
-                    assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") ?: false &&
-                               e.message!!.endsWith(" cannot be finished as it is already in a final state."))
-                  }
-                  throw ProcessTestingException("The node is final but not complete (failed, skipped)")
-                }
-                instance.finishTask(transaction.writableEngineData, nodeInstance, null)
-              }
-            }
-            if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException("State not complete")
-          }
+          testTraceExceptionThrowing(trace)
         } catch (e: ProcessTestingException) {
           success = true
         }
         if (! success) kfail("The invalid trace ${trace.joinToString(prefix = "[", postfix = "]")} could be executed")
       }
+    }
+  }
+}
+
+private fun ProcessTestingDsl.testTraceExceptionThrowing(trace: Trace) {
+  try {
+    assertTracePossible(trace)
+  } catch (e: AssertionError) {
+    throw ProcessTestingException(e)
+  }
+  for (nodeId in trace) {
+    run {
+      val nodeInstance = instance.findChild(nodeId) ?: throw ProcessTestingException("The node instance should exist")
+
+      if (nodeInstance.state != NodeInstanceState.Complete) {
+        if (!(nodeInstance.node is Join<*, *> || nodeInstance.node is Split<*, *>)) {
+          if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
+            try {
+              instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+            } catch (e: ProcessException) {
+              assertNotNull(e.message)
+              assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") ?: false &&
+                         e.message!!.endsWith(" cannot be finished as it is already in a final state."))
+            }
+            throw ProcessTestingException("The node is final but not complete (failed, skipped)")
+          }
+          val i = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+          i.finishTask(transaction.writableEngineData, nodeInstance, null)
+        }
+      }
+    }
+    run {
+      val nodeInstance = instance.findChild(nodeId) ?: throw ProcessTestingException("The node instance should exist")
+      if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException("State of node ${nodeInstance} not complete but ${nodeInstance.state}")
     }
   }
 }
