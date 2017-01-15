@@ -16,8 +16,12 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.EngineTesting.EngineSpecBody
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.spek.describe
+import nl.adaptivity.spek.given
+import nl.adaptivity.spek.it
+import nl.adaptivity.spek.xdescribe
 import org.jetbrains.spek.api.Spek
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.w3c.dom.Node
@@ -40,59 +44,59 @@ class TestWorkflowPatterns : Spek({
       describe("Basic control-flow patterns") {
 
         describe("WCP1: A sequential process") {
-          testWCP1(processEngine, principal)
+          testWCP1()
         }
 
         describe("WCP2: Parallel split") {
-          testWCP2(processEngine, principal)
+          testWCP2()
         }
 
         describe("WCP3: Synchronization / And join") {
-          testWCP3(processEngine, principal)
+          testWCP3()
         }
 
         describe("WCP4: XOR split") {
-          testWCP4(processEngine, principal)
+          testWCP4()
         }
 
         describe("WCP5: simple-merge") {
-          testWCP5(processEngine, principal)
+          testWCP5()
         }
       }
 
       describe("Advanced branching and synchronization patterns") {
         describe("WCP6: multi-choice / or-split") {
           given("ac1.condition=true, ac2.condition=false") {
-            testWCP6(processEngine, principal, true, false)
+            testWCP6(true, false)
           }
           given("ac1.condition=false, ac2.condition=true") {
-            testWCP6(processEngine, principal, false, true)
+            testWCP6(false, true)
           }
           given("ac1.condition=true, ac2.condition=true") {
-            testWCP6(processEngine, principal, true, true)
+            testWCP6(true, true)
           }
 
         }
 
         describe("WCP7: structured synchronized merge") {
           given("ac1.condition=true, ac2.condition=false") {
-            testWCP7(processEngine, principal, true, false)
+            testWCP7(true, false)
           }
           given("ac1.condition=false, ac2.condition=true") {
-            testWCP7(processEngine, principal, false, true)
+            testWCP7(false, true)
           }
           given("ac1.condition=true, ac2.condition=true") {
-            testWCP7(processEngine, principal, true, true)
+            testWCP7(true, true)
           }
 
         }
 
         xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
-          testWCP8(processEngine, principal)
+          testWCP8()
         }
 
         describe("WCP9: Structured Discriminator") {
-          testWCP9(processEngine, principal)
+          testWCP9()
         }
       }
 
@@ -102,7 +106,7 @@ class TestWorkflowPatterns : Spek({
         }
 
         describe("WCP11: Implicit termination") {
-          testWCP11(processEngine, principal)
+          testWCP11()
         }
       }
     }
@@ -116,8 +120,8 @@ class TestWorkflowPatterns : Spek({
   }
 })
 
-private fun EngineTestingDsl.testWCP1(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object :Model(principal, "WCP1") {
+private fun EngineSpecBody.testWCP1() {
+  val model = object :Model("WCP1") {
     val start by startNode
     val ac1 by activity(start)
     val ac2 by activity(ac1)
@@ -134,11 +138,11 @@ private fun EngineTestingDsl.testWCP1(processEngine: ProcessEngine<StubProcessTr
     trace { ac1 or ac2 or end or (start .. ((ac1..end) or ac2)) }
   }
 
-  testTraces(processEngine, model, principal, valid = validTraces, invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object : Model(principal, "WCP2") {
+private fun EngineSpecBody.testWCP2() {
+  val model = object : Model("WCP2") {
     val start by startNode
     val split by split(start) { min = 2; max = 2 }
     val ac1   by activity(split)
@@ -167,13 +171,11 @@ private fun EngineTestingDsl.testWCP2(processEngine: ProcessEngine<StubProcessTr
     )
   } }
 
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP3(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object: Model(principal, "WCP3") {
+private fun EngineSpecBody.testWCP3() {
+  val model = object: Model("WCP3") {
     val start by startNode
     val split by split(start) { min = 2; max = 2 }
     val ac1   by activity(split)
@@ -193,13 +195,11 @@ private fun EngineTestingDsl.testWCP3(processEngine: ProcessEngine<StubProcessTr
               ))
   }}
 
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP4(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object: Model(principal, "WCP4") {
+private fun EngineSpecBody.testWCP4() {
+  val model = object: Model("WCP4") {
     val start by startNode
     val split by split(start) { min = 1; max = 1 }
     val ac1 by activity(split)
@@ -219,13 +219,11 @@ private fun EngineTestingDsl.testWCP4(processEngine: ProcessEngine<StubProcessTr
                (ac2 .. (ac1 or end1))))
   } }
 
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP5(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object: Model(principal, "WCP5") {
+private fun EngineSpecBody.testWCP5() {
+  val model = object: Model("WCP5") {
     val start by startNode
     val split by split(start) { min = 1; max = 1 }
     val ac1 by activity(split)
@@ -244,13 +242,12 @@ private fun EngineTestingDsl.testWCP5(processEngine: ProcessEngine<StubProcessTr
         (ac1 % ac2)))
   } }
 
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
-  val model = object : Model(principal, "WCP6") {
+private fun EngineSpecBody.testWCP6(ac1Condition: Boolean,
+                                    ac2Condition: Boolean) {
+  val model = object : Model("WCP6") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
     val ac1 by activity(split) { condition = ac1Condition.toXPath() }
@@ -298,13 +295,12 @@ private fun EngineTestingDsl.testWCP6(processEngine: ProcessEngine<StubProcessTr
   val baseInvalid = with(model) { trace {
     ac1 or ac2 or (start.opt .. (end1 or end2 or split))
   } }
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = baseInvalid + invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = baseInvalid + invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal, ac1Condition: Boolean, ac2Condition: Boolean) {
-  val model = object: Model(principal, "WCP7") {
+private fun EngineSpecBody.testWCP7(ac1Condition: Boolean,
+                                    ac2Condition: Boolean) {
+  val model = object: Model("WCP7") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
     val ac1 by activity(split) { condition = ac1Condition.toXPath() }
@@ -350,13 +346,11 @@ private fun EngineTestingDsl.testWCP7(processEngine: ProcessEngine<StubProcessTr
   val baseInvalid = with(model) { trace {
     ac1 or ac2 or ( start.opt .. (end or join or split))
   }}
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = baseInvalid + invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = baseInvalid + invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object : Model(principal, "WCP8") {
+private fun EngineSpecBody.testWCP8() {
+  val model = object : Model("WCP8") {
     val start1 by startNode
     val start2 by startNode
     val ac1    by activity(start1)
@@ -390,13 +384,11 @@ private fun EngineTestingDsl.testWCP8(processEngine: ProcessEngine<StubProcessTr
 
   val oldInvalidTraces = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
                          listOf("join", "ac3", "end").map { trace("start1", "start2", it) }
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP9(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object : Model(principal, "WCP9") {
+private fun EngineSpecBody.testWCP9() {
+  val model = object : Model("WCP9") {
     val start1 by startNode
     val start2 by startNode
     val ac1 by activity(start1)
@@ -414,14 +406,11 @@ private fun EngineTestingDsl.testWCP9(processEngine: ProcessEngine<StubProcessTr
       (starts .. ac1 % ac2)
   }}
 
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces
-            )
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWCP11(processEngine: ProcessEngine<StubProcessTransaction>, principal: SimplePrincipal) {
-  val model = object: Model(principal, "WCP11") {
+private fun EngineSpecBody.testWCP11() {
+  val model = object: Model("WCP11") {
     val start1 by startNode
     val start2 by startNode
     val ac1    by activity(start1)
@@ -439,14 +428,12 @@ private fun EngineTestingDsl.testWCP11(processEngine: ProcessEngine<StubProcessT
         (ac2 .. end2.opt .. end1)))
     }
   }
-  testTraces(processEngine, model, principal,
-             valid = validTraces,
-             invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun EngineTestingDsl.testWASP4() {
+private fun EngineSpecBody.testWASP4() {
 
-  val model = object : Model(principal, "WASP4") {
+  val model = object : Model("WASP4") {
     val start1 by startNode
     val ac1    by activity(start1)
 
@@ -466,13 +453,13 @@ private fun EngineTestingDsl.testWASP4() {
     start1 .. ac1 .. start2 .. ac2 .. (end2 % comp1) .. ac3 ..end
   }}
   val invalidTraces = with(model) { trace {
-    ac1 or
-      (start1.opt .. (start2 or ac2 or comp1 or
-        (ac1.opt ..
-          (start2.opt .. (end2 or ac3 or end or ac2)))))
+    ac1 or comp1 or start2 or ac2 or end2 or ac3 or end or
+      (start1 .. (comp1 or start2 or ac2 or end2 or ac3 or end or
+        (ac1.. start2.opt .. (comp1 or end2 or ac3 or end or
+          ( ac2 .. (comp1.opt % end2.opt) .. end )))))
   }}
 
-  testTraces(processEngine, model, principal, valid = validTraces, invalid = invalidTraces)
+  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun Boolean.toXPath() = if (this) "true()" else "false()"

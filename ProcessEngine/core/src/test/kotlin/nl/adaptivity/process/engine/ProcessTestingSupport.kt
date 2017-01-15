@@ -16,281 +16,134 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SimplePrincipal
-import net.devrieze.util.writer
-import nl.adaptivity.messaging.EndpointDescriptorImpl
-import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.engine.EngineTesting.*
+import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceSpecBody
+import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceTestBody
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.spek.InstanceSupport
+import nl.adaptivity.process.engine.spek.ProcessNodeActions
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.Gettable
+import nl.adaptivity.spek.*
 import nl.adaptivity.xml.XmlStreaming
-import org.jetbrains.spek.api.dsl.Dsl
-import org.jetbrains.spek.api.dsl.Pending
-import org.junit.jupiter.api.Assertions
+import org.jetbrains.spek.api.dsl.ActionBody
+import org.jetbrains.spek.api.dsl.SpecBody
+import org.jetbrains.spek.api.dsl.TestBody
 import org.junit.jupiter.api.Assertions.*
 import org.w3c.dom.Node
-import java.net.URI
 import java.security.Principal
-import javax.xml.namespace.QName
-import kotlin.reflect.KProperty
 
 @Retention(AnnotationRetention.SOURCE)
 @DslMarker
 annotation class ProcessTestingDslMarker
 
 
-@ProcessTestingDslMarker
-class EngineTestingDsl(val delegate: Dsl) {
-  val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
-  val stubMessageService = StubMessageService(localEndpoint)
-  val stubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
-    override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-      return StubProcessTransaction(engineData)
+class EngineTesting {
+
+  @ProcessTestingDslMarker
+  inner class EngineSpecBody(delegate:SpecBody): DelegateSpecBody<EngineSpecBody, EngineActionBody, EngineTestBody, Any>(delegate) {
+    val stubMessageService = this@EngineTesting.testData.messageService
+    val processEngine = this@EngineTesting.testData.engine
+
+    override fun actionBody(base: ActionBody) = EngineActionBody(base)
+
+    override fun specBody(base: SpecBody) = EngineSpecBody(base)
+
+    override fun testBody(base: TestBody) = EngineTestBody(base)
+
+    override fun otherBody() = Any()
+
+
+    fun givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = EngineTestData.principal, payload: Node? = null, body: InstanceSpecBody.() -> Unit) {
+      val transaction = processEngine.startTransaction()
+      val instance = with(transaction) {
+        processEngine.testProcess(processModel, principal, payload)
+      }
+      val ptd :ProcessTestingDsl = ProcessTestingDsl(this@EngineTesting, transaction, instance.instanceHandle)
+
+      group(description, extbody = { ptd.InstanceSpecBody(this).body() })
+
     }
-  }
-  val principal = SimplePrincipal("pdvrieze")
 
-  val processEngine = ProcessEngine.newTestInstance(
-      stubMessageService,
-      stubTransactionFactory,
-      TestProcessEngine.cacheModels<Any>(MemProcessModelMap(), 3),
-      TestProcessEngine.cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-      TestProcessEngine.cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 2), true)
-
-  fun afterEachTest(callback: () -> Unit) = delegate.afterEachTest(callback)
-
-  fun beforeEachTest(callback: () -> Unit) = delegate.beforeEachTest(callback)
-
-  fun test(description: String, pending: Pending = Pending.No, body: () -> Unit)
-      = delegate.test(description, pending, body)
-
-  inline fun group(description: String, pending: Pending = Pending.No, lazy: Boolean = false, crossinline body: EngineTestingDsl.() -> Unit) {
-    delegate.group(description, pending, lazy) { EngineTestingDsl(this).body() }
   }
 
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun describe(description: String, noinline body: EngineTestingDsl.() -> Unit) {
-    group("describe $description", body = body)
+  @ProcessTestingDslMarker
+  inner class EngineActionBody(delegate:ActionBody): DelegateActionBody<EngineTestBody>(delegate) {
+    override fun testBody(base: TestBody) = EngineTestBody(base)
   }
 
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun context(description: String, noinline body: EngineTestingDsl.() -> Unit) {
-    group("context $description", body = body)
+  @ProcessTestingDslMarker
+  inner class EngineTestBody(delegate:TestBody): DelegateTestBody(delegate) {
+
   }
 
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun given(description: String, noinline body: EngineTestingDsl.() -> Unit) {
-    group("given $description", body = body)
-  }
+  val testData = EngineTestData.defaultEngine()
 
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun on(description: String, noinline body: EngineTestingDsl.() -> Unit) {
-    group("on $description", lazy = true, body = body)
-  }
+  @Deprecated("Use testData", ReplaceWith("testData.engine"))
+  val processEngine get() = testData.engine
 
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xdescribe(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit) {
-    group("describe $description", Pending.Yes(reason), body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xcontext(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit) {
-    group("context $description", Pending.Yes(reason), body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xgiven(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit) {
-    group("given $description", Pending.Yes(reason), body = body)
-  }
-
-  /**
-   * Creates a pending [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xon(description: String, reason: String? = null, noinline body: EngineTestingDsl.() -> Unit = {}) {
-    group("on $description", Pending.Yes(reason), lazy = true, body = body)
-  }
-
-  fun it(description: String, body: () -> Unit) {
-    test("it $description", body = body)
-  }
+//
+//  val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
+//  val stubMessageService = StubMessageService(localEndpoint)
+//  val stubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
+//    override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
+//      return StubProcessTransaction(engineData)
+//    }
+//  }
 
 }
 
-fun Dsl.givenEngine(body: EngineTestingDsl.()->Unit) {
-  EngineTestingDsl(this).body()
+inline fun SpecBody.givenEngine(body: EngineSpecBody.()->Unit) {
+  EngineTesting().EngineSpecBody(this).body()
 }
+
 
 /**
  * An extended dsl for testing processes without having to carry around large amounts of local variables.
  */
-@ProcessTestingDslMarker
-class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction, val instanceHandle: HProcessInstance) {
+class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction:StubProcessTransaction, val instanceHandle: HProcessInstance) {
 
   @ProcessTestingDslMarker
-  inline fun <R> group(description: String, pending: Pending = Pending.No, lazy: Boolean = false, noinline body: ProcessTestingDsl.() -> R):R {
-    var result: R? = null
-    delegate.group(description, pending, lazy) { result = ProcessTestingDsl(this, transaction, instanceHandle).body() }
-    return result!!
+  inner class InstanceSpecBody(delegate:EngineSpecBody): DelegateSpecBody<InstanceSpecBody, InstanceActionBody, InstanceTestBody, InstanceFixtureBody>(delegate.delegate), InstanceSupport {
+    override val transaction get() = this@ProcessTestingDsl.transaction
+
+    val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
+
+    override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: engineTesting.EngineTestBody(base))
+
+    override fun actionBody(base: ActionBody) = InstanceActionBody(base as? EngineActionBody ?: engineTesting.EngineActionBody(base))
+
+    override fun specBody(base: SpecBody) = InstanceSpecBody(base as? EngineSpecBody ?: engineTesting.EngineSpecBody(base))
+
+    override fun otherBody() = InstanceFixtureBody()
   }
 
-  inline fun test(description: String, pending: Pending = Pending.No, noinline body: () -> Unit) {
-    delegate.test(description, pending, body)
+  @ProcessTestingDslMarker
+  inner class InstanceActionBody(delegate: EngineActionBody): DelegateActionBody<InstanceTestBody>(delegate.delegate), ProcessNodeActions {
+    override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: engineTesting.EngineTestBody(base))
+    override val transaction get() = this@ProcessTestingDsl.transaction
   }
 
-  inline fun it(description: String, noinline body: () -> Unit) {
-    test("it $description", body = body)
+  @ProcessTestingDslMarker
+  inner class InstanceTestBody(delegate: EngineTestBody): DelegateTestBody(delegate), InstanceSupport {
+    override val transaction get() = this@ProcessTestingDsl.transaction
+    val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
   }
 
-  inline fun beforeEachTest(noinline callback: () -> Unit) {
-    delegate.beforeEachTest(callback)
-  }
+  inner class InstanceFixtureBody: ProcessNodeActions {
+    override val transaction get() = this@ProcessTestingDsl.transaction
 
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun describe(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("describe $description", body = body)
   }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun context(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("context $description", body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun given(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("given $description", body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun on(description: String, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("on $description", lazy = true, body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xdescribe(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("describe $description", Pending.Yes(reason), body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xcontext(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("context $description", Pending.Yes(reason), body = body)
-  }
-
-  /**
-   * Creates a [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xgiven(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit) {
-    group("given $description", Pending.Yes(reason), body = body)
-  }
-
-  /**
-   * Creates a pending [group][Dsl.group].
-   *
-   * @author Ranie Jade Ramiso
-   * @since 1.0
-   */
-  inline fun xon(description: String, reason: String? = null, noinline body: ProcessTestingDsl.() -> Unit = {}) {
-    group("on $description", Pending.Yes(reason), lazy = true, body = body)
-  }
-
 
   val instance: ProcessInstance get() {
     return transaction.readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission()
   }
 
-  fun ProcessNodeInstance.take(): ProcessNodeInstance {
-    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    return this.update(transaction.writableEngineData) { state= NodeInstanceState.Taken }.node
-  }
-
-  fun ProcessNodeInstance.start(): ProcessNodeInstance {
-    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    return startTask(transaction.writableEngineData, instance).node
-  }
-
-  fun ProcessNodeInstance.finish(payload: Node? = null): ProcessNodeInstance {
-    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    return instance.finishTask(transaction.writableEngineData, this, payload).node
-  }
+/*
 
   fun ProcessInstance.assertFinished() {
     Assertions.assertTrue(this.finished.isEmpty(), { "The list of finished nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
@@ -427,6 +280,7 @@ class ProcessTestingDsl(val delegate:Dsl, val transaction:StubProcessTransaction
     assertTrue(childIds.all { instance.findChild(it)?.state == NodeInstanceState.Skipped || it in trace }) { "All child nodes should be in the full trace or skipped (child nodes: [${childIds.joinToString()}])" }
   }
 
+*/
 
 }
 
@@ -438,16 +292,16 @@ fun findNode(model: ExecutableProcessModel, nodeIdentified: Identified): Executa
 
 @Suppress("NOTHING_TO_INLINE")
 @ProcessTestingDslMarker
-inline fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:RootProcessModel<*,*>, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
+inline fun EngineSpecBody.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:RootProcessModel<*,*>, owner: Principal = EngineTestData.principal, valid: List<Trace>, invalid:List<Trace>) {
   return testTraces(engine, ExecutableProcessModel.from(model.rootModel), owner, valid, invalid)
 }
 
 @ProcessTestingDslMarker
-fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal, valid: List<Trace>, invalid:List<Trace>) {
+fun EngineSpecBody.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal = EngineTestData.principal, valid: List<Trace>, invalid:List<Trace>) {
 
-  fun addStartedNodeContext(dsl: ProcessTestingDsl, trace: nl.adaptivity.process.engine.Trace, i: kotlin.Int):ProcessTestingDsl {
+  fun addStartedNodeContext(dsl: InstanceSpecBody, trace: Trace, i: kotlin.Int):InstanceSpecBody {
     val traceElement = trace[i]
-    val nodeInstance by with(dsl) { instance.nodeInstance[traceElement] }
+    val nodeInstance by with(dsl) { instance.nodeInstances[traceElement] }
     val node = findNode(model, traceElement) ?: throw AssertionError("No node with id $traceElement was defined in the tested model\n\n${XmlStreaming.toString(model).prependIndent(">  ")}\n")
     when(node) {
       is StartNode<*,*> -> {
@@ -493,7 +347,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
       }
     }
     dsl.test("The trace should still be possible") {
-      dsl.assertTracePossible(trace)
+      instance.assertTracePossible(trace)
     }
     return when(node) {
       is EndNode<*,*>,
@@ -505,13 +359,16 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
         dsl
       }
       else -> {
-        dsl.test("$traceElement should be committed after starting") {
-          with(dsl) { nodeInstance.start() }
+        dsl.on("starting $traceElement") {
+          nodeInstance.start()
+        }
+        dsl.it("should be committed") {
+//          with(dsl) { nodeInstance.start() }
           assertTrue(nodeInstance.state.isCommitted) { "The instance state was ${with(dsl){ instance.toDebugString()}}" }
           assertEquals(NodeInstanceState.Started, nodeInstance.state)
         }
-        dsl.group("After Finishing ${traceElement}") {
-          beforeEachTest {
+        dsl.rgroup("After Finishing ${traceElement}") {
+          beforeGroup {
             if (nodeInstance.state!=NodeInstanceState.Complete) {
               nodeInstance.finish()
             }
@@ -536,7 +393,7 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
       addStartedNodeContext(this, validTrace, startPos).apply {
         group("The trace should be finished correctly") {
           test("The trace should be valid") {
-            assertTracePossible(validTrace)
+            instance.assertTracePossible(validTrace)
           }
           test("All non-endnodes are finished") {
             val expectedFinishedNodes = validTrace.asSequence()
@@ -599,9 +456,9 @@ fun EngineTestingDsl.testTraces(engine:ProcessEngine<StubProcessTransaction>, mo
   }
 }
 
-private fun ProcessTestingDsl.testTraceExceptionThrowing(trace: Trace) {
+private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
   try {
-    assertTracePossible(trace)
+    instance.assertTracePossible(trace)
   } catch (e: AssertionError) {
     throw ProcessTestingException(e)
   }
@@ -616,7 +473,7 @@ private fun ProcessTestingDsl.testTraceExceptionThrowing(trace: Trace) {
               instance.finishTask(transaction.writableEngineData, nodeInstance, null)
             } catch (e: ProcessException) {
               assertNotNull(e.message)
-              assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") ?: false &&
+              assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
                          e.message!!.endsWith(" cannot be finished as it is already in a final state."))
             }
             throw ProcessTestingException("The node is final but not complete (failed, skipped)")
@@ -635,17 +492,6 @@ private fun ProcessTestingDsl.testTraceExceptionThrowing(trace: Trace) {
 
 private class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
   constructor(cause: Throwable): this(cause.message, cause)
-}
-
-@ProcessTestingDslMarker
-fun EngineTestingDsl.givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = this.principal, payload: Node? = null, body: ProcessTestingDsl.() -> Unit) {
-  val transaction = processEngine.startTransaction()
-  val instance = with(transaction) {
-    processEngine.testProcess(processModel, principal, payload)
-  }
-
-  group(description, body = { ProcessTestingDsl(this.delegate, transaction, instance.instanceHandle).body() })
-
 }
 /*
 

@@ -16,33 +16,31 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.spek.describe
 import org.jetbrains.spek.api.Spek
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.junit.jupiter.api.Assertions.assertEquals
 
 /**
- * Created by pdvrieze on 02/01/17.
+ * Created by pdvrieze on 15/01/17.
  */
-
-class TestEngineAspects: Spek({
-  givenEngine {
-    describe("Subprocess") {
-      val model = ExecutableProcessModel.build {
-        val start1 = startNode { id="start1" }
-        val ac1 = activity { id="ac1"; predecessor = start1 }
-/*
-        val comp = composite {
-          id="comp"
-          predecessor = ac1
-          val start2 = startNode { id="start2" }
-          val ac2 = activity { id="ac2"; predecessor=start2 }
-          val end2 = endNode { id="end2"; predecessor=ac2 }
-        }
-*/
+class TestWorkflowPatterns2 : Spek(
+  {
+    given("WCP1 model") {
+      val subject = object : Model("WCP1") {
+        val start by startNode
+        val ac1 by activity(start)
+        val ac2 by activity(ac1)
+        val end by endNode(ac2)
       }
-      givenProcess(model, "A simple process with a subprocess") {
 
+      it("should have 4 children") {
+        assertEquals(4, subject.getModelNodes().size)
       }
+
     }
-  }
-})
+    given("the default engine") {
+      val testEngine= EngineTestData.defaultEngine()
+
+    }
+  }) {}

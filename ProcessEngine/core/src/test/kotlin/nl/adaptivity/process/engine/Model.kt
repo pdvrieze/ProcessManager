@@ -34,9 +34,9 @@ internal typealias Model = ConfigurableModel
 
 @Suppress("NOTHING_TO_INLINE")
 internal abstract class ConfigurableModel(
-    override val owner: Principal,
-    private val name: String? = null,
-    private val uuid: UUID = UUID.randomUUID()
+  private val name: String? = null,
+  override val owner: Principal = EngineTestData.principal,
+  private val uuid: UUID = UUID.randomUUID()
   ) : RootProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
 
   class NodeDelegate<T: Identifiable>(override val id:String): ReadOnlyProperty<ConfigurableModel, T>, Identifiable {
