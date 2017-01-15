@@ -22,11 +22,13 @@ import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import org.w3c.dom.DocumentFragment
+import org.w3c.dom.Node
 import java.security.Principal
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -115,6 +117,16 @@ class CompositeInstance : ProcessNodeInstance {
       shouldProgress -> pniPair.finishTask(engineData, null)
       else -> pniPair
     }
+  }
+
+  override fun finishTask(engineData: MutableProcessEngineDataAccess,
+                          processInstance: ProcessInstance,
+                          resultPayload: Node?): ProcessInstance.PNIPair<ProcessNodeInstance> {
+    val childInstance = engineData.instance(hChildInstance).withPermission()
+    if (childInstance.state!=ProcessInstance.State.FINISHED) {
+      throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")
+    }
+    return super.finishTask(engineData, processInstance, childInstance.getOutputPayload())
   }
 
   fun getPayload(engineData: ProcessEngineDataAccess):DocumentFragment? {
