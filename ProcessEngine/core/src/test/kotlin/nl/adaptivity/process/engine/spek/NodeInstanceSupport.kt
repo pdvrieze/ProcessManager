@@ -38,7 +38,7 @@ class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val inst
   }
 }
 
-interface ProcessNodeActions {
+interface SafeNodeActions {
   val transaction: ProcessTransaction
 
   fun ProcessNodeInstance.take(): ProcessNodeInstance {
@@ -49,6 +49,10 @@ interface ProcessNodeActions {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     return startTask(transaction.writableEngineData, instance).node
   }
+
+}
+
+interface ProcessNodeActions: SafeNodeActions {
 
   fun ProcessNodeInstance.finish(payload: Node? = null): ProcessNodeInstance {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
