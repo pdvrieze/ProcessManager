@@ -154,12 +154,12 @@ fun findNode(model: ExecutableProcessModel, nodeIdentified: Identified): Executa
 
 @Suppress("NOTHING_TO_INLINE")
 @ProcessTestingDslMarker
-inline fun EngineSpecBody.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:RootProcessModel<*,*>, owner: Principal = EngineTestData.principal, valid: List<Trace>, invalid:List<Trace>) {
-  return testTraces(engine, ExecutableProcessModel.from(model.rootModel), owner, valid, invalid)
+inline fun EngineSpecBody.testTraces(model:RootProcessModel<*,*>, valid: List<Trace>, invalid:List<Trace>) {
+  return testTraces(ExecutableProcessModel.from(model.rootModel), valid, invalid)
 }
 
 @ProcessTestingDslMarker
-fun EngineSpecBody.testTraces(engine:ProcessEngine<StubProcessTransaction>, model:ExecutableProcessModel, owner: Principal = EngineTestData.principal, valid: List<Trace>, invalid:List<Trace>) {
+fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, invalid:List<Trace>) {
 
   fun InstanceSpecBody.addStartedNodeContext(trace: Trace,
                                                                                             i: Int):InstanceSpecBody {

@@ -138,7 +138,7 @@ private fun EngineSpecBody.testWCP1() {
     trace { ac1 or ac2 or end or (start .. ((ac1..end) or ac2)) }
   }
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP2() {
@@ -171,7 +171,7 @@ private fun EngineSpecBody.testWCP2() {
     )
   } }
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP3() {
@@ -195,7 +195,7 @@ private fun EngineSpecBody.testWCP3() {
               ))
   }}
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP4() {
@@ -219,7 +219,7 @@ private fun EngineSpecBody.testWCP4() {
                (ac2 .. (ac1 or end1))))
   } }
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP5() {
@@ -242,7 +242,7 @@ private fun EngineSpecBody.testWCP5() {
         (ac1 % ac2)))
   } }
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP6(ac1Condition: Boolean,
@@ -295,7 +295,7 @@ private fun EngineSpecBody.testWCP6(ac1Condition: Boolean,
   val baseInvalid = with(model) { trace {
     ac1 or ac2 or (start.opt .. (end1 or end2 or split))
   } }
-  testTraces(processEngine, model, valid = validTraces, invalid = baseInvalid + invalidTraces)
+  testTraces(model, valid = validTraces, invalid = baseInvalid + invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP7(ac1Condition: Boolean,
@@ -346,7 +346,7 @@ private fun EngineSpecBody.testWCP7(ac1Condition: Boolean,
   val baseInvalid = with(model) { trace {
     ac1 or ac2 or ( start.opt .. (end or join or split))
   }}
-  testTraces(processEngine, model, valid = validTraces, invalid = baseInvalid + invalidTraces)
+  testTraces(model, valid = validTraces, invalid = baseInvalid + invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP8() {
@@ -384,7 +384,7 @@ private fun EngineSpecBody.testWCP8() {
 
   val oldInvalidTraces = listOf("ac1", "ac2", "ac3", "end", "join").map { trace(it) } +
                          listOf("join", "ac3", "end").map { trace("start1", "start2", it) }
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP9() {
@@ -406,7 +406,7 @@ private fun EngineSpecBody.testWCP9() {
       (starts .. ac1 % ac2)
   }}
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWCP11() {
@@ -428,7 +428,7 @@ private fun EngineSpecBody.testWCP11() {
         (ac2 .. end2.opt .. end1)))
     }
   }
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun EngineSpecBody.testWASP4() {
@@ -459,7 +459,7 @@ private fun EngineSpecBody.testWASP4() {
           ( ac2 .. (comp1.opt % end2.opt) .. end )))))
   }}
 
-  testTraces(processEngine, model, valid = validTraces, invalid = invalidTraces)
+  testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
 private fun Boolean.toXPath() = if (this) "true()" else "false()"
