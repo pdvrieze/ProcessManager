@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.engine
 
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.util.Identified
+import org.w3c.dom.Node
 
 /**
  * Functionality related to specifying traces.
@@ -75,6 +77,16 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
   override fun hashCode(): Int {
     return nodeId.hashCode()
   }
+
+  fun  fits(it: ProcessNodeInstance): Boolean {
+    // TODO add sequence checks
+    return it.node.id==nodeId
+  }
+
+  /**
+   * The data that will be used as the return of the service behind the node.
+   */
+  val  resultPayload: Node? get() = null
 
 
 }

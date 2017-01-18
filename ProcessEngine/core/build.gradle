@@ -65,6 +65,7 @@ dependencies {
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
     testCompile "org.jetbrains.spek:spek-api:${spekVersion}"
+    testCompile "org.jetbrains.spek:spek-subject-extension:${spekVersion}"
     testCompile "org.junit.jupiter:junit-jupiter-api:${jupiterVersion}"
     testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'xmlunit:xmlunit:1.6'

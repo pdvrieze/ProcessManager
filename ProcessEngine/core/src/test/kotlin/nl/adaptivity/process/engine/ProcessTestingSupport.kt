@@ -146,10 +146,10 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction:StubPro
 
 }
 
-fun findNode(model: ExecutableProcessModel, nodeIdentified: Identified): ExecutableProcessNode? {
+fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProcessNode? {
   val nodeId = nodeIdentified.id
-  return model.getModelNodes().firstOrNull { it.id==nodeId }?:
-    model.childModels.asSequence().flatMap { it.getModelNodes().asSequence() }.firstOrNull{ it.id==nodeId }
+  return getModelNodes().firstOrNull { it.id==nodeId } ?:
+         childModels.asSequence().flatMap { it.getModelNodes().asSequence() }.firstOrNull{ it.id==nodeId }
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -165,7 +165,8 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
                                                                                             i: Int):InstanceSpecBody {
     val traceElement = trace[i]
     val nodeInstance by with(this) { instance.nodeInstances[traceElement] }
-    val node = findNode(model, traceElement) ?: throw AssertionError("No node with id $traceElement was defined in the tested model\n\n${XmlStreaming.toString(model).prependIndent(">  ")}\n")
+    val node = model.findNode(
+      traceElement) ?: throw AssertionError("No node with id $traceElement was defined in the tested model\n\n${XmlStreaming.toString(model).prependIndent(">  ")}\n")
     when(node) {
       is StartNode<*,*> -> {
         test("$traceElement should be finished") {
@@ -258,7 +259,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
           }
           test("All non-endnodes are finished") {
             val expectedFinishedNodes = validTrace.asSequence()
-              .map { findNode(model, it)!! }
+              .map { model.findNode(it)!! }
               .filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
             instance.assertFinished(*expectedFinishedNodes)
           }
@@ -267,7 +268,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
           }
           test("All endNodes in the trace are complete, skipped, cancelled or failed") {
             val expectedCompletedNodes = validTrace.asSequence()
-                .map { findNode(model,it)!! }
+                .map { model.findNode(it)!! }
                 .filterIsInstance(EndNode::class.java)
                 .filter { endNode ->
                   val nodeInstance = instance.allChildren().firstOrNull { it.node.id== endNode.id} ?: kfail("Nodeinstance ${endNode.identifier} does not exist, the instance is ${instance.toDebugString()}")
@@ -364,7 +365,7 @@ private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
   }
 }
 
-private class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
+internal class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
   constructor(cause: Throwable): this(cause.message, cause)
 }
 /*

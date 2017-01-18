@@ -35,13 +35,7 @@ interface InstanceSupport {
   val transaction: StubProcessTransaction
 
   fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance> {
-    return childNodes.asSequence().flatMap { val child = it.withPermission()
-      when (child) {
-        is CompositeInstance -> sequenceOf(child) +
-                                transaction.readableEngineData.instance(child.hChildInstance).withPermission().allChildren()
-        else                 -> sequenceOf(child)
-      }
-    }
+    return allChildren(this@InstanceSupport.transaction)
   }
 
   // TODO rename to findChildNode
@@ -70,21 +64,7 @@ interface InstanceSupport {
   }
 
   fun ProcessInstance.toDebugString():String {
-    return buildString {
-      append("process(")
-      append(processModel.rootModel.getName())
-      name?.let {
-        append(", instance: ")
-        append(it)
-      }
-      append(", allnodes: [")
-      this@toDebugString.allChildren().joinTo(this) { val inst = it.withPermission()
-        "${inst.node.id}:${inst.state}"
-      }
-      appendln("])\n\nModel:")
-      XmlStreaming.newWriter(this.writer()).use { processModel.rootModel.serialize(it) }
-      appendln("\n")
-    }
+    return toDebugString(this@InstanceSupport.transaction)
   }
 
   fun ProcessInstance.tracePossible(trace:Trace): Boolean {
@@ -169,3 +149,34 @@ interface InstanceSupport {
 
 }
 
+
+fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance> {
+  return childNodes.asSequence().flatMap {
+    val child = it.withPermission()
+    when (child) {
+      is CompositeInstance -> sequenceOf(child) +
+                              transaction.readableEngineData.instance(
+                                child.hChildInstance).withPermission().allChildren(transaction)
+      else                 -> sequenceOf(child)
+    }
+  }
+}
+
+fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
+  return buildString {
+    append("process(")
+    append(processModel.rootModel.getName())
+    name?.let {
+      append(", instance: ")
+      append(it)
+    }
+    append(", allnodes: [")
+    this@toDebugString.allChildren(transaction).joinTo(this) {
+      val inst = it.withPermission()
+      "${inst.node.id}:${inst.state}"
+    }
+    appendln("])\n\nModel:")
+    XmlStreaming.newWriter(this.writer()).use { processModel.rootModel.serialize(it) }
+    appendln("\n")
+  }
+}

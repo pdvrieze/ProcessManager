@@ -69,7 +69,11 @@ internal abstract class ConfigurableModel(
 
   private var _builder: ExecutableProcessModel.Builder? = null
   private val builder: ExecutableProcessModel.Builder get() {
-    return _builder ?: if (!_model.isInitialized()) ExecutableProcessModel.Builder().apply { _builder = this } else throw IllegalStateException("The model has already been built")
+    return _builder ?: if (!_model.isInitialized()) ExecutableProcessModel.Builder().apply {
+      _builder = this;
+      owner = this@ConfigurableModel.owner
+      name = this@ConfigurableModel.name
+    } else throw IllegalStateException("The model has already been built")
   }
 
   private val _model: Lazy<ExecutableProcessModel> = lazy {
@@ -77,6 +81,8 @@ internal abstract class ConfigurableModel(
   }
 
   private val model: ExecutableProcessModel get() = _model.value
+
+  override val rootModel get() = model
 
   operator fun ExecutableProcessNode.Builder.provideDelegate(thisRef:ConfigurableModel, property: KProperty<*>): Identifier {
     val modelBuilder = builder

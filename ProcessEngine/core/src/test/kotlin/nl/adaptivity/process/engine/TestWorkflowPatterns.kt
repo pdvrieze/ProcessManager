@@ -39,7 +39,7 @@ class TestWorkflowPatterns : Spek({
       stubMessageService.clear()
     }
 
-    describe("Control flow patterns") {
+    xdescribe("Control flow patterns") {
 
       describe("Basic control-flow patterns") {
 
