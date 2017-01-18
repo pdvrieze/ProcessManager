@@ -124,8 +124,11 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
       // First normalize pedantically
 
       // Check for cycles and mark each node as seen
-      nodes.filter { it.predecessors.isEmpty().apply { if (it !is StartNode.Builder<NodeT, ModelT>) throw nl.adaptivity.process.engine.ProcessException("Non-start node without predecessors found")} }
-          .forEach(::visitSuccessors)
+      nodes.filter {
+        it.predecessors.isEmpty().apply {
+          if (this && it !is StartNode.Builder<NodeT, ModelT>) throw ProcessException("Non-start node without predecessors found (${it.id})")
+        }
+      }.forEach(::visitSuccessors)
 
       if (seen.size != nodes.size) { // We should have seen all nodes
         val msg = nodes.asSequence().filter { it.id !in seen }.joinToString(prefix = "Disconnected nodes found: ")
