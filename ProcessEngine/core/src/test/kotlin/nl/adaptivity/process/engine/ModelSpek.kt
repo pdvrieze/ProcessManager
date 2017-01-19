@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete
 import nl.adaptivity.process.engine.processModel.JoinInstance
@@ -36,6 +37,7 @@ import org.jetbrains.spek.subject.SubjectSpek
 import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.jetbrains.spek.subject.dsl.SubjectProviderDsl
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 
 data class ModelData(val engineData: ()->EngineTestData,
                      val model: ExecutableProcessModel,
@@ -85,8 +87,9 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
 
       for (validTrace in valid) {
         this.group("For valid trace [${validTrace.joinToString()}]") {
-          val transaction = this.memoized(CachingMode.GROUP) { subject.engine.startTransaction() }
-          val hinstance = this.memoized(CachingMode.GROUP) {
+
+          val transaction = lazy { subject.engine.startTransaction() }
+          val hinstance = lazy {
             val transaction = transaction()
             val hmodel = subject.engine.addProcessModel(transaction, model, principal)
             val payload = null
@@ -122,7 +125,7 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
             queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
 
             group("For trace element #$pos -> ${traceElement}") {
-//              beforeGroup { previous();  }
+              beforeGroup { previous();  }
               val node = model.findNode(traceElement) ?: throw AssertionError("No node could be find for trace element $traceElement")
               when (node) {
                 is StartNode<*,*> -> testStartNode(nodeInstanceF, traceElement)
@@ -138,8 +141,8 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
                 }
                 else -> {
                   test("$traceElement should not be in a final state") {
-//                    val nodeInstance = nodeInstanceF()
-//                    Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
+                    val nodeInstance = nodeInstanceF()
+                    Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
                   }
                 }
               } // when
@@ -159,86 +162,90 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
 
 private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
   test("Start node $traceElement should be finished") {
-//    assertNodeFinished(nodeInstanceF, traceElement)
+    testAssertNodeFinished(nodeInstanceF, traceElement)
   }
 }
 
-private fun SpecBody.testComposite(transaction: LifecycleAware<StubProcessTransaction>,
+private fun SpecBody.testComposite(transaction: Lazy<StubProcessTransaction>,
                                    nodeInstanceF: Getter<ProcessNodeInstance>,
                                    traceElement: TraceElement) {
   test("A child instance should have been created for $traceElement") {
-//    Assertions.assertTrue((nodeInstanceF() as CompositeInstance).hChildInstance.valid) { "No child instance was recorded" }
+    Assertions.assertTrue((nodeInstanceF() as CompositeInstance).hChildInstance.valid) { "No child instance was recorded" }
   }
   test("The child instance was finished for $traceElement") {
-//    val childInstance = transaction().readableEngineData.instance(
-//      (nodeInstanceF() as CompositeInstance).hChildInstance).withPermission()
-//    Assertions.assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
+    val childInstance = transaction().readableEngineData.instance(
+      (nodeInstanceF() as CompositeInstance).hChildInstance).withPermission()
+    Assertions.assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
   }
 }
 
-private fun SpecBody.testActivity(transaction: LifecycleAware<StubProcessTransaction>,
+private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
                                   nodeInstanceF: Getter<ProcessNodeInstance>,
                                   processInstanceF: Getter<ProcessInstance>,
                                   traceElement: TraceElement) {
   test("$traceElement should not be in a final state") {
-//    val nodeInstance = nodeInstanceF()
-//    Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
+    val nodeInstance = nodeInstanceF()
+    Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
   }
   test("node instance ${traceElement} should be committed after starting") {
-//    val processInstance = processInstanceF()
-//    nodeInstanceF().startTask(transaction().writableEngineData, processInstance)
-//    val nodeInstance = nodeInstanceF()
-//    Assertions.assertTrue(nodeInstance.state.isCommitted) {
-//      "The instance state was ${processInstance.toDebugString(transaction)}"
-//    }
-//    Assertions.assertEquals(IProcessNodeInstance.NodeInstanceState.Started, nodeInstance.state)
+    val processInstance = processInstanceF()
+    nodeInstanceF().startTask(transaction().writableEngineData, processInstance)
+    val nodeInstance = nodeInstanceF()
+    Assertions.assertTrue(nodeInstance.state.isCommitted) {
+      "The instance state was ${processInstance.toDebugString(transaction)}"
+    }
+    Assertions.assertEquals(IProcessNodeInstance.NodeInstanceState.Started, nodeInstance.state)
   }
   test("the node instance ${traceElement} should be final after finishing") {
-//    processInstanceF().finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
-//    assertEquals(IProcessNodeInstance.NodeInstanceState.Complete, nodeInstanceF().state)
+    run {
+      val pi = processInstanceF()
+      val ni = nodeInstanceF()
+      assertEquals(pi.getHandle(), ni.hProcessInstance) { "Node, owner mismatch. Node owner handle: ${ni.hProcessInstance}, instance(${pi.getHandle()}): ${pi.toDebugString(transaction)}" }
+    }
+    processInstanceF().finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
+    assertEquals(IProcessNodeInstance.NodeInstanceState.Complete, nodeInstanceF().state)
   }
 }
 
-private fun SpecBody.testSplit(transaction: LifecycleAware<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
+private fun SpecBody.testSplit(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
   test("Split $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
       val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-      "Node $traceElement should be finished. The current nodes are: ${processInstance.toDebugString(
-        transaction)}"
+      "Node $traceElement should be finished. The current nodes are: ${processInstance.toDebugString(transaction)}"
     }
   }
 }
 
-private fun SpecBody.testJoin(transaction: LifecycleAware<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>,
+private fun SpecBody.testJoin(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>,
                               traceElement: TraceElement) {
   test("Join $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
       val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
       "There are still active predecessors: ${processInstance.getActivePredecessorsFor(
-        transaction().readableEngineData, nodeInstanceF as JoinInstance)}"
+        transaction().readableEngineData, nodeInstanceF() as JoinInstance)}"
     }
   }
 }
 
-private fun SpecBody.testEndNode(transaction: LifecycleAware<StubProcessTransaction>,
+private fun SpecBody.testEndNode(transaction: Lazy<StubProcessTransaction>,
                                  nodeInstanceF: Getter<ProcessNodeInstance>,
                                  traceElement: TraceElement) {
   testAssertNodeFinished(nodeInstanceF, traceElement)
   test("$traceElement should be part of the completion nodes") {
-//    val nodeInstance = nodeInstanceF()
-//    val parentInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-//    Assertions.assertTrue(
-//      parentInstance.completedNodeInstances.any { it.withPermission().node.id == traceElement.id }) {
-//      "Instance is: ${parentInstance.toDebugString(transaction)}"
-//    }
+    val nodeInstance = nodeInstanceF()
+    val parentInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+    Assertions.assertTrue(
+      parentInstance.completedNodeInstances.any { it.withPermission().node.id == traceElement.id }) {
+      "Instance is: ${parentInstance.toDebugString(transaction)}"
+    }
   }
 }
 
 private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
   test("$traceElement should be finished") {
-//    Assertions.assertEquals(Complete, nodeInstanceF().state)
+    Assertions.assertEquals(Complete, nodeInstanceF().state)
   }
 }
 
@@ -290,3 +297,5 @@ class CustomDsl(private val _subject: LifecycleAware<EngineTestData>,
     return _subject
   }
 }
+
+private inline operator fun <T> Lazy<T>.invoke() = this.value
