@@ -21,14 +21,14 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.spek.allChildren
-import nl.adaptivity.process.engine.spek.toDebugString
+import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.util.Getter
 import nl.adaptivity.util.getter
 import org.jetbrains.spek.api.dsl.SpecBody
 import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.jetbrains.spek.api.lifecycle.LifecycleAware
@@ -98,18 +98,9 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
                                 java.util.UUID.randomUUID(), payload)
           }
           val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
-          group("After starting") {
-            test("Only start nodes should be finished") {
-              val processInstance = processInstanceF()
-              val onlyStartNodesCompleted = processInstance.finishedNodes.all { it.state == IProcessNodeInstance.NodeInstanceState.Skipped || it.node is StartNode<*, *> }
-              Assertions.assertTrue(onlyStartNodesCompleted) {
-                processInstance.finishedNodes
-                  .filter { it.state != IProcessNodeInstance.NodeInstanceState.Skipped && it.node !is StartNode<*, *> }
-                  .joinToString(prefix = "Nodes [",
-                                postfix = "] are not startnodes, but already finished.")
-              }
-            }
-          }
+
+          testTraceStarting(processInstanceF)
+
           val queue = StateQueue()
           for (pos in validTrace.indices) {
             val traceElement = validTrace[pos]
@@ -124,31 +115,30 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
 
             queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
 
-            group("For trace element #$pos -> ${traceElement}") {
+            given("trace element #$pos -> ${traceElement}") {
               beforeGroup { previous();  }
               val node = model.findNode(traceElement) ?: throw AssertionError("No node could be find for trace element $traceElement")
               when (node) {
-                is StartNode<*,*> -> testStartNode(nodeInstanceF, traceElement)
-                is EndNode<*, *> -> testEndNode(transaction, nodeInstanceF, traceElement)
-                is Join<*, *> -> testJoin(transaction, nodeInstanceF, traceElement)
-                is Split<*, *> -> testSplit(transaction, nodeInstanceF, traceElement)
-                is Activity<*, *>           -> {
-                  if (node.childModel==null) {
-                    testActivity(transaction, nodeInstanceF, processInstanceF, traceElement)
-                  } else {
-                    testComposite(transaction, nodeInstanceF, traceElement)
-                  }
+                is StartNode<*, *> -> testStartNode(nodeInstanceF, traceElement)
+                is EndNode<*, *>   -> testEndNode(transaction, nodeInstanceF, traceElement)
+                is Join<*, *>      -> testJoin(transaction, nodeInstanceF, traceElement)
+                is Split<*, *>     -> testSplit(transaction, nodeInstanceF, traceElement)
+                is Activity<*, *>  -> when {
+                  node.childModel == null -> testActivity(transaction, nodeInstanceF, processInstanceF, traceElement)
+                  else                    -> testComposite(transaction, nodeInstanceF, traceElement)
                 }
-                else -> {
-                  test("$traceElement should not be in a final state") {
-                    val nodeInstance = nodeInstanceF()
-                    Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
-                  }
+                else               -> test("$traceElement should not be in a final state") {
+                  val nodeInstance = nodeInstanceF()
+                  Assertions.assertFalse(
+                    nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
                 }
               } // when
 
-            } // group
-          }
+            } // trace element group
+
+
+          } // test everything
+          testTraceCompletion(model, queue.solidify(), transaction, processInstanceF, validTrace)
 
 
 
@@ -158,6 +148,61 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
     }
 
   }) {
+}
+
+private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>) {
+  group("After starting") {
+    test("Only start nodes should be finished") {
+      val processInstance = processInstanceF()
+      val onlyStartNodesCompleted = processInstance.finishedNodes.all { it.state == IProcessNodeInstance.NodeInstanceState.Skipped || it.node is StartNode<*, *> }
+      Assertions.assertTrue(onlyStartNodesCompleted) {
+        processInstance.finishedNodes
+          .filter { it.state != IProcessNodeInstance.NodeInstanceState.Skipped && it.node !is StartNode<*, *> }
+          .joinToString(prefix = "Nodes [",
+                        postfix = "] are not startnodes, but already finished.")
+      }
+    }
+  }
+}
+
+private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
+                                         queue: StateQueue.SolidQueue,
+                                         transaction: Lazy<StubProcessTransaction>,
+                                         processInstanceF: Getter<ProcessInstance>,
+                                         validTrace: Trace) {
+  group("The trace should be finished correctly") {
+    beforeGroup { queue.invoke() }
+    test("The trace should be valid") {
+      processInstanceF().assertTracePossible(transaction(), validTrace)
+    }
+    test("All non-endnodes are finished") {
+      val expectedFinishedNodes = validTrace.asSequence()
+        .map { model.findNode(it)!! }
+        .filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
+      processInstanceF().assertFinished(transaction(), *expectedFinishedNodes)
+    }
+    test("No nodes are active") {
+      processInstanceF().assertActive(transaction())
+    }
+    test("All endNodes in the trace are complete, skipped, cancelled or failed") {
+      val transaction = transaction()
+      val processInstance = processInstanceF()
+      val expectedCompletedNodes = validTrace.asSequence()
+        .map { model.findNode(it)!! }
+        .filterIsInstance(EndNode::class.java)
+        .filter { endNode ->
+          val nodeInstance = processInstance.allChildren(transaction).firstOrNull { it.node.id == endNode.id } ?: kfail(
+            "Nodeinstance ${endNode.identifier} does not exist, the instance is ${processInstance.toDebugString(
+              transaction)}")
+          nodeInstance.state !in listOf(IProcessNodeInstance.NodeInstanceState.Skipped,
+                                        IProcessNodeInstance.NodeInstanceState.SkippedCancel,
+                                        IProcessNodeInstance.NodeInstanceState.SkippedFail)
+        }
+        .map { it.id!! }
+        .toList().toTypedArray()
+      processInstanceF().assertComplete(transaction(), *expectedCompletedNodes)
+    }
+  }
 }
 
 private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
