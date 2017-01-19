@@ -53,7 +53,10 @@ class ModelSpekSubjectContext(private val subjectProviderDsl: SubjectProviderDsl
 
 abstract class ModelSpek(subjectFactory: ModelSpekSubjectContext.() -> ModelData, custom:(SubjectDsl<ModelData>.()->Unit)?=null) : SubjectSpek<ModelData>(
   {
-    subject(CachingMode.GROUP, {ModelSpekSubjectContext(this).subjectFactory()})
+    subject(CachingMode.GROUP, {
+      System.err.println("Recreating the subject")
+      ModelSpekSubjectContext(this).subjectFactory()
+    })
 
     describe("The model") {
       if (custom!=null) {
@@ -65,15 +68,16 @@ abstract class ModelSpek(subjectFactory: ModelSpekSubjectContext.() -> ModelData
       }
       for (validTrace in subject.valid) {
         group("For valid trace [${validTrace.joinToString()}]") {
+          val transaction = this.memoized(CachingMode.GROUP) { subject.engineData().engine.startTransaction() }
           val hinstance = this.memoized(CachingMode.GROUP) {
-            val transaction = transaction
+            val transaction = transaction()
             val hmodel = engine.addProcessModel(transaction, model, principal)
             val payload = null
             engine.startProcess(transaction, principal, hmodel,
                                 "${model.name} instance for [${validTrace.joinToString()}]}",
                                 java.util.UUID.randomUUID(), payload)
           }
-          val processInstanceF = getter { transaction.readableEngineData.instance(hinstance()).withPermission() }
+          val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
           group("After starting") {
             test("Only start nodes should be finished") {
               val processInstance = processInstanceF()
@@ -93,13 +97,12 @@ abstract class ModelSpek(subjectFactory: ModelSpekSubjectContext.() -> ModelData
             // TODO we want to properly support the trace
             val nodeInstanceF = getter {
               processInstanceF().let { processInstance: ProcessInstance ->
-                processInstance.allChildren(transaction).lastOrNull { traceElement.fits(it) }
-                ?: throw NoSuchElementException("No node instance for $traceElement found in ${processInstance.toDebugString(transaction)}}")
+                processInstance.allChildren(transaction()).lastOrNull { traceElement.fits(it) }
+                ?: throw NoSuchElementException("No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
               }
             }
 
-
-            queue.add { transaction.finishNodeInstance(hinstance(), traceElement) }
+            queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
 
             group("For trace element #$pos -> ${traceElement}") {
               beforeGroup { previous();  }
@@ -134,13 +137,15 @@ abstract class ModelSpek(subjectFactory: ModelSpekSubjectContext.() -> ModelData
 
     }
 
-  }) {}
+  }) {
+  fun foo() =Unit
+}
 
 private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
   assertNodeFinished(nodeInstanceF, traceElement)
 }
 
-private fun SpecBody.testComposite(transaction: StubProcessTransaction,
+private fun SpecBody.testComposite(transaction: LifecycleAware<StubProcessTransaction>,
                                    nodeInstanceF: Getter<ProcessNodeInstance>,
                                    traceElement: TraceElement) {
   test("A child instance should have been created for $traceElement") {
@@ -148,13 +153,13 @@ private fun SpecBody.testComposite(transaction: StubProcessTransaction,
       (nodeInstanceF() as CompositeInstance).hChildInstance.valid) { "No child instance was recorded" }
   }
   test("The child instance was finished for $traceElement") {
-    val childInstance = transaction.readableEngineData.instance(
+    val childInstance = transaction().readableEngineData.instance(
       (nodeInstanceF() as CompositeInstance).hChildInstance).withPermission()
     Assertions.assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
   }
 }
 
-private fun SpecBody.testActivity(transaction: StubProcessTransaction,
+private fun SpecBody.testActivity(transaction: LifecycleAware<StubProcessTransaction>,
                                   nodeInstanceF: Getter<ProcessNodeInstance>,
                                   processInstanceF: Getter<ProcessInstance>,
                                   traceElement: TraceElement) {
@@ -164,7 +169,7 @@ private fun SpecBody.testActivity(transaction: StubProcessTransaction,
   }
   test("node instance ${traceElement} should be committed after starting") {
     val processInstance = processInstanceF()
-    nodeInstanceF().startTask(transaction.writableEngineData, processInstance)
+    nodeInstanceF().startTask(transaction().writableEngineData, processInstance)
     val nodeInstance = nodeInstanceF()
     Assertions.assertTrue(nodeInstance.state.isCommitted) {
       "The instance state was ${processInstance.toDebugString(transaction)}"
@@ -172,41 +177,41 @@ private fun SpecBody.testActivity(transaction: StubProcessTransaction,
     Assertions.assertEquals(IProcessNodeInstance.NodeInstanceState.Started, nodeInstance.state)
   }
   test("the node instance ${traceElement} should be final after finishing") {
-    processInstanceF().finishTask(transaction.writableEngineData, nodeInstanceF(), traceElement.resultPayload)
-    assertEquals(IProcessNodeInstance.NodeInstanceState.Complete, nodeInstanceF())
+    processInstanceF().finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
+    assertEquals(IProcessNodeInstance.NodeInstanceState.Complete, nodeInstanceF().state)
   }
 }
 
-private fun SpecBody.testSplit(transaction: StubProcessTransaction, nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
+private fun SpecBody.testSplit(transaction: LifecycleAware<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
   test("Split $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
-      val processInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+      val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
       "Node $traceElement should be finished. The current nodes are: ${processInstance.toDebugString(
         transaction)}"
     }
   }
 }
 
-private fun SpecBody.testJoin(transaction: StubProcessTransaction, nodeInstanceF: Getter<ProcessNodeInstance>,
+private fun SpecBody.testJoin(transaction: LifecycleAware<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>,
                               traceElement: TraceElement) {
   test("Join $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
-      val processInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+      val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
       "There are still active predecessors: ${processInstance.getActivePredecessorsFor(
-        transaction.readableEngineData, nodeInstanceF as JoinInstance)}"
+        transaction().readableEngineData, nodeInstanceF as JoinInstance)}"
     }
   }
 }
 
-private fun SpecBody.testEndNode(transaction: StubProcessTransaction,
+private fun SpecBody.testEndNode(transaction: LifecycleAware<StubProcessTransaction>,
                                  nodeInstanceF: Getter<ProcessNodeInstance>,
                                  traceElement: TraceElement) {
   assertNodeFinished(nodeInstanceF, traceElement)
   test("$traceElement should be part of the completion nodes") {
     val nodeInstance = nodeInstanceF()
-    val parentInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+    val parentInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
     Assertions.assertTrue(
       parentInstance.completedNodeInstances.any { it.withPermission().node.id == traceElement.id }) {
       "Instance is: ${parentInstance.toDebugString(transaction)}"
@@ -221,7 +226,6 @@ private fun SpecBody.assertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstanc
 }
 
 val SubjectDsl<ModelData>.engine get() = subject.engineData().engine
-val SubjectDsl<ModelData>.transaction get() = subject.engineData().engine.startTransaction()
 val SubjectDsl<ModelData>.model get() = subject.model
 val SubjectDsl<ModelData>.principal get() = subject.model.owner
 
@@ -229,6 +233,7 @@ fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance
   val instance = readableEngineData.instance(hProcessInstance).withPermission()
   val nodeInstance = instance.getNodeInstance(traceElement) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
   if (nodeInstance.state != Complete) {
+    System.err.println("Re-finishing node $nodeInstance for instance $instance")
     instance.finishTask(writableEngineData, nodeInstance, traceElement.resultPayload)
   }
   assert(nodeInstance.state == Complete)

@@ -25,6 +25,7 @@ import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.Gettable
 import nl.adaptivity.xml.XmlStreaming
+import org.jetbrains.spek.api.lifecycle.LifecycleAware
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 
@@ -161,6 +162,8 @@ fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<P
     }
   }
 }
+
+fun ProcessInstance.toDebugString(transaction: LifecycleAware<StubProcessTransaction>) = toDebugString(transaction())
 
 fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
   return buildString {
