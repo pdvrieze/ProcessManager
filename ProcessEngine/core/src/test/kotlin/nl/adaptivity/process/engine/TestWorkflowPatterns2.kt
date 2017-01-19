@@ -24,7 +24,7 @@ import org.jetbrains.spek.api.include
 import org.jetbrains.spek.api.lifecycle.CachingMode
 import org.junit.jupiter.api.Assertions.assertEquals
 
-class WCP1: ModelSpek({
+class WCP1: ModelSpek(run{
   val m = object : Model("WCP1") {
     val start by startNode
     val ac1 by activity(start)
@@ -41,7 +41,7 @@ class WCP1: ModelSpek({
   }
 }, {  group("model verification") {
   it("should be correctly named") {
-    assertEquals("WCP1", subject.model.name)
+    assertEquals("WCP1", model.name)
   }
 }
 })
