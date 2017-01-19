@@ -30,8 +30,9 @@ class WCP1: ModelSpek(run{
   with(m) {
     val valid = trace { start..ac1..ac2..end }
     val invalid = trace {
-      start.opt or ac2 or end or
-        (start..ac1..end)
+      ac1 or
+        (start.opt .. (ac2 or end)) or
+        (start .. ac1 .. end)
     }
     ModelData(m, valid, invalid)
   }
