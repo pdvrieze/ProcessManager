@@ -233,7 +233,7 @@ fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance
   val instance = readableEngineData.instance(hProcessInstance).withPermission()
   val nodeInstance = instance.getNodeInstance(traceElement) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
   if (nodeInstance.state != Complete) {
-    System.err.println("Re-finishing node $nodeInstance for instance $instance")
+    System.err.println("Re-finishing node ${nodeInstance.node.id} $nodeInstance for instance $instance")
     instance.finishTask(writableEngineData, nodeInstance, traceElement.resultPayload)
   }
   assert(nodeInstance.state == Complete)
