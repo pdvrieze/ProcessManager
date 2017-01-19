@@ -14,30 +14,26 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine;
+package nl.adaptivity.process.engine
 
 
-public class ProcessException extends RuntimeException {
-  private static final long serialVersionUID = 4924991215321938319L;
+class ProcessException : RuntimeException {
 
-  public ProcessException() {
-    super();
+  constructor() : super() {}
+
+  constructor(message: String, cause: Throwable, enableSuppression: Boolean, writableStackTrace: Boolean) : super(
+      message, cause, enableSuppression, writableStackTrace) {
   }
 
-  public ProcessException(final String message, final Throwable cause, final boolean enableSuppression, final boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
-  }
+  constructor(message: String, cause: Throwable) : super(message, cause) {}
 
-  public ProcessException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+  constructor(message: String) : super(message) {}
 
-  public ProcessException(final String message) {
-    super(message);
-  }
+  constructor(cause: Throwable) : super(cause) {}
 
-  public ProcessException(final Throwable cause) {
-    super(cause);
+  companion object {
+    @JvmStatic
+    private val serialVersionUID = 4924991215321938319L
   }
 
 }
