@@ -16,8 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.engine.patterns.WCP1
-import nl.adaptivity.process.engine.patterns.WCP2
+import nl.adaptivity.process.engine.patterns.*
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.include
@@ -49,62 +48,62 @@ class TestWorkflowPatterns2 : Spek(
           includeLocal(WCP2())
         }
 
-        xdescribe("WCP3: Synchronization / And join") {
-//          testWCP3()
+        describe("WCP3: Synchronization / And join") {
+          includeLocal(WCP3())
         }
 
-        xdescribe("WCP4: XOR split") {
-//          testWCP4()
+        describe("WCP4: XOR split") {
+          includeLocal(WCP4())
         }
 
-        xdescribe("WCP5: simple-merge") {
-//          testWCP5()
+        describe("WCP5: simple-merge") {
+          includeLocal(WCP5())
         }
       }
 
-      xdescribe("Advanced branching and synchronization patterns") {
+      describe("Advanced branching and synchronization patterns") {
         describe("WCP6: multi-choice / or-split") {
           given("ac1.condition=true, ac2.condition=false") {
-//            testWCP6(true, false)
+            includeLocal(WCP6(true, false))
           }
           given("ac1.condition=false, ac2.condition=true") {
-//            testWCP6(false, true)
+            includeLocal(WCP6(false, true))
           }
           given("ac1.condition=true, ac2.condition=true") {
-//            testWCP6(true, true)
+            includeLocal(WCP6(true, true))
           }
 
         }
 
         describe("WCP7: structured synchronized merge") {
           given("ac1.condition=true, ac2.condition=false") {
-//            testWCP7(true, false)
+            includeLocal(WCP7(true, false))
           }
           given("ac1.condition=false, ac2.condition=true") {
-//            testWCP7(false, true)
+            includeLocal(WCP7(false, true))
           }
           given("ac1.condition=true, ac2.condition=true") {
-//            testWCP7(true, true)
+            includeLocal(WCP7(true, true))
           }
 
         }
 
         xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
-//          testWCP8()
+          includeLocal(WCP8())
         }
 
         describe("WCP9: Structured Discriminator") {
-//          testWCP9()
+          includeLocal(WCP9())
         }
       }
 
-      xdescribe("Structural patterns") {
+      describe("Structural patterns") {
         xdescribe("WCP10: arbitrary cycles", "Multiple instantiations of a single node are not yet supported") {
 
         }
 
         describe("WCP11: Implicit termination") {
-//          testWCP11()
+          includeLocal(WCP11())
         }
       }
     }

@@ -462,7 +462,7 @@ private fun EngineSpecBody.testWASP4() {
   testTraces(model, valid = validTraces, invalid = invalidTraces)
 }
 
-private fun Boolean.toXPath() = if (this) "true()" else "false()"
+internal fun Boolean.toXPath() = if (this) "true()" else "false()"
 
 private inline fun <R> ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
   startTransaction().use { transaction ->

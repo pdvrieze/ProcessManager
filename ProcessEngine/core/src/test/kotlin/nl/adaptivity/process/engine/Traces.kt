@@ -91,7 +91,7 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
 
 }
 
-class BTrace(internal val elems:Array<TraceElement>): Iterable<TraceElement> {
+class BTrace(val elems:Array<TraceElement>): Iterable<TraceElement> {
   operator fun get(idx:Int) = elems[idx]
   val size get() = elems.size
   operator fun plus(other: TraceElement) = BTrace(elems + other)
@@ -222,7 +222,7 @@ class TraceBuilder {
 
 }
 
-fun trace(builder: TraceBuilder.()->List<BTrace>): List<Trace> {
+inline fun trace(builder: TraceBuilder.()->List<BTrace>): List<Trace> {
   return TraceBuilder().run(builder).map { it.elems }
 }
 
