@@ -16,27 +16,37 @@
 
 package nl.adaptivity.process.engine
 
+import nl.adaptivity.process.engine.patterns.WCP1
+import nl.adaptivity.process.engine.patterns.WCP2
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.xdescribe
+import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.include
+import org.jetbrains.spek.api.lifecycle.LifecycleListener
 
 /**
  * Created by pdvrieze on 15/01/17.
  */
 class TestWorkflowPatterns2 : Spek(
   {
-    describe("Control flow patterns") {
+    fun SpecBody.includeLocal(spec: Spek) {
+      val thisAsSpec: Spec = object : Spec, SpecBody by this {
+        override fun registerListener(listener: LifecycleListener) {
+          registerListener(listener)
+        }
+      }
+      thisAsSpec.include(spec)
+    }
 
-      describe("Basic control-flow patterns") {
+    describe("control flow patterns") {
+
+      describe("basic control-flow patterns") {
 
         describe("WCP1: A sequential process") {
-          include(WCP1())
+          includeLocal(WCP1())
         }
 
-        xdescribe("WCP2: Parallel split") {
-//          testWCP2()
+        describe("WCP2: Parallel split") {
+          includeLocal(WCP2())
         }
 
         xdescribe("WCP3: Synchronization / And join") {

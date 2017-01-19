@@ -77,7 +77,7 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
       modelData.engineData()
     })
 
-    describe("the model") {
+    describe("model ${model.name}") {
       this.it("should be valid") {
         model.builder().validate()
       }

@@ -14,8 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine
+package nl.adaptivity.process.engine.patterns
 
+import nl.adaptivity.process.engine.Model
+import nl.adaptivity.process.engine.ModelData
+import nl.adaptivity.process.engine.ModelSpek
+import nl.adaptivity.process.engine.trace
 import nl.adaptivity.process.processModel.name
 import org.jetbrains.spek.api.dsl.it
 import org.junit.jupiter.api.Assertions.assertEquals
