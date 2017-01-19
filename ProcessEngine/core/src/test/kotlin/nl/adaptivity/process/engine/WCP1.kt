@@ -16,13 +16,28 @@
 
 package nl.adaptivity.process.engine
 
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.include
+import nl.adaptivity.process.processModel.name
+import org.jetbrains.spek.api.dsl.it
+import org.junit.jupiter.api.Assertions.assertEquals
 
-/**
- * Created by pdvrieze on 15/01/17.
- */
-class TestWorkflowPatterns2 : Spek(
-  {
-    include(WCP1())
-  })
+class WCP1: ModelSpek(run{
+  val m = object : Model("WCP1") {
+    val start by startNode
+    val ac1 by activity(start)
+    val ac2 by activity(ac1)
+    val end by endNode(ac2)
+  }
+  with(m) {
+    val valid = trace { start..ac1..ac2..end }
+    val invalid = trace {
+      start.opt or ac2 or end or
+        (start..ac1..end)
+    }
+    ModelData(m, valid, invalid)
+  }
+}, {  group("model verification") {
+  it("should be correctly named") {
+    assertEquals("WCP1", model.name)
+  }
+}
+})
