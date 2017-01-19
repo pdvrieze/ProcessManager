@@ -38,6 +38,9 @@ import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.jetbrains.spek.subject.dsl.SubjectProviderDsl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.w3c.dom.Node
+import java.security.Principal
+import java.util.*
 
 data class ModelData(val engineData: ()->EngineTestData,
                      val model: ExecutableProcessModel,
@@ -89,14 +92,7 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
         this.group("For valid trace [${validTrace.joinToString()}]") {
 
           val transaction = lazy { subject.engine.startTransaction() }
-          val hinstance = lazy {
-            val transaction = transaction()
-            val hmodel = subject.engine.addProcessModel(transaction, model, principal)
-            val payload = null
-            engine.startProcess(transaction, principal, hmodel,
-                                "${model.name} instance for [${validTrace.joinToString()}]}",
-                                java.util.UUID.randomUUID(), payload)
-          }
+          val hinstance = startProcess(transaction, model, principal, "${model.name} instance for [${validTrace.joinToString()}]")
           val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
 
           testTraceStarting(processInstanceF)
@@ -142,12 +138,54 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
 
 
 
-        }
+        } // valid group
+
+      } // for valid traces
+      for(invalidTrace in invalid) {
+        testInvalidTrace(model, principal, this, invalidTrace)
       }
 
     }
 
   }) {
+}
+
+internal fun SubjectProviderDsl<EngineTestData>.testInvalidTrace(
+  model: ExecutableProcessModel,
+  principal: Principal,
+  specBody: SpecBody,
+  invalidTrace: Trace) {
+  val transaction = lazy { subject.engine.startTransaction() }
+  val hinstance = startProcess(transaction, model, principal,
+                               "${model.name} instance for [${invalidTrace.joinToString()}]}")
+  val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
+  specBody.given("invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")}") {
+    test("Executing the trace should fail") {
+      var success = false
+      try {
+        val instanceSupport = object : InstanceSupport {
+          override val transaction: StubProcessTransaction get() = transaction()
+        }
+        instanceSupport.testTraceExceptionThrowing(processInstanceF(), invalidTrace)
+      } catch (e: ProcessTestingException) {
+        success = true
+      }
+      if (!success) kfail(
+        "The invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")} could be executed")
+    }
+  }
+}
+
+private fun SubjectProviderDsl<EngineTestData>.startProcess(transaction: Lazy<StubProcessTransaction>,
+                                                            model: ExecutableProcessModel,
+                                                            owner: Principal,
+                                                            name: String,
+                                                            payload: Node? = null): Lazy<HProcessInstance> {
+  return lazy {
+    val transaction = transaction()
+    val hmodel = subject.engine.addProcessModel(transaction, model, owner)
+    engine.startProcess(transaction, owner, hmodel, name, UUID.randomUUID(), payload)
+  }
 }
 
 private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>) {

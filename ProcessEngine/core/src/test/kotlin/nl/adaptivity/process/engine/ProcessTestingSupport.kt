@@ -319,6 +319,11 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
 }
 
 private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
+  testTraceExceptionThrowing(instance, trace)
+}
+
+fun InstanceSupport.testTraceExceptionThrowing(instance: ProcessInstance,
+                                                        trace: Trace) {
   try {
     instance.assertTracePossible(trace)
   } catch (e: AssertionError) {
@@ -332,12 +337,13 @@ private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
         if (!(nodeInstance.node is Join<*, *> || nodeInstance.node is Split<*, *>)) {
           if (nodeInstance is CompositeInstance) {
             val childInstance = transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
-            if (childInstance.state!=ProcessInstance.State.FINISHED && nodeInstance.state!=NodeInstanceState.Complete) {
+            if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
               try {
                 transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
                   .finishTask(transaction.writableEngineData, nodeInstance, null)
               } catch (e: ProcessException) {
-                if (e.message?.startsWith("A Composite task cannot be finished until its child process is. The child state is:")?: false) {
+                if (e.message?.startsWith(
+                  "A Composite task cannot be finished until its child process is. The child state is:") ?: false) {
                   throw ProcessTestingException("The composite instance cannot be finished yet")
                 } else throw e
               }
@@ -360,7 +366,8 @@ private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
     }
     run {
       val nodeInstance = instance.findChild(nodeId) ?: throw ProcessTestingException("The node instance should exist")
-      if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException("State of node ${nodeInstance} not complete but ${nodeInstance.state}")
+      if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
+        "State of node ${nodeInstance} not complete but ${nodeInstance.state}")
     }
   }
 }
