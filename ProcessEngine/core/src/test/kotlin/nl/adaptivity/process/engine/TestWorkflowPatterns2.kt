@@ -108,10 +108,9 @@ class TestWorkflowPatterns2 : Spek(
       }
     }
 
-    xdescribe("Abstract syntax patterns") {
+    describe("Abstract syntax patterns") {
       describe("WASP4: Vertical modularisation (subprocesses)") {
-//        testWASP4()
-
+        includeLocal(WASP4())
       }
     }
 
