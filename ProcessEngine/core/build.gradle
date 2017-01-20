@@ -46,6 +46,9 @@ junitPlatform {
             exclude 'slow'
         }
     }
+    selectors {
+        classes 'nl.adaptivity.process.engine.TestWorkflowPatterns2'
+    }
 }
 
 jar {
@@ -64,6 +67,7 @@ dependencies {
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
+    testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testCompile "org.jetbrains.spek:spek-api:${spekVersion}"
     testCompile "org.jetbrains.spek:spek-subject-extension:${spekVersion}"
     testCompile "org.junit.jupiter:junit-jupiter-api:${jupiterVersion}"
