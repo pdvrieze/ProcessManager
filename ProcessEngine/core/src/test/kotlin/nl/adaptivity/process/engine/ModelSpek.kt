@@ -120,7 +120,7 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
                 is Join<*, *>      -> testJoin(transaction, nodeInstanceF, traceElement)
                 is Split<*, *>     -> testSplit(transaction, nodeInstanceF, traceElement)
                 is Activity<*, *>  -> when {
-                  node.childModel == null -> testActivity(transaction, nodeInstanceF, processInstanceF, traceElement)
+                  node.childModel == null -> testActivity(transaction, nodeInstanceF, traceElement)
                   else                    -> testComposite(transaction, nodeInstanceF, traceElement)
                 }
                 else               -> test("$traceElement should not be in a final state") {
@@ -264,28 +264,23 @@ private fun SpecBody.testComposite(transaction: Lazy<StubProcessTransaction>,
 
 private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
                                   nodeInstanceF: Getter<ProcessNodeInstance>,
-                                  processInstanceF: Getter<ProcessInstance>,
                                   traceElement: TraceElement) {
   test("$traceElement should not be in a final state") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
   }
   test("node instance ${traceElement} should be committed after starting") {
-    val processInstance = processInstanceF()
-    nodeInstanceF().startTask(transaction().writableEngineData, processInstance)
-    val nodeInstance = nodeInstanceF()
+    val processInstance = transaction.value.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
+    val nodeInstance = nodeInstanceF().startTask(transaction().writableEngineData, processInstance).node
+
     Assertions.assertTrue(nodeInstance.state.isCommitted) {
       "The instance state was ${processInstance.toDebugString(transaction)}"
     }
     Assertions.assertEquals(IProcessNodeInstance.NodeInstanceState.Started, nodeInstance.state)
   }
   test("the node instance ${traceElement} should be final after finishing") {
-    run {
-      val pi = processInstanceF()
-      val ni = nodeInstanceF()
-      assertEquals(pi.getHandle(), ni.hProcessInstance) { "Node, owner mismatch. Node owner handle: ${ni.hProcessInstance}, instance(${pi.getHandle()}): ${pi.toDebugString(transaction)}" }
-    }
-    processInstanceF().finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
+    val processInstance = transaction.value.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
+    processInstance.finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
     assertEquals(IProcessNodeInstance.NodeInstanceState.Complete, nodeInstanceF().state)
   }
 }
