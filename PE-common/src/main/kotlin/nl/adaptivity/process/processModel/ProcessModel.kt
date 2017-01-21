@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.FastStack
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
@@ -110,33 +111,51 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     }
 
     fun validate() {
-      val seen = hashSetOf<String>()
       normalize(true)
-      val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
 
-      fun visitSuccessors(node: ProcessNode.IBuilder<NodeT, ModelT>) {
-        val id = node.id!!
-        if (id in seen) { throw ProcessException("Cycle in process model") }
-        seen += id
-        node.successors.forEach { visitSuccessors(nodeMap[it.id]!!) }
+      val nodeList = nodes.toList()
+      val mark = IntArray(nodeList.size)
+      val SEEN = 0b01
+      val CURRENT = 0b10
+
+      fun seen(idx:Int) = (mark[idx] and SEEN == SEEN)
+      fun markSeen(idx:Int) { mark[idx] = mark[idx] or SEEN}
+      fun current(idx:Int) = mark[idx] and CURRENT ==CURRENT
+      fun markCurrent(idx:Int) { mark[idx] = mark[idx] or CURRENT }
+      fun resetCurrent(idx:Int) { mark[idx] = mark[idx] and CURRENT.inv() }
+
+      val nodeMap = nodeList.indices.associateBy { nodeList[it].id }
+
+      fun visitSuccessors(nodeIdx: Int) {
+        if (!seen(nodeIdx)) {
+          if (current(nodeIdx)) throw ProcessException("Cycle in process model")
+          markSeen(nodeIdx)
+          markCurrent(nodeIdx)
+          val node = nodeList[nodeIdx]
+          for (successor in node.successors) {
+            visitSuccessors(nodeMap[successor.id]?: throw ProcessException("Missing node for id $successor.id"))
+          }
+          resetCurrent(nodeIdx)
+        }
       }
 
       // First normalize pedantically
 
       // Check for cycles and mark each node as seen
-      nodes.filter {
-        it.predecessors.isEmpty().apply {
-          if (this && it !is StartNode.Builder<NodeT, ModelT>) throw ProcessException("Non-start node without predecessors found (${it.id})")
+      nodeList.indices.filter { nodeIdx ->
+        val node = nodeList[nodeIdx]
+        node.predecessors.isEmpty().also { empty ->
+          if (empty && node !is StartNode.Builder<NodeT, ModelT>) throw ProcessException("Non-start node without predecessors found (${node.id})")
         }
       }.forEach(::visitSuccessors)
 
-      if (seen.size != nodes.size) { // We should have seen all nodes
-        val msg = nodes.asSequence().filter { it.id !in seen }.joinToString(prefix = "Disconnected nodes found: ")
-        throw ProcessException(msg)
+      mark.indices.firstOrNull { !seen(it) }?.let { idx ->
+        throw ProcessException("Node \"${nodeList[idx].id}\" found that is not reachable from any start node")
       }
 
       // This DOES allow for multiple disconnected graphs when multiple start nodes are present.
     }
+
     fun normalize(pedantic: Boolean) {
       val nodeMap = nodes.asSequence().filter { it.id!=null }.associateBy { it.id }
 
