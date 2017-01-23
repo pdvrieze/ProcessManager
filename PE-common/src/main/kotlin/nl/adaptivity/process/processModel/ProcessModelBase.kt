@@ -50,7 +50,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
     val node = object: ArrayAccess<String, ProcessNode.IBuilder<NodeT, ModelT>> {
-      override operator fun get(key:String) = nodes.firstOrNull { it.id==key }
+      override operator fun get(key:String) = this@Builder.nodes.firstOrNull { it.id==key }
     }
 
     constructor(base: ProcessModel<*,*>) :
