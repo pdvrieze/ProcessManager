@@ -47,9 +47,9 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                                val hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
                                override val owner: Principal,
                                handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
-                               override final val state: NodeInstanceState = NodeInstanceState.Pending,
+                               val state: NodeInstanceState = NodeInstanceState.Pending,
                                results: Iterable<ProcessData> = emptyList(),
-                               val failureCause: Throwable? = null) : IProcessNodeInstance<ProcessNodeInstance>, SecureObject<ProcessNodeInstance>, ReadableHandleAware<SecureObject<ProcessNodeInstance>> {
+                               val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance>, ReadableHandleAware<SecureObject<ProcessNodeInstance>> {
 
   private var handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>
         = Handles.handle(handle)
@@ -85,7 +85,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
     override fun toXmlInstance(body: CompactFragment?):XmlProcessNodeInstance {
       return XmlProcessNodeInstance(nodeId= node.id,
-                                    predecessors = predecessors.map { Handles.handle<IProcessNodeInstance<*>>(it.handleValue) },
+                                    predecessors = predecessors.map { Handles.handle<XmlProcessNodeInstance>(it.handleValue) },
                                     processInstance = hProcessInstance.handleValue,
                                     handle = Handles.handle(handle.handleValue),
                                     state = state,

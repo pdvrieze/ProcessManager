@@ -17,15 +17,13 @@
 package nl.adaptivity.process.engine.db
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Handles
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.NodeInstanceState.Companion.fromString
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import uk.ac.bournemouth.kotlinsql.*
+import uk.ac.bournemouth.kotlinsql.MutableTable
+import uk.ac.bournemouth.kotlinsql.customType
 import java.util.*
 
 

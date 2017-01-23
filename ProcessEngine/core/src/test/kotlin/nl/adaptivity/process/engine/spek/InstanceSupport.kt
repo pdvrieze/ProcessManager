@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine.spek
 import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
