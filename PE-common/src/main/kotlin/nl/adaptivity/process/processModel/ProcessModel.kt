@@ -73,17 +73,25 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
       return nodeHelper(startNodeBuilder(), body)
     }
 
+    fun startNode(id: String) = nodes.firstOrNull { it.id == id }?.let { it as StartNode.Builder }
+
     fun split(body: Split.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
       return nodeHelper(splitBuilder(), body)
     }
+
+    fun split(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Split.Builder }
 
     fun join(body: Join.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
       return nodeHelper(joinBuilder(), body)
     }
 
+    fun join(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Join.Builder }
+
     fun activity(body: Activity.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
       return nodeHelper(activityBuilder(), body)
     }
+
+    fun activity(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Activity.Builder }
 
     fun compositeActivity(body: Activity.ChildModelBuilder<NodeT, ModelT>.()->Unit): Identifiable {
       val builder = compositeActivityBuilder()
@@ -97,6 +105,8 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     fun endNode(body: EndNode.Builder<NodeT,ModelT>.() -> Unit) : Identifiable {
       return nodeHelper(endNodeBuilder(), body)
     }
+
+    fun endNode(id: String) = nodes.firstOrNull { it.id == id }?.let { it as EndNode.Builder }
 
     fun newId(base:String):String {
       return generateSequence(1, { it+1} ).map { "${base}${it}" }.first { candidateId -> nodes.none { it.id == candidateId } }

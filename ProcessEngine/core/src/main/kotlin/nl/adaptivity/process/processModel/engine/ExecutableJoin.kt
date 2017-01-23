@@ -38,7 +38,9 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
                 max: Int = -1,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
-                multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, multiInstance)
+                isMultiMerge: Boolean = false,
+                isMultiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, isMultiMerge,
+                                                          isMultiInstance)
     constructor(node: Join<*, *>) : super(node)
 
     override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableJoin(
@@ -53,13 +55,14 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
                                      processInstance: ProcessInstance,
                                      predecessor: ProcessNodeInstance,
                                      entryNo: Int): ProcessNodeInstance {
-    if (isMultiInstance) {
+    if (isMultiInstance) TODO("MultiInstance support is not yet properly implemented")
+    if (isMultiMerge) {
       var entryNoUnique = true
       var lastEntryNo = -1
       for (candidate in processInstance.childNodes) {
         (candidate as? JoinInstance)?.let {
           if (it.node == this) {
-            if (!it.isFinished) return it
+            if (!it.isFinished && it.entryNo==entryNo) return it
             entryNoUnique = entryNoUnique and (entryNo != it.entryNo)
             if (it.entryNo>lastEntryNo) lastEntryNo = it.entryNo
           }

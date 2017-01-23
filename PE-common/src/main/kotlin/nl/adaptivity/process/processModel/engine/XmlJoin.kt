@@ -47,7 +47,8 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
                 results: Collection<IXmlResultType> = emptyList(),
                 min: Int = -1,
                 max: Int = -1,
-                multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, multiInstance) {
+                isMultiMerge: Boolean = false,
+                multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, isMultiMerge = isMultiMerge, isMultiInstance = multiInstance) {
     }
     // Object Initialization end
 

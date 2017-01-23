@@ -34,11 +34,19 @@ interface Join<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, 
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }
 
+    var isMultiMerge: Boolean
+
     override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitJoin(this)
 
   }
 
   override fun builder(): Builder<NodeT, ModelT>
+
+  /**
+   * Does this join support multi-merge (in other words, is it allowed to fire of new threads after an initial instance
+   * has finalised.
+   */
+  val isMultiMerge : Boolean
 
   companion object {
 

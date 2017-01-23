@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.invoke
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.subject.dsl.SubjectDsl
@@ -28,7 +29,7 @@ class WCP8: ModelSpek(run {
     val start2 by startNode
     val ac1    by activity(start1)
     val ac2    by activity(start2)
-    val join   by join(ac1, ac2) { min = 1; max = 1; isMultiInstance=true }
+    val join   by join(ac1, ac2) { min = 1; max = 1; isMultiMerge=true }
     val ac3    by activity(join) { isMultiInstance=true }
     val end    by endNode(ac3) { isMultiInstance=true }
   }
@@ -51,22 +52,22 @@ class WCP8: ModelSpek(run {
 }, {
   val t: CustomDsl = this
   group("When join is not multiInstance") {
-    val modifiedModel = model.update { node["join"]!! { isMultiInstance = false } }
+    val modifiedModel = model.update { join("join")!! { isMultiMerge = false } }
     it("should not have a multiInstance join") {
-      assertFalse(modifiedModel.getNode("join")?.isMultiInstance ?: true)
+      assertFalse((modifiedModel.getNode("join") as? Join<*,*>)?.isMultiMerge ?: true)
     }
     for (trace in valid) {
       t.testInvalidTrace(this, modifiedModel, model.owner, trace)
     }
   }
   group("When ac3 is not multiInstance") {
-    val modifiedModel = model.update { node["ac3"]!! { isMultiInstance = false } }
+    val modifiedModel = model.update { activity("ac3")!! { isMultiInstance = false } }
     for (trace in valid) {
       t.testInvalidTrace(this, modifiedModel, model.owner, trace)
     }
   }
   group("When end is not multiInstance") {
-    val modifiedModel = model.update { node["end"]!! { isMultiInstance = false } }
+    val modifiedModel = model.update { endNode("end")!! { isMultiInstance = false } }
     for (trace in valid) {
       t.testInvalidTrace(this, modifiedModel, model.owner, trace)
     }

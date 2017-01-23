@@ -31,7 +31,9 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
     override val idBase:String
       get() = "join"
 
-    constructor():this(predecessors= emptyList())
+    override var isMultiMerge: Boolean
+
+    constructor():this(predecessors= emptyList(), isMultiMerge = false, isMultiInstance = false)
 
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
@@ -42,10 +44,15 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
                 y: Double = Double.NaN,
                 min: Int = -1,
                 max: Int = -1,
-                multiInstance: Boolean = false) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
-                                              y, min, max, multiInstance)
+                isMultiMerge: Boolean = false,
+                isMultiInstance: Boolean = false) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
+                                                          y, min, max, isMultiInstance) {
+      this.isMultiMerge = isMultiMerge
+    }
 
-    constructor(node: Join<*, *>) : super(node)
+    constructor(node: Join<*, *>) : super(node) {
+      this.isMultiMerge = node.isMultiMerge
+    }
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
@@ -63,14 +70,20 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
   }
 
   @Deprecated("")
-  constructor(ownerModel: ModelT) : super(ownerModel)
+  constructor(ownerModel: ModelT) : super(ownerModel) {
+    isMultiMerge = false
+  }
 
-  constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper)
+  constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+    isMultiMerge = builder.isMultiMerge
+  }
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 
   override val idBase: String
     get() = IDBASE
+
+  override val isMultiMerge: Boolean
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {

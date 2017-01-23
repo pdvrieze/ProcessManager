@@ -121,6 +121,26 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
 
 inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-  ProcessNode.IBuilder<NodeT, ModelT>?.invoke(body: ProcessNode.IBuilder<NodeT, ModelT>.() -> Unit) {
+  StartNode.Builder<NodeT, ModelT>?.invoke(body: StartNode.Builder<NodeT, ModelT>.() -> Unit) {
+  this?.body()
+}
+
+inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
+  Activity.Builder<NodeT, ModelT>?.invoke(body: Activity.Builder<NodeT, ModelT>.() -> Unit) {
+  this?.body()
+}
+
+inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
+  Split.Builder<NodeT, ModelT>?.invoke(body: Split.Builder<NodeT, ModelT>.() -> Unit) {
+  this?.body()
+}
+
+inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
+  Join.Builder<NodeT, ModelT>?.invoke(body: Join.Builder<NodeT, ModelT>.() -> Unit) {
+  this?.body()
+}
+
+inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
+  EndNode.Builder<NodeT, ModelT>?.invoke(body: EndNode.Builder<NodeT, ModelT>.() -> Unit) {
   this?.body()
 }

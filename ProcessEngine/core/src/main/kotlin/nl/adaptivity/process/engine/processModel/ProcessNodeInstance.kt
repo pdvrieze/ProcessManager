@@ -25,9 +25,11 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
@@ -67,7 +69,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                                val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance>, ReadableHandleAware<SecureObject<ProcessNodeInstance>> {
 
   init {
-    if (entryNo!=1 && !node.isMultiInstance) throw ProcessException("Attempting to create a new instance ${entryNo} for node ${node} that does not support reentry")
+    if (entryNo!=1 && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) throw ProcessException("Attempting to create a new instance ${entryNo} for node ${node} that does not support reentry")
   }
 
   private var handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>

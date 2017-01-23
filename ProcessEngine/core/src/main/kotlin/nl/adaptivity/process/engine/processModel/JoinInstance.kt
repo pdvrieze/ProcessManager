@@ -173,7 +173,7 @@ class JoinInstance : ProcessNodeInstance {
     if (committedPredecessorCount<node.min) {
       throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
     }
-    val processInstance = if(node.isMultiInstance) processInstance else cancelablePredecessors.fold(processInstance) { processInstance, instanceToCancel ->
+    val processInstance = if(node.isMultiMerge) processInstance else cancelablePredecessors.fold(processInstance) { processInstance, instanceToCancel ->
       instanceToCancel.cancelAndSkip(engineData, processInstance).instance
     }
     return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
