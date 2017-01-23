@@ -17,6 +17,8 @@
 package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.invoke
+import org.jetbrains.spek.subject.dsl.SubjectDsl
 
 class WCP8: ModelSpek(run {
   val model = object : Model("WCP8") {
@@ -39,9 +41,29 @@ class WCP8: ModelSpek(run {
   }}.removeInvalid()
 
   val invalidTraces = with(model) { trace{
-    ac1 or ac2 or ac3 or end or join or
+    ac3 or end or join or
       (((start1 % start2) or start1 or start2) .. (join or ac3 or end))
   }}
 
   ModelData(model, validTraces, invalidTraces)
+}, {
+  val t: CustomDsl = this
+  group("When join is not multiInstance") {
+    val modifiedModel = model.update { node["join"] { isMultiInstance = false } }
+    for (trace in valid) {
+      t.testInvalidTrace(this, modifiedModel, model.owner, trace)
+    }
+  }
+  group("When ac3 is not multiInstance") {
+    val modifiedModel = model.update { node["ac3"] { isMultiInstance = false } }
+    for (trace in valid) {
+      t.testInvalidTrace(this, modifiedModel, model.owner, trace)
+    }
+  }
+  group("When end is not multiInstance") {
+    val modifiedModel = model.update { node["end"] { isMultiInstance = false } }
+    for (trace in valid) {
+      t.testInvalidTrace(this, modifiedModel, model.owner, trace)
+    }
+  }
 })

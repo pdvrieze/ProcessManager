@@ -118,3 +118,9 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
   val isMultiInstance: Boolean
 }
+
+
+inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
+  ProcessNode.IBuilder<NodeT, ModelT>?.invoke(body: ProcessNode.IBuilder<NodeT, ModelT>.() -> Unit) {
+  this?.body()
+}

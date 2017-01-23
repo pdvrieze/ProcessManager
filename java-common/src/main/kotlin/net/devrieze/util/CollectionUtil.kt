@@ -338,3 +338,7 @@ fun FloatArray.minIndex():Int {
   }
   return minIdx
 }
+
+interface ArrayAccess<K,V> {
+  operator fun get(key:K):V?
+}

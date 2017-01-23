@@ -86,60 +86,14 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
       }
 
       for (validTrace in valid) {
-        this.group("For valid trace [${validTrace.joinToString()}]") {
-
-          val transaction = lazy { subject.engine.startTransaction() }
-          val hinstance = startProcess(transaction, model, principal, "${model.name} instance for [${validTrace.joinToString()}]")
-          val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
-
-          testTraceStarting(processInstanceF)
-
-          val queue = StateQueue()
-          for (pos in validTrace.indices) {
-            val traceElement = validTrace[pos]
-            val previous = queue.solidify()
-            // TODO we want to properly support the trace
-            val nodeInstanceF = getter {
-              processInstanceF().let { processInstance: ProcessInstance ->
-                traceElement.getNodeInstance(processInstance)
-                ?: throw NoSuchElementException("No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
-              }
-            }
-
-            queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
-
-            given("trace element #$pos -> ${traceElement}") {
-              beforeGroup { previous();  }
-              val node = model.findNode(traceElement) ?: throw AssertionError("No node could be find for trace element $traceElement")
-              when (node) {
-                is StartNode<*, *> -> testStartNode(nodeInstanceF, traceElement)
-                is EndNode<*, *>   -> testEndNode(transaction, nodeInstanceF, traceElement)
-                is Join<*, *>      -> testJoin(transaction, nodeInstanceF, traceElement)
-                is Split<*, *>     -> testSplit(transaction, nodeInstanceF, traceElement)
-                is Activity<*, *>  -> when {
-                  node.childModel == null -> testActivity(transaction, nodeInstanceF, traceElement)
-                  else                    -> testComposite(transaction, nodeInstanceF, traceElement)
-                }
-                else               -> test("$traceElement should not be in a final state") {
-                  val nodeInstance = nodeInstanceF()
-                  Assertions.assertFalse(
-                    nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
-                }
-              } // when
-
-            } // trace element group
-
-
-          } // test everything
-          testTraceCompletion(model, queue.solidify(), transaction, processInstanceF, validTrace)
-
-
-
-        } // valid group
+        testValidTrace(this, model, principal, validTrace) // valid group
 
       } // for valid traces
+      for (validTrace in valid) {
+        testInvalidTrace(this, model, principal, validTrace, false)
+      }
       for(invalidTrace in invalid) {
-        testInvalidTrace(model, principal, this, invalidTrace)
+        testInvalidTrace(this, model, principal, invalidTrace)
       }
 
     }
@@ -147,17 +101,77 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
   }) {
 }
 
-internal fun SubjectProviderDsl<EngineTestData>.testInvalidTrace(
+internal fun SubjectDsl<EngineTestData>.testValidTrace(
+  specBody: SpecBody,
   model: ExecutableProcessModel,
   principal: Principal,
+  validTrace: Trace) {
+  specBody.group("For valid trace [${validTrace.joinToString()}]") {
+
+    val transaction = lazy { subject.engine.startTransaction() }
+    val hinstance = startProcess(transaction, model, principal,
+                                                     "${model.name} instance for [${validTrace.joinToString()}]")
+    val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
+
+    testTraceStarting(processInstanceF)
+
+    val queue = StateQueue()
+    for (pos in validTrace.indices) {
+      val traceElement = validTrace[pos]
+      val previous = queue.solidify()
+      // TODO we want to properly support the trace
+      val nodeInstanceF = getter {
+        processInstanceF().let { processInstance: ProcessInstance ->
+          traceElement.getNodeInstance(processInstance)
+          ?: throw NoSuchElementException(
+            "No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
+        }
+      }
+
+      queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
+
+      given("trace element #$pos -> ${traceElement}") {
+        beforeGroup { previous(); }
+        val node = model.findNode(traceElement) ?: throw AssertionError(
+          "No node could be find for trace element $traceElement")
+        when (node) {
+          is StartNode<*, *> -> testStartNode(nodeInstanceF, traceElement)
+          is EndNode<*, *>   -> testEndNode(transaction, nodeInstanceF, traceElement)
+          is Join<*, *>      -> testJoin(transaction, nodeInstanceF, traceElement)
+          is Split<*, *>     -> testSplit(transaction, nodeInstanceF, traceElement)
+          is Activity<*, *>  -> when {
+            node.childModel == null -> testActivity(transaction, nodeInstanceF, traceElement)
+            else                    -> testComposite(transaction, nodeInstanceF, traceElement)
+          }
+          else               -> test("$traceElement should not be in a final state") {
+            val nodeInstance = nodeInstanceF()
+            Assertions.assertFalse(
+              nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
+          }
+        } // when
+
+      } // trace element group
+
+
+    } // test everything
+    testTraceCompletion(model, queue.solidify(), transaction, processInstanceF, validTrace)
+
+
+  }
+}
+
+internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
   specBody: SpecBody,
-  invalidTrace: Trace) {
+  model: ExecutableProcessModel,
+  principal: Principal,
+  invalidTrace: Trace,
+  failureExpeced: Boolean = true) {
   val transaction = lazy { subject.engine.startTransaction() }
   val hinstance = startProcess(transaction, model, principal,
                                "${model.name} instance for [${invalidTrace.joinToString()}]}")
   val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
-  specBody.given("invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")}") {
-    test("Executing the trace should fail") {
+  specBody.given("${if (failureExpeced) "invalid" else "valid" } trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")}") {
+    test("Executing the trace should ${if (failureExpeced) "not fail" else "fail"}") {
       var success = false
       try {
         val instanceSupport = object : InstanceSupport {
@@ -165,15 +179,16 @@ internal fun SubjectProviderDsl<EngineTestData>.testInvalidTrace(
         }
         instanceSupport.testTraceExceptionThrowing(processInstanceF(), invalidTrace)
       } catch (e: ProcessTestingException) {
+        if (! failureExpeced) { throw e }
         success = true
       }
-      if (!success) kfail(
+      if (failureExpeced && !success) kfail(
         "The invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")} could be executed")
     }
   }
 }
 
-private fun SubjectProviderDsl<EngineTestData>.startProcess(transaction: Lazy<StubProcessTransaction>,
+private fun SubjectDsl<EngineTestData>.startProcess(transaction: Lazy<StubProcessTransaction>,
                                                             model: ExecutableProcessModel,
                                                             owner: Principal,
                                                             name: String,

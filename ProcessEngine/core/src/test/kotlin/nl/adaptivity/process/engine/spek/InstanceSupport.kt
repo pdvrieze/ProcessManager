@@ -39,10 +39,6 @@ interface InstanceSupport {
     return allChildren(this@InstanceSupport.transaction)
   }
 
-  // TODO rename to findChildNode
-  fun ProcessInstance.findChild(id: String) = findChild(transaction, id)
-  fun ProcessInstance.findChild(id: Identified) = findChild(transaction, id.id)
-
   val ProcessInstance.nodeInstances: Gettable<Identified, ProcessNodeInstanceDelegate> get() = object: Gettable<Identified,ProcessNodeInstanceDelegate> {
     operator override fun get(key: Identified): ProcessNodeInstanceDelegate {
       return ProcessNodeInstanceDelegate(this@InstanceSupport, this@nodeInstances.getHandle(), key)

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
@@ -24,6 +25,8 @@ import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
+import kotlin.reflect.KProperty1
+import kotlin.reflect.KProperty2
 
 /**
  * Created by pdvrieze on 02/01/17.
@@ -45,6 +48,10 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     override val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableSet()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
+
+    val node = object: ArrayAccess<String, ProcessNode.IBuilder<NodeT, ModelT>> {
+      override operator fun get(key:String) = nodes.firstOrNull { it.id==key }
+    }
 
     constructor(base: ProcessModel<*,*>) :
         this(emptyList(),
