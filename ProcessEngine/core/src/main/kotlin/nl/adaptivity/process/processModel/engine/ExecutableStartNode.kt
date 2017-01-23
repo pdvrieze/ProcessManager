@@ -35,7 +35,8 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, successor, label, defines, results, x, y)
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance)
     constructor(node: StartNode<*, *>) : super(node)
 
 
@@ -48,8 +49,8 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
 
   override fun builder() = Builder(node=this)
 
-  fun createOrReuseInstance(processInstance: ProcessInstance)
-      = processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance)
+  fun createOrReuseInstance(processInstance: ProcessInstance, entryNo: Int = 1)
+      = processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance, entryNo)
 
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = ConditionResult.TRUE
 

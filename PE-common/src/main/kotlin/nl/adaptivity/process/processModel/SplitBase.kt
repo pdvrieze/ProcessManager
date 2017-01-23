@@ -43,10 +43,11 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
                 label: String? = null,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
                 min: Int = -1,
                 max: Int = -1,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, successors, label, defines, results, x, y, min, max)
+                multiInstance: Boolean = false) : super(id, predecessors, successors, label, defines, results, x, y, min, max, multiInstance)
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -57,8 +58,9 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 min: Int = -1,
-                max: Int = -1) : super(id, listOfNotNull(predecessor), successors, label, defines, results, x,
-                                              y, min, max)
+                max: Int = -1,
+                multiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), successors, label, defines, results, x,
+                                              y, min, max, multiInstance)
 
     constructor(node: Split<*, *>) : super(node)
 

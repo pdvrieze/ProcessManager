@@ -48,9 +48,10 @@ class JoinInstance : ProcessNodeInstance {
       predecessors: Iterable<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
       hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
       owner: Principal,
+      entryNo: Int,
       handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
       state: NodeInstanceState = NodeInstanceState.Pending)
-    : ProcessNodeInstance.BaseBuilder<ExecutableJoin>(node, predecessors, hProcessInstance, owner, handle, state), Builder {
+    : ProcessNodeInstance.BaseBuilder<ExecutableJoin>(node, predecessors, hProcessInstance, owner, entryNo, handle, state), Builder {
     override fun build() = JoinInstance(this)
   }
 
@@ -68,13 +69,14 @@ class JoinInstance : ProcessNodeInstance {
               predecessors: Collection<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
               hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
               owner: Principal,
+              entryNo: Int,
               handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
-        super(node, predecessors, hProcessInstance, owner, handle, state, results) {
+        super(node, predecessors, hProcessInstance, owner, entryNo, handle, state, results) {
   }
 
-  constructor(builder:Builder): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results)
+  constructor(builder:Builder): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
 
   /**
    * Constructor for ProcessNodeInstanceMap.
@@ -83,8 +85,8 @@ class JoinInstance : ProcessNodeInstance {
    * @param processInstance
    */
   @Throws(SQLException::class)
-  internal constructor(transaction: ProcessTransaction, node: ExecutableJoin, processInstance: ProcessInstance, state: NodeInstanceState)
-        : super(transaction, node, processInstance, state) {
+  internal constructor(transaction: ProcessTransaction, node: ExecutableJoin, processInstance: ProcessInstance, state: NodeInstanceState, entryNo:Int)
+        : super(transaction, node, processInstance, state, entryNo) {
   }
 
   @JvmName("updateJoin")
@@ -330,19 +332,21 @@ class JoinInstance : ProcessNodeInstance {
                                      predecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
                                      hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
                                      owner: Principal,
+                                     entryNo: Int,
                                      handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder.() -> Unit):JoinInstance {
-      return JoinInstance(BaseBuilder(joinImpl, predecessors, hProcessInstance, owner, handle, state).apply(body))
+      return JoinInstance(BaseBuilder(joinImpl, predecessors, hProcessInstance, owner, entryNo, handle, state).apply(body))
     }
 
     fun <T:ProcessTransaction> build(joinImpl: ExecutableJoin,
                                      predecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,
                                      processInstance: ProcessInstance,
+                                     entryNo: Int,
                                      handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
                                      state: NodeInstanceState = NodeInstanceState.Pending,
                                      body: Builder.() -> Unit):JoinInstance {
-      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance.getHandle(), processInstance.owner, handle, state).apply(body))
+      return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstance.getHandle(), processInstance.owner, entryNo, handle, state).apply(body))
     }
   }
 

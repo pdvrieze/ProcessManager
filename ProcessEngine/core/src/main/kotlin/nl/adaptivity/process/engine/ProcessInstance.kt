@@ -446,9 +446,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  internal fun getJoinInstance(join: ExecutableJoin, predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): JoinInstance {
-    return pendingJoinNodes.firstOrNull { it.node == join }
-        ?: JoinInstance(join, listOf(predecessor), this.handle, owner)
+  internal fun getJoinInstance(join: ExecutableJoin, predecessor: ProcessNodeInstance): JoinInstance {
+    return pendingJoinNodes.firstOrNull { it.node == join && it.entryNo == predecessor.entryNo }
+        ?: JoinInstance(join, listOf(predecessor.getHandle()), this.handle, owner, predecessor.entryNo)
   }
 
   @Synchronized override fun setHandleValue(handleValue: Long) {
@@ -576,7 +576,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     var self = this
     for (successorId in predecessor.node.successors) {
       val nodeInstance:ProcessNodeInstance = run {
-        val nonRegisteredNodeInstance = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(engineData, this@ProcessInstance, predecessor.getHandle())
+        val nonRegisteredNodeInstance = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(engineData, this@ProcessInstance, predecessor)
         val pair = nonRegisteredNodeInstance.update(engineData) {
           predecessors.add(predecessor.getHandle())
         }

@@ -37,7 +37,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
                 x: Double = java.lang.Double.NaN,
                 y: Double = java.lang.Double.NaN,
                 defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
-                results: Collection<IXmlResultType> = ArrayList<IXmlResultType>()) : ProcessNode<NodeT, ModelT> {
+                results: Collection<IXmlResultType> = ArrayList<IXmlResultType>(),
+                override val isMultiInstance: Boolean = false) : ProcessNode<NodeT, ModelT> {
 
   @Deprecated("Don't use this if it can be avoided")
   constructor(ownerModel: ModelT): this (ownerModel, id=null)
@@ -50,14 +51,15 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
       defines: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
       override var x: Double = Double.NaN,
-      override var y: Double = Double.NaN) : ProcessNode.IBuilder<NodeT,ModelT>, XmlDeserializable {
+      override var y: Double = Double.NaN,
+      override var isMultiInstance: Boolean = false) : ProcessNode.IBuilder<NodeT,ModelT>, XmlDeserializable {
 
     override val predecessors: MutableSet<Identified> = ArraySet(predecessors)
     override val successors: MutableSet<Identified> = ArraySet(successors)
     override val defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
     override val results: MutableCollection<IXmlResultType> = ArrayList(results)
 
-    constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.x, node.y)
+    constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.x, node.y, node.isMultiInstance)
 
     override abstract fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 

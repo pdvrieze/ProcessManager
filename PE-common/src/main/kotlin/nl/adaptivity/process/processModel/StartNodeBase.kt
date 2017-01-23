@@ -46,7 +46,8 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, emptyList(), listOfNotNull(successor), label, defines, results, x, y)
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, emptyList(), listOfNotNull(successor), label, defines, results, x, y, multiInstance)
 
     constructor(node: StartNode<*, *>) : super(node)
 

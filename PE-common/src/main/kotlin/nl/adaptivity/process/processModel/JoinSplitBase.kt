@@ -46,7 +46,8 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 min: Int = -1,
-                max: Int = -1) : super(id, predecessors, successors, label, defines, results, x, y) {
+                max: Int = -1,
+                multiInstance: Boolean = false) : super(id, predecessors, successors, label, defines, results, x, y, multiInstance) {
       this.min = min
       this.max = max
     }

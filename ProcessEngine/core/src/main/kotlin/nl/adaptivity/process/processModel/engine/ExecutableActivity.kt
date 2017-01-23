@@ -59,7 +59,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
                 condition: String? = null,
                 name: String? = null,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y)
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, multiInstance)
 
     constructor(node: Activity<*, *>) : super(node)
 
@@ -81,7 +82,14 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
       defines: Collection<IXmlDefineType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
-      override var x: Double = Double.NaN, override var y: Double = Double.NaN) : ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder, ExecutableProcessNode.Builder {
+      override var x: Double = Double.NaN,
+      override var y: Double = Double.NaN,
+      override var isMultiInstance: Boolean = false)
+
+    : ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports),
+      Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>,
+      ExecutableModelCommon.Builder,
+      ExecutableProcessNode.Builder {
 
     override var predecessors: MutableSet<Identified> = listOfNotNull(predecessor).toMutableArraySet()
       set(value) { field.replaceBy(value) }
@@ -127,8 +135,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
                                      processInstance: ProcessInstance,
-                                     predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance>>): ProcessNodeInstance {
-    return processInstance.getNodeInstance(this) ?: if(childModel==null) ProcessNodeInstance(this, predecessor, processInstance) else CompositeInstance(this, predecessor, processInstance)
+                                     predecessor: ProcessNodeInstance): ProcessNodeInstance {
+    return processInstance.getNodeInstance(this) ?: if(childModel==null) ProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo) else CompositeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
   }
 
   /**

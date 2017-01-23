@@ -51,8 +51,9 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
                 condition: String? = null,
                 name: String? = null,
                 state: DrawableState = Drawable.STATE_DEFAULT,
+                multiInstance: Boolean = false,
                 isCompat: Boolean = false) : super(id, predecessor, successor, label, defines, results, message,
-                                                   condition, name, x, y) {
+                                                   condition, name, x, y, multiInstance) {
       _delegate = DrawableProcessNode.Builder.Delegate(state = state, isCompat = isCompat)
     }
 

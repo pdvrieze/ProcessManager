@@ -55,7 +55,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
                 condition: String? = null,
                 name: String? = null,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, listOfNotNull(predecessor), listOfNotNull(successor), label, defines, results, x, y) {
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), listOfNotNull(successor), label, defines, results, x, y, multiInstance) {
       this.message = message
       this.name = name
       this.condition = condition
@@ -122,7 +123,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       exports: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
       x: Double = Double.NaN,
-      y: Double = Double.NaN) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y), Activity.ChildModelBuilder<NodeT,ModelT> {
+      y: Double = Double.NaN,
+      multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
     override val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableSet()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()

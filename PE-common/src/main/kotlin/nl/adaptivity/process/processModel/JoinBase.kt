@@ -41,8 +41,9 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 min: Int = -1,
-                max: Int = -1) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
-                                              y, min, max)
+                max: Int = -1,
+                multiInstance: Boolean = false) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
+                                              y, min, max, multiInstance)
 
     constructor(node: Join<*, *>) : super(node)
 

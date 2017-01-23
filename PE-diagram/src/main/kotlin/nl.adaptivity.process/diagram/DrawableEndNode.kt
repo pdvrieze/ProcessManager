@@ -48,7 +48,8 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
                 y: Double = Double.NaN,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
-                state: Int = Drawable.STATE_DEFAULT) : super(id, predecessor, label, defines, results, x, y) {
+                multiInstance: Boolean = false,
+                state: Int = Drawable.STATE_DEFAULT) : super(id, predecessor, label, defines, results, x, y, multiInstance) {
       _delegate = DrawableProcessNode.Builder.Delegate(state, false)
     }
 

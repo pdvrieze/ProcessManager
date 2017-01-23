@@ -36,7 +36,8 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
                 min: Int = -1,
                 max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessors, successor, label, defines, results, x, y, min, max)
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, multiInstance)
     constructor(node: Join<*, *>) : super(node)
 
     override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableJoin(
@@ -47,7 +48,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance)
       = processInstance.getNodeInstance(this) ?: processInstance.getJoinInstance(this, predecessor)
 
 }

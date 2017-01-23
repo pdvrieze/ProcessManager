@@ -37,7 +37,8 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
                 min: Int = -1,
                 max: Int = -1,
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessor, successors, label, defines, results, x, y, min, max)
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance)
     constructor(node: Split<*, *>) : super(node)
 
     override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon> {
@@ -49,8 +50,8 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
-      = processInstance.getNodeInstance(this) ?: SplitInstance(this, predecessor, processInstance.getHandle(), processInstance.owner)
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance)
+      = processInstance.getNodeInstance(this) ?: SplitInstance(this, predecessor.getHandle(), processInstance.getHandle(), processInstance.owner, entryNo = predecessor.entryNo)
 
   override fun startTask(instance: ProcessNodeInstance) = false
 

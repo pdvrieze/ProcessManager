@@ -32,7 +32,8 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>,
                 defines: Collection<IXmlDefineType> = emptyList(),
                 results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
-                y: Double = Double.NaN) : super(id, predecessor, label, defines, results, x, y)
+                y: Double = Double.NaN,
+                multiInstance: Boolean = false) : super(id, predecessor, label, defines, results, x, y, multiInstance)
 
     constructor(node: EndNode<*, *>) : super(node)
 

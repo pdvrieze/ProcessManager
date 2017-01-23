@@ -41,7 +41,8 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 state: DrawableState = Drawable.STATE_DEFAULT,
-                isCompat: Boolean = false) : super(id, successor, label, defines, results, x, y) {
+                isCompat: Boolean = false,
+                multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance) {
       _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
     }
 

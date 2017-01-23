@@ -41,6 +41,7 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
     val defines: MutableCollection<IXmlDefineType>
     val results: MutableCollection<IXmlResultType>
     val idBase: String
+    var isMultiInstance: Boolean
 
     fun predecessors(vararg values:Identifiable) {
       values.forEach {
@@ -114,4 +115,6 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
   val defines: List<@JvmWildcard IXmlDefineType>
 
   val idBase: String
+
+  val isMultiInstance: Boolean
 }

@@ -25,7 +25,6 @@ import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.STUB_DRAWABLE_BUILD_HELPER;
 import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.Activity.Builder;
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -67,35 +66,6 @@ public class ParcelableActivity extends DrawableActivity
       return new ParcelableActivity[size];
     }
   };
-
-  private static DrawableActivity.Builder fromParcel(final Parcel source) {
-    DrawableActivity.Builder builder = new DrawableActivity.Builder();
-    builder.setId(source.readString());
-    builder.setLabel(source.readString());
-    builder.setName(source.readString());
-    builder.setX(source.readDouble());
-    builder.setY(source.readDouble());
-
-    builder.setCondition(source.readString());
-    builder.setPredecessors(fromIdStrings(source.createStringArray()));
-    builder.setSuccessors(fromIdStrings(source.createStringArray()));
-
-    final String strMessage = source.readString();
-    Log.d(TAG, "deserializing message:\n"+strMessage);
-    if (strMessage!=null && strMessage.length()>0) {
-      try {
-        builder.setMessage(XmlStreaming.deSerialize(new StringReader(strMessage), XmlMessage.class));
-      } catch (XmlException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    builder.setDefines(readDefines(source));
-    builder.setResults(readResults(source));
-
-
-    return builder;
-  }
 
   private ParcelableActivity(final Parcel source) {
     this(fromParcel(source));
@@ -139,6 +109,36 @@ public class ParcelableActivity extends DrawableActivity
     return new ParcelableActivity(orig, compat);
   }
 
+  private static DrawableActivity.Builder fromParcel(final Parcel source) {
+    DrawableActivity.Builder builder = new DrawableActivity.Builder();
+    builder.setCompat(source.readByte() != 0);
+    builder.setId(source.readString());
+    builder.setLabel(source.readString());
+    builder.setName(source.readString());
+    builder.setX(source.readDouble());
+    builder.setY(source.readDouble());
+
+    builder.setCondition(source.readString());
+    builder.setPredecessors(fromIdStrings(source.createStringArray()));
+    builder.setSuccessors(fromIdStrings(source.createStringArray()));
+
+    final String strMessage = source.readString();
+    Log.d(TAG, "deserializing message:\n"+strMessage);
+    if (strMessage!=null && strMessage.length()>0) {
+      try {
+        builder.setMessage(XmlStreaming.deSerialize(new StringReader(strMessage), XmlMessage.class));
+      } catch (XmlException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    builder.setDefines(readDefines(source));
+    builder.setResults(readResults(source));
+    builder.setMultiInstance(source.readByte()!=0);
+
+    return builder;
+  }
+
   @Override
   public int describeContents() {
     return 0;
@@ -165,6 +165,7 @@ public class ParcelableActivity extends DrawableActivity
 
     writeDefines(dest);
     writeResults(dest);
+    dest.writeByte((byte) (isMultiInstance() ? 1 : 0));
   }
 
   private void writeDefines(final Parcel dest) {

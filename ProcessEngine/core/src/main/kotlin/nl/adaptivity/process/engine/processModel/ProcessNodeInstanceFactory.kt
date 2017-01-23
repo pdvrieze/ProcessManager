@@ -65,6 +65,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
     val nodeId = tbl_pni.nodeid.value(columns, values)
     val pihandle = Handles.handle(tbl_pni.pihandle.value(columns, values))
     val state = tbl_pni.state.value(columns, values)
+    val entryNo = tbl_pni.entryno.value(columns, values)
 
     val processInstance = processEngine.getProcessInstance(transaction, pihandle, SecurityProvider.SYSTEMPRINCIPAL)
 
@@ -84,11 +85,13 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
         .getSingleOrNull(transaction.connection)?.let { Handles.handle<SecureObject<ProcessInstance>>(it) } ?: Handles.getInvalid()
 
       CompositeInstance.BaseBuilder(node, predecessors, processInstance.getHandle(), childInstance, processInstance.owner,
-                                    Handles.handle(pnihandle.handleValue), state)
+                                    Handles.handle(pnihandle.handleValue), entryNo, state)
     } else if (node is ExecutableJoin) {
-      JoinInstance.BaseBuilder(node, predecessors, processInstance.getHandle(), processInstance.owner, Handles.handle(pnihandle.handleValue), state)
+      JoinInstance.BaseBuilder(node, predecessors, processInstance.getHandle(), processInstance.owner, entryNo, Handles.handle(pnihandle.handleValue), state)
     } else {
-      ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(node, predecessors, processInstance.getHandle(), processInstance.owner, Handles.handle(pnihandle.handleValue), state)
+      ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(node, predecessors, processInstance.getHandle(),
+                                                             processInstance.owner, entryNo,
+                                                             Handles.handle(pnihandle.handleValue), state)
     }
   }
 

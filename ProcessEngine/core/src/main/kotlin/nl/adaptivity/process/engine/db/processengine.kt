@@ -93,11 +93,12 @@ object ProcessEngineDB : uk.ac.bournemouth.kotlinsql.Database(1) {
     val pnihandle by X_PNIHANDLE
     val pihandle by reference(processInstances.pihandle) { NOT_NULL }
     val nodeid by VARCHAR(30) { NOT_NULL }
+    val entryno by INT
     val state by X_NODESTATE
     override fun init() {
       PRIMARY_KEY(pnihandle)
       FOREIGN_KEY(pihandle).REFERENCES(processInstances.pihandle)
-      UNIQUE(pihandle, nodeid)
+      UNIQUE(pihandle, nodeid, entryno)
     }
   }
 

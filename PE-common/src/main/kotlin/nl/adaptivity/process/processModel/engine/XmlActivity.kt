@@ -45,7 +45,20 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
 
     constructor() {}
 
-    constructor(predecessor: Identified?, successor: Identified?, id: String?, label: String?, x: Double, y: Double, defines: Collection<IXmlDefineType>, results: Collection<IXmlResultType>, message: XmlMessage?, condition: String?, name: String?) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y) {}
+    constructor(predecessor: Identified? = null,
+                successor: Identified? = null,
+                id: String? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                message: XmlMessage? = null,
+                condition: String? = null,
+                name: String? = null,
+                multiInstance: Boolean = false)
+      : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, multiInstance) {
+    }
 
     constructor(node: Activity<*, *>) : super(node) {}
 
@@ -68,7 +81,8 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
       exports: Collection<IXmlDefineType> = emptyList(),
       results: Collection<IXmlResultType> = emptyList(),
       override var x: Double = Double.NaN,
-      override var y: Double = Double.NaN) : XmlChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+      override var y: Double = Double.NaN,
+      override var isMultiInstance: Boolean = false) : XmlChildModel.Builder(rootBuilder, childId, nodes, imports, exports), Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
 
     override var predecessors: MutableSet<Identified> = predecessors.toMutableArraySet()
       set(value) { field.replaceBy(value) }

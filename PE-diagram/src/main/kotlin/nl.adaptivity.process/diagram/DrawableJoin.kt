@@ -46,8 +46,9 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
                 min: Int = 1,
                 max: Int = -1,
                 state: DrawableState = Drawable.STATE_DEFAULT,
+                multiInstance: Boolean = false,
                 isCompat: Boolean = false) : super(id, predecessors, successor, label, defines, results,
-                                                   x, y, min, max) {
+                                                   x, y, min, max, multiInstance) {
       _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
     }
 

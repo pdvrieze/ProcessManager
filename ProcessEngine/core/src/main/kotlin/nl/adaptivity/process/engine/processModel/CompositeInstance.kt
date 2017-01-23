@@ -44,8 +44,9 @@ class CompositeInstance : ProcessNodeInstance {
                 childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
                 owner: Principal,
                 handle: ComparableHandle<SecureObject<ProcessNodeInstance>>,
+                entryNo: Int,
                 state: NodeInstanceState) : super(node, predecessors, hProcessInstance, owner,
-                                                                                            handle, state)
+                                                  entryNo, handle, state)
   }
 
   class ExtBuilder(base: CompositeInstance) : ExtBuilderBase<ExecutableProcessNode>(base) {
@@ -66,8 +67,9 @@ class CompositeInstance : ProcessNodeInstance {
   constructor(node: ExecutableActivity,
               predecessor: ComparableHandle<SecureObject<ProcessNodeInstance>>,
               processInstance: ProcessInstance,
+              entryNo: Int,
               childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, predecessor,
-                                                                                      processInstance) {
+                                                                                      processInstance, entryNo) {
     this.hChildInstance = childInstance
   }
 

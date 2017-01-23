@@ -47,8 +47,8 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
                 y: Double = Double.NaN,
                 min: Int = 1,
                 max: Int = -1,
-                state: DrawableState = Drawable.STATE_DEFAULT) : super(id, predecessor, successors, label, defines,
-                                                                                                     results, x, y, min, max) {
+                state: DrawableState = Drawable.STATE_DEFAULT,
+                multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance) {
       _delegate = DrawableProcessNode.Builder.Delegate(state, false)
     }
 

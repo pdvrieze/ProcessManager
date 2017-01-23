@@ -52,8 +52,10 @@ class SplitInstance : ProcessNodeInstance {
       hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
       owner: Principal,
       handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+      entryNo: Int,
       state: NodeInstanceState = NodeInstanceState.Pending)
-    : ProcessNodeInstance.BaseBuilder<ExecutableSplit>(node, listOf(predecessor), hProcessInstance, owner, handle, state), Builder {
+    : ProcessNodeInstance.BaseBuilder<ExecutableSplit>(node, listOf(predecessor), hProcessInstance, owner, entryNo,
+                                                       handle, state), Builder {
     override fun build() = SplitInstance(this)
   }
 
@@ -74,11 +76,12 @@ class SplitInstance : ProcessNodeInstance {
               owner: Principal,
               handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
-              results: Iterable<ProcessData> = emptyList()) :
-      super(node, listOf(predecessor), hProcessInstance, owner, handle, state, results) {
+              results: Iterable<ProcessData> = emptyList(),
+              entryNo: Int) :
+      super(node, listOf(predecessor), hProcessInstance, owner, entryNo, handle, state, results) {
   }
 
-  constructor(builder: SplitInstance.Builder): this(builder.node, builder.predecessor?: throw NullPointerException("Missing predecessor node instance"), builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results)
+  constructor(builder: SplitInstance.Builder): this(builder.node, builder.predecessor?: throw NullPointerException("Missing predecessor node instance"), builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.entryNo)
 
   override fun builder(): ExtBuilder {
     return ExtBuilder(this)
@@ -163,7 +166,7 @@ class SplitInstance : ProcessNodeInstance {
           throw IllegalStateException("Splits cannot be immediately followed by joins")
         }
 
-        val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this.getHandle())
+        val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this)
         // TODO Make this respond to MAYBEs
         if (nonRegisteredSuccessor.state== NodeInstanceState.Pending) {
           val conditionResult = nonRegisteredSuccessor.condition(engineData)

@@ -90,6 +90,9 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
   @XmlAttribute(name = "handle", required = true)
   var handle = -1L
 
+  @XmlAttribute(name = "entryNo", required = true)
+  var entryNo = 0
+
   var state: NodeInstanceState? = null
 
   var stateXml: String?
@@ -138,24 +141,14 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
                                     attributeLocalName: CharSequence,
                                     attributeValue: CharSequence): Boolean {
     when (attributeLocalName.toString()) {
-      "state"           -> {
-        state = NodeInstanceState.valueOf(attributeValue.toString())
-        return true
-      }
-      "processinstance" -> {
-        processInstance = attributeValue.toString().toLong()
-        return true
-      }
-      "handle"          -> {
-        handle = attributeValue.toString().toLong()
-        return true
-      }
-      "nodeid"          -> {
-        nodeId = attributeValue.toString()
-        return true
-      }
+      "state"           -> state = NodeInstanceState.valueOf(attributeValue.toString())
+      "processinstance" -> processInstance = attributeValue.toString().toLong()
+      "handle"          -> handle = attributeValue.toString().toLong()
+      "nodeid"          -> nodeId = attributeValue.toString()
+      "entryNo"         -> entryNo = attributeValue.toString().toInt()
+      else              -> return false
     }
-    return false
+    return true
   }
 
   @Throws(XmlException::class)
@@ -170,16 +163,17 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
 
       if (processInstance != -1L) writeAttribute("processinstance", processInstance)
       if (handle != -1L) writeAttribute("handle", handle)
-      if (nodeId != null) writeAttribute("nodeid", nodeId)
+      writeAttribute("nodeid", nodeId)
+      writeAttribute("entryNo", entryNo)
 
       _predecessors.forEach { writeSimpleElement(PREDECESSOR_ELEMENTNAME, java.lang.Long.toString(it.handleValue)) }
 
       results.forEach { it.serialize(this) }
 
       body?.let {
-        out.smartStartTag(BODY_ELEMENTNAME)
-        it.serialize(out.filterSubstream())
-        out.endTag(BODY_ELEMENTNAME)
+        out.smartStartTag(BODY_ELEMENTNAME) {
+          it.serialize(out.filterSubstream())
+        }
       }
     }
   }
