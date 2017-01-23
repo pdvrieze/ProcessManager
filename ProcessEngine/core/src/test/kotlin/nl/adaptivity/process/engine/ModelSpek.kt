@@ -165,13 +165,13 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
   model: ExecutableProcessModel,
   principal: Principal,
   invalidTrace: Trace,
-  failureExpeced: Boolean = true) {
+  failureExpected: Boolean = true) {
   val transaction = lazy { subject.engine.startTransaction() }
   val hinstance = startProcess(transaction, model, principal,
                                "${model.name} instance for [${invalidTrace.joinToString()}]}")
   val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
-  specBody.given("${if (failureExpeced) "invalid" else "valid" } trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")}") {
-    test("Executing the trace should ${if (failureExpeced) "not fail" else "fail"}") {
+  specBody.given("${if (failureExpected) "invalid" else "valid" } trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")}") {
+    test("Executing the trace should ${if (!failureExpected) "not fail" else "fail"}") {
       var success = false
       try {
         val instanceSupport = object : InstanceSupport {
@@ -179,10 +179,10 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
         }
         instanceSupport.testTraceExceptionThrowing(processInstanceF(), invalidTrace)
       } catch (e: ProcessTestingException) {
-        if (! failureExpeced) { throw e }
+        if (!failureExpected) { throw e }
         success = true
       }
-      if (failureExpeced && !success) kfail(
+      if (failureExpected && !success) kfail(
         "The invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")} could be executed")
     }
   }
