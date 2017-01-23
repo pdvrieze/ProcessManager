@@ -24,7 +24,7 @@ import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.junit.jupiter.api.Assertions.assertFalse
 
 class WCP8: ModelSpek(run {
-  val model = object : Model("WCP8") {
+  val model = object : ConfigurableModel("WCP8") {
     val start1 by startNode
     val start2 by startNode
     val ac1    by activity(start1)

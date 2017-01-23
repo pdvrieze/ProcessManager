@@ -121,7 +121,7 @@ class TestWorkflowPatterns : Spek({
 })
 
 private fun EngineSpecBody.testWCP1() {
-  val model = object :Model("WCP1") {
+  val model = object : ConfigurableModel("WCP1") {
     val start by startNode
     val ac1 by activity(start)
     val ac2 by activity(ac1)
@@ -142,7 +142,7 @@ private fun EngineSpecBody.testWCP1() {
 }
 
 private fun EngineSpecBody.testWCP2() {
-  val model = object : Model("WCP2") {
+  val model = object : ConfigurableModel("WCP2") {
     val start by startNode
     val split by split(start) { min = 2; max = 2 }
     val ac1   by activity(split)
@@ -175,7 +175,7 @@ private fun EngineSpecBody.testWCP2() {
 }
 
 private fun EngineSpecBody.testWCP3() {
-  val model = object: Model("WCP3") {
+  val model = object: ConfigurableModel("WCP3") {
     val start by startNode
     val split by split(start) { min = 2; max = 2 }
     val ac1   by activity(split)
@@ -199,7 +199,7 @@ private fun EngineSpecBody.testWCP3() {
 }
 
 private fun EngineSpecBody.testWCP4() {
-  val model = object: Model("WCP4") {
+  val model = object: ConfigurableModel("WCP4") {
     val start by startNode
     val split by split(start) { min = 1; max = 1 }
     val ac1 by activity(split)
@@ -223,7 +223,7 @@ private fun EngineSpecBody.testWCP4() {
 }
 
 private fun EngineSpecBody.testWCP5() {
-  val model = object: Model("WCP5") {
+  val model = object: ConfigurableModel("WCP5") {
     val start by startNode
     val split by split(start) { min = 1; max = 1 }
     val ac1 by activity(split)
@@ -247,7 +247,7 @@ private fun EngineSpecBody.testWCP5() {
 
 private fun EngineSpecBody.testWCP6(ac1Condition: Boolean,
                                     ac2Condition: Boolean) {
-  val model = object : Model("WCP6") {
+  val model = object : ConfigurableModel("WCP6") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
     val ac1 by activity(split) { condition = ac1Condition.toXPath() }
@@ -300,7 +300,7 @@ private fun EngineSpecBody.testWCP6(ac1Condition: Boolean,
 
 private fun EngineSpecBody.testWCP7(ac1Condition: Boolean,
                                     ac2Condition: Boolean) {
-  val model = object: Model("WCP7") {
+  val model = object: ConfigurableModel("WCP7") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
     val ac1 by activity(split) { condition = ac1Condition.toXPath() }
@@ -350,7 +350,7 @@ private fun EngineSpecBody.testWCP7(ac1Condition: Boolean,
 }
 
 private fun EngineSpecBody.testWCP8() {
-  val model = object : Model("WCP8") {
+  val model = object : ConfigurableModel("WCP8") {
     val start1 by startNode
     val start2 by startNode
     val ac1    by activity(start1)
@@ -388,7 +388,7 @@ private fun EngineSpecBody.testWCP8() {
 }
 
 private fun EngineSpecBody.testWCP9() {
-  val model = object : Model("WCP9") {
+  val model = object : ConfigurableModel("WCP9") {
     val start1 by startNode
     val start2 by startNode
     val ac1 by activity(start1)
@@ -410,7 +410,7 @@ private fun EngineSpecBody.testWCP9() {
 }
 
 private fun EngineSpecBody.testWCP11() {
-  val model = object: Model("WCP11") {
+  val model = object: ConfigurableModel("WCP11") {
     val start1 by startNode
     val start2 by startNode
     val ac1    by activity(start1)
@@ -433,7 +433,7 @@ private fun EngineSpecBody.testWCP11() {
 
 private fun EngineSpecBody.testWASP4() {
 
-  val model = object : Model("WASP4") {
+  val model = object : ConfigurableModel("WASP4") {
     val start1 by startNode
     val ac1    by activity(start1)
 

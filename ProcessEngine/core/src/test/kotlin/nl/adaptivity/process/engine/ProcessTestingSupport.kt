@@ -329,11 +329,11 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
   } catch (e: AssertionError) {
     throw ProcessTestingException(e)
   }
-  var instance = _instance
   for (traceElement in trace) {
 
     run {
-      val nodeInstance = traceElement.getNodeInstance(instance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
+      val outerInstance = transaction.readableEngineData.instance(_instance.getHandle()).withPermission()
+      val nodeInstance = traceElement.getNodeInstance(transaction, outerInstance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
       if (nodeInstance.state != NodeInstanceState.Complete) {
         if (!(nodeInstance.node is Join<*, *> || nodeInstance.node is Split<*, *>)) {
@@ -361,12 +361,14 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
             }
             throw ProcessTestingException("The node is final but not complete (failed, skipped)")
           }
-          instance = instance.finishTask(transaction.writableEngineData, nodeInstance, null).instance
+          val instance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+          instance.finishTask(transaction.writableEngineData, nodeInstance, null)
         }
       }
     }
     run {
-      val nodeInstance = traceElement.getNodeInstance(instance) ?: throw ProcessTestingException("The node instance should exist")
+      val instance = transaction.readableEngineData.instance(_instance.getHandle()).withPermission()
+      val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
       if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
         "State of node ${nodeInstance} not complete but ${nodeInstance.state}")
     }

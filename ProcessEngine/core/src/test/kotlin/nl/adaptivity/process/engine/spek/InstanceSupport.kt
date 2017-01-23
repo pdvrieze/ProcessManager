@@ -175,13 +175,13 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
                                         trace: Trace) {
   val nonSeenChildNodes = this.childNodes.asSequence()
     .map(SecureObject<ProcessNodeInstance>::withPermission)
-    .filter { it.state == NodeInstanceState.Skipped }
+    .filter { it.state.isFinal && it.state != NodeInstanceState.Skipped }
     .toMutableSet()
 
   var seenNonFinal = false
   for(traceElementPos in trace.indices) {
     val traceElement = trace[traceElementPos]
-    val nodeInstance = traceElement.getNodeInstance(this)?.takeIf { it.state.isFinal }
+    val nodeInstance = traceElement.getNodeInstance(transaction, this)?.takeIf { it.state.isFinal }
     if (nodeInstance != null) {
       if(seenNonFinal) {
         kfail("Found gap in the trace ${trace}#$traceElementPos before node: $nodeInstance")

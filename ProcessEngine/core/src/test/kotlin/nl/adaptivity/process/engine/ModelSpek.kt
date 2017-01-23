@@ -43,11 +43,11 @@ data class ModelData(val engineData: ()->EngineTestData,
                      val model: ExecutableProcessModel,
                      val valid: List<Trace>,
                      val invalid: List<Trace>) {
-  internal constructor(model:Model, valid:List<Trace>, invalid:List<Trace>):this({ EngineTestData.defaultEngine() }, model.rootModel, valid, invalid)
+  internal constructor(model: ConfigurableModel, valid:List<Trace>, invalid:List<Trace>):this({ EngineTestData.defaultEngine() }, model.rootModel, valid, invalid)
 }
 
 class ModelSpekSubjectContext(private val subjectProviderDsl: SubjectProviderDsl<ModelData>) {
-  internal fun ModelData(model:Model, valid:List<Trace>, invalid:List<Trace>):ModelData {
+  internal fun ModelData(model: ConfigurableModel, valid:List<Trace>, invalid:List<Trace>):ModelData {
     val engineData = { EngineTestData.defaultEngine() }
     return ModelData(engineData, model.rootModel, valid, invalid)
   }
@@ -122,7 +122,7 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
       // TODO we want to properly support the trace
       val nodeInstanceF = getter {
         processInstanceF().let { processInstance: ProcessInstance ->
-          traceElement.getNodeInstance(processInstance)
+          traceElement.getNodeInstance(transaction.value, processInstance)
           ?: throw NoSuchElementException(
             "No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
         }
@@ -341,7 +341,7 @@ private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeIns
 
 fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance, traceElement: TraceElement) {
   val instance = readableEngineData.instance(hProcessInstance).withPermission()
-  val nodeInstance = traceElement.getNodeInstance(instance) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
+  val nodeInstance = traceElement.getNodeInstance(this, instance) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
   if (nodeInstance.state != Complete) {
     System.err.println("Re-finishing node ${nodeInstance.node.id} $nodeInstance for instance $instance")
     instance.finishTask(writableEngineData, nodeInstance, traceElement.resultPayload)

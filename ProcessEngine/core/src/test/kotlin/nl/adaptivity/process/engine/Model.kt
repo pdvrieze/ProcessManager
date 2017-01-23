@@ -26,12 +26,6 @@ import java.util.*
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-/**
- * Created by pdvrieze on 12/01/17.
- */
-
-internal typealias Model = ConfigurableModel
-
 @Suppress("NOTHING_TO_INLINE")
 internal abstract class ConfigurableModel(
   private val name: String? = null,

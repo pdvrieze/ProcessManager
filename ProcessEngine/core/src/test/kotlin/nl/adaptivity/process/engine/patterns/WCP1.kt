@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.Model
+import nl.adaptivity.process.engine.ConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
@@ -25,7 +25,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.junit.jupiter.api.Assertions.assertEquals
 
 class WCP1: ModelSpek(run{
-  val m = object : Model("WCP1") {
+  val m = object : ConfigurableModel("WCP1") {
     val start by startNode
     val ac1 by activity(start)
     val ac2 by activity(ac1)
@@ -34,9 +34,8 @@ class WCP1: ModelSpek(run{
   with(m) {
     val valid = trace { start..ac1..ac2..end }
     val invalid = trace {
-      ac1 or
-        (start.opt .. (ac2 or end)) or
-        (start .. ac1 .. end)
+      (start.opt .. (ac2 or end)) or
+      (start .. ac1 .. end)
     }
     ModelData(m, valid, invalid)
   }

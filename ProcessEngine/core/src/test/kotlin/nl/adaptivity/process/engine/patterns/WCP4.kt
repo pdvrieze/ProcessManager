@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.Model
+import nl.adaptivity.process.engine.ConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 
-class WCP4: ModelSpek(run{
-  val model = object: Model("WCP4") {
+class WCP4: ModelSpek(run {
+  val model = object: ConfigurableModel("WCP4") {
     val start by startNode
     val split by split(start) { min = 1; max = 1 }
     val ac1 by activity(split)
@@ -36,7 +36,7 @@ class WCP4: ModelSpek(run{
   } }
 
   val invalidTraces = with(model) { trace {
-    ac1 or ac2 or end1 or end2 or split or
+    end1 or end2 or split or
       (start .. (split or end1 or end2 or
         (ac1 .. (ac2 or end2)) or
         (ac2 .. (ac1 or end1))))

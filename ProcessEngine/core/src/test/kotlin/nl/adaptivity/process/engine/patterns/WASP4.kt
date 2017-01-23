@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.Model
+import nl.adaptivity.process.engine.ConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 
 class WASP4: ModelSpek(run {
-  val model = object : Model("WASP4") {
+  val model = object : ConfigurableModel("WASP4") {
     val start1 by startNode
     val ac1    by activity(start1)
 

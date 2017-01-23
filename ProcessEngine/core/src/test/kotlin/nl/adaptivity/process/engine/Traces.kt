@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.spek.allChildren
 import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
 
@@ -47,9 +48,9 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
   override fun toString(): String {
     return when (instanceNo) {
       SINGLEINSTANCE -> nodeId
-      ANYINSTANCE    -> "$nodeId:*"
-      LASTINSTANCE   -> "$nodeId:#"
-      else           -> "$nodeId:$instanceNo"
+      ANYINSTANCE    -> "$nodeId[*]"
+      LASTINSTANCE   -> "$nodeId[#]"
+      else           -> "$nodeId[$instanceNo]"
     }
   }
 
@@ -83,12 +84,12 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
    */
   val  resultPayload: Node? get() = null
 
-  fun  getNodeInstance(instance: ProcessInstance): ProcessNodeInstance? {
+  fun  getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance? {
     return when (instanceNo) {
-      ANYINSTANCE -> instance.childNodes.asSequence().map { it.withPermission() }.firstOrNull { it.node.id == nodeId }
-      LASTINSTANCE -> instance.childNodes.asSequence().map { it.withPermission() }.filter { it.node.id == nodeId }.maxBy { it.entryNo }
-      SINGLEINSTANCE -> instance.childNodes.asSequence().map { it.withPermission() }.filter { it.node.id == nodeId }.also { it.all { it.entryNo==1 } }.firstOrNull()
-      else -> instance.getNodeInstance(this, instanceNo)
+      ANYINSTANCE -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId }
+      LASTINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.maxBy { it.entryNo }
+      SINGLEINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.also { if(!it.all { it.entryNo==1 }) throw ProcessTestingException("Only one instance is allowed with this trace: $this") }.firstOrNull()
+      else -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId && it.entryNo == instanceNo }
     }
   }
 
