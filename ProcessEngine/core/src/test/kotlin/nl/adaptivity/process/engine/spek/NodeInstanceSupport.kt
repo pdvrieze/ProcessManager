@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.kfail
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
@@ -42,7 +43,7 @@ interface SafeNodeActions {
   val transaction: ProcessTransaction
 
   fun ProcessNodeInstance.take(): ProcessNodeInstance {
-    return this.update(transaction.writableEngineData) { state= IProcessNodeInstance.NodeInstanceState.Taken }.node
+    return this.update(transaction.writableEngineData) { state= NodeInstanceState.Taken }.node
   }
 
   fun ProcessNodeInstance.start(): ProcessNodeInstance {

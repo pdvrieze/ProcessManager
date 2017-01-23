@@ -23,7 +23,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
@@ -163,7 +163,7 @@ class JoinInstance : ProcessNodeInstance {
             throw ProcessException("Predecessor ${predecessorId} is committed but not final, cannot finish join without cancelling the predecessor")
           } else {
             committedPredecessorCount++
-            if (predecessor.state==NodeInstanceState.Complete) {
+            if (predecessor.state== NodeInstanceState.Complete) {
               completedPredecessorCount++
             }
           }
@@ -232,14 +232,14 @@ class JoinInstance : ProcessNodeInstance {
     var skipped = 0
     for (predecessor in resolvePredecessors(engineData)) {
       when (predecessor.state) {
-        NodeInstanceState.Complete       -> complete += 1
+        NodeInstanceState.Complete -> complete += 1
 
         NodeInstanceState.Skipped,
         NodeInstanceState.SkippedCancel,
         NodeInstanceState.Cancelled,
         NodeInstanceState.SkippedFail,
-        NodeInstanceState.Failed         -> skipped += 1
-        else -> Unit // do nothing
+        NodeInstanceState.Failed   -> skipped += 1
+        else                                                                 -> Unit // do nothing
       }
     }
     if (totalPossiblePredecessors - skipped < join.min) {
@@ -303,7 +303,7 @@ class JoinInstance : ProcessNodeInstance {
     }.let { updatedPair ->
       updatedPair.node.updateTaskState(engineData, updatedPair.instance)
     }.let { updatedPair ->
-      if (updatedPair.node.state==NodeInstanceState.Started) {
+      if (updatedPair.node.state== NodeInstanceState.Started) {
         updatedPair.node.finishTask(engineData = engineData, processInstance = updatedPair.instance)
       } else {
         updatedPair

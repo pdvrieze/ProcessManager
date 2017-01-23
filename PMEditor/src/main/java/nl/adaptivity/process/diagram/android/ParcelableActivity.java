@@ -21,9 +21,12 @@ import android.os.Parcelable;
 import android.util.Log;
 import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.diagram.DrawableActivity;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.STUB_DRAWABLE_BUILD_HELPER;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.Activity.Builder;
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.XmlResultType;
@@ -34,6 +37,7 @@ import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
+import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
 
 import java.io.StringReader;
@@ -64,30 +68,37 @@ public class ParcelableActivity extends DrawableActivity
     }
   };
 
-  private ParcelableActivity(final Parcel source) {
-    super();
-    setId(source.readString());
-    setLabel(source.readString());
-    setName(source.readString());
-    setX(source.readDouble());
-    setY(source.readDouble());
+  private static DrawableActivity.Builder fromParcel(final Parcel source) {
+    DrawableActivity.Builder builder = new DrawableActivity.Builder();
+    builder.setId(source.readString());
+    builder.setLabel(source.readString());
+    builder.setName(source.readString());
+    builder.setX(source.readDouble());
+    builder.setY(source.readDouble());
 
-    setCondition(source.readString());
-    setPredecessors(fromIdStrings(source.createStringArray()));
-    setSuccessors(fromIdStrings(source.createStringArray()));
+    builder.setCondition(source.readString());
+    builder.setPredecessors(fromIdStrings(source.createStringArray()));
+    builder.setSuccessors(fromIdStrings(source.createStringArray()));
 
     final String strMessage = source.readString();
     Log.d(TAG, "deserializing message:\n"+strMessage);
     if (strMessage!=null && strMessage.length()>0) {
       try {
-        setMessage(XmlStreaming.deSerialize(new StringReader(strMessage), XmlMessage.class));
+        builder.setMessage(XmlStreaming.deSerialize(new StringReader(strMessage), XmlMessage.class));
       } catch (XmlException e) {
         throw new RuntimeException(e);
       }
     }
 
-    setDefines(readDefines(source));
-    setResults(readResults(source));
+    builder.setDefines(readDefines(source));
+    builder.setResults(readResults(source));
+
+
+    return builder;
+  }
+
+  private ParcelableActivity(final Parcel source) {
+    this(fromParcel(source));
   }
 
   private static DrawableActivity.Builder builder(Activity<?,?> orig, boolean compat) {
@@ -98,6 +109,15 @@ public class ParcelableActivity extends DrawableActivity
 
   public ParcelableActivity(final Activity<?, ?> orig, final boolean compat) {
     super(builder(orig, compat), STUB_DRAWABLE_BUILD_HELPER.INSTANCE);
+  }
+
+  public ParcelableActivity(@NotNull final Activity.Builder<?, ?> builder,
+                            @NotNull final BuildHelper<DrawableProcessNode, DrawableProcessModel> buildHelper) {
+    super(builder, buildHelper);
+  }
+
+  public ParcelableActivity(@NotNull final Activity.Builder<?, ?> builder) {
+    this(builder, STUB_DRAWABLE_BUILD_HELPER.INSTANCE);
   }
 
   public EditableUserTask getUserTask() {

@@ -22,7 +22,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingRegistry
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.userMessageHandler.server.XmlTask.Companion.get

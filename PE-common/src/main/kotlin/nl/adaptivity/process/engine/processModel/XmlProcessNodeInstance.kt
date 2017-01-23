@@ -28,7 +28,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*

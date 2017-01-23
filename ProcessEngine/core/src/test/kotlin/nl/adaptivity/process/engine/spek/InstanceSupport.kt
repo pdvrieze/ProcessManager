@@ -20,6 +20,7 @@ import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.util.Identified
@@ -92,7 +93,7 @@ interface InstanceSupport {
         Assertions.assertTrue(nodeInstance.state.isFinal,
                               { "The node instance state should be final (but is ${nodeInstance.state})" })
         Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
-        if (nodeInstance.state == IProcessNodeInstance.NodeInstanceState.Skipped) null else nodeInstance.node.id
+        if (nodeInstance.state == NodeInstanceState.Skipped) null else nodeInstance.node.id
       }.sorted().toList()
     Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString()})" })
   }
@@ -182,7 +183,7 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
   assertTrue(seen.slice(
     0..lastPos).all { it }) { "All trace elements should be in the trace: [${trace.mapIndexed { i, s -> "$s=${seen[i]}" }.joinToString()}]" }
   assertTrue(childIds.all {
-    this.findChild(transaction, it)?.state == IProcessNodeInstance.NodeInstanceState.Skipped || it in trace
+    this.findChild(transaction, it)?.state == NodeInstanceState.Skipped || it in trace
   }) { "All child nodes should be in the full trace or skipped (child nodes: [${childIds.joinToString()}])" }
 }
 
@@ -201,7 +202,7 @@ fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg n
       assertTrue(nodeInstance.state.isFinal,
                  { "The node instance state should be final (but is ${nodeInstance.state})" })
       assertTrue(nodeInstance.node !is EndNode<*, *>, { "Completed nodes should not be endnodes" })
-      if (nodeInstance.state != IProcessNodeInstance.NodeInstanceState.Skipped) nodeInstance.node.id else null
+      if (nodeInstance.state != NodeInstanceState.Skipped) nodeInstance.node.id else null
     }.sorted().toList()
   Assertions.assertEquals(nodeIds.sorted(), finished,
                           { "The list of finished nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${finished.joinToString()}])" })
@@ -223,7 +224,7 @@ fun  ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg 
       Assertions.assertTrue(nodeInstance.state.isFinal,
                             { "The node instance state should be final (but is ${nodeInstance.state})" })
       Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
-      if (nodeInstance.state == IProcessNodeInstance.NodeInstanceState.Skipped) null else nodeInstance.node.id
+      if (nodeInstance.state == NodeInstanceState.Skipped) null else nodeInstance.node.id
     }.sorted().toList()
   Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString(transaction)})" })
 }

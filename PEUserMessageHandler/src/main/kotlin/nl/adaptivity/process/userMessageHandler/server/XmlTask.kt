@@ -23,7 +23,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*

@@ -22,7 +22,7 @@ import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
@@ -129,12 +129,12 @@ class SplitInstance : ProcessNodeInstance {
       NodeInstanceState.Skipped,
       NodeInstanceState.Failed,
       NodeInstanceState.Complete -> true
-      else -> false
+      else                                                                 -> false
     }
   }
 
   override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
-    return update(engineData){ state=NodeInstanceState.Started }.let {
+    return update(engineData){ state= NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)
     }
   }
@@ -165,7 +165,7 @@ class SplitInstance : ProcessNodeInstance {
 
         val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this.getHandle())
         // TODO Make this respond to MAYBEs
-        if (nonRegisteredSuccessor.state==NodeInstanceState.Pending) {
+        if (nonRegisteredSuccessor.state== NodeInstanceState.Pending) {
           val conditionResult = nonRegisteredSuccessor.condition(engineData)
           when (conditionResult) {
             ConditionResult.TRUE -> { // only if it can be executed, otherwise just drop it.

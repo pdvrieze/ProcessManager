@@ -99,7 +99,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .SELECT(tbl_nd.name, tbl_nd.data)
           .WHERE { tbl_nd.pnihandle eq builder.handle }
           .getList(transaction.connection) { name, data ->
-            if (FAILURE_CAUSE == name && (builder.state == IProcessNodeInstance.NodeInstanceState.Failed || builder.state == IProcessNodeInstance.NodeInstanceState.FailRetry)) {
+            if (FAILURE_CAUSE == name && (builder.state == NodeInstanceState.Failed || builder.state == NodeInstanceState.FailRetry)) {
               builder.failureCause = Exception(data)
               null
             } else {
@@ -150,7 +150,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
         insert.executeUpdate(connection)
       }
 
-      val isFailure = newValue.state == IProcessNodeInstance.NodeInstanceState.Failed || newValue.state == IProcessNodeInstance.NodeInstanceState.FailRetry
+      val isFailure = newValue.state == NodeInstanceState.Failed || newValue.state == NodeInstanceState.FailRetry
       val results = newValue.results
       if (results.isNotEmpty() || (isFailure && newValue.failureCause != null)) {
         val insert = ProcessEngineDB.INSERT_OR_UPDATE(tbl_nd.pnihandle, tbl_nd.name, tbl_nd.data)

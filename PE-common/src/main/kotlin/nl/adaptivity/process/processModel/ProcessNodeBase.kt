@@ -52,14 +52,10 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
       override var x: Double = Double.NaN,
       override var y: Double = Double.NaN) : ProcessNode.IBuilder<NodeT,ModelT>, XmlDeserializable {
 
-    override var predecessors: MutableSet<Identified> = ArraySet(predecessors)
-      set(value) {field.replaceBy(value)}
-    override var successors: MutableSet<Identified> = ArraySet(successors)
-      set(value) {field.replaceBy(value)}
-    override var defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
-      set(value) {field.replaceBy(value)}
-    override var results: MutableCollection<IXmlResultType> = ArrayList(results)
-      set(value) {field.replaceBy(value)}
+    override val predecessors: MutableSet<Identified> = ArraySet(predecessors)
+    override val successors: MutableSet<Identified> = ArraySet(successors)
+    override val defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
+    override val results: MutableCollection<IXmlResultType> = ArrayList(results)
 
     constructor(node: ProcessNode<*,*>): this(node.id, node.predecessors, node.successors, node.label, node.defines, node.results, node.x, node.y)
 

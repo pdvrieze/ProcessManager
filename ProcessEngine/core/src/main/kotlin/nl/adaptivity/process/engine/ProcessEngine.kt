@@ -26,8 +26,8 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.processModel.AbstractProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.*
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.RootProcessModelBase

@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.EngineTesting.*
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceSpecBody
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceTestBody
 import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.engine.spek.ProcessNodeActions
@@ -248,7 +248,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
   for(validTrace in valid) {
     givenProcess(model, description = validTrace.joinToString(prefix = "For trace: [", postfix = "]")) {
       test("Only start nodes should be finished") {
-        assertTrue(instance.finishedNodes.all { it.state==NodeInstanceState.Skipped || it.node is StartNode<*, *> }) { "Nodes [${instance.finishedNodes.filter { it.state!=NodeInstanceState.Skipped && it.node !is StartNode<*,*> }}] are not startnodes, but already finished" }
+        assertTrue(instance.finishedNodes.all { it.state== NodeInstanceState.Skipped || it.node is StartNode<*, *> }) { "Nodes [${instance.finishedNodes.filter { it.state!= NodeInstanceState.Skipped && it.node !is StartNode<*,*> }}] are not startnodes, but already finished" }
       }
 
       val startPos = 0

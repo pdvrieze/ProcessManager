@@ -26,7 +26,7 @@ package nl.adaptivity.process.messaging;
 
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
+import nl.adaptivity.process.engine.processModel.NodeInstanceState;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.xml.*;

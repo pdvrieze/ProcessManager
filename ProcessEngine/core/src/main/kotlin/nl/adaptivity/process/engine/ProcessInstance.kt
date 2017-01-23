@@ -20,7 +20,7 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
@@ -598,17 +598,17 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     engineData.commit()
     self = startedTasks.fold(self) { self, task ->
       when (predecessor.state) {
-        NodeInstanceState.Complete ->
+        NodeInstanceState.Complete  ->
             task.provideTask(engineData, self).instance
         NodeInstanceState.SkippedCancel,
         NodeInstanceState.SkippedFail,
-        NodeInstanceState.Skipped ->
+        NodeInstanceState.Skipped   ->
             self.skipTask(engineData, task, predecessor.state).instance
         NodeInstanceState.Cancelled ->
             self.skipCancelTask(engineData, task).instance
-        NodeInstanceState.Failed ->
+        NodeInstanceState.Failed    ->
             self.skipFailTask(engineData, task).instance
-        else -> throw ProcessException("Node ${predecessor} is not in a supported state to initiate successors")
+        else                                                                  -> throw ProcessException("Node ${predecessor} is not in a supported state to initiate successors")
       }
     }
     self = joinsToEvaluate.fold(self) {self, join -> join.startTask(engineData, self).instance }

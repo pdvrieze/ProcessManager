@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.diagram.Positioned
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -31,14 +32,14 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
   @ProcessModelDSL
   interface IBuilder<NodeT: ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>: XmlDeserializable {
-    var predecessors: MutableSet<Identified>
-    var successors: MutableSet<Identified>
+    val predecessors: MutableSet<Identified>
+    val successors: MutableSet<Identified>
     var id: String?
     var label: String?
     var x: Double
     var y: Double
-    var defines: MutableCollection<IXmlDefineType>
-    var results: MutableCollection<IXmlResultType>
+    val defines: MutableCollection<IXmlDefineType>
+    val results: MutableCollection<IXmlResultType>
     val idBase: String
 
     fun predecessors(vararg values:Identifiable) {
@@ -54,6 +55,11 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
     fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
     fun <R> visit(visitor: BuilderVisitor<R>):R
+
+    fun setPredecessors(value: Iterable<Identified>) = predecessors.replaceBy(value)
+    fun setSuccessors(value: Iterable<Identified>) = successors.replaceBy(value)
+    fun setDefines(value: Iterable<IXmlDefineType>) = defines.replaceBy(value)
+    fun setResults(value: Iterable<IXmlResultType>) = results.replaceBy(value)
   }
 
   @ProcessModelDSL

@@ -19,7 +19,7 @@ package nl.adaptivity.process.userMessageHandler.server
 import net.devrieze.util.Handle
 import net.devrieze.util.MutableHandleAware
 import nl.adaptivity.messaging.EndpointDescriptorImpl
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import java.security.Principal
 
 

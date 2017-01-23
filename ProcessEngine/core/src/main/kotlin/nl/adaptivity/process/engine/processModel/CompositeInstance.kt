@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import org.w3c.dom.DocumentFragment
@@ -45,7 +45,7 @@ class CompositeInstance : ProcessNodeInstance {
                 owner: Principal,
                 handle: ComparableHandle<SecureObject<ProcessNodeInstance>>,
                 state: NodeInstanceState) : super(node, predecessors, hProcessInstance, owner,
-                                                                                                                 handle, state)
+                                                                                            handle, state)
   }
 
   class ExtBuilder(base: CompositeInstance) : ExtBuilderBase<ExecutableProcessNode>(base) {

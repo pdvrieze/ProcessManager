@@ -37,6 +37,8 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
 
   class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
+    constructor() : this(id=null)
+
     constructor(id: String? = null,
                 predecessor: Identified? = null,
                 successor: Identified? = null,

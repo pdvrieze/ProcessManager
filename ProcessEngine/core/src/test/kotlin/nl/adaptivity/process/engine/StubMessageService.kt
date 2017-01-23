@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage

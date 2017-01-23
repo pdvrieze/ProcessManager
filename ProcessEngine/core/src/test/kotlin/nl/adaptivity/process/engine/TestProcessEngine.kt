@@ -23,7 +23,7 @@ import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel

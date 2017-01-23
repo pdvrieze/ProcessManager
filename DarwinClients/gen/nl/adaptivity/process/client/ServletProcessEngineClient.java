@@ -24,7 +24,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.messaging.SendableSoapSource;
 import nl.adaptivity.process.engine.XmlHandle;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
+import nl.adaptivity.process.engine.processModel.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;

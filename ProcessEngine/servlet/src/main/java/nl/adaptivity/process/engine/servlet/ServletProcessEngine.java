@@ -29,7 +29,7 @@ import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
+import nl.adaptivity.process.engine.processModel.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;

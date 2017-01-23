@@ -23,7 +23,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
@@ -191,7 +191,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     return when (state) {
       NodeInstanceState.FailRetry,
       NodeInstanceState.Pending -> provideTask(engineData, instance)
-      else -> PNIPair(instance, this)
+      else                                                                -> PNIPair(instance, this)
     }// ignore
   }
 
@@ -311,12 +311,12 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   fun cancelAndSkip(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<ProcessNodeInstance> {
     return when (state) {
       NodeInstanceState.Pending,
-      NodeInstanceState.FailRetry -> update(engineData) { state = NodeInstanceState.Skipped }
+      NodeInstanceState.FailRetry    -> update(engineData) { state = NodeInstanceState.Skipped }
       NodeInstanceState.Sent,
       NodeInstanceState.Taken,
       NodeInstanceState.Acknowledged ->
           cancelTask(engineData, processInstance).update(engineData) { state = NodeInstanceState.Skipped }
-      else -> PNIPair(processInstance, this)
+      else                                                                     -> PNIPair(processInstance, this)
     }
   }
 
@@ -371,9 +371,9 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                                  localEndpoint: EndpointDescriptor) {
     val defines = getDefines(engineData)
     val transformer = PETransformer.create(ProcessNodeInstanceContext(this,
-        defines,
-        state == NodeInstanceState.Complete, localEndpoint),
-        removeWhitespace)
+                                                                      defines,
+                                                                      state == NodeInstanceState.Complete, localEndpoint),
+                                           removeWhitespace)
     transformer.transform(xmlReader, out.filterSubstream())
   }
 

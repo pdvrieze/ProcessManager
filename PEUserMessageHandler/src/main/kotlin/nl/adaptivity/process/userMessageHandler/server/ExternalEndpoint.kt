@@ -20,7 +20,7 @@ import net.devrieze.util.Handles
 import net.devrieze.util.Transaction
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.MessagingRegistry
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.rest.annotations.RestMethod

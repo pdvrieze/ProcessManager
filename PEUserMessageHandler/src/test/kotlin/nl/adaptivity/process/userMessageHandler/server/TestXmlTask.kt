@@ -19,8 +19,8 @@ package nl.adaptivity.process.userMessageHandler.server
 import net.devrieze.util.Handles
 import net.devrieze.util.ReaderInputStream
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlStreaming
 import nl.adaptivity.xml.serialize

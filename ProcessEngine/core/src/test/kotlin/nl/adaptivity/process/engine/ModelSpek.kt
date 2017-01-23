@@ -16,11 +16,8 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState.Complete
-import nl.adaptivity.process.engine.processModel.JoinInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.*
+import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
 import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -192,10 +189,10 @@ private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>
   group("After starting") {
     test("Only start nodes should be finished") {
       val processInstance = processInstanceF()
-      val onlyStartNodesCompleted = processInstance.finishedNodes.all { it.state == IProcessNodeInstance.NodeInstanceState.Skipped || it.node is StartNode<*, *> }
+      val onlyStartNodesCompleted = processInstance.finishedNodes.all { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> }
       Assertions.assertTrue(onlyStartNodesCompleted) {
         processInstance.finishedNodes
-          .filter { it.state != IProcessNodeInstance.NodeInstanceState.Skipped && it.node !is StartNode<*, *> }
+          .filter { it.state != NodeInstanceState.Skipped && it.node !is StartNode<*, *> }
           .joinToString(prefix = "Nodes [",
                         postfix = "] are not startnodes, but already finished.")
       }
@@ -232,9 +229,9 @@ private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
           val nodeInstance = processInstance.allChildren(transaction).firstOrNull { it.node.id == endNode.id } ?: kfail(
             "Nodeinstance ${endNode.identifier} does not exist, the instance is ${processInstance.toDebugString(
               transaction)}")
-          nodeInstance.state !in listOf(IProcessNodeInstance.NodeInstanceState.Skipped,
-                                        IProcessNodeInstance.NodeInstanceState.SkippedCancel,
-                                        IProcessNodeInstance.NodeInstanceState.SkippedFail)
+          nodeInstance.state !in listOf(NodeInstanceState.Skipped,
+                                        NodeInstanceState.SkippedCancel,
+                                        NodeInstanceState.SkippedFail)
         }
         .map { it.id!! }
         .toList().toTypedArray()
@@ -276,12 +273,12 @@ private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
     Assertions.assertTrue(nodeInstance.state.isCommitted) {
       "The instance state was ${processInstance.toDebugString(transaction)}"
     }
-    Assertions.assertEquals(IProcessNodeInstance.NodeInstanceState.Started, nodeInstance.state)
+    Assertions.assertEquals(NodeInstanceState.Started, nodeInstance.state)
   }
   test("the node instance ${traceElement} should be final after finishing") {
     val processInstance = transaction.value.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
     processInstance.finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
-    assertEquals(IProcessNodeInstance.NodeInstanceState.Complete, nodeInstanceF().state)
+    assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
   }
 }
 
