@@ -166,7 +166,7 @@ class SplitInstance : ProcessNodeInstance {
           throw IllegalStateException("Splits cannot be immediately followed by joins")
         }
 
-        val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this)
+        val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this, entryNo )
         // TODO Make this respond to MAYBEs
         if (nonRegisteredSuccessor.state== NodeInstanceState.Pending) {
           val conditionResult = nonRegisteredSuccessor.condition(engineData)

@@ -49,8 +49,8 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
 
   override fun builder() = Builder(node=this)
 
-  fun createOrReuseInstance(processInstance: ProcessInstance, entryNo: Int = 1)
-      = processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance, entryNo)
+  fun createOrReuseInstance(processInstance: ProcessInstance, entryNo: Int)
+      = processInstance.getNodeInstance(this, entryNo) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance, entryNo)
 
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = ConditionResult.TRUE
 

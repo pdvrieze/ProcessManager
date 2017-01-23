@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.spek
 
+import net.devrieze.util.security.SecureObject
 import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -165,7 +166,7 @@ fun ProcessInstance.trace(transaction: StubProcessTransaction,
     .map { it.withPermission() }
     .filter(filter)
     .sortedBy { getHandle().handleValue }
-    .map { TraceElement(it.node.id, SINGLEINSTANCE) }
+    .map { TraceElement(it.node.id, it.entryNo) }
 }
 
 fun ProcessInstance.trace(transaction: StubProcessTransaction): Array<TraceElement> {
@@ -176,14 +177,27 @@ fun ProcessInstance.trace(transaction: StubProcessTransaction): Array<TraceEleme
 
 fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
                                         trace: Trace) {
-  val childIds = this.trace(transaction) { it.state.isFinal }.toSet()
-  val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in childIds }
-  val lastPos = seen.lastIndexOf(true)
-  assertTrue(seen.slice(
-    0..lastPos).all { it }) { "All trace elements should be in the trace: [${trace.mapIndexed { i, s -> "$s=${seen[i]}" }.joinToString()}]" }
-  assertTrue(childIds.all {
-    this.findChild(transaction, it)?.state == NodeInstanceState.Skipped || it in trace
-  }) { "All child nodes should be in the full trace or skipped (child nodes: [${childIds.joinToString()}])" }
+  val nonSeenChildNodes = this.childNodes.asSequence()
+    .map(SecureObject<ProcessNodeInstance>::withPermission)
+    .filter { it.state == NodeInstanceState.Skipped }
+    .toMutableSet()
+
+  var seenNonFinal = false
+  for(traceElementPos in trace.indices) {
+    val traceElement = trace[traceElementPos]
+    val nodeInstance = traceElement.getNodeInstance(this)?.takeIf { it.state.isFinal }
+    if (nodeInstance != null) {
+      if(seenNonFinal) {
+        kfail("Found gap in the trace ${trace}#$traceElementPos before node: $nodeInstance")
+      }
+      nonSeenChildNodes.remove(nodeInstance)
+    } else {
+      seenNonFinal = true
+    }
+  }
+  if (!nonSeenChildNodes.isEmpty()) {
+    kfail("All child nodes should be in the full trace or skipped. Found [${nonSeenChildNodes.joinToString()}]" )
+  }
 }
 
 fun ProcessInstance.assertFinished() {

@@ -155,7 +155,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
   }
 
   constructor(builder: ProcessNode.IBuilder<*,*>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>):
-    this(buildHelper.newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y, builder.defines, builder.results)
+    this(buildHelper.newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x, builder.y, builder.defines, builder.results, builder.isMultiInstance)
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 

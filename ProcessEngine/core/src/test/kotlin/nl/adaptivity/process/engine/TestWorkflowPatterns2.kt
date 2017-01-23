@@ -88,7 +88,7 @@ class TestWorkflowPatterns2 : Spek(
 
         }
 
-        xdescribe("WCP8: Multi-merge", "Multiple instantiations of a single node are not yet supported") {
+        describe("WCP8: Multi-merge") {
           includeLocal(WCP8())
         }
 

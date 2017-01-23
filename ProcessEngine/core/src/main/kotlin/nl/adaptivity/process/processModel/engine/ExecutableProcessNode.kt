@@ -66,8 +66,11 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
    * the type (joins)
    */
-  fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance): ProcessNodeInstance =
-      processInstance.getNodeInstance(this) ?: ProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
+  fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                            processInstance: ProcessInstance,
+                            predecessor: ProcessNodeInstance,
+                            entryNo: Int): ProcessNodeInstance
+    = processInstance.getNodeInstance(this, entryNo) ?: ProcessNodeInstance(this, predecessor.getHandle(), processInstance, entryNo)
 
   /**
    * Should this node be able to be provided?

@@ -360,7 +360,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     return update(engineData) {
       processModel.startNodes.forEach { node ->
-        addChild(node.createOrReuseInstance(this@ProcessInstance))
+        addChild(node.createOrReuseInstance(this@ProcessInstance, 1)) // Start with sequence 1
       }
       state = State.INITIALIZED
     }
@@ -441,14 +441,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @Synchronized @Throws(SQLException::class)
-  fun getNodeInstance(identified: Identified): ProcessNodeInstance? {
-    return childNodes.asSequence().map { it.withPermission() }.firstOrNull { it.node.id==identified.id }
+  fun getNodeInstances(identified: Identified): Sequence<ProcessNodeInstance> {
+    return childNodes.asSequence().map { it.withPermission() }.filter { it.node.id==identified.id }
   }
 
   @Synchronized @Throws(SQLException::class)
-  internal fun getJoinInstance(join: ExecutableJoin, predecessor: ProcessNodeInstance): JoinInstance {
-    return pendingJoinNodes.firstOrNull { it.node == join && it.entryNo == predecessor.entryNo }
-        ?: JoinInstance(join, listOf(predecessor.getHandle()), this.handle, owner, predecessor.entryNo)
+  fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance? {
+    return childNodes.asSequence().map { it.withPermission() }.firstOrNull { it.node.id==identified.id && it.entryNo == entryNo }
   }
 
   @Synchronized override fun setHandleValue(handleValue: Long) {
@@ -576,7 +575,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     var self = this
     for (successorId in predecessor.node.successors) {
       val nodeInstance:ProcessNodeInstance = run {
-        val nonRegisteredNodeInstance = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(engineData, this@ProcessInstance, predecessor)
+        val nonRegisteredNodeInstance = processModel.getNode(successorId).mustExist(successorId).createOrReuseInstance(
+          engineData, this@ProcessInstance, predecessor, predecessor.entryNo )
         val pair = nonRegisteredNodeInstance.update(engineData) {
           predecessors.add(predecessor.getHandle())
         }

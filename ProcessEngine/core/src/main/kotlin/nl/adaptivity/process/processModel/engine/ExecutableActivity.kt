@@ -135,8 +135,9 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
                                      processInstance: ProcessInstance,
-                                     predecessor: ProcessNodeInstance): ProcessNodeInstance {
-    return processInstance.getNodeInstance(this) ?: if(childModel==null) ProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo) else CompositeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
+                                     predecessor: ProcessNodeInstance,
+                                     entryNo: Int): ProcessNodeInstance {
+    return processInstance.getNodeInstance(this, predecessor.entryNo) ?: if(childModel==null) ProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo) else CompositeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
   }
 
   /**

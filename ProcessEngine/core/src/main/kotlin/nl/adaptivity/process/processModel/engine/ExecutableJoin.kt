@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel.engine
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -48,7 +49,27 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance)
-      = processInstance.getNodeInstance(this) ?: processInstance.getJoinInstance(this, predecessor)
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                                     processInstance: ProcessInstance,
+                                     predecessor: ProcessNodeInstance,
+                                     entryNo: Int): ProcessNodeInstance {
+    if (isMultiInstance) {
+      var entryNoUnique = true
+      var lastEntryNo = -1
+      for (candidate in processInstance.childNodes) {
+        (candidate as? JoinInstance)?.let {
+          if (it.node == this) {
+            if (!it.isFinished) return it
+            entryNoUnique = entryNoUnique and (entryNo != it.entryNo)
+            if (it.entryNo>lastEntryNo) lastEntryNo = it.entryNo
+          }
+        }
+      }
+      val usedEntryNo  = if (! entryNoUnique) { lastEntryNo+1 } else { entryNo }
+      return JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, usedEntryNo)
+    } else {
+      return processInstance.getNodeInstance(this, entryNo) ?: JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, entryNo)
+    }
+  }
 
 }

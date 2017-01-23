@@ -50,8 +50,11 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: ProcessNodeInstance)
-      = processInstance.getNodeInstance(this) ?: SplitInstance(this, predecessor.getHandle(), processInstance.getHandle(), processInstance.owner, entryNo = predecessor.entryNo)
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                                     processInstance: ProcessInstance,
+                                     predecessor: ProcessNodeInstance,
+                                     entryNo: Int)
+      = processInstance.getNodeInstance(this, entryNo) ?: SplitInstance(this, predecessor.getHandle(), processInstance.getHandle(), processInstance.owner, entryNo = entryNo)
 
   override fun startTask(instance: ProcessNodeInstance) = false
 

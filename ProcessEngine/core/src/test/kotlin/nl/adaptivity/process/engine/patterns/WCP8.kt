@@ -24,9 +24,9 @@ class WCP8: ModelSpek(run {
     val start2 by startNode
     val ac1    by activity(start1)
     val ac2    by activity(start2)
-    val join   by join(ac1, ac2) { min = 1; max = 1 }
-    val ac3    by activity(join)
-    val end    by endNode(ac3)
+    val join   by join(ac1, ac2) { min = 1; max = 1; isMultiInstance=true }
+    val ac3    by activity(join) { isMultiInstance=true }
+    val end    by endNode(ac3) { isMultiInstance=true }
   }
 
   val validTraces = with(model) { trace {
@@ -35,7 +35,7 @@ class WCP8: ModelSpek(run {
     val h2 = (ac1 or ac2) .. join[2]
 
     (start1 % start2) .. (ac1 or ac2) .. join[1] ..
-      ((t1 % h2).. t2) or (h2 .. t2 .. t1)
+      (((t1 % h2).. t2) or (h2 .. t2 .. t1))
   }}.removeInvalid()
 
   val invalidTraces = with(model) { trace{

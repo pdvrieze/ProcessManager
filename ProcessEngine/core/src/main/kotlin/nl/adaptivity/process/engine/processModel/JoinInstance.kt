@@ -62,6 +62,7 @@ class JoinInstance : ProcessNodeInstance {
   override fun getHandle(): ComparableHandle<out SecureObject<JoinInstance>>
         = super.getHandle() as ComparableHandle<out SecureObject<JoinInstance>>
 
+  /** Is this join completed or can other entries be added? */
   val isFinished: Boolean
     get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
@@ -77,17 +78,6 @@ class JoinInstance : ProcessNodeInstance {
   }
 
   constructor(builder:Builder): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
-
-  /**
-   * Constructor for ProcessNodeInstanceMap.
-   * @param node
-   * *
-   * @param processInstance
-   */
-  @Throws(SQLException::class)
-  internal constructor(transaction: ProcessTransaction, node: ExecutableJoin, processInstance: ProcessInstance, state: NodeInstanceState, entryNo:Int)
-        : super(transaction, node, processInstance, state, entryNo) {
-  }
 
   @JvmName("updateJoin")
   fun updateJoin(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): PNIPair<JoinInstance> {
@@ -183,7 +173,7 @@ class JoinInstance : ProcessNodeInstance {
     if (committedPredecessorCount<node.min) {
       throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
     }
-    val processInstance = cancelablePredecessors.fold(processInstance) { processInstance, instanceToCancel ->
+    val processInstance = if(node.isMultiInstance) processInstance else cancelablePredecessors.fold(processInstance) { processInstance, instanceToCancel ->
       instanceToCancel.cancelAndSkip(engineData, processInstance).instance
     }
     return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
@@ -300,7 +290,7 @@ class JoinInstance : ProcessNodeInstance {
     return self.updateJoin(engineData, processInstance) {
       val processInstance = engineData.instance(hProcessInstance).withPermission()
       missingIdentifiers.asSequence()
-            .mapNotNull { processInstance.getNodeInstance(it) }
+            .flatMap { processInstance.getNodeInstances(it) }
             .forEach { predecessors.add(it.getHandle()) }
     }.let { updatedPair ->
       updatedPair.node.updateTaskState(engineData, updatedPair.instance)

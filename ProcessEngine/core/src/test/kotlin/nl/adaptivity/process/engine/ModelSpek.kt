@@ -101,7 +101,7 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
             // TODO we want to properly support the trace
             val nodeInstanceF = getter {
               processInstanceF().let { processInstance: ProcessInstance ->
-                processInstance.allChildren(transaction()).lastOrNull { traceElement.fits(it) }
+                traceElement.getNodeInstance(processInstance)
                 ?: throw NoSuchElementException("No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
               }
             }
@@ -123,7 +123,7 @@ abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null
                 else               -> test("$traceElement should not be in a final state") {
                   val nodeInstance = nodeInstanceF()
                   Assertions.assertFalse(
-                    nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
+                    nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
                 }
               } // when
 
@@ -326,7 +326,7 @@ private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeIns
 
 fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance, traceElement: TraceElement) {
   val instance = readableEngineData.instance(hProcessInstance).withPermission()
-  val nodeInstance = instance.getNodeInstance(traceElement) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
+  val nodeInstance = traceElement.getNodeInstance(instance) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
   if (nodeInstance.state != Complete) {
     System.err.println("Re-finishing node ${nodeInstance.node.id} $nodeInstance for instance $instance")
     instance.finishTask(writableEngineData, nodeInstance, traceElement.resultPayload)

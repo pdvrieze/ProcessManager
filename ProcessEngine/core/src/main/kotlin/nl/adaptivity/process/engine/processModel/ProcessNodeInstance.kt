@@ -180,11 +180,6 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                                                                 builder.entryNo, builder.handle, builder.state,
                                                                 builder.results, builder.failureCause)
 
-  @Throws(SQLException::class)
-  internal constructor(transaction: ProcessTransaction, node: ExecutableProcessNode, processInstance: ProcessInstance, state: NodeInstanceState, entryNo: Int)
-        : this(node, resolvePredecessors(transaction, processInstance, node), processInstance.getHandle(),
-               processInstance.owner, entryNo = entryNo, state=state)
-
   override fun withPermission() = this
 
   open fun builder(): ExtBuilderBase<out ExecutableProcessNode> {
@@ -364,7 +359,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
   }
 
   override fun toString(): String {
-    return node.javaClass.simpleName + " (" + state + ")"
+    return "${node.javaClass.simpleName}  (${handle}, ${node.id}[$entryNo] - $state)"
   }
 
   @Throws(SQLException::class)
@@ -521,29 +516,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   companion object {
 
-    @Deprecated("It's not clear that this is correct")
-    @Throws(XmlException::class)
-    fun <T: ProcessTransaction> deserialize(transaction: T, processEngine: ProcessEngine<T>, xmlReader: XmlReader): ProcessNodeInstance {
-
-      val nodeInstance = XmlProcessNodeInstance.deserialize(xmlReader)
-      val instance = transaction.readableEngineData.instance(Handles.handle(nodeInstance.processInstance)).withPermission()
-      val processNode = instance.processModel.getNode(nodeInstance.nodeId ?: throw NullPointerException("Missing node id"))?: throw ProcessException("Missing node in process model")
-      return ProcessNodeInstance(transaction, processNode, instance, nodeInstance.state ?: throw NullPointerException("Missing state"), nodeInstance.entryNo)
-    }
-
     private val logger by lazy { Logger.getLogger(ProcessNodeInstance::class.java.getName()) }
-
-    @Throws(SQLException::class)
-    private fun <T:ProcessTransaction> resolvePredecessors(transaction: T,
-                                                           processInstance: ProcessInstance,
-                                                           node: ExecutableProcessNode): List<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>> {
-
-      return node.predecessors.asSequence()
-            .map { processInstance.getNodeInstance(it) }
-            .filterNotNull()
-            .map { it.handle }
-            .toList()
-    }
 
     fun <T:ProcessTransaction> build(node: ExecutableProcessNode,
                                      predecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>>,

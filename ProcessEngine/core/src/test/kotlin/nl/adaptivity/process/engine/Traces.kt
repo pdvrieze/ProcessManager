@@ -78,15 +78,19 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
     return nodeId.hashCode()
   }
 
-  fun  fits(it: ProcessNodeInstance): Boolean {
-    // TODO add sequence checks
-    return it.node.id==nodeId
-  }
-
   /**
    * The data that will be used as the return of the service behind the node.
    */
   val  resultPayload: Node? get() = null
+
+  fun  getNodeInstance(instance: ProcessInstance): ProcessNodeInstance? {
+    return when (instanceNo) {
+      ANYINSTANCE -> instance.childNodes.asSequence().map { it.withPermission() }.firstOrNull { it.node.id == nodeId }
+      LASTINSTANCE -> instance.childNodes.asSequence().map { it.withPermission() }.filter { it.node.id == nodeId }.maxBy { it.entryNo }
+      SINGLEINSTANCE -> instance.childNodes.asSequence().map { it.withPermission() }.filter { it.node.id == nodeId }.also { it.all { it.entryNo==1 } }.firstOrNull()
+      else -> instance.getNodeInstance(this, instanceNo)
+    }
+  }
 
 
 }
