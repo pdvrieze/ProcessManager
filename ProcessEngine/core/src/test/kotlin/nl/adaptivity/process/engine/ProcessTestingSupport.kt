@@ -395,3 +395,5 @@ fun kfail(message:String):Nothing {
   fail(message)
   throw UnsupportedOperationException("This code should not be reachable")
 }
+
+internal fun Boolean.toXPath() = if (this) "true()" else "false()"
