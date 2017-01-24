@@ -28,24 +28,25 @@ class WCP8: ModelSpek(run {
     val start1 by startNode
     val start2 by startNode
     val ac1    by activity(start1)
-    val ac2    by activity(start2)
-    val join   by join(ac1, ac2) { min = 1; max = 1; isMultiMerge=true }
-    val ac3    by activity(join) { isMultiInstance=true }
-    val end    by endNode(ac3) { isMultiInstance=true }
+    val ac2    by activity(ac1)
+
+    val ac3 by activity(start2)
+    val ac4 by activity(ac3)
+    val join   by join(ac2, ac4) { min = 1; max = 1; isMultiMerge=true }
+    val ac5 by activity(join) { isMultiInstance=true }
+    val end    by endNode(ac5) { isMultiInstance=true }
   }
 
   val validTraces = with(model) { trace {
-    val t1 = ac3[1] .. end[1]
-    val t2 = ac3[2] .. end[2]
-    val h2 = (ac1 or ac2) .. join[2]
-
-    (start1 % start2) .. (ac1 or ac2) .. join[1] ..
-      (((t1 % h2).. t2) or (h2 .. t2 .. t1))
-  }}.removeInvalid()
+    (start1 % start2) .. (
+      (((ac1 .. ac2)/(+ac3)) .. join[1] .. ((ac5[1] .. end[1])/(ac4 .. join[2] .. ac5[2] .. end[2]))) or
+      (((+ac1)/(ac3 .. ac4)) .. join[1] .. ((ac5[1] .. end[1])/(ac2 .. join[2] .. ac5[2] .. end[2])))
+    )
+  }}
 
   val invalidTraces = with(model) { trace{
-    ac3 or end or join or
-      (((start1 % start2) or start1 or start2) .. (join or ac3 or end))
+    ac2 or ac4 or ac5 or end or join or
+      (((start1 % start2) or start1 or start2) ..(ac2 or ac4 or join or ac5 or end))
   }}
 
   ModelData(model, validTraces, invalidTraces)
@@ -61,7 +62,7 @@ class WCP8: ModelSpek(run {
     }
   }
   group("When ac3 is not multiInstance") {
-    val modifiedModel = model.update { activity("ac3")!! { isMultiInstance = false } }
+    val modifiedModel = model.update { activity("ac5")!! { isMultiInstance = false } }
     for (trace in valid) {
       t.testInvalidTrace(this, modifiedModel, model.owner, trace)
     }
