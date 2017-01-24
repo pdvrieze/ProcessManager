@@ -103,6 +103,9 @@ class BTrace(val elems:Array<TraceElement>): Iterable<TraceElement> {
   operator fun rangeTo(other: TraceElement) = BTrace(elems + other)
   operator fun plus(other: BTrace) = BTrace(elems + other.elems)
   override fun iterator() = elems.iterator()
+
+  fun slice(indices: IntRange) = BTrace(elems.sliceArray(indices))
+  fun slice(startIdx: Int) = BTrace(elems.sliceArray(startIdx until elems.size))
 }
 
 //private typealias BTrace = MutableList<TraceElement>
@@ -188,6 +191,18 @@ class TraceBuilder {
          val       Traces.opt: Traces get() = listOf(trace()) or this
 
 
+  operator fun BTrace.div(other: BTrace):Traces {
+    return when {
+      size == 0       -> listOf(other)
+      other.size == 0 -> listOf(this)
+      else            -> (0..size).flatMap { split ->
+        listOf(slice(0 until split)..other[0])..(slice(split) / other.slice(1))
+      }
+    }
+  }
+
+  operator fun Traces.div(other: BTrace): Traces = if (other.size==0) this else flatMap { it.div(other) }
+  operator fun Traces.div(other: Traces):Traces = other.flatMap { div(it) }
 
 
 
