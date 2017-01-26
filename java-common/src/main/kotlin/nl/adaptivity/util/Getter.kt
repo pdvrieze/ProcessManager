@@ -19,13 +19,13 @@ package nl.adaptivity.util
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class Getter2<R,T>(val getter: R.()->T) : ReadOnlyProperty<R, T>{
+class ObjGetter<R,T>(val getter: R.()->T) : ReadOnlyProperty<R, T> {
   override fun getValue(thisRef: R, property: KProperty<*>) = thisRef.getter()
 }
-class Getter<T>(val getter: ()->T) : ReadOnlyProperty<Any?, T>{
+fun <R,T> objGetter(getter: R.() -> T) = ObjGetter<R,T>(getter)
+
+class Getter<T>(val getter: ()->T) : ReadOnlyProperty<Any?, T> {
   override fun getValue(thisRef: Any?, property: KProperty<*>) = getter()
   operator fun invoke() = getter()
 }
-
-fun <R,T> lambda2(getter: R.() -> T) = Getter2<R,T>(getter)
-fun <T> getter(getter: () -> T) = Getter<T>({getter()})
+fun <T> getter(getter: () -> T) = Getter<T>(getter)
