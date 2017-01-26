@@ -34,7 +34,6 @@ test {
 dependencies {
     compile project(':JavaCommonApi')
     compile project(":kotlinsql")
-//    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains:annotations:13.0"
     testCompile 'org.testng:testng:6.9.13.8'
 }

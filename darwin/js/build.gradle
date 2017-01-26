@@ -32,7 +32,6 @@ configurations {
 }
 
 dependencies {
-//    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-js-library:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx.html.js:$kotlinx_html_version"
 }

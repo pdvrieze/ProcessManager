@@ -19,7 +19,7 @@ description = 'A library that abstracts away the access to the account database 
 apply plugin: 'kotlin'
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.jetbrains:annotations:13.0"
     compile project(':darwin-sql')
     compile project(":DarwinCommon")
