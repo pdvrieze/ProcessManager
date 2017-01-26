@@ -26,7 +26,7 @@ import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.junit.jupiter.api.Assertions.assertFalse
 
 @CreateWith(lenientFactory::class)
-class WCP8(maxTraces:Int): ModelSpek(run {
+class WCP8(maxValidTraces:Int, maxInvalidTraces: Int = maxValidTraces): ModelSpek(run {
   val model = object : ConfigurableModel("WCP8") {
     val start1 by startNode
     val start2 by startNode
@@ -76,6 +76,6 @@ class WCP8(maxTraces:Int): ModelSpek(run {
       t.testInvalidTrace(this, modifiedModel, model.owner, trace)
     }
   }
-}) {
+}, maxValidTraces, maxInvalidTraces) {
   constructor() : this(Int.MAX_VALUE)
 }
