@@ -58,11 +58,19 @@ val SubjectDsl<EngineTestData>.engine get() = subject.engine
 
 private var subjectCreated = false
 
-abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null) : SubjectSpek<EngineTestData>(
+fun <T> List<T>.selectN(max:Int):List<T> {
+  val origSize = size
+  if (max>=origSize) return this
+  return filterIndexed { idx, t ->
+    idx == 0 || (((idx-1)*max)/origSize < (idx * max)/origSize)
+  }
+}
+
+abstract class ModelSpek(modelData: ModelData, custom:(CustomDsl.()->Unit)?=null, val maxValid:Int=Int.MAX_VALUE, val maxInvalid:Int = maxValid) : SubjectSpek<EngineTestData>(
   {
     val model = modelData.model
-    val valid = modelData.valid
-    val invalid = modelData.invalid
+    val valid = modelData.valid.selectN(maxValid)
+    val invalid = modelData.invalid.selectN(maxInvalid)
     val principal by getter { model.owner }
 
     subject(CachingMode.GROUP, {
@@ -204,10 +212,11 @@ private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>
   group("After starting") {
     test("Only start nodes should be finished") {
       val processInstance = processInstanceF()
-      val onlyStartNodesCompleted = processInstance.finishedNodes.all { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> }
+      val predicate: (ProcessNodeInstance) -> Boolean = { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> || it.node is Join<*, *> }
+      val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
       Assertions.assertTrue(onlyStartNodesCompleted) {
         processInstance.finishedNodes
-          .filter { it.state != NodeInstanceState.Skipped && it.node !is StartNode<*, *> }
+          .filter (predicate)
           .joinToString(prefix = "Nodes [",
                         postfix = "] are not startnodes, but already finished.")
       }

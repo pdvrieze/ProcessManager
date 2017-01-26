@@ -19,11 +19,14 @@ package nl.adaptivity.process.engine.patterns
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.invoke
+import nl.adaptivity.spek.lenientFactory
+import org.jetbrains.spek.api.CreateWith
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.junit.jupiter.api.Assertions.assertFalse
 
-class WCP8: ModelSpek(run {
+@CreateWith(lenientFactory::class)
+class WCP8(maxTraces:Int): ModelSpek(run {
   val model = object : ConfigurableModel("WCP8") {
     val start1 by startNode
     val start2 by startNode
@@ -73,4 +76,6 @@ class WCP8: ModelSpek(run {
       t.testInvalidTrace(this, modifiedModel, model.owner, trace)
     }
   }
-})
+}) {
+  constructor() : this(Int.MAX_VALUE)
+}
