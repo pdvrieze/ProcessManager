@@ -911,10 +911,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     @JvmStatic
     private fun <T:ProcessNodeInstance> MutableProcessEngineDataAccess.storeNodeInstance(value: InstanceFuture<T,*>):T {
-      (value.origBuilder as? ProcessNodeInstance.ExtBuilder<*, T>)?.let {
-        if (! it.changed) return it.build()
-      }
-
       val handle = value.origBuilder.handle
       (nodeInstances as MutableHandleMap)[handle] = value.origBuilder.build()
       @Suppress("UNCHECKED_CAST") // Semantically this should always be valid
