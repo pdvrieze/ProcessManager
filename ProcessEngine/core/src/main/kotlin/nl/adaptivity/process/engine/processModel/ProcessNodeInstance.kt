@@ -118,8 +118,8 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     override var failureCause: Throwable? = null
   }
 
-  abstract class ExtBuilderBase<N:ExecutableProcessNode>(base:ProcessNodeInstance) : AbstractBuilder<N>() {
-    private val observer = { changed = true }
+  abstract class ExtBuilder<N:ExecutableProcessNode, B:ProcessNodeInstance>(protected val base:B) : AbstractBuilder<N>() {
+    protected val observer = { changed = true }
 
     override var predecessors = ObservableSet(base.directPredecessors.toMutableArraySet(), { changed = true })
     override var hProcessInstance by overlay(update = observer) { base.hProcessInstance }
@@ -129,11 +129,13 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     override var results = ObservableList(base.results.toMutableList(), { changed = true })
     var changed: Boolean = false
     override val entryNo: Int = base.entryNo
+
+    override abstract fun build(): B
   }
 
-  class ExtBuilder(base:ProcessNodeInstance) : ExtBuilderBase<ExecutableProcessNode>(base) {
+  private class ExtBuilderImpl(base:ProcessNodeInstance) : ExtBuilder<ExecutableProcessNode, ProcessNodeInstance>(base) {
     override var node: ExecutableProcessNode by overlay { base.node }
-    override fun build() = ProcessNodeInstance(this)
+    override fun build() = if (changed) ProcessNodeInstance(this) else base
   }
 
   open class BaseBuilder<N:ExecutableProcessNode>(
@@ -184,9 +186,9 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   override fun withPermission() = this
 
-  open fun builder(): ExtBuilderBase<out ExecutableProcessNode> {
+  open fun builder(): ExtBuilder<out ExecutableProcessNode, out ProcessNodeInstance> {
     assert(this.javaClass == ProcessNodeInstance::class.java) { "Builders must be overridden" }
-    return ExtBuilder(this)
+    return ExtBuilderImpl(this)
   }
 
   /** Update the node. This will store the update based on the transaction. It will return the new object. The old object
@@ -196,7 +198,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                   body: Builder<*>.() -> Unit): PNIPair<ProcessNodeInstance> {
     val instance = writableEngineData.instance(hProcessInstance).withPermission()
     val origHandle = handle
-    val builder:ExtBuilderBase<*> = builder().apply(body)
+    val builder: ExtBuilder<*,*> = builder().apply(body)
     if (builder.changed) {
       if (origHandle.valid && handle.valid) {
         return instance.updateNode(writableEngineData, builder.build()).apply {
@@ -426,7 +428,7 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
 
   @Throws(SQLException::class, XmlException::class)
   fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
-    val builder = ExtBuilder(this)
+    val builder = ExtBuilderImpl(this)
 
     val body:CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
       try {

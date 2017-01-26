@@ -38,9 +38,9 @@ class JoinInstance : ProcessNodeInstance {
     override fun build(): JoinInstance
   }
 
-  class ExtBuilder(instance:JoinInstance) : ProcessNodeInstance.ExtBuilderBase<ExecutableJoin>(instance), Builder {
+  class ExtBuilder(instance:JoinInstance) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance), Builder {
     override var node: ExecutableJoin by overlay { instance.node }
-    override fun build() = JoinInstance(this)
+    override fun build() = if (changed) JoinInstance(this) else base
   }
 
   class BaseBuilder(

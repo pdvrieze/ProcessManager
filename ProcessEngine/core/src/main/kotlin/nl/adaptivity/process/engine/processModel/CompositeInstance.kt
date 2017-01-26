@@ -49,14 +49,14 @@ class CompositeInstance : ProcessNodeInstance {
                                                   entryNo, handle, state)
   }
 
-  class ExtBuilder(base: CompositeInstance) : ExtBuilderBase<ExecutableProcessNode>(base) {
+  class ExtBuilder(base: CompositeInstance) : ProcessNodeInstance.ExtBuilder<ExecutableProcessNode, CompositeInstance>(base) {
 
     override var node: ExecutableProcessNode by overlay { base.node }
 
-    var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = base.hChildInstance
+    var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer) { base.hChildInstance }
 
     override fun build(): CompositeInstance {
-      return CompositeInstance(this)
+      return if(changed) CompositeInstance(this) else base
     }
   }
 

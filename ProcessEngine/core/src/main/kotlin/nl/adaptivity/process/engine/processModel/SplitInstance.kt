@@ -44,9 +44,9 @@ class SplitInstance : ProcessNodeInstance {
       set(value) = predecessors.replaceByNotNull(value)
   }
 
-  class ExtBuilder(private val instance:SplitInstance) : ProcessNodeInstance.ExtBuilderBase<ExecutableSplit>(instance), Builder {
+  class ExtBuilder(private val instance:SplitInstance) : ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance), Builder {
     override var node: ExecutableSplit by overlay { instance.node }
-    override fun build() = SplitInstance(this)
+    override fun build() = if (changed) SplitInstance(this) else base
   }
 
   class BaseBuilder(

@@ -49,6 +49,9 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
 
   override fun builder() = Builder(node=this)
 
+  fun createOrReuseInstance(processInstance: ProcessInstance.Builder, entryNo: Int)
+      = processInstance.getChild(this, entryNo) ?: ProcessNodeInstance.BaseBuilder<ExecutableStartNode>(this, emptyList(), processInstance.handle, processInstance.owner, entryNo)
+
   fun createOrReuseInstance(processInstance: ProcessInstance, entryNo: Int)
       = processInstance.getNodeInstance(this, entryNo) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance, entryNo)
 
