@@ -141,14 +141,17 @@ class JoinInstance : ProcessNodeInstance {
     for(predecessorId in node.predecessors) {
       val predecessor = processInstance.getChild(predecessorId.id)?.withPermission()
       if (predecessor==null) {
-        val splitInstance = precedingClosure(engineData).filterIsInstance(SplitInstance::class.java).last()
-        if (splitInstance.state.isFinal) {
-          throw ProcessException("Missing predecessor $predecessorId for join ${node.id}, split ${splitInstance.node.id} is already final")
-        } else {
-          // Finish the split and try again
-          return processInstance.finishTask(engineData, splitInstance,null)
+        val splitInstance = precedingClosure(engineData).filterIsInstance(SplitInstance::class.java).lastOrNull()
+        if (splitInstance != null) {
+          if (splitInstance.state.isFinal) {
+            throw ProcessException(
+              "Missing predecessor $predecessorId for join ${node.id}, split ${splitInstance.node.id} is already final")
+          } else {
+            // Finish the split and try again
+            return processInstance.finishTask(engineData, splitInstance, null)
               .instance.finishTask(engineData, this, resultPayload)
-        }
+          }
+        } // else if we don't have a preceding split, it doesn't need to be "finished"
       } else {
         if (predecessor.state.isCommitted) {
           if (! predecessor.state.isFinal) {
