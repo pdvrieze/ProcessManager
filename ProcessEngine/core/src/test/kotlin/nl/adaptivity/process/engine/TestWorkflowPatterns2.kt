@@ -89,7 +89,7 @@ class TestWorkflowPatterns2 : Spek(
         }
 
         describe("WCP8: Multi-merge") {
-          includeLocal(WCP8())
+          includeLocal(WCP8(15))
         }
 
         describe("WCP9: Structured Discriminator") {
