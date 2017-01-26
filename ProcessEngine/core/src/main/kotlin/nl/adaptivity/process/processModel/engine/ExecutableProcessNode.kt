@@ -109,6 +109,19 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
                   processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean = true
 
   /**
+   * Take action to make task available
+   *
+   * @param transaction
+   *
+   * @param instance The processnode instance involved.
+   *
+   * @return `true` if the task can/must be automatically taken
+   */
+  @Throws(SQLException::class)
+  fun provideTask(engineData: ProcessEngineDataAccess,
+                  processInstanceBuilder: ProcessInstance.Builder, instanceBuilder: ProcessNodeInstance.Builder<*>): Boolean = true
+
+  /**
    * Take action to accept the task (but not start it yet)
    *
    * @param instance The processnode instance involved.

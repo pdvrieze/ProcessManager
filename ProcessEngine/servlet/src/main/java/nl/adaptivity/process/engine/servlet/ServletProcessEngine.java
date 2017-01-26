@@ -136,6 +136,29 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
     @Override
+    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage protoMessage, @NotNull final ProcessNodeInstance.Builder<?> instanceBuilder) {
+      final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instanceBuilder.getHandle();
+
+      protoMessage.setHandle(engineData, instanceBuilder);
+
+      Future<DataSource> result = MessagingRegistry.sendMessage(protoMessage, new MessagingCompletionListener((ComparableHandle)nodeHandle, protoMessage
+          .getOwner()), DataSource.class, new Class<?>[0]);
+      if (result.isCancelled()) { return false; }
+      if (result.isDone()) {
+        try {
+          result.get();
+        } catch (ExecutionException e) {
+          Throwable cause = e.getCause();
+          if (cause instanceof RuntimeException) { throw (RuntimeException) cause; }
+          throw new RuntimeException(cause);
+        } catch (InterruptedException e) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @Override
     public EndpointDescriptor getLocalEndpoint() {
       return mLocalEndPoint;
     }
@@ -429,6 +452,19 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
     public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance nodeInstance) {
       mNodeInstance = nodeInstance;
+
+      try {
+
+        mData = mNodeInstance.instantiateXmlPlaceholders(engineData, getSource(), false, mLocalEndpoint);
+
+      } catch (final FactoryConfigurationError | XmlException e) {
+        throw new MessagingException(e);
+      }
+
+    }
+
+    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance.Builder<?> nodeInstance) {
+      mNodeInstance = nodeInstance.build();
 
       try {
 

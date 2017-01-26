@@ -131,11 +131,52 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
     override val entryNo: Int = base.entryNo
 
     override abstract fun build(): B
+
+    fun failTaskCreation(cause: Throwable) {
+      failureCause = cause
+      state = NodeInstanceState.FailRetry
+    }
+
+    protected inline fun <R> tryCreate(body: () -> R): R = _tryHelper(body) { e -> failTaskCreation(e) }
+
   }
 
   private class ExtBuilderImpl(base:ProcessNodeInstance) : ExtBuilder<ExecutableProcessNode, ProcessNodeInstance>(base) {
     override var node: ExecutableProcessNode by overlay { base.node }
     override fun build() = if (changed) ProcessNodeInstance(this) else base
+
+    fun provideTask(engineData: MutableProcessEngineDataAccess, processInstanceBuilder: ProcessInstance.Builder): PNIPair<ProcessNodeInstance> {
+
+      val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
+
+      fun <MSG_T> impl(messageService: IMessageService<MSG_T>):PNIPair<ProcessNodeInstance> {
+
+        val shouldProgress = tryCreate {
+          node.provideTask(engineData, processInstanceBuilder, this)
+        }
+
+        if (node is ExecutableActivity) {
+          val preparedMessage = messageService.createMessage(node.message)
+          if (! tryCreate() { messageService.sendMessage(engineData, preparedMessage, this) }) {
+            failTaskCreation(MessagingException("Failure to send message"))
+          }
+        }
+
+        val pniPair = run { // Unfortunately sendMessage will invalidate the current instance
+          val newInstance = engineData.instance(hProcessInstance).withPermission()
+          val newNodeInstance = engineData.nodeInstance(handle).withPermission()
+          newNodeInstance.update(engineData) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
+        }
+        if (shouldProgress) {
+          return ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
+        } else
+          return pniPair
+
+      }
+
+      return impl(engineData.messageService())
+    }
+
   }
 
   open class BaseBuilder<N:ExecutableProcessNode>(
@@ -502,23 +543,40 @@ open class ProcessNodeInstance(open val node: ExecutableProcessNode,
                          processInstance: ProcessInstance,
                          body: () -> R): R = _tryHelper(engineData, processInstance, body) { d, i, e -> failTask(d, i, e) }
 
-  @PublishedApi
-  internal inline fun <R> _tryHelper(engineData: MutableProcessEngineDataAccess,
-                                     processInstance: ProcessInstance,
-                                     body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception)->Unit): R {
-    return try {
-      body()
-    } catch (e: Exception) {
-      try {
-        failHandler(engineData, processInstance, e)
-      } catch (f: Exception) {
-        e.addSuppressed(f)
-      }
-      throw e
-    }
-  }
-
   companion object {
+
+
+
+    @PublishedApi
+    internal inline fun <R> _tryHelper(engineData: MutableProcessEngineDataAccess,
+                                       processInstance: ProcessInstance,
+                                       body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception)->Unit): R {
+      return try {
+        body()
+      } catch (e: Exception) {
+        try {
+          failHandler(engineData, processInstance, e)
+        } catch (f: Exception) {
+          e.addSuppressed(f)
+        }
+        throw e
+      }
+    }
+
+    @PublishedApi
+    internal inline fun <R> _tryHelper(body: () -> R, failHandler: (Exception)->Unit): R {
+      return try {
+        body()
+      } catch (e: Exception) {
+        try {
+          failHandler(e)
+        } catch (f: Exception) {
+          e.addSuppressed(f)
+        }
+        throw e
+      }
+    }
+
 
     private val logger by lazy { Logger.getLogger(ProcessNodeInstance::class.java.getName()) }
 

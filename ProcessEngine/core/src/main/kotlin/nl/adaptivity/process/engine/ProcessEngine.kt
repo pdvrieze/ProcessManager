@@ -479,7 +479,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         commit()
 
         try {
-          instance.start(transaction, messageService, payload)
+          instance.start(transaction.writableEngineData, payload)
         } catch (e: Exception) {
           Logger.getLogger(javaClass.name).log(Level.WARNING, "Error starting instance (it is already stored)", e)
           throw e

@@ -43,19 +43,34 @@ interface IMessageService<MSG_T> {
 
   /**
    * Send a message.
-
+   *
    * @param engineData The transaction to use in sending.
-   * *
-   * @param protoMessage The message to send. (Created by
-   * *          [.createMessage]).
-   * *
+   *
+   * @param protoMessage The message to send. (Created by [.createMessage]).
+   *
    * @param instance The task instance to link the sending to.
-   * *
+   *
    * @return `true` or lack of failure, `false` on failure.
-   * *
+   *
    * @throws SQLException
    */
+  @Deprecated("Use the version taking a builder")
   fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instance: ProcessNodeInstance): Boolean
+
+  /**
+   * Send a message.
+   *
+   * @param engineData The transaction to use in sending.
+   *
+   * @param protoMessage The message to send. (Created by [.createMessage]).
+   *
+   * @param instanceBuilder The task instance to link the sending to.
+   *
+   * @return `true` or lack of failure, `false` on failure.
+   *
+   * @throws SQLException
+   */
+  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instanceBuilder: ProcessNodeInstance.Builder<*>): Boolean
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

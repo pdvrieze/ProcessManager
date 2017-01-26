@@ -79,4 +79,32 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     instance.update(engineData) { state = NodeInstanceState.Sent }
     return true
   }
+
+  override fun sendMessage(engineData: MutableProcessEngineDataAccess,
+                           protoMessage: IXmlMessage,
+                           instanceBuilder: ProcessNodeInstance.Builder<*>): Boolean {
+    assert(instanceBuilder.handle.valid) { "Sending messages from invalid nodes is a bad idea" }
+
+    val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
+      // This just creates a temporary copy
+      instanceBuilder.build().instantiateXmlPlaceholders(engineData,
+                                                 XMLFragmentStreamReader.from(protoMessage.messageBody),
+                                                 false,
+                                                 localEndpoint)
+    } else {
+      CompactFragment(Collections.emptyList(), CharArray(0))
+    }
+    val processedMessage = XmlMessage(protoMessage.service,
+                                    protoMessage.endpoint,
+                                    protoMessage.operation,
+                                    protoMessage.url,
+                                    protoMessage.method,
+                                    protoMessage.contentType,
+                                    instantiatedContent)
+
+    processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
+    _messages.add(ExtMessage(processedMessage, instanceBuilder.handle))
+    instanceBuilder.state = NodeInstanceState.Sent
+    return true
+  }
 }

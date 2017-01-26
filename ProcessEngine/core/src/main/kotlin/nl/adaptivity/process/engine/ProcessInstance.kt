@@ -556,10 +556,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
   }
 
-  @Synchronized @Throws(SQLException::class)
-  @Deprecated("Use data access", ReplaceWith("start(transaction.writableEngineData, messageService, payload)"))
-  inline fun start(transaction: ProcessTransaction, messageService: IMessageService<*>, payload: Node?=null) = start(transaction.writableEngineData, payload)
-
   fun start(engineData: MutableProcessEngineDataAccess, payload: Node? = null): ProcessInstance {
     return (if (state == State.NEW) initialize(engineData) else this)
       .update(engineData) { state = State.STARTED; inputs.addAll(processModel.toInputs(payload)) }
