@@ -89,6 +89,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?=null): PNIPair<T> = node.finishTask(engineData, instance, resultPayload) as PNIPair<T>
   }
 
+  @Deprecated("Is really impossible", level = DeprecationLevel.WARNING)
   private class InstanceFuture<T:ProcessNodeInstance>(internal val orig: T, val store:Boolean) : Future<T> {
     private var cancelled = false
 
@@ -167,7 +168,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   class ExtBuilder(private val base: ProcessInstance) : Builder {
     override var generation = base.generation+1
       private set
-    private val _pendingChildren = mutableListOf<Future<out ProcessNodeInstance>>()
+    private val _pendingChildren = mutableListOf<InstanceFuture<out ProcessNodeInstance>>()
     override val pendingChildren: List<Future<out ProcessNodeInstance>> get() = _pendingChildren
     override var handle by overlay { base.handle }
     override var parentActivity by overlay { base.parentActivity }
@@ -366,7 +367,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
   }
 
-  fun __storeNewValueIfNeeded(writableEngineData: MutableProcessEngineDataAccess, newInstance: ProcessInstance):ProcessInstance {
+  @PublishedApi
+  internal fun __storeNewValueIfNeeded(writableEngineData: MutableProcessEngineDataAccess, newInstance: ProcessInstance):ProcessInstance {
 
     fun dataValid():Boolean {
       val stored = writableEngineData.instance(handle).withPermission()
@@ -385,7 +387,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     return newInstance
   }
 
-  inline fun update(writableEngineData: MutableProcessEngineDataAccess, body: Builder.() -> Unit): ProcessInstance {
+  fun update(writableEngineData: MutableProcessEngineDataAccess, body: Builder.() -> Unit): ProcessInstance {
     val newValue = builder().apply(body).build(writableEngineData)
     return __storeNewValueIfNeeded(writableEngineData, newValue).apply {
       assert(writableEngineData.instances[newValue.getHandle()]?.withPermission() == this) {
@@ -405,6 +407,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }*/
   }
 
+  @Deprecated("Use the method on a builder")
   fun <T:ProcessNodeInstance> addChild(data: MutableProcessEngineDataAccess, child: T): PNIPair<T> {
     val b = builder()
     val future = b.addChild(child)
@@ -565,6 +568,21 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           split.updateState(engineData, origProcessInstance).instance
         }
   }
+
+/*
+  private fun ExtBuilder.updateSplits(engineData: MutableProcessEngineDataAccess):ExtBuilder {
+    this.children
+      .asSequence()
+      .filter { it.valid }
+      .map { engineData.nodeInstance(it).withPermission() }
+      .filterIsInstance(SplitInstance::class.java)
+      .forEach { split ->
+        val splitBuilder = split.builder().updateState(engineData, this)
+        if (splitBuilder.changed) this.storeChild(splitBuilder.build())
+      }
+    return this
+  }
+*/
 
   @Synchronized @Throws(SQLException::class)
   private fun startSuccessors(engineData: MutableProcessEngineDataAccess,

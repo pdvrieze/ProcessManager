@@ -66,11 +66,23 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
    * the type (joins)
    */
+  @Deprecated("Use Builder function")
   fun createOrReuseInstance(data: ProcessEngineDataAccess,
                             processInstance: ProcessInstance,
                             predecessor: ProcessNodeInstance,
                             entryNo: Int): ProcessNodeInstance
     = processInstance.getNodeInstance(this, entryNo) ?: ProcessNodeInstance(this, predecessor.getHandle(), processInstance, entryNo)
+
+/*
+  fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                            processInstanceBuilder: ProcessInstance.ExtBuilder,
+                            predecessor: ProcessNodeInstance,
+                            entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode>
+    = processInstanceBuilder.getNodeInstance(this, entryNo) ?:
+      ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(this, listOf(predecessor.getHandle()),
+                                                             processInstanceBuilder.handle,
+                                                             processInstanceBuilder.owner, entryNo)
+*/
 
   /**
    * Should this node be able to be provided?

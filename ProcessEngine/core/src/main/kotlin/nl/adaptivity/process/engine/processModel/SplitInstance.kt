@@ -26,6 +26,9 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
+import nl.adaptivity.util.getter
+import nl.adaptivity.util.objGetter
+import nl.adaptivity.util.ObjGetter
 import org.w3c.dom.Node
 import java.security.Principal
 
@@ -41,7 +44,7 @@ class SplitInstance : ProcessNodeInstance {
       set(value) = predecessors.replaceByNotNull(value)
   }
 
-  class ExtBuilder(instance:SplitInstance) : ProcessNodeInstance.ExtBuilderBase<ExecutableSplit>(instance), Builder {
+  class ExtBuilder(private val instance:SplitInstance) : ProcessNodeInstance.ExtBuilderBase<ExecutableSplit>(instance), Builder {
     override var node: ExecutableSplit by overlay { instance.node }
     override fun build() = SplitInstance(this)
   }
@@ -125,17 +128,6 @@ class SplitInstance : ProcessNodeInstance {
         .mapNotNull { instance.getChild(it.id)?.withPermission() }
   }
 
-  private fun isActiveOrCompleted(it: ProcessNodeInstance): Boolean {
-    return when (it.state) {
-      NodeInstanceState.Started,
-      NodeInstanceState.Acknowledged,
-      NodeInstanceState.Skipped,
-      NodeInstanceState.Failed,
-      NodeInstanceState.Complete -> true
-      else                                                                 -> false
-    }
-  }
-
   override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
     return update(engineData){ state= NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)
@@ -151,17 +143,17 @@ class SplitInstance : ProcessNodeInstance {
   }
 
   internal fun updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance): ProcessInstance.PNIPair<SplitInstance> {
+
+    fun canStartMore() = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
+
     if (state.isFinal) { return ProcessInstance.PNIPair(_processInstance, this) }
     // XXX really needs fixing
     var processInstance = _processInstance
     val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }
     var viableNodes: Int = 0
 
-    var canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
-
-
     for (successor in successorNodes) {
-      if (canStartMore) {
+      if (canStartMore()) {
         if (successor is Join<*, *>) {
           throw IllegalStateException("Splits cannot be immediately followed by joins")
         }
@@ -178,7 +170,6 @@ class SplitInstance : ProcessNodeInstance {
 
               processInstance = pnipair.node.provideTask(engineData, pnipair.instance).instance
 
-              canStartMore = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
             }
             ConditionResult.NEVER -> {
               val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
@@ -201,7 +192,7 @@ class SplitInstance : ProcessNodeInstance {
       return update(engineData) { state = NodeInstanceState.Failed }
     }
 
-    if (successorInstances(engineData).filter { isActiveOrCompleted(it) }.count()>=node.max) {
+    if (! canStartMore()) {
       // We have a maximum amount of successors
       processInstance = successorInstances(engineData)
           .filter { !isActiveOrCompleted(it) }
@@ -211,5 +202,20 @@ class SplitInstance : ProcessNodeInstance {
     }
 
     return ProcessInstance.PNIPair(processInstance, this) // the state is whatever it should be
+  }
+
+  companion object {
+
+    private fun isActiveOrCompleted(it: ProcessNodeInstance): Boolean {
+      return when (it.state) {
+        NodeInstanceState.Started,
+        NodeInstanceState.Complete,
+        NodeInstanceState.Skipped,
+        NodeInstanceState.Failed,
+        NodeInstanceState.Acknowledged -> true
+        else                           -> false
+      }
+    }
+
   }
 }

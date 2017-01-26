@@ -52,6 +52,14 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
   fun createOrReuseInstance(processInstance: ProcessInstance, entryNo: Int)
       = processInstance.getNodeInstance(this, entryNo) ?: ProcessNodeInstance(this, Handles.getInvalid(), processInstance, entryNo)
 
+/*
+  fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.ExtBuilder, entryNo: Int)
+      = processInstanceBuilder.getNodeInstance(this, entryNo) ?:
+        ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(this, emptyList(),
+                                                               processInstanceBuilder.handle,
+                                                               processInstanceBuilder.owner, entryNo)
+*/
+
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance) = ConditionResult.TRUE
 
   @Throws(SQLException::class)
