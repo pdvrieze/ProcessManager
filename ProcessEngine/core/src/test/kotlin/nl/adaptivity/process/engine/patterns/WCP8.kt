@@ -24,8 +24,10 @@ import org.jetbrains.spek.api.CreateWith
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Tag
 
 @CreateWith(lenientFactory::class)
+@Tag("slow")
 class WCP8(maxValidTraces:Int, maxInvalidTraces: Int = maxValidTraces): ModelSpek(run {
   val model = object : ConfigurableModel("WCP8") {
     val start1 by startNode
