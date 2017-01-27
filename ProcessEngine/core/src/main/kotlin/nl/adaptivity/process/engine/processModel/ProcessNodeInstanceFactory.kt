@@ -154,11 +154,11 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
             .executeUpdate(connection)
     }
     newValue.withPermission().let { newValue ->
-      if (newValue.directPredecessors.isNotEmpty()) {
+      if (newValue.predecessors.isNotEmpty()) {
         val insert = ProcessEngineDB
               .INSERT(tbl_pred.pnihandle, tbl_pred.predecessor)
 
-        for (predecessor in newValue.directPredecessors) {
+        for (predecessor in newValue.predecessors) {
           insert.VALUES(handle, predecessor)
         }
 

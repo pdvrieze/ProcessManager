@@ -157,7 +157,7 @@ class TestProcessEngine {
   private val ProcessInstance.sortedCompleted
     get() = completedEndnodes.sortedBy { it.handleValue }
 
-  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) = apply {
+  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
     assertEquals(ArrayList(sortedFinished), handles.sorted())
   }
 
@@ -171,7 +171,7 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) = apply {
+  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
     assertEquals(ArrayList(sortedActive), handles.sorted())
   }
 
@@ -185,7 +185,7 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) = apply {
+  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
     assertEquals(ArrayList(sortedCompleted), handles.sorted())
   }
 

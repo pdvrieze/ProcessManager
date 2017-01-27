@@ -168,6 +168,9 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
   override fun provideTask(engineData: ProcessEngineDataAccess,
                            processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = childModel != null
 
+  override fun provideTask(engineData: ProcessEngineDataAccess,
+                           instanceBuilder: ProcessNodeInstance.Builder<*, *>) = childModel != null
+
   /**
    * Take the task. Tasks are either process aware or finished when a reply is
    * received. In either case they should not be automatically taken.

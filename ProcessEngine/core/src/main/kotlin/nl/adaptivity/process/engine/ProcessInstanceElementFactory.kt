@@ -68,7 +68,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .mapTo(builder.children.apply { clear() }) {Handles.handle(it) }
+          .mapTo(builder.rememberedChildren.apply { clear() }) { transaction.readableEngineData.nodeInstance(Handles.handle(it)).withPermission() }
 
     run {
 

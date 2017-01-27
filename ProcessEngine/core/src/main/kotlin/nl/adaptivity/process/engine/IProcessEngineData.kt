@@ -43,7 +43,7 @@ abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T
     }
   }
 
-  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) {
+  fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
     (processNodeInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
@@ -82,17 +82,17 @@ abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T
 interface ProcessEngineDataAccess {
   val instances: HandleMap<SecureObject<ProcessInstance>>
 
-  fun  instance(handle: Handle<out SecureObject<ProcessInstance>>)
+  fun  instance(handle: Handle<SecureObject<ProcessInstance>>)
         = instances[handle].mustExist(handle)
 
   val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<*>>>
 
-  fun nodeInstance(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>)
+  fun nodeInstance(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>)
         = nodeInstances[handle].mustExist(handle)
 
   val processModels: IProcessModelMapAccess
 
-  fun processModel(handle: Handle<out SecureObject<ExecutableProcessModel>>)
+  fun processModel(handle: Handle<SecureObject<ExecutableProcessModel>>)
         = processModels[handle].mustExist(handle)
 }
 
@@ -104,16 +104,16 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
   override val processModels: IMutableProcessModelMapAccess
 
-  fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>)
+  fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>)
 
-  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>)
+  fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>)
 
-  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>)
+  fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>)
 
   fun commit()
 
   fun rollback()
 
   /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
-  fun  handleFinishedInstance(handle: ComparableHandle<out SecureObject<ProcessInstance>>)
+  fun  handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>)
 }

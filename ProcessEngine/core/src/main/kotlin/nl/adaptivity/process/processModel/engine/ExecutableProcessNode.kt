@@ -119,8 +119,8 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * @return `true` if the task can/must be automatically taken
    */
   @Throws(SQLException::class)
-  fun provideTask(engineData: ProcessEngineDataAccess,
-                  processInstanceBuilder: ProcessInstance.Builder, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean = true
+  fun provideTask(engineData: ProcessEngineDataAccess, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
+    = true
 
   /**
    * Take action to accept the task (but not start it yet)

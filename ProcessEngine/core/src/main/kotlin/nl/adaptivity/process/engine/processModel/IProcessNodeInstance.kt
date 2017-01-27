@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,19 +14,16 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util
+package nl.adaptivity.process.engine.processModel
+
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 
 /**
- * @param  Type parameter that should help with compile time handle differentiation
+ * Simple base interface for process node instances that can also be implemented by builders
  */
-interface Handle<out T: @JvmWildcard Any?> {
-
-  val handleValue: Long
-  val valid:Boolean get() = handleValue>=0
+interface IProcessNodeInstance {
+  val node: ExecutableProcessNode
+  val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
 }
-
-interface ComparableHandle<out T: @JvmWildcard Any?> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
-  override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>) = handleValue.compareTo(other.handleValue)
-}
-
-inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = Handles.handle(handleValue)

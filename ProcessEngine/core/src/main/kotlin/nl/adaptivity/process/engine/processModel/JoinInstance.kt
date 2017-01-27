@@ -34,7 +34,32 @@ import java.util.*
 
 class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
-  interface Builder : ProcessNodeInstance.Builder<ExecutableJoin, JoinInstance>
+  interface Builder : ProcessNodeInstance.Builder<ExecutableJoin, JoinInstance> {
+
+    val isFinished: Boolean
+      get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
+
+    override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      if (!isFinished) {
+        val shouldProgress = node.provideTask(engineData, this)
+        if (shouldProgress) {
+          val directSuccessors = processInstanceBuilder.getDirectSuccessorsFor(this.handle)
+
+          val canAdd = directSuccessors
+            .asSequence()
+            .map { engineData.nodeInstance(it).withPermission() }
+            .none { it.state.isCommitted || it.state.isFinal }
+          if (canAdd) {
+            state = NodeInstanceState.Sent
+            return true
+          }
+        }
+        return shouldProgress
+
+      }
+      return false
+    }
+  }
 
   class ExtBuilder(instance:JoinInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder), Builder {
     override var node: ExecutableJoin by overlay { instance.node }
@@ -43,11 +68,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
   class BaseBuilder(
     node: ExecutableJoin,
-    predecessors: Iterable<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
+    predecessors: Iterable<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
     processInstanceBuilder: ProcessInstance.Builder,
     owner: Principal,
     entryNo: Int,
-    handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+    handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
     state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
     override fun build() = JoinInstance(this)
@@ -57,19 +82,19 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     get() = super.node as ExecutableJoin
 
   @Suppress("UNCHECKED_CAST")
-  override fun getHandle(): ComparableHandle<out SecureObject<JoinInstance>>
-        = super.getHandle() as ComparableHandle<out SecureObject<JoinInstance>>
+  override fun getHandle(): ComparableHandle<SecureObject<JoinInstance>>
+        = super.getHandle() as ComparableHandle<SecureObject<JoinInstance>>
 
   /** Is this join completed or can other entries be added? */
   val isFinished: Boolean
     get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
   constructor(node: ExecutableJoin,
-              predecessors: Collection<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
-              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+              predecessors: Collection<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
-              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, hProcessInstance, owner, entryNo, handle, state, results) {
@@ -96,9 +121,9 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
   @Deprecated("Use updateJoin when using this function directly.", ReplaceWith("updateJoin(transaction, body)"))
 
   @Throws(SQLException::class)
-  fun addPredecessor(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>): PNIPair<JoinInstance>? {
+  fun addPredecessor(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): PNIPair<JoinInstance>? {
 
-    if (canAddNode(engineData) && predecessor !in directPredecessors) {
+    if (canAddNode(engineData) && predecessor !in predecessors) {
       return updateJoin(engineData, processInstance) {
         predecessors.add(predecessor)
       }
@@ -144,7 +169,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             }
           }
         } else {
-          val predPred = predecessor.directPredecessors.map { engineData.nodeInstance(it).withPermission() }
+          val predPred = predecessor.predecessors.map { engineData.nodeInstance(it).withPermission() }
           val splitCandidate = predPred.firstOrNull()
           cancelablePredecessors.add(predecessor)
 //          if (splitCandidate is SplitInstance) {
@@ -198,7 +223,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
     val join = node
     val totalPossiblePredecessors = join.predecessors.size
-    val realizedPredecessors = directPredecessors.size
+    val realizedPredecessors = predecessors.size
 
     if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
       return next()
@@ -267,7 +292,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     val missingIdentifiers = TreeSet<Identified>(node.predecessors)
     val data = engineData
 
-    directPredecessors
+    predecessors
           .forEach { missingIdentifiers
                 .remove(data.nodeInstance(it).withPermission().node) }
 
@@ -303,20 +328,20 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
   companion object {
     fun build(joinImpl: ExecutableJoin,
-              predecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Set<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstanceBuilder: ProcessInstance.Builder,
               entryNo: Int,
-              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               body: Builder.() -> Unit):JoinInstance {
       return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo, handle, state).apply(body))
     }
 
     fun build(joinImpl: ExecutableJoin,
-              predecessors: Set<net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Set<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstance: ProcessInstance,
               entryNo: Int,
-              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               body: Builder.() -> Unit):JoinInstance {
       return build(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)

@@ -45,14 +45,14 @@ inline fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:String):T = 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.mustExist(handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.mustExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.shouldExist(handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.shouldExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the object instance exists. If it doesn't exist this is an internal error
@@ -73,14 +73,14 @@ fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<out SecureObject<V>
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, I:ProcessInstance> I?.mustExist(handle: ComparableHandle<out SecureObject<ProcessInstance>>): I = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, I:ProcessInstance> I?.mustExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): I = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: ComparableHandle<out SecureObject<ProcessInstance>>): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

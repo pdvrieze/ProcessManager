@@ -27,7 +27,7 @@ import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
 import kotlin.reflect.KProperty
 
-class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: ComparableHandle<out SecureObject<ProcessInstance>>, val nodeId: Identified) {
+class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>, val nodeId: Identified) {
   operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance<*> {
     val idString = nodeId.id
     val instance = instanceSupport.transaction.readableEngineData.instance(instanceHandle).withPermission()

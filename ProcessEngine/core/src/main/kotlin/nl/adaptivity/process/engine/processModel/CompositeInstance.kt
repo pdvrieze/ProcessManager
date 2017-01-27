@@ -39,6 +39,19 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
   interface Builder: ProcessNodeInstance.Builder<ExecutableActivity, CompositeInstance> {
     var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
+
+    override fun doProvideTask(engineData: MutableProcessEngineDataAccess):Boolean {
+      val shouldProgress = node.provideTask(engineData, this)
+      state = NodeInstanceState.Sent
+      val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel!!, handle) {})
+      hChildInstance = childHandle
+
+      store(engineData)
+      engineData.commit()
+      return shouldProgress
+    }
+
+
   }
 
   class BaseBuilder : ProcessNodeInstance.BaseBuilder<ExecutableActivity, CompositeInstance>, Builder {

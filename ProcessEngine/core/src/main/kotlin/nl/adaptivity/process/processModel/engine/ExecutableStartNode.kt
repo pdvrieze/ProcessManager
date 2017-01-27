@@ -72,9 +72,11 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
 
   @Throws(SQLException::class)
   override fun provideTask(engineData: ProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean {
-    return true
-  }
+                           processInstance: ProcessInstance,
+                           instance: ProcessNodeInstance<*>) = true
+
+  override fun provideTask(engineData: ProcessEngineDataAccess,
+                           instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 
   override fun takeTask(instance: ProcessNodeInstance<*>) = true
 

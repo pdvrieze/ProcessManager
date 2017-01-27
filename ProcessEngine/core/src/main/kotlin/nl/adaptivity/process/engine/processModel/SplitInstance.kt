@@ -22,6 +22,7 @@ import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
@@ -39,9 +40,13 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
   interface Builder : ProcessNodeInstance.Builder<ExecutableSplit,SplitInstance> {
     override fun build(): SplitInstance
-    var predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>?
+    var predecessor: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?
       get() = predecessors.firstOrNull()
       set(value) = predecessors.replaceByNotNull(value)
+
+    override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return node.provideTask(engineData, this)
+    }
   }
 
   class ExtBuilder(private val instance:SplitInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
@@ -51,11 +56,11 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
   class BaseBuilder(
     node: ExecutableSplit,
-    predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>,
+    predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
     processInstanceBuilder: ProcessInstance.Builder,
     owner: Principal,
     entryNo: Int,
-    handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+    handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
     state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
                                                               handle, state), Builder {
@@ -70,14 +75,14 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
   @Suppress("UNCHECKED_CAST")
-  override fun getHandle(): ComparableHandle<out SecureObject<SplitInstance>>
-      = super.getHandle() as ComparableHandle<out SecureObject<SplitInstance>>
+  override fun getHandle(): ComparableHandle<SecureObject<SplitInstance>>
+      = super.getHandle() as ComparableHandle<SecureObject<SplitInstance>>
 
   constructor(node: ExecutableSplit,
-              predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>,
-              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+              predecessor: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+              hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
-              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList(),
               entryNo: Int) :
@@ -106,17 +111,17 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 //  }
 
 //  @JvmName("updateSplit")
-  fun update(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): ProcessInstance.PNIPair<SplitInstance> {
+  fun update(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): PNIPair<SplitInstance> {
     val instanceBuilder = instance.builder()
     val origHandle = getHandle()
     val builder = builder(instanceBuilder).apply(body)
     if (builder.changed) {
       if (origHandle.valid && getHandle().valid) {
         val nodeFuture = instanceBuilder.storeChild(builder)
-        return ProcessInstance.PNIPair(instanceBuilder.build(writableEngineData), nodeFuture.get() as SplitInstance)
+        return PNIPair(instanceBuilder.build(writableEngineData), nodeFuture.get() as SplitInstance)
       }
     }
-    return ProcessInstance.PNIPair(instance, this)
+    return PNIPair(instance, this)
   }
 
   private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance<*>> {
@@ -127,13 +132,13 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         .filter { it.entryNo == entryNo }
   }
 
-  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<SplitInstance> {
+  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<SplitInstance> {
     return update(engineData){ state= NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)
     }
   }
 
-  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): ProcessInstance.PNIPair<SplitInstance> {
+  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): PNIPair<SplitInstance> {
     val committedSuccessors = successorInstances(engineData).filter { it.state.isCommitted }
     if (committedSuccessors.count()<node.min) {
       throw ProcessException("A split can only be finished once the minimum amount of children is committed")
@@ -141,41 +146,44 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     return super.finishTask(engineData, processInstance, resultPayload)
   }
 
-  internal fun updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance): ProcessInstance.PNIPair<SplitInstance> {
+  internal fun updateState(engineData: MutableProcessEngineDataAccess, _processInstance: ProcessInstance): PNIPair<SplitInstance> {
 
     fun canStartMore() = successorInstances(engineData).filter { isActiveOrCompleted(it) }.count() < node.max
 
-    if (state.isFinal) { return ProcessInstance.PNIPair(_processInstance, this) }
+    if (state.isFinal) { return PNIPair(_processInstance, this) }
     // XXX really needs fixing
     var processInstance = _processInstance
     val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }
     var viableNodes: Int = 0
 
-    for (successor in successorNodes) {
+    for (successorNode in successorNodes) {
       if (canStartMore()) {
-        if (successor is Join<*, *>) {
+        if (successorNode is Join<*, *>) {
           throw IllegalStateException("Splits cannot be immediately followed by joins")
         }
 
-        val nonRegisteredSuccessor = successor.createOrReuseInstance(engineData, processInstance, this, entryNo )
-        // TODO Make this respond to MAYBEs
-        if (nonRegisteredSuccessor.state== NodeInstanceState.Pending) {
-          val conditionResult = nonRegisteredSuccessor.condition(engineData)
+        var conditionResult = ConditionResult.MAYBE
+        val pniPair = processInstance.updateWithNode(engineData) {
+          val successorBuilder = successorNode.createOrReuseInstance(engineData, this, this@SplitInstance, entryNo)
+          if (successorBuilder.state == NodeInstanceState.Pending) {
+            // temporaryly build a node to evaluate the condition against, but don't register it.
+            conditionResult = successorBuilder.build().run { condition(engineData) }
+          }
+          successorBuilder
+        }!!.let { pniPair ->
           when (conditionResult) {
-            ConditionResult.TRUE -> { // only if it can be executed, otherwise just drop it.
-              val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
-
-              engineData.commit()
-
-              processInstance = pnipair.node.provideTask(engineData, pnipair.instance).instance
-
+            ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
+              pniPair.node.provideTask(engineData, pniPair.instance)
             }
             ConditionResult.NEVER -> {
-              val pnipair = processInstance.addChild(engineData, nonRegisteredSuccessor)
-              processInstance = pnipair.instance.skipTask(engineData, pnipair.node).instance
+              pniPair.instance.skipTask(engineData, pniPair.node)
             }
+            else                  -> pniPair
           }
         }
+
+        processInstance = pniPair.instance
+
       }
       // in any case
       if (state == NodeInstanceState.Complete || ! state.isFinal) {
@@ -200,7 +208,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
       return update(engineData) { state = NodeInstanceState.Complete }
     }
 
-    return ProcessInstance.PNIPair(processInstance, this) // the state is whatever it should be
+    return PNIPair(processInstance, this) // the state is whatever it should be
   }
 
   companion object {

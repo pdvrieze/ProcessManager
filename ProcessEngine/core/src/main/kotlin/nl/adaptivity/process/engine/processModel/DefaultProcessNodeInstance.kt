@@ -63,18 +63,18 @@ open class DefaultProcessNodeInstance
   : ProcessNodeInstance<DefaultProcessNodeInstance> {
 
   constructor(node: ExecutableProcessNode,
-              predecessors: Collection<ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
-              hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
+              predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
-              handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+              handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList(),
               failureCause: Throwable? = null)
     : super(node, predecessors, hProcessInstance, owner, entryNo, handle, state, results, failureCause)
 
   constructor(node: ExecutableProcessNode,
-              predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>,
+              predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
               processInstance: ProcessInstance,
               entryNo: Int)
     : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(),
@@ -118,7 +118,7 @@ open class DefaultProcessNodeInstance
     if (node != other.node) return false
     if (handle != other.handle) return false
     if (results != other.results) return false
-    if (directPredecessors != other.directPredecessors) return false
+    if (predecessors != other.predecessors) return false
     if (owner != other.owner) return false
 
     return true
@@ -131,58 +131,51 @@ open class DefaultProcessNodeInstance
     result = 31 * result + node.hashCode()
     result = 31 * result + handle.hashCode()
     result = 31 * result + results.hashCode()
-    result = 31 * result + directPredecessors.hashCode()
+    result = 31 * result + predecessors.hashCode()
     result = 31 * result + owner.hashCode()
     return result
   }
 
-  interface Builder: ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance>
+  interface Builder: ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance> {
 
-  private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
-    override var node: ExecutableProcessNode by overlay { base.node }
-    override fun build() = if (changed) DefaultProcessNodeInstance(this) else base
-
-    fun provideTask(engineData: MutableProcessEngineDataAccess, processInstanceBuilder: ProcessInstance.Builder): PNIPair<DefaultProcessNodeInstance> {
+    override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
 
       val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
 
-      fun <MSG_T> impl(messageService: IMessageService<MSG_T>):PNIPair<DefaultProcessNodeInstance> {
+      fun <MSG_T> impl(messageService: IMessageService<MSG_T>): Boolean {
 
-        val shouldProgress = tryCreate {
-          node.provideTask(engineData, processInstanceBuilder, this)
-        }
+        val shouldProgress = tryCreate { node.provideTask(engineData, this) }
 
         if (node is ExecutableActivity) {
           val preparedMessage = messageService.createMessage(node.message)
           if (! tryCreate() { messageService.sendMessage(engineData, preparedMessage, this) }) {
             failTaskCreation(MessagingException("Failure to send message"))
+          } else {
+            state = NodeInstanceState.Sent
           }
         }
 
-        val pniPair = run { // Unfortunately sendMessage will invalidate the current instance
-          val newInstance = engineData.instance(hProcessInstance).withPermission()
-          val newNodeInstance = engineData.nodeInstance(handle).withPermission() as DefaultProcessNodeInstance
-          newNodeInstance.update(engineData) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
-        }
-        if (shouldProgress) {
-          return ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
-        } else
-          return pniPair
+        return shouldProgress
 
       }
-
       return impl(engineData.messageService())
     }
 
   }
 
+  private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
+    override var node: ExecutableProcessNode by overlay { base.node }
+    override fun build() = if (changed) DefaultProcessNodeInstance(this) else base
+
+  }
+
   class BaseBuilder(
     node: ExecutableProcessNode,
-    predecessors: Iterable<ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
+    predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
     processInstanceBuilder: ProcessInstance.Builder,
     owner: Principal,
     entryNo: Int,
-    handle: ComparableHandle<out SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
+    handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
     state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
 
@@ -200,44 +193,12 @@ open class DefaultProcessNodeInstance
   companion object {
 
 
-
-    @PublishedApi
-    internal inline fun <R> _tryHelper(engineData: MutableProcessEngineDataAccess,
-                                       processInstance: ProcessInstance,
-                                       body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception)->Unit): R {
-      return try {
-        body()
-      } catch (e: Exception) {
-        try {
-          failHandler(engineData, processInstance, e)
-        } catch (f: Exception) {
-          e.addSuppressed(f)
-        }
-        throw e
-      }
-    }
-
-    @PublishedApi
-    internal inline fun <R> _tryHelper(body: () -> R, failHandler: (Exception)->Unit): R {
-      return try {
-        body()
-      } catch (e: Exception) {
-        try {
-          failHandler(e)
-        } catch (f: Exception) {
-          e.addSuppressed(f)
-        }
-        throw e
-      }
-    }
-
-
     internal val logger by lazy { Logger.getLogger(DefaultProcessNodeInstance::class.java.getName()) }
 
     fun build(node: ExecutableProcessNode,
-              predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstanceBuilder: ProcessInstance.Builder,
-              handle: ComparableHandle<out SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
+              handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               entryNo: Int,
               body: Builder.() -> Unit): DefaultProcessNodeInstance {
@@ -247,9 +208,9 @@ open class DefaultProcessNodeInstance
 
 
     fun build(node: ExecutableProcessNode,
-              predecessors: Set<ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstance: ProcessInstance,
-              handle: ComparableHandle<out SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
+              handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               entryNo: Int,
               body: Builder.() -> Unit): DefaultProcessNodeInstance {

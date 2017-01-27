@@ -118,11 +118,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         this@DelegateProcessEngineData.invalidateCachePI(handle)
       }
 
-      override fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) {
+      override fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
         this@DelegateProcessEngineData.invalidateCachePNI(handle)
       }
 
-      override fun handleFinishedInstance(handle: ComparableHandle<out SecureObject<ProcessInstance>>) {
+      override fun handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
         // Ignore the completion for now. Just keep it in the engine.
       }
     }
@@ -159,11 +159,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         this@DBProcessEngineData.invalidateCachePI(handle)
       }
 
-      override fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) {
+      override fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
         this@DBProcessEngineData.invalidateCachePNI(handle)
       }
 
-      override fun handleFinishedInstance(handle: ComparableHandle<out SecureObject<ProcessInstance>>) {
+      override fun handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
         // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
       }
     }
@@ -219,11 +219,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     engineData.invalidateCachePM(handle)
   }
 
-  fun invalidateInstanceCache(handle: ComparableHandle<out SecureObject<ProcessInstance>>) {
+  fun invalidateInstanceCache(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
     engineData.invalidateCachePI(handle)
   }
 
-  fun invalidateNodeCache(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) {
+  fun invalidateNodeCache(handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
     engineData.invalidateCachePNI(handle)
   }
 
@@ -406,7 +406,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun getProcessInstance(transaction: TRXXX, handle: ComparableHandle<out SecureObject<ProcessInstance>>, user: Principal): ProcessInstance {
+  fun getProcessInstance(transaction: TRXXX, handle: ComparableHandle<SecureObject<ProcessInstance>>, user: Principal): ProcessInstance {
     return engineData.inReadonlyTransaction(transaction) {
       instances[handle].shouldExist(handle).withPermission(mSecurityProvider, Permissions.VIEW_INSTANCE, user) {
         it
@@ -420,7 +420,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun tickleInstance(transaction: TRXXX, handle: ComparableHandle<out SecureObject<ProcessInstance>>, user: Principal): Boolean {
+  fun tickleInstance(transaction: TRXXX, handle: ComparableHandle<SecureObject<ProcessInstance>>, user: Principal): Boolean {
     transaction.writableEngineData.run {
       invalidateCachePM(Handles.getInvalid())
       invalidateCachePI(Handles.getInvalid())
@@ -538,7 +538,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    */
   @Throws(SQLException::class)
   fun getNodeInstance(transaction: TRXXX,
-                      handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>,
+                      handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                       user: Principal): ProcessNodeInstance<*>? {
     engineData.inReadonlyTransaction(transaction) {
       return nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) {
@@ -565,7 +565,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun finishInstance(transaction: TRXXX, hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>) {
+  fun finishInstance(transaction: TRXXX, hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>) {
     // TODO evict these nodes from the cache (not too bad to keep them though)
     //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
     //      getNodeInstances().invalidateModelCache(childNode);
@@ -619,7 +619,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun updateTaskState(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>, newState: NodeInstanceState, user: Principal): NodeInstanceState {
+  fun updateTaskState(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>, newState: NodeInstanceState, user: Principal): NodeInstanceState {
     transaction.writableEngineData.run {
 
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
@@ -645,7 +645,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun finishTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>, payload: Node?, user: Principal): ProcessNodeInstance<*> {
+  fun finishTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>, payload: Node?, user: Principal): ProcessNodeInstance<*> {
     engineData.inWriteTransaction(transaction) {
       nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
         val pi = instance(task.hProcessInstance).withPermission()
@@ -674,7 +674,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @param resultSource The source that is parsed into DOM nodes and then passed on
    * *          to [.finishTask]
    */
-  fun finishedTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>, resultSource: DataSource?, user: Principal) {
+  fun finishedTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>, resultSource: DataSource?, user: Principal) {
     try {
       val result = resultSource?.let { InputSource(it.inputStream) }
 
@@ -704,12 +704,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun cancelledTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>, user: Principal) {
+  fun cancelledTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>, user: Principal) {
     updateTaskState(transaction, handle, Cancelled, user)
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
-  fun errorTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>, cause: Throwable, user: Principal) {
+  fun errorTask(transaction: TRXXX, handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>, cause: Throwable, user: Principal) {
     engineData.inWriteTransaction(transaction) {
       nodeInstances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE, user) { task ->
         task.failTask(this, instance(task.hProcessInstance).withPermission(), cause)

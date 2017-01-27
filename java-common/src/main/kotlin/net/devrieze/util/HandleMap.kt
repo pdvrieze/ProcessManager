@@ -67,14 +67,14 @@ interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
    * *
    * @return The handle for the value.
    */
-  fun <W : V> put(value: W): ComparableHandle<out W>
+  fun <W : V> put(value: W): ComparableHandle<W>
 
   @Deprecated("Don't use untyped handles", ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles"))
   operator fun set(handle: Long, value: V): V?
 
-  operator fun set(handle: Handle<out V>, value: V): V?
+  operator fun set(handle: Handle<V>, value: V): V?
 
-  fun remove(handle: Handle<out V>): Boolean
+  fun remove(handle: Handle<V>): Boolean
 
   /** Remove all elements */
   fun clear()

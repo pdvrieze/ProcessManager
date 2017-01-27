@@ -39,9 +39,9 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
 
   }
 
-  private val mPendingCreates = TreeMap<ComparableHandle<out V>, TMP>()
+  private val mPendingCreates = TreeMap<ComparableHandle<V>, TMP>()
 
-  protected fun isPending(handle: ComparableHandle<out V>): Boolean {
+  protected fun isPending(handle: ComparableHandle<V>): Boolean {
     return mPendingCreates.containsKey(handle)
   }
 
