@@ -26,4 +26,4 @@ import nl.adaptivity.process.engine.db.ProcessEngineDB
 
 
 class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out ProcessDBTransaction>, processEngine: ProcessEngine<ProcessDBTransaction>) :
-      DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode>, SecureObject<ProcessNodeInstance>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))
+      DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>, SecureObject<ProcessNodeInstance<*>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))

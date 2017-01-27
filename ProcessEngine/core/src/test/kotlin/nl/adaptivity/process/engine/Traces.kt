@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.allChildren
 import nl.adaptivity.process.util.Identified
@@ -84,7 +85,7 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
    */
   val  resultPayload: Node? get() = null
 
-  fun  getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance? {
+  fun  getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance<*>? {
     return when (instanceNo) {
       ANYINSTANCE -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId }
       LASTINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.maxBy { it.entryNo }

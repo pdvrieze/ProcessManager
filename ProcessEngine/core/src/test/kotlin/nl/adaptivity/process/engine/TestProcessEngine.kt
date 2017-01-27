@@ -140,11 +140,11 @@ class TestProcessEngine {
     return readableEngineData.instance(instanceHandle).withPermission()
   }
 
-  private fun StubMessageService.messageNode(transaction: ProcessTransaction, index:Int): ProcessNodeInstance {
+  private fun StubMessageService.messageNode(transaction: ProcessTransaction, index:Int): ProcessNodeInstance<*> {
     return transaction.readableEngineData.nodeInstance(this._messages[index].source).withPermission()
   }
 
-  private fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance {
+  private fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance<*> {
     return getChild(name)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
   }
 
@@ -157,11 +157,11 @@ class TestProcessEngine {
   private val ProcessInstance.sortedCompleted
     get() = completedEndnodes.sortedBy { it.handleValue }
 
-  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance>>) = apply {
+  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) = apply {
     assertEquals(ArrayList(sortedFinished), handles.sorted())
   }
 
-  private fun ProcessInstance.assertFinished(vararg handles: ProcessNodeInstance) = apply {
+  private fun ProcessInstance.assertFinished(vararg handles: ProcessNodeInstance<*>) = apply {
     val actual = ArrayList(sortedFinished)
     val expected = handles.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
     try {
@@ -171,11 +171,11 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance>>) = apply {
+  private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) = apply {
     assertEquals(ArrayList(sortedActive), handles.sorted())
   }
 
-  private fun ProcessInstance.assertActive(vararg handles: ProcessNodeInstance) = apply {
+  private fun ProcessInstance.assertActive(vararg handles: ProcessNodeInstance<*>) = apply {
     val actual = ArrayList(sortedActive)
     val expected = handles.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
     try {
@@ -185,18 +185,18 @@ class TestProcessEngine {
     }
   }
 
-  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance>>) = apply {
+  private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) = apply {
     assertEquals(ArrayList(sortedCompleted), handles.sorted())
   }
 
-  private fun ProcessInstance.assertCompleted(vararg nodes: ProcessNodeInstance): ProcessInstance {
+  private fun ProcessInstance.assertCompleted(vararg nodes: ProcessNodeInstance<*>): ProcessInstance {
     val actual = ArrayList(sortedCompleted)
     val expected = nodes.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
     assertEquals(actual, expected)
     return this
   }
 
-  private fun ProcessNodeInstance.assertStarted() = apply {
+  private fun ProcessNodeInstance<*>.assertStarted() = apply {
     assertEquals(this.state, NodeInstanceState.Started)
   }
 
@@ -208,23 +208,23 @@ class TestProcessEngine {
     assertEquals(this.state, State.FINISHED)
   }
 
-  private fun ProcessNodeInstance.assertSent() = apply {
+  private fun ProcessNodeInstance<*>.assertSent() = apply {
     assertState(NodeInstanceState.Sent)
   }
 
-  private fun ProcessNodeInstance.assertPending() = apply {
+  private fun ProcessNodeInstance<*>.assertPending() = apply {
     assertState(NodeInstanceState.Pending)
   }
 
-  private fun ProcessNodeInstance.assertAcknowledged() = apply {
+  private fun ProcessNodeInstance<*>.assertAcknowledged() = apply {
     assertState(NodeInstanceState.Acknowledged)
   }
 
-  private fun ProcessNodeInstance.assertComplete() = apply {
+  private fun ProcessNodeInstance<*>.assertComplete() = apply {
     assertState(NodeInstanceState.Complete)
   }
 
-  private fun ProcessNodeInstance.assertState(state: NodeInstanceState) {
+  private fun ProcessNodeInstance<*>.assertState(state: NodeInstanceState) {
     try {
       assertEquals(this.state, state, "Node ${this.node.id}(${this.getHandle()}) should be in the ${state.name} state")
     } catch (e: AssertionError) {
@@ -242,11 +242,11 @@ class TestProcessEngine {
     //                                            cache(new MemTransactionedHandleMap<>(), 2));
 
     mProcessEngine = ProcessEngine.newTestInstance(
-        mStubMessageService,
-        mStubTransactionFactory,
-        cacheModels<Any>(MemProcessModelMap(), 3),
-        cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-        cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
+      mStubMessageService,
+      mStubTransactionFactory,
+      cacheModels<Any>(MemProcessModelMap(), 3),
+      cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
+      cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
   }
 
   @Test
@@ -418,7 +418,7 @@ class TestProcessEngine {
     XMLUnit.setIgnoreWhitespace(true)
     assertXMLEqual(InputStreamReader(getXml("testModel2_task1.xml")!!), CharArrayReader(serializeToXmlCharArray(mStubMessageService
         ._messages[0].base)))
-    var ac1: ProcessNodeInstance = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
+    var ac1: ProcessNodeInstance<*> = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
 
     mStubMessageService.clear() // (Process the message)
@@ -493,20 +493,19 @@ class TestProcessEngine {
 
   companion object {
 
-    internal val PNI_SET_HANDLE = fun(pni: SecureObject<ProcessNodeInstance>, handle: Handle<SecureObject<ProcessNodeInstance>>): SecureObject<ProcessNodeInstance> {
+    internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: Handle<SecureObject<ProcessNodeInstance<*>>>): SecureObject<ProcessNodeInstance<*>>? {
       if (pni.withPermission().getHandle() == handle) {
         return pni
       }
-      val builder = pni.withPermission().builder()
-      builder.handle = Handles.handle<SecureObject<ProcessNodeInstance>>(handle)
-      return builder.build()
+      val piBuilder = transaction.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()
+      return pni.withPermission().builder(piBuilder).also { it.handle = Handles.handle(handle) }.build()
     }
 
     internal fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
       return CachingHandleMap<V, StubProcessTransaction>(base, count)
     }
 
-    internal fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction> {
+    internal fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction> {
       return CachingHandleMap(base, count, PNI_SET_HANDLE)
     }
 

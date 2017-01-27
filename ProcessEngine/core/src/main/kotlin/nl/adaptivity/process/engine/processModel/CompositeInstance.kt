@@ -35,25 +35,35 @@ import javax.xml.parsers.DocumentBuilderFactory
 /**
  * Created by pdvrieze on 09/01/17.
  */
-class CompositeInstance : ProcessNodeInstance {
+class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
-  class BaseBuilder : ProcessNodeInstance.BaseBuilder<ExecutableActivity> {
-    constructor(node: ExecutableActivity,
-                predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance>>>,
-                hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
-                childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
-                owner: Principal,
-                handle: ComparableHandle<SecureObject<ProcessNodeInstance>>,
-                entryNo: Int,
-                state: NodeInstanceState) : super(node, predecessors, hProcessInstance, owner,
-                                                  entryNo, handle, state)
+  interface Builder: ProcessNodeInstance.Builder<ExecutableActivity, CompositeInstance> {
+    var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
   }
 
-  class ExtBuilder(base: CompositeInstance) : ProcessNodeInstance.ExtBuilder<ExecutableProcessNode, CompositeInstance>(base) {
+  class BaseBuilder : ProcessNodeInstance.BaseBuilder<ExecutableActivity, CompositeInstance>, Builder {
+    constructor(node: ExecutableActivity,
+                predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
+                processInstanceBuilder: ProcessInstance.Builder,
+                childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+                owner: Principal,
+                entryNo: Int,
+                handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+                state: NodeInstanceState = NodeInstanceState.Pending) : super(node, listOfNotNull(predecessor), processInstanceBuilder, owner,
+                                                                                   entryNo, handle, state)
 
-    override var node: ExecutableProcessNode by overlay { base.node }
+    override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()
 
-    var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer) { base.hChildInstance }
+    override fun build(): CompositeInstance {
+      return CompositeInstance(this)
+    }
+  }
+
+  class ExtBuilder(base: CompositeInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableActivity, CompositeInstance>(base, processInstanceBuilder), Builder {
+
+    override var node: ExecutableActivity by overlay { base.node }
+
+    override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer) { base.hChildInstance }
 
     override fun build(): CompositeInstance {
       return if(changed) CompositeInstance(this) else base
@@ -65,27 +75,27 @@ class CompositeInstance : ProcessNodeInstance {
   override val node: ExecutableActivity get() = super.node as ExecutableActivity
 
   constructor(node: ExecutableActivity,
-              predecessor: ComparableHandle<SecureObject<ProcessNodeInstance>>,
+              predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
               processInstance: ProcessInstance,
               entryNo: Int,
-              childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, predecessor,
-                                                                                      processInstance, entryNo) {
+              childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, listOf(predecessor),
+                                                                                      processInstance.getHandle(), processInstance.owner, entryNo) {
     this.hChildInstance = childInstance
   }
 
-  constructor(builder: ExtBuilder) : super(builder) {
+  constructor(builder: Builder) : super(builder) {
     hChildInstance = builder.hChildInstance
   }
 
-  override fun builder() = ExtBuilder(this)
+  override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
   fun updateComposite(writableEngineData: MutableProcessEngineDataAccess,
                       instance: ProcessInstance,
-                      body: ExtBuilder.() -> Unit): ProcessInstance.PNIPair<ProcessNodeInstance> {
+                      body: ExtBuilder.() -> Unit): ProcessInstance.PNIPair<CompositeInstance> {
     return super.update(writableEngineData, { (this as ExtBuilder).body() })
   }
 
-  override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
+  override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
     val shouldProgress = tryCreate(engineData, processInstance) {
       node.provideTask(engineData, processInstance, this)
     }
@@ -103,7 +113,7 @@ class CompositeInstance : ProcessNodeInstance {
   }
 
   override fun startTask(engineData: MutableProcessEngineDataAccess,
-                         processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
+                         processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
     val shouldProgress = tryTask(engineData, processInstance) {
       node.startTask(this)
     }
@@ -123,7 +133,7 @@ class CompositeInstance : ProcessNodeInstance {
 
   override fun finishTask(engineData: MutableProcessEngineDataAccess,
                           processInstance: ProcessInstance,
-                          resultPayload: Node?): ProcessInstance.PNIPair<ProcessNodeInstance> {
+                          resultPayload: Node?): ProcessInstance.PNIPair<CompositeInstance> {
     val childInstance = engineData.instance(hChildInstance).withPermission()
     if (childInstance.state!=ProcessInstance.State.FINISHED) {
       throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")

@@ -17,12 +17,14 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.toMutableArraySet
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -129,15 +131,26 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
   /**
    * Determine whether the process can start.
    */
-  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult {
+  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult {
     return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
   }
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
                                      processInstance: ProcessInstance,
-                                     predecessor: ProcessNodeInstance,
-                                     entryNo: Int): ProcessNodeInstance {
-    return processInstance.getNodeInstance(this, predecessor.entryNo) ?: if(childModel==null) ProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo) else CompositeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
+                                     predecessor: ProcessNodeInstance<*>,
+                                     entryNo: Int): ProcessNodeInstance<*> {
+    return processInstance.getNodeInstance(this, predecessor.entryNo)
+           ?: if(childModel==null) DefaultProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo) else CompositeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
+  }
+
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                                     processInstanceBuilder: ProcessInstance.ExtBuilder,
+                                     predecessor: ProcessNodeInstance<*>,
+                                     entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    return if (childModel == null)
+      super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
+    else
+      processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.getHandle(), processInstanceBuilder, Handles.getInvalid(), processInstanceBuilder.owner, entryNo)
   }
 
   /**
@@ -153,7 +166,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    */
   @Throws(SQLException::class)
   override fun provideTask(engineData: ProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean = childModel != null
+                           processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = childModel != null
 
   /**
    * Take the task. Tasks are either process aware or finished when a reply is
@@ -161,7 +174,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    *
    * @return `false`
    */
-  override fun takeTask(instance: ProcessNodeInstance) = childModel!=null
+  override fun takeTask(instance: ProcessNodeInstance<*>) = childModel!=null
 
   /**
    * Start the task. Tasks are either process aware or finished when a reply is
@@ -169,7 +182,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    *
    * @return `false`
    */
-  override fun startTask(instance: ProcessNodeInstance) = false
+  override fun startTask(instance: ProcessNodeInstance<*>) = false
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {

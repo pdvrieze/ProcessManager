@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.MemTransactionedHandleMap;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance;
 import nl.adaptivity.process.engine.servlet.ServletProcessEngine;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,10 +31,10 @@ import java.net.URI;
  */
 public class TestServletProcessEngine extends ServletProcessEngine {
 
-  private final MemProcessModelMap                                                                   mProcessModels;
-  private final MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>     mProcessInstances;
-  private final MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction> mProcessNodeInstances;
-  private ProcessTransactionFactory<StubProcessTransaction>                                          mTransactionFactory;
+  private final MemProcessModelMap                                                                         mProcessModels;
+  private final MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>           mProcessInstances;
+  private final MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>mProcessNodeInstances;
+  private ProcessTransactionFactory<StubProcessTransaction>                                                mTransactionFactory;
 
   public TestServletProcessEngine(final EndpointDescriptorImpl localURL) {
     mTransactionFactory = new ProcessTransactionFactory<StubProcessTransaction>() {

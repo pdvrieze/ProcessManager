@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
@@ -44,14 +45,14 @@ inline fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:String):T = 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.mustExist(handle: ComparableHandle<out SecureObject<ProcessNodeInstance>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.mustExist(handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, N:ProcessNodeInstance> N?.shouldExist(handle: ComparableHandle<out SecureObject<ProcessNodeInstance>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.shouldExist(handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the object instance exists. If it doesn't exist this is an internal error

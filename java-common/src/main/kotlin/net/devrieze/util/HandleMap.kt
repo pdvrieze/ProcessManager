@@ -81,7 +81,14 @@ interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
 
 }
 
-fun <T> HANDLE_AWARE_ASSIGNER(it:T, handle: Handle<T>):T {
-  (it as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} ;
-  return it
+fun <T> HANDLE_AWARE_ASSIGNER(transaction: Transaction, value:T, handle: Handle<T>):T? {
+  (value as? ReadableHandleAware<*>)?.let { if (it.getHandle()==handle) return value } // no change needed
+  (value as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} // The handle has been set
+  return null
+}
+
+fun <T> HANDLE_AWARE_ASSIGNER(value:T, handle: Handle<T>):T? {
+  (value as? ReadableHandleAware<*>)?.let { if (it.getHandle()==handle) return value } // no change needed
+  (value as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} // The handle has been set
+  return null
 }

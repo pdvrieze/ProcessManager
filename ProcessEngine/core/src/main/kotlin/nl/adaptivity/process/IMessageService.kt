@@ -18,6 +18,7 @@ package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import java.sql.SQLException
@@ -55,7 +56,7 @@ interface IMessageService<MSG_T> {
    * @throws SQLException
    */
   @Deprecated("Use the version taking a builder")
-  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instance: ProcessNodeInstance): Boolean
+  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instance: ProcessNodeInstance<*>): Boolean
 
   /**
    * Send a message.
@@ -70,7 +71,7 @@ interface IMessageService<MSG_T> {
    *
    * @throws SQLException
    */
-  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instanceBuilder: ProcessNodeInstance.Builder<*>): Boolean
+  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

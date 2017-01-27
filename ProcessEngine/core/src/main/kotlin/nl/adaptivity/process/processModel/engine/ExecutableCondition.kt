@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
@@ -59,7 +60,7 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
    * *
    * @return `true` if the condition holds, `false` if not
    */
-  fun eval(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult {
+  fun eval(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult {
     if (condition.isBlank()) return TRUE
     // TODO process the condition as xpath, expose the node's defines as variables
     val factory = XPathFactory.newInstance()
@@ -100,7 +101,7 @@ fun ConditionResult(boolean: Boolean): ConditionResult {
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: ProcessNodeInstance) : XPathFunctionResolver, XPathVariableResolver {
+class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: ProcessNodeInstance<*>) : XPathFunctionResolver, XPathVariableResolver {
   override fun resolveVariable(variableName: QName): Any? {
     // Actually resolve variables
     return null

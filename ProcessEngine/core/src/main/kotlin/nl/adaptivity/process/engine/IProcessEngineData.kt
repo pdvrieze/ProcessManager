@@ -20,6 +20,7 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import java.security.Principal
@@ -27,7 +28,7 @@ import java.security.Principal
 abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
   protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
-  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, T>
+  protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>
 
 
   fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
@@ -42,7 +43,7 @@ abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T
     }
   }
 
-  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>) {
+  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) {
     (processNodeInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
@@ -84,9 +85,9 @@ interface ProcessEngineDataAccess {
   fun  instance(handle: Handle<out SecureObject<ProcessInstance>>)
         = instances[handle].mustExist(handle)
 
-  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance>>
+  val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<*>>>
 
-  fun nodeInstance(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
+  fun nodeInstance(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>)
         = nodeInstances[handle].mustExist(handle)
 
   val processModels: IProcessModelMapAccess
@@ -107,7 +108,7 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
   fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>)
 
-  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>)
+  fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>)
 
   fun commit()
 

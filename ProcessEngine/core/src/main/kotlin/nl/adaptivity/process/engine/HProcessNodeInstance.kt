@@ -17,13 +17,13 @@
 package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.xml.*
 
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessNodeInstance.Factory::class)
-class HProcessNodeInstance : XmlHandle<ProcessNodeInstance> {
+class HProcessNodeInstance : XmlHandle<DefaultProcessNodeInstance> {
 
   class Factory : XmlDeserializerFactory<HProcessNodeInstance> {
 

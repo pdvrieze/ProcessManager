@@ -30,16 +30,20 @@ import java.util.concurrent.CopyOnWriteArraySet
  * will loop through the cache to find the underlying value.
 
  * @author Paul de Vrieze
- * *
- * @param  The type of the elements in the map.
+ *
+ * @param  V The type of the elements in the map.
+ * @param T The transaction type that is used
+ * @property delegate The underlying handlemap
+ * @param cacheSize How many elements should be stored in the cache
+ * @property handleAssigner Function that may update the value. If it returns null, the value will not be cached.
  */
 open class CachingHandleMap<V:Any, T : Transaction>(
-      protected open val delegate: MutableTransactionedHandleMap<V, T>,
-      cacheSize: Int,
-      val handleAssigner: (V, Handle<V>)->V) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+  protected open val delegate: MutableTransactionedHandleMap<V, T>,
+  cacheSize: Int,
+  val handleAssigner: (T, V, Handle<V>) -> V?) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
   constructor(delegate: MutableTransactionedHandleMap<V, T>,
-              cacheSize: Int): this(delegate, cacheSize, { v, h -> HANDLE_AWARE_ASSIGNER(v,h) })
+              cacheSize: Int): this(delegate, cacheSize, { _, v, h -> HANDLE_AWARE_ASSIGNER(v,h) })
 
   private open inner class WrappingIterator(private val transaction:T, protected open val iterator: Iterator<V>) : MutableAutoCloseableIterator<V> {
     private var last: V? = null
@@ -138,6 +142,8 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   @Throws(SQLException::class)
   override fun <W : V> put(transaction: T, value: W): ComparableHandle<W> {
     val handle = delegate.put(transaction, value)
+
+
     putCache(transaction, handle, value)
     return handle
   }
@@ -154,10 +160,12 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   private fun putCache(transaction: T, handle: Handle<out V>, nonUpdatedValue: V?) {
     if (nonUpdatedValue != null) { // never store null
       if (handle.valid) {
-        val updatedValue = handleAssigner(nonUpdatedValue, handle)
+        val updatedValue = handleAssigner(transaction, nonUpdatedValue, handle)
 
         // Don't cache if the updated value has a handle that does not match
-        if (updatedValue is ReadableHandleAware<*> && updatedValue.getHandle()!=handle) return
+        if (updatedValue == null ||
+            (updatedValue is ReadableHandleAware<*> &&
+             updatedValue.getHandle()!=handle)) return
 
         synchronized (cacheHandles) {
           transaction.addRollbackHandler({ invalidateCache(handle) })

@@ -35,30 +35,30 @@ import java.security.Principal
 /**
  * Specialisation of process node instance for splits
  */
-class SplitInstance : ProcessNodeInstance {
+class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
-  interface Builder : ProcessNodeInstance.Builder<ExecutableSplit> {
+  interface Builder : ProcessNodeInstance.Builder<ExecutableSplit,SplitInstance> {
     override fun build(): SplitInstance
-    var predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>?
+    var predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>?
       get() = predecessors.firstOrNull()
       set(value) = predecessors.replaceByNotNull(value)
   }
 
-  class ExtBuilder(private val instance:SplitInstance) : ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance), Builder {
+  class ExtBuilder(private val instance:SplitInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
     override var node: ExecutableSplit by overlay { instance.node }
     override fun build() = if (changed) SplitInstance(this) else base
   }
 
   class BaseBuilder(
-      node: ExecutableSplit,
-      predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>,
-      hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
-      owner: Principal,
-      handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
-      entryNo: Int,
-      state: NodeInstanceState = NodeInstanceState.Pending)
-    : ProcessNodeInstance.BaseBuilder<ExecutableSplit>(node, listOf(predecessor), hProcessInstance, owner, entryNo,
-                                                       handle, state), Builder {
+    node: ExecutableSplit,
+    predecessor: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>,
+    processInstanceBuilder: ProcessInstance.Builder,
+    owner: Principal,
+    entryNo: Int,
+    handle: ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+    state: NodeInstanceState = NodeInstanceState.Pending)
+    : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
+                                                              handle, state), Builder {
     override fun build() = SplitInstance(this)
   }
 
@@ -74,10 +74,10 @@ class SplitInstance : ProcessNodeInstance {
       = super.getHandle() as ComparableHandle<out SecureObject<SplitInstance>>
 
   constructor(node: ExecutableSplit,
-              predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>,
+              predecessor: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>,
               hProcessInstance: ComparableHandle<out SecureObject<ProcessInstance>>,
               owner: Principal,
-              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> = Handles.getInvalid(),
+              handle: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList(),
               entryNo: Int) :
@@ -86,55 +86,54 @@ class SplitInstance : ProcessNodeInstance {
 
   constructor(builder: SplitInstance.Builder): this(builder.node, builder.predecessor?: throw NullPointerException("Missing predecessor node instance"), builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.entryNo)
 
-  override fun builder(): ExtBuilder {
-    return ExtBuilder(this)
+  override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
+    return ExtBuilder(this, processInstanceBuilder)
   }
+//
+//  override fun update(writableEngineData: MutableProcessEngineDataAccess,
+//                      body: ProcessNodeInstance.Builder<*, SplitInstance>.() -> Unit): ProcessInstance.PNIPair<SplitInstance> {
+//    val instance = writableEngineData.instance(hProcessInstance).withPermission()
+//    val instanceBuilder = instance.builder()
+//    val origHandle = getHandle()
+//    val builder = builder(instanceBuilder).apply(body)
+//    if (builder.changed) {
+//      if (origHandle.valid && getHandle().valid) {
+//        val nodeFuture = instanceBuilder.storeChild(builder)
+//        return ProcessInstance.PNIPair(instanceBuilder.build(writableEngineData), nodeFuture.get() as SplitInstance)
+//      }
+//    }
+//    return ProcessInstance.PNIPair(instance, this)
+//  }
 
-  override fun update(writableEngineData: MutableProcessEngineDataAccess,
-                      body: ProcessNodeInstance.Builder<*>.() -> Unit): ProcessInstance.PNIPair<SplitInstance> {
-    val instance = writableEngineData.instance(hProcessInstance).withPermission()
-    val origHandle = getHandle()
-    val builder = builder().apply(body)
-    if (builder.changed) {
-      if (origHandle.valid && getHandle().valid) {
-        return instance.updateNode(writableEngineData, builder.build())
-      } else {
-        return ProcessInstance.PNIPair(instance, this)
-      }
-    } else {
-      return ProcessInstance.PNIPair(instance, this)
-    }
-  }
-
-  @JvmName("updateSplit")
+//  @JvmName("updateSplit")
   fun update(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): ProcessInstance.PNIPair<SplitInstance> {
+    val instanceBuilder = instance.builder()
     val origHandle = getHandle()
-    val builder = builder().apply(body)
+    val builder = builder(instanceBuilder).apply(body)
     if (builder.changed) {
       if (origHandle.valid && getHandle().valid) {
-        return instance.updateNode(writableEngineData, builder.build())
-      } else {
-        return ProcessInstance.PNIPair(instance, this)
+        val nodeFuture = instanceBuilder.storeChild(builder)
+        return ProcessInstance.PNIPair(instanceBuilder.build(writableEngineData), nodeFuture.get() as SplitInstance)
       }
-    } else {
-      return ProcessInstance.PNIPair(instance, this)
     }
+    return ProcessInstance.PNIPair(instance, this)
   }
 
-  private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance> {
+  private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance<*>> {
     val instance = engineData.instance(hProcessInstance).withPermission()
     return node.successors
         .asSequence()
         .mapNotNull { instance.getChild(it.id)?.withPermission() }
+        .filter { it.entryNo == entryNo }
   }
 
-  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<ProcessNodeInstance> {
+  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<SplitInstance> {
     return update(engineData){ state= NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)
     }
   }
 
-  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): ProcessInstance.PNIPair<ProcessNodeInstance> {
+  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): ProcessInstance.PNIPair<SplitInstance> {
     val committedSuccessors = successorInstances(engineData).filter { it.state.isCommitted }
     if (committedSuccessors.count()<node.min) {
       throw ProcessException("A split can only be finished once the minimum amount of children is committed")
@@ -206,7 +205,7 @@ class SplitInstance : ProcessNodeInstance {
 
   companion object {
 
-    private fun isActiveOrCompleted(it: ProcessNodeInstance): Boolean {
+    private fun isActiveOrCompleted(it: ProcessNodeInstance<*>): Boolean {
       return when (it.state) {
         NodeInstanceState.Started,
         NodeInstanceState.Complete,

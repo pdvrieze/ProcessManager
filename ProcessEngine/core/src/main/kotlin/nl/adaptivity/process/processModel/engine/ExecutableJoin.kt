@@ -18,8 +18,10 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -53,8 +55,8 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
                                      processInstance: ProcessInstance,
-                                     predecessor: ProcessNodeInstance,
-                                     entryNo: Int): ProcessNodeInstance {
+                                     predecessor: ProcessNodeInstance<*>,
+                                     entryNo: Int): JoinInstance {
     if (isMultiInstance) TODO("MultiInstance support is not yet properly implemented")
     if (isMultiMerge) {
       var entryNoUnique = true
@@ -71,8 +73,24 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
       val usedEntryNo  = if (! entryNoUnique) { lastEntryNo+1 } else { entryNo }
       return JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, usedEntryNo)
     } else {
-      return processInstance.getNodeInstance(this, entryNo) ?: JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, entryNo)
+      return processInstance.getNodeInstance(this, entryNo) as JoinInstance?
+             ?: JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, entryNo)
     }
   }
 
+  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+                                     processInstanceBuilder: ProcessInstance.ExtBuilder,
+                                     predecessor: ProcessNodeInstance<*>,
+                                     entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    var candidateNo = entryNo
+    for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
+      if (! candidate.state.isFinal && (candidate.entryNo == entryNo || candidate.predecessors.any { data.nodeInstance(it).withPermission().entryNo == entryNo })) {
+        return candidate
+      }
+      // TODO Throw exceptions for cases where this is not allowed
+      if (candidate.entryNo == candidateNo) { candidateNo++ } // Increase the candidate entry number
+    }
+    if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) { throw ProcessException("Attempting to start a second instance of a single instantiation join") }
+    return JoinInstance.BaseBuilder(this, listOf(predecessor.getHandle()), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
+  }
 }

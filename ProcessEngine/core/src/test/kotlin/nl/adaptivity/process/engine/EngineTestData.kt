@@ -21,6 +21,7 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import java.net.URI
 import javax.xml.namespace.QName
@@ -37,14 +38,13 @@ open class EngineTestData(val messageService: StubMessageService, val engine: Pr
            TestProcessEngine.cacheInstances(
              MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 3),
            TestProcessEngine.cacheNodes<Any>(
-             MemTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>(
-               TestProcessEngine.PNI_SET_HANDLE), 3))
+             MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 3))
 
   private constructor(messageService: StubMessageService,
                       transactionFactory: ProcessTransactionFactory<StubProcessTransaction>,
                       processModels: IMutableProcessModelMap<StubProcessTransaction>,
                       processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>,
-                      processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance>, StubProcessTransaction>)
+                      processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>)
     : this(messageService, ProcessEngine.newTestInstance(messageService, transactionFactory, processModels, processInstances, processNodeInstances, true))
 
   constructor(): this(

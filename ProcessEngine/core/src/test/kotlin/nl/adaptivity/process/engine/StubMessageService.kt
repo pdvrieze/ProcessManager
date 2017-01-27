@@ -33,7 +33,7 @@ import java.util.*
  */
 class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage> {
 
-  class ExtMessage(val base: IXmlMessage, val source: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>>) : IXmlMessage by base
+  class ExtMessage(val base: IXmlMessage, val source: net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
 
   var _messages = mutableListOf<ExtMessage>()
 
@@ -45,7 +45,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     _messages.clear()
   }
 
-  fun getMessageNode(i: Int): net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance>> {
+  fun getMessageNode(i: Int): net.devrieze.util.ComparableHandle<out SecureObject<ProcessNodeInstance<*>>> {
     return _messages[i].source
   }
 
@@ -54,7 +54,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
   override fun sendMessage(engineData: MutableProcessEngineDataAccess,
                            protoMessage: IXmlMessage,
-                           instance: ProcessNodeInstance): Boolean {
+                           instance: ProcessNodeInstance<*>): Boolean {
     assert(instance.getHandle().valid) { "Sending messages from invalid nodes is a bad idea" }
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
@@ -82,7 +82,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
   override fun sendMessage(engineData: MutableProcessEngineDataAccess,
                            protoMessage: IXmlMessage,
-                           instanceBuilder: ProcessNodeInstance.Builder<*>): Boolean {
+                           instanceBuilder: ProcessNodeInstance.Builder<*,*>): Boolean {
     assert(instanceBuilder.handle.valid) { "Sending messages from invalid nodes is a bad idea" }
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {

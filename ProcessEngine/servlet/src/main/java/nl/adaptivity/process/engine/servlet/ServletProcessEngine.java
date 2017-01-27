@@ -30,8 +30,8 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.NodeInstanceState;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance.Builder;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
@@ -113,8 +113,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
     @Override
-    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage protoMessage, @NotNull final ProcessNodeInstance instance) {
-      final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instance.getHandle();
+    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage protoMessage, @NotNull final DefaultProcessNodeInstance instance) {
+      final Handle<? extends SecureObject<ProcessNodeInstance<*>>> nodeHandle = instance.getHandle();
 
       protoMessage.setHandle(engineData, instance);
 
@@ -136,8 +136,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
     @Override
-    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage protoMessage, @NotNull final ProcessNodeInstance.Builder<?> instanceBuilder) {
-      final Handle<? extends SecureObject<ProcessNodeInstance>> nodeHandle = instanceBuilder.getHandle();
+    public boolean sendMessage(@NotNull MutableProcessEngineDataAccess engineData, final NewServletMessage protoMessage, @NotNull final DefaultProcessNodeInstance.Builder<?> instanceBuilder) {
+      final Handle<? extends SecureObject<ProcessNodeInstance<*>>> nodeHandle = instanceBuilder.getHandle();
 
       protoMessage.setHandle(engineData, instanceBuilder);
 
@@ -173,11 +173,11 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
   private class MessagingCompletionListener implements CompletionListener<DataSource> {
 
-    private final ComparableHandle<? extends ProcessNodeInstance> mHandle;
+    private final ComparableHandle<? extends DefaultProcessNodeInstance> mHandle;
 
     private final Principal mOwner;
 
-    public MessagingCompletionListener(final ComparableHandle<? extends ProcessNodeInstance> handle, final Principal owner) {
+    public MessagingCompletionListener(final ComparableHandle<? extends DefaultProcessNodeInstance> handle, final Principal owner) {
       mHandle = handle;
       mOwner = owner;
     }
@@ -200,7 +200,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     //    private String mContentType;
     private final EndpointDescriptor mLocalEndpoint;
 
-    private ProcessNodeInstance mNodeInstance;
+    private DefaultProcessNodeInstance mNodeInstance;
 
     private IXmlMessage mMessage;
 
@@ -260,7 +260,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
 
-    public static void fillInActivityMessage(Source messageBody, final Result result, ProcessNodeInstance nodeInstance, final EndpointDescriptor localEndpoint) throws FactoryConfigurationError, XMLStreamException {
+    public static void fillInActivityMessage(Source messageBody, final Result result, DefaultProcessNodeInstance nodeInstance, final EndpointDescriptor localEndpoint) throws FactoryConfigurationError, XMLStreamException {
       final XMLInputFactory xif = XMLInputFactory.newInstance();
       final XMLOutputFactory xof = XMLOutputFactory.newInstance();
       final XMLEventReader xer = xif.createXMLEventReader(messageBody);
@@ -326,7 +326,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
       }
     }
 
-    private static void writeElement(ProcessNodeInstance nodeInstance, final XMLEventReader in, final Iterator<Attribute> attributes, final XMLEventWriter out, final EndpointDescriptor localEndpoint) throws XMLStreamException {
+    private static void writeElement(DefaultProcessNodeInstance nodeInstance, final XMLEventReader in, final Iterator<Attribute> attributes, final XMLEventWriter out, final EndpointDescriptor localEndpoint) throws XMLStreamException {
       String valueName = null;
       {
         while (attributes.hasNext()) {
@@ -379,7 +379,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
     }
 
-    private static void writeAttribute(ProcessNodeInstance nodeInstance, final XMLEventReader in, final Iterator<Attribute> attributes, final XMLEventWriter out) throws XMLStreamException {
+    private static void writeAttribute(DefaultProcessNodeInstance nodeInstance, final XMLEventReader in, final Iterator<Attribute> attributes, final XMLEventWriter out) throws XMLStreamException {
       String valueName = null;
       String paramName = null;
       {
@@ -450,7 +450,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
 
-    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance nodeInstance) {
+    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final DefaultProcessNodeInstance nodeInstance) {
       mNodeInstance = nodeInstance;
 
       try {
@@ -463,7 +463,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
     }
 
-    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final ProcessNodeInstance.Builder<?> nodeInstance) {
+    public <T extends ProcessTransaction> void setHandle(final MutableProcessEngineDataAccess engineData, final DefaultProcessNodeInstance.Builder<?> nodeInstance) {
       mNodeInstance = nodeInstance.build();
 
       try {
@@ -832,7 +832,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
     try(final TRXXX transaction = mProcessEngine.startTransaction()) {
-      final ProcessNodeInstance result = mProcessEngine.getNodeInstance(transaction, Handles.<ProcessNodeInstance>handle(handle), user);
+      final DefaultProcessNodeInstance
+        result = mProcessEngine.getNodeInstance(transaction, Handles.<DefaultProcessNodeInstance>handle(handle), user);
       if (result == null) { throw new FileNotFoundException(); }
       return transaction.commit(result.toSerializable(transaction.getWritableEngineData(), mMessageService.getLocalEndpoint()));
     }
@@ -860,7 +861,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
   public NodeInstanceState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "state", type = ParamType.QUERY) final NodeInstanceState newState, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
     try (TRXXX transaction = mProcessEngine.startTransaction()){
-      return transaction.commit(mProcessEngine.updateTaskState(transaction, Handles.<ProcessNodeInstance>handle(handle), newState, user));
+      return transaction.commit(mProcessEngine.updateTaskState(transaction, Handles.<DefaultProcessNodeInstance>handle(handle), newState, user));
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
@@ -886,7 +887,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         final Principal user) {
     try (TRXXX transaction = mProcessEngine.startTransaction()){
-      return transaction.commit(mProcessEngine.finishTask(transaction, Handles.<ProcessNodeInstance>handle(handle), payload, user).getState());
+      return transaction.commit(mProcessEngine.finishTask(transaction, Handles.<DefaultProcessNodeInstance>handle(handle), payload, user).getState());
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
@@ -899,7 +900,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
    * specially.
    * @throws SQLException
    */
-  public void onMessageCompletion(final Future<? extends DataSource> future, final ComparableHandle<? extends ProcessNodeInstance> handle, final Principal owner) throws FileNotFoundException {
+  public void onMessageCompletion(final Future<? extends DataSource> future, final ComparableHandle<? extends DefaultProcessNodeInstance> handle, final Principal owner) throws FileNotFoundException {
     // XXX do this better
     try {
       if (future.isCancelled()) {
@@ -911,7 +912,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         try {
           final DataSource result = future.get();
           try (TRXXX transaction = mProcessEngine.startTransaction()) {
-            ProcessNodeInstance inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
+            DefaultProcessNodeInstance
+              inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
             assert inst.getState() == NodeInstanceState.Pending;
             if (inst.getState() == NodeInstanceState.Pending) {
               ProcessInstance processInstance = transaction.getReadableEngineData().instance(inst.getHProcessInstance()).withPermission();

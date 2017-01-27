@@ -24,7 +24,17 @@ import java.sql.SQLException
 /**
  * Created by pdvrieze on 09/12/15.
  */
-open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigner: (T, Handle<T>)->T = ::HANDLE_AWARE_ASSIGNER) : MemHandleMap<T>(handleAssigner=handleAssigner), net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
+open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(private val assigner: Assigner<T, TR>)
+  : MemHandleMap<T>(handleAssigner={ t: T, h: Handle<T> -> assigner(t,h) }), net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
+
+  constructor(handleAssigner: (TR, T, Handle<T>)->T? = ::HANDLE_AWARE_ASSIGNER): this(Assigner(handleAssigner))
+
+  class Assigner<T, TR: StubTransaction>(private val base: (TR, T, Handle<T>)->T?) {
+    lateinit var transaction: TR
+    operator fun invoke(t: T, h:Handle<T>): T? {
+      return base(transaction, t, h)
+    }
+  }
 
   interface TransactionFactory<TR : StubTransaction> {
     fun newTransaction(): TR
@@ -51,6 +61,7 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigne
 
   @Throws(SQLException::class)
   override fun <W : T> put(transaction: TR, value: W): ComparableHandle<W> {
+    assigner.transaction = transaction
     val put = put(value)
     return Handles.handle(put)
   }
@@ -67,14 +78,17 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigne
 
   @Throws(SQLException::class)
   override fun set(transaction: TR, handle: Handle<out T>, value: T): T? {
+    assigner.transaction = transaction
     return set(handle, value)
   }
 
   override fun iterable(transaction: TR): MutableIterable<T> {
+    assigner.transaction = transaction
     return this
   }
 
   override fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<T> {
+    assigner.transaction = transaction
     return IteratorWrapper(iterator(), readOnly)
   }
 
@@ -94,6 +108,7 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigne
 
   @Throws(SQLException::class)
   override fun remove(transaction: TR, handle: Handle<out T>): Boolean {
+    assigner.transaction = transaction
     return remove(handle)
   }
 
@@ -105,10 +120,12 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(handleAssigne
 
   @Throws(SQLException::class)
   override fun clear(transaction: TR) {
+    assigner.transaction = transaction
     clear()
   }
 
   override fun withTransaction(transaction: TR): MutableHandleMap<T> {
+    assigner.transaction = transaction
     return MutableHandleMapForwarder(transaction, this)
   }
 }

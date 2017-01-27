@@ -20,6 +20,7 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
@@ -69,20 +70,20 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
   @Deprecated("Use Builder function")
   fun createOrReuseInstance(data: ProcessEngineDataAccess,
                             processInstance: ProcessInstance,
-                            predecessor: ProcessNodeInstance,
-                            entryNo: Int): ProcessNodeInstance
-    = processInstance.getNodeInstance(this, entryNo) ?: ProcessNodeInstance(this, predecessor.getHandle(), processInstance, entryNo)
+                            predecessor: ProcessNodeInstance<*>,
+                            entryNo: Int): ProcessNodeInstance<*>
+    = processInstance.getNodeInstance(this, entryNo) ?: DefaultProcessNodeInstance(this, predecessor.getHandle(), processInstance, entryNo)
 
-/*
+
   fun createOrReuseInstance(data: ProcessEngineDataAccess,
                             processInstanceBuilder: ProcessInstance.ExtBuilder,
-                            predecessor: ProcessNodeInstance,
-                            entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode>
-    = processInstanceBuilder.getNodeInstance(this, entryNo) ?:
-      ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(this, listOf(predecessor.getHandle()),
-                                                             processInstanceBuilder.handle,
+                            predecessor: ProcessNodeInstance<*>,
+                            entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>
+    = processInstanceBuilder.getChild(this, entryNo) ?:
+      DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.getHandle()),
+                                                             processInstanceBuilder,
                                                              processInstanceBuilder.owner, entryNo)
-*/
+
 
   /**
    * Should this node be able to be provided?
@@ -93,7 +94,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * @return `true` if the node can be started, `false` if
    *          not.
    */
-  fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance): ConditionResult = ConditionResult.TRUE
+  fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult = ConditionResult.TRUE
 
   /**
    * Take action to make task available
@@ -106,7 +107,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    */
   @Throws(SQLException::class)
   fun provideTask(engineData: ProcessEngineDataAccess,
-                  processInstance: ProcessInstance, instance: ProcessNodeInstance): Boolean = true
+                  processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = true
 
   /**
    * Take action to make task available
@@ -119,7 +120,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    */
   @Throws(SQLException::class)
   fun provideTask(engineData: ProcessEngineDataAccess,
-                  processInstanceBuilder: ProcessInstance.Builder, instanceBuilder: ProcessNodeInstance.Builder<*>): Boolean = true
+                  processInstanceBuilder: ProcessInstance.Builder, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean = true
 
   /**
    * Take action to accept the task (but not start it yet)
@@ -128,8 +129,8 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    *
    * @return `true` if the task can/must be automatically started
    */
-  fun takeTask(instance: ProcessNodeInstance): Boolean = true
+  fun takeTask(instance: ProcessNodeInstance<*>): Boolean = true
 
-  fun startTask(instance: ProcessNodeInstance): Boolean = true
+  fun startTask(instance: ProcessNodeInstance<*>): Boolean = true
 }
 

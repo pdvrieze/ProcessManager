@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import uk.ac.bournemouth.kotlinsql.MutableTable
@@ -38,7 +39,7 @@ object ProcessEngineDB : uk.ac.bournemouth.kotlinsql.Database(1) {
   val X_UUID = customType({ VARCHAR(36) { UNIQUE } }, UUID::toString, UUID::fromString)
   val X_PMHANDLE = customType({ BIGINT }, Handle<SecureObject<ExecutableProcessModel>>::handleValue, { Handle<SecureObject<ExecutableProcessModel>>(it) })
   val X_PIHANDLE = customType({ BIGINT }, Handle<SecureObject<ProcessInstance>>::handleValue, {Handle<SecureObject<ProcessInstance>>(it)})
-  val X_PNIHANDLE = customType({ BIGINT }, Handle<SecureObject<ProcessNodeInstance>>::handleValue, {Handle<SecureObject<ProcessNodeInstance>>(it)})
+  val X_PNIHANDLE = customType({ BIGINT }, Handle<SecureObject<ProcessNodeInstance<*>>>::handleValue, {Handle<SecureObject<ProcessNodeInstance<*>>>(it)})
   val X_INSTANCESTATE = customType({ VARCHAR(20) }, ProcessInstance.State::toString, ProcessInstance.State::valueOf )
   val X_NODESTATE = customType({ VARCHAR(20) { DEFAULT("Sent") } }, NodeInstanceState::toString,
                                { val lcname=it.toLowerCase(Locale.ENGLISH); NodeInstanceState.values().first { it.lcname == lcname } })

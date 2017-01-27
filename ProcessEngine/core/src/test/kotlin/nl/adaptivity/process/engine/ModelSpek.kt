@@ -212,7 +212,7 @@ private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>
   group("After starting") {
     test("Only start nodes should be finished") {
       val processInstance = processInstanceF()
-      val predicate: (ProcessNodeInstance) -> Boolean = { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> || it.node is Join<*, *> }
+      val predicate: (ProcessNodeInstance<*>) -> Boolean = { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> || it.node is Join<*, *> }
       val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
       Assertions.assertTrue(onlyStartNodesCompleted) {
         processInstance.finishedNodes
@@ -264,14 +264,14 @@ private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
   }
 }
 
-private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
+private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
   test("Start node $traceElement should be finished") {
     testAssertNodeFinished(nodeInstanceF, traceElement)
   }
 }
 
 private fun SpecBody.testComposite(transaction: Lazy<StubProcessTransaction>,
-                                   nodeInstanceF: Getter<ProcessNodeInstance>,
+                                   nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                    traceElement: TraceElement) {
   test("A child instance should have been created for $traceElement") {
     Assertions.assertTrue((nodeInstanceF() as CompositeInstance).hChildInstance.valid) { "No child instance was recorded" }
@@ -284,7 +284,7 @@ private fun SpecBody.testComposite(transaction: Lazy<StubProcessTransaction>,
 }
 
 private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
-                                  nodeInstanceF: Getter<ProcessNodeInstance>,
+                                  nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                   traceElement: TraceElement) {
   test("$traceElement should not be in a final state") {
     val nodeInstance = nodeInstanceF()
@@ -306,7 +306,7 @@ private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
   }
 }
 
-private fun SpecBody.testSplit(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
+private fun SpecBody.testSplit(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
   test("Split $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
@@ -316,7 +316,7 @@ private fun SpecBody.testSplit(transaction: Lazy<StubProcessTransaction>, nodeIn
   }
 }
 
-private fun SpecBody.testJoin(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance>,
+private fun SpecBody.testJoin(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                               traceElement: TraceElement) {
   test("Join $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
@@ -329,7 +329,7 @@ private fun SpecBody.testJoin(transaction: Lazy<StubProcessTransaction>, nodeIns
 }
 
 private fun SpecBody.testEndNode(transaction: Lazy<StubProcessTransaction>,
-                                 nodeInstanceF: Getter<ProcessNodeInstance>,
+                                 nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                  traceElement: TraceElement) {
   testAssertNodeFinished(nodeInstanceF, traceElement)
   test("$traceElement should be part of the completion nodes") {
@@ -342,7 +342,7 @@ private fun SpecBody.testEndNode(transaction: Lazy<StubProcessTransaction>,
   }
 }
 
-private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance>, traceElement: TraceElement) {
+private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
   test("$traceElement should be finished") {
     Assertions.assertEquals(Complete, nodeInstanceF().state)
   }

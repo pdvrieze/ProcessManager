@@ -21,6 +21,7 @@ import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.util.Identified
@@ -35,7 +36,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 interface InstanceSupport {
   val transaction: StubProcessTransaction
 
-  fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance> {
+  fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*>> {
     return allChildren(this@InstanceSupport.transaction)
   }
 
@@ -46,7 +47,7 @@ interface InstanceSupport {
   }
 
 
-  fun ProcessInstance.trace(filter: (ProcessNodeInstance)->Boolean) = trace(transaction, filter)
+  fun ProcessInstance.trace(filter: (ProcessNodeInstance<*>)->Boolean) = trace(transaction, filter)
 
   val ProcessInstance.trace: Trace get() = trace(transaction)
 
@@ -67,7 +68,7 @@ interface InstanceSupport {
   }
 
 
-  fun ProcessInstance.assertFinished(vararg nodeInstances: ProcessNodeInstance) {
+  fun ProcessInstance.assertFinished(vararg nodeInstances: DefaultProcessNodeInstance) {
     val transaction = transaction
     assertFinished(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
   }
@@ -78,7 +79,7 @@ interface InstanceSupport {
     Assertions.assertTrue(this.completedEndnodes.isEmpty(), { "The list of completed nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
   }
 
-  fun ProcessInstance.assertComplete(vararg nodeInstances: ProcessNodeInstance) {
+  fun ProcessInstance.assertComplete(vararg nodeInstances: DefaultProcessNodeInstance) {
     assertComplete(*Array(nodeInstances.size, { nodeInstances[it].node.id }))
   }
 
@@ -98,7 +99,7 @@ interface InstanceSupport {
     Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${finished.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
   }
 
-  fun ProcessInstance.assertActive(vararg nodeInstances: ProcessNodeInstance) {
+  fun ProcessInstance.assertActive(vararg nodeInstances: DefaultProcessNodeInstance) {
     assertActive(*Array(nodeInstances.size, { nodeInstances[it].node.id }))
   }
 
@@ -119,7 +120,7 @@ interface InstanceSupport {
 }
 
 
-fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance> {
+fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*>> {
   return childNodes.asSequence().flatMap {
     val child = it.withPermission()
     when (child) {
@@ -145,7 +146,7 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
     append(", allnodes: [")
     this@toDebugString.allChildren(transaction).joinTo(this) {
       val inst = it.withPermission()
-      "${inst.node.id}:${inst.state}"
+      "${inst.node.id}[${inst.entryNo}]:${inst.state}"
     }
     appendln("])\n\nModel:")
     XmlStreaming.newWriter(this.writer()).use { processModel.rootModel.serialize(it) }
@@ -157,7 +158,7 @@ fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: String) =
 fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: Identified) = findChild(transaction, id.id)
 
 fun ProcessInstance.trace(transaction: StubProcessTransaction,
-                          filter: (ProcessNodeInstance) -> Boolean): Sequence<TraceElement> {
+                          filter: (ProcessNodeInstance<*>) -> Boolean): Sequence<TraceElement> {
   return allChildren(transaction)
     .map { it.withPermission() }
     .filter(filter)
@@ -174,7 +175,7 @@ fun ProcessInstance.trace(transaction: StubProcessTransaction): Array<TraceEleme
 fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
                                         trace: Trace) {
   val nonSeenChildNodes = this.childNodes.asSequence()
-    .map(SecureObject<ProcessNodeInstance>::withPermission)
+    .map(SecureObject<ProcessNodeInstance<*>>::withPermission)
     .filter { it.state.isFinal && it.state != NodeInstanceState.Skipped }
     .toMutableSet()
 
@@ -200,7 +201,7 @@ fun ProcessInstance.assertFinished() {
   Assertions.assertTrue(this.finished.isEmpty(), { "The list of finished nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
 }
 
-fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg nodeInstances: ProcessNodeInstance) {
+fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {
   assertFinished(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
 }
 
@@ -222,7 +223,7 @@ fun ProcessInstance.assertComplete() {
   Assertions.assertTrue(this.completedEndnodes.isEmpty(), { "The list of completed nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
 }
 
-fun ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg nodeInstances: ProcessNodeInstance) {
+fun ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {
   assertComplete(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
 }
 
@@ -242,7 +243,7 @@ fun ProcessInstance.assertActive(transaction: StubProcessTransaction) {
   Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${finished.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
 }
 
-fun ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nodeInstances: ProcessNodeInstance) {
+fun ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {
   assertActive(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
 }
 

@@ -28,7 +28,7 @@ import org.w3c.dom.Node
 import kotlin.reflect.KProperty
 
 class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: ComparableHandle<out SecureObject<ProcessInstance>>, val nodeId: Identified) {
-  operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance {
+  operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance<*> {
     val idString = nodeId.id
     val instance = instanceSupport.transaction.readableEngineData.instance(instanceHandle).withPermission()
     return with(instanceSupport) {
@@ -41,11 +41,11 @@ class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val inst
 interface SafeNodeActions {
   val transaction: ProcessTransaction
 
-  fun ProcessNodeInstance.take(): ProcessNodeInstance {
+  fun ProcessNodeInstance<*>.take(): ProcessNodeInstance<*> {
     return this.update(transaction.writableEngineData) { state= NodeInstanceState.Taken }.node
   }
 
-  fun ProcessNodeInstance.start(): ProcessNodeInstance {
+  fun ProcessNodeInstance<*>.start(): ProcessNodeInstance<*> {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     return startTask(transaction.writableEngineData, instance).node
   }
@@ -54,7 +54,7 @@ interface SafeNodeActions {
 
 interface ProcessNodeActions: SafeNodeActions {
 
-  fun ProcessNodeInstance.finish(payload: Node? = null): ProcessNodeInstance {
+  fun ProcessNodeInstance<*>.finish(payload: Node? = null): ProcessNodeInstance<*> {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     return instance.finishTask(transaction.writableEngineData, this, payload).node
   }
