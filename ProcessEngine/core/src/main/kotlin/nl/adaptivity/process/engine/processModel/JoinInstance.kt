@@ -265,27 +265,6 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
 
   @Throws(SQLException::class)
-  override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<JoinInstance> {
-    if (!isFinished) {
-      val shouldProgress = node.provideTask(engineData, processInstance, this)
-      if (shouldProgress) {
-        val processInstance = engineData.instance(hProcessInstance).withPermission()
-        val directSuccessors = processInstance.getDirectSuccessors(engineData, this)
-        val canAdd = directSuccessors
-              .asSequence()
-              .map { engineData.nodeInstance(it).withPermission() }
-              .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
-        if (canAdd) {
-          return updateJoin(engineData, processInstance) { state = NodeInstanceState.Sent }.let { pair -> ProcessInstance.Updater(pair.instance).takeTask(engineData, pair.node) }
-        }
-        return PNIPair(processInstance, this) // no need to update as the initial state is already pending.
-      }
-
-    }
-    return PNIPair(processInstance, this)
-  }
-
-  @Throws(SQLException::class)
   override fun tickle(engineData: MutableProcessEngineDataAccess,
                       instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<JoinInstance> {
     val (processInstance, self) = super.tickle(engineData, instance, messageService) as PNIPair<JoinInstance>

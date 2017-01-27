@@ -518,9 +518,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
   }
 
-  fun <T:ProcessNodeInstance<*>> updateWithNode(writableEngineData: MutableProcessEngineDataAccess, body: ExtBuilder.() -> ProcessNodeInstance.Builder<*, out T>?): PNIPair<T>? {
+  fun <T:ProcessNodeInstance<*>> updateWithNode(writableEngineData: MutableProcessEngineDataAccess, body: ExtBuilder.() -> ProcessNodeInstance.Builder<*, out T>): PNIPair<T> {
     val builder = builder()
-    val newNodeFuture = builder.storeChild(builder.body() ?: return null)
+    val newNodeFuture = builder.storeChild(builder.body())
     val newInstance = __storeNewValueIfNeeded(writableEngineData,builder.build(writableEngineData))
     assert(writableEngineData.instances[this@ProcessInstance.getHandle()]?.withPermission() == newInstance) {
       "ProcessNodes should match after storage"

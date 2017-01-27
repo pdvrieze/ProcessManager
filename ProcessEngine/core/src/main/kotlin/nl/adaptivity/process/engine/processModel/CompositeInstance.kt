@@ -108,23 +108,6 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
     return super.update(writableEngineData, { (this as ExtBuilder).body() })
   }
 
-  override fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
-    val shouldProgress = tryCreate(engineData, processInstance) {
-      node.provideTask(engineData, processInstance, this)
-    }
-    val pniPair = tryCreate(engineData, processInstance) {
-      val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel!!, getHandle()) {})
-      updateComposite(engineData, processInstance) {
-        state = NodeInstanceState.Sent
-        hChildInstance = childHandle
-      }
-    }
-    return when {
-      shouldProgress -> pniPair.startTask(engineData)
-      else           -> pniPair
-    }
-  }
-
   override fun startTask(engineData: MutableProcessEngineDataAccess,
                          processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
     val shouldProgress = tryTask(engineData, processInstance) {

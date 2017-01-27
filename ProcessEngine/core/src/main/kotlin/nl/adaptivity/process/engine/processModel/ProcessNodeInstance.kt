@@ -170,37 +170,16 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   }
 
   fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
+
   @Throws(SQLException::class)
-  open fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
-
-    val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
-
-    fun <MSG_T> impl(messageService: IMessageService<MSG_T>): PNIPair<T> {
-
-      val shouldProgress = tryCreate(engineData, processInstance) {
-        node.provideTask(engineData, processInstance, this)
+  fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
+    var shouldProgress = false
+    val pniPair = processInstance.updateWithNode(engineData) {
+      builder(this).apply {
+        shouldProgress = provideTask(engineData)
       }
-
-      if (node is ExecutableActivity) {
-        val preparedMessage = messageService.createMessage(node.message)
-        if (! tryCreate(engineData, processInstance) { messageService.sendMessage(engineData, preparedMessage, this) }) {
-          failTaskCreation(engineData, processInstance, MessagingException("Failure to send message"))
-        }
-      }
-
-      val pniPair = run { // Unfortunately sendMessage will invalidate the current instance
-        val newInstance = engineData.instance(hProcessInstance).withPermission()
-        val newNodeInstance = engineData.nodeInstance(getHandle()).withPermission() as T
-        newNodeInstance.update(engineData) { state = NodeInstanceState.Sent }.apply { engineData.commit() }
-      }
-      if (shouldProgress) {
-        return ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
-      } else
-        return pniPair
-
     }
-
-    return impl(engineData.messageService())
+    return if (! shouldProgress) pniPair else ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
   }
 
   @Throws(SQLException::class)
@@ -375,8 +354,10 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       engineData.commit()
     }
 
-    fun provideTask(engineData: MutableProcessEngineDataAccess)
-    fun doProvideTask(engineData: MutableProcessEngineDataAccess):Boolean
+    /** Function that will eventually do progression */
+    fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean
+    /** Function that will do provision, but not progress. This is where custom implementations live */
+    fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean
   }
 
   abstract class AbstractBuilder<N: ExecutableProcessNode, T: ProcessNodeInstance<*>> : Builder<N, T> {
@@ -392,8 +373,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
 
     override var failureCause: Throwable? = null
-    final override fun provideTask(engineData: MutableProcessEngineDataAccess) {
-      val startNext = doProvideTask(engineData)
+
+    final override fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return doProvideTask(engineData)
     }
   }
 
