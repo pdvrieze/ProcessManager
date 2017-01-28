@@ -165,6 +165,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    * @throws SQLException
    */
   @Throws(SQLException::class)
+  @Deprecated("Use the builder version")
   override fun provideTask(engineData: ProcessEngineDataAccess,
                            processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = childModel != null
 
@@ -185,7 +186,16 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    *
    * @return `false`
    */
+  @Deprecated("Use the builder version")
   override fun startTask(instance: ProcessNodeInstance<*>) = false
+
+  /**
+   * Start the task. Tasks are either process aware or finished when a reply is
+   * received. In either case they should not be automatically started.
+   *
+   * @return `false`
+   */
+  fun startTask(instance: ProcessNodeInstance.Builder<*,*>) = false
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {

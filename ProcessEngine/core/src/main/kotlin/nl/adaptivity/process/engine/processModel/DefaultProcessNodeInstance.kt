@@ -144,11 +144,11 @@ open class DefaultProcessNodeInstance
 
       fun <MSG_T> impl(messageService: IMessageService<MSG_T>): Boolean {
 
-        val shouldProgress = tryCreate { node.provideTask(engineData, this) }
+        val shouldProgress = tryTask { node.provideTask(engineData, this) }
 
         if (node is ExecutableActivity) {
           val preparedMessage = messageService.createMessage(node.message)
-          if (! tryCreate() { messageService.sendMessage(engineData, preparedMessage, this) }) {
+          if (! tryTask() { messageService.sendMessage(engineData, preparedMessage, this) }) {
             failTaskCreation(MessagingException("Failure to send message"))
           } else {
             state = NodeInstanceState.Sent

@@ -634,9 +634,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
     // Make sure the finish is recorded.
     @Suppress("DEPRECATION", "UNCHECKED_CAST")
-    val newInstances = node.finishTask(engineData, this, resultPayload).apply { engineData.commit() } as PNIPair<N>
+    val pniPair = node.finishTask(engineData, this, resultPayload).apply { engineData.commit() } as PNIPair<N>
 
-    return newInstances.instance.handleFinishedState(engineData, newInstances.node)
+    return pniPair.instance.handleFinishedState(engineData, pniPair.node)
   }
 
   fun <N: ProcessNodeInstance<*>> skipTask(engineData: MutableProcessEngineDataAccess, node: N): PNIPair<N> {

@@ -358,6 +358,16 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean
     /** Function that will do provision, but not progress. This is where custom implementations live */
     fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean
+
+    fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node? = null)
+
+    fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node? = null) {
+      if (state.isFinal) {
+        throw ProcessException("instance ${node.id}:${handle}(${state}) cannot be finished as it is already in a final state.")
+      }
+      state= NodeInstanceState.Complete
+      node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
+    }
   }
 
   abstract class AbstractBuilder<N: ExecutableProcessNode, T: ProcessNodeInstance<*>> : Builder<N, T> {
@@ -376,6 +386,10 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     final override fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean {
       return doProvideTask(engineData)
+    }
+
+    final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+      doFinishTask(engineData, resultPayload)
     }
   }
 
@@ -411,9 +425,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   companion object {
 
     @JvmStatic
-    protected inline fun <R> ProcessNodeInstance.Builder<*,*>.tryCreate(body: () -> R): R = _tryHelper(
+    protected inline fun <R> ProcessNodeInstance.Builder<*,*>.tryTask(body: () -> R): R = _tryHelper(
       body) { e -> failTaskCreation(e) }
-
 
     @PublishedApi
     internal inline fun <R> _tryHelper(engineData: MutableProcessEngineDataAccess,

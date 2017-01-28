@@ -33,7 +33,7 @@ import java.security.Principal
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * Created by pdvrieze on 09/01/17.
+ * Class representing a node instance that wraps a composite activity.
  */
 class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
@@ -49,6 +49,29 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
       store(engineData)
       engineData.commit()
       return shouldProgress
+    }
+
+
+    fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
+      val shouldProgress = tryTask { node.startTask(this) }
+
+      tryTask {
+        engineData.instance(hChildInstance)
+          .withPermission()
+          .start(engineData, build().getPayload(engineData))
+
+        state = NodeInstanceState.Started
+      }
+
+      return shouldProgress
+    }
+
+    override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+      val childInstance = engineData.instance(hChildInstance).withPermission()
+      if (childInstance.state!=ProcessInstance.State.FINISHED) {
+        throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")
+      }
+      return super.doFinishTask(engineData, childInstance.getOutputPayload())
     }
 
 
@@ -110,17 +133,11 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
   override fun startTask(engineData: MutableProcessEngineDataAccess,
                          processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
-    val shouldProgress = tryTask(engineData, processInstance) {
-      node.startTask(this)
+    var shouldProgress = false
+    val pniPair =  updateComposite(engineData, processInstance) {
+      shouldProgress = doStartTask(engineData)
     }
-    val pniPair = tryTask(engineData, processInstance) {
-      engineData.instance(hChildInstance)
-        .withPermission()
-        .start(engineData, getPayload(engineData))
-      update(engineData) {
-        state = NodeInstanceState.Started
-      }
-    }
+    // don't shortcircuit as this it invokes finishTask on the instance as well.
     return when {
       shouldProgress -> pniPair.finishTask(engineData, null)
       else -> pniPair
@@ -130,11 +147,9 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
   override fun finishTask(engineData: MutableProcessEngineDataAccess,
                           processInstance: ProcessInstance,
                           resultPayload: Node?): ProcessInstance.PNIPair<CompositeInstance> {
-    val childInstance = engineData.instance(hChildInstance).withPermission()
-    if (childInstance.state!=ProcessInstance.State.FINISHED) {
-      throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")
+    return updateComposite(engineData, processInstance) {
+      finishTask(engineData, resultPayload)
     }
-    return super.finishTask(engineData, processInstance, childInstance.getOutputPayload())
   }
 
   fun getPayload(engineData: ProcessEngineDataAccess):DocumentFragment? {
