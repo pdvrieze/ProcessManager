@@ -47,7 +47,6 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
           val canAdd = directSuccessors
             .asSequence()
-            .map { engineData.nodeInstance(it).withPermission() }
             .none { it.state.isCommitted || it.state.isFinal }
           if (canAdd) {
             state = NodeInstanceState.Sent
@@ -188,22 +187,6 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
   }
 
-  @Suppress("UNCHECKED_CAST")
-  override fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
-        = super.cancelTask(engineData, processInstance) as PNIPair<JoinInstance>
-
-  @Suppress("UNCHECKED_CAST")
-  override fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance)
-        = super.tryCancelTask(engineData, processInstance) as PNIPair<JoinInstance>
-
-  @Suppress("UNCHECKED_CAST")
-  override fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable)
-        = super.failTask(engineData, processInstance, cause) as PNIPair<JoinInstance>
-
-  @Suppress("UNCHECKED_CAST")
-  override fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable)
-        = super.failTaskCreation(engineData, processInstance, cause) as PNIPair<JoinInstance>
-
   /**
    * Update the state of the task, based on the predecessors
    * @param transaction The transaction to use for the operations.
@@ -325,6 +308,57 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
               body: Builder.() -> Unit):JoinInstance {
       return build(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)
     }
+
+    /**
+     * Update the state of the task. Returns true if the task should now be finished by the caller.
+     * @return `true` if the caller should finish the task, `false` if not
+     */
+    @JvmStatic
+    private fun Builder.updateTaskState(engineData: MutableProcessEngineDataAccess): Boolean {
+
+      if (state == NodeInstanceState.Complete) return false // Don't update if we're already complete
+
+      val join = node
+      val totalPossiblePredecessors = join.predecessors.size
+      val realizedPredecessors = predecessors.size
+
+      if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
+        state = NodeInstanceState.Started
+        return true
+      }
+
+      var complete = 0
+      var skipped = 0
+      for (predecessor in activePredecessors() ) {
+        when (predecessor.state) {
+          NodeInstanceState.Complete -> complete += 1
+
+          NodeInstanceState.Skipped,
+          NodeInstanceState.SkippedCancel,
+          NodeInstanceState.Cancelled,
+          NodeInstanceState.SkippedFail,
+          NodeInstanceState.Failed   -> skipped += 1
+          else                                                                 -> Unit // do nothing
+        }
+      }
+      if (totalPossiblePredecessors - skipped < join.min) {
+        // XXX this needs to be done in the caller
+        // cancelNoncompletedPredecessors(engineData)
+        failTask(ProcessException("Too many predecessors have failed"))
+      }
+
+      if (complete >= join.min) {
+        if (complete >= join.max || activePredecessors().none()) {
+          return true
+        }
+      }
+      return false
+    }
+
+    private fun Builder.activePredecessors(): Sequence<IProcessNodeInstance> {
+      return processInstanceBuilder.allChildren { it.handle() in predecessors  }
+    }
+
   }
 
 }

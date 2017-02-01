@@ -143,15 +143,15 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun <T: ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T>
     fun <N:ExecutableProcessNode> updateChild(node: N, entryNo: Int, body: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.()->Unit)
 
-    fun allChildren(): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
-    fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    fun allChildren(): Sequence<IProcessNodeInstance>
+    fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance>
 
     /**
      * Store the current instance to the database. This
      */
     fun store(data: MutableProcessEngineDataAccess)
 
-    fun getDirectSuccessorsFor(predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {
+    fun getDirectSuccessorsFor(predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Sequence<IProcessNodeInstance> {
       return allChildren { predecessor in it.predecessors }
     }
   }
@@ -173,14 +173,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override val   inputs = mutableListOf<ProcessData>()
     override val  outputs = mutableListOf<ProcessData>()
 
-    override fun allChildren(): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {
-      val pendingHandles = _pendingChildren.asSequence().map { it.origBuilder.handle }.toSet()
-      return pendingHandles.asSequence() + children.asSequence()
+    override fun allChildren(): Sequence<IProcessNodeInstance> {
+      return _pendingChildren.asSequence().map { it.origBuilder }
     }
 
-    override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {
-      val pendingHandles = _pendingChildren.asSequence().filter { childFilter(it.origBuilder) }.map { it.origBuilder.handle }.toSet()
-      return pendingHandles.asSequence()
+    override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance> {
+      return _pendingChildren.asSequence().map { it.origBuilder }.filter { childFilter(it) }
     }
 
     override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {
@@ -235,14 +233,20 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override val inputs by lazy { base.inputs.toMutableList() }
     override val outputs by lazy { base.outputs.toMutableList() }
 
-    override fun allChildren(): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {
-      val pendingHandles = _pendingChildren.asSequence().map { it.origBuilder.handle }.toSet()
-      return pendingHandles.asSequence() + base.childNodes.asSequence().map{it.withPermission().getHandle()}.filter { it !in pendingHandles }
+    override fun allChildren(): Sequence<IProcessNodeInstance> {
+      val pendingChildren = _pendingChildren.asSequence().map { it.origBuilder }
+      val pendingHandles = pendingChildren.map { it.handle }.toSet()
+      return pendingChildren + base.childNodes.asSequence()
+        .map { it.withPermission() }
+        .filter { it.handle() !in pendingHandles }
     }
 
-    override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {
-      val pendingHandles = _pendingChildren.asSequence().filter{childFilter(it.origBuilder)}.map { it.origBuilder.handle }.toSet()
-      return pendingHandles.asSequence() + base.childNodes.asSequence().filter { childFilter(it.withPermission()) }.map { it.withPermission().getHandle() }
+    override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance> {
+      val pendingChildren = _pendingChildren.asSequence().map { it.origBuilder }.filter { childFilter(it) }.toList().asSequence()
+      val pendingHandles = pendingChildren.map { it.handle }.toSet()
+      return pendingChildren.asSequence() + base.childNodes.asSequence()
+        .map {it.withPermission() }
+        .filter { childFilter(it) && it.handle() !in pendingHandles }
     }
 
     override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {

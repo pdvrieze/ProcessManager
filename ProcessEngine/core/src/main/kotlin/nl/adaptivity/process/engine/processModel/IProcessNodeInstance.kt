@@ -26,4 +26,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 interface IProcessNodeInstance {
   val node: ExecutableProcessNode
   val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+
+  fun handle(): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+  val  state: NodeInstanceState
 }

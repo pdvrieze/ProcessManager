@@ -48,7 +48,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
                                                               override val owner: Principal,
                                                               val entryNo: Int,
                                                               private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-                                                              val state: NodeInstanceState = NodeInstanceState.Pending,
+                                                              override val state: NodeInstanceState = NodeInstanceState.Pending,
                                                               results: Iterable<ProcessData> = emptyList(),
                                                               val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance<T>>, ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, IProcessNodeInstance {
   val results: List<ProcessData> = results.toList()
@@ -65,6 +65,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
 
   override fun getHandle() = handle
+  final override fun handle() = handle
 
   abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
   fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance<*>>> {
@@ -333,7 +334,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
     var owner: Principal
     var handle: ComparableHandle<SecureObject<out ProcessNodeInstance<*>>>
-    var state: NodeInstanceState
+    override var state: NodeInstanceState
     val results: MutableList<ProcessData>
     fun toXmlInstance(body: CompactFragment?): XmlProcessNodeInstance
     val entryNo: Int
@@ -353,6 +354,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       if (handle.valid) mutableNodeInstances[handle] = build() else handle = mutableNodeInstances.put(build())
       engineData.commit()
     }
+
+    fun failTask(cause: Exception)
 
     /** Function that will eventually do progression */
     fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean
@@ -382,6 +385,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
                                     body = body)
     }
 
+    final override fun handle() = handle
+
     override var failureCause: Throwable? = null
 
     final override fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean {
@@ -390,6 +395,11 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
       doFinishTask(engineData, resultPayload)
+    }
+
+    final override fun failTask(cause: Exception) {
+      failureCause = cause
+      state = if (state == NodeInstanceState.Pending) NodeInstanceState.FailRetry else NodeInstanceState.Failed
     }
   }
 
