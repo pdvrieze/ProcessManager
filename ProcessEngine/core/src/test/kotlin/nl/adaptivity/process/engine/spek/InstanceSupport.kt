@@ -26,6 +26,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.Gettable
+import nl.adaptivity.util.Getter
 import nl.adaptivity.xml.XmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -132,7 +133,7 @@ fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<P
   }
 }
 
-fun ProcessInstance.toDebugString(transaction: Lazy<StubProcessTransaction>) = toDebugString(transaction.value)
+fun ProcessInstance.toDebugString(transaction: Getter<StubProcessTransaction>) = toDebugString(transaction())
 
 fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
   return buildString {
@@ -240,7 +241,7 @@ fun  ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg 
 }
 
 fun ProcessInstance.assertActive(transaction: StubProcessTransaction) {
-  Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${finished.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
+  Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${active.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
 }
 
 fun ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {

@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 
 /**
@@ -28,5 +29,7 @@ interface IProcessNodeInstance {
   val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
 
   fun handle(): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+  val entryNo:Int
   val  state: NodeInstanceState
+  fun  builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*,*>
 }

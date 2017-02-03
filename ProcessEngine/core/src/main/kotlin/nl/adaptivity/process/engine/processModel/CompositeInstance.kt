@@ -42,7 +42,7 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
     override fun doProvideTask(engineData: MutableProcessEngineDataAccess):Boolean {
       val shouldProgress = node.provideTask(engineData, this)
-      state = NodeInstanceState.Sent
+
       val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel!!, handle) {})
       hChildInstance = childHandle
 
@@ -52,15 +52,13 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
     }
 
 
-    fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
+    override fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
       val shouldProgress = tryTask { node.startTask(this) }
 
       tryTask {
         engineData.instance(hChildInstance)
           .withPermission()
           .start(engineData, build().getPayload(engineData))
-
-        state = NodeInstanceState.Started
       }
 
       return shouldProgress
@@ -74,7 +72,9 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
       return super.doFinishTask(engineData, childInstance.getOutputPayload())
     }
 
-
+    override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return true
+    }
   }
 
   class BaseBuilder : ProcessNodeInstance.BaseBuilder<ExecutableActivity, CompositeInstance>, Builder {

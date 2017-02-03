@@ -27,11 +27,9 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
-import nl.adaptivity.util.getter
-import nl.adaptivity.util.objGetter
-import nl.adaptivity.util.ObjGetter
 import org.w3c.dom.Node
 import java.security.Principal
+import java.util.logging.Level
 
 /**
  * Specialisation of process node instance for splits
@@ -46,6 +44,19 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
       return node.provideTask(engineData, this)
+    }
+
+    override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return node.takeTask(this)
+    }
+
+    override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      state = NodeInstanceState.Started
+      return updateState(engineData)
+    }
+
+    override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+      super.doFinishTask(engineData, resultPayload)
     }
   }
 
@@ -128,7 +139,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     val instance = engineData.instance(hProcessInstance).withPermission()
     return node.successors
         .asSequence()
-        .mapNotNull { instance.getChild(it.id)?.withPermission() }
+        .mapNotNull { instance.getChild(it.id, entryNo)?.withPermission() }
         .filter { it.entryNo == entryNo }
   }
 
@@ -170,7 +181,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
             conditionResult = successorBuilder.build().run { condition(engineData) }
           }
           successorBuilder
-        }!!.let { pniPair ->
+        }.let { pniPair ->
           when (conditionResult) {
             ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
               pniPair.node.provideTask(engineData, pniPair.instance)
@@ -213,7 +224,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
   companion object {
 
-    private fun isActiveOrCompleted(it: ProcessNodeInstance<*>): Boolean {
+    private fun isActiveOrCompleted(it: IProcessNodeInstance): Boolean {
       return when (it.state) {
         NodeInstanceState.Started,
         NodeInstanceState.Complete,
@@ -222,6 +233,70 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         NodeInstanceState.Acknowledged -> true
         else                           -> false
       }
+    }
+
+    /**
+     * Update the state of the split.
+     *
+     * @return Whether or not the split is complete.
+     */
+    private fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineDataAccess):Boolean {
+
+      fun canStartMore() = processInstanceBuilder.allChildren { isActiveOrCompleted(it) && handle in it.predecessors }.count() < node.max
+
+      if (state.isFinal) return true
+
+      // XXX really needs fixing
+      val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }
+      var viableNodes: Int = 0
+
+      for (successorNode in successorNodes) {
+        if (canStartMore()) {
+          if (successorNode is Join<*, *>) {
+            throw IllegalStateException("Splits cannot be immediately followed by joins")
+          }
+
+          val successorBuilder = successorNode.createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo)
+          processInstanceBuilder.storeChild(successorBuilder)
+          if (successorBuilder.state == NodeInstanceState.Pending) {
+            // temporaryly build a node to evaluate the condition against, but don't register it.
+            val conditionResult = successorBuilder.build().run { condition(engineData) }
+            when (conditionResult) {
+              ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
+                successorBuilder.provideTask(engineData)
+              }
+              ConditionResult.NEVER -> {
+                successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
+              }
+            }
+          }
+
+          // in any case
+          if (successorBuilder.state == NodeInstanceState.Complete || ! successorBuilder.state.isFinal) {
+            viableNodes+=1
+          }
+        }
+
+
+      }
+      if (viableNodes<node.min) { // No way to succeed, try to cancel anything that is not in a final state
+        for(successor in processInstanceBuilder.allChildren { handle in it.predecessors && ! it.state.isFinal }) {
+          try {
+            successor.builder(processInstanceBuilder).cancel(engineData)
+          } catch (e: IllegalArgumentException) { DefaultProcessNodeInstance.logger.log(Level.WARNING, "Task could not be cancelled", e) } // mainly ignore
+        }
+        state = NodeInstanceState.Failed
+        return true // complete, but invalid
+      }
+
+      if (! canStartMore()) {
+        processInstanceBuilder
+          .allChildren { !isActiveOrCompleted(it) && handle in it.predecessors }
+          .forEach { it.builder(processInstanceBuilder).cancelAndSkip(engineData) }
+        state = NodeInstanceState.Complete
+        return true
+      }
+      return false
     }
 
   }

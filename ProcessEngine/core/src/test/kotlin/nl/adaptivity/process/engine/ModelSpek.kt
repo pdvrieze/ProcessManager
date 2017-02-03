@@ -115,10 +115,10 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
   principal: Principal,
   validTrace: Trace) {
   specBody.group("For valid trace [${validTrace.joinToString()}]") {
+    val traceTransaction by lazy { subject.engine.startTransaction() }
 
-    val transaction = lazy { subject.engine.startTransaction() }
-    val hinstance = startProcess(transaction, model, principal,
-                                                     "${model.name} instance for [${validTrace.joinToString()}]")
+    val transaction = getter { traceTransaction }
+    val hinstance = startProcess(transaction, model, principal, "${model.name} instance for [${validTrace.joinToString()}]")
     val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
 
     testTraceStarting(processInstanceF)
@@ -130,7 +130,7 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
       // TODO we want to properly support the trace
       val nodeInstanceF = getter {
         processInstanceF().let { processInstance: ProcessInstance ->
-          traceElement.getNodeInstance(transaction.value, processInstance)
+          traceElement.getNodeInstance(transaction(), processInstance)
           ?: throw NoSuchElementException(
             "No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
         }
@@ -174,7 +174,7 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
   principal: Principal,
   invalidTrace: Trace,
   failureExpected: Boolean = true) {
-  val transaction = lazy { subject.engine.startTransaction() }
+  val transaction = getter { subject.engine.startTransaction() }
   val hinstance = startProcess(transaction, model, principal,
                                "${model.name} instance for [${invalidTrace.joinToString()}]}")
   val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
@@ -196,14 +196,21 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
   }
 }
 
-private fun SubjectDsl<EngineTestData>.startProcess(transaction: Lazy<StubProcessTransaction>,
+private fun SubjectDsl<EngineTestData>.startProcess(transactionGetter: Getter<StubProcessTransaction>,
                                                             model: ExecutableProcessModel,
                                                             owner: Principal,
                                                             name: String,
                                                             payload: Node? = null): Lazy<HProcessInstance> {
   return lazy {
-    val transaction = transaction()
-    val hmodel = subject.engine.addProcessModel(transaction, model, owner)
+    val transaction = transactionGetter()
+    val hmodel = if (model.getHandle().valid &&
+                     model.getHandle() in transaction.readableEngineData.processModels &&
+                     transaction.readableEngineData.processModels[model.getHandle()]?.withPermission()?.uuid == model.uuid) {
+      model.getHandle()
+    } else {
+      model.setHandleValue(-1)
+      subject.engine.addProcessModel(transaction, model, owner)
+    }
     engine.startProcess(transaction, owner, hmodel, name, UUID.randomUUID(), payload)
   }
 }
@@ -226,7 +233,7 @@ private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>
 
 private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
                                          queue: StateQueue.SolidQueue,
-                                         transaction: Lazy<StubProcessTransaction>,
+                                         transaction: Getter<StubProcessTransaction>,
                                          processInstanceF: Getter<ProcessInstance>,
                                          validTrace: Trace) {
   group("The trace should be finished correctly") {
@@ -270,7 +277,7 @@ private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance<*>>
   }
 }
 
-private fun SpecBody.testComposite(transaction: Lazy<StubProcessTransaction>,
+private fun SpecBody.testComposite(transaction: Getter<StubProcessTransaction>,
                                    nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                    traceElement: TraceElement) {
   test("A child instance should have been created for $traceElement") {
@@ -283,7 +290,7 @@ private fun SpecBody.testComposite(transaction: Lazy<StubProcessTransaction>,
   }
 }
 
-private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
+private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
                                   nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                   traceElement: TraceElement) {
   test("$traceElement should not be in a final state") {
@@ -291,8 +298,9 @@ private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
     Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
   }
   test("node instance ${traceElement} should be committed after starting") {
-    val processInstance = transaction.value.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
-    val nodeInstance = nodeInstanceF().startTask(transaction().writableEngineData, processInstance).node
+    val tr = transaction()
+    val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
+    val nodeInstance = nodeInstanceF().startTask(tr.writableEngineData, processInstance).node
 
     Assertions.assertTrue(nodeInstance.state.isCommitted) {
       "The instance state was ${processInstance.toDebugString(transaction)}"
@@ -300,13 +308,14 @@ private fun SpecBody.testActivity(transaction: Lazy<StubProcessTransaction>,
     Assertions.assertEquals(NodeInstanceState.Started, nodeInstance.state)
   }
   test("the node instance ${traceElement} should be final after finishing") {
-    val processInstance = transaction.value.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
-    processInstance.finishTask(transaction().writableEngineData, nodeInstanceF(), traceElement.resultPayload)
+    val tr = transaction()
+    val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
+    processInstance.finishTask(tr.writableEngineData, nodeInstanceF(), traceElement.resultPayload)
     assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
   }
 }
 
-private fun SpecBody.testSplit(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
+private fun SpecBody.testSplit(transaction: Getter<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
   test("Split $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
@@ -316,19 +325,19 @@ private fun SpecBody.testSplit(transaction: Lazy<StubProcessTransaction>, nodeIn
   }
 }
 
-private fun SpecBody.testJoin(transaction: Lazy<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+private fun SpecBody.testJoin(transaction: Getter<StubProcessTransaction>, nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                               traceElement: TraceElement) {
   test("Join $traceElement should already be finished") {
     val nodeInstance = nodeInstanceF()
     Assertions.assertEquals(Complete, nodeInstance.state) {
       val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
       "There are still active predecessors: ${processInstance.getActivePredecessorsFor(
-        transaction().readableEngineData, nodeInstanceF() as JoinInstance)}"
+        transaction().readableEngineData, nodeInstanceF() as JoinInstance)}, instance: ${processInstance.toDebugString(transaction)}"
     }
   }
 }
 
-private fun SpecBody.testEndNode(transaction: Lazy<StubProcessTransaction>,
+private fun SpecBody.testEndNode(transaction: Getter<StubProcessTransaction>,
                                  nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                  traceElement: TraceElement) {
   testAssertNodeFinished(nodeInstanceF, traceElement)

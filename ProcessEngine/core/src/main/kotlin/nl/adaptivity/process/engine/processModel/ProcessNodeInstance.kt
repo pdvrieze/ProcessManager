@@ -23,6 +23,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
+import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
@@ -46,9 +47,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
                                                               predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
                                                               val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
                                                               override val owner: Principal,
-                                                              val entryNo: Int,
+                                                              override val entryNo: Int,
                                                               private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-                                                              override val state: NodeInstanceState = NodeInstanceState.Pending,
+                                                              override val state: NodeInstanceState = Pending,
                                                               results: Iterable<ProcessData> = emptyList(),
                                                               val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance<T>>, ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, IProcessNodeInstance {
   val results: List<ProcessData> = results.toList()
@@ -67,7 +68,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   override fun getHandle() = handle
   final override fun handle() = handle
 
-  abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
+  override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
+
   fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance<*>>> {
     return predecessors.asSequence().flatMap { predHandle ->
       val pred = processData.nodeInstance(predHandle).withPermission()
@@ -90,7 +92,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     return PNIPair<T>(newInstance, newNode).also { newPair ->
       assert(newPair.node == writableEngineData.nodeInstance(this@ProcessNodeInstance.getHandle())) { "The returned node and the stored node don't match for node ${newPair.node.node.id}-${newPair.node.handle}(${newPair.node.state})" }
-      assert(newPair.instance.getChild(newPair.node.node.id)==newPair.node) { "The instance node and the node don't match for node ${newPair.node.node.id}-${newPair.node.handle}(${newPair.node.state})" }
+      assert(newPair.instance.getChild(newPair.node.node.id, newPair.node.entryNo)==newPair.node) { "The instance node and the node don't match for node ${newPair.node.node.id}-${newPair.node.handle}(${newPair.node.state})" }
     }
   }
 
@@ -108,7 +110,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<T> {
     return when (state) {
       NodeInstanceState.FailRetry,
-      NodeInstanceState.Pending -> provideTask(engineData, instance)
+      Pending -> provideTask(engineData, instance)
       else                      -> PNIPair(instance, asT)
     }// ignore
   }
@@ -174,6 +176,10 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   @Throws(SQLException::class)
   fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
+    return update(engineData) {
+      provideTask(engineData)
+    }
+/*
     var shouldProgress = false
     val pniPair = processInstance.updateWithNode(engineData) {
       builder(this).apply {
@@ -181,12 +187,13 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       }
     }
     return if (! shouldProgress) pniPair else ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
+*/
   }
 
   @Throws(SQLException::class)
   open fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     val startNext = tryTask(engineData, processInstance) { node.startTask(this) }
-    val updatedInstances = update(engineData) { state = NodeInstanceState.Started }
+    val updatedInstances = update(engineData) { state = Started }
     return if (startNext) {
       updatedInstances.instance.finishTask(engineData, updatedInstances.node, null)
     } else updatedInstances
@@ -200,17 +207,17 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
     return update(engineData) {
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
-      state = NodeInstanceState.Complete
+      state = Complete
     }.apply { engineData.commit() }
   }
 
   fun cancelAndSkip(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     return when (state) {
-      NodeInstanceState.Pending,
+      Pending,
       NodeInstanceState.FailRetry    -> update(engineData) { state = NodeInstanceState.Skipped }
-      NodeInstanceState.Sent,
-      NodeInstanceState.Taken,
-      NodeInstanceState.Acknowledged ->
+      Sent,
+      Taken,
+      Acknowledged ->
           cancelTask(engineData, processInstance).update(engineData) { state = NodeInstanceState.Skipped }
       else                           -> PNIPair(processInstance, asT)
     }
@@ -218,7 +225,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   @Throws(SQLException::class)
   open fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
-    return update(engineData) { state = NodeInstanceState.Cancelled }
+    return update(engineData) { state = Cancelled }
   }
 
   @Throws(SQLException::class)
@@ -239,7 +246,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   open fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<T> {
     return update(engineData) {
       failureCause = cause
-      state = if (state == NodeInstanceState.Pending) NodeInstanceState.FailRetry else NodeInstanceState.Failed
+      state = if (state == Pending) NodeInstanceState.FailRetry else Failed
     }
   }
 
@@ -268,7 +275,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     val defines = getDefines(engineData)
     val transformer = PETransformer.create(ProcessNodeInstanceContext(this,
                                                                       defines,
-                                                                      state == NodeInstanceState.Complete, localEndpoint),
+                                                                      state == Complete, localEndpoint),
                                            removeWhitespace)
     transformer.transform(xmlReader, out.filterSubstream())
   }
@@ -337,9 +344,11 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     override var state: NodeInstanceState
     val results: MutableList<ProcessData>
     fun toXmlInstance(body: CompactFragment?): XmlProcessNodeInstance
-    val entryNo: Int
+    override val entryNo: Int
     var failureCause: Throwable?
     fun build(): T
+
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder) = this
 
     fun failTaskCreation(cause: Throwable) {
       failureCause = cause
@@ -351,16 +360,43 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
      */
     fun store(engineData: MutableProcessEngineDataAccess) {
       val mutableNodeInstances = engineData.nodeInstances as MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
-      if (handle.valid) mutableNodeInstances[handle] = build() else handle = mutableNodeInstances.put(build())
+      if (handle.valid) mutableNodeInstances[handle] = build() else { processInstanceBuilder.storeChild(this); processInstanceBuilder.store(engineData) }
       engineData.commit()
     }
 
-    fun failTask(cause: Exception)
+    fun failTask(engineData: MutableProcessEngineDataAccess, cause: Exception)
 
     /** Function that will eventually do progression */
-    fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean
+    fun provideTask(engineData: MutableProcessEngineDataAccess)
     /** Function that will do provision, but not progress. This is where custom implementations live */
     fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean
+
+    fun takeTask(engineData: MutableProcessEngineDataAccess)
+    fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean
+
+    fun startTask(engineData: MutableProcessEngineDataAccess)
+    fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean
+
+    fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState)
+    fun doSkipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+      if (state.isFinal && state!=newState) throw ProcessException("Attempting to skip a finalised node")
+      state = newState
+    }
+
+    fun cancel(engineData: MutableProcessEngineDataAccess)
+    fun doCancel(engineData: MutableProcessEngineDataAccess) { state = Cancelled }
+
+    fun cancelAndSkip(engineData: MutableProcessEngineDataAccess)
+    fun doCancelAndSkip(engineData: MutableProcessEngineDataAccess) {
+      @Suppress("NON_EXHAUSTIVE_WHEN")
+      when (state) {
+        Pending,
+        NodeInstanceState.FailRetry    -> state = NodeInstanceState.Skipped
+        Sent,
+        Taken,
+        Acknowledged -> cancel(engineData).also { state = Skipped }
+      }
+    }
 
     fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node? = null)
 
@@ -368,7 +404,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       if (state.isFinal) {
         throw ProcessException("instance ${node.id}:${handle}(${state}) cannot be finished as it is already in a final state.")
       }
-      state= NodeInstanceState.Complete
+      state= Complete
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
     }
   }
@@ -389,18 +425,79 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     override var failureCause: Throwable? = null
 
-    final override fun provideTask(engineData: MutableProcessEngineDataAccess): Boolean {
-      return doProvideTask(engineData)
+    /**
+     * Update the state if the current state would indicate that to be the expected action
+     */
+    private fun softUpdateState(targetState: NodeInstanceState) {
+      if (state==targetState) return
+      val doSet = when (targetState) {
+        Pending       -> throw IllegalArgumentException ("Updating a state to pending is not allowed")
+        Sent          -> state == Pending
+        Acknowledged  -> state == Pending || state == Sent
+        Taken         -> state == Sent || state == Acknowledged
+        Started       -> state == Taken
+        Complete      -> state == Started
+        SkippedCancel -> state == Pending
+        SkippedFail   -> state == Pending
+        Skipped       -> false
+        else -> TODO("Not needed, not yet implemented, the semantics are not clear yet ($targetState)")
+      }
+      if (doSet) { state = targetState }
+    }
+
+    final override fun provideTask(engineData: MutableProcessEngineDataAccess) {
+      if (doProvideTask(engineData).also { softUpdateState(Sent) } ) {
+        takeTask(engineData)
+      }
+    }
+
+    final override fun takeTask(engineData: MutableProcessEngineDataAccess) {
+      if (doTakeTask(engineData).also { softUpdateState(Taken) })
+        startTask(engineData)
+    }
+
+    final override fun startTask(engineData: MutableProcessEngineDataAccess) {
+      if (doStartTask(engineData).also { softUpdateState(Started) }) {
+        finishTask(engineData)
+      }
     }
 
     final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
       doFinishTask(engineData, resultPayload)
+      softUpdateState(Complete)
+      store(engineData)
+      processInstanceBuilder.startSuccessors(engineData, this)
     }
 
-    final override fun failTask(cause: Exception) {
-      failureCause = cause
-      state = if (state == NodeInstanceState.Pending) NodeInstanceState.FailRetry else NodeInstanceState.Failed
+    final override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+      assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail)
+      doSkipTask(engineData, newState)
+      softUpdateState(newState)
+      assert(state == Skipped || state == SkippedCancel || state == SkippedFail)
+      processInstanceBuilder.skipSuccessors(engineData, this, newState)
     }
+
+    final override fun failTask(engineData: MutableProcessEngineDataAccess, cause: Exception) {
+      failureCause = cause
+      state = if (state == Pending) NodeInstanceState.FailRetry else Failed
+      processInstanceBuilder.skipSuccessors(engineData, this, SkippedFail)
+    }
+
+    final override fun cancel(engineData: MutableProcessEngineDataAccess) {
+      doCancel(engineData)
+      softUpdateState(Cancelled)
+      processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
+    }
+
+    final override fun cancelAndSkip(engineData: MutableProcessEngineDataAccess) {
+      doCancelAndSkip(engineData)
+      processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
+    }
+
+    override fun toString(): String {
+      return "${node.javaClass.simpleName}  (${handle()}, ${node.id}[$entryNo] - $state)"
+    }
+
   }
 
   abstract class BaseBuilder<N:ExecutableProcessNode, T: ProcessNodeInstance<T>>(
@@ -410,7 +507,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     final override var owner: Principal,
     final override val entryNo: Int,
     final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-    final override var state: NodeInstanceState = NodeInstanceState.Pending) : AbstractBuilder<N, T>() {
+    final override var state: NodeInstanceState = Pending) : AbstractBuilder<N, T>() {
 
     final override var predecessors :MutableSet<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> = predecessors.toMutableArraySet()
 

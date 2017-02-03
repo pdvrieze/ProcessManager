@@ -21,6 +21,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
@@ -76,11 +77,11 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
 
 
   fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                            processInstanceBuilder: ProcessInstance.ExtBuilder,
-                            predecessor: ProcessNodeInstance<*>,
+                            processInstanceBuilder: ProcessInstance.Builder,
+                            predecessor: IProcessNodeInstance,
                             entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>
     = processInstanceBuilder.getChild(this, entryNo) ?:
-      DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.getHandle()),
+      DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.handle()),
                                                              processInstanceBuilder,
                                                              processInstanceBuilder.owner, entryNo)
 
@@ -131,6 +132,32 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    */
   fun takeTask(instance: ProcessNodeInstance<*>): Boolean = true
 
+  fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
+
   fun startTask(instance: ProcessNodeInstance<*>): Boolean = true
+
+  fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
+
+  private fun preceeds(node: ExecutableProcessNode, reference: ExecutableProcessNode, seenIds: MutableSet<String>):Boolean {
+    if (node in reference.predecessors) return true
+    seenIds+=id
+    for (predecessorId in reference.predecessors) {
+      if (predecessorId.id !in seenIds) {
+        val predecessor = ownerModel.getNode(predecessorId)!!
+        return preceeds(node, predecessor, seenIds)
+      }
+    }
+    return false
+  }
+
+  infix fun  preceeds(reference: ExecutableProcessNode): Boolean {
+    if (this===reference) return false
+    return preceeds(this, reference, HashSet<String>())
+  }
+
+  infix fun succceeds(reference: ExecutableProcessNode): Boolean {
+    if (this===reference) return false
+    return preceeds(reference, this, HashSet<String>())
+  }
 }
 

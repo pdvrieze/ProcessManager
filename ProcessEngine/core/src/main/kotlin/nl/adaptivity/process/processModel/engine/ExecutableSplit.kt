@@ -20,6 +20,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.*
@@ -59,10 +60,10 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
         ?: SplitInstance(this, predecessor.getHandle(), processInstance.getHandle(), processInstance.owner, entryNo = entryNo)
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                                     processInstanceBuilder: ProcessInstance.ExtBuilder,
-                                     predecessor: ProcessNodeInstance<*>,
+                                     processInstanceBuilder: ProcessInstance.Builder,
+                                     predecessor: IProcessNodeInstance,
                                      entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-    return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.getHandle(),
+    return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.handle(),
                                                                                        processInstanceBuilder,
                                                                                        processInstanceBuilder.owner,
                                                                                        entryNo)

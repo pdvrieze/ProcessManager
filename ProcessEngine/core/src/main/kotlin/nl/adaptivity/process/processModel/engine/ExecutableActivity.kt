@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -144,13 +145,13 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
   }
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                                     processInstanceBuilder: ProcessInstance.ExtBuilder,
-                                     predecessor: ProcessNodeInstance<*>,
+                                     processInstanceBuilder: ProcessInstance.Builder,
+                                     predecessor: IProcessNodeInstance,
                                      entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
     return if (childModel == null)
       super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
     else
-      processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.getHandle(), processInstanceBuilder, Handles.getInvalid(), processInstanceBuilder.owner, entryNo)
+      processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.handle(), processInstanceBuilder, Handles.getInvalid(), processInstanceBuilder.owner, entryNo)
   }
 
   /**
@@ -195,7 +196,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    *
    * @return `false`
    */
-  fun startTask(instance: ProcessNodeInstance.Builder<*,*>) = false
+  override fun startTask(instance: ProcessNodeInstance.Builder<*,*>) = false
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {

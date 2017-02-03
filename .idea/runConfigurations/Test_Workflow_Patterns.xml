@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="nl.adaptivity.process.engine.TestWorkflowPatterns2" type="spek-run-configuration" factoryName="Spek" nameIsGenerated="true">
+  <configuration default="false" name="Test Workflow Patterns" type="spek-run-configuration" factoryName="Spek">
     <module name="ProcessEngine-core" />
     <option name="target" value="spec" />
     <option name="spec" value="nl.adaptivity.process.engine.TestWorkflowPatterns2" />

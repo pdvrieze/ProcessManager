@@ -83,7 +83,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
   override fun sendMessage(engineData: MutableProcessEngineDataAccess,
                            protoMessage: IXmlMessage,
                            instanceBuilder: ProcessNodeInstance.Builder<*,*>): Boolean {
-    assert(instanceBuilder.handle.valid) { "Sending messages from invalid nodes is a bad idea" }
+    assert(instanceBuilder.handle.valid) { "Sending messages from invalid nodes is a bad idea (${instanceBuilder})" }
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       // This just creates a temporary copy

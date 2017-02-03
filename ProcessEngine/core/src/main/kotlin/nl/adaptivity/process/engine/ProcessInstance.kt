@@ -23,6 +23,7 @@ import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -120,6 +121,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     override fun isDone() = updated!=null
+
+    override fun toString(): String {
+      return "-> ${if (updated!=null) "!${updated}" else origBuilder}"
+    }
   }
 
   interface Builder {
@@ -137,14 +142,30 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     val  outputs: MutableList<ProcessData>
     fun build(data: MutableProcessEngineDataAccess): ProcessInstance
     fun <T: ProcessNodeInstance<*>> storeChild(child:T): Future<T>
+    fun getChild(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance =
+      allChildren { it.handle()==handle }.first()
     fun <N: ExecutableProcessNode> getChild(node: N, entryNo: Int): ProcessNodeInstance.Builder<N, *>? =
       getChildren(node).firstOrNull { it.entryNo == entryNo }
     fun <N: ExecutableProcessNode> getChildren(node: N): Sequence<ProcessNodeInstance.Builder<N, *>>
     fun <T: ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T>
     fun <N:ExecutableProcessNode> updateChild(node: N, entryNo: Int, body: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.()->Unit)
 
+    fun updateChild(node: IProcessNodeInstance,
+                             body: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit) {
+      if (node is ProcessNodeInstance.Builder<*,*>) {
+        node.apply(body)
+      } else {
+        node.builder(this).also{ storeChild(it) }.apply(body)
+      }
+    }
+
     fun allChildren(): Sequence<IProcessNodeInstance>
+
     fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance>
+
+    fun active(): Sequence<IProcessNodeInstance> {
+      return allChildren { ! it.state.isFinal }
+    }
 
     /**
      * Store the current instance to the database. This
@@ -153,6 +174,60 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     fun getDirectSuccessorsFor(predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Sequence<IProcessNodeInstance> {
       return allChildren { predecessor in it.predecessors }
+    }
+
+    fun  startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
+
+
+      val startedTasks = ArrayList<ProcessNodeInstance.Builder<*,*>>(predecessor.node.successors.size)
+      val joinsToEvaluate = ArrayList<JoinInstance.Builder>()
+
+      for (successorId in predecessor.node.successors) {
+        val nonRegisteredNodeInstance = processModel
+          .getNode(successorId)
+          .mustExist(successorId)
+          .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo )
+
+        nonRegisteredNodeInstance.predecessors.add(predecessor.handle())
+
+        storeChild(nonRegisteredNodeInstance)
+
+        if (nonRegisteredNodeInstance is JoinInstance.Builder) {
+          joinsToEvaluate.add(nonRegisteredNodeInstance)
+        } else {
+          startedTasks.add(nonRegisteredNodeInstance)
+        }
+      }
+      store(engineData)
+
+      // Commit the registration of the follow up nodes before starting them.
+      engineData.commit()
+
+      for (startedTask in startedTasks) {
+        when (predecessor.state) {
+          NodeInstanceState.Complete  -> startedTask.provideTask(engineData)
+          NodeInstanceState.SkippedCancel,
+          NodeInstanceState.SkippedFail,
+          NodeInstanceState.Skipped   -> startedTask.skipTask(engineData, predecessor.state)
+          NodeInstanceState.Cancelled -> startedTask.skipTask(engineData, NodeInstanceState.SkippedCancel)
+          NodeInstanceState.Failed    -> startedTask.skipTask(engineData, NodeInstanceState.SkippedFail)
+          else                        -> throw ProcessException("Node ${predecessor} is not in a supported state to initiate successors")
+        }
+      }
+
+      for (join in joinsToEvaluate) {
+        join.startTask(engineData)
+      }
+
+    }
+
+    fun  skipSuccessors(engineData: MutableProcessEngineDataAccess,
+                        predecessor: IProcessNodeInstance,
+                        state: NodeInstanceState) {
+      for (successorNode in predecessor.node.successors.map { processModel.getNode(it)!! }) {
+        val successorInstance =  successorNode.createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
+        successorInstance.skipTask(engineData, state)
+      }
     }
   }
 
@@ -191,7 +266,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override fun <T : ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T> {
       return InstanceFuture<T, ExecutableProcessNode>(child).apply {
-        if (!handle.valid) throw IllegalArgumentException("Storing a non-existing child"); _pendingChildren.add(this)
+        if (!handle.valid) throw IllegalArgumentException("Storing a non-existing child")
+        if (! _pendingChildren.any { it.origBuilder == child }) _pendingChildren.add(this)
       }
     }
 
@@ -216,9 +292,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
   }
 
-  class ExtBuilder(private var base: ProcessInstance) : Builder {
+  class ExtBuilder(internal var base: ProcessInstance) : Builder {
     override var generation = base.generation+1
       private set
+
     private val _pendingChildren = mutableListOf<InstanceFuture<out ProcessNodeInstance<*>, out ExecutableProcessNode>>()
     override val pendingChildren: List<Future<out ProcessNodeInstance<*>>> get() = _pendingChildren
     override var handle by overlay { base.handle }
@@ -444,25 +521,25 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     handle = Handles.handle(builder.handle)
     parentActivity = builder.parentActivity
 
-    val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*,*> }.toList()
+    val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*,*> }
 
-    val createdNodes = pending
-        .filter { ! it.origBuilder.handle.valid }
-        .map { data.putNodeInstance(it) }
+    val createdNodes = mutableListOf<ProcessNodeInstance<*>>()
+    val updatedNodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, ProcessNodeInstance<*>>()
+    for (future in pending) {
+      if (! future.origBuilder.handle.valid) {
+        createdNodes+=data.putNodeInstance(future)
+      } else {
+        assert(future.origBuilder.hProcessInstance == handle)
+        updatedNodes[future.origBuilder.handle]=data.storeNodeInstance(future)
+      }
+    }
 
-    val updatedNodes = pending.asSequence()
-        .filter { it.origBuilder.handle.valid }
-        .map {
-          assert(it.origBuilder.hProcessInstance == handle)
-          data.storeNodeInstance(it)
-        }
-        .associateBy { it.getHandle() }.toMutableMap()
 
     val nodes = createdNodes + builder.children.asSequence().map { childHandle ->
       updatedNodes.remove(childHandle) ?: data.nodeInstance(childHandle).withPermission()
     }.toList()
 
-    assert(updatedNodes.isEmpty()) { "All updated nodes must be used" }
+    assert(updatedNodes.isEmpty()) { "All updated nodes must be used, still missing: [${updatedNodes.values.joinToString()}]" }
 
     childNodes = nodes
     inputs = builder.inputs.toList()
@@ -494,14 +571,17 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   @PublishedApi
-  internal fun __storeNewValueIfNeeded(writableEngineData: MutableProcessEngineDataAccess, newInstance: ProcessInstance):ProcessInstance {
+  internal fun __storeNewValueIfNeeded(writableEngineData: MutableProcessEngineDataAccess, newInstanceBuilder: ExtBuilder):ProcessInstance {
+    val newInstance = newInstanceBuilder.build(writableEngineData)
+    val base = newInstanceBuilder.base
 
     fun dataValid():Boolean {
       val stored = writableEngineData.instance(handle).withPermission()
-      assert(stored.uuid == uuid) { "Uuid mismatch this: $uuid, stored: ${stored.uuid}" }
-      assert(newInstance.uuid == uuid) { "Uuid mismatch this: $uuid, new: ${newInstance.uuid}" }
-      assert(generation == stored.generation) { "Generation mismatch this: $generation stored: ${stored.generation}" }
-      assert(generation +1 == newInstance.generation) { "Generation mismatch this+1: ${generation + 1} new: ${newInstance.generation}" }
+      assert(uuid == base.uuid) { "Uuid mismatch this: $uuid, base: ${base.uuid}" }
+      assert(stored.uuid == base.uuid) { "Uuid mismatch this: $uuid, stored: ${stored.uuid}" }
+      assert(newInstance.uuid == base.uuid) { "Uuid mismatch this: $uuid, new: ${newInstance.uuid}" }
+      assert(base.generation == stored.generation) { "Generation mismatch this: ${base.generation} stored: ${stored.generation}" }
+      assert(base.generation +1 == newInstance.generation) { "Generation mismatch this+1: ${base.generation + 1} new: ${newInstance.generation}" }
       return newInstance.handle.valid && handle.valid
     }
 
@@ -514,9 +594,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   inline fun update(writableEngineData: MutableProcessEngineDataAccess, body: ExtBuilder.() -> Unit): ProcessInstance {
-    val newValue = builder().apply(body).build(writableEngineData)
+    val newValue = builder().apply(body)
     return __storeNewValueIfNeeded(writableEngineData, newValue).apply {
-      assert(writableEngineData.instances[newValue.getHandle()]?.withPermission() == this) {
+      assert(writableEngineData.instances[newValue.handle]?.withPermission() == this) {
         "Process instances should match after storage"
       }
     }
@@ -525,7 +605,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   fun <T:ProcessNodeInstance<*>> updateWithNode(writableEngineData: MutableProcessEngineDataAccess, body: ExtBuilder.() -> ProcessNodeInstance.Builder<*, out T>): PNIPair<T> {
     val builder = builder()
     val newNodeFuture = builder.storeChild(builder.body())
-    val newInstance = __storeNewValueIfNeeded(writableEngineData,builder.build(writableEngineData))
+    val newInstance = __storeNewValueIfNeeded(writableEngineData, builder)
     assert(writableEngineData.instances[this@ProcessInstance.getHandle()]?.withPermission() == newInstance) {
       "ProcessNodes should match after storage"
     }
@@ -546,9 +626,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   @Deprecated("Use the method on a builder")
   fun <T: ProcessNodeInstance<*>> addChild(data: MutableProcessEngineDataAccess, child: T): PNIPair<T> {
-    val b = builder()
-    val future = b.storeChild(child.builder(b)) as Future<T>
-    return PNIPair(__storeNewValueIfNeeded(data,b.build(data)), future.get())
+    val builder = builder()
+    val future = builder.storeChild(child.builder(builder)) as Future<T>
+    return PNIPair(__storeNewValueIfNeeded(data,builder), future.get())
   }
 
   fun builder() = ExtBuilder(this)
@@ -598,8 +678,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
   }
 
-  fun getChild(nodeId: String): SecureObject<ProcessNodeInstance<*>>? {
-    return childNodes.firstOrNull { it.withPermission().node.id == nodeId }
+  fun getChild(nodeId: String, entryNo:Int): SecureObject<ProcessNodeInstance<*>>? {
+    return childNodes.firstOrNull { it.withPermission().run { node.id == nodeId && this.entryNo == entryNo } }
   }
 
   /**
@@ -619,13 +699,28 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   fun start(engineData: MutableProcessEngineDataAccess, payload: Node? = null): ProcessInstance {
     return (if (state == State.NEW) initialize(engineData) else this)
-      .update(engineData) { state = State.STARTED; inputs.addAll(processModel.toInputs(payload)) }
+      .update(engineData) {
+        state = State.STARTED
+        inputs.addAll(processModel.toInputs(payload))
+
+        store(engineData) // make sure we have a valid handle
+
+        for(task in active()) {
+          updateChild(task) {
+            provideTask(engineData)
+          }
+        }
+
+      }
+/*
       .run { // need run as the this needs to be captured at fold
         active.asSequence()
           .map { engineData.nodeInstance(it).withPermission() }
           .filter { !it.state.isFinal }
           .fold(this) { self, task -> task.provideTask(engineData, self).instance }
       }
+*/
+
   }
 
   @Synchronized @Throws(SQLException::class)
@@ -814,7 +909,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
 
       writeAttribute("owner", owner.name)
-      writeAttribute("state", state!!.name)
+      writeAttribute("state", state.name)
 
       smartStartTag(Constants.PROCESS_ENGINE_NS, "inputs") {
         inputs.forEach { it.serialize(this) }
@@ -958,6 +1053,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
       fun <T: ProcessNodeInstance<T>> impl(value: InstanceFuture<*,*>):ProcessNodeInstance<*> {
         val handle = (nodeInstances as MutableHandleMap).put(value.origBuilder.build())
+        value.origBuilder.handle = handle // Update the builder handle as when merely storing the original builder will remain used and needs to be updated.
         @Suppress("UNCHECKED_CAST") // Semantically this should always be valid
         val newValue = nodeInstance(handle).withPermission() as T
         (value as InstanceFuture<T,*>).set(newValue)
@@ -977,7 +1073,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           (value as InstanceFuture<T,*>).set(it)
         }
       }
-      return impl<DefaultProcessNodeInstance>(value)
+
+      return impl<DefaultProcessNodeInstance>(value) // hack to work around generics issues
     }
 
     @Throws(XmlException::class)

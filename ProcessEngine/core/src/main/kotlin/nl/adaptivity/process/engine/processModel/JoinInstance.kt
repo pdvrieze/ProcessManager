@@ -49,7 +49,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             .asSequence()
             .none { it.state.isCommitted || it.state.isFinal }
           if (canAdd) {
-            state = NodeInstanceState.Sent
+            state = NodeInstanceState.Acknowledged
             return true
           }
         }
@@ -57,6 +57,48 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
       }
       return false
+    }
+
+    override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return node.takeTask(this)
+    }
+
+    override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return node.startTask(this)
+    }
+
+    override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+      var committedPredecessorCount = 0
+      var completedPredecessorCount = 0
+      for(predecessorHandle in predecessors) {
+        val predecessor = processInstanceBuilder.getChild(predecessorHandle)
+        if (predecessor.state.isCommitted) {
+          if (! predecessor.state.isFinal) {
+            throw ProcessException("Predecessor ${predecessor} is committed but not final, cannot finish join without cancelling the predecessor")
+          } else {
+            committedPredecessorCount++
+            if (predecessor.state== NodeInstanceState.Complete) {
+              completedPredecessorCount++
+            }
+          }
+        }
+      }
+      val cancelablePredecessors = mutableListOf<IProcessNodeInstance>()
+      if (!node.isMultiMerge) {
+        processInstanceBuilder
+          .allChildren { ! it.state.isFinal && it.entryNo == entryNo && it.node preceeds node }
+          .mapTo(cancelablePredecessors) { it }
+      }
+
+      if (committedPredecessorCount<node.min) {
+        throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
+      }
+      for(instanceToCancel in cancelablePredecessors) {
+        processInstanceBuilder.updateChild(instanceToCancel) {
+          cancelAndSkip(engineData)
+        }
+      }
+      super.doFinishTask(engineData, resultPayload)
     }
   }
 
@@ -138,13 +180,19 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     return PNIPair(processInstance, this)
   }
 
+  @Deprecated("Use the builder directly")
   @Suppress("UNCHECKED_CAST")
   override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): PNIPair<JoinInstance> {
+    return update(engineData) {
+      finishTask(engineData, resultPayload)
+    }
+/*
+
     var committedPredecessorCount = 0
     var completedPredecessorCount = 0
     val cancelablePredecessors = mutableListOf<ProcessNodeInstance<*>>()
     for(predecessorId in node.predecessors) {
-      val predecessor = processInstance.getChild(predecessorId.id)?.withPermission()
+      val predecessor = processInstance.getChild(predecessorId.id, entryNo)?.withPermission()
       if (predecessor==null) {
         val splitInstance = precedingClosure(engineData).filterIsInstance(SplitInstance::class.java).lastOrNull()
         if (splitInstance != null) {
@@ -185,6 +233,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       instanceToCancel.cancelAndSkip(engineData, processInstance).instance
     }
     return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
+*/
   }
 
   /**
@@ -344,7 +393,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       if (totalPossiblePredecessors - skipped < join.min) {
         // XXX this needs to be done in the caller
         // cancelNoncompletedPredecessors(engineData)
-        failTask(ProcessException("Too many predecessors have failed"))
+        failTask(engineData, ProcessException("Too many predecessors have failed"))
       }
 
       if (complete >= join.min) {

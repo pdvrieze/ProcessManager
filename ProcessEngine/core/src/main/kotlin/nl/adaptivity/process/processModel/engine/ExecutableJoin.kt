@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -79,8 +80,8 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
   }
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                                     processInstanceBuilder: ProcessInstance.ExtBuilder,
-                                     predecessor: ProcessNodeInstance<*>,
+                                     processInstanceBuilder: ProcessInstance.Builder,
+                                     predecessor: IProcessNodeInstance,
                                      entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
     var candidateNo = entryNo
     for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
@@ -91,6 +92,6 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
       if (candidate.entryNo == candidateNo) { candidateNo++ } // Increase the candidate entry number
     }
     if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) { throw ProcessException("Attempting to start a second instance of a single instantiation join") }
-    return JoinInstance.BaseBuilder(this, listOf(predecessor.getHandle()), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
+    return JoinInstance.BaseBuilder(this, listOf(predecessor.handle()), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
   }
 }

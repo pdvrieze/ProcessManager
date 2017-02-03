@@ -145,7 +145,7 @@ class TestProcessEngine {
   }
 
   private fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance<*> {
-    return getChild(name)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
+    return getChild(name, 1)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
   }
 
   private val ProcessInstance.sortedFinished

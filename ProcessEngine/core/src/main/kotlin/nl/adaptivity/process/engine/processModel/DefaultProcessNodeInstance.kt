@@ -59,8 +59,7 @@ import javax.xml.transform.Source
  * @property failureCause For a failure, the cause of the failure
  */
 @XmlDeserializer(DefaultProcessNodeInstance.Factory::class)
-open class DefaultProcessNodeInstance
-  : ProcessNodeInstance<DefaultProcessNodeInstance> {
+class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstance> {
 
   constructor(node: ExecutableProcessNode,
               predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
@@ -84,8 +83,7 @@ open class DefaultProcessNodeInstance
 
   override fun withPermission() = this
 
-  override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, DefaultProcessNodeInstance> {
-    assert(processInstanceBuilder.javaClass == DefaultProcessNodeInstance::class.java) { "Builders must be overridden" }
+  override final fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, DefaultProcessNodeInstance> {
     return ExtBuilderImpl(this, processInstanceBuilder)
   }
 
@@ -140,6 +138,9 @@ open class DefaultProcessNodeInstance
 
     override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
 
+      if (! handle.valid) store(engineData)
+      assert(handle.valid)
+
       val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
 
       fun <MSG_T> impl(messageService: IMessageService<MSG_T>): Boolean {
@@ -150,8 +151,6 @@ open class DefaultProcessNodeInstance
           val preparedMessage = messageService.createMessage(node.message)
           if (! tryTask() { messageService.sendMessage(engineData, preparedMessage, this) }) {
             failTaskCreation(MessagingException("Failure to send message"))
-          } else {
-            state = NodeInstanceState.Sent
           }
         }
 
@@ -161,6 +160,13 @@ open class DefaultProcessNodeInstance
       return impl(engineData.messageService())
     }
 
+    override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return node.takeTask(this)
+    }
+
+    override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+      return node.startTask(this)
+    }
   }
 
   private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
