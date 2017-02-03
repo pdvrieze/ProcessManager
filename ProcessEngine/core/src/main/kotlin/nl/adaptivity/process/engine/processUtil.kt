@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
@@ -34,10 +33,12 @@ import java.io.FileNotFoundException
 
 fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw ProcessException("The node with id ${id} is missing")
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <N: ProcessNode<*,*>> N?.mustExist(id:String): N = mustExist(Identifier(id))
 
 fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:String):T = requireNode(Identifier(id))
 
 /**
@@ -45,53 +46,53 @@ inline fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:String):T = 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.mustExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.mustExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, N: DefaultProcessNodeInstance> N?.shouldExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.shouldExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the object instance exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N:SecureObject<V>, V:Any> N?.mustExist(handle: Handle<out SecureObject<V>>): N = this ?: throw IllegalStateException("Process engine element missing: $handle")
+fun <N:SecureObject<V>, V:Any> N?.mustExist(handle: Handle<SecureObject<V>>): N = this ?: throw IllegalStateException("Process engine element missing: $handle")
 
 /**
  * Verify that the object exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<out SecureObject<V>>): N = this ?: throw FileNotFoundException("Process engine element missing: $handle")
+fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<SecureObject<V>>): N = this ?: throw FileNotFoundException("Process engine element missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, I:ProcessInstance> I?.mustExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): I = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T: ProcessTransaction> ProcessInstance?.mustExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, I:ProcessInstance> I?.shouldExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): I = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction> ProcessInstance?.shouldExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance = this ?: throw FileNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.mustExist(handle: Handle<out RootProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.mustExist(handle: Handle<RootProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.shouldExist(handle: Handle<out RootProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.shouldExist(handle: Handle<RootProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")

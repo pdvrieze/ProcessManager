@@ -19,13 +19,11 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
-import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
@@ -41,22 +39,33 @@ import javax.xml.transform.Result
 import javax.xml.transform.Source
 
 /**
- * Created by pdvrieze on 27/01/17.
+ * Base interface for process instance.
+ * @property node The node that this is an instance of.
+ * @param predecessors The node instances that are direct predecessors of this one
+ * @property hProcessInstance The handle to the owning process instance.
+ * @property owner The owner of the node (generally the owner of the instance)
+ * @param handle The handle for this instance (or invalid if not registered yet)
+ * @property state The current state of the instance
+ * @param results A list of the results associated with this node. This would imply a state of [NodeInstanceState.Complete]
+ * @property entryNo The sequence number of this instance. Normally this will be 1, but for nodes that allow reentry,
+ *                   this may be a higher number. Values below 1 are invalid.
+ * @property failureCause For a failure, the cause of the failure
  */
 abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node: ExecutableProcessNode,
                                                               predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
                                                               val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
-                                                              override val owner: Principal,
-                                                              override val entryNo: Int,
+                                                              override final val owner: Principal,
+                                                              override final val entryNo: Int,
                                                               private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-                                                              override val state: NodeInstanceState = Pending,
+                                                              override final val state: NodeInstanceState = Pending,
                                                               results: Iterable<ProcessData> = emptyList(),
                                                               val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance<T>>, ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, IProcessNodeInstance {
   val results: List<ProcessData> = results.toList()
   override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
 
   init {
-    if (entryNo!=1 && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) throw ProcessException("Attempting to create a new instance ${entryNo} for node ${node} that does not support reentry")
+    @Suppress("LeakingThis")
+    if (entryNo!=1 && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
   }
 
   constructor(builder: ProcessNodeInstance.Builder<*, T>) : this(builder.node, builder.predecessors,
@@ -102,12 +111,15 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     return processInstanceBuilder.storeChild(builder).let { if (builder !is ExtBuilder<*,*> || builder.changed) it else null }
   }
 
+  @Suppress("UNCHECKED_CAST")
   private inline val asT get() = this as T
 
   override fun withPermission(): ProcessNodeInstance<T> = this
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<T> {
+    @Suppress("DEPRECATION")
     return when (state) {
       NodeInstanceState.FailRetry,
       Pending -> provideTask(engineData, instance)
@@ -174,22 +186,15 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   fun provideTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     return update(engineData) {
       provideTask(engineData)
     }
-/*
-    var shouldProgress = false
-    val pniPair = processInstance.updateWithNode(engineData) {
-      builder(this).apply {
-        shouldProgress = provideTask(engineData)
-      }
-    }
-    return if (! shouldProgress) pniPair else ProcessInstance.Updater(pniPair.instance).takeTask(engineData, pniPair.node)
-*/
   }
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     val startNext = tryTask(engineData, processInstance) { node.startTask(this) }
@@ -340,7 +345,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     val processInstanceBuilder: ProcessInstance.Builder
     val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
     var owner: Principal
-    var handle: ComparableHandle<SecureObject<out ProcessNodeInstance<*>>>
+    var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
     override var state: NodeInstanceState
     val results: MutableList<ProcessData>
     fun toXmlInstance(body: CompactFragment?): XmlProcessNodeInstance
@@ -522,7 +527,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer) { base.getHandle() }
     final override var state by overlay(observer) { base.state }
     final override var results = ObservableList(base.results.toMutableList(), { changed = true })
-    final var changed: Boolean = false
+    var changed: Boolean = false
     final override val entryNo: Int = base.entryNo
 
     override abstract fun build(): T

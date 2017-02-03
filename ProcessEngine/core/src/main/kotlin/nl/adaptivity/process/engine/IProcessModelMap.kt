@@ -23,11 +23,11 @@ import java.util.*
 
 
 /**
- * Created by pdvrieze on 07/05/16.
+ * Map interface that has some additional features/optimizations for process models.
  */
 interface IProcessModelMap<T : ProcessTransaction> : TransactionedHandleMap<SecureObject<ExecutableProcessModel>, T> {
 
-  fun getModelWithUuid(transaction: T, uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>?
+  fun getModelWithUuid(transaction: T, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
 
   override fun withTransaction(transaction: T): IProcessModelMapAccess {
     return ProcessModelMapForwarder(transaction, this as IMutableProcessModelMap<T>)
@@ -45,7 +45,7 @@ fun <T:ProcessTransaction> defaultWithTransaction(map: IMutableProcessModelMap<T
 }
 
 interface IProcessModelMapAccess : HandleMap<SecureObject<ExecutableProcessModel>> {
-  fun getModelWithUuid(uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>?
+  fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
 
   operator fun get(uuid:UUID) = getModelWithUuid(uuid)
 }
@@ -63,7 +63,7 @@ inline fun <T:ProcessTransaction, R> IMutableProcessModelMap<T>.inWriteTransacti
 private class ProcessModelMapForwarder<T:ProcessTransaction>(transaction: T, override val delegate:IProcessModelMap<T>)
   : HandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IProcessModelMapAccess {
 
-  override fun getModelWithUuid(uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
+  override fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     return delegate.getModelWithUuid(transaction, uuid)
   }
 }
@@ -71,7 +71,7 @@ private class ProcessModelMapForwarder<T:ProcessTransaction>(transaction: T, ove
 private class MutableProcessModelMapForwarder<T:ProcessTransaction>(transaction: T, override val delegate:IMutableProcessModelMap<T>)
   : MutableHandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IMutableProcessModelMapAccess {
 
-  override fun getModelWithUuid(uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
+  override fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     return delegate.getModelWithUuid(transaction, uuid)
   }
 }

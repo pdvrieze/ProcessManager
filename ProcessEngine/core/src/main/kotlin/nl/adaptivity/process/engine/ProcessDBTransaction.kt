@@ -21,7 +21,7 @@ import uk.ac.bournemouth.kotlinsql.Database
 import javax.sql.DataSource
 
 /**
- * Created by pdvrieze on 20/11/16.
+ * A process transaction that uses the database to store the data.
  */
 class ProcessDBTransaction(dataSource: DataSource,
                            db: Database, private val engineData: IProcessEngineData<ProcessDBTransaction>)

@@ -41,14 +41,14 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     get() = listOf(pm.pmhandle, pm.owner, pm.model)
 
   override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ExecutableProcessModel.Builder {
-    val owner = pm.owner.nullableValue(columns, values)?.let { SimplePrincipal(it) }
+    val owner = pm.owner.nullableValue(columns, values)?.let(::SimplePrincipal)
     val handle = pm.pmhandle.value(columns, values)
     return pm.model.nullableValue(columns, values)
           ?.let { ExecutableProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it)))}
        ?: ExecutableProcessModel.Builder().apply {
       owner?.let { this.owner = it }
       this.owner = owner ?: SecurityProvider.SYSTEMPRINCIPAL
-      this.handle
+      this.handle = handle.handleValue
     }
   }
 
@@ -56,7 +56,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     return builder.build()
   }
 
-  override fun getHandleCondition(where: Database._Where, handle: Handle<out SecureObject<ExecutableProcessModel>>): Database.WhereClause? {
+  override fun getHandleCondition(where: Database._Where, handle: Handle<SecureObject<ExecutableProcessModel>>): Database.WhereClause? {
     return where.run { pm.pmhandle eq handle }
   }
 

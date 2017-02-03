@@ -16,13 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.JoinInstance
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -53,31 +51,6 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   override fun builder() = Builder(this)
-
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                                     processInstance: ProcessInstance,
-                                     predecessor: ProcessNodeInstance<*>,
-                                     entryNo: Int): JoinInstance {
-    if (isMultiInstance) TODO("MultiInstance support is not yet properly implemented")
-    if (isMultiMerge) {
-      var entryNoUnique = true
-      var lastEntryNo = -1
-      for (candidate in processInstance.childNodes) {
-        (candidate as? JoinInstance)?.let {
-          if (it.node == this) {
-            if (!it.isFinished && it.entryNo==entryNo) return it
-            entryNoUnique = entryNoUnique and (entryNo != it.entryNo)
-            if (it.entryNo>lastEntryNo) lastEntryNo = it.entryNo
-          }
-        }
-      }
-      val usedEntryNo  = if (! entryNoUnique) { lastEntryNo+1 } else { entryNo }
-      return JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, usedEntryNo)
-    } else {
-      return processInstance.getNodeInstance(this, entryNo) as JoinInstance?
-             ?: JoinInstance(this, listOf(predecessor.getHandle()), processInstance.getHandle(), processInstance.owner, entryNo)
-    }
-  }
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
                                      processInstanceBuilder: ProcessInstance.Builder,

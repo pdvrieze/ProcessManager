@@ -36,7 +36,7 @@ class CachingProcessModelMap<T : ProcessTransaction>(base: IMutableProcessModelM
     get() = super.delegate as IMutableProcessModelMap<T>
 
   @Throws(SQLException::class)
-  override fun getModelWithUuid(transaction: T, uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
+  override fun getModelWithUuid(transaction: T, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     return delegate.inReadonlyTransaction(transaction) { getModelWithUuid(uuid) }
   }
 }

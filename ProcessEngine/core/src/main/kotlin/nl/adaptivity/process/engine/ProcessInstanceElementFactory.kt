@@ -32,12 +32,12 @@ import uk.ac.bournemouth.kotlinsql.Table
 
 
 /**
- * Created by pdvrieze on 30/05/16.
+ * Factory that helps in storing and retrieving process instances from the database.
  */
 internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>() {
 
   override fun getHandleCondition(where: Database._Where,
-                                  handle: Handle<out SecureObject<ProcessInstance>>): Database.WhereClause? {
+                                  handle: Handle<SecureObject<ProcessInstance>>): Database.WhereClause? {
     return where.run { pi.pihandle eq handle }
   }
 
@@ -98,7 +98,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     preRemove(transaction, Handles.handle(pi.pihandle.value(columns, values)))
   }
 
-  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out SecureObject<ProcessInstance>>) {
+  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<SecureObject<ProcessInstance>>) {
     ProcessEngineDB
           .DELETE_FROM(id)
           .WHERE { id.pihandle eq handle }

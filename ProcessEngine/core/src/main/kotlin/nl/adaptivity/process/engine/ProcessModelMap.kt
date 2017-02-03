@@ -31,7 +31,7 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
   override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     val candidates = ProcessEngineDB
           .SELECT(processModels.pmhandle)
-          .WHERE { processModels.model LIKE "%${uuid.toString()}%" }
+          .WHERE { processModels.model LIKE "%$uuid%" }
           .getList(transaction.connection)
 
     return candidates.asSequence()

@@ -19,9 +19,11 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.processModel.*
 
 /**
- * Created by pdvrieze on 04/01/17.
+ * Child model extension that has the behaviour needed for execution.
  */
-class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon {
+class ExecutableChildModel(builder: ChildProcessModel.Builder<*, *>,
+                           buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>(
+  builder, buildHelper), ExecutableModelCommon {
 
   open class Builder(
       override val rootBuilder: ExecutableProcessModel.Builder,
@@ -40,8 +42,6 @@ class ExecutableChildModel : ChildProcessModelBase<ExecutableProcessNode, Execut
   override val rootModel get() = super.rootModel as ExecutableProcessModel
 
   override val endNodeCount by lazy { modelNodes.count { it is ExecutableEndNode } }
-
-  constructor(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : super(builder, buildHelper)
 
   override fun builder(rootBuilder: RootProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>)
       = ExecutableChildModel.Builder(rootBuilder as ExecutableProcessModel.Builder, id, modelNodes.map(ExecutableProcessNode::builder), imports, exports)

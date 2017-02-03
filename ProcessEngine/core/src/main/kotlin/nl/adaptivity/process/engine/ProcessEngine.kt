@@ -110,11 +110,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         return messageService
       }
 
-      override fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
+      override fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
         this@DelegateProcessEngineData.invalidateCachePM(handle)
       }
 
-      override fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>) {
+      override fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>) {
         this@DelegateProcessEngineData.invalidateCachePI(handle)
       }
 
@@ -151,11 +151,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         return this@DBProcessEngineData.messageService
       }
 
-      override fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
+      override fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
         this@DBProcessEngineData.invalidateCachePM(handle)
       }
 
-      override fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>) {
+      override fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>) {
         this@DBProcessEngineData.invalidateCachePI(handle)
       }
 
@@ -215,7 +215,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
   private var mSecurityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
 
-  fun invalidateModelCache(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
+  fun invalidateModelCache(handle: Handle<SecureObject<ExecutableProcessModel>>) {
     engineData.invalidateCachePM(handle)
   }
 
@@ -230,9 +230,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   /**
    * Get all process models loaded into the engine.
    *
+   * @param engineData The source of process data
+   *
    * @return The list of process models.
-   * *
-   * @param transaction
    */
   fun getProcessModels(engineData: ProcessEngineDataAccess, user: Principal): Iterable<SecuredObject<ExecutableProcessModel>> {
     mSecurityProvider.ensurePermission(Permissions.LIST_MODELS, user)
@@ -289,13 +289,13 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun getProcessModel(transaction: TRXXX, handle: Handle<out ExecutableProcessModel>, user: Principal): ExecutableProcessModel? {
+  fun getProcessModel(transaction: TRXXX, handle: Handle<ExecutableProcessModel>, user: Principal): ExecutableProcessModel? {
     return engineData.inWriteTransaction(transaction) {
       getProcessModel(this, handle, user)
     }
   }
 
-  fun getProcessModel(dataAccess: ProcessEngineDataAccess, handle: Handle<out SecureObject<ExecutableProcessModel>>, user: Principal): ExecutableProcessModel? {
+  fun getProcessModel(dataAccess: ProcessEngineDataAccess, handle: Handle<SecureObject<ExecutableProcessModel>>, user: Principal): ExecutableProcessModel? {
     return dataAccess.processModels[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) { processModel ->
       if (processModel.uuid ==null && dataAccess is MutableProcessEngineDataAccess) {
         processModel.update {
@@ -315,7 +315,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @param newName The new name
    */
   @Throws(FileNotFoundException::class)
-  fun renameProcessModel(user: Principal, handle: Handle<out ExecutableProcessModel>, newName: String) {
+  fun renameProcessModel(user: Principal, handle: Handle<ExecutableProcessModel>, newName: String) {
     engineData.inWriteTransaction(user, mSecurityProvider.ensurePermission(Permissions.FIND_MODEL, user)) {
       processModels[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.RENAME, user) { pm->
         mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, user, pm)
@@ -326,13 +326,13 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(FileNotFoundException::class, SQLException::class)
-  fun updateProcessModel(transaction: TRXXX, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun updateProcessModel(transaction: TRXXX, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     engineData.inWriteTransaction(transaction) {
       return updateProcessModel(this, handle, processModel, user)
     }
   }
 
-  fun updateProcessModel(engineData: MutableProcessEngineDataAccess, handle: Handle<out SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun updateProcessModel(engineData: MutableProcessEngineDataAccess, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     val oldModel = engineData.processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
 
     if (oldModel.owner == SecurityProvider.SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
@@ -355,7 +355,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun removeProcessModel(transaction: TRXXX, handle: Handle<out ExecutableProcessModel>, user: Principal): Boolean {
+  fun removeProcessModel(transaction: TRXXX, handle: Handle<ExecutableProcessModel>, user: Principal): Boolean {
     engineData.inWriteTransaction(transaction) {
       val oldModel = processModels[handle].shouldExist(handle)
       mSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, user, oldModel)
@@ -477,7 +477,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
       val resultHandle = instances.put(instance)
       instance(resultHandle).withPermission().let { instance ->
         assert(instance.getHandle().handleValue==resultHandle.handleValue)
-        instance.initialize(transaction)
+        instance.initialize(transaction.writableEngineData)
       }.let { instance ->
         commit()
 
@@ -576,7 +576,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(SQLException::class)
-  fun cancelInstance(transaction: TRXXX, handle: Handle<out SecureObject<ProcessInstance>>, user: Principal): ProcessInstance {
+  fun cancelInstance(transaction: TRXXX, handle: Handle<SecureObject<ProcessInstance>>, user: Principal): ProcessInstance {
     engineData.inWriteTransaction(transaction) {
       instances.get(handle).shouldExist(handle).withPermission(mSecurityProvider, Permissions.CANCEL, user) { instance ->
         try {
@@ -631,7 +631,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
             Acknowledged -> return task.update(transaction.writableEngineData) { state = newState }.node.state // Record the state, do nothing else.
             Taken        -> ProcessInstance.Updater(pi).takeTask(transaction.writableEngineData, task).node.state
-            Started      -> task.startTask(this, pi)
+            Started      -> task.update(transaction.writableEngineData) { startTask(transaction.writableEngineData) }
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
           // TODO don't just make up a failure cause
             Failed       -> task.failTask(this, pi, IllegalArgumentException("Missing failure cause"))

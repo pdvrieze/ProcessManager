@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
@@ -64,18 +62,6 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
 
   override fun builder(): ExecutableProcessNode.Builder
 
-  /**
-   * Get an instance for this node within the process instance. This may return an existing instance if that is valid for
-   * the type (joins)
-   */
-  @Deprecated("Use Builder function")
-  fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                            processInstance: ProcessInstance,
-                            predecessor: ProcessNodeInstance<*>,
-                            entryNo: Int): ProcessNodeInstance<*>
-    = processInstance.getNodeInstance(this, entryNo) ?: DefaultProcessNodeInstance(this, predecessor.getHandle(), processInstance, entryNo)
-
-
   fun createOrReuseInstance(data: ProcessEngineDataAccess,
                             processInstanceBuilder: ProcessInstance.Builder,
                             predecessor: IProcessNodeInstance,
@@ -88,7 +74,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
 
   /**
    * Should this node be able to be provided?
-   * @param transaction
+   * @param engineData
    *
    * @param instance The instance against which the condition should be evaluated.
    *
@@ -100,7 +86,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
   /**
    * Take action to make task available
    *
-   * @param transaction
+   * @param engineData
    *
    * @param instance The processnode instance involved.
    *
@@ -113,9 +99,9 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
   /**
    * Take action to make task available
    *
-   * @param transaction
+   * @param engineData
    *
-   * @param instance The processnode instance involved.
+   * @param instanceBuilder The processnode instance involved.
    *
    * @return `true` if the task can/must be automatically taken
    */
@@ -150,11 +136,17 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
     return false
   }
 
+  /**
+   * Determine whether this node is a "possible" predecessor of the reference node.
+   */
   infix fun  preceeds(reference: ExecutableProcessNode): Boolean {
     if (this===reference) return false
     return preceeds(this, reference, HashSet<String>())
   }
 
+  /**
+   * Determine whether this node is a "possible" successor of the reference node.
+   */
   infix fun succceeds(reference: ExecutableProcessNode): Boolean {
     if (this===reference) return false
     return preceeds(reference, this, HashSet<String>())

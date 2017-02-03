@@ -23,7 +23,6 @@ import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -64,14 +63,14 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     private fun <N: ProcessNodeInstance<*>> pnipair(node: N) : PNIPair<N> {
       @Suppress("UNCHECKED_CAST")
-      return PNIPair(instance, node as N)
+      return PNIPair(instance, node)
     }
 
     @Suppress("UNCHECKED_CAST")
     fun <N: ProcessNodeInstance<*>> takeTask(engineData: MutableProcessEngineDataAccess, origNodeInstance: N): PNIPair<N> {
       val startNext = origNodeInstance.node.takeTask(origNodeInstance)
 
-      val updatedNode = origNodeInstance.managedUpdate(engineData) { state = NodeInstanceState.Taken } as N
+      val updatedNode = origNodeInstance.managedUpdate(engineData) { state = NodeInstanceState.Taken }
 
       if (startNext) {
         val pniPair = updatedNode.startTask(engineData, instance) as PNIPair<N>
@@ -84,11 +83,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   }
 
-  data class PNIPair<out T: ProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T) {
-    @Suppress("UNCHECKED_CAST")
-    fun startTask(engineData: MutableProcessEngineDataAccess): PNIPair<T> = node.startTask(engineData, instance) as PNIPair<T>
-    fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?=null): PNIPair<T> = node.finishTask(engineData, instance, resultPayload) as PNIPair<T>
-  }
+  @Deprecated("Use builder")
+  data class PNIPair<out T: ProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T)
 
   private class InstanceFuture<T: ProcessNodeInstance<*>, N: ExecutableProcessNode>(internal val origBuilder: ProcessNodeInstance.Builder<out ExecutableProcessNode, out T>) : Future<T> {
     private var cancelled = false
@@ -123,7 +119,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override fun isDone() = updated!=null
 
     override fun toString(): String {
-      return "-> ${if (updated!=null) "!${updated}" else origBuilder}"
+      return "-> ${if (updated!=null) "!${updated}" else origBuilder.toString()}"
     }
   }
 
@@ -261,6 +257,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     override fun <T : ProcessNodeInstance<*>> storeChild(child: T): Future<T> {
+      @Suppress("UNCHECKED_CAST")
       return storeChild(child.builder(this)) as Future<T>
     }
 
@@ -271,6 +268,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <N : ExecutableProcessNode> getChildren(node: N): Sequence<ProcessNodeInstance.Builder<N, *>> {
       return _pendingChildren.asSequence().filter { it.origBuilder.node == node }.map { it.origBuilder as ProcessNodeInstance.Builder<N, *>}
     }
@@ -280,6 +278,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                                                          body: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit){
       val existingBuilder = _pendingChildren.firstOrNull { it.origBuilder.node == node && it.origBuilder.entryNo == entryNo }
           ?: throw ProcessException ("Attempting to update a nonexisting child")
+      @Suppress("UNCHECKED_CAST")
       (existingBuilder as ProcessNodeInstance.Builder<N, *>).apply(body)
     }
 
@@ -330,6 +329,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       return ProcessInstance(data, this)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ProcessNodeInstance<*>> storeChild(child: T)
       = storeChild(child.builder(this)) as Future<T>
 
@@ -343,6 +343,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <N : ExecutableProcessNode> getChildren(node: N): Sequence<ProcessNodeInstance.Builder<N, *>> {
       return _pendingChildren.asSequence()
                .filter { it.origBuilder.node == node }
@@ -351,7 +352,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 .map { it.withPermission() }
                 .filter { it.node == node }
                 .map {
-                  (it.builder(this)  as ProcessNodeInstance.Builder<N, *>).also {
+                  (it.builder(this) as ProcessNodeInstance.Builder<N, *>).also {
                     // The type stuff here is a big hack to avoid having to "know" what the instance type actually is
                     _pendingChildren.add(
                       InstanceFuture<ProcessNodeInstance<*>, ExecutableProcessNode>(it))
@@ -613,10 +614,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     return PNIPair(newInstance, newNodeFuture.get())
   }
 
-  fun <T: DefaultProcessNodeInstance> updateNode(writableEngineData: MutableProcessEngineDataAccess, processNodeInstance: T): ProcessInstance.PNIPair<T> {
+  fun <T: ProcessNodeInstance<*>> updateNode(writableEngineData: MutableProcessEngineDataAccess, processNodeInstance: T): ProcessInstance.PNIPair<T> {
     checkOwnership(processNodeInstance)
     return PNIPair(update(writableEngineData) {
-      storeChild<DefaultProcessNodeInstance>(processNodeInstance)
+      storeChild(processNodeInstance)
     }, processNodeInstance)/* XXX .apply {
       instance.childNodes
           .filter { it!=node && (it is SplitInstance) }
@@ -627,6 +628,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   @Deprecated("Use the method on a builder")
   fun <T: ProcessNodeInstance<*>> addChild(data: MutableProcessEngineDataAccess, child: T): PNIPair<T> {
     val builder = builder()
+    @Suppress("UNCHECKED_CAST")
     val future = builder.storeChild(child.builder(builder)) as Future<T>
     return PNIPair(__storeNewValueIfNeeded(data,builder), future.get())
   }
@@ -812,7 +814,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 */
 
-  @Synchronized @Throws(SQLException::class)
+  @Deprecated("Use builder")
+  @Synchronized
+  @Throws(SQLException::class)
   private fun startSuccessors(engineData: MutableProcessEngineDataAccess,
                               predecessor: ProcessNodeInstance<*>):ProcessInstance {
     val startedTasks = ArrayList<ProcessNodeInstance<*>>(predecessor.node.successors.size)
@@ -961,6 +965,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
    * @param messageService The message service to use for messenging.
    */
   @Throws(FileNotFoundException::class)
+  @Deprecated("Use builder")
   fun tickle(transaction: ProcessTransaction, messageService: IMessageService<*>) {
     val engineData = transaction.writableEngineData
     fun ticklePredecessors(self: ProcessInstance, successor: ProcessNodeInstance<*>): ProcessInstance {
@@ -975,7 +980,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     // make a copy as the list may be changed due to tickling.
-    var self = active.toList().fold(this) { self , handle ->
+    val self = active.toList().fold(this) { self, handle ->
       try {
         transaction.writableEngineData.run {
           invalidateCachePNI(handle)
@@ -1039,7 +1044,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     result = 31 * result + outputs.hashCode()
     result = 31 * result + (name?.hashCode() ?: 0)
     result = 31 * result + owner.hashCode()
-    result = 31 * result + (state?.hashCode() ?: 0)
+    result = 31 * result + state.hashCode()
     result = 31 * result + uuid.hashCode()
     return result
   }
@@ -1056,6 +1061,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         value.origBuilder.handle = handle // Update the builder handle as when merely storing the original builder will remain used and needs to be updated.
         @Suppress("UNCHECKED_CAST") // Semantically this should always be valid
         val newValue = nodeInstance(handle).withPermission() as T
+        @Suppress("UNCHECKED_CAST")
         (value as InstanceFuture<T,*>).set(newValue)
         return newValue
       }

@@ -19,7 +19,8 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Transaction
 
 /**
- * Created by pdvrieze on 20/11/16.
+ * A transaction interface for processes. This allow access to the process data without having to pass the transaction in
+ * as parameter
  */
 interface ProcessTransaction : Transaction {
   val readableEngineData: ProcessEngineDataAccess
@@ -27,5 +28,5 @@ interface ProcessTransaction : Transaction {
 }
 
 interface ProcessTransactionFactory<T: ProcessTransaction> {
-  fun startTransaction(engineData: IProcessEngineData<T>): T;
+  fun startTransaction(engineData: IProcessEngineData<T>): T
 }

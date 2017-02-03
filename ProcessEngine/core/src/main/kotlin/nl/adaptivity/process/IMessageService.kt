@@ -18,7 +18,6 @@ package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import java.sql.SQLException

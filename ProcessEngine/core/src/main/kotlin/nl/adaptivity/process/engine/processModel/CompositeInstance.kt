@@ -24,9 +24,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
 import java.security.Principal
@@ -77,18 +75,18 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
     }
   }
 
-  class BaseBuilder : ProcessNodeInstance.BaseBuilder<ExecutableActivity, CompositeInstance>, Builder {
-    constructor(node: ExecutableActivity,
-                predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
-                processInstanceBuilder: ProcessInstance.Builder,
-                childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
-                owner: Principal,
-                entryNo: Int,
-                handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-                state: NodeInstanceState = NodeInstanceState.Pending) : super(node, listOfNotNull(predecessor), processInstanceBuilder, owner,
-                                                                                   entryNo, handle, state)
+  class BaseBuilder(node: ExecutableActivity,
+                    predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
+                    processInstanceBuilder: ProcessInstance.Builder,
+                    childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+                    owner: Principal,
+                    entryNo: Int,
+                    handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+                    state: NodeInstanceState = NodeInstanceState.Pending) : ProcessNodeInstance.BaseBuilder<ExecutableActivity, CompositeInstance>(
+    node, listOfNotNull(predecessor), processInstanceBuilder, owner,
+    entryNo, handle, state), Builder {
 
-    override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()
+    override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance
 
     override fun build(): CompositeInstance {
       return CompositeInstance(this)
@@ -125,29 +123,26 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
   override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
+  @Deprecated("Use builder")
   fun updateComposite(writableEngineData: MutableProcessEngineDataAccess,
-                      instance: ProcessInstance,
                       body: ExtBuilder.() -> Unit): ProcessInstance.PNIPair<CompositeInstance> {
     return super.update(writableEngineData, { (this as ExtBuilder).body() })
   }
 
+  @Deprecated("Use builder")
   override fun startTask(engineData: MutableProcessEngineDataAccess,
                          processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
-    var shouldProgress = false
-    val pniPair =  updateComposite(engineData, processInstance) {
-      shouldProgress = doStartTask(engineData)
-    }
-    // don't shortcircuit as this it invokes finishTask on the instance as well.
-    return when {
-      shouldProgress -> pniPair.finishTask(engineData, null)
-      else -> pniPair
+    return processInstance.updateWithNode(engineData) {
+      builder(this).apply { startTask(engineData) }
     }
   }
 
+  @Deprecated("Use builder")
   override fun finishTask(engineData: MutableProcessEngineDataAccess,
                           processInstance: ProcessInstance,
                           resultPayload: Node?): ProcessInstance.PNIPair<CompositeInstance> {
-    return updateComposite(engineData, processInstance) {
+    @Suppress("DEPRECATION")
+    return updateComposite(engineData) {
       finishTask(engineData, resultPayload)
     }
   }

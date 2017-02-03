@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
@@ -51,13 +49,6 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
   override fun builder() = Builder(this)
-
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                                     processInstance: ProcessInstance,
-                                     predecessor: ProcessNodeInstance<*>,
-                                     entryNo: Int)
-      = processInstance.getNodeInstance(this, entryNo) as SplitInstance?
-        ?: SplitInstance(this, predecessor.getHandle(), processInstance.getHandle(), processInstance.owner, entryNo = entryNo)
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,
                                      processInstanceBuilder: ProcessInstance.Builder,

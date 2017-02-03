@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.toMutableArraySet
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
@@ -134,14 +132,6 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    */
   override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult {
     return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
-  }
-
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
-                                     processInstance: ProcessInstance,
-                                     predecessor: ProcessNodeInstance<*>,
-                                     entryNo: Int): ProcessNodeInstance<*> {
-    return processInstance.getNodeInstance(this, predecessor.entryNo)
-           ?: if(childModel==null) DefaultProcessNodeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo) else CompositeInstance(this, predecessor.getHandle(), processInstance, predecessor.entryNo)
   }
 
   override fun createOrReuseInstance(data: ProcessEngineDataAccess,

@@ -20,7 +20,6 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import java.security.Principal
@@ -31,13 +30,13 @@ abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T
   protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>
 
 
-  fun invalidateCachePM(handle: Handle<out SecureObject<ExecutableProcessModel>>) {
+  fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
     (processModels as? CachingProcessModelMap<T>)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }
   }
 
-  fun invalidateCachePI(handle: Handle<out SecureObject<ProcessInstance>>) {
+  fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>) {
     (processInstances as? CachingHandleMap)?.apply {
       if (handle.valid) invalidateCache(handle) else invalidateCache()
     }

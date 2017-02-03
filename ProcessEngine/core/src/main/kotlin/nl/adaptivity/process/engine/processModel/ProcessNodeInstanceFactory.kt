@@ -49,7 +49,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
     const val FAILURE_CAUSE = "failureCause"
   }
 
-  override fun getHandleCondition(where: Database._Where, handle: Handle<out SecureObject<ProcessNodeInstance<*>>>): Database.WhereClause? {
+  override fun getHandleCondition(where: Database._Where, handle: Handle<SecureObject<ProcessNodeInstance<*>>>): Database.WhereClause? {
     return where.run { tbl_pni.pnihandle eq handle }
   }
 
@@ -127,7 +127,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
   override fun getPrimaryKeyCondition(where: Database._Where,
                              instance: SecureObject<ProcessNodeInstance<*>>): Database.WhereClause? {
-    return getHandleCondition(where, instance.withPermission().getHandle());
+    return getHandleCondition(where, instance.withPermission().getHandle())
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -144,7 +144,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
   }
 
   override fun postStore(connection: DBConnection,
-                         handle: Handle<out SecureObject<ProcessNodeInstance<*>>>,
+                         handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                          oldValue: SecureObject<ProcessNodeInstance<*>>?,
                          newValue: SecureObject<ProcessNodeInstance<*>>) {
     if (oldValue != null) { // update
@@ -192,7 +192,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
 
   override val keyColumn get() = tbl_pni.pnihandle
 
-  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<out SecureObject<ProcessNodeInstance<*>>>) {
+  override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
 
     val connection = transaction.connection
     ProcessEngineDB

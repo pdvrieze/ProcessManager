@@ -23,7 +23,7 @@ import org.w3c.dom.Node
 import java.util.*
 
 /**
- * Created by pdvrieze on 04/01/17.
+ * Shared interface for both root and child models that are executable.
  */
 interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
 

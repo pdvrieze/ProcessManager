@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
@@ -32,7 +31,7 @@ import javax.xml.xpath.*
 
 /**
  * Class encapsulating a condition.
-
+ *
  * @author Paul de Vrieze
  */
 class ExecutableCondition(condition: String) : XmlSerializable, Condition {
@@ -54,10 +53,10 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
   /**
    * Evaluate the condition.
 
-   * @param transaction The transaction to use for reading state
-   * *
+   * @param engineData The transaction to use for reading state
+   *
    * @param instance The instance to use to evaluate against.
-   * *
+   *
    * @return `true` if the condition holds, `false` if not
    */
   fun eval(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult {

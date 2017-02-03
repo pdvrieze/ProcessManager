@@ -39,8 +39,8 @@ class HProcessInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) 
   override val elementName: QName
     get() = ELEMENTNAME
 
-  override fun equals(obj: Any?): Boolean {
-    return obj === this || obj is HProcessInstance && handleValue == obj.handleValue
+  override fun equals(other: Any?): Boolean {
+    return other === this || other is HProcessInstance && handleValue == other.handleValue
   }
 
   override fun hashCode(): Int {

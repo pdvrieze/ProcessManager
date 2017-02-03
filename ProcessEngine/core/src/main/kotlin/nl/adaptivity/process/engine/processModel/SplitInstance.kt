@@ -143,6 +143,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         .filter { it.entryNo == entryNo }
   }
 
+  @Deprecated("Use builder")
   override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<SplitInstance> {
     return update(engineData){ state= NodeInstanceState.Started }.let {
       it.node.updateState(engineData, it.instance)

@@ -23,7 +23,6 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.PNIPair
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
@@ -186,62 +185,14 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     return update(engineData) {
       finishTask(engineData, resultPayload)
     }
-/*
-
-    var committedPredecessorCount = 0
-    var completedPredecessorCount = 0
-    val cancelablePredecessors = mutableListOf<ProcessNodeInstance<*>>()
-    for(predecessorId in node.predecessors) {
-      val predecessor = processInstance.getChild(predecessorId.id, entryNo)?.withPermission()
-      if (predecessor==null) {
-        val splitInstance = precedingClosure(engineData).filterIsInstance(SplitInstance::class.java).lastOrNull()
-        if (splitInstance != null) {
-          if (splitInstance.state.isFinal) {
-            throw ProcessException(
-              "Missing predecessor $predecessorId for join ${node.id}, split ${splitInstance.node.id} is already final")
-          } else {
-            // Finish the split and try again
-            return processInstance.finishTask(engineData, splitInstance, null)
-              .instance.finishTask(engineData, this, resultPayload)
-          }
-        } // else if we don't have a preceding split, it doesn't need to be "finished"
-      } else {
-        if (predecessor.state.isCommitted) {
-          if (! predecessor.state.isFinal) {
-            throw ProcessException("Predecessor ${predecessorId} is committed but not final, cannot finish join without cancelling the predecessor")
-          } else {
-            committedPredecessorCount++
-            if (predecessor.state== NodeInstanceState.Complete) {
-              completedPredecessorCount++
-            }
-          }
-        } else {
-          val predPred = predecessor.predecessors.map { engineData.nodeInstance(it).withPermission() }
-          val splitCandidate = predPred.firstOrNull()
-          cancelablePredecessors.add(predecessor)
-//          if (splitCandidate is SplitInstance) {
-//          } else {
-//            throw ProcessException("Predecessor $predecessorId cannot be cancelled as it has non-split predecessor(s) ${predPred.joinToString { "${it.node.id}:${it.state}" }}")
-//          }
-        }
-      }
-    }
-    if (committedPredecessorCount<node.min) {
-      throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
-    }
-    val processInstance = if(node.isMultiMerge) processInstance else cancelablePredecessors.fold(processInstance) { processInstance, instanceToCancel ->
-      instanceToCancel.cancelAndSkip(engineData, processInstance).instance
-    }
-    return super.finishTask(engineData, processInstance, resultPayload) as PNIPair<JoinInstance>
-*/
   }
 
   /**
    * Update the state of the task, based on the predecessors
-   * @param transaction The transaction to use for the operations.
-   * *
+   * @param engineData The data to base the operation on
+   *
    * @return `true` if the task is complete, `false` if not.
-   * *
+   *
    * @throws SQLException
    */
   @Throws(SQLException::class)
@@ -272,7 +223,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         NodeInstanceState.Cancelled,
         NodeInstanceState.SkippedFail,
         NodeInstanceState.Failed   -> skipped += 1
-        else                                                                 -> Unit // do nothing
+        else                       -> Unit // do nothing
       }
     }
     if (totalPossiblePredecessors - skipped < join.min) {
@@ -295,11 +246,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     return preds.fold(processInstance) { processInstance, pred -> pred.tryCancelTask(engineData, processInstance).instance }
   }
 
-
+  // TODO use builders for this
   @Throws(SQLException::class)
   override fun tickle(engineData: MutableProcessEngineDataAccess,
                       instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<JoinInstance> {
-    val (processInstance, self) = super.tickle(engineData, instance, messageService) as PNIPair<JoinInstance>
+    val (processInstance, self) = super.tickle(engineData, instance, messageService)
     val missingIdentifiers = TreeSet<Identified>(node.predecessors)
     val data = engineData
 
@@ -308,9 +259,9 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                 .remove(data.nodeInstance(it).withPermission().node) }
 
     return self.updateJoin(engineData, processInstance) {
-      val processInstance = engineData.instance(hProcessInstance).withPermission()
+      val updatedProcessInstance = engineData.instance(hProcessInstance).withPermission()
       missingIdentifiers.asSequence()
-            .flatMap { processInstance.getNodeInstances(it) }
+            .flatMap { updatedProcessInstance.getNodeInstances(it) }
             .forEach { predecessors.add(it.getHandle()) }
     }.let { updatedPair ->
       updatedPair.node.updateTaskState(engineData, updatedPair.instance)
