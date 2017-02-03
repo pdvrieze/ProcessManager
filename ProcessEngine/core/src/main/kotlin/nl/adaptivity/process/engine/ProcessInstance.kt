@@ -48,41 +48,6 @@ import javax.xml.transform.dom.DOMResult
 
 class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance> {
 
-  class Updater(private var instance: ProcessInstance) {
-
-    private fun <N: ProcessNodeInstance<*>> N.managedUpdate(engineData: MutableProcessEngineDataAccess, body: ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>.() -> Unit): N {
-      @Suppress("UNCHECKED_CAST")
-      return update(engineData) {
-        val builder: ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> = this
-        builder.body()
-      }.let {
-        instance = it.instance
-        it.node as N
-      }
-    }
-
-    private fun <N: ProcessNodeInstance<*>> pnipair(node: N) : PNIPair<N> {
-      @Suppress("UNCHECKED_CAST")
-      return PNIPair(instance, node)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun <N: ProcessNodeInstance<*>> takeTask(engineData: MutableProcessEngineDataAccess, origNodeInstance: N): PNIPair<N> {
-      val startNext = origNodeInstance.node.takeTask(origNodeInstance)
-
-      val updatedNode = origNodeInstance.managedUpdate(engineData) { state = NodeInstanceState.Taken }
-
-      if (startNext) {
-        val pniPair = updatedNode.startTask(engineData, instance) as PNIPair<N>
-        instance = pniPair.instance
-        return pniPair
-      } else {
-        return pnipair(updatedNode)
-      }
-    }
-
-  }
-
   @Deprecated("Use builder")
   data class PNIPair<out T: ProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T)
 

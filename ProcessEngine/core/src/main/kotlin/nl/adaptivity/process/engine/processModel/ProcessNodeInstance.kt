@@ -116,17 +116,6 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   override fun withPermission(): ProcessNodeInstance<T> = this
 
-  @Deprecated("Use builder")
-  @Throws(SQLException::class)
-  open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<T> {
-    @Suppress("DEPRECATION")
-    return when (state) {
-      NodeInstanceState.FailRetry,
-      Pending -> provideTask(engineData, instance)
-      else                      -> PNIPair(instance, asT)
-    }// ignore
-  }
-
   @Throws(SQLException::class)
   fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
     return results.firstOrNull { name == it.name }
@@ -184,7 +173,19 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     return handle.handleValue
   }
 
+  @Deprecated("Use builder")
   fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
+
+  @Deprecated("Use builder")
+  @Throws(SQLException::class)
+  open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<T> {
+    @Suppress("DEPRECATION")
+    return when (state) {
+      NodeInstanceState.FailRetry,
+      Pending -> provideTask(engineData, instance)
+      else                      -> PNIPair(instance, asT)
+    }// ignore
+  }
 
   @Deprecated("Use builder")
   @Throws(SQLException::class)
@@ -216,6 +217,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }.apply { engineData.commit() }
   }
 
+  @Deprecated("Use builder")
   fun cancelAndSkip(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     return when (state) {
       Pending,
@@ -228,11 +230,13 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
   }
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     return update(engineData) { state = Cancelled }
   }
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun tryCancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     try {
@@ -247,6 +251,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     return "${node.javaClass.simpleName}  (${getHandle()}, ${node.id}[$entryNo] - $state)"
   }
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun failTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<T> {
     return update(engineData) {
@@ -255,6 +260,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
   }
 
+  @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun failTaskCreation(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, cause: Throwable): PNIPair<T> {
     return update(engineData) {

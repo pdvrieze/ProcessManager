@@ -630,7 +630,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
           when (newState) {
             Sent         -> throw IllegalArgumentException("Updating task state to initial state not possible")
             Acknowledged -> return task.update(transaction.writableEngineData) { state = newState }.node.state // Record the state, do nothing else.
-            Taken        -> ProcessInstance.Updater(pi).takeTask(transaction.writableEngineData, task).node.state
+            Taken        -> task.update(transaction.writableEngineData) { takeTask(transaction.writableEngineData) }
             Started      -> task.update(transaction.writableEngineData) { startTask(transaction.writableEngineData) }
             Complete     -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
           // TODO don't just make up a failure cause
