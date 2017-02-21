@@ -36,7 +36,7 @@ sourceSets {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile "org.jetbrains.kotlinx:kotlinx.html.jvm:$kotlinx_html_version"
+    compile "org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version"
     compile project(":darwin:shared")
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")

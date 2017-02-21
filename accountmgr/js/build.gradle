@@ -21,8 +21,8 @@ description = 'Javascript library supporting the accountmanager funcationality.'
 
 dependencies {
 //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-js-library:$kotlin_version"
-    compile "org.jetbrains.kotlinx:kotlinx.html.js:$kotlinx_html_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
     compile project(":darwin:js")
 }
 
@@ -54,7 +54,7 @@ compileKotlin2Js {
     kotlinOptions.sourceMap = true
     kotlinOptions.suppressWarnings = true
     kotlinOptions.verbose = true
-    kotlinOptions.kjsm = false
+//    kotlinOptions.kjsm = false
     kotlinOptions.moduleKind = "umd"
 }
 
