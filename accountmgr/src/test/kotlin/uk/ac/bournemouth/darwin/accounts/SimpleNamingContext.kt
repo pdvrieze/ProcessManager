@@ -69,7 +69,7 @@ class SimpleName(components:Collection<String>): Name {
       val cmp = s.compareTo(otherName.get(i))
       if (cmp!=0) { return cmp }
     }
-    return if (size()<other.size()) -1 else 0; // If they are not different in length then they must be equal
+    return if (size()<other.size()) -1 else 0 // If they are not different in length then they must be equal
   }
 
   override fun getAll(): Enumeration<String>? {
@@ -84,14 +84,14 @@ class SimpleName(components:Collection<String>): Name {
   override fun startsWith(n: Name): Boolean {
     if (size()<n.size()) { return false; }
     components.forEachIndexed { i, s -> if (n.get(i)!=s) return false }
-    return true;
+    return true
   }
 
   override fun endsWith(n: Name): Boolean {
     if (size()<n.size()) { return false; }
     val offset = size()-n.size()
     components.indices.reversed().forEach{ i -> if (n.get(i-offset)!=get(i)) return false }
-    return true;
+    return true
   }
 
   override fun add(comp: String): Name {
@@ -192,11 +192,6 @@ class SimpleNamingContext:Context {
   }
 
   override fun destroySubcontext(name: Name) {
-    val elem = let {
-      val pos = bindings.indexOfFirst { it.name==name.get(0) }
-      if (pos<0) { throw NameNotFoundException("The request") }
-      bindings.get(pos)
-    }
     throw UnsupportedOperationException()
   }
 
@@ -254,15 +249,15 @@ class SimpleNamingContext:Context {
     _bindings.clear()
   }
 
-  override fun lookup(name: Name): Any {
-    return name.asSequence().fold(this) { obj:Any, component ->
+  override fun lookup(name: Name): Any? {
+    return name.asSequence().fold<String, Any?>(this) { obj:Any?, component ->
       if (obj !is Context) throw NotContextException("An intermediate object for ${name} object for name is not a context")
       if (obj is SimpleNamingContext) {
         val resolvedObject = obj._bindings.firstOrNull { it.name == component }?.`object`
         resolvedObject ?: throw NameNotFoundException("No element with name $component (from $name) could be found in the context")
       } else {
         obj.lookup(component)
-      } as Any
+      }
     }
   }
 
