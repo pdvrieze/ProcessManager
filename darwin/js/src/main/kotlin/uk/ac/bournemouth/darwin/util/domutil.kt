@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,6 +16,7 @@
  */
 
 /**
+ * Utility methods for working on the DOM.
  * Created by pdvrieze on 27/03/16.
  */
 
@@ -23,7 +24,6 @@ package uk.ac.bournemouth.darwin.util
 
 import kotlinx.html.TagConsumer
 import org.w3c.dom.*
-import kotlin.coroutines.experimental.buildIterator
 import kotlin.dom.clear
 import kotlinx.html.dom.append as kotlinxAppend
 
@@ -31,19 +31,27 @@ const val BUTTON_DEFAULT: Short=0
 
 fun Element.childElements():Iterable<Element> = object:Iterable<Element>
 {
-  override fun iterator() = buildIterator<Element> {
-    this@childElements.childNodes.forEach { child ->
-      if (child is Element) yield(child)
+  override fun iterator() = object : Iterator<Element> {
+    private var current: Element? = this@childElements.firstElementChild
+
+    override fun hasNext(): Boolean
+    {
+      return current?.nextElementSibling!=null
+    }
+
+    override fun next(): Element
+    {
+      current = current?.nextElementSibling
+      return current ?: throw NoSuchElementException("End of iterator")
     }
   }
 }
 
-inline fun Element.removeChildElementIf(predicate:(Element)-> Boolean) {
-  for(childElement in childElements()) {
-    if(predicate(childElement)) {
-      childElement.remove()
-    }
-  }
+inline fun Element.removeChildElementIf(crossinline predicate: (Element)-> Boolean) {
+  childElements()
+    .asSequence()
+    .filter { predicate(it) }
+    .forEach { it.remove() }
 }
 
 external fun encodeURI(uri: dynamic):String? = definedExternally
@@ -84,15 +92,17 @@ inline fun Node.appendHtml(crossinline block : TagConsumer<HTMLElement>.() -> Un
 val HTMLElement.appendHtml : TagConsumer<HTMLElement>
   get() = ConsumerExt(kotlinxAppend)
 
-class ConsumerExt<T>(val parent:TagConsumer<T>): TagConsumer<T> by parent {
+class ConsumerExt<out T>(val parent:TagConsumer<T>): TagConsumer<T> by parent {
+  @Suppress("NOTHING_TO_INLINE")
   inline operator fun CharSequence.unaryPlus() { parent.onTagContent(this)}
 }
 
-fun Element.visitDescendants(filter:(Node)->Short = {node -> NodeFilter.FILTER_ACCEPT}, visitor: (Node)->Unit) {
+fun Element.visitDescendants(filter:(Node)->Short = { _ -> NodeFilter.FILTER_ACCEPT }, visitor: (Node)->Unit) {
   val walker = ownerDocument!!.createTreeWalker(root=this, whatToShow= NodeFilter.SHOW_ALL, filter=filter)
   while (walker.nextNode()!=null) {
     visitor(walker.currentNode)
   }
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline operator fun <T, C: TagConsumer<T>> C.plus(text:String) = this.onTagContent(text)

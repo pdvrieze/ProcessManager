@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,9 +16,7 @@
 
 package nl.adaptivity.darwin
 
-import kotlin.js.*
 import kotlinx.html.*
-import kotlin.dom.*
 import kotlinx.html.dom.create
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
@@ -32,7 +30,10 @@ import uk.ac.bournemouth.darwin.sharedhtml.*
 import uk.ac.bournemouth.darwin.util.*
 import kotlin.browser.document
 import kotlin.browser.window
-import kotlin.dom.*
+import kotlin.dom.addClass
+import kotlin.dom.clear
+import kotlin.dom.hasClass
+import kotlin.dom.removeClass
 
 object html {
   val context: JSServiceContext = JSServiceContext()
@@ -143,11 +144,8 @@ private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
     window.history.pushState(data = location, title = "location", url = location)
 
     val pageTitleElement = document.getElementById("title")
-    if (pagetitle==null) {
-      pageTitleElement?.textContent = "Darwin"
-    } else {
-      pageTitleElement?.let { it.innerHTML = pagetitle }
-    }
+
+    pageTitleElement?.let { it.innerHTML = pagetitle }
 
     mContentPanel?.let { it.innerHTML = body }
   }
@@ -173,7 +171,7 @@ private fun onLoginResult(request: XMLHttpRequest) {
     val lfpos = text.indexOf('\n', cpos)
     val crpos = text.indexOf('\r', cpos)
     if (lfpos >= 0) {
-      if (crpos>=0 && crpos<lfpos) crpos else lfpos
+      if (crpos in 0..(lfpos - 1)) crpos else lfpos
     } else crpos
   }
   val result: String
@@ -215,7 +213,7 @@ private fun onLoginResult(request: XMLHttpRequest) {
     }
   } else {
     closeDialogs()
-    html.error("Invalid response received from login form (${text}) : ${request.statusText} (${request.status})", null)
+    html.error("Invalid response received from login form ($text) : ${request.statusText} (${request.status})", null)
   }
 }
 
@@ -229,8 +227,8 @@ private fun onLoginDialogConfirm(event: Event) {
 
   event.stopPropagation()
 
-  val username: String? = (form.get("username") as? HTMLInputElement)?.value
-  val password: String? = (form.get("password") as? HTMLInputElement)?.value
+  val username: String? = (form["username"] as? HTMLInputElement)?.value
+  val password: String? = (form["password"] as? HTMLInputElement)?.value
 
   if (username.isNullOrBlank()) {
     /* set error bit*/
@@ -240,7 +238,7 @@ private fun onLoginDialogConfirm(event: Event) {
   }
 
   val request = XMLHttpRequest().apply {
-    open("POST", "${html.context.accountMgrPath}${LOGIN_LOCATION}")
+    open("POST", "${html.context.accountMgrPath}$LOGIN_LOCATION")
     setRequestHeader("Accept", "text/plain")
     onload = { onLoginResult(this) }
     onerror = { onLoginError(this) }
@@ -263,7 +261,7 @@ private fun onLoginDialogConfirm(event: Event) {
 
 private fun dialogCloseHandler(event: Event) = closeDialogs(event)
 
-private fun onLoginOutClicked(event: MouseEvent) {
+private fun onLoginOutClicked(@Suppress("UNUSED_PARAMETER") event: MouseEvent) {
   val username = document.getElementById("username")?.textContent
   if (username.isNullOrEmpty()) {
     loginDialog()
@@ -273,7 +271,7 @@ private fun onLoginOutClicked(event: MouseEvent) {
       open("GET", "${accountsLoc}logout")
       setRequestHeader("Accept", "application/binary")
       onload = { onLoginResult(this) }
-      onerror = { html.error("Error logging out: ${statusText} (${status})") }
+      onerror = { html.error("Error logging out: $statusText ($status)") }
     }
     try {
       request.send()
@@ -356,7 +354,7 @@ private fun hideBanner() = mBanner?.setAttribute("style", "display:none")
  */
 private fun showBanner() = mBanner?.removeAttribute("style")
 
-class JSContextTagConsumer<T>(context: JSServiceContext, myDelegate: TagConsumer<T>) : ContextTagConsumer<T>(html.context, myDelegate) {
+class JSContextTagConsumer<out T>(@Suppress("UNUSED_PARAMETER") context: JSServiceContext, myDelegate: TagConsumer<T>) : ContextTagConsumer<T>(html.context, myDelegate) {
   fun darwinDialog(title: String, id: String? = null, positiveButton:JSButton?=JSButton("Ok","btn_dlg_ok", ::dialogCloseHandler), negativeButton:JSButton?=null, vararg otherButtons:JSButton, bodyContent: ContextTagConsumer<*>.() -> Unit = {}):Node {
     val dialog = document.create.withContext(context).darwinDialog(title, id, positiveButton, negativeButton, *otherButtons, bodyContent = bodyContent)
     val buttons = (listOf(positiveButton, negativeButton).asSequence() + listOf(*otherButtons).asSequence())
@@ -364,10 +362,10 @@ class JSContextTagConsumer<T>(context: JSServiceContext, myDelegate: TagConsumer
           .associateBy { it.id }
     dialog.visitDescendants { descendant ->
       if (descendant is HTMLElement) {
-        descendant.id?.let {
-          buttons[it]
-        }?.let { button ->
-          descendant.onclick = button.handler
+        if (!descendant.id.isNullOrEmpty()) {
+          buttons[descendant.id]?.let { button ->
+            descendant.onclick = button.handler
+          }
         }
       }
     }
@@ -377,18 +375,18 @@ class JSContextTagConsumer<T>(context: JSServiceContext, myDelegate: TagConsumer
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T,C:TagConsumer<out T>> C.withContext(context:JSServiceContext) = JSContextTagConsumer<T>(context, this)
+inline fun <T,C:TagConsumer<T>> C.withContext(context:JSServiceContext) = JSContextTagConsumer(context, this)
 
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
-inline fun <T: Tag> T.withContext(context:JSServiceContext) = (consumer as TagConsumer<out T>).withContext(context)
+inline fun <T: Tag> T.withContext(context:JSServiceContext) = (consumer as TagConsumer<T>).withContext(context)
 
-class JSButton(label:String, id:String, val handler: (Event)->dynamic): SharedButton(label, id) {}
+class JSButton(label:String, id:String, val handler: (Event)->dynamic): SharedButton(label, id)
 
 /**
  * @category ui_elements
  */
 private fun modalDialog(string: String) {
-  val okButton = JSButton("Ok", "btn_modal_ok", {dialogCloseHandler(it)})
+  val okButton = JSButton("Ok", "btn_modal_ok", ::dialogCloseHandler)
   html.appendContent {
     darwinDialog("message", positiveButton = okButton) {
       div {
@@ -424,13 +422,12 @@ private fun dialog(title: String, id: String? = null, content: ContextTagConsume
 }
 
 private fun closeDialogs(event: dynamic = null) {
-  val contentPanel = mContentPanel
-  if (contentPanel != null) {
-    contentPanel.removeChildElementIf { it.hasClass("dialog") }
-  }
+  mContentPanel?.removeChildElementIf { it.hasClass("dialog") }
+
   if (mLoginDialog != null) {
     mLoginDialog = null
   }
+
   if (event!=null) {
     event.preventDefault()
     event.stopPropagation()
@@ -442,15 +439,15 @@ private fun navigateToImpl(locationParam: String?, addHistory: Boolean, doRedire
   var effectiveAddHistory = addHistory
   val newLocation = locationParam?.let { if (it[0] == '#') it.substring(1) else it } ?: "/"
 
-  if (location == null && newLocation != null || location != null && location != newLocation) {
-    if (location != null && location.startsWith("${accountsLoc}myaccount")) {
+  if (location != newLocation) {
+    if (location?.startsWith("${accountsLoc}myaccount")?: false) {
       location = newLocation
       updateLoginPanel()
     } else {
       location = newLocation
     }
 
-    if (location == "/" || location == "" || location == null) {
+    if (location.isNullOrEmpty() || location == "/") {
       hideBanner()
       setInboxPanel()
       location = "/"
@@ -518,7 +515,7 @@ private fun updateMenuTabs() {
 
 private fun updateLinkItem(menuitem: HTMLAnchorElement) {
   var href = menuitem.pathname
-  if (href != null && href.length > 0) {
+  if (! href.isNullOrEmpty()) {
     if (href == "/" && menuitem.hash.length > 1) {
       href = menuitem.hash.substring(1) // skip # character
     }
@@ -538,7 +535,6 @@ private fun updateLinkItem(menuitem: HTMLAnchorElement) {
  * Make the menu elements active and add an onClick Listener.
  */
 private fun convertMenuToJS() {
-  // TODO convert this into a window handler that is a bit smarter.
   for (item in menu.childElements()) {
     if (item is HTMLAnchorElement) {
       item.onclick = { event -> html.onLinkClick(event as MouseEvent) }
@@ -612,7 +608,7 @@ private fun requestRefreshMenu(location: String) {
   val request = XMLHttpRequest().apply {
     open("GET", "/common/menu?location=${encodeURI(location)}")
     onload = { onMenuReceived(this) }
-    onerror = { html.error("Could not update menu: ${statusText} ($status)") }
+    onerror = { html.error("Could not update menu: $statusText ($status)") }
   }
   try {
     request.send()
@@ -627,12 +623,7 @@ private val LOGIN_LOCATION = "login"
 private val INLINEPREFIXES = arrayOf("${accountsLoc}chpasswd", "${accountsLoc}myaccount")
 
 private fun asInlineLocation(location: String): String? {
-  for (prefix in INLINEPREFIXES) {
-    if (location.startsWith(prefix)) {
-      return prefix
-    }
-  }
-  return null
+  return INLINEPREFIXES.firstOrNull { location.startsWith(it) }
 }
 
 private fun log(message: String, throwable: Throwable) {

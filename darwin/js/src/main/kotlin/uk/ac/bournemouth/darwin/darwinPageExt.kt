@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -15,6 +15,7 @@
  */
 
 /**
+ * Extensions for DarwinPage that only apply for JavaScript.
  * Created by pdvrieze on 27/03/16.
  */
 
@@ -69,7 +70,7 @@ class LoginDialog private constructor (val element: HTMLElement) {
     get() = errorMsgElem.textContent
     set(value) {
       errorMsgElem.apply {
-        clear();
+        clear()
         if (value.isNullOrBlank()) {
           hidden=true
         } else {
