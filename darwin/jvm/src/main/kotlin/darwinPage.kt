@@ -63,9 +63,10 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
         styleLink(context.cssRef( "darwin.css"))
         meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
         if (!lightweight) {
-          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlin.js"))
-          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.shared.js"))
-          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.js.js"))
+          script(type= ScriptType.textJavaScript, src=context.jsRef("require.js")) { this.attributes["data"]="js/main"}
+//          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlin.js"))
+//          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.shared.js"))
+//          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.js.js"))
         }
       }
       body() {

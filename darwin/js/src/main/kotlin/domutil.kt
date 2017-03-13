@@ -23,30 +23,41 @@ package uk.ac.bournemouth.darwin.util
 
 import kotlinx.html.TagConsumer
 import org.w3c.dom.*
-import kotlin.dom.childElements
-import kotlin.dom.children
+import kotlin.coroutines.experimental.buildIterator
 import kotlin.dom.clear
-import kotlin.dom.removeFromParent
 import kotlinx.html.dom.append as kotlinxAppend
 
 const val BUTTON_DEFAULT: Short=0
 
-inline fun Element.removeChildElementIf(predicate:(Element)-> Boolean) {
-  for(childElement in childElements()) {
-    if(predicate(childElement)) {
-      childElement.removeFromParent()
+fun Element.childElements():Iterable<Element> = object:Iterable<Element>
+{
+  override fun iterator() = buildIterator<Element> {
+    this@childElements.childNodes.forEach { child ->
+      if (child is Element) yield(child)
     }
   }
 }
 
-@native("encodeURI") fun encodeURI(uri: dynamic):String? = noImpl
+inline fun Element.removeChildElementIf(predicate:(Element)-> Boolean) {
+  for(childElement in childElements()) {
+    if(predicate(childElement)) {
+      childElement.remove()
+    }
+  }
+}
+
+external fun encodeURI(uri: dynamic):String? = definedExternally
 
 inline fun Element.removeChildIf(predicate:(Node)-> Boolean) {
-  for(childNode in children()) {
+  childNodes.forEach { childNode ->
     if(predicate(childNode)) {
       childNode.removeFromParent()
     }
   }
+}
+
+inline fun Node.removeFromParent() {
+  parentElement!!.removeChild(this)
 }
 
 inline fun NodeList.forEach(visitor: (Node)->Unit) {

@@ -133,7 +133,7 @@ idea {
         name="darwinjs"
 /*
 
-        module.iml.withXml {
+        iml.withXml {
             it.asNode().component.content.sourceFolder
                     .find { it.@url.contains('/gen/') }
                     .each { node ->

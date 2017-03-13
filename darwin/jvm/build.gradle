@@ -40,6 +40,7 @@ dependencies {
     compile project(":darwin:shared")
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")
+    javascript "org.webjars:requirejs:${requirejs_version}"
     javascript project(":darwin:js")
 //    javascript project(":accountmgr:js")
 }
@@ -47,12 +48,22 @@ dependencies {
 tasks.war {
     dependsOn configurations.javascript
     configurations.javascript.each { File file ->
-        logger.info("Adding javascript dependency "+file.toString())
+        logger.lifecycle("Adding javascript dependency "+file.toString())
         into("js") {
             from zipTree(file.absolutePath)
             include { fileTreeElement ->
                 def path = fileTreeElement.path
                 path.endsWith(".js")&& path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
+            }
+            eachFile { fileCopyDetails ->
+                def mysrc = fileCopyDetails.sourcePath
+                def i = mysrc.lastIndexOf('/')
+                if (fileCopyDetails.sourcePath.startsWith("META-INF") && i>0) {
+                    def myNewPath = 'js/'+mysrc.substring(i+1)
+                    logger.lifecycle("Renaming ${fileCopyDetails.sourcePath} to $myNewPath")
+                    fileCopyDetails.path = myNewPath
+                }
+
             }
             exclude { f ->
                 def r = f.name.endsWith(".class") || (f.name.endsWith(".kjsm") && f.path.startsWith("kotlinx.html.shared"))

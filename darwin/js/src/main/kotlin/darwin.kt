@@ -16,7 +16,9 @@
 
 package nl.adaptivity.darwin
 
+import kotlin.js.*
 import kotlinx.html.*
+import kotlin.dom.*
 import kotlinx.html.dom.create
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
@@ -81,7 +83,7 @@ object html {
     contentPanel.appendHtml(block)
   }
 
-  val contentPanel:HTMLElement? get() = mContentPanel
+  val contentPanel: HTMLElement? get() = mContentPanel
 
 }
 
@@ -92,7 +94,7 @@ private fun onMenuReceived(request: XMLHttpRequest) {
     val m = menu
     m.clear()
     var first = true
-    for (child in holder.firstElementChild?.childElements()?: emptyList()) {
+    for (child in holder.firstElementChild?.childElements()?: emptyList<Element>()) {
       if (child !is Text) {
         if (first) first = false else m.appendChild(document.createTextNode("\n"))
         m.appendChild(child)
@@ -310,10 +312,6 @@ private var mContentPanel: HTMLElement? = null
 
 internal var dialogTitle: HTMLSpanElement? = null
 
-private var mLoginoutRegistration: Closeable? = null
-
-private var mUsernameRegistration: Closeable? = null
-
 private var mBanner: Element? = null
 
 fun main(args: Array<String>) {
@@ -322,7 +320,7 @@ fun main(args: Array<String>) {
   (document.getElementById("xloginform") as? HTMLFormElement)?.let { form ->
     mUsernameFromManager = (form["username"] as? HTMLInputElement)?.value
     mPasswordFromManager = (form["password"] as? HTMLInputElement)?.value
-    form.removeFromParent() // No longer needed
+    form.remove() // No longer needed
   }
 
   mContentPanel = document.getElementById("content") as HTMLElement
@@ -541,9 +539,9 @@ private fun updateLinkItem(menuitem: HTMLAnchorElement) {
  */
 private fun convertMenuToJS() {
   // TODO convert this into a window handler that is a bit smarter.
-  for (item in menu.elements()) {
+  for (item in menu.childElements()) {
     if (item is HTMLAnchorElement) {
-      item.onClick(true, { event -> html.onLinkClick(event) })
+      item.onclick = { event -> html.onLinkClick(event as MouseEvent) }
       updateLinkItem(item)
     }
   }
@@ -597,21 +595,12 @@ private fun setAboutPanel() {
 
 
 private fun registerLoginPanel() {
-  mLoginoutRegistration = document.getElementById("logout")?.let { it.removeAttribute("href"); it.onClick { ev -> onLoginOutClicked(ev) } }
-  mUsernameRegistration = document.getElementById("username")?.let { /*it.removeAttribute("href");*/ it.onClick { ev -> html.onLinkClick(ev) } }
-}
-
-private fun unregisterLoginPanel() {
-  mLoginoutRegistration?.close()
-  mLoginoutRegistration = null
-  mUsernameRegistration?.close()
-  mUsernameRegistration = null
+  (document.getElementById("logout") as? HTMLElement) ?.let { it.removeAttribute("href"); it.onclick = { ev -> onLoginOutClicked(ev as MouseEvent) } }
+  (document.getElementById("username") as? HTMLElement)?.let { /*it.removeAttribute("href");*/ it.onclick = { ev -> html.onLinkClick(ev as MouseEvent) } }
 }
 
 
 private fun updateLoginPanel() {
-  unregisterLoginPanel()
-
   val loginPanel = document.getElementById("login") as HTMLDivElement
   loginPanel.clear()
   loginPanel.appendHtml.loginPanelContent(html.context, mLoggedInUser)
