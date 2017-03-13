@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -54,7 +54,7 @@ class XMLBody(initialAttributes: Map<String, String>, override val consumer: Tag
 
 open class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate: TagConsumer<out T>): TagConsumer<T> {
   @Suppress("NOTHING_TO_INLINE")
-  inline final operator fun CharSequence.unaryPlus() = onTagContent(this)
+  inline operator fun CharSequence.unaryPlus() = onTagContent(this)
 
   override fun finalize() = myDelegate.finalize()
 
@@ -76,7 +76,7 @@ open class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate:
 open class SharedButton(val label:String, val id:String)
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T,C:TagConsumer<out T>> C.withContext(context:ServiceContext) = ContextTagConsumer<T>(context, this)
+inline fun <T,C:TagConsumer<out T>> C.withContext(context:ServiceContext) = ContextTagConsumer(context, this)
 
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
 inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsumer<out T>).withContext(context)
@@ -174,8 +174,8 @@ interface ServiceContext {
   val cssPath:String
   val jsPath:String
 
-  fun cssRef(filename: String): String = "${cssPath}${filename}"
-  fun jsRef(filename: String): String = "${jsPath}${filename}"
+  fun cssRef(filename: String): String = "$cssPath$filename"
+  fun jsRef(filename: String): String = "$jsPath$filename"
 }
 
 

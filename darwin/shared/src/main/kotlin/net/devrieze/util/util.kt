@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -36,14 +36,14 @@ interface __Override__<T> {
   infix fun by(alternative:T):T
 }
 
-class __Override__T<T>():__Override__<T> {
-  inline final override infix fun by(alternative: T):T {
+class __Override__T<T> : __Override__<T> {
+  override infix fun by(alternative: T):T {
     return alternative
   }
 }
 
 class __Override__F<T>(val value:T):__Override__<T> {
-  inline final override infix fun by(alternative: T):T {
+  override infix fun by(alternative: T):T {
     return value
   }
 }
