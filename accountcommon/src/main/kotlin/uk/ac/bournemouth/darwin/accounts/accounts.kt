@@ -54,7 +54,8 @@ const val DBRESOURCE = "jdbc/webauth"
 const val CIPHERSUITE = "RSA/ECB/PKCS1Padding"
 const val KEY_ALGORITHM = "RSA"
 
-private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).apply { nextBytes(this) }
+@Suppress("NOTHING_TO_INLINE")
+private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).also { buffer -> nextBytes(buffer) }
 
 
 open class AccountDb(private val connection:DBConnection) {
@@ -66,7 +67,7 @@ open class AccountDb(private val connection:DBConnection) {
     val random: SecureRandom by lazy { SecureRandom() }
 
     @JvmStatic
-    val logger = Logger.getLogger(AccountDb::class.java.name)
+    val logger = Logger.getLogger(AccountDb::class.java.name)!!
 
   }
 
@@ -86,7 +87,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   private fun generateAuthToken() = buildString {
     Base64.encoder().encode(random.nextBytes(32)).asSequence()
-          .map { b -> b.toChar() }
+          .map(Byte::toChar)
           .forEach { c ->  when (c) {
       '+' -> append('-')
       '/' -> append('_')
@@ -113,7 +114,7 @@ open class AccountDb(private val connection:DBConnection) {
 
       var idx =1
       while ( WebAuthDB.SELECT(p.appname).WHERE{whereClauseFactory (result) }.hasRows(connection)) {
-        result="${appname} ${idx}"
+        result="$appname $idx"
         idx++
       }
 
@@ -200,24 +201,24 @@ open class AccountDb(private val connection:DBConnection) {
   fun lastReset(user:String): Timestamp? = getSingle(u.resettime, user)
 
   fun keyInfo(user:String): List<KeyInfo> {
-    logger.fine("Getting key information for ${user}")
+    logger.fine("Getting key information for $user")
     return WebAuthDB
           .SELECT(p.keyid, p.appname, p.lastUse)
           .WHERE { p.user eq user }
           .getList(connection) {
             keyId, appName, lastUse ->
-            logger.fine("Found key information (${keyId}, ${appName}, ${lastUse})")
+            logger.fine("Found key information ($keyId, $appName, $lastUse)")
             KeyInfo(keyId ?: throw NullPointerException("Keyid should never be null"), appName,
                     lastUse?.let { if(it>10000) Date(it*1000) else null })
           }
   }
 
-  private fun getSalt(username: String): String {
+  private fun getSalt(@Suppress("UNUSED_PARAMETER") username: String): String {
     return ""
   }
 
-  private fun createPasswordHash(salt: String, password: String): String {
-    return "{SHA}${Base64.encoder().encodeToString(sha1(password.toByteArray()))}";
+  private fun createPasswordHash(@Suppress("UNUSED_PARAMETER") salt: String, password: String): String {
+    return "{SHA}${Base64.encoder().encodeToString(sha1(password.toByteArray()))}"
   }
 
   fun verifyCredentials(username: String, password: String): Boolean {
