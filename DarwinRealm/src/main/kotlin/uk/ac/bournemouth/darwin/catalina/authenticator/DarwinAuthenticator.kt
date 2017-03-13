@@ -147,30 +147,26 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             if (!realm.hasUserDataPermission(request, response, constraints)) {
                 when (authresult.value) {
                     AuthResult.AUTHENTICATED -> response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
-                    AuthResult.ERROR -> response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Authentication error")
+                    AuthResult.ERROR -> response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Authentication error")
                     else -> requestLogin(request, response)
                 }
                 return
             }
 
-            var authRequired: Boolean
-            if (constraints == null) {
-                authRequired = false
-            } else {
-                authRequired = true
-                for(constraint in constraints) {
-                    if (!constraint.authConstraint) {
+            var authRequired = true
+            for(constraint in constraints) {
+                if (!constraint.authConstraint) {
+                    authRequired = false
+                    break
+                } else if (!constraint.allRoles) {
+                    val roles = constraint.findAuthRoles()!!
+                    if (roles.isEmpty()) {
                         authRequired = false
-                        break;
-                    } else if (!constraint.allRoles) {
-                        val roles = constraint.findAuthRoles()
-                        if (roles == null || roles.size == 0) {
-                            authRequired = false
-                            break;
-                        }
+                        break
                     }
                 }
             }
+
 
             if (authRequired) {
                 when (authresult.value) {
@@ -229,8 +225,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         }
 
         if (log.isLoggable(Level.FINER)) {
-            val name = if (principal == null) "none" else principal.name
-            log.finer("Authenticated '$name' with type '${AUTHTYPE}'")
+          log.finer("Authenticated '${principal.name}' with type '${AUTHTYPE}'")
         }
 
         // Set the user into the request
@@ -289,7 +284,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         }
 
         private fun createAuthCookie(authtoken: String, secureCookie:Boolean) = Cookie(DARWINCOOKIENAME, authtoken).apply {
-            maxAge = MAXTOKENLIFETIME;
+            maxAge = MAXTOKENLIFETIME
             path="/"
             secure = secureCookie
             version=1
