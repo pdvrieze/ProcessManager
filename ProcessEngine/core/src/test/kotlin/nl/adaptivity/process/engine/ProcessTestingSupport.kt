@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.engine.spek.ProcessNodeActions
 import nl.adaptivity.process.engine.spek.SafeNodeActions
+import nl.adaptivity.process.engine.spek.toDebugString
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -370,7 +371,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
       val instance = transaction.readableEngineData.instance(_instance.getHandle()).withPermission()
       val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
       if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
-        "State of node ${nodeInstance} not complete but ${nodeInstance.state}")
+        "At trace ${traceElement} -  State of node ${nodeInstance} not complete but ${nodeInstance.state} ${instance.toDebugString(transaction)}")
     }
   }
 }

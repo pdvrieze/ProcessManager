@@ -3,6 +3,11 @@
     <module name="ProcessEngine-core" />
     <option name="target" value="spec" />
     <option name="spec" value="nl.adaptivity.process.engine.TestWorkflowPatterns2" />
+    <option name="vm-parameters" value="" />
+    <option name="program-parameters" value="" />
+    <option name="working-directory" value="" />
+    <option name="alternative-jre-path" value="" />
+    <envs />
     <method>
       <option name="Make" enabled="false" />
       <option name="Gradle.BeforeRunTask" enabled="true" tasks=":ProcessEngine:core:testClasses :xmlutil:jvm:assemble" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />

@@ -23,6 +23,7 @@ import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -135,6 +136,14 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     fun getDirectSuccessorsFor(predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Sequence<IProcessNodeInstance> {
       return allChildren { predecessor in it.predecessors }
+    }
+
+    fun updateSplits(engineData: MutableProcessEngineDataAccess) {
+      for(split in allChildren { !it.state.isFinal && it.node is Split<*, *> } ) {
+        updateChild(split) {
+          (this as SplitInstance.Builder).updateState(engineData)
+        }
+      }
     }
 
     fun  startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
@@ -698,11 +707,18 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     if (node.state === NodeInstanceState.Complete) {
       throw IllegalStateException("Task was already complete")
     }
+
+    return updateWithNode(engineData) {
+      node.builder(this).apply { finishTask(engineData, resultPayload) }
+    } as PNIPair<N>
+/*
+
     // Make sure the finish is recorded.
     @Suppress("DEPRECATION", "UNCHECKED_CAST")
     val pniPair = node.finishTask(engineData, this, resultPayload).apply { engineData.commit() } as PNIPair<N>
 
     return pniPair.instance.handleFinishedState(engineData, pniPair.node)
+*/
   }
 
   fun <N: ProcessNodeInstance<*>> skipTask(engineData: MutableProcessEngineDataAccess, node: N): PNIPair<N> {

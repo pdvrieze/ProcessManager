@@ -333,6 +333,23 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
   }
 
+  @Throws(SQLException::class, XmlException::class)
+  fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
+    val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
+
+    val body:CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
+      try {
+        val xmlReader = XMLFragmentStreamReader.from(message.messageBody)
+        instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)
+      } catch (e: XmlException) {
+        DefaultProcessNodeInstance.logger.log(Level.WARNING, "Error processing body", e)
+        throw e
+      }
+    }
+
+    return builder.toXmlInstance(body)
+  }
+
   protected inline fun <R> tryCreate(engineData: MutableProcessEngineDataAccess,
                                      processInstance: ProcessInstance,
                                      body: () -> R): R =
@@ -474,9 +491,14 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
 
     final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+      if (state.isFinal) {
+        throw ProcessException("instance ${node.id}:${handle()}(${state}) cannot be finished as it is already in a final state.")
+      }
       doFinishTask(engineData, resultPayload)
       softUpdateState(Complete)
       store(engineData)
+      engineData.commit()
+      processInstanceBuilder.updateSplits(engineData)
       processInstanceBuilder.startSuccessors(engineData, this)
     }
 

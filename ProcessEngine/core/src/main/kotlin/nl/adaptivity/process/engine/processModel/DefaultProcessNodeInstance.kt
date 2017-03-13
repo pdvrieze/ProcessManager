@@ -85,23 +85,6 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     return ExtBuilderImpl(this, processInstanceBuilder)
   }
 
-  @Throws(SQLException::class, XmlException::class)
-  fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
-    val builder = ExtBuilderImpl(this, engineData.instance(hProcessInstance).withPermission().builder())
-
-    val body:CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
-      try {
-        val xmlReader = XMLFragmentStreamReader.from(message.messageBody)
-        instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)
-      } catch (e: XmlException) {
-        logger.log(Level.WARNING, "Error processing body", e)
-        throw e
-      }
-    }
-
-    return builder.toXmlInstance(body)
-  }
-
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other?.javaClass != javaClass) return false
