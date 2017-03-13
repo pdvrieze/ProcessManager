@@ -73,8 +73,8 @@
   	  	}
   	  }
   	  $stmt->close();
-  	  return False;
-  	}
+    }
+    return False;
   }
 
   /**
@@ -148,7 +148,7 @@
         handleError("Error updating password");
       }
     }
-
+    return FALSE;
   }
 
 ?>
