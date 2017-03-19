@@ -28,31 +28,14 @@ dependencies {
 
 def outDir = "${buildDir}/kotlin2js/main/"
 
-
-jar {
-    from sourceSets.main.allSource
-    include "**/*.kt"
-
-    from outDir
-    include "**/*"
-
-    manifest {
-        attributes(
-                "Specification-Title": "Kotlin JavaScript Lib",
-                "Kotlin-JS-Module-Name": "accountmgrjs"
-        )
-    }
-}
-
 jar{
-    dependsOn(compileKotlin2Js)
     baseName='accountmgrjs'
 }
 
 compileKotlin2Js {
     kotlinOptions.outputFile = outDir + "accountmgr.js"
     kotlinOptions.sourceMap = true
-    kotlinOptions.suppressWarnings = true
+    kotlinOptions.suppressWarnings = false
     kotlinOptions.verbose = true
 //    kotlinOptions.kjsm = false
     kotlinOptions.moduleKind = "umd"

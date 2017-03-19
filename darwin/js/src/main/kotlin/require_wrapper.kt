@@ -14,8 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-require.config({
-    baseUrl:"js"
-});
+/**
+ * A wrapper for requirejs. Based upon version 2.3.2
+ */
 
-requirejs(['darwin'], function (darwin){ })
+external fun requirejs(deps:Array<String>, callback:(Any)->Unit, errback:dynamic, optional: dynamic):dynamic

@@ -45,28 +45,6 @@ sourceSets {
     }
 }
 
-
-
-
-jar {
-    from sourceSets.main.allSource
-    include "**/*.kt"
-
-    destinationDir = new File(buildDir, "artifacts")
-
-    from outDir
-    include "**/*"
-
-    manifest {
-        attributes(
-                "Specification-Title": "Kotlin JavaScript Lib",
-                "Kotlin-JS-Module-Name": "darwinjs"
-        )
-    }
-}
-
-jar.dependsOn(compileKotlin2Js)
-
 boolean symlinksSupported() {
     return false
 
@@ -115,11 +93,15 @@ compileKotlin2Js {
     dependsOn tasks.copyShared
     kotlinOptions.outputFile = outDir + "darwin.js"
     kotlinOptions.sourceMap = true
-    kotlinOptions.suppressWarnings = true
+    kotlinOptions.suppressWarnings = false
     kotlinOptions.verbose = true
     kotlinOptions.metaInfo = true
     kotlinOptions.moduleKind = "umd"
     kotlinOptions.main = "call"
+}
+
+jar{
+    baseName='darwinjs'
 }
 
 clean.doLast {

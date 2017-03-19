@@ -41,8 +41,10 @@ class JSServiceContext: ServiceContext {
     get() = "/assets/"
   override val cssPath: String
     get() = "/css/"
-  override val jsPath: String
+  override val jsGlobalPath: String
     get() = "/js/"
+  override val jsLocalPath: String
+    get() = "js/"
 }
 
 class LoginDialog private constructor (val element: HTMLElement) {

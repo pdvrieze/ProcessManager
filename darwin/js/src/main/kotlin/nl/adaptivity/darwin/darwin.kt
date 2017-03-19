@@ -133,6 +133,13 @@ private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
             windowtitle = childElement.getAttribute("windowtitle") ?: childElement.textContent
             pagetitle = childElement.innerHTML
           }
+          "script" -> {
+            childElement.attributes["src"]?.let { src ->
+            val scriptNode = document.createElementNS("http://www.w3.org/1999/xhtml", "script")
+              scriptNode.setAttribute("src", src.value)
+              document.head?.appendChild(scriptNode)
+            }
+          }
           "body"  -> if (body.size==0) {
             body = childElement.innerHTML
           } else html.error("unexpected child in dynamic content: ${childElement.nodeName}")

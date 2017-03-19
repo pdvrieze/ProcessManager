@@ -29,6 +29,8 @@ fun HttpServletResponse.contentType(type: String) {
   addHeader("Content-Type", type)
 }
 
+val HttpServletRequest.isNoChromeRequested:Boolean
+  get() = getHeader("X-Darwin")?.contains("nochrome")?: false
 
 /**
  * Method that encapsulates the darwin web template.
@@ -44,11 +46,12 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
   val result = writer
   val appRoot = "${context.accountMgrPath}/"
 
-  if (request.getHeader("X-Darwin")?.contains("chrome") ?: false) {
+  if (request.isNoChromeRequested) {
     contentType("text/xml")
     result.append("<?xml version=\"1.0\" ?>\n")
     result.appendXML().partialHTML {
       title(windowTitle, pageTitle)
+      script(context.jsLocalRef("main.js"))
       body() {
         withContext(context).bodyContent()
       }
@@ -62,12 +65,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
         title(windowTitle)
         styleLink(context.cssRef( "darwin.css"))
         meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
-        if (!lightweight) {
-          script(type= ScriptType.textJavaScript, src=context.jsRef("require.js")) { this.attributes["data"]="js/main"}
-//          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlin.js"))
-//          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.shared.js"))
-//          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.js.js"))
-        }
+        script(type= ScriptType.textJavaScript, src=context.jsGlobalRef("require.js")) { this.attributes["data-main"]=context.jsLocalRef("main.js") }
       }
       body() {
         h1() {
@@ -104,7 +102,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
           span { id = "divider" }
           +"Darwin is a Bournemouth University Project"
         }
-        script(type= ScriptType.textJavaScript, src="/js/darwin.js")
+//        script(type= ScriptType.textJavaScript, src="/js/darwin.js")
       }
     }
   }
@@ -171,6 +169,12 @@ class PartialHTML(initialAttributes: Map<String, String>, override val consumer:
     attributes.put("windowtitle", windowTitle)
     +(pageTitle?:windowTitle)
   })
+  fun script(src:String) {
+    SCRIPT(emptyMap, consumer).visit {
+      this.type = ScriptType.textJavaScript
+      this.src = src
+    }
+  }
 
   fun body(block: XMLBody.() -> Unit = {}): Unit = XMLBody(emptyMap, consumer).visit(block)
 }
@@ -209,6 +213,8 @@ class RequestServiceContext(private val request: HttpServletRequest) : ServiceCo
     get() = "/assets/"
   override val cssPath: String
     get() = "/css/"
-  override val jsPath: String
+  override val jsGlobalPath: String
     get() = "/js/"
+  override val jsLocalPath: String
+    get() = "${request.contextPath}/js/"
 }

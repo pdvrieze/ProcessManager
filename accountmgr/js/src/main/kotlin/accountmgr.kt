@@ -17,22 +17,22 @@
 /**
  * Created by pdvrieze on 26/03/16.
  */
+import nl.adaptivity.darwin.html.appendContent
+import nl.adaptivity.darwin.html.context
 import org.w3c.dom.Element
 import org.w3c.dom.events.MouseEvent
 import org.w3c.xhr.XMLHttpRequest
+import uk.ac.bournemouth.darwin.sharedhtml.shared.setAliasDialog
 import uk.ac.bournemouth.darwin.util.encodeURI
-
-@Suppress("UnsafeCastFromDynamic")
-val html:nl.adaptivity.darwin.html get() = js("darwin.nl.adaptivity.darwin.html")
 
 object accountmgr {
 
   @JsName("setAliasForm")
   fun setAliasForm(oldName: String) {
-    html.appendContent { html.shared.setAliasDialog(this, oldName) }
+    appendContent { setAliasDialog(this, oldName) }
   }
 
-  val accountsLoc = html.context.accountMgrPath
+  val accountsLoc = context.accountMgrPath
 
   /**
    * Forget the key with the given id.
@@ -46,7 +46,7 @@ object accountmgr {
       onload = {
         (event.target as Element).parentElement?.parentElement?.remove()
       }
-      onerror = { html.error("Could forget authorization: ${statusText} ($status)") }
+      onerror = { error("Could forget authorization: ${statusText} ($status)") }
     }
     try {
       request.send()

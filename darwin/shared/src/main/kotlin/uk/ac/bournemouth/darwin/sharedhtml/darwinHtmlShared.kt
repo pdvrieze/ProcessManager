@@ -172,10 +172,12 @@ interface ServiceContext {
   val accountMgrPath:String
   val assetPath:String
   val cssPath:String
-  val jsPath:String
+  val jsGlobalPath:String
+  val jsLocalPath:String
 
   fun cssRef(filename: String): String = "$cssPath$filename"
-  fun jsRef(filename: String): String = "$jsPath$filename"
+  fun jsGlobalRef(filename: String): String = "$jsGlobalPath$filename"
+  fun jsLocalRef(filename: String): String = "$jsLocalPath$filename"
 }
 
 

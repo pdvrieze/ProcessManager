@@ -95,21 +95,27 @@ class AccountController : HttpServlet() {
     }
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
-        when(req.pathInfo) {
-            "/login" -> tryLogin(req, resp)
-            "/logout" -> logout(req, resp)
-            "/challenge" -> challenge(req, resp)
-            "/chpasswd" -> chpasswd(req, resp)
-            "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
-            "/forget" -> forgetKey(req, resp)
-            "/", null, "/myaccount" -> myAccount(req, resp)
-            "/setAliasForm" -> setAliasForm(req, resp)
-            "/resetpasswd" -> resetPassword(req, resp)
-            else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo?:""} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
+        val realPath = if (req.requestURI.startsWith(req.contextPath)) {
+          req.requestURI.substring(req.contextPath.length)
+        } else req.pathInfo
+
+        when(realPath) {
+          "/login" -> tryLogin(req, resp)
+          "/logout" -> logout(req, resp)
+          "/challenge" -> challenge(req, resp)
+          "/chpasswd" -> chpasswd(req, resp)
+          "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
+          "/forget" -> forgetKey(req, resp)
+          "/", null, "/myaccount" -> myAccount(req, resp)
+          "/setAliasForm" -> setAliasForm(req, resp)
+          "/resetpasswd" -> resetPassword(req, resp)
+          "/js/main.js" -> mainJs(req, resp)
+          else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo?:""} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
+
     }
 
-    override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
+  override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
             "/login" -> tryCredentials(req, resp)
             "/challenge" -> challenge(req, resp)
@@ -132,6 +138,22 @@ class AccountController : HttpServlet() {
         }
     }
 
+  private fun mainJs(req: HttpServletRequest, resp: HttpServletResponse)
+  {
+    resp.contentType("text/javascript")
+    resp.writer.use { out ->
+      out.println("""
+        require.config({
+            baseUrl:"/js",
+            paths: {
+                "accountmgr": "${req.contextPath}/js/accountmgr"
+            }
+        });
+
+        requirejs(['accountmgr'], function (accountmgr){ })
+        """.trimIndent())
+    }
+  }
 
 
     private fun myAccount(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -175,7 +197,6 @@ class AccountController : HttpServlet() {
                             }
                         }
                     }
-                    script(type=ScriptType.textJavaScript, src="${context.accountMgrPath}/js/accountmgr.js") {}
 
                 }
 
