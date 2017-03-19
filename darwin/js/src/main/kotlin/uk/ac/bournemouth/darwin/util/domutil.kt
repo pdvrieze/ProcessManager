@@ -36,13 +36,12 @@ fun Element.childElements():Iterable<Element> = object:Iterable<Element>
 
     override fun hasNext(): Boolean
     {
-      return current?.nextElementSibling!=null
+      return current!=null
     }
 
     override fun next(): Element
     {
-      current = current?.nextElementSibling
-      return current ?: throw NoSuchElementException("End of iterator")
+      return current?.also { current = it.nextElementSibling } ?: throw NoSuchElementException("End of iterator")
     }
   }
 }
