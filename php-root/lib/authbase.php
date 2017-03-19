@@ -246,5 +246,3 @@ function getDarwinGroups() {
   return array();
 
 }
-
-?>
