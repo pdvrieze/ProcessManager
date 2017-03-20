@@ -1,0 +1,4 @@
+catalina7/webapps/*
+catalina7/lib/*
+catalina/webapps/*
+catalina/lib/*
