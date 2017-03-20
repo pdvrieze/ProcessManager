@@ -535,7 +535,6 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
       } else {
         localURL = URI.create("http://" + hostname + ":" + port + config.getServletContext().getContextPath());
       }
-      setLocalEndpoint(localURL);
     }
     mMessageService = new MessageService(asEndpoint(localURL));
     //noinspection unchecked
