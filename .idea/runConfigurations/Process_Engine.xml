@@ -129,6 +129,9 @@
         <option name="PROGRAM_PARAMETERS" value="" />
       </SHUTDOWN>
     </ConfigurationWrapper>
-    <method />
+    <method>
+      <option name="Make" enabled="false" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":copyTomcatWars :copyTomcatClasspath" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+    </method>
   </configuration>
 </component>
