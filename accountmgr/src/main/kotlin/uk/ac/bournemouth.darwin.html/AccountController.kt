@@ -317,8 +317,24 @@ class AccountController : HttpServlet() {
 
   private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).let { it.maxAge = MAXTOKENLIFETIME; it.path="/"; it }
 
+  private fun HttpServletRequest.isAuthenticated(resp: HttpServletResponse):Boolean {
+    if (userPrincipal!=null) {
+      return true
+    } else {
+      if (pathInfo!="/login") {
+        if (authenticate(resp)) {
+          if (userPrincipal!=null) {
+            return true
+          }
+        }
+      }
+    }
+    return false
+  }
+
   private inline fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, block: ()->Unit) {
-    if (req.pathInfo!="/login" && (req.userPrincipal!=null || (req.authenticate(resp) && req.userPrincipal!=null))) {
+    if (req.isAuthenticated(resp)) {
+//    if (req.userPrincipal!=null || (req.pathInfo!="/login" && req.authenticate(resp) && req.userPrincipal!=null)) {
       block()
     } else {
       if (req.htmlAccepted) {
@@ -331,7 +347,7 @@ class AccountController : HttpServlet() {
   }
 
   private inline fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, condition: (HttpServletRequest)->Boolean, block: ()->Unit) {
-    if (req.pathInfo!="/login" && (req.userPrincipal!=null || (req.authenticate(resp) && req.userPrincipal!=null)) && condition(req)) {
+    if (req.isAuthenticated(resp) && condition(req)) {
       block()
     } else {
       if (req.htmlAccepted) {
