@@ -39,7 +39,7 @@ class DarwinRealm : RealmBase(), Lifecycle {
     var resourceName:String = DBRESOURCE
     var globalResource:Boolean = true
 
-    private val log = Logger.getLogger(DarwinRealm.javaClass.name)
+    private val log = Logger.getLogger(DarwinRealm::class.java.name)
 
     val dataSource by lazy {
         val context: Context = if (globalResource) server.globalNamingContext else ContextBindings.getClassLoader().lookup("java:comp/env/") as Context
