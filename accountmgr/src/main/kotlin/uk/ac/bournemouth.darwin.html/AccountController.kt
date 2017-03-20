@@ -150,7 +150,11 @@ class AccountController : HttpServlet() {
                     }
                 });
 
-                requirejs(['accountmgr'], function (accountmgr){ })
+                requirejs(['accountmgr'], function (accountmgr){
+                  accountmgr.updateLinks()
+
+                })
+
                 """.trimIndent())
     }
   }
@@ -168,10 +172,18 @@ class AccountController : HttpServlet() {
             p {
               if (alias == null) {
                 val encodedDisplayName = URLEncoder.encode(displayName, "UTF-8")
-                a(href = "${context.accountMgrPath}setAliasForm?$FIELD_ALIAS=$encodedDisplayName") { onClick = "accountmgr.accountmgr.setAliasForm(\"$displayName\")"; +"Set alias" }
+                a(href = "${context.accountMgrPath}setAliasForm?$FIELD_ALIAS=$encodedDisplayName") {
+                  id="accountmgr.setAlias"
+                  attributes["alias"]=displayName!!
+                  +"Set alias"
+                }
               } else {
                 +"Alias: ${alias} "
-                a { onClick = "accountMgr.setAliasForm(\"$alias\")"; +"change" }
+                a(href = "${context.accountMgrPath}setAliasForm?$FIELD_ALIAS=$alias") {
+                  id = "accountmgr.setAlias"
+                  attributes["alias"] = alias
+                  +"change"
+                }
               }
             }
             if (isLocalAccount(user)) p { a(href = "chpasswd") { +"change password" } }
@@ -190,7 +202,10 @@ class AccountController : HttpServlet() {
                       classes+="authkey"
                       td { +(key.appname ?: "<unknown>" )}
                       td { +(key.lastUse?.let { DateFormat.getDateTimeInstance().format(it) }?: "never")}
-                      td { a(href=""/*"${context.accountMgrPath}forget?$FIELD_KEYID=${key.keyId}"*/) { onClick="accountmgr.accountmgr.forget(event, ${key.keyId})"; +"forget"} }
+                      td { a(href="${context.accountMgrPath}forget?$FIELD_KEYID=${key.keyId}", classes = "forget_key_class") {
+                        attributes["keyid"] = key.keyId.toString()
+                        +"forget" }
+                      }
                     }
                   }
                 }

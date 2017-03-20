@@ -129,20 +129,20 @@ private fun ContextTagConsumer<DIV>.dialogButtons(positiveButton: SharedButton?,
     div(classes = "dlgButtons") {
       style = "margin-top: 1em; float: right;"
       if (negativeButton != null && negativeButton.label.isNotEmpty()) {
-        input(type = InputType.button, classes = "dialogcancel") {
+        input(type = InputType.button, classes = "dlgbutton dialogcancel") {
           value = negativeButton.label
           id = negativeButton.id
         }
       }
       for (otherButton in otherButtons) {
-        input(type = InputType.button, classes = "dialogother") {
+        input(type = InputType.button, classes = "dlgbutton dialogother") {
           value = otherButton.label
           id = otherButton.id
         }
       }
       if (positiveButton != null && positiveButton.label.isNotEmpty()) {
 
-        input(type = InputType.submit, classes = "dialogconfirm") {
+        input(type = InputType.submit, classes = "dlgbutton dialogconfirm") {
           value = positiveButton.label
           id = positiveButton.id
         }
@@ -230,7 +230,7 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
 }
 
 fun <T, C:ContextTagConsumer<T>> C.setAliasDialog(oldAlias:String?):T =
-      darwinDialog("Set alias") {
+      darwinDialog("Set alias", negativeButton = SharedButton("Cancel", "btn_alias_cancel")) {
         form(action="${context.accountMgrPath}setAlias") {
           div {
             label { for_= "#alias"; +"Alias" }

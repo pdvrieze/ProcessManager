@@ -125,6 +125,7 @@ private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
     var windowtitle: String? = null
     var pagetitle: String = "Darwin"
     var body: String = ""
+    val scripts = mutableListOf<String>()
     root.childNodes.forEach { childNode ->
       if (childNode is Element) {
         val childElement = childNode
@@ -134,17 +135,18 @@ private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
             pagetitle = childElement.innerHTML
           }
           "script" -> {
-            childElement.attributes["src"]?.let { src ->
-            val scriptNode = document.createElementNS("http://www.w3.org/1999/xhtml", "script")
-              scriptNode.setAttribute("src", src.value)
-              document.head?.appendChild(scriptNode)
-            }
+            childElement.attributes["src"]?.let { scripts.add(it.value) }
           }
           "body"  -> if (body.size==0) {
             body = childElement.innerHTML
           } else html.error("unexpected child in dynamic content: ${childElement.nodeName}")
         }
       }
+    }
+    for (script in scripts) {
+      val scriptNode = document.createElementNS("http://www.w3.org/1999/xhtml", "script")
+      scriptNode.setAttribute("src", script)
+      document.head?.appendChild(scriptNode)
     }
 
     windowtitle?.let { document.title = it }
@@ -421,11 +423,29 @@ private fun updateDialogTitle(string: String) {
   dialogTitle?.textContent = string
 }
 
+private typealias ConfirmAction = (HTMLFormElement)->Unit
 /**
  * @category ui_elements
  */
-private fun dialog(title: String, id: String? = null, content: ContextTagConsumer<*>.() -> Unit) {
-  html.appendContent { darwinDialog(title = title, id = id, bodyContent = content) }
+private fun dialog(title: String, id: String? = null, confirmAction: ConfirmAction? =null, content: ContextTagConsumer<*>.() -> Unit) {
+  val dialog = html.appendContent { darwinDialog(title = title, id = id, bodyContent = content) } as HTMLElement
+  registerDialogButtons(dialog, confirmAction)
+}
+
+private fun registerDialogButtons(dialog: HTMLElement, confirmAction: ConfirmAction? =null) {
+  dialog.getElementsByClassName("dlgbutton").foreach { e ->
+    (e as HTMLElement).onclick = { event ->
+      val target = event.target as HTMLElement
+      if (confirmAction!=null && target.classList.contains("dialogconfirm")) {
+        (target as? HTMLInputElement)?.form?.let { form ->
+          confirmAction(form)
+        }
+      }
+      closeDialogs(event)
+      Unit
+    }
+
+  }
 }
 
 private fun closeDialogs(event: dynamic = null) {

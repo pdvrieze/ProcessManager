@@ -20,39 +20,63 @@
 import nl.adaptivity.darwin.html.appendContent
 import nl.adaptivity.darwin.html.context
 import org.w3c.dom.Element
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
+import org.w3c.dom.get
 import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.sharedhtml.shared.setAliasDialog
 import uk.ac.bournemouth.darwin.util.encodeURI
+import uk.ac.bournemouth.darwin.util.foreach
+import kotlin.browser.document
 
-object accountmgr {
-
-  @JsName("setAliasForm")
-  fun setAliasForm(oldName: String) {
-    appendContent { setAliasDialog(this, oldName) }
+fun updateLinks() {
+  (document.getElementById("accountmgr.setAlias") as HTMLElement).onclick = ::displaySetAliasFormClicked
+  document.getElementsByClassName("forget_key_class").foreach { e ->
+    (e as HTMLElement).onclick = ::forgetClicked
   }
+}
 
-  val accountsLoc = context.accountMgrPath
+@JsName("displaySetAliasFormClicked")
+fun displaySetAliasFormClicked(event: Event) {
+  event.preventDefault()
+  event.stopPropagation()
+  val aliasValue = (event.target as HTMLElement).attributes["alias"]?.value ?: ""
+  displaySetAliasForm(aliasValue)
+}
 
-  /**
-   * Forget the key with the given id.
-   */
-  @JsName("forget")
-  fun forget(event: MouseEvent, keyId: Int) {
+
+fun displaySetAliasForm(oldName: String) {
+  appendContent { setAliasDialog(this, oldName) }
+}
+
+val accountsLoc = context.accountMgrPath
+
+/**
+ * Forget the key with the given id.
+ */
+@JsName("forgetClicked")
+fun forgetClicked(event: Event) {
+  (event.target as HTMLElement).attributes["keyid"]?.value?.toIntOrNull()?.let { keyid ->
     event.preventDefault()
     event.stopPropagation()
-    val request = XMLHttpRequest().apply {
-      open("GET", "${accountsLoc}/forget?keyid=${encodeURI(keyId.toString())}")
-      onload = {
-        (event.target as Element).parentElement?.parentElement?.remove()
-      }
-      onerror = { error("Could forget authorization: ${statusText} ($status)") }
-    }
-    try {
-      request.send()
-    } catch (e: Exception) {
-      console.warn("Could not update menu", e)
-    }
-
+    forget(event as MouseEvent, keyid)
   }
+
+}
+
+fun forget(event: MouseEvent, keyId: Int) {
+  val request = XMLHttpRequest().apply {
+    open("GET", "${accountsLoc}/forget?keyid=${encodeURI(keyId.toString())}")
+    onload = {
+      (event.target as Element).parentElement?.parentElement?.remove()
+    }
+    onerror = { error("Could forget authorization: ${statusText} ($status)") }
+  }
+  try {
+    request.send()
+  } catch (e: Exception) {
+    console.warn("Could not update menu", e)
+  }
+
 }

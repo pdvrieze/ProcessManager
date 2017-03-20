@@ -46,6 +46,14 @@ fun Element.childElements():Iterable<Element> = object:Iterable<Element>
   }
 }
 
+inline fun HTMLCollection.foreach(body:(Element?)->Unit) {
+  length.let { l ->
+    for(i in 0 until l) {
+      body(this[i])
+    }
+  }
+}
+
 inline fun Element.removeChildElementIf(crossinline predicate: (Element)-> Boolean) {
   childElements()
     .asSequence()
