@@ -44,12 +44,16 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     val owner = pm.owner.nullableValue(columns, values)?.let(::SimplePrincipal)
     val handle = pm.pmhandle.value(columns, values)
     return pm.model.nullableValue(columns, values)
-          ?.let { ExecutableProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it)))}
+          ?.let {
+            ExecutableProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it))).also {
+              it.handle = handle.handleValue
+            }
+          }
        ?: ExecutableProcessModel.Builder().apply {
-      owner?.let { this.owner = it }
-      this.owner = owner ?: SecurityProvider.SYSTEMPRINCIPAL
-      this.handle = handle.handleValue
-    }
+            owner?.let { this.owner = it }
+            this.owner = owner ?: SecurityProvider.SYSTEMPRINCIPAL
+            this.handle = handle.handleValue
+          }
   }
 
   override fun postCreate(transaction: ProcessDBTransaction, builder: ExecutableProcessModel.Builder): ExecutableProcessModel {
