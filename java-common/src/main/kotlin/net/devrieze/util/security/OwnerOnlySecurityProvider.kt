@@ -36,7 +36,7 @@ class OwnerOnlySecurityProvider(val adminRoles:Set<String>) : BaseSecurityProvid
       return PermissionResult.DENIED
     }
 
-    if (subject == owner) { return PermissionResult.GRANTED }
+    if (subject.name == owner.name) { return PermissionResult.GRANTED }
     return PermissionResult.DENIED
   }
 
