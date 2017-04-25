@@ -25,7 +25,7 @@ import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.custommonkey.xmlunit.*;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
@@ -61,7 +61,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static nl.adaptivity.xml.SimpleNamespaceContext.Companion;
-import static nl.adaptivity.xml.XmlStreaming.EventType.*;
+import static nl.adaptivity.xml.EventType.*;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -187,7 +187,7 @@ public class TestProcessData {
     final CharArrayWriter caw = new CharArrayWriter();
     final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
-    final ProcessData data = new ProcessData("foo", new CompactFragment("Hello"));
+    final ProcessData data = new ProcessData("foo", XmlStreamingKt.CompactFragment("Hello"));
     data.serialize(xsw);
     xsw.flush();
     Assert.assertEquals(caw.toString(), "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>");
@@ -198,7 +198,7 @@ public class TestProcessData {
     final CharArrayWriter caw = new CharArrayWriter();
     final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
-    final ProcessData data = new ProcessData("foo", new CompactFragment("<bar/>"));
+    final ProcessData data = new ProcessData("foo", XmlStreamingKt.CompactFragment("<bar/>"));
     data.serialize(xsw);
     xsw.flush();
     assertEquals(caw.toString(), "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>");
@@ -209,7 +209,7 @@ public class TestProcessData {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
     final XmlProcessModel pm         = getProcessModel("testModel2.xml");
     XmlActivity            ac2        = (XmlActivity) pm.getNode("ac2");
-    String                 serialized = XmlUtil.toString(XmlMessage.get(ac2.getMessage()));
+    String                 serialized = XmlSerializableExt.toString(XmlMessage.get(ac2.getMessage()));
     XmlMessage             msg2       = XmlStreaming.deSerialize(new StringReader(serialized), XmlMessage.class);
     assertEquals(msg2.getMessageBody().getContentString(), ac2.getMessage().getMessageBody().getContentString());
     assertEquals(msg2, ac2.getMessage());
@@ -315,7 +315,7 @@ public class TestProcessData {
     content.append(" serviceLocalName=\"foobar\"");
     content.append(" serviceNS=\"http://foo.bar\"");
     content.append(" />");
-    return new CompactFragment(namespaces, content.toString().toCharArray());
+    return XmlStreamingKt.CompactFragment(namespaces, content.toString().toCharArray());
 
   }
 
@@ -325,7 +325,7 @@ public class TestProcessData {
     XmlReader in = XmlStreaming.newReader(new StringReader(testDataInner));
     in.next(); in.require(EventType.START_ELEMENT, "", "b");
     in.next(); in.require(EventType.START_ELEMENT, "urn:foo", "a");
-    CompactFragment fragment = XmlReaderUtil.siblingsToFragment(in);
+    CompactFragment fragment = XmlReaderExt.siblingsToFragment(in);
     in.require(EventType.END_ELEMENT, "", "b");
     in.next(); in.require(EventType.END_DOCUMENT, null, null);
 
@@ -342,10 +342,10 @@ public class TestProcessData {
     final String INPUT = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
                          "  <jbi:element value=\"endpoint\"/>\n" +
                          "</umh:postTask>";
-    final CompactFragment cf = new CompactFragment(new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)), INPUT.toCharArray());
+    final CompactFragment cf = XmlStreamingKt.CompactFragment(new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)), INPUT.toCharArray());
     final CharArrayWriter caw = new CharArrayWriter();
     XmlWriter out = XmlStreaming.newWriter(caw, true);
-    transformer.transform(XMLFragmentStreamReader.from(cf), out);
+    transformer.transform(XMLFragmentStreamReader.Companion.from(cf), out);
     out.close();
     {
       final String control = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>";
@@ -532,7 +532,7 @@ public class TestProcessData {
             "    </fullname>\n" +
             "  </user>\n" +
             "</result>";
-    final String found = XmlUtil.toString(result);
+    final String found = XmlSerializableExt.toString(result);
     try {
       XMLUnit.setIgnoreWhitespace(true);
       XMLAssert.assertXMLEqual(control, found);
@@ -638,7 +638,7 @@ public class TestProcessData {
       when(nsContext.getNamespaceURI("")).thenReturn("");
       when(nsContext.getPrefix("")).thenReturn("");
       XmlStreaming.setFactory(factory);
-      XmlReaderUtil.siblingsToFragment(in);
+      XmlReaderExt.siblingsToFragment(in);
 
       InOrder inOrder = inOrder(mockedWriter);
       // The Hello text will not be written with a writer, but directly escaped
@@ -669,7 +669,7 @@ public class TestProcessData {
     assertEquals(in.next(), TEXT);
 
     XmlStreaming.setFactory(null); // reset to the default one
-    CompactFragment fragment = XmlReaderUtil.siblingsToFragment(in);
+    CompactFragment fragment = XmlReaderExt.siblingsToFragment(in);
 
     assertEquals(fragment.getNamespaces().size(), 0);
     assertEquals(fragment.getContentString(), testData);

@@ -24,7 +24,7 @@ import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.ExtXmlDeserializable;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;
@@ -87,7 +87,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   @Override
   public void deserializeChildren(final XmlReader in) throws XmlException {
     if ( in.next() != EventType.END_ELEMENT ) {
-      mValue = XmlReaderUtil.siblingsToFragment(in);
+      mValue = XmlReaderExt.siblingsToFragment(in);
     }
   }
 
@@ -152,7 +152,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
 
   @NotNull
   public XmlReader getContentStream() throws XmlException {
-    return XMLFragmentStreamReader.from(getContent());
+    return XMLFragmentStreamReader.Companion.from(getContent());
   }
 
   @SuppressWarnings("Duplicates")

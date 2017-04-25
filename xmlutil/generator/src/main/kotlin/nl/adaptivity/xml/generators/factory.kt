@@ -187,7 +187,7 @@ class Factory {
           appendln()
         }
 
-        appendln("    reader.require(${XmlStreaming.EventType::class.java.ref}.START_ELEMENT, ${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)});")
+        appendln("    reader.require(${EventType::class.java.ref}.START_ELEMENT, ${toLiteral(typeInfo.nsUri)}, ${toLiteral(typeInfo.elementName)});")
 
         if (typeInfo.attributes.size>0) {
           appendln()
@@ -211,9 +211,9 @@ class Factory {
           appendln("    }")
         }
 
-        val eventType = XmlStreaming.EventType::class.java.ref
+        val eventType = EventType::class.java.ref
         appendln()
-        imports.add(XmlStreaming.EventType::class.java)
+        imports.add(EventType::class.java)
         appendln("    EventType eventType;")
         appendln("    while ((eventType=reader.next())!=${eventType}.END_ELEMENT) {")
         appendln("      switch(eventType) {")

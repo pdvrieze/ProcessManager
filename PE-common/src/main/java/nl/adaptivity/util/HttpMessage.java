@@ -551,7 +551,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
             buffer.get(chars);
           }
 
-          mBody = new CompactFragment(Collections.<Namespace>emptyList(), chars);
+          mBody = XmlStreamingKt.CompactFragment(Collections.<Namespace>emptyList(), chars);
         }
 
       }
@@ -842,7 +842,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   @Nullable
   public XmlReader getContent() throws XmlException {
-    return XMLFragmentStreamReader.from(mBody);
+    return XMLFragmentStreamReader.Companion.from(mBody);
   }
 
   @XmlName("user")

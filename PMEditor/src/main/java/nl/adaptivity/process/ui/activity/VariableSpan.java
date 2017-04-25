@@ -34,10 +34,10 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
+import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
-import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 
 

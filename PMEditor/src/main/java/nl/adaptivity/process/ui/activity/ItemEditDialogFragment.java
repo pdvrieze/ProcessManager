@@ -134,7 +134,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   public void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
     updateItemFromUI();
-    outState.putString(UIConstants.KEY_ITEM, nl.adaptivity.xml.XmlUtil.toString(mItem));
+    outState.putString(UIConstants.KEY_ITEM, XmlSerializableExt.toString(mItem));
   }
 
   @Override
@@ -363,8 +363,8 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     final ItemEditDialogFragment f = new ItemEditDialogFragment();
     final Bundle args = new Bundle(4);
     args.putInt(UIConstants.KEY_ITEMNO, itemNo);
-    args.putString(UIConstants.KEY_ITEM, nl.adaptivity.xml.XmlUtil.toString(item));
-    args.putStringArrayList(UIConstants.KEY_DEFINES, toArrayList(nl.adaptivity.xml.XmlUtil.toString(defines)));
+    args.putString(UIConstants.KEY_ITEM, XmlSerializableExt.toString(item));
+    args.putStringArrayList(UIConstants.KEY_DEFINES, toArrayList(XmlSerializableExt.toString(defines)));
     args.putParcelableArrayList(UIConstants.KEY_VARIABLES, toArrayList(variables));
     f.setArguments(args);
     return f;

@@ -27,7 +27,7 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
 import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
 
@@ -88,7 +88,7 @@ public abstract class SoapMessageHandler {
 
 
     private Source processMessage(final CompactFragment source, final Map<String, DataSource> pAttachments) throws XmlException {
-      XMLFragmentStreamReader reader = XMLFragmentStreamReader.from(source);
+      XMLFragmentStreamReader reader = XMLFragmentStreamReader.Companion.from(source);
       return processMessage(reader, pAttachments);
     }
 
@@ -101,7 +101,7 @@ public abstract class SoapMessageHandler {
     @NotNull
     private Source processMessage(final XmlReader source, final Map<String, DataSource> pAttachments) throws XmlException {
       final Envelope<CompactFragment> envelope = Envelope.deserialize(source);
-      XmlReader                       reader   = XMLFragmentStreamReader.from(envelope.getBody().getBodyContent());
+      XmlReader                       reader   = XMLFragmentStreamReader.Companion.from(envelope.getBody().getBodyContent());
       loop: while(reader.hasNext()) {
         switch (reader.next()) {
           case START_ELEMENT:

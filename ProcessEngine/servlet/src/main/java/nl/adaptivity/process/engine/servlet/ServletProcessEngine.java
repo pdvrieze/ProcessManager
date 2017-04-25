@@ -254,7 +254,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
     public XmlReader getSource() throws XmlException {
-      return XMLFragmentStreamReader.from(mMessage.getMessageBody());
+      return XMLFragmentStreamReader.Companion.from(mMessage.getMessageBody());
     }
 
     @Override

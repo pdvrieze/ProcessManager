@@ -27,22 +27,51 @@ import java.io.Writer;
 /**
  * Created by pdvrieze on 27/11/15.
  */
-public class WritableCompactFragment extends CompactFragment implements Writable {
+public class WritableCompactFragment implements CompactFragment, Writable {
+  private final CompactFragment data;
 
   public WritableCompactFragment(final Iterable<Namespace> namespaces, final char[] content) {
-    super(namespaces, content);
+    data = XmlStreamingKt.CompactFragment(namespaces, content);
   }
 
   public WritableCompactFragment(@NotNull final String string) {
-    super(string);
+    data = XmlStreamingKt.CompactFragment(string);
   }
 
   public WritableCompactFragment(@NotNull final CompactFragment orig) {
-    super(orig);
+    data = XmlStreamingKt.CompactFragment(orig.getNamespaces(), orig.getContentString());
   }
 
   @Override
   public void writeTo(final Writer destination) throws IOException {
     destination.write(getContent());
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return data.isEmpty();
+  }
+
+  @NotNull
+  @Override
+  public SimpleNamespaceContext getNamespaces() {
+    return data.getNamespaces();
+  }
+
+  @NotNull
+  @Override
+  public char[] getContent() {
+    return data.getContent();
+  }
+
+  @NotNull
+  @Override
+  public String getContentString() {
+    return data.getContentString();
+  }
+
+  @Override
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
+    data.serialize(out);
   }
 }

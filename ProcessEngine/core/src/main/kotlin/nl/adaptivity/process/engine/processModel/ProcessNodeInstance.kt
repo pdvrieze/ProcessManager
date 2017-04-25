@@ -27,7 +27,7 @@ import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.XMLFragmentStreamReader
+import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
 import java.io.CharArrayWriter
@@ -295,7 +295,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  source: Source,
                                  removeWhitespace: Boolean,
-                                 localEndpoint: EndpointDescriptor): CompactFragment {
+                                 localEndpoint: EndpointDescriptor): CompactFragment
+  {
     val xmlReader = XmlStreaming.newReader(source)
     return instantiateXmlPlaceholders(engineData, xmlReader, removeWhitespace, localEndpoint)
   }
@@ -328,7 +329,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       serializeAll(results)
 
       (node as? Activity<*, *>)?.message?.messageBody?.let { body ->
-        instantiateXmlPlaceholders(engineData, XMLFragmentStreamReader.from(body), out, true, localEndpoint)
+        instantiateXmlPlaceholders(engineData, body.getXmlReader(), out, true, localEndpoint)
       }
     }
   }
@@ -337,9 +338,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
     val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
 
-    val body:CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
+    val body: CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
       try {
-        val xmlReader = XMLFragmentStreamReader.from(message.messageBody)
+        val xmlReader = message.messageBody.getXmlReader()
         instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)
       } catch (e: XmlException) {
         DefaultProcessNodeInstance.logger.log(Level.WARNING, "Error processing body", e)

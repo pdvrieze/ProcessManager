@@ -42,6 +42,7 @@ dependencies {
 
     testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'junit:junit:4.12'
+    testCompile 'xmlunit:xmlunit:1.6'
     testCompile project(path: ':PE-common', configuration: 'testJarConfig')
 //    testCompile 'org.robolectric:robolectric:3.0'
     testCompile 'net.sf.kxml:kxml2:2.3.0'

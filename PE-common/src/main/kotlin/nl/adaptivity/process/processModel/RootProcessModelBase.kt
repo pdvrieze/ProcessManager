@@ -29,7 +29,7 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.XmlStreaming.EventType
+import nl.adaptivity.xml.EventType
 import java.security.Principal
 import java.util.*
 import javax.xml.namespace.QName

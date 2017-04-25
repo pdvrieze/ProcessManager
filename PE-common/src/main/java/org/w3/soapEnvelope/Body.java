@@ -26,7 +26,7 @@ package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 

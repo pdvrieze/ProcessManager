@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -22,7 +22,8 @@ import java.io.IOException
  * Simple exception for xml related things.
  * Created by pdvrieze on 15/11/15.
  */
-class XmlException : IOException {
+class XmlException : IOException
+{
 
   constructor() { }
 
@@ -32,5 +33,5 @@ class XmlException : IOException {
 
   constructor(cause: Throwable) : super(cause)
 
-  constructor(message: String, reader: XmlReader, cause: Throwable) : super("${reader.locationInfo?: "Unknown position"} - $message", cause) 
+  constructor(message: String, reader: XmlReader, cause: Throwable) : super("${reader.locationInfo ?: "Unknown position"} - $message", cause)
 }

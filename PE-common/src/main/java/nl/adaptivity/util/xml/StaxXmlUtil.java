@@ -19,6 +19,7 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreamingKt;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -405,7 +406,7 @@ public final class StaxXmlUtil {
           event.writeAsEncodedUnicode(caw);
         }
       }
-      return new CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext(missingNamespaces), caw.toCharArray());
+      return XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext(missingNamespaces), caw.toCharArray());
     } catch (@NotNull XMLStreamException | RuntimeException e) {
       throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
     }

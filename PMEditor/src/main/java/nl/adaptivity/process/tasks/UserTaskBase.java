@@ -22,7 +22,6 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

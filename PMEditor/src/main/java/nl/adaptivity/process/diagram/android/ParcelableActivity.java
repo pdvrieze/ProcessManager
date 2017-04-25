@@ -35,6 +35,7 @@ import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlSerializableExt;
 import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
@@ -160,7 +161,7 @@ public class ParcelableActivity extends DrawableActivity
     if (getMessage()==null) {
       dest.writeString("");
     } else {
-      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(XmlMessage.get(getMessage())));
+      dest.writeString(XmlSerializableExt.toString(XmlMessage.get(getMessage())));
     }
 
     writeDefines(dest);
@@ -172,7 +173,7 @@ public class ParcelableActivity extends DrawableActivity
     final List<? extends XmlDefineType> defines = getDefines();
     dest.writeInt(defines.size());
     for(final XmlDefineType define:defines) {
-      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(define));
+      dest.writeString(XmlSerializableExt.toString(define));
     }
   }
 
@@ -193,7 +194,7 @@ public class ParcelableActivity extends DrawableActivity
     final List<XmlResultType> results = getResults();
     dest.writeInt(results.size());
     for(final XmlResultType result:results) {
-      dest.writeString(nl.adaptivity.xml.XmlUtil.toString(result));
+      dest.writeString(XmlSerializableExt.toString(result));
     }
   }
 

@@ -26,6 +26,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.xml.CompactFragment
 import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Table

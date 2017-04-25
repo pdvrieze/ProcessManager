@@ -26,7 +26,6 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
 
 import javax.xml.namespace.QName;
 

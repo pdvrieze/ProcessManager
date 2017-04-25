@@ -131,7 +131,7 @@ public class EditableUserTask extends UserTaskBase {
       throw new RuntimeException(e);
     }
 
-    final XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, new CompactFragment(bodyWriter.toString()));
+    final XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, XmlStreamingKt.CompactFragment(bodyWriter.toString()));
     return result;
   }
 

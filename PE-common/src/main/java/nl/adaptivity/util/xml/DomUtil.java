@@ -19,7 +19,7 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -249,7 +249,7 @@ public final class DomUtil {
   public static CompactFragment nodeListToFragment(@NotNull final NodeList nodeList) throws XmlException {
     switch(nodeList.getLength()) {
       case 0:
-        return new CompactFragment("");
+        return XmlStreamingKt.CompactFragment("");
       case 1:
         final Node node = nodeList.item(0);
         return nodeToFragment(node);
@@ -261,11 +261,11 @@ public final class DomUtil {
   @NotNull
   public static CompactFragment nodeToFragment(final Node node) throws XmlException {
     if (node == null) {
-      return new CompactFragment("");
+      return XmlStreamingKt.CompactFragment("");
     } else if (node instanceof Text) {
-      return new CompactFragment(((Text) node).getData());
+      return XmlStreamingKt.CompactFragment(((Text) node).getData());
     }
-    return XmlReaderUtil.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
+    return XmlReaderExt.siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
   }
 
   @Nullable

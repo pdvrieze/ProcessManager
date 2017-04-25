@@ -79,7 +79,7 @@ public class TestPMParser {
     XmlReader parser = new AndroidXmlReader(new StringReader(source));
     XmlMessage msg = XmlMessage.deserialize(parser);
 
-    String out = nl.adaptivity.xml.XmlUtil.toString(msg);
+    String out = XmlSerializableExt.toString(msg);
 
 
     try {
@@ -91,7 +91,7 @@ public class TestPMParser {
     String bodySource = msg.getMessageBody().getContentString();
     XmlReader bodyParser = msg.getBodyStreamReader();
     Envelope<PostTask> pt = Envelope.deserialize(bodyParser, PostTask.FACTORY);
-    String bodyOut = nl.adaptivity.xml.XmlUtil.toString(pt);
+    String bodyOut = XmlSerializableExt.toString(pt);
     XMLUnit.setIgnoreWhitespace(true);
     XMLUnit.setIgnoreComments(true);
     XMLUnit.setIgnoreAttributeOrder(true);

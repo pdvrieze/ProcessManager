@@ -103,10 +103,10 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
           builder.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i), reader.getAttributeValue(i))
         }
 
-        var event: XmlStreaming.EventType? = null
-        while (reader.hasNext() && event !== XmlStreaming.EventType.END_ELEMENT) {
+        var event: EventType? = null
+        while (reader.hasNext() && event !== EventType.END_ELEMENT) {
           event = reader.next()
-          if (!(event== XmlStreaming.EventType.START_ELEMENT && builder.deserializeChild(reader))) {
+          if (!(event== EventType.START_ELEMENT && builder.deserializeChild(reader))) {
             reader.unhandledEvent()
           }
         }

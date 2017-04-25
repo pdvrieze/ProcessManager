@@ -30,7 +30,7 @@ import nl.adaptivity.ws.WsMethodWrapper;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
@@ -106,7 +106,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
 
   private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<CompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
     final Body<? extends CompactFragment> body   = envelope.getBody();
-    XmlReader                             reader = XMLFragmentStreamReader.from(body.getBodyContent());
+    XmlReader                             reader = XMLFragmentStreamReader.Companion.from(body.getBodyContent());
     reader.nextTag();
     assertRootNode(reader);
 

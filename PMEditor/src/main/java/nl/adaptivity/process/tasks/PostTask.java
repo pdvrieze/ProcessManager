@@ -23,7 +23,6 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -46,7 +45,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     }
   }
 
-  public static final CompactFragment DEFAULT_REPLIES_PARAM = new CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi", Constants.MODIFY_NS_STR), "<jbi:element value=\"endpoint\"/>"
+  public static final CompactFragment DEFAULT_REPLIES_PARAM = XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi", Constants.MODIFY_NS_STR), "<jbi:element value=\"endpoint\"/>"
           .toCharArray());
   public static final String REPLIESPARAM_LOCALNAME = "repliesParam";
   public static final QName REPLIESPARAM_NAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, REPLIESPARAM_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);

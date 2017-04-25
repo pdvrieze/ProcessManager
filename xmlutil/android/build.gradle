@@ -15,15 +15,18 @@
  */
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'idea'
 
 version = '0.5.0'
 description = 'Iplementation of the JVM based providers that uses the Android XmlPullParser'
 
-archivesBaseName="${project.parent.name}-${project.name}"
+archivesBaseName = "${project.parent.name}-${project.name}"
 
 dependencies {
     compile project(':xmlutil:core')
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
 
 /*

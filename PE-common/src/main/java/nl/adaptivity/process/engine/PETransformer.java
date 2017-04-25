@@ -24,7 +24,7 @@ import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.EndElementEvent;
 import nl.adaptivity.xml.XmlEvent.StartElementEvent;
 import nl.adaptivity.xml.XmlEvent.TextEvent;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;

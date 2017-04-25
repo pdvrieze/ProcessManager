@@ -382,7 +382,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
   private static Object getBody(final Class<?> pClass, final HttpMessage pMessage) throws XmlException {
     CompactFragment body = pMessage.getBody();
     if (body!=null) {
-      return DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(body));
+      return DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.Companion.from(body));
     } else {
       return getAttachment(pClass, null, pMessage);
     }
@@ -456,7 +456,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     // TODO Avoid JAXB where possible, use XMLDeserializer instead
     final boolean string = CharSequence.class.isAssignableFrom(pClass);
     Node match;
-    DocumentFragment fragment = DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(pBody));
+    DocumentFragment fragment = DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.Companion.from(pBody));
     for (Node n = fragment.getFirstChild(); n!=null; n = n.getNextSibling()) {
       match = xpathMatch(n, pXpath);
       if (match != null) {
@@ -577,8 +577,11 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
       // By default don't use JAXB
       setContentType(pResponse, "text/xml");
       OutputStreamWriter writer = new OutputStreamWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding());
-      XmlUtil.serialize((XmlSerializable) mResult, writer);
-      writer.close();
+      try {
+        ((XmlSerializable) mResult).serialize(XmlStreaming.newWriter(writer));
+      } finally {
+        writer.close();
+      }
       return;
     }
     final XmlRootElement xmlRootElement = mResult == null ? null : mResult.getClass().getAnnotation(XmlRootElement.class);

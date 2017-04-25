@@ -19,9 +19,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
-import nl.adaptivity.xml.XmlWriterUtil;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -175,7 +173,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   @NotNull
   @Override
   public CompactFragment getMessageBody() {
-    return new CompactFragment(getOriginalNSContext(), getContent());
+    return XmlStreamingKt.CompactFragment(getOriginalNSContext(), getContent());
   }
 
   public DocumentFragment getMessageBodyNode() {
@@ -227,7 +225,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   @Override
   public String toString() {
-    return nl.adaptivity.xml.XmlUtil.toString(this);
+    return XmlSerializableExt.toString(this);
   }
 
   @Override

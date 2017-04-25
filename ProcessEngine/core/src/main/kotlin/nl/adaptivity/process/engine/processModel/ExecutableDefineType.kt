@@ -30,6 +30,7 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.DomUtil
+import nl.adaptivity.xml.CompactFragment
 import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.siblingsToFragment

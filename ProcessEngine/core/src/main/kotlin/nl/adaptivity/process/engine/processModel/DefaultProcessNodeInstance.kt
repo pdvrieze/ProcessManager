@@ -31,7 +31,6 @@ import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException

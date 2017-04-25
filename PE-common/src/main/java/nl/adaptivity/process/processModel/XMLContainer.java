@@ -61,13 +61,13 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
   public XMLContainer(final Source source) throws XmlException {
     XmlReader reader = XmlStreaming.newReader(source);
     if (reader.hasNext()) reader.next(); // Initialise the reader
-    setContent(XmlReaderUtil.siblingsToFragment(reader));
+    setContent(XmlReaderExt.siblingsToFragment(reader));
   }
 
   public void deserializeChildren(@NotNull final XmlReader in) throws XmlException {
     if (in.hasNext()) {
       if (in.next() != XmlStreaming.END_ELEMENT) {
-        final CompactFragment content = XmlReaderUtil.siblingsToFragment(in);
+        final CompactFragment content = XmlReaderExt.siblingsToFragment(in);
         setContent(content);
       }
     }
@@ -160,7 +160,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   protected void visitNamespaces(final NamespaceContext baseContext) throws XmlException {
     if (content != null) {
-      final XmlReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.from(new CharArrayReader(content), originalNSContext));
+      final XmlReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.Companion.from(new CharArrayReader(content), originalNSContext));
 
       visitNamespacesInContent(xsr, null);
     }
@@ -198,7 +198,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   @NotNull
   public XmlReader getBodyStreamReader() throws XmlException {
-    return XMLFragmentStreamReader.from(new CharArrayReader(content == null ? new char[0] : content), originalNSContext);
+    return XMLFragmentStreamReader.Companion.from(new CharArrayReader(content == null ? new char[0] : content), originalNSContext);
   }
 
   protected void serializeAttributes(final XmlWriter out) throws XmlException {

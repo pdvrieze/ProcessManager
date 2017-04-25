@@ -27,9 +27,9 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.XMLFragmentStreamReader
+import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.XmlStreaming.EventType
+import nl.adaptivity.xml.EventType
 import org.w3.soapEnvelope.Envelope
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
@@ -58,7 +58,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       var result: XmlTask? = null
       while (reader.hasNext() && reader.next() !== EventType.END_ELEMENT) {
         when (reader.eventType) {
-          XmlStreaming.EventType.START_ELEMENT -> if ("taskParam" == reader.localName) {
+          EventType.START_ELEMENT -> if ("taskParam" == reader.localName) {
             reader.next() // Go to the contents
             result = XmlTask.deserialize(reader)
             reader.nextTag()
@@ -67,7 +67,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
             reader.skipElement()
             reader.require(EventType.END_ELEMENT, null, null)
           }
-          else                                 -> reader.unhandledEvent()
+          else                                      -> reader.unhandledEvent()
         }
       }
       reader.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask")
@@ -138,7 +138,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       }
 
       instance.body?.let { body ->
-        val reader = XMLFragmentStreamReader.from(body)
+        val reader = body.getXmlReader()
         val env = Envelope.deserialize(reader, PostTaskFactory())
         val task = env.body.bodyContent
         task.setHandleValue(handle.handleValue)

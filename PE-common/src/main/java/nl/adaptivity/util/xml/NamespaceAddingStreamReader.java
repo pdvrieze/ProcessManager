@@ -19,7 +19,7 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,7 @@ public class NamespaceAddingStreamReader extends XmlDelegatingReader {
     if (type != getEventType() ||
             (namespaceURI != null && !namespaceURI.equals(getNamespaceUri())) ||
             (localName != null && !localName.equals(getLocalName()))) {
-      mDelegate.require(type, namespaceURI, localName);
+      getDelegate().require(type, namespaceURI, localName);
     } {
       throw new XmlException("Require failed");
     }
@@ -55,7 +55,7 @@ public class NamespaceAddingStreamReader extends XmlDelegatingReader {
 
   @Override
   public String getNamespaceUri(final CharSequence prefix) throws XmlException {
-    final String namespaceURI = mDelegate.getNamespaceUri(prefix);
+    final String namespaceURI = getDelegate().getNamespaceUri(prefix);
     return namespaceURI != null ? namespaceURI : mLookupSource.getNamespaceURI(prefix.toString());
   }
 
@@ -73,17 +73,19 @@ public class NamespaceAddingStreamReader extends XmlDelegatingReader {
 
   @Override
   public CharSequence getAttributeNamespace(final int index) throws XmlException {
-    final CharSequence attributeNamespace = mDelegate.getAttributeNamespace(index);
-    return attributeNamespace!=null ? attributeNamespace : mLookupSource.getNamespaceURI(StringUtil.toString(mDelegate.getAttributePrefix(index)));
+    final CharSequence attributeNamespace = getDelegate().getAttributeNamespace(index);
+    return attributeNamespace!=null ? attributeNamespace : mLookupSource.getNamespaceURI(StringUtil.toString(
+      getDelegate().getAttributePrefix(index)));
   }
 
   @Override
   public CharSequence getNamespaceUri() throws XmlException {
-    final CharSequence namespaceURI = mDelegate.getNamespaceUri();
-    return namespaceURI !=null ? namespaceURI : mLookupSource.getNamespaceURI(StringUtil.toString(mDelegate.getPrefix()));
+    final CharSequence namespaceURI = getDelegate().getNamespaceUri();
+    return namespaceURI !=null ? namespaceURI : mLookupSource.getNamespaceURI(StringUtil.toString(
+      getDelegate().getPrefix()));
   }
 
   public NamespaceContext getNamespaceContext() throws XmlException {
-    return new CombiningNamespaceContext(mDelegate.getNamespaceContext(), mLookupSource);
+    return new CombiningNamespaceContext(getDelegate().getNamespaceContext(), mLookupSource);
   }
 }

@@ -29,6 +29,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
 import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.xml.CompactFragment
 import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Table

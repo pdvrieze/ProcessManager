@@ -18,7 +18,7 @@ package nl.adaptivity.ws.soap;
 
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.EventType;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.testng.annotations.Test;
 import org.w3.soapEnvelope.Envelope;
@@ -179,7 +179,7 @@ public class TestSoapHelper {
     reader.require(EventType.START_ELEMENT, "urn:bar", "foo");
     reader.next();
     reader.require(EventType.START_ELEMENT, "http://www.w3.org/2003/05/soap-rpc", "result");
-    CompactFragment parseResult = XmlReaderUtil.siblingsToFragment(reader);
+    CompactFragment parseResult = XmlReaderExt.siblingsToFragment(reader);
     assertEquals(0, parseResult.getNamespaces().size());
   }
 

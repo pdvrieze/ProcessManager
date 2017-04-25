@@ -21,18 +21,16 @@ import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.Namespace
-import nl.adaptivity.xml.SimpleNamespaceContext
-import nl.adaptivity.xml.XmlEvent
-import nl.adaptivity.xml.xmlEncode
+import nl.adaptivity.xml.*
+import java.lang.Long
 import java.util.*
 
 class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance<*>, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
-      "handle"         -> return ProcessData(valueName, CompactFragment(java.lang.Long.toString(processNodeInstance.getHandleValue())))
-      "instancehandle" -> return ProcessData(valueName, CompactFragment(java.lang.Long.toString(processNodeInstance.hProcessInstance.handleValue)))
+      "handle"         -> return ProcessData(valueName, CompactFragment(processNodeInstance.getHandleValue().toString()))
+      "instancehandle" -> return ProcessData(valueName, CompactFragment(processNodeInstance.hProcessInstance.handleValue.toString()))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())
       "owner"          -> return ProcessData(valueName, CompactFragment(processNodeInstance.owner.name.xmlEncode()))
     }
@@ -67,7 +65,8 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
     return null
   }
 
-  private fun createEndpoint(): CompactFragment {
+  private fun createEndpoint(): CompactFragment
+  {
     val namespaces = SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS_STR))
     val content = StringBuilder()
     content.append("<jbi:endpointDescriptor")
