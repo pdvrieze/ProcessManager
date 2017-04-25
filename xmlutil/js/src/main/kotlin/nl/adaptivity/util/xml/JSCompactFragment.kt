@@ -16,14 +16,9 @@
 
 package nl.adaptivity.util.xml
 
+import nl.adaptivity.js.prototype
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
-import org.w3c.dom.DOMImplementation
-import org.w3c.dom.DocumentFragment
-import org.w3c.dom.parsing.DOMParser
-import java.util.Collections.emptyList
-import kotlin.browser.document
-import kotlin.js.javaClass
 
 
 /**
@@ -90,7 +85,7 @@ internal open class JSCompactFragment : CompactFragment
   override fun equals(o: Any?): Boolean
   {
     if (this === o) return true
-    if (o == null || javaClass != o.javaClass) return false
+    if (o == null || prototype != o.prototype) return false
 
     val that = o as CompactFragment?
 
