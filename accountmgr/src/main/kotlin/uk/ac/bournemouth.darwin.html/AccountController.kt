@@ -19,7 +19,6 @@ package uk.ac.bournemouth.darwin.html
 import kotlinx.html.*
 import net.devrieze.util.nullIfNot
 import net.devrieze.util.overrideIf
-import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.darwin.accounts.*
 import uk.ac.bournemouth.darwin.sharedhtml.darwinDialog
 import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
@@ -389,7 +388,7 @@ class AccountController : HttpServlet() {
     if (responseParam==null) {
       issueChallenge(req, resp, keyId)
     } else {
-      val response = Base64.decoder().decode(responseParam)
+      val response = Base64.getDecoder().decode(responseParam)
       handleResponse(req, resp, keyId, response)
     }
   }

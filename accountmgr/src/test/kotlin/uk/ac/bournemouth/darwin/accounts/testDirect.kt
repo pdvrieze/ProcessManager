@@ -16,7 +16,6 @@
 
 package uk.ac.bournemouth.darwin.accounts
 
-import net.sourceforge.migbase64.Base64
 import org.testng.Assert.*
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
@@ -112,9 +111,9 @@ class TestAccountControllerDirect {
     init {
       System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MyContextFactory::class.java.canonicalName)
 
-      val modulusInt = BigInteger(Base64.decoder().decode(testModulusEnc))
-      val publicExponentInt = BigInteger(Base64.decoder().decode(testPubExpEnc))
-      val privKeyInt  = BigInteger(Base64.decoder().decode(testPrivExpEnc))
+      val modulusInt = BigInteger(Base64.getDecoder().decode(testModulusEnc))
+      val publicExponentInt = BigInteger(Base64.getDecoder().decode(testPubExpEnc))
+      val privKeyInt  = BigInteger(Base64.getDecoder().decode(testPrivExpEnc))
 
       val factory = KeyFactory.getInstance("RSA")
       testPubKey = factory.generatePublic(RSAPublicKeySpec(modulusInt, publicExponentInt)) as RSAPublicKey
@@ -359,7 +358,7 @@ class TestAccountControllerDirect {
     val myRandom =  SecureRandom()
 
     val randomBytes = ByteArray(32).apply { myRandom.nextBytes(this) }
-    val randomEncoded = Base64.encoder().encodeToString(randomBytes);
+    val randomEncoded = Base64.getEncoder().encodeToString(randomBytes);
     val randomUrlSafe = buildString {
       randomEncoded.forEach { append(when(it){
         '+' -> '-'
@@ -367,7 +366,7 @@ class TestAccountControllerDirect {
         else -> it })
       }
     }
-    val urlsafeDecoded = Base64.decode(randomUrlSafe)
+    val urlsafeDecoded = Base64.getDecoder().decode(randomUrlSafe)
     assertEquals(urlsafeDecoded, randomBytes)
   }
 
@@ -382,7 +381,7 @@ class TestAccountControllerDirect {
       assertNotNull(challengeStr)
       assertFalse(challengeStr.any { c -> c < '\u0020' || c > '\u007f' })
 
-      Base64.decoder().decode(challengeStr)
+      Base64.getDecoder().decode(challengeStr)
     }
     val oldKeyInfo = accountDb {
       keyInfo(testUser).single { it.keyId == keyid }
@@ -468,23 +467,23 @@ class TestAccountControllerDirect {
           "03VEmriZMeXKefaTi1hBGj2WqoOtXu24e2u2lLLfDd2zvgIgbNevRhXBAzez_wyDFurv9Dbq6BFJqT" +
           "60h9pDgAfTxL8MwbR9I75Pz0csZCvPy-FkAjvjSPNYINSA=="
 
-    val modulus = Base64.decode(modulusEnc)
+    val modulus = Base64.getDecoder().decode(modulusEnc)
 
     val factory = KeyFactory.getInstance(KEY_ALGORITHM)
-    val pubkey = factory.generatePublic(RSAPublicKeySpec(BigInteger(modulus), BigInteger(Base64.decode(pubkeyExpEnc)))) as RSAPublicKey
+    val pubkey = factory.generatePublic(RSAPublicKeySpec(BigInteger(modulus), BigInteger(Base64.getDecoder().decode(pubkeyExpEnc)))) as RSAPublicKey
 
-    val privkey = factory.generatePrivate(RSAPrivateKeySpec(BigInteger(modulus), BigInteger(Base64.decode(privateExpEnc)))) as RSAPrivateKey
+    val privkey = factory.generatePrivate(RSAPrivateKeySpec(BigInteger(modulus), BigInteger(Base64.getDecoder().decode(privateExpEnc)))) as RSAPrivateKey
 
-    val challenge = Base64.decode(challengeEnc)
+    val challenge = Base64.getDecoder().decode(challengeEnc)
 
     val cipher = Cipher.getInstance(CIPHERSUITE)
     cipher.init(Cipher.ENCRYPT_MODE, privkey)
-    val sentResponse = Base64.decode(sentResponseEnc)
+    val sentResponse = Base64.getDecoder().decode(sentResponseEnc)
     val calculatedResponse=cipher.doFinal(challenge)
     assertEquals(calculatedResponse, sentResponse)
 
     cipher.init(Cipher.DECRYPT_MODE, pubkey)
-    val receivedResponse = Base64.decode(sentResponseEnc)
+    val receivedResponse = Base64.getDecoder().decode(sentResponseEnc)
     val decodedResponse = cipher.doFinal(receivedResponse)
     assertEquals(challenge, decodedResponse)
 
@@ -496,7 +495,7 @@ class TestAccountControllerDirect {
   @Test
   fun testBase64dec() {
     val enc = "Y2hhbGxlbmdl"
-    val dec = String(Base64.decode(enc))
+    val dec = String(Base64.getDecoder().decode(enc))
     assertEquals(dec, "challenge")
   }
 
@@ -523,14 +522,14 @@ class TestAccountControllerDirect {
           "ieFgDImJlklCnms8zJjD70FHcbR20sSQyTUXML-eVb7_I7l-mPiBo_98p6ZPpzubPWwOf33wernu35" +
           "d-v_qzTyvnQe8TbL_VvSo1i84rqtVA6tyvmqTnlcgQqdxw=="
 
-    val modulus = Base64.decode(modulusEnc)
+    val modulus = Base64.getDecoder().decode(modulusEnc)
 
     val factory = KeyFactory.getInstance(KEY_ALGORITHM)
-    val pubkey = factory.generatePublic(RSAPublicKeySpec(BigInteger(modulus), BigInteger(Base64.decode(pubkeyExpEnc)))) as RSAPublicKey
+    val pubkey = factory.generatePublic(RSAPublicKeySpec(BigInteger(modulus), BigInteger(Base64.getDecoder().decode(pubkeyExpEnc)))) as RSAPublicKey
 
-    val privkey = factory.generatePrivate(RSAPrivateKeySpec(BigInteger(modulus), BigInteger(Base64.decode(privateExpEnc)))) as RSAPrivateKey
+    val privkey = factory.generatePrivate(RSAPrivateKeySpec(BigInteger(modulus), BigInteger(Base64.getDecoder().decode(privateExpEnc)))) as RSAPrivateKey
 
-    val challenge = Base64.decode(challengeEnc)
+    val challenge = Base64.getDecoder().decode(challengeEnc)
     val challengeStr = String(challenge)
     assertEquals(challengeStr, "challenge")
 
@@ -543,13 +542,13 @@ class TestAccountControllerDirect {
 
     assertEquals(decryptedChallenge, "challenge")
 
-    val calculatedResponseEnc = Base64.encodeToString(calculatedResponse, false)
+    val calculatedResponseEnc = Base64.getEncoder().encodeToString(calculatedResponse)
     val webSafeCalculated = calculatedResponseEnc.replace('+','-').replace('/','_')
     assertEquals(calculatedResponseEnc.length, 344)
     assertEquals(sentResponseEnc.length, 344)
     assertEquals(sentResponseEnc, webSafeCalculated)
 
-    val sentResponse = Base64.decode(sentResponseEnc)
+    val sentResponse = Base64.getDecoder().decode(sentResponseEnc)
     assertEquals(calculatedResponse, sentResponse)
 
     cipher.init(Cipher.DECRYPT_MODE, pubkey)

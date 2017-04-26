@@ -14,27 +14,17 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
 apply plugin: 'idea'
 
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
 
-version = '1.1.0'
+version = '1.1.1'
 description = 'Common utility classes common to the process engine'
 
 //group = ['server', 'support']
-
-
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
-        }
-    }
-
-}
 
 
 dependencies {

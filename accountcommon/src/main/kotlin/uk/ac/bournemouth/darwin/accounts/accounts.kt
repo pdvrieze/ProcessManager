@@ -16,7 +16,6 @@
 
 package uk.ac.bournemouth.darwin.accounts
 
-import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
@@ -86,7 +85,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   private fun generateAuthToken() = buildString {
-    Base64.encoder().encode(random.nextBytes(32)).asSequence()
+    Base64.getEncoder().encode(random.nextBytes(32)).asSequence()
           .map(Byte::toChar)
           .forEach { c ->  when (c) {
       '+' -> append('-')
@@ -218,7 +217,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   private fun createPasswordHash(@Suppress("UNUSED_PARAMETER") salt: String, password: String): String {
-    return "{SHA}${Base64.encoder().encodeToString(sha1(password.toByteArray()))}"
+    return "{SHA}${Base64.getEncoder().encodeToString(sha1(password.toByteArray()))}"
   }
 
   fun verifyCredentials(username: String, password: String): Boolean {
@@ -230,7 +229,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   fun generateResetToken(user:String): String {
-    val resetToken = Base64.encoder().encodeToString(random.nextBytes(15))
+    val resetToken = Base64.getEncoder().encodeToString(random.nextBytes(15))
     if (WebAuthDB.UPDATE { SET(u.resettoken, resetToken); SET(u.resettime, Timestamp(nowSeconds)) }.WHERE { u.user eq user }.executeUpdate(connection)!=1) {
       throw AuthException("Could not store the reset token")
     }
@@ -257,9 +256,9 @@ open class AccountDb(private val connection:DBConnection) {
   private fun toRSAPubKey(keyData:String):RSAPublicKey {
     val colPos = keyData.indexOf(':')
     val modulusEnc = keyData.substring(0, colPos)
-    val modulusBytes = Base64.decoder().decode(modulusEnc)
+    val modulusBytes = Base64.getDecoder().decode(modulusEnc)
     val modulus = BigInteger(modulusBytes)
-    val publicExponent = BigInteger(Base64.decoder().decode(keyData.substring(colPos+1)))
+    val publicExponent = BigInteger(Base64.getDecoder().decode(keyData.substring(colPos+1)))
 
     val factory = KeyFactory.getInstance(KEY_ALGORITHM)
     return factory.generatePublic(RSAPublicKeySpec(modulus, publicExponent)) as RSAPublicKey
@@ -270,7 +269,7 @@ open class AccountDb(private val connection:DBConnection) {
     val challenge = WebAuthDB.SELECT(c.challenge)
                              .WHERE { (c.keyid eq keyId) AND (c.requestip eq requestIp) }
                              .getSingleOrNull(connection)
-                             ?.let{ Base64.decoder().decode(it)} ?: return null
+                             ?.let{ Base64.getDecoder().decode(it)} ?: return null
 
     val (user, encodedpubkey) = WebAuthDB.SELECT(p.user, p.pubkey)
           .WHERE { p.keyid eq keyId }
@@ -311,7 +310,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun newChallenge(keyid: Int, requestIp: String): String {
     val conn = connection
-    val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
+    val challenge = Base64.getEncoder().encodeToString(random.nextBytes(32))
     try {
       return if (WebAuthDB
             .INSERT_OR_UPDATE(c.keyid, c.requestip, c.challenge, c.epoch)

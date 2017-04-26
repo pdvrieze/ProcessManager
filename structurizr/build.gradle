@@ -37,7 +37,6 @@ dependencies {
     compile "com.structurizr:structurizr-core:${structurizrVer}"
     compile "com.structurizr:structurizr-client:${structurizrVer}"
     compile project(':darwin-sql')
-    compile project(":DarwinCommon")
 }
 
 mainClassName='uk.ac.bournemouth.darwin.architecture.StructurizrKt'

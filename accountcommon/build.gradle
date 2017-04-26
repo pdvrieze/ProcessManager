@@ -16,15 +16,14 @@
 
 description = 'A library that abstracts away the access to the account database through a nicer api'
 
+apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    compile "org.jetbrains:annotations:13.0"
-    compile project(':darwin-sql')
-    compile project(":DarwinCommon")
-    testCompile 'org.testng:testng:6.9.13.8'
-    testCompile 'mysql:mysql-connector-java:5.1.36'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    api project(':darwin-sql')
+    testImplementation 'org.testng:testng:6.9.13.8'
+    testRuntimeOnly 'mysql:mysql-connector-java:5.1.36'
 }
 
 sourceCompatibility = myJavaVersion
