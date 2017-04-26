@@ -17,7 +17,6 @@
 package uk.ac.bournemouth.darwin.catalina.realm
 
 import net.devrieze.util.StringCache
-import net.devrieze.util.db.DBConnection
 import org.ietf.jgss.GSSCredential
 import uk.ac.bournemouth.darwin.accounts.accountDb
 import java.security.Principal
@@ -82,7 +81,6 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
 
     @Synchronized override fun cacheStrings(stringCache: StringCache): Principal {
         name = stringCache.lookup(this.name)
-        DBConnection.setStringCache(stringCache)
 
         val tmpRoles = roles
         roles = Array<String>(tmpRoles.size) {i -> stringCache.lookup(tmpRoles[i]) }

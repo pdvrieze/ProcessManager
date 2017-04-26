@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'idea'
 
 sourceCompatibility = myJavaVersion
@@ -69,9 +69,9 @@ dependencies {
     codegen project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
     codegen project(path: ':ProcessEngine:servlet', configuration: 'codeGen')
 //    compile 'generate'
-    compile project(':JavaCommonApi')
-    compile project(':java-common')
-    compile project(':PE-common')
+    api project(':JavaCommonApi')
+    api project(':java-common')
+    api project(':PE-common')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(path: ':PE-common', configuration:'compileOnly')
 }
