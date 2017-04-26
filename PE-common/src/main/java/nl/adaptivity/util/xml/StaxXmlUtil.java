@@ -17,6 +17,7 @@
 package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
+import net.devrieze.util.webServer.HttpRequest.Method;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreamingKt;
@@ -43,6 +44,9 @@ import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stax.StAXSource;
 
 import java.io.CharArrayWriter;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -297,6 +301,28 @@ public final class StaxXmlUtil {
       return createXMLEventWriter(xof, (StAXResult) result);
     }
     return xof.createXMLEventWriter(result);
+  }
+
+  private static final boolean HASSTAX2;
+
+  private static class Stax2Helper {
+    static boolean isXmlOuputFactory2(XMLOutputFactory xof) {
+      return xof instanceof  XMLOutputFactory2;
+    }
+
+    static XMLEventWriter createXmlEventWriter(XMLOutputFactory xof, XMLStreamWriter sw) throws XMLStreamException {
+      return ((XMLOutputFactory2) xof).createXMLEventWriter(sw);
+    }
+  }
+
+  static {
+    boolean hasStax;
+    try {
+      hasStax = Stax2Helper.class != null; // triggers exception if the stax classes are not available
+    } catch (Exception e) {
+      hasStax = false;
+    }
+    HASSTAX2 = hasStax;
   }
 
   public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory xof, @NotNull final StAXResult result) throws

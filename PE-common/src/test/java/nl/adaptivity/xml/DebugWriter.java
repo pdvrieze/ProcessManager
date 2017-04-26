@@ -58,7 +58,7 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void text(final CharSequence text) throws XmlException {
+  public void text(final CharSequence text) {
     System.out.println(TAG + "--text('"+text+"')");
     super.text(text);
   }
