@@ -406,7 +406,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
   override val results: List<XmlResultType> get() = _results
 
   override fun getResult(name: String): XmlResultType? {
-    return _results.firstOrNull { it.name == name }
+    return _results.firstOrNull { it.getName() == name }
   }
 
   override fun equals(other: Any?): Boolean {

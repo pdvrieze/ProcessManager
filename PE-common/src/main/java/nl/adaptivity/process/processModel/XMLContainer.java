@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel;
 
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.ExtXmlDeserializable;
-import nl.adaptivity.util.xml.NamespaceAddingStreamReader;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +36,7 @@ import java.util.TreeMap;
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializable {
+public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializable, CompactFragment {
 
   private static final SimpleNamespaceContext BASE_NS_CONTEXT = new SimpleNamespaceContext(new String[]{""}, new String[]{""});
 
@@ -86,7 +83,18 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
     return content;
   }
 
-  @Nullable
+  @Override
+  public boolean isEmpty() {
+    return content.length==0;
+  }
+
+  @NotNull
+  @Override
+  public String getContentString() {
+    return new String(content);
+  }
+
+  @NotNull
   public Iterable<Namespace> getOriginalNSContext() {
     return originalNSContext !=null ? originalNSContext : Collections.<Namespace>emptyList();
   }
@@ -158,9 +166,16 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
     return Collections.emptyList();
   }
 
+  @NotNull
+  @Override
+  public SimpleNamespaceContext getNamespaces() {
+    return originalNSContext;
+  }
+
   protected void visitNamespaces(final NamespaceContext baseContext) throws XmlException {
     if (content != null) {
-      final XmlReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.Companion.from(new CharArrayReader(content), originalNSContext));
+      final XmlReader xsr = new NamespaceAddingStreamReader(baseContext,
+                                                            XMLFragmentStreamReaderKt.getXmlReader(this));
 
       visitNamespacesInContent(xsr, null);
     }
@@ -198,7 +213,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   @NotNull
   public XmlReader getBodyStreamReader() throws XmlException {
-    return XMLFragmentStreamReader.Companion.from(new CharArrayReader(content == null ? new char[0] : content), originalNSContext);
+    return XMLFragmentStreamReaderKt.getXmlReader(this);
   }
 
   protected void serializeAttributes(final XmlWriter out) throws XmlException {

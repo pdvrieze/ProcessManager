@@ -19,10 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Named;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.ExtXmlDeserializable;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +149,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
 
   @NotNull
   public XmlReader getContentStream() throws XmlException {
-    return XMLFragmentStreamReader.Companion.from(getContent());
+    return XMLFragmentStreamReaderKt.getXmlReader(getContent());
   }
 
   @SuppressWarnings("Duplicates")

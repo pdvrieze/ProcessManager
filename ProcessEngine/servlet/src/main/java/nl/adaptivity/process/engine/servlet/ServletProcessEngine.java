@@ -45,7 +45,7 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.SerializableList;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -254,7 +254,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
     public XmlReader getSource() throws XmlException {
-      return XMLFragmentStreamReader.Companion.from(mMessage.getMessageBody());
+      return XMLFragmentStreamReaderKt.getXmlReader(mMessage.getMessageBody());
     }
 
     @Override

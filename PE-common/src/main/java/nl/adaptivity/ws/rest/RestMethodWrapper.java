@@ -29,7 +29,7 @@ import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
@@ -382,7 +382,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
   private static Object getBody(final Class<?> pClass, final HttpMessage pMessage) throws XmlException {
     CompactFragment body = pMessage.getBody();
     if (body!=null) {
-      return DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.Companion.from(body));
+      return DomUtil.childrenToDocumentFragment(XMLFragmentStreamReaderKt.getXmlReader(body));
     } else {
       return getAttachment(pClass, null, pMessage);
     }
@@ -456,7 +456,7 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     // TODO Avoid JAXB where possible, use XMLDeserializer instead
     final boolean string = CharSequence.class.isAssignableFrom(pClass);
     Node match;
-    DocumentFragment fragment = DomUtil.childrenToDocumentFragment(XMLFragmentStreamReader.Companion.from(pBody));
+    DocumentFragment fragment = DomUtil.childrenToDocumentFragment(XMLFragmentStreamReaderKt.getXmlReader(pBody));
     for (Node n = fragment.getFirstChild(); n!=null; n = n.getNextSibling()) {
       match = xpathMatch(n, pXpath);
       if (match != null) {

@@ -22,12 +22,8 @@ import net.devrieze.util.ValueCollection;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlReaderUtil;
-import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.EventType;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
 
@@ -88,7 +84,7 @@ public abstract class SoapMessageHandler {
 
 
     private Source processMessage(final CompactFragment source, final Map<String, DataSource> pAttachments) throws XmlException {
-      XMLFragmentStreamReader reader = XMLFragmentStreamReader.Companion.from(source);
+      XmlReader reader = XMLFragmentStreamReaderKt.getXmlReader(source);
       return processMessage(reader, pAttachments);
     }
 
@@ -101,7 +97,7 @@ public abstract class SoapMessageHandler {
     @NotNull
     private Source processMessage(final XmlReader source, final Map<String, DataSource> pAttachments) throws XmlException {
       final Envelope<CompactFragment> envelope = Envelope.deserialize(source);
-      XmlReader                       reader   = XMLFragmentStreamReader.Companion.from(envelope.getBody().getBodyContent());
+      XmlReader                       reader   = XMLFragmentStreamReaderKt.getXmlReader(envelope.getBody().getBodyContent());
       loop: while(reader.hasNext()) {
         switch (reader.next()) {
           case START_ELEMENT:

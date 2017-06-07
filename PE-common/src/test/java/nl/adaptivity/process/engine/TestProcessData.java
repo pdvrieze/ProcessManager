@@ -22,7 +22,7 @@ import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.EventType;
@@ -345,7 +345,7 @@ public class TestProcessData {
     final CompactFragment cf = XmlStreamingKt.CompactFragment(new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)), INPUT.toCharArray());
     final CharArrayWriter caw = new CharArrayWriter();
     XmlWriter out = XmlStreaming.newWriter(caw, true);
-    transformer.transform(XMLFragmentStreamReader.Companion.from(cf), out);
+    transformer.transform(XMLFragmentStreamReaderKt.getXmlReader(cf), out);
     out.close();
     {
       final String control = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>";

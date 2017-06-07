@@ -14,57 +14,46 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel;
+package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.xml.Namespace;
-import nl.adaptivity.xml.XmlSerializable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Node;
+import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.xml.Namespace
+import nl.adaptivity.xml.XmlSerializable
+import org.w3c.dom.Node
 
 
-public interface IXmlResultType extends XmlSerializable{
+interface IXmlResultType : XmlSerializable {
 
-  char[] getContent();
+  val content: CharArray
 
   /**
-   * Gets the value of the name property.
-   *
-   * @return possible object is {@link String }
+   * The value of the name property.
    */
-  String getName();
+  fun getName(): String?
 
-  /**
-   * Sets the value of the name property.
-   *
-   * @param value allowed object is {@link String }
-   */
-  void setName(String value);
+  fun setName(value:String?)
 
   /**
    * Gets the value of the path property.
    *
-   * @return possible object is {@link String }
+   * @return possible object is [String]
    */
-  @Nullable
-  String getPath();
+  fun getPath(): String?
 
   /**
    * Sets the value of the path property.
    *
    * @param namespaceContext
-   * @param value allowed object is {@link String }
+   *
+   * @param value allowed object is [String]
    */
-  void setPath(final Iterable<? extends Namespace> namespaceContext, String value);
+  fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-  @NotNull
-  ProcessData apply(Node payload);
+  fun apply(payload: Node?): ProcessData
 
   /**
    * Get the namespace context for evaluating the xpath expression.
    * @return the context
    */
-  @Nullable
-  Iterable<Namespace> getOriginalNSContext();
+  fun getOriginalNSContext(): Iterable<Namespace>
 }

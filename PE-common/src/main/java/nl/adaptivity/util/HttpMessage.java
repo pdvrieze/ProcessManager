@@ -23,10 +23,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.HttpMessage.Post;
 import nl.adaptivity.util.HttpMessage.Query;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.*;
 import org.jetbrains.annotations.NotNull;
@@ -842,7 +839,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   @Nullable
   public XmlReader getContent() throws XmlException {
-    return XMLFragmentStreamReader.Companion.from(mBody);
+    return XMLFragmentStreamReaderKt.getXmlReader(mBody);
   }
 
   @XmlName("user")

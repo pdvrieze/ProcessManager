@@ -66,10 +66,10 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     }
 
     constructor(orig: IXmlResultType) {
-      name = orig.name
-      path = orig.path
+      name = orig.getName()
+      path = orig.getPath()
       content = orig.content.copyOf()
-      nsContext = orig.originalNSContext?.toMutableList() ?: mutableListOf()
+      nsContext = orig.getOriginalNSContext()?.toMutableList()
     }
 
     fun build(): XmlResultType {
@@ -77,10 +77,10 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     }
   }
 
-  @Deprecated("")
+  @Deprecated("Use one of the parameterized constructors")
   constructor(): super()
 
-  @Deprecated("")
+  @Deprecated("Use the version that takes a content array")
   constructor(name: String, path: String, content: DocumentFragment?, namespaceContext: Iterable<nl.adaptivity.xml.Namespace>)
       : this(name, path, content?.let{ DomUtil.toString(it).toCharArray() }, namespaceContext)
 
@@ -100,6 +100,8 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
   override val elementName: QName
     get() = ELEMENTNAME
 
+  public val name @Deprecated("", ReplaceWith("getName()")) @JvmName("name") inline get()=getName()
+
   /**
    * Transform the given payload as specified by tag.
    * @param payload
@@ -110,21 +112,21 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     // TODO add support for variable and function resolvers.
     try {
       // shortcircuit missing path
-      if (payload==null) { return ProcessData(name, CompactFragment("")) }
-      val processData = if (path == null || "." == path) {
-        ProcessData(name, DomUtil.nodeToFragment(payload))
+      if (payload==null) { return ProcessData(getName(), CompactFragment("")) }
+      val processData = if (getPath() == null || "." == getPath()) {
+        ProcessData(getName(), DomUtil.nodeToFragment(payload))
       } else {
-        ProcessData(name, DomUtil.nodeListToFragment(xPath!!.evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET) as NodeList))
+        ProcessData(getName(), DomUtil.nodeListToFragment(xPath!!.evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET) as NodeList))
       }
       val content = content
-      if (content != null && content.isNotEmpty()) {
+      if (content.isNotEmpty()) {
         val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
         val reader = transformer.createFilter(bodyStreamReader)
 
         if (reader.hasNext()) reader.next() // Initialise the reader
 
         val transformed = reader.siblingsToFragment()
-        return ProcessData(name, transformed)
+        return ProcessData(getName(), transformed)
       } else {
         return processData
       }
@@ -154,8 +156,8 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
       if (pImport is XmlResultType) {
         return pImport
       }
-      val originalNSContext: Iterable<Namespace> = pImport.originalNSContext?: emptyList()
-      return XmlResultType(pImport.name, pImport.path, null as CharArray, originalNSContext)
+      val originalNSContext: Iterable<Namespace> = pImport.getOriginalNSContext()
+      return XmlResultType(pImport.getName(), pImport.getPath(), null as CharArray, originalNSContext)
     }
   }
 

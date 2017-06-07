@@ -24,7 +24,8 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.XMLFragmentStreamReader
+import nl.adaptivity.util.xml.getXmlReader
+import nl.adaptivity.xml.CompactFragment
 import java.util.*
 
 
@@ -59,7 +60,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       instance.instantiateXmlPlaceholders(engineData,
-          XMLFragmentStreamReader.from(protoMessage.messageBody),
+          protoMessage.messageBody.getXmlReader(),
           false,
           localEndpoint)
     } else {
@@ -88,7 +89,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
       // This just creates a temporary copy
       instanceBuilder.build().instantiateXmlPlaceholders(engineData,
-                                                 XMLFragmentStreamReader.from(protoMessage.messageBody),
+                                                 protoMessage.messageBody.getXmlReader(),
                                                  false,
                                                  localEndpoint)
     } else {

@@ -25,9 +25,8 @@ import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.EventType;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
@@ -297,7 +296,7 @@ public class SoapHelper {
   private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Annotation[] useSiteAnnotations, final Envelope<CompactFragment> env) {
     final CompactFragment bodyContent = env.getBody().getBodyContent();
     try {
-      XmlReader reader = XMLFragmentStreamReader.Companion.from(bodyContent);
+      XmlReader reader = XMLFragmentStreamReaderKt.getXmlReader(bodyContent);
       while (reader.hasNext()) {
         switch(reader.next()) {
           case TEXT:

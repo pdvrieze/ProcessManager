@@ -25,7 +25,7 @@ import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.ws.WsMethodWrapper;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -106,7 +106,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
 
   private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<CompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
     final Body<? extends CompactFragment> body   = envelope.getBody();
-    XmlReader                             reader = XMLFragmentStreamReader.Companion.from(body.getBodyContent());
+    XmlReader                             reader = XMLFragmentStreamReaderKt.getXmlReader(body.getBodyContent());
     reader.nextTag();
     assertRootNode(reader);
 
