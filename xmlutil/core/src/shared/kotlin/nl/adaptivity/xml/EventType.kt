@@ -16,7 +16,7 @@
 
 package nl.adaptivity.xml
 
-enum class EventType(val isIgnorable: Boolean = false)
+enum class EventType
 {
   START_DOCUMENT(isIgnorable = true)
   {
@@ -147,6 +147,16 @@ enum class EventType(val isIgnorable: Boolean = false)
     override fun writeEvent(writer: XmlWriter, reader: XmlReader) =
           writer.processingInstruction(reader.text)
   };
+
+  val isIgnorable:Boolean
+
+  constructor() {
+    isIgnorable=false
+  }
+
+  constructor(isIgnorable:Boolean) {
+    this.isIgnorable = isIgnorable
+  }
 
   @Throws(XmlException::class)
   open fun writeEvent(writer: XmlWriter, textEvent: XmlEvent.TextEvent): Unit = throw UnsupportedOperationException("This is not generally supported, only by text types")
