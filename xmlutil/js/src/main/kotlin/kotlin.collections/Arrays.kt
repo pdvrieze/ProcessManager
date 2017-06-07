@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package kotlin.collections
+package nl.adapitivity.kotlin.collections
 
 fun <T> Array<T>.fill(element: T, fromIndex:Int, toIndex:Int) {
   if (fromIndex>toIndex) throw IllegalArgumentException("From index after to index")
