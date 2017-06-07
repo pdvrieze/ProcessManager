@@ -91,7 +91,7 @@ object XmlStreaming {
     _factory = factory
   }
 
-
+/*
   @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.START_DOCUMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
   val START_DOCUMENT: EventType = EventType.START_DOCUMENT
   @JvmField@Deprecated("Don't use it", ReplaceWith("EventType.START_ELEMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
@@ -122,7 +122,7 @@ object XmlStreaming {
   @JvmField val TEXT = EventType.TEXT
   @Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
   @JvmField val CHARACTERS = EventType.TEXT
-
+*/
   @JvmStatic
   @Throws(XmlException::class)
   fun <T> deSerialize(input: InputStream, type: Class<T>): T {
@@ -184,8 +184,8 @@ inline fun<reified T : Any>  deserialize(input:Reader) = deSerialize(input, T::c
 inline fun<reified T : Any>  deserialize(input:String) = deSerialize(input, T::class.java)
 
 fun CompactFragment(content:String): CompactFragment = JavaCompactFragment(content)
-fun CompactFragment(namespaces:Iterable<Namespace>, content:CharArray): CompactFragment = JavaCompactFragment(namespaces, content)
-fun CompactFragment(namespaces:Iterable<Namespace>, content:String): CompactFragment = JavaCompactFragment(namespaces, content.toCharArray())
+fun CompactFragment(namespaces:Iterable<Namespace>, content:CharArray?): CompactFragment = JavaCompactFragment(namespaces, content ?: kotlin.CharArray(0))
+fun CompactFragment(namespaces:Iterable<Namespace>, content:String?): CompactFragment = JavaCompactFragment(namespaces, content?.toCharArray() ?: kotlin.CharArray(0))
 
 
 

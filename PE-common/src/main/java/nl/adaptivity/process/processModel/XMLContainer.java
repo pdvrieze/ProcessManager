@@ -63,7 +63,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   public void deserializeChildren(@NotNull final XmlReader in) throws XmlException {
     if (in.hasNext()) {
-      if (in.next() != XmlStreaming.END_ELEMENT) {
+      if (in.next() != EventType.END_ELEMENT) {
         final CompactFragment content = XmlReaderExt.siblingsToFragment(in);
         setContent(content);
       }
@@ -147,7 +147,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
   }
 
   protected void visitNamesInElement(@NotNull final XmlReader source) throws XmlException {
-    assert source.getEventType()==XmlStreaming.START_ELEMENT;
+    assert source.getEventType()==EventType.START_ELEMENT;
     visitNamespace(source, source.getPrefix());
 
     for(int i=source.getAttributeCount()-1; i>=0; --i ) {

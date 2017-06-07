@@ -26,9 +26,8 @@ package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.JavaCompactFragment;
+import nl.adaptivity.util.xml.JavaCompactFragmentKt;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.schema.annotations.Attribute;
 import nl.adaptivity.xml.schema.annotations.Child;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +110,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
   }
 
   public static Envelope<CompactFragment> deserialize(final XmlReader in) throws XmlException {
-    return deserialize(in, JavaCompactFragment.Companion.getFACTORY());
+    return deserialize(in, JavaCompactFragmentKt.getFACTORY());
   }
 
   public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
@@ -123,7 +122,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
     EventType event = null;
-    loop: while (in.hasNext() && event != XmlStreaming.END_ELEMENT) {
+    loop: while (in.hasNext() && event != EventType.END_ELEMENT) {
       switch ((event = in.next())) {
         case START_ELEMENT:
           if (result.deserializeChild(in, bodyDeserializer)) {

@@ -36,7 +36,7 @@ class DelayedValue<T>: LifecycleAware<T> {
 
   override operator fun invoke() = get()
 
-  override fun getValue(thisRef: LifecycleAware<T>, property: KProperty<*>) = get()
+  override fun getValue(thisRef: Any?, property: KProperty<*>) = get()
 }
 
 fun <T> SpecBody.delayedGroup(factory: ()->T): DelayedValue<T> {
