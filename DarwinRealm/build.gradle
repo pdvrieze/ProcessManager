@@ -27,7 +27,7 @@ description = 'A tomcat realm to work with the darwin authentication system'
 
 dependencies {
     compileOnly "org.apache.tomcat:tomcat-catalina:${tomcatVersion}"
-    runtimeOnly dbcpSpec
+    runtime dbcpSpec
 
     compile project(':DarwinJavaApi')
     compile project(':accountcommon')

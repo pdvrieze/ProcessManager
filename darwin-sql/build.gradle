@@ -14,14 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
 description = 'The DDL files for the darwin databases'
 
 dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
-    api project(":kotlinsql")
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile project(":kotlinsql")
 
     testImplementation 'org.testng:testng:6.9.13.8'
     testRuntimeOnly 'mysql:mysql-connector-java:5.1.36'

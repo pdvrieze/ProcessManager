@@ -14,7 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
 sourceCompatibility = myJavaVersion
@@ -31,8 +30,8 @@ test {
 }
 
 dependencies {
-    api project(':JavaCommonApi')
-    api project(":kotlinsql")
-    api "org.jetbrains:annotations:13.0"
+    compile project(':JavaCommonApi')
+    compile project(":kotlinsql")
+    compile "org.jetbrains:annotations:13.0"
     testImplementation 'org.testng:testng:6.9.13.8'
 }
