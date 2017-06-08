@@ -195,7 +195,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                         predecessor: IProcessNodeInstance,
                         state: NodeInstanceState) {
       for (successorNode in predecessor.node.successors.map { processModel.getNode(it)!! }) {
-        val successorInstance =  successorNode.createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
+        // Attempt to get the successor instance as it may already be final. In that case the system would attempt to
+        // create a new instance. We don't want to do that just to skip it.
+        val successorInstance =  getChild(successorNode, predecessor.entryNo) ?: successorNode.createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
         successorInstance.skipTask(engineData, state)
       }
     }

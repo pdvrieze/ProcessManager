@@ -505,7 +505,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       processInstanceBuilder.startSuccessors(engineData, this)
     }
 
-    final override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+    override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
       assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail)
       doSkipTask(engineData, newState)
       softUpdateState(newState)

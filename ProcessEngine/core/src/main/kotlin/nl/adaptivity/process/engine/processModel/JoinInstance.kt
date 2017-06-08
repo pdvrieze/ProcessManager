@@ -108,6 +108,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
   class ExtBuilder(instance:JoinInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder), Builder {
     override var node: ExecutableJoin by overlay { instance.node }
     override fun build() = if (changed) JoinInstance(this) else base
+    override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) = skipTaskImpl(engineData, newState)
+
   }
 
   class BaseBuilder(
@@ -120,6 +122,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
     override fun build() = JoinInstance(this)
+    override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) = skipTaskImpl(engineData, newState)
   }
 
   override val node: ExecutableJoin
@@ -362,6 +365,13 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     private fun Builder.activePredecessors(): Sequence<IProcessNodeInstance> {
       return processInstanceBuilder.allChildren { it.handle() in predecessors  }
     }
+
+    private fun Builder.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+      // Skipping a join merely triggers a recalculation
+      assert(newState == NodeInstanceState.Skipped || newState == NodeInstanceState.SkippedCancel || newState == NodeInstanceState.SkippedFail)
+      updateTaskState(engineData)
+    }
+
 
   }
 
