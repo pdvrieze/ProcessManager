@@ -363,7 +363,11 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
             throw ProcessTestingException("The node is final but not complete (failed, skipped)")
           }
           val instance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-          instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+          try {
+            instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+          } catch (e:ProcessException) {
+            throw ProcessTestingException(e)
+          }
         }
       }
     }
