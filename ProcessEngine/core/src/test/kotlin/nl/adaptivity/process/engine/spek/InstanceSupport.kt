@@ -177,7 +177,7 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
                                         trace: Trace) {
   val nonSeenChildNodes = this.childNodes.asSequence()
     .map(SecureObject<ProcessNodeInstance<*>>::withPermission)
-    .filter { it.state.isFinal && it.state != NodeInstanceState.Skipped }
+    .filter { it.state.isFinal && it.state.isSkipped }
     .toMutableSet()
 
   var seenNonFinal = false
@@ -193,8 +193,8 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
       seenNonFinal = true
     }
   }
-  if (!nonSeenChildNodes.isEmpty()) {
-    kfail("All child nodes should be in the full trace or skipped. Found [${nonSeenChildNodes.joinToString()}]" )
+  if (nonSeenChildNodes.isNotEmpty()) {
+    kfail("All child nodes should be in the full trace or skipped. Nodes that were not seen: [${nonSeenChildNodes.joinToString()}]" )
   }
 }
 
