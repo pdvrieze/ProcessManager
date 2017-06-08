@@ -91,7 +91,7 @@ interface InstanceSupport {
         Assertions.assertTrue(nodeInstance.state.isFinal,
                               { "The node instance state should be final (but is ${nodeInstance.state})" })
         Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
-        if (nodeInstance.state == NodeInstanceState.Skipped) null else nodeInstance.node.id
+        if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
       }.sorted().toList()
     Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString()})" })
   }
@@ -177,7 +177,7 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
                                         trace: Trace) {
   val nonSeenChildNodes = this.childNodes.asSequence()
     .map(SecureObject<ProcessNodeInstance<*>>::withPermission)
-    .filter { it.state.isFinal && it.state.isSkipped }
+    .filter { it.state.isFinal && ! it.state.isSkipped }
     .toMutableSet()
 
   var seenNonFinal = false
@@ -213,7 +213,7 @@ fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg n
       assertTrue(nodeInstance.state.isFinal,
                  { "The node instance state should be final (but is ${nodeInstance.state})" })
       assertTrue(nodeInstance.node !is EndNode<*, *>, { "Completed nodes should not be endnodes" })
-      if (nodeInstance.state != NodeInstanceState.Skipped) nodeInstance.node.id else null
+      if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
     }.sorted().toList()
   Assertions.assertEquals(nodeIds.sorted(), finished,
                           { "The list of finished nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${finished.joinToString()}])" })
@@ -235,7 +235,7 @@ fun  ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg 
       Assertions.assertTrue(nodeInstance.state.isFinal,
                             { "The node instance state should be final (but is ${nodeInstance.state})" })
       Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
-      if (nodeInstance.state == NodeInstanceState.Skipped) null else nodeInstance.node.id
+      if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
     }.sorted().toList()
   Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString(transaction)})" })
 }
