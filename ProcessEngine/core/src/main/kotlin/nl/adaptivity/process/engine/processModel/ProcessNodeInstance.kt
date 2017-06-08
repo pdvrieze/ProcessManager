@@ -389,7 +389,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
      */
     fun store(engineData: MutableProcessEngineDataAccess) {
       val mutableNodeInstances = engineData.nodeInstances as MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
-      if (handle.valid) mutableNodeInstances[handle] = build() else { processInstanceBuilder.storeChild(this); processInstanceBuilder.store(engineData) }
+      if (handle.valid) mutableNodeInstances[handle] = build() else { processInstanceBuilder.storeChild(this) }
+      // Must be updated as well as the process node instance may mean the process instance is changed.
+      processInstanceBuilder.store(engineData)
       engineData.commit()
     }
 
@@ -541,10 +543,15 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     final override var owner: Principal,
     final override val entryNo: Int,
     final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-    final override var state: NodeInstanceState = Pending) : AbstractBuilder<N, T>() {
+    state: NodeInstanceState = Pending) : AbstractBuilder<N, T>() {
+
+    final override var state = state
+      set(value:NodeInstanceState) {
+        field = value
+        processInstanceBuilder.storeChild(this)
+      }
 
     final override var predecessors :MutableSet<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> = predecessors.toMutableArraySet()
-
     final override val results = mutableListOf<ProcessData>()
   }
 
@@ -554,7 +561,14 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
     final override var owner by overlay(observer) { base.owner }
     final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer) { base.getHandle() }
-    final override var state by overlay(observer) { base.state }
+    final override var state = base.state
+      set(value) {
+        if (field != value) {
+          field = value
+          changed = true
+          processInstanceBuilder.storeChild(this)
+        }
+      }
     final override var results = ObservableList(base.results.toMutableList(), { changed = true })
     var changed: Boolean = false
     final override val entryNo: Int = base.entryNo

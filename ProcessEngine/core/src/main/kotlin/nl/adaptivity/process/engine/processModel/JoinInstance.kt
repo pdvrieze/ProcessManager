@@ -63,7 +63,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     }
 
     override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
-      return node.startTask(this)
+      if(node.startTask(this)) {
+        return updateTaskState(engineData)
+      } else {
+        return false
+      }
     }
 
     override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {

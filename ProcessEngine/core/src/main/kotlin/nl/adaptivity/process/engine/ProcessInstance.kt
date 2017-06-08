@@ -321,7 +321,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override fun <N : ExecutableProcessNode> getChildren(node: N): Sequence<ProcessNodeInstance.Builder<N, *>> {
       return _pendingChildren.asSequence()
                .filter { it.origBuilder.node == node }
-               .map { it as ProcessNodeInstance.Builder<N, *> } +
+               .map { it.origBuilder as ProcessNodeInstance.Builder<N, *> } +
              base.childNodes.asSequence()
                 .map { it.withPermission() }
                 .filter { it.node == node }
