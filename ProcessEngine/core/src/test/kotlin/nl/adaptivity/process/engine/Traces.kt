@@ -89,7 +89,7 @@ class TraceElement(val nodeId: String, val instanceNo:Int, val outputs:List<Proc
     return when (instanceNo) {
       ANYINSTANCE -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId }
       LASTINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.maxBy { it.entryNo }
-      SINGLEINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.also { if(!it.all { it.entryNo==1 }) throw ProcessTestingException("Only one instance is allowed with this trace: $this") }.firstOrNull()
+      SINGLEINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.also { if(it.count()>1) throw ProcessTestingException("Only one instance is allowed with this trace: $this found: [${it.joinToString()}]") }.singleOrNull()
       else -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId && it.entryNo == instanceNo }
     }
   }

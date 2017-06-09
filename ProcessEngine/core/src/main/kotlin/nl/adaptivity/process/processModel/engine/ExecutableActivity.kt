@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel.engine
 import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.toMutableArraySet
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -134,13 +135,13 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
   }
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+  override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
                                      processInstanceBuilder: ProcessInstance.Builder,
                                      predecessor: IProcessNodeInstance,
                                      entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
     return if (childModel == null)
       super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
-    else
+    else // TODO handle invalidating multiple instances
       processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.handle(), processInstanceBuilder, Handles.getInvalid(), processInstanceBuilder.owner, entryNo)
   }
 

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
@@ -67,14 +68,22 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    *
    * TODO handle failRetry nodes
    */
-  fun createOrReuseInstance(data: ProcessEngineDataAccess,
+  fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
                             processInstanceBuilder: ProcessInstance.Builder,
                             predecessor: IProcessNodeInstance,
-                            entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>
-    = processInstanceBuilder.getChild(this, entryNo) ?:
-      DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.handle()),
-                                                             processInstanceBuilder,
-                                                             processInstanceBuilder.owner, entryNo)
+                            entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    processInstanceBuilder.getChild(this, entryNo)?.let { return it }
+    if (!isMultiInstance && entryNo>1) {
+      processInstanceBuilder.allChildren { it.node == this && it.entryNo!=entryNo }.forEach {
+        processInstanceBuilder.updateChild(it) {
+          invalidateTask(data)
+        }
+      }
+    }
+    return DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.handle()),
+                                                  processInstanceBuilder,
+                                                  processInstanceBuilder.owner, entryNo)
+                            }
 
 
   /**

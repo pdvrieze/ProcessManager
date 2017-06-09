@@ -105,6 +105,11 @@ enum class NodeInstanceState {
   SkippedFail {
     override val isFinal: Boolean get() = true
     override val isSkipped: Boolean get() = true
+  },
+  /** Signifies that the task is no longer valid, but overridden by an instance with higher entryno. */
+  SkippedInvalidated {
+    override val isFinal: Boolean get() = true
+    override val isSkipped: Boolean get() = true
   }
   ;
 

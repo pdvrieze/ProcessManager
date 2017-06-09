@@ -95,16 +95,17 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
   constructor(node: ExecutableSplit,
               predecessor: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+              processInstanceBuilder: ProcessInstance.Builder,
               hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList(),
               entryNo: Int) :
-      super(node, listOf(predecessor), hProcessInstance, owner, entryNo, handle, state, results) {
+      super(node, listOf(predecessor), processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
   }
 
-  constructor(builder: SplitInstance.Builder): this(builder.node, builder.predecessor?: throw NullPointerException("Missing predecessor node instance"), builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.entryNo)
+  constructor(builder: SplitInstance.Builder): this(builder.node, builder.predecessor?: throw NullPointerException("Missing predecessor node instance"), builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.handle, builder.state, builder.results, builder.entryNo)
 
   override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
     return ExtBuilder(this, processInstanceBuilder)
@@ -279,6 +280,8 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     if (successorNode is Join<*, *>) {
       throw IllegalStateException("Splits cannot be immediately followed by joins")
     }
+    // Don't attempt to create an additional instance for a non-multi-instance successor
+    if (! successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node==successorNode && !it.state.isSkipped && it.entryNo!=entryNo }.count()>0) continue
 
     val successorBuilder = successorNode.createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo)
     processInstanceBuilder.storeChild(successorBuilder)

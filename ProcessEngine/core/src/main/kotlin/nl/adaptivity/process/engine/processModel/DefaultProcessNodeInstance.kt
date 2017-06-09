@@ -60,6 +60,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
    */
   constructor(node: ExecutableProcessNode,
               predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              processInstanceBuilder: ProcessInstance.Builder,
               hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
@@ -67,13 +68,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList(),
               failureCause: Throwable? = null)
-    : super(node, predecessors, hProcessInstance, owner, entryNo, handle, state, results, failureCause)
+    : super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results, failureCause)
 
   constructor(node: ExecutableProcessNode,
               predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
               processInstance: ProcessInstance,
               entryNo: Int)
-    : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.getHandle(),
+    : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.builder(), processInstance.getHandle(),
            processInstance.owner, entryNo = entryNo)
 
   constructor(builder: Builder) : super(builder)

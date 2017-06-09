@@ -53,6 +53,7 @@ import javax.xml.transform.Source
  */
 abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node: ExecutableProcessNode,
                                                               predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+                                                              processInstanceBuilder: ProcessInstance.Builder,
                                                               val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
                                                               override final val owner: Principal,
                                                               override final val entryNo: Int,
@@ -65,10 +66,15 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   init {
     @Suppress("LeakingThis")
-    if (entryNo!=1 && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
+    if (entryNo!=1 && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) {
+      if(processInstanceBuilder.allChildren { it.node==node && it.entryNo!=entryNo && it.state!=SkippedInvalidated }.any()) {
+        throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
+      }
+    }
   }
 
   constructor(builder: ProcessNodeInstance.Builder<*, T>) : this(builder.node, builder.predecessors,
+                                                                  builder.processInstanceBuilder,
                                                                   builder.hProcessInstance, builder.owner,
                                                                   builder.entryNo, builder.handle, builder.state,
                                                                   builder.results, builder.failureCause)
@@ -414,6 +420,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       state = newState
     }
 
+    fun invalidateTask(engineData: MutableProcessEngineDataAccess)
+
     fun cancel(engineData: MutableProcessEngineDataAccess)
     fun doCancel(engineData: MutableProcessEngineDataAccess) { state = Cancelled }
 
@@ -513,6 +521,15 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       processInstanceBuilder.storeChild(this)
       assert(state == Skipped || state == SkippedCancel || state == SkippedFail)
       processInstanceBuilder.skipSuccessors(engineData, this, newState)
+    }
+
+    override fun invalidateTask(engineData: MutableProcessEngineDataAccess) {
+      if (! (state.isSkipped || state == Pending ||state==Sent)) {
+        throw ProcessException("Attempting to invalidate a non-skipped node $this with state: $state")
+      }
+      state = SkippedInvalidated
+      store(engineData)
+      processInstanceBuilder.storeChild(this)
     }
 
     final override fun failTask(engineData: MutableProcessEngineDataAccess, cause: Exception) {

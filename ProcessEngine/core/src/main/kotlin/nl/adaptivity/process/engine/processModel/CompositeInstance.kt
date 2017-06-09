@@ -110,9 +110,10 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
   constructor(node: ExecutableActivity,
               predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+              processInstanceBuilder: ProcessInstance.Builder,
               processInstance: ProcessInstance,
               entryNo: Int,
-              childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, listOf(predecessor),
+              childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, listOf(predecessor), processInstanceBuilder,
                                                                                       processInstance.getHandle(), processInstance.owner, entryNo) {
     this.hChildInstance = childInstance
   }

@@ -130,7 +130,7 @@ fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<P
                                 child.hChildInstance).withPermission().allChildren(transaction)
       else                 -> sequenceOf(child)
     }
-  }
+  }.filter { it.state != NodeInstanceState.SkippedInvalidated }
 }
 
 fun ProcessInstance.toDebugString(transaction: Getter<StubProcessTransaction>) = toDebugString(transaction())

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
@@ -52,7 +53,7 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: ProcessEngineDataAccess,
+  override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
                                      processInstanceBuilder: ProcessInstance.Builder,
                                      predecessor: IProcessNodeInstance,
                                      entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {

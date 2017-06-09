@@ -140,17 +140,18 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
   constructor(node: ExecutableJoin,
               predecessors: Collection<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              processInstanceBuilder: ProcessInstance.Builder,
               hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
               handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
-        super(node, predecessors, hProcessInstance, owner, entryNo, handle, state, results) {
+        super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
     assert(predecessors.none { !it.valid }, {"When creating joins all handles should be valid ${predecessors}"})
   }
 
-  constructor(builder:Builder): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
+  constructor(builder:Builder): this(builder.node, builder.predecessors, builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
 
   @JvmName("updateJoin")
   fun updateJoin(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): PNIPair<JoinInstance> {
