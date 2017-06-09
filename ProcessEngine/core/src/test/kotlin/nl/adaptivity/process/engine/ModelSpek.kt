@@ -193,6 +193,11 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
       if (failureExpected && !success) kfail(
         "The invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")} could be executed")
     }
+    if (!failureExpected) {
+      test("The process instance should have a finished state") {
+        assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state)
+      }
+    }
   }
 }
 
