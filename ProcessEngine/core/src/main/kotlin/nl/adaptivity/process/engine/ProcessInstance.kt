@@ -148,6 +148,39 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       }
     }
 
+    fun updateState(engineData: MutableProcessEngineDataAccess) {
+      if (state == State.STARTED) {
+        if (active().none()) {
+          var success = 0
+          var fail = 0
+          var skipped = 0
+          allChildren { it.state.isFinal && it.node is EndNode<*, *> }.forEach {
+            when {
+              it.state == NodeInstanceState.Complete -> success++
+              it.state.isSkipped                     -> skipped++
+              it.state == NodeInstanceState.Failed   -> fail++
+              else                                   -> throw AssertionError("Unexpected state for end node: $it")
+            }
+          }
+          when {
+            fail > 0    -> state = State.FAILED
+            success > 0 -> state = State.FINISHED
+            skipped > 0 -> state = State.SKIPPED
+            else        -> state = State.CANCELLED
+          }
+          store(engineData)
+          if (parentActivity.valid) {
+            val parentNodeInstance = engineData.nodeInstance(parentActivity).withPermission() as CompositeInstance
+            engineData.instance(parentNodeInstance.hProcessInstance).withPermission().update(engineData) {
+              updateChild(parentNodeInstance) {
+                finishTask(engineData)
+              }
+            }
+          }
+        }
+      }
+    }
+
     fun  startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
 
 
@@ -387,6 +420,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     INITIALIZED,
     STARTED,
     FINISHED,
+    SKIPPED,
     FAILED,
     CANCELLED
   }

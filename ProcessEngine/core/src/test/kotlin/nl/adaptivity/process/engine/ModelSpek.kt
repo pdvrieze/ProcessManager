@@ -288,6 +288,10 @@ private fun SpecBody.testComposite(transaction: Getter<StubProcessTransaction>,
       (nodeInstanceF() as CompositeInstance).hChildInstance).withPermission()
     Assertions.assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
   }
+  test("The activity itself should be finished for $traceElement") {
+    assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
+  }
+
 }
 
 private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,

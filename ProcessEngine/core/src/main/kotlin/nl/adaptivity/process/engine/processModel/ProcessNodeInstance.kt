@@ -511,6 +511,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       engineData.commit()
       processInstanceBuilder.updateSplits(engineData)
       processInstanceBuilder.startSuccessors(engineData, this)
+      processInstanceBuilder.updateState(engineData)
     }
 
     override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
