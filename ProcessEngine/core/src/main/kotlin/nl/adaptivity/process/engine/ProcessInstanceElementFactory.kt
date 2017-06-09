@@ -25,7 +25,6 @@ import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
-import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.CompactFragment
 import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
@@ -55,7 +54,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val processModel = mProcessEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
     val instancename = pi.name.nullableValue(columns, values)
     val piHandle = pi.pihandle.value(columns, values)
-    val state = pi.state.nullableValue(columns, values)?: State.NEW
+    val state = pi.state.nullableValue(columns, values) ?: State.NEW
     val uuid = pi.uuid.nullableValue(columns, values) ?: throw IllegalStateException("Missing UUID")
 
     return ProcessInstance.BaseBuilder(Handles.handle(piHandle), owner, processModel, instancename, uuid, state, Handles.handle(parentActivity))

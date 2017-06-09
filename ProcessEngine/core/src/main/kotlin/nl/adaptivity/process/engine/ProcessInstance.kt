@@ -243,7 +243,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                          override var processModel: ExecutableModelCommon,
                          override var instancename: String? = null,
                          override var uuid: UUID = UUID.randomUUID(),
-                         override var state: State=State.NEW,
+                         override var state: State = State.NEW,
                          override var parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> /*= Handles.getInvalid()*/) : Builder {
     override var generation: Int = 0
       private set

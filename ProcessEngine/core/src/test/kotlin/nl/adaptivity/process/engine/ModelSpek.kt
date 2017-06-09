@@ -250,6 +250,9 @@ private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
     test("No nodes are active") {
       processInstanceF().assertActive(transaction())
     }
+    test("The process itself is marked finished") {
+      assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state)
+    }
     test("All endNodes in the trace are complete, skipped, cancelled or failed") {
       val transaction = transaction()
       val processInstance = processInstanceF()
