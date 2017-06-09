@@ -136,6 +136,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
   val isFinished: Boolean
     get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
+  fun canFinish() = predecessors.size>=node.min
+
   constructor(node: ExecutableJoin,
               predecessors: Collection<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
@@ -336,7 +338,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
       var complete = 0
       var skipped = 0
-      for (predecessor in activePredecessors() ) {
+      for (predecessor in instantiatedPredecessors() ) {
         when (predecessor.state) {
           NodeInstanceState.Complete -> complete += 1
 
@@ -355,15 +357,15 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
 
       if (complete >= join.min) {
-        if (complete >= join.max || activePredecessors().none()) {
+        if (complete >= join.max || instantiatedPredecessors().none { ! it.state.isFinal }) {
           return true
         }
       }
       return false
     }
 
-    private fun Builder.activePredecessors(): Sequence<IProcessNodeInstance> {
-      return processInstanceBuilder.allChildren { it.handle() in predecessors  }
+    private fun Builder.instantiatedPredecessors(): Sequence<IProcessNodeInstance> {
+      return processInstanceBuilder.allChildren { it.handle() in predecessors }
     }
 
     private fun Builder.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
