@@ -147,6 +147,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, hProcessInstance, owner, entryNo, handle, state, results) {
+    assert(predecessors.none { !it.valid }, {"When creating joins all handles should be valid ${predecessors}"})
   }
 
   constructor(builder:Builder): this(builder.node, builder.predecessors, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
@@ -357,7 +358,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
 
       if (complete >= join.min) {
-        if (complete >= join.max || instantiatedPredecessors().none { ! it.state.isFinal }) {
+        if (totalPossiblePredecessors-complete-skipped ==0) return true
+        if (complete >= join.max || instantiatedPredecessors().none()) {
           return true
         }
       }
@@ -372,6 +374,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       // Skipping a join merely triggers a recalculation
       assert(newState == NodeInstanceState.Skipped || newState == NodeInstanceState.SkippedCancel || newState == NodeInstanceState.SkippedFail)
       updateTaskState(engineData)
+      store(engineData)
+      processInstanceBuilder.storeChild(this)
     }
 
 

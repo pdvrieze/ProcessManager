@@ -45,7 +45,8 @@ class WCP7(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
       })
 
       trace {
-        start .. ac1 .. (join % split % end)
+        start .. ac1 .. end..join..split
+//        start .. ac1 .. (split % join % end)
       }
 
     }
@@ -66,4 +67,6 @@ class WCP7(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
     ac1 or ac2 or ( start.opt .. (end or join or split))
   }}
   ModelData(model, validTraces, baseInvalid + invalidTraces)
-})
+}) {
+  constructor() : this(true, false)
+}

@@ -62,6 +62,11 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
 
   override fun builder(): ExecutableProcessNode.Builder
 
+  /**
+   * Create an instance of the node or return it if it already exist.
+   *
+   * TODO handle failRetry nodes
+   */
   fun createOrReuseInstance(data: ProcessEngineDataAccess,
                             processInstanceBuilder: ProcessInstance.Builder,
                             predecessor: IProcessNodeInstance,

@@ -509,6 +509,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail)
       doSkipTask(engineData, newState)
       softUpdateState(newState)
+      store(engineData)
+      processInstanceBuilder.storeChild(this)
       assert(state == Skipped || state == SkippedCancel || state == SkippedFail)
       processInstanceBuilder.skipSuccessors(engineData, this, newState)
     }

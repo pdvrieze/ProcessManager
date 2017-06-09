@@ -29,6 +29,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableSplit
 import org.w3c.dom.Node
 import java.security.Principal
 import java.util.logging.Level
+import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 /**
  * Specialisation of process node instance for splits
@@ -233,6 +234,8 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         NodeInstanceState.Started,
         NodeInstanceState.Complete,
         NodeInstanceState.Skipped,
+        NodeInstanceState.SkippedCancel,
+        NodeInstanceState.SkippedFail,
         NodeInstanceState.Failed,
         NodeInstanceState.Acknowledged -> true
         else                           -> false
@@ -247,50 +250,65 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
  * Update the state of the split.
  *
  * @return Whether or not the split is complete.
+ *
+ * TODO Review this algorithm
  */
 internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineDataAccess):Boolean {
 
-  fun canStartMore() = processInstanceBuilder.allChildren { SplitInstance.isActiveOrCompleted(
-    it) && handle in it.predecessors }.count() < node.max
-
   if (state.isFinal) return true
 
-  // XXX really needs fixing
-  val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }
-  var viableNodes: Int = processInstanceBuilder.allChildren { SplitInstance.isActiveOrCompleted(
-    it) && handle in it.predecessors }.count()
+  val successorNodes = node.successors.map { node.ownerModel.getNode(it).mustExist(it) }.toList()
+
+  var skippedCount = 0
+  var failedCount = 0
+  var activeCount = 0
+  var committedCount =0
+
+  processInstanceBuilder.allChildren { handle in it.predecessors }.map{it.state}.forEach { state ->
+    when {
+      state.isSkipped -> skippedCount++
+      state == NodeInstanceState.Failed -> failedCount++
+      state.isCommitted -> committedCount++
+      state.isActive -> activeCount++
+    }
+  }
 
   for (successorNode in successorNodes) {
-    if (canStartMore()) {
-      if (successorNode is Join<*, *>) {
-        throw IllegalStateException("Splits cannot be immediately followed by joins")
-      }
+    if (committedCount>=node.max) break // stop the loop when we are at the maximum successor count
 
-      val successorBuilder = successorNode.createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo)
-      processInstanceBuilder.storeChild(successorBuilder)
-      if (successorBuilder.state == NodeInstanceState.Pending) {
-        // temporaryly build a node to evaluate the condition against, but don't register it.
-        val conditionResult = successorBuilder.build().run { condition(engineData) }
-        when (conditionResult) {
-          ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
-            successorBuilder.provideTask(engineData)
-          }
-          ConditionResult.NEVER -> {
-            successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
-          }
+    if (successorNode is Join<*, *>) {
+      throw IllegalStateException("Splits cannot be immediately followed by joins")
+    }
+
+    val successorBuilder = successorNode.createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo)
+    processInstanceBuilder.storeChild(successorBuilder)
+    if (successorBuilder.state == NodeInstanceState.Pending) {
+      // temporaryly build a node to evaluate the condition against, but don't register it.
+      val conditionResult = successorBuilder.build().run { condition(engineData) }
+      when (conditionResult) {
+        ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
+          successorBuilder.provideTask(engineData)
+        }
+        ConditionResult.NEVER -> {
+          successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
         }
       }
 
-    }
 
-    val successorInstance = processInstanceBuilder.allChildren { node == successorNode && handle in it.predecessors }.firstOrNull()
-    // in any case
-    if (successorInstance==null || (successorInstance.state == NodeInstanceState.Complete || ! successorInstance.state.isFinal)) {
-      viableNodes+=1
+      val successorInstance = processInstanceBuilder.allChildren { it.node == successorNode && handle in it.predecessors }.firstOrNull()
+      successorInstance?.state?.also { state ->
+        when {
+          state.isSkipped -> skippedCount++
+          state == NodeInstanceState.Failed -> failedCount++
+          state.isCommitted -> committedCount++
+          state.isActive -> activeCount++
+        }
+
+      }
     }
 
   }
-  if (viableNodes<node.min) { // No way to succeed, try to cancel anything that is not in a final state
+  if ((successorNodes.size - (skippedCount + failedCount))<node.min) { // No way to succeed, try to cancel anything that is not in a final state
     for(successor in processInstanceBuilder.allChildren { handle in it.predecessors && ! it.state.isFinal }) {
       try {
         successor.builder(processInstanceBuilder).cancel(engineData)
@@ -299,12 +317,16 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     state = NodeInstanceState.Failed
     return true // complete, but invalid
   }
-
-  if (! canStartMore()) {
-    processInstanceBuilder
-      .allChildren { !SplitInstance.isActiveOrCompleted(it) && handle in it.predecessors }
+  // If we determined the maximum
+  if (committedCount>=node.max) {
+    processInstanceBuilder.allChildren { !SplitInstance.isActiveOrCompleted(it) && handle in it.predecessors }
       .forEach { it.builder(processInstanceBuilder).cancelAndSkip(engineData) }
-    state = NodeInstanceState.Complete
+    return true // We reached the max
+  }
+
+  // If all successors are committed
+  if (activeCount==0 && successorNodes.size <= skippedCount + failedCount + committedCount) {
+    // no need to cancel, just complete
     return true
   }
   return false

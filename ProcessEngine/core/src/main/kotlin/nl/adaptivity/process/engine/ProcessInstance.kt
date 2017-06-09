@@ -141,7 +141,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun updateSplits(engineData: MutableProcessEngineDataAccess) {
       for(split in allChildren { !it.state.isFinal && it.node is Split<*, *> } ) {
         updateChild(split) {
-          (this as SplitInstance.Builder).updateState(engineData)
+          if((this as SplitInstance.Builder).updateState(engineData) && state!=NodeInstanceState.Complete) {
+            state=NodeInstanceState.Complete
+          }
         }
       }
     }

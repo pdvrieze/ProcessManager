@@ -112,6 +112,7 @@ enum class NodeInstanceState {
   open val isFinal: Boolean get() = false
   open val isActive: Boolean get() = false
   open val isCommitted: Boolean get() = false
+  val canRestart get()= this==FailRetry || this==Pending
 
   val lcname = name.toLowerCase(Locale.ENGLISH)
 
