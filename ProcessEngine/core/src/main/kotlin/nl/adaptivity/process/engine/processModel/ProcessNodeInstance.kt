@@ -66,7 +66,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   init {
     @Suppress("LeakingThis")
-    if (!(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) {
+    if (state!=SkippedInvalidated && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge ?: false))) {
       if(processInstanceBuilder.allChildren { it.node==node && it.entryNo!=entryNo && it.state!=SkippedInvalidated }.any()) {
         throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
       }
