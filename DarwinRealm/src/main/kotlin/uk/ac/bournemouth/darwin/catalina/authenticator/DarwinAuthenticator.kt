@@ -314,12 +314,12 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
             if (origPrincipal != null) {
                 if (origPrincipal !is DarwinUserPrincipal) {
-                    log.info("Found preexisting principal, converted to darwinprincipal: ${origPrincipal.name}")
+                    log.finer("Found preexisting principal, converted to darwinprincipal: ${origPrincipal.name}")
                     request.authType = AUTHTYPE
                     request.userPrincipal = origPrincipal.asDarwinPrincipal(dataSource)
                 }
 
-                return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: previously authenticated as ${request.userPrincipal.name}") }
+                return AuthResult.AUTHENTICATED.apply { log.finer("authenticateHelper: previously authenticated as ${request.userPrincipal.name}") }
             }
 
             try {
@@ -339,13 +339,13 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                         // Set the cookie as a note so it can be removed for example in logout
                         request.setNote(DARWINCOOKIENAME, authToken)
 
-                        return AuthResult.AUTHENTICATED.apply { log.info("authenticateHelper: authenticated as ${request.userPrincipal.name}") }
+                        return AuthResult.AUTHENTICATED.apply { log.fine("authenticateHelper: authenticated as ${request.userPrincipal.name}") }
                     }
                 }
                 // invalidate all old cookies
                 clearCookies(request, response)
 
-                return AuthResult.LOGIN_NEEDED.apply { log.info("authenticateHelper: cookie no longer valid (${authTokens.first()})") }
+                return AuthResult.LOGIN_NEEDED.apply { log.fine("authenticateHelper: cookie no longer valid (${authTokens.first()})") }
 
             } catch (e: Exception) {
                 log.log(Level.WARNING, "Failure in verifying user", e)
