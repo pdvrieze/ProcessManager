@@ -341,6 +341,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun ensureTables(): Unit {
     WebAuthDB.ensureTables(connection, false)
+    connection.commit()
   }
 
 
