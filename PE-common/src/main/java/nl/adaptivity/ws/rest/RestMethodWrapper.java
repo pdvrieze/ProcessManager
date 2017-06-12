@@ -576,11 +576,9 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
     if (mResult instanceof XmlSerializable) {
       // By default don't use JAXB
       setContentType(pResponse, "text/xml");
-      OutputStreamWriter writer = new OutputStreamWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding());
-      try {
-        ((XmlSerializable) mResult).serialize(XmlStreaming.newWriter(writer));
-      } finally {
-        writer.close();
+      try(OutputStreamWriter writer = new OutputStreamWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding());
+          XmlWriter xmlWriter = XmlStreaming.newWriter(writer)) {
+        ((XmlSerializable) mResult).serialize(xmlWriter);
       }
       return;
     }
