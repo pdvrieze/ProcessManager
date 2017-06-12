@@ -34,6 +34,7 @@ import nl.adaptivity.process.processModel.uuid
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
+import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -170,7 +171,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     private val dbResource: javax.sql.DataSource by lazy {
       val context = InitialContext().lookup("java:/comp/env") as Context
-      DbSet.resourceNameToDataSource(context, DB_RESOURCE)
+      DbSet.resourceNameToDataSource(context, DB_RESOURCE).also { dataSource ->
+        ProcessEngineDB.connect(dataSource) {
+          ProcessEngineDB.ensureTables(this)
+          commit()
+        }
+      }
     }
 
     lateinit var engine : ProcessEngine<ProcessDBTransaction>
