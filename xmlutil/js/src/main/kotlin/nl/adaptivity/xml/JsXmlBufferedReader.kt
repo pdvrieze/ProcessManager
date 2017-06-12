@@ -16,10 +16,12 @@
 
 package nl.adaptivity.xml
 
+
+typealias XmlBufferedReader = JsXmlBufferedReader
 /**
  * Created by pdvrieze on 03/04/17.
  */
-open class XmlBufferedReader(delegate:XmlReader): XmlBufferedReaderBase(delegate)
+open class JsXmlBufferedReader(delegate:XmlReader): XmlBufferedReaderBase(delegate)
 {
   private val peekBuffer = mutableListOf<XmlEvent>()
 
@@ -33,9 +35,9 @@ open class XmlBufferedReader(delegate:XmlReader): XmlBufferedReaderBase(delegate
     return peekBuffer.last()
   }
 
-  override fun peekRemoveLast() = peekBuffer.removeAt(peekBuffer.lastIndex)
+  override fun bufferRemoveLast() = peekBuffer.removeAt(peekBuffer.lastIndex)
 
-  override fun peekRemoveFirst() = peekBuffer.removeAt(0)
+  override fun bufferRemoveFirst() = peekBuffer.removeAt(0)
 
   override protected fun add(event: XmlEvent) {
     peekBuffer.add(event)

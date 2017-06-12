@@ -18,20 +18,22 @@ package nl.adaptivity.xml
 
 import java.util.*
 
+typealias XmlBufferedReader = JvmXmlBufferedReader
+
 /**
  * Created by pdvrieze on 03/04/17.
  */
-open class XmlBufferedReader(delegate:XmlReader): XmlBufferedReaderBase(delegate)
+open class JvmXmlBufferedReader(delegate:XmlReader): XmlBufferedReaderBase(delegate)
 {
   private val peekBuffer = ArrayDeque<XmlEvent>()
 
   override protected val hasPeekItems get() = peekBuffer.isNotEmpty()
 
-  override protected fun peekFirst(): XmlEvent {
+  override protected fun peekFirst(): XmlEvent? {
     return peekBuffer.peekFirst()
   }
 
-  override protected fun peekLast(): XmlEvent {
+  override protected fun peekLast(): XmlEvent? {
     return peekBuffer.peekLast()
   }
 
