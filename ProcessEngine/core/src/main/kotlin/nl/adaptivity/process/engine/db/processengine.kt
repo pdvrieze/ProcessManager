@@ -80,7 +80,7 @@ object ProcessEngineDB : uk.ac.bournemouth.kotlinsql.Database(1) {
     val pmhandle by reference(processModels.pmhandle) { NOT_NULL }
     val state by X_INSTANCESTATE
     val uuid by X_UUID { UNIQUE; NOT_NULL }
-    val parentActivity by reference(processNodeInstances.pnihandle) { NULL }
+    val parentActivity by reference("parentActivity", processNodeInstances.pnihandle) { NULL }
     override fun init() {
       INDEX(owner)
       PRIMARY_KEY(pihandle)
@@ -90,7 +90,7 @@ object ProcessEngineDB : uk.ac.bournemouth.kotlinsql.Database(1) {
 
 
   object processNodeInstances : MutableTable("processnodeinstances", EXTRACONF) {
-    val pnihandle by X_PNIHANDLE
+    val pnihandle by X_PNIHANDLE { NOT_NULL; AUTO_INCREMENT }
     val pihandle by reference(processInstances.pihandle) { NOT_NULL }
     val nodeid by VARCHAR(30) { NOT_NULL }
     val entryno by INT
