@@ -19,6 +19,7 @@ package nl.adaptivity.ws.soap;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
+import net.devrieze.util.security.SYSTEMPRINCIPAL;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
@@ -274,6 +275,10 @@ public class SoapHelper {
       Node param = (Node) pParam.getElem3();
       param = ownerDoc.importNode(param, true);
       wrapper.appendChild(param);
+    } else if (pParam.getElem3() == SYSTEMPRINCIPAL.INSTANCE) {
+      Element tag = ownerDoc.createElementNS(SYSTEMPRINCIPAL.NS, SYSTEMPRINCIPAL.TAG);
+      tag.appendChild(ownerDoc.createTextNode(Long.toString(SYSTEMPRINCIPAL.INSTANCE.getKEY())));
+      wrapper.appendChild(tag);
     } else if (Principal.class.isAssignableFrom(paramType)) {
       wrapper.appendChild(ownerDoc.createTextNode(((Principal) pParam.getElem3()).getName()));
     } else {
@@ -435,6 +440,16 @@ public class SoapHelper {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         final Object tmpResult = Enum.valueOf((Class) pClass, val);
         result = tmpResult;
+      } else if (pClass.isAssignableFrom(Principal.class)
+                 && (value instanceof Element)
+                 && (SYSTEMPRINCIPAL.NS.equals(value.getNamespaceURI()))
+                 && (SYSTEMPRINCIPAL.TAG.equals(value.getLocalName()))) {
+        long key = Long.parseLong(value.getTextContent());
+        if (key == SYSTEMPRINCIPAL.INSTANCE.getKEY()) {
+          result = SYSTEMPRINCIPAL.INSTANCE;
+        } else {
+          throw new IllegalArgumentException("Invalid system principal key!! "+key);
+        }
       } else if (pClass.isAssignableFrom(Principal.class) && (value instanceof Text)) {
         result = new SimplePrincipal(((Text) value).getData());
       } else if (CharSequence.class.isAssignableFrom(pClass) && (value instanceof Text)) {
