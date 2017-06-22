@@ -45,7 +45,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     get() = pi
 
   override val createColumns: List<Column<*, *, *>>
-    get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid)
+    get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid, pi.parentActivity)
 
   override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.BaseBuilder {
     val owner = SimplePrincipal(pi.owner.nullableValue(columns, values))

@@ -17,6 +17,8 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
+import net.devrieze.util.db.DBHandleMap
+import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptor
@@ -61,6 +63,14 @@ private fun <T : ProcessTransaction, V:Any> wrapInstanceCache(base: MutableTrans
     return base
   }
   return CachingHandleMap<V, T>(base, cacheSize)
+}
+
+private fun wrapDBInstanceCache(base: ProcessInstanceMap,
+                                cacheSize: Int): MutableTransactionedHandleMap<SecureObject<ProcessInstance>, ProcessDBTransaction> {
+  if (cacheSize <= 0) {
+    return base
+  }
+  return ProcessInstanceMap.Cache<ProcessDBTransaction>(base, cacheSize)
 }
 
 private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
@@ -181,7 +191,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     lateinit var engine : ProcessEngine<ProcessDBTransaction>
 
-    override val processInstances by lazy { wrapInstanceCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE) }
+    override val processInstances by lazy { wrapDBInstanceCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE) }
 
     override val processNodeInstances by lazy { wrapNodeCache(ProcessNodeInstanceMap(this, engine), NODE_CACHE_SIZE) }
 
