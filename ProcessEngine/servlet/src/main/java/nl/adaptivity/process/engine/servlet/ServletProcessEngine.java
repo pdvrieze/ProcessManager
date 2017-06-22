@@ -715,12 +715,12 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
   public XmlHandle<?> startProcess(
          @WebParam(name="handle") @RestParam(name = "handle", type = ParamType.VAR) final long handle,
-         @WebParam(name="name") @RestParam(name = "name", type = ParamType.QUERY) final String name,
-         @WebParam(name="uuid") @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
+         @Nullable @WebParam(name="name") @RestParam(name = "name", type = ParamType.QUERY) final String name,
+         @Nullable @WebParam(name="uuid") @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
          @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws FileNotFoundException {
     try (TRXXX transaction = mProcessEngine.startTransaction()){
       final UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
-      return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ExecutableProcessModel>handle(handle), name, uuid,
+      return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ExecutableProcessModel>handle(handle), name !=null ? name : "<unnamed>", uuid,
                                                             null));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error starting process", e);
