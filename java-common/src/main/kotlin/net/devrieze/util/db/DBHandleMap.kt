@@ -45,6 +45,12 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
     return mPendingCreates.containsKey(handle)
   }
 
+
+  fun  pendingValue(handle: ComparableHandle<V>): TMP? {
+    return mPendingCreates[handle]
+  }
+
+
   override val elementFactory: HMElementFactory<TMP, V, TR>
     get() = super.elementFactory as HMElementFactory<TMP, V, TR>
 

@@ -58,7 +58,9 @@ interface ElementFactory<BUILDER, T:Any, in TR: DBTransaction> {
   fun create(transaction: TR, columns: List<Column<*, *, *>>, values: List<Any?>): BUILDER
 
   /**
-   * Hook to allow for subsequent queries
+   * Hook to allow for subsequent queries to update the intermediate.
+   *
+   *
    * @param transaction The connection to use
    * *
    * @param builder The element that has been created.
