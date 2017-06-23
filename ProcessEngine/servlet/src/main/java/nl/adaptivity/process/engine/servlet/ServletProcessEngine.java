@@ -50,6 +50,7 @@ import nl.adaptivity.xml.SerializableList;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -759,9 +760,9 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
    * @return The full process instance.
    */
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
-  public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+  public XmlSerializable getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (TRXXX transaction = mProcessEngine.startTransaction()){
-      return transaction.commit(mProcessEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(handle), user));
+      return transaction.commit(mProcessEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(handle), user).serializable(transaction));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error getting process instance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -946,6 +947,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
                   transaction.commit();
                   return;
                 } catch (final NullPointerException e) {
+                  e.printStackTrace();
                   // ignore
                 } catch (final IllegalArgumentException e) {
                   try (TRXXX transaction = mProcessEngine.startTransaction()) {

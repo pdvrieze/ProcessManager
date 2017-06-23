@@ -49,6 +49,14 @@ import javax.xml.transform.dom.DOMResult
 
 class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance> {
 
+  fun serializable(transaction: ProcessTransaction): XmlSerializable {
+    return object : XmlSerializable {
+      override fun serialize(out: XmlWriter) {
+        serialize(transaction, out)
+      }
+    }
+  }
+
   @Deprecated("Use builder")
   data class PNIPair<out T: ProcessNodeInstance<*>>(val instance:ProcessInstance, val node: T)
 
@@ -441,7 +449,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     val parentActivity = processInstance.parentActivity
 
-    var uuid: UUID = processInstance.uuid
+    val uuid: UUID = processInstance.uuid
+
+    val state = processInstance.state
 
     @Throws(XmlException::class)
     override fun serialize(out: XmlWriter) {
@@ -451,6 +461,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         writeHandleAttr("parentActivity", parentActivity)
         writeAttribute("name", name)
         writeAttribute("uuid", uuid)
+        writeAttribute("state", state)
       }
     }
 

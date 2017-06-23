@@ -467,7 +467,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     /**
      * Update the state if the current state would indicate that to be the expected action
      */
-    private fun softUpdateState(targetState: NodeInstanceState) {
+    private fun softUpdateState(engineData: MutableProcessEngineDataAccess, targetState: NodeInstanceState) {
       if (state==targetState) return
       val doSet = when (targetState) {
         Pending       -> throw IllegalArgumentException ("Updating a state to pending is not allowed")
@@ -481,22 +481,25 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
         Skipped       -> false
         else -> TODO("Not needed, not yet implemented, the semantics are not clear yet ($targetState)")
       }
-      if (doSet) { state = targetState }
+      if (doSet) {
+        state = targetState
+        store(engineData)
+      }
     }
 
     final override fun provideTask(engineData: MutableProcessEngineDataAccess) {
-      if (doProvideTask(engineData).also { softUpdateState(Sent) } ) {
+      if (doProvideTask(engineData).also { softUpdateState(engineData, Sent) } ) {
         takeTask(engineData)
       }
     }
 
     final override fun takeTask(engineData: MutableProcessEngineDataAccess) {
-      if (doTakeTask(engineData).also { softUpdateState(Taken) })
+      if (doTakeTask(engineData).also { softUpdateState(engineData, Taken) })
         startTask(engineData)
     }
 
     final override fun startTask(engineData: MutableProcessEngineDataAccess) {
-      if (doStartTask(engineData).also { softUpdateState(Started) }) {
+      if (doStartTask(engineData).also { softUpdateState(engineData, Started) }) {
         finishTask(engineData)
       }
     }
@@ -506,7 +509,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
         throw ProcessException("instance ${node.id}:${handle()}(${state}) cannot be finished as it is already in a final state.")
       }
       doFinishTask(engineData, resultPayload)
-      softUpdateState(Complete)
+      softUpdateState(engineData, Complete)
       store(engineData)
       engineData.commit()
       processInstanceBuilder.updateSplits(engineData)
@@ -517,7 +520,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
       assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail)
       doSkipTask(engineData, newState)
-      softUpdateState(newState)
+      softUpdateState(engineData, newState)
       store(engineData)
       processInstanceBuilder.storeChild(this)
       assert(state == Skipped || state == SkippedCancel || state == SkippedFail)
@@ -541,7 +544,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     final override fun cancel(engineData: MutableProcessEngineDataAccess) {
       doCancel(engineData)
-      softUpdateState(Cancelled)
+      softUpdateState(engineData, Cancelled)
       processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
     }
 

@@ -557,7 +557,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                       handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                       user: Principal): ProcessNodeInstance<*>? {
     engineData.inReadonlyTransaction(transaction) {
-      return nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) {
+      return nodeInstances[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) {
         it
       }
     }

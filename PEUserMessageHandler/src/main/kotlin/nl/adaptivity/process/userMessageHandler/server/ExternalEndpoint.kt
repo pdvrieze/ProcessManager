@@ -18,6 +18,7 @@ package nl.adaptivity.process.userMessageHandler.server
 
 import net.devrieze.util.Handles
 import net.devrieze.util.Transaction
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.MessagingRegistry
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -94,7 +95,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/allPendingTasks")
   @Deprecated("The version that takes the user should be used.", ReplaceWith("getPendingTasks(user)"))
-  fun getPendingTasks() = getPendingTasks(mService, null)
+  fun getPendingTasks() = getPendingTasks(mService, SYSTEMPRINCIPAL)
 
   /**
    * Get a list of pending tasks.
@@ -229,11 +230,11 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
      */
     @Throws(SQLException::class)
     private fun <T : Transaction> getPendingTasks(service: UserMessageService<T>,
-                                                  user: Principal?): Collection<XmlTask> {
+                                                  user: Principal): Collection<XmlTask> {
       try {
         service.newTransaction().use { transaction ->
           return transaction.commit(service.getPendingTasks(transaction,
-                                                            user!!))
+                                                            user))
         }
       } catch (e: Exception) {
         Logger.getAnonymousLogger().log(Level.WARNING, "Error retrieving tasks", e)

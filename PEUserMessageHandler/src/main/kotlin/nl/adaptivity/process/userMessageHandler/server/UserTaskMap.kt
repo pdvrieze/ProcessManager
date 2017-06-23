@@ -22,6 +22,7 @@ import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
@@ -100,8 +101,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
       val instance: XmlProcessNodeInstance?
       try {
         val future = ServletProcessEngineClient
-              .getProcessNodeInstance(remoteHandle.handleValue, SecurityProvider.SYSTEMPRINCIPAL,
-                                      null, XmlTask::class.java, Envelope::class.java)
+              .getProcessNodeInstance(remoteHandle.handleValue, SYSTEMPRINCIPAL, null, XmlTask::class.java, Envelope::class.java)
         instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
         if (instance == null) {
           throw RuntimeException("No instance could be looked up")
@@ -179,7 +179,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
     }
 
     override fun postStore(connection: DBConnection, handle: Handle<out XmlTask>, oldValue: XmlTask?, newValue: XmlTask) {
-      val insert = UserTaskDB.INSERT(nd.taskhandle, nd.name, nd.data)
+      val insert = UserTaskDB.INSERT_OR_UPDATE(nd.taskhandle, nd.name, nd.data)
       for(item in newValue.items) {
         val itemName = item.name
         if (itemName !=null && item.type!="label") {

@@ -55,7 +55,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
     var name: String?
     var path: String?
-    var content: CharArray
+    var content: CharArray?
     val nsContext: MutableList<Namespace>
 
     constructor() {
@@ -68,8 +68,8 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     constructor(orig: IXmlResultType) {
       name = orig.getName()
       path = orig.getPath()
-      content = orig.content.copyOf()
-      nsContext = orig.getOriginalNSContext()?.toMutableList()
+      content = orig.content?.copyOf()
+      nsContext = orig.getOriginalNSContext().toMutableList()
     }
 
     fun build(): XmlResultType {
@@ -119,7 +119,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
         ProcessData(getName(), DomUtil.nodeListToFragment(xPath!!.evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET) as NodeList))
       }
       val content = content
-      if (content.isNotEmpty()) {
+      if (content?.isNotEmpty() ?: false) {
         val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
         val reader = transformer.createFilter(bodyStreamReader)
 

@@ -24,7 +24,7 @@ import org.w3c.dom.Node
 
 interface IXmlResultType : XmlSerializable {
 
-  val content: CharArray
+  val content: CharArray?
 
   /**
    * The value of the name property.

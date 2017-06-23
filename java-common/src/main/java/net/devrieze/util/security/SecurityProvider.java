@@ -27,22 +27,8 @@ public interface SecurityProvider {
   /**
    * Special principal that represents the system.
    */
-  RolePrincipal SYSTEMPRINCIPAL= new RolePrincipal() {
-    @Override
-    public boolean hasRole(@NotNull final String role) {
-      return true;
-    }
-
-    @Override
-    public String getName() {
-      return "<SYSTEM PRINCIPAL>";
-    }
-
-    @Override
-    public String toString() {
-      return getName();
-    }
-  };
+  @Deprecated
+  RolePrincipal SYSTEMPRINCIPAL= net.devrieze.util.security.SYSTEMPRINCIPAL.INSTANCE;
 
   /**
    * Simple marker interface to represent a permission.

@@ -163,10 +163,10 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
       out.writeAttribute("handle", handleValue)
     }
     if (remoteHandle.valid) {
-      out.writeAttribute("remotehandle", remoteHandle)
+      out.writeAttribute("remotehandle", remoteHandle.handleValue)
     }
     if (instanceHandle.valid) {
-      out.writeAttribute("instancehandle", instanceHandle)
+      out.writeAttribute("instancehandle", instanceHandle.handleValue)
     }
     out.writeAttribute("summary", summary)
     if (owner != null) {
