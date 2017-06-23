@@ -50,24 +50,12 @@ class UserMessageService<T : Transaction> private constructor(private val transa
     inline fun <R> commit(block: ()-> R) = block().apply { transaction.commit() }
   }
 
-  private class MyDBTransactionFactory internal constructor() : TransactionFactory<DBTransaction> {
-    private val mContext: Context?
-
+  private class MyDBTransactionFactory internal constructor(private val context: Context) : TransactionFactory<DBTransaction> {
     private var mDBResource: javax.sql.DataSource? = null
-
-    init {
-      try {
-        val ic = InitialContext()
-        mContext = ic.lookup("java:/comp/env") as Context
-      } catch (e: NamingException) {
-        throw RuntimeException(e)
-      }
-
-    }
 
     private val dbResource: javax.sql.DataSource
       get() {
-        return mDBResource ?: return DbSet.resourceNameToDataSource(mContext, DB_RESOURCE).apply { mDBResource = this }
+        return mDBResource ?: return DbSet.resourceNameToDataSource(context, DB_RESOURCE).apply { mDBResource = this }
       }
 
     override fun startTransaction(): DBTransaction {
@@ -212,9 +200,11 @@ class UserMessageService<T : Transaction> private constructor(private val transa
 
     const val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
+    private val context = InitialContext().lookup("java:/comp/env") as Context
+
     @JvmStatic
     fun newDBInstance(): UserMessageService<DBTransaction> {
-      val transactionFactory = MyDBTransactionFactory()
+      val transactionFactory = MyDBTransactionFactory(context)
       return UserMessageService(transactionFactory, UserTaskMap(transactionFactory))
     }
 

@@ -179,8 +179,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
       }
     }
 
+    private val context = InitialContext().lookup("java:/comp/env") as Context
+
     private val dbResource: javax.sql.DataSource by lazy {
-      val context = InitialContext().lookup("java:/comp/env") as Context
       DbSet.resourceNameToDataSource(context, DB_RESOURCE).also { dataSource ->
         ProcessEngineDB.connect(dataSource) {
           ProcessEngineDB.ensureTables(this)
