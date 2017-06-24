@@ -40,7 +40,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   private String mName;
-  private CompactFragment mValue;
+  @NotNull private CompactFragment mValue;
 
 // Object Initialization
 
@@ -53,7 +53,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
     this(name, toCompactFragment(value));
   }
 
-  public ProcessData(final String name, final CompactFragment value) {
+  public ProcessData(final String name, @NotNull final CompactFragment value) {
     mName = name;
     mValue = value;
   }
@@ -73,7 +73,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
   private ProcessData() {}
 
   public static ProcessData missingData(String name) {
-    return new ProcessData(name, (CompactFragment) null);
+    return new ProcessData(name, XmlStreamingKt.CompactFragment(""));
   }
 
   // Object Initialization end
@@ -143,6 +143,7 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
     return mName;
   }
 
+  @NotNull
   public CompactFragment getContent() {
     return mValue;
   }
