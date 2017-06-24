@@ -16,22 +16,21 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.*
+import net.devrieze.util.Handle
+import net.devrieze.util.Transaction
+import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
+import net.devrieze.util.inWriteTransaction
 import net.devrieze.util.security.AuthenticationNeededException
 import nl.adaptivity.messaging.CompletionListener
-import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
-import java.io.FileNotFoundException
 import java.security.Principal
 import java.sql.SQLException
-import java.util.*
 import java.util.concurrent.Future
 import javax.naming.Context
 import javax.naming.InitialContext
-import javax.naming.NamingException
 
 
 class UserMessageService<T : Transaction> private constructor(private val transactionFactory: TransactionFactory<T>, taskMap: IMutableUserTaskMap<T>) : CompletionListener<Boolean>/*<TODO Placeholder type*/ {
@@ -41,6 +40,7 @@ class UserMessageService<T : Transaction> private constructor(private val transa
     fun getPendingTasks(user:Principal) = getPendingTasks(transaction, user)
     fun getPendingTask(handle: Handle<XmlTask>, user: Principal) = getPendingTask(transaction, handle, user)
     fun finishTask(handle: Handle<XmlTask>, user: Principal) = finishTask(transaction, handle, user)
+    fun cancelTask(handle: Handle<XmlTask>, user: Principal) = cancelTask(transaction, handle, user)
     fun getTask(handle: Handle<XmlTask>) = getTask(transaction, handle)
     fun takeTask(handle: Handle<XmlTask>, user: Principal) = takeTask(transaction, handle, user)
     fun updateTask(handle: Handle<XmlTask>, partialNewTask: XmlTask, user: Principal) =
@@ -95,10 +95,14 @@ class UserMessageService<T : Transaction> private constructor(private val transa
 
   fun getPendingTasks(transaction: T, user: Principal): Collection<XmlTask> {
     return tasks.inWriteTransaction(transaction) {
-      val t = this
-      t.iterator().asSequence().filter { ! (it.state?.isFinal ?: false) }.toList().also { list ->
-        list.asSequence().filter { ! it.remoteHandle.valid }.forEach {
-          remove(it.getHandle())
+      mutableListOf<XmlTask>().also { result ->
+        for (task in this) {
+          val taskState = task.state
+          if (taskState == null || !task.remoteHandle.valid || taskState.isFinal) {
+            remove(task.getHandle())
+          } else {
+            result.add(task)
+          }
         }
       }
     }
@@ -111,15 +115,26 @@ class UserMessageService<T : Transaction> private constructor(private val transa
 
   @Throws(SQLException::class)
   fun finishTask(transaction: T, taskHandle: Handle<out XmlTask>, user: Principal?): NodeInstanceState {
-    if (user == null) {
-      throw AuthenticationNeededException("There is no user associated with this request")
-    }
+    user ?: throw AuthenticationNeededException("There is no user associated with this request")
+
     val task = tasks[transaction, taskHandle] ?: throw NullPointerException("Missing task")
     task.setState(NodeInstanceState.Complete, user)
-    if (task.state == NodeInstanceState.Complete || task.state == NodeInstanceState.Failed) {
+    if (task.state?.isFinal ?: false) {
       tasks.remove(transaction, taskHandle)
     }
     return task.state ?: throw NullPointerException("Task has an unspecified state")
+  }
+
+  fun cancelTask(transaction: T, taskHandle: Handle<out XmlTask>, user: Principal?): NodeInstanceState {
+    user ?:throw AuthenticationNeededException("There is no user associated with this request")
+
+    val task = tasks[transaction, taskHandle] ?: throw NullPointerException("Missing task")
+    task.setState(NodeInstanceState.Cancelled, user)
+    if (task.state?.isFinal ?: false) {
+      tasks.remove(transaction, taskHandle)
+    }
+    return task.state ?: throw NullPointerException("Task has an unspecified state")
+
   }
 
   @Throws(SQLException::class)
@@ -158,7 +173,12 @@ class UserMessageService<T : Transaction> private constructor(private val transa
     tasks[transaction, handle] = currentTask
     transaction.commit() // the actual state isn't stored anyway.
     // This may update the server.
-    partialNewTask.state?.let { currentTask.setState(it, user) }
+    partialNewTask.state?.let {
+      currentTask.setState(it, user)
+      if (currentTask.state!!.isFinal) { // Remove it if no longer needed
+        tasks.remove(transaction, currentTask.getHandle())
+      }
+    }
 
     return currentTask
   }

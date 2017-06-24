@@ -67,6 +67,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
 
   override var instanceHandle: Handle<*> = Handles.getInvalid<Any>()
 
+  // TODO make this not-nullable
   override var state: NodeInstanceState? = NodeInstanceState.Sent
 
   override var summary: String? = null
@@ -178,16 +179,12 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
 
   override fun setState(newState: NodeInstanceState, user: Principal) { // TODO handle transactions
     try {
-      val verifiedNewState: NodeInstanceState
-      if (newState == NodeInstanceState.Complete) {
-        verifiedNewState = finishRemoteTask(user).get()
-        //          newState = TaskState.Complete; // Use server state instead.
-      } else if (newState == NodeInstanceState.Acknowledged) {
-        verifiedNewState = newState // Just shortcircuit. This is just record keeping
-      } else {
-        verifiedNewState = updateRemoteTaskState(newState, user).get()
+      state = when (newState) {
+        NodeInstanceState.Complete -> finishRemoteTask(user).get()
+        NodeInstanceState.Cancelled -> cancelRemoteTask(user).get()
+        NodeInstanceState.Acknowledged -> newState // Just shortcircuit. This is just record keeping
+        else -> updateRemoteTaskState(newState, user).get()
       }
-      state = verifiedNewState
     } catch (e: XmlException) {
       Logger.getLogger(javaClass.canonicalName).throwing("XmlTask", "setState", e)
     } catch (e: JAXBException) {
@@ -210,6 +207,12 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
   @Throws(JAXBException::class, MessagingException::class, XmlException::class)
   private fun finishRemoteTask(user: Principal): Future<NodeInstanceState> {
     return ServletProcessEngineClient.finishTask(remoteHandle.handleValue, createResult(), user, null) // Ignore completion???
+  }
+
+  @Throws(JAXBException::class, MessagingException::class, XmlException::class)
+  private fun cancelRemoteTask(user: Principal): Future<NodeInstanceState> {
+    // For now don't do anything special
+    return updateRemoteTaskState(NodeInstanceState.Cancelled, user)
   }
 
   private fun createResult(): DocumentFragment {

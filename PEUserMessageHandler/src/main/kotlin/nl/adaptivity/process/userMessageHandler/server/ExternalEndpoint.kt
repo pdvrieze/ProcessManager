@@ -207,9 +207,20 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   fun finishTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
                  @RestParam(type = ParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
-      return commit {finishTask(
-            Handles.handle<XmlTask>(java.lang.Long.parseLong(handle)),
-            user)}
+      return commit { finishTask(Handles.handle<XmlTask>(java.lang.Long.parseLong(handle)),
+                                 user)}
+    }
+  }
+
+  @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post= arrayOf("state=Cancelled"))
+  fun cancelTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
+                 @RestParam(type = ParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+    mService.inTransaction {
+      return commit {
+        cancelTask(
+          Handles.handle<XmlTask>(java.lang.Long.parseLong(handle)),
+          user)
+      }
     }
   }
 
