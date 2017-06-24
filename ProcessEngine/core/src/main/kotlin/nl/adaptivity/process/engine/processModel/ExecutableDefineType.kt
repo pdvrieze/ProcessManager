@@ -28,7 +28,6 @@ import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.processModel.XmlDefineType
-import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.DomUtil
 import nl.adaptivity.xml.CompactFragment
 import nl.adaptivity.xml.SimpleNamespaceContext
@@ -51,12 +50,13 @@ fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNo
       processData = ProcessData.missingData(name)
     } else {
       try {
+        val xPath = this.xPath
         if (xPath == null) {
           processData = ProcessData(name, origpair.content)
         } else {
           processData = ProcessData(name,
-                                    DomUtil.nodeListToFragment(xPath!!.evaluate(origpair.contentFragment,
-                                                                                XPathConstants.NODESET) as NodeList))
+                                    DomUtil.nodeListToFragment(xPath.evaluate(origpair.contentFragment,
+                                                                              XPathConstants.NODESET) as NodeList))
         }
       } catch (e: XPathExpressionException) {
         throw RuntimeException(e)
