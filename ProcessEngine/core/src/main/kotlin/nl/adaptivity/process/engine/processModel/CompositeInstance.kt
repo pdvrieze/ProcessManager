@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
@@ -87,6 +88,17 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
     entryNo, handle, state), Builder {
 
     override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance
+
+    override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+      engineData.nodeInstances[handle]?.withPermission()?.let { n ->
+        val newBase = n as CompositeInstance
+        node = newBase.node
+        predecessors.replaceBy(newBase.predecessors)
+        owner = newBase.owner
+        state = newBase.state
+        hChildInstance = newBase.hChildInstance
+      }
+    }
 
     override fun build(): CompositeInstance {
       return CompositeInstance(this)

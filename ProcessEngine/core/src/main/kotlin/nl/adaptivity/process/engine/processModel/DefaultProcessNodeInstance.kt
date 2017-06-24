@@ -20,24 +20,18 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import java.security.Principal
-import java.sql.SQLException
-import java.util.logging.Level
 import java.util.logging.Logger
 
 /**
@@ -153,7 +147,6 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
   private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
     override var node: ExecutableProcessNode by overlay { base.node }
     override fun build() = if (changed) DefaultProcessNodeInstance(this) else base
-
   }
 
   class BaseBuilder(

@@ -123,6 +123,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
     override fun build() = JoinInstance(this)
     override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) = skipTaskImpl(engineData, newState)
+
   }
 
   override val node: ExecutableJoin

@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.*
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
@@ -240,6 +241,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   @Throws(SQLException::class)
   open fun cancelTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<T> {
     return update(engineData) { state = Cancelled }
+    // TODO Make cancellation cancel the successors.
   }
 
   @Deprecated("Use builder")
@@ -381,6 +383,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     fun toXmlInstance(body: CompactFragment?): XmlProcessNodeInstance
     override val entryNo: Int
     var failureCause: Throwable?
+
+    fun invalidateBuilder(engineData: ProcessEngineDataAccess)
+
     fun build(): T
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = this
@@ -468,6 +473,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
      * Update the state if the current state would indicate that to be the expected action
      */
     private fun softUpdateState(engineData: MutableProcessEngineDataAccess, targetState: NodeInstanceState) {
+      invalidateBuilder(engineData)
       if (state==targetState) return
       val doSet = when (targetState) {
         Pending       -> throw IllegalArgumentException ("Updating a state to pending is not allowed")
@@ -509,7 +515,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
         throw ProcessException("instance ${node.id}:${handle()}(${state}) cannot be finished as it is already in a final state.")
       }
       doFinishTask(engineData, resultPayload)
-      softUpdateState(engineData, Complete)
+      state = Complete
       store(engineData)
       engineData.commit()
       processInstanceBuilder.updateSplits(engineData)
@@ -569,16 +575,27 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     state: NodeInstanceState = Pending) : AbstractBuilder<N, T>() {
 
     final override var state = state
-      set(value:NodeInstanceState) {
+      set(value) {
         field = value
         processInstanceBuilder.storeChild(this)
       }
+
+
+    override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+      engineData.nodeInstances[handle]?.withPermission()?.let { newBase ->
+        @Suppress("UNCHECKED_CAST")
+        node = newBase.node as N
+        predecessors.replaceBy(newBase.predecessors)
+        owner = newBase.owner
+        state = newBase.state
+      }
+    }
 
     final override var predecessors :MutableSet<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> = predecessors.toMutableArraySet()
     final override val results = mutableListOf<ProcessData>()
   }
 
-  abstract class ExtBuilder<N: ExecutableProcessNode, T: ProcessNodeInstance<*>>(protected val base: T, override val processInstanceBuilder: ProcessInstance.Builder) : AbstractBuilder<N, T>() {
+  abstract class ExtBuilder<N: ExecutableProcessNode, T: ProcessNodeInstance<*>>(protected var base: T, override val processInstanceBuilder: ProcessInstance.Builder) : AbstractBuilder<N, T>() {
     protected val observer = { changed = true }
 
     final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
@@ -595,6 +612,12 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     final override var results = ObservableList(base.results.toMutableList(), { changed = true })
     var changed: Boolean = false
     final override val entryNo: Int = base.entryNo
+
+    @Suppress("UNCHECKED_CAST")
+    override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+      changed = false
+      base = engineData.nodeInstance(handle).withPermission() as T
+    }
 
     override abstract fun build(): T
 
