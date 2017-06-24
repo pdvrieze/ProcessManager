@@ -103,6 +103,7 @@ open class  HandleMapForwarder<V: Any, T:Transaction>(val transaction: T, open v
 
   override fun getSize(): Int { throw UnsupportedOperationException("Not available") }
 
+  override fun invalidateCache(handle: Handle<V>) = delegate.invalidateCache(handle)
 }
 
 open class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, override val delegate: MutableTransactionedHandleMap<V, T>) : HandleMapForwarder<V,T>(transaction, delegate), MutableHandleMap<V> {

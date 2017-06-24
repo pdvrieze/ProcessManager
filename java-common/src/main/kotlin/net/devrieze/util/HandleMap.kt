@@ -48,6 +48,11 @@ interface HandleMap<V:Any> : Iterable<V> {
 
   operator fun get(handle: Handle<out V>): V?
 
+  /**
+   * Request the handle map to invalidate any caches it has for this item
+   */
+  fun invalidateCache(handle:Handle<out V>) = Unit
+
   @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
   fun getSize():Int
 
