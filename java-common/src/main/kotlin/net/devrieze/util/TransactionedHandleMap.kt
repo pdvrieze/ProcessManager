@@ -59,6 +59,10 @@ inline fun <T:Transaction, V: Any, R> TransactionedHandleMap<V,T>.inTransaction(
   return withTransaction(transaction).body()
 }
 
+inline fun <T:Transaction, V: Any, R> MutableTransactionedHandleMap<V,T>.inWriteTransaction(transaction: T, body: MutableHandleMap<V>.()->R):R {
+  return withTransaction(transaction).body()
+}
+
 
 interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHandleMap<V, T> {
 

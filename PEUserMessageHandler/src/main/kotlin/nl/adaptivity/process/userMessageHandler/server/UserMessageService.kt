@@ -16,15 +16,15 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.Handle
-import net.devrieze.util.Transaction
-import net.devrieze.util.TransactionFactory
+import net.devrieze.util.*
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.AuthenticationNeededException
 import nl.adaptivity.messaging.CompletionListener
+import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
+import java.io.FileNotFoundException
 import java.security.Principal
 import java.sql.SQLException
 import java.util.*
@@ -94,14 +94,14 @@ class UserMessageService<T : Transaction> private constructor(private val transa
   }
 
   fun getPendingTasks(transaction: T, user: Principal): Collection<XmlTask> {
-    val tasks = tasks.iterable(transaction)
-    val result = ArrayList<XmlTask>()
-    for (task in tasks) {
-      if (!(task.state?.isFinal ?: false)) {
-        result.add(task)
+    return tasks.inWriteTransaction(transaction) {
+      val t = this
+      t.iterator().asSequence().filter { ! (it.state?.isFinal ?: false) }.toList().also { list ->
+        list.asSequence().filter { ! it.remoteHandle.valid }.forEach {
+          remove(it.getHandle())
+        }
       }
     }
-    return result
   }
 
   @Throws(SQLException::class)

@@ -103,9 +103,6 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         val future = ServletProcessEngineClient
               .getProcessNodeInstance(remoteHandle.handleValue, SYSTEMPRINCIPAL, null, XmlTask::class.java, Envelope::class.java)
         instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
-        if (instance == null) {
-          throw RuntimeException("No instance could be looked up")
-        }
       } catch (e: ExecutionException) {
 
         var f:Throwable = e
@@ -113,9 +110,9 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
           f = f.cause!!
         }
         if (f.cause is FileNotFoundException) {
-          throw f.cause as Throwable
+          throw f.cause!!
         } else if (f.cause is RuntimeException) {
-          throw f.cause as Throwable
+          throw f.cause!!
         } else if (f is ExecutionException || f is MessagingException) {
           throw f
         }
@@ -137,7 +134,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         throw e
       }
 
-      instance.body?.let { body ->
+      instance?.body?.let { body ->
         val reader = body.getXmlReader()
         val env = Envelope.deserialize(reader, PostTaskFactory())
         val task = env.body.bodyContent
@@ -147,7 +144,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         return task
       }
 
-      throw RuntimeException("This code should be unreachable")
+      return XmlTask(handle.handleValue)
     }
 
     @Throws(SQLException::class)
