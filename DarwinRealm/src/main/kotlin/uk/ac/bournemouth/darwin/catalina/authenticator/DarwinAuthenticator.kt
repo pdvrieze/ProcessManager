@@ -134,10 +134,10 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
         val realm = container.realm
         if (realm != null) {
-            log.info("DarwinAuthenticator: this context has an authentication realm, enforce the constraints")
+            log.fine("DarwinAuthenticator: this context has an authentication realm, enforce the constraints")
             val constraints = (container as? Context)?.let { realm.findSecurityConstraints(request, it) }
             if (constraints == null) {
-                log.fine ("Realm has no constraints, calling next in chain")
+                log.finer("Realm has no constraints, calling next in chain")
                 // Unconstrained
                 invokeNext(request, response)
                 return
