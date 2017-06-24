@@ -500,7 +500,9 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
   }
 
   private void serializeValue(final HttpServletResponse pResponse, Object value) throws TransformerException, IOException, FactoryConfigurationError {
-    if (value instanceof Source) {
+    if (value == null) {
+      throw new FileNotFoundException();
+    } if (value instanceof Source) {
       setContentType(pResponse, "application/binary");// Unknown content type
       Sources.writeToStream((Source) value, pResponse.getOutputStream());
     } else if (value instanceof Node) {

@@ -836,7 +836,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
     try(final TRXXX transaction = mProcessEngine.startTransaction()) {
       final ProcessNodeInstance<?> result = mProcessEngine.getNodeInstance(transaction, Handles.<ProcessNodeInstance<?>>handle(handle), user);
-      if (result == null) { throw new FileNotFoundException(); }
+      if (result == null) { return null; }
       return transaction.commit(result.toSerializable(transaction.getWritableEngineData(), mMessageService.getLocalEndpoint()));
     }
   }
