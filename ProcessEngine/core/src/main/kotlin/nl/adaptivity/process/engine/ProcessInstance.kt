@@ -190,7 +190,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     fun  startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
-
+      assert ((predecessor !is JoinInstance) && (predecessor !is SplitInstance) && (!predecessor.state.isFinal)) {
+        "The predecessor $predecessor is not final when starting successors"
+      }
 
       val startedTasks = ArrayList<ProcessNodeInstance.Builder<*,*>>(predecessor.node.successors.size)
       val joinsToEvaluate = ArrayList<JoinInstance.Builder>()
