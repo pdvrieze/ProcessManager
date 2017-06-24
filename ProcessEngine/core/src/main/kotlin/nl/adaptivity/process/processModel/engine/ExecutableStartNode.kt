@@ -79,7 +79,9 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
                            instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 
   override fun takeTask(instance: ProcessNodeInstance<*>) = true
+  override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
   override fun startTask(instance: ProcessNodeInstance<*>) = true
+  override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
 }

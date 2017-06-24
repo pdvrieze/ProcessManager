@@ -23,7 +23,6 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
@@ -171,6 +170,14 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    * @return `false`
    */
   override fun takeTask(instance: ProcessNodeInstance<*>) = childModel!=null
+
+  /**
+   * Take the task. Tasks are either process aware or finished when a reply is
+   * received. In either case they should not be automatically taken.
+   *
+   * @return `false`
+   */
+  override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = childModel!=null
 
   /**
    * Start the task. Tasks are either process aware or finished when a reply is

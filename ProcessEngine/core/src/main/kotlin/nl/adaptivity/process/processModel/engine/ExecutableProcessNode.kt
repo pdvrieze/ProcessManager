@@ -107,6 +107,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * @return `true` if the task can/must be automatically taken
    */
   @Throws(SQLException::class)
+  @Deprecated("Use the version that takes a builder")
   fun provideTask(engineData: ProcessEngineDataAccess,
                   processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = true
 
@@ -130,10 +131,12 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    *
    * @return `true` if the task can/must be automatically started
    */
+  @Deprecated("Use the version that takes a builder")
   fun takeTask(instance: ProcessNodeInstance<*>): Boolean = true
 
   fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 
+  @Deprecated("Use the version that takes a builder")
   fun startTask(instance: ProcessNodeInstance<*>): Boolean = true
 
   fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
