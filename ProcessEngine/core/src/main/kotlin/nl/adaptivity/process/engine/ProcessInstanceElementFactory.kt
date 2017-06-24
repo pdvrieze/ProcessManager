@@ -112,7 +112,28 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .filterNotNull()
           .map { Handles.handle(it) }
 
-    for (node in nodes) { // Delete through the process engine so caches get invalidated.
+    transaction.readableEngineData.nodeInstances.apply {
+      nodes.forEach { nodeHandle ->
+        invalidateCache(nodeHandle)
+        ProcessEngineDB
+          .DELETE_FROM(pnipred)
+          .WHERE { (pnipred.predecessor eq nodeHandle) OR (pnipred.pnihandle eq nodeHandle) }
+          .executeUpdate(transaction.connection)
+
+        ProcessEngineDB
+          .DELETE_FROM(nd)
+          .WHERE { nd.pnihandle eq nodeHandle }
+          .executeUpdate(transaction.connection)
+
+        ProcessEngineDB
+          .DELETE_FROM(pni)
+          .WHERE { pni.pnihandle eq nodeHandle }
+          .executeUpdate(transaction.connection)
+      }
+    }
+
+
+    nodes.sortedByDescending { it.handleValue }.forEach { node ->
       (transaction.writableEngineData.nodeInstances as MutableHandleMap).remove(node)
     }
   }
@@ -170,7 +191,9 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   companion object {
     private val pi = ProcessEngineDB.processInstances
     private val pni = ProcessEngineDB.processNodeInstances
+    private val pnipred = ProcessEngineDB.pnipredecessors
     private val id = ProcessEngineDB.instancedata
+    private val nd = ProcessEngineDB.nodedata
   }
 
 }
