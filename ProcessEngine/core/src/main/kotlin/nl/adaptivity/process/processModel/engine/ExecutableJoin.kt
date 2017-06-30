@@ -53,18 +53,25 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
 
   override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
-                                     processInstanceBuilder: ProcessInstance.Builder,
-                                     predecessor: IProcessNodeInstance,
-                                     entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+  fun getExistingInstance(data: ProcessEngineDataAccess, processInstanceBuilder: ProcessInstance.Builder, predecessor: IProcessNodeInstance, entryNo:Int): Pair<JoinInstance.Builder?, Int> {
     var candidateNo = entryNo
     for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
       if (! candidate.state.isFinal && (candidate.entryNo == entryNo || candidate.predecessors.any { data.nodeInstance(it).withPermission().entryNo == entryNo })) {
-        return candidate
+        return (candidate as JoinInstance.Builder) to candidateNo
       }
       // TODO Throw exceptions for cases where this is not allowed
       if (candidate.entryNo == candidateNo) { candidateNo++ } // Increase the candidate entry number
     }
+    return null to candidateNo
+  }
+
+  override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
+                                     processInstanceBuilder: ProcessInstance.Builder,
+                                     predecessor: IProcessNodeInstance,
+                                     entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo)
+    existingInstance?.let { return it }
+
     if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) { throw ProcessException("Attempting to start a second instance of a single instantiation join") }
     return JoinInstance.BaseBuilder(this, listOf(predecessor.handle()), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
   }

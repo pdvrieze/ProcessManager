@@ -94,7 +94,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
 
       if (committedPredecessorCount<node.min) {
-        throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached ${committedPredecessorCount}")
+        throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached (predecessor count: ${committedPredecessorCount})")
       }
       for(instanceToCancel in cancelablePredecessors) {
         processInstanceBuilder.updateChild(instanceToCancel) {
@@ -334,6 +334,15 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       val totalPossiblePredecessors = join.predecessors.size
       val realizedPredecessors = predecessors.size
 
+      val predecessorsToAdd = mutableListOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
+      // register existing predecessors
+      val instantiatedPredecessors = processInstanceBuilder.allChildren { pred ->
+        join in pred.node.successors &&
+        ( pred.handle() in predecessors ||
+          node.getExistingInstance(engineData, processInstanceBuilder, pred, pred.entryNo).first?.let { predecessorsToAdd.add(pred.handle()); it.handle() } == handle() )
+      }.toList()
+      predecessors.addAll(predecessorsToAdd)
+
       if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
         state = NodeInstanceState.Started
         return true
@@ -341,7 +350,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
       var complete = 0
       var skipped = 0
-      for (predecessor in instantiatedPredecessors() ) {
+      for (predecessor in instantiatedPredecessors ) {
         when (predecessor.state) {
           NodeInstanceState.Complete -> complete += 1
 
@@ -361,15 +370,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
       if (complete >= join.min) {
         if (totalPossiblePredecessors-complete-skipped ==0) return true
-        if (complete >= join.max || instantiatedPredecessors().none()) {
+        if (complete >= join.max || instantiatedPredecessors.none()) {
           return true
         }
       }
       return false
-    }
-
-    private fun Builder.instantiatedPredecessors(): Sequence<IProcessNodeInstance> {
-      return processInstanceBuilder.allChildren { it.handle() in predecessors }
     }
 
     private fun Builder.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {

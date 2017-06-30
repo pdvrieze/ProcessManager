@@ -180,18 +180,16 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     return handle.handleValue
   }
 
-  @Deprecated("Use builder")
+  @Deprecated("Use builder once implemented there")
   fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
 
   @Deprecated("Use builder")
   @Throws(SQLException::class)
   open fun tickle(engineData: MutableProcessEngineDataAccess, instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<T> {
-    @Suppress("DEPRECATION")
-    return when (state) {
-      NodeInstanceState.FailRetry,
-      Pending -> provideTask(engineData, instance)
-      else                      -> PNIPair(instance, asT)
-    }// ignore
+    val newInstance = instance.update(engineData) {
+      updateChild(this@ProcessNodeInstance) { tickle(engineData, messageService) }
+    }
+    return PNIPair(newInstance, engineData.nodeInstance(handle).withPermission()) as PNIPair<T>
   }
 
   @Deprecated("Use builder")
@@ -451,6 +449,16 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       state= Complete
       node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
     }
+
+
+    @Throws(SQLException::class)
+    fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
+      when (state) {
+        NodeInstanceState.FailRetry,
+        Pending -> provideTask(engineData)
+      }// ignore
+    }
+
   }
 
   abstract class AbstractBuilder<N: ExecutableProcessNode, T: ProcessNodeInstance<*>> : Builder<N, T> {
@@ -518,8 +526,8 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       state = Complete
       store(engineData)
       engineData.commit()
-      processInstanceBuilder.updateSplits(engineData)
       processInstanceBuilder.startSuccessors(engineData, this)
+      processInstanceBuilder.updateSplits(engineData)
       processInstanceBuilder.updateState(engineData)
     }
 

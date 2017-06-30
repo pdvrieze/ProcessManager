@@ -24,10 +24,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.Split
-import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
@@ -239,13 +236,129 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun  skipSuccessors(engineData: MutableProcessEngineDataAccess,
                         predecessor: IProcessNodeInstance,
                         state: NodeInstanceState) {
-      for (successorNode in predecessor.node.successors.map { processModel.getNode(it)!! }) {
+      for (successorNode in predecessor.node.successors.map { processModel.getNode(it)!! }.toList()) {
         // Attempt to get the successor instance as it may already be final. In that case the system would attempt to
         // create a new instance. We don't want to do that just to skip it.
         val successorInstance =  getChild(successorNode, predecessor.entryNo) ?: successorNode.createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
         successorInstance.skipTask(engineData, state)
       }
     }
+
+
+    /**
+     * Trigger the instance to reactivate pending tasks.
+     * @param transaction The database transaction to use
+     * *
+     * @param messageService The message service to use for messenging.
+     */
+    @Throws(FileNotFoundException::class)
+    fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
+      fun ticklePredecessors(successor: IProcessNodeInstance): IProcessNodeInstance {
+        successor.predecessors.asSequence()
+          .map { getChild(it) }
+          .filterNotNull()
+          .forEach { pred ->
+            ticklePredecessors(pred)
+            updateChild(pred) {
+              this.tickle(engineData, messageService)
+            }
+          }
+        return getChild(successor.handle())
+      }
+
+      val self = this
+      // make a copy as the list may be changed due to tickling.
+      active().toList().forEach() { nodeInstance ->
+        try {
+
+          val newNodeInstance = ticklePredecessors(nodeInstance)
+          if (newNodeInstance.state.isFinal) {
+            handleFinishedState(engineData, newNodeInstance)
+          }
+
+        } catch (e: SQLException) {
+          Logger.getLogger(javaClass.name).log(Level.WARNING, "Error when tickling process instance", e)
+        }
+
+      }
+      if (active().none()) {
+        try {
+          self.finish(engineData)
+        } catch (e: SQLException) {
+          Logger.getLogger(javaClass.name).log(Level.WARNING,
+                                               "Error when trying to finish a process instance as result of tickling",
+                                               e)
+        }
+
+      }
+    }
+
+    @Synchronized @Throws(SQLException::class)
+    private fun <N: IProcessNodeInstance> handleFinishedState(engineData: MutableProcessEngineDataAccess,
+                                                                          nodeInstance: N) {
+      // XXX todo, handle failed or cancelled tasks
+      try {
+        if (nodeInstance.node is EndNode<*, *>) {
+          finish(engineData).apply {
+            val h = nodeInstance.handle()
+            assert(getChild(h).let { it.state.isFinal && it.node is ExecutableEndNode})
+          }
+        } else {
+          startSuccessors(engineData, nodeInstance)
+        }
+      } catch (e: RuntimeException) {
+        engineData.rollback()
+        Logger.getAnonymousLogger().log(Level.WARNING, "Failure to start follow on task", e)
+      } catch (e: SQLException) {
+        engineData.rollback()
+        Logger.getAnonymousLogger().log(Level.WARNING, "Failure to start follow on task", e)
+      }
+    }
+
+
+    @Throws(SQLException::class)
+    fun finish(engineData: MutableProcessEngineDataAccess) {
+      // This needs to update first as at this point the node state may not be valid.
+      // TODO reduce the need to do a double update.
+      this.let { newInstance ->
+        // TODO("Make the state dependent on the kind of child state")
+        val endNodes = allChildren { it.state.isFinal && it.node is EndNode<*, *> }.toList()
+        if (endNodes.count() >= processModel.endNodeCount) {
+          state = when {
+            endNodes.any { it.state == NodeInstanceState.Failed || it.state == NodeInstanceState.SkippedFail } -> State.FAILED
+            endNodes.any { it.state == NodeInstanceState.Cancelled || it.state == NodeInstanceState.SkippedCancel } -> State.CANCELLED
+            else -> State.FINISHED
+          }
+          if (parentActivity.valid) {
+            val parentNode = engineData.nodeInstance(parentActivity).withPermission()
+            val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
+            parentInstance.finishTask(engineData, parentNode, getOutputPayload())
+          }
+
+          store(engineData)
+          engineData.commit()
+          // TODO don't remove old transactions
+          engineData.handleFinishedInstance(handle)
+        }
+      }
+    }
+
+    /**
+     * Get the output of this instance as an xml node or `null` if there is no output
+     */
+    fun getOutputPayload(): Node? {
+      if (outputs.isEmpty()) return null
+      val document = DocumentBuilderFactory.newInstance().apply { isNamespaceAware=true }.newDocumentBuilder().newDocument()
+      return document.createDocumentFragment().apply {
+        XmlStreaming.newWriter(DOMResult(this)).use { writer ->
+          outputs.forEach { output ->
+            output.serialize(writer)
+          }
+        }
+      }
+    }
+
+
   }
 
   data class BaseBuilder(override var handle: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid(),
@@ -339,11 +452,11 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance> {
-      val pendingChildren = _pendingChildren.asSequence().map { it.origBuilder }.filter { childFilter(it) }.toList().asSequence()
-      val pendingHandles = pendingChildren.map { it.handle }.toSet()
+      val pendingHandles = mutableSetOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
+      val pendingChildren = _pendingChildren.map { pendingHandles.add(it.origBuilder.handle); it.origBuilder }.filter { childFilter(it) }
       return pendingChildren.asSequence() + base.childNodes.asSequence()
         .map {it.withPermission() }
-        .filter { childFilter(it) && it.handle() !in pendingHandles }
+        .filter { it.handle() !in pendingHandles && childFilter(it) }
     }
 
     override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {
