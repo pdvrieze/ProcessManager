@@ -26,7 +26,7 @@ object SYSTEMPRINCIPAL : RolePrincipal {
   public const val NS = "urn:SYSTEMPRINCIPAL"
   public const val TAG = "systemPrincipal"
 
-  public val KEY = SecureRandom.getInstanceStrong().nextLong()
+  public val KEY by lazy { SecureRandom.getInstance("NativePRNGNonBlocking").nextLong() }
 
   override fun hasRole(role: String): Boolean {
     return true
