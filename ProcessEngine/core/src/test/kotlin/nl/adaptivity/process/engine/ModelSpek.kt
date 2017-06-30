@@ -16,8 +16,11 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.engine.processModel.*
+import nl.adaptivity.process.engine.processModel.CompositeInstance
+import nl.adaptivity.process.engine.processModel.JoinInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -256,7 +259,7 @@ private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
       processInstanceF().assertActive(transaction())
     }
     test("The process itself is marked finished") {
-      assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state)
+      assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state, "Instance state should be finished, but is not. ${processInstanceF().toDebugString(transaction())}")
     }
     test("All endNodes in the trace are complete, skipped, cancelled or failed") {
       val transaction = transaction()
