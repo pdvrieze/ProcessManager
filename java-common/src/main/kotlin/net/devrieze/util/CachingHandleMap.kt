@@ -16,6 +16,7 @@
 
 package net.devrieze.util
 
+import net.devrieze.util.CachingHandleMap.WrappingIterator
 import java.io.Closeable
 import java.io.IOException
 import java.sql.SQLException
@@ -206,6 +207,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
 
   @Throws(SQLException::class)
   override fun get(transaction: T, handle: Handle<out V>): V? {
+    if (! handle.valid) return null
     var value: V?
     synchronized (cacheHandles) {
       value = getFromCache(handle.handleValue)

@@ -403,17 +403,20 @@ open class MemHandleMap<V:Any>
    * @see net.devrieze.util.HandleMap#get(long)
    */
   operator fun get(pHandle: Long): V? {
+    if (pHandle==-1L) return null
     // Split the handle up into generation and index.
     val generation = (pHandle shr 32).toInt()
     synchronized(this) {
       val index = indexFromHandle(pHandle.toInt().toLong())
       if (index < 0) {
-        throw ArrayIndexOutOfBoundsException(pHandle.toInt())
+        return null
+//        throw ArrayIndexOutOfBoundsException(pHandle.toInt())
       }
 
       // If the generation doesn't map we have a wrong handle.
       if (generations[index] != generation) {
-        throw ArrayIndexOutOfBoundsException("Generation mismatch" + generation)
+        return null
+//        throw ArrayIndexOutOfBoundsException("Generation mismatch" + generation)
       }
 
       // Just get the element out of the map.
