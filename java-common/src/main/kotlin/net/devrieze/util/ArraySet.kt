@@ -56,11 +56,19 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
     }
 
     override fun add(element: T) {
-      TODO("Implement add in listIterator for arraySet. It is not implemented yet. This depends on too much implementation details")
+      add(element)
     }
 
     override fun set(element: T) {
-      TODO("Not implemented yet. Due to Set semantics this is a bit tricky")
+      if (this@ArraySet[pos] == element) return
+      val otherPos = indexOf(element)
+      if (otherPos>=0) {
+        swap(otherPos, pos)
+      } else {
+        val previous = buffer[pos]!!
+        buffer[pos] = element
+        add(previous)
+      }
     }
   }
 
@@ -161,6 +169,16 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   private inline fun OuterPos.toBufferPos(): BufferPos = (toInt() + firstElemIdx)% buffer.size
 
   private inline fun BufferPos.toOuterPos(): OuterPos = (buffer.size + this - firstElemIdx) % buffer.size
+
+  fun swap(first: OuterPos, second: OuterPos) {
+    bufferSwap(first.toBufferPos(), second.toBufferPos())
+  }
+
+  private fun bufferSwap(firstPos:BufferPos, secondPos:BufferPos) {
+    val firstValue = buffer[firstPos]
+    buffer[firstPos] = buffer[secondPos]
+    buffer[secondPos] = firstValue
+  }
 
   @Deprecated("Use removeAt instead", ReplaceWith("removeAt(index)"), DeprecationLevel.WARNING)
   fun remove(index:OuterPos) = removeAt(index)
