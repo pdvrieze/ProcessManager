@@ -20,10 +20,9 @@
 
 package net.devrieze.util
 
+import net.devrieze.lang.Const
 import java.lang.ref.SoftReference
 import java.util.*
-
-import net.devrieze.lang.Const
 import kotlin.NoSuchElementException
 
 
@@ -306,11 +305,6 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
     throw UnsupportedOperationException()
   }
 
-  /**
-   * {@inheritDoc}
-
-   * @todo This function is notoriously slow
-   */
   override fun toString(): String {
 
     fun FastStack<E>.appendTo(stringBuilder: StringBuilder) {
@@ -333,9 +327,9 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
 
   /**
    * Get the last x element in the stack.
-
+   *
    * @param reverseIndex The index from the end
-   * *
+   *
    * @return the element
    */
   fun getLast(reverseIndex: Int): E {
