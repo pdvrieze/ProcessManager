@@ -23,8 +23,6 @@ import java.net.URI;
 
 public final class Constants {
 
-  // TODO streamline this
-
   public static final String PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/";
   public static final java.lang.String PROCESS_ENGINE_NS_PREFIX = "pe";
 
