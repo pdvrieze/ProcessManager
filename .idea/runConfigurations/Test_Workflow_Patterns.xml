@@ -9,7 +9,6 @@
     <option name="alternative-jre-path" value="" />
     <envs />
     <method>
-      <option name="Make" enabled="false" />
       <option name="Gradle.BeforeRunTask" enabled="true" tasks=":ProcessEngine:core:testClasses :xmlutil:jvm:assemble" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
