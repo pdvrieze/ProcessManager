@@ -31,9 +31,9 @@ class WCP2: ModelSpek(run{
     val end2  by endNode(ac2)
   }
   val validTraces = with(model) { trace {
-    start .. (
-      (ac1 .. end1 .. ac2 ..(split % end2)) or
-        (ac2 .. end2 .. ac1 .. (split % end1)))
+    start ..(
+      ((ac1 .. end1 .. ac2) * (split % end2)) or
+        ((ac2 .. end2 .. ac1) * (split % end1)))
   } }
 
   val invalidTraces = with(model) { trace {
@@ -42,10 +42,10 @@ class WCP2: ModelSpek(run{
         end1 or
         end2 or
         ((ac1 or
-          (ac1..end1)) .. (split or
+          (ac1..end1)) * (split or
           end2)) or
         ((ac2 or
-          (ac2..end1)) .. (split or
+          (ac2..end1)) * (split or
           end1))
                )
       )

@@ -31,14 +31,14 @@ class WCP3: ModelSpek(run{
     val end   by endNode(join)
   }
   val validTraces =  with(model) { trace {
-    start .. (ac1 % ac2) .. (split % join % end)
+    (start ..(ac1 % ac2)) * (split % join % end)
   } }
 
   val invalidTraces = with(model) { trace {
     join or end or split or
       (start .. (split or end or join or
         (ac1 or
-          ac2) .. (split or join or end)
+          ac2) * (split or join or end)
                 ))
   }}
   ModelData(model, validTraces, invalidTraces)

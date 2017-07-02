@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
+import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
@@ -38,6 +38,7 @@ import org.jetbrains.spek.subject.dsl.SubjectDsl
 import org.jetbrains.spek.subject.dsl.SubjectProviderDsl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
@@ -312,10 +313,20 @@ private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
     val nodeInstance = nodeInstanceF()
     Assertions.assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
   }
+  test("$traceElement should not be in pending or sent state") {
+    val nodeInstance = nodeInstanceF()
+    assertFalse(nodeInstance.state == Pending) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in pending state"}
+    assertFalse(nodeInstance.state == Sent) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in sent (not acknowledged) state"}
+  }
   test("node instance ${traceElement} should be committed after starting") {
     val tr = transaction()
     val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
-    val nodeInstance = nodeInstanceF().startTask(tr.writableEngineData, processInstance).node
+    processInstance.update(tr.writableEngineData) {
+      updateChild(nodeInstanceF()) {
+        startTask(tr.writableEngineData)
+      }
+    }
+    val nodeInstance = nodeInstanceF()
 
     Assertions.assertTrue(nodeInstance.state.isCommitted) {
       "The instance state was ${processInstance.toDebugString(transaction)}"
@@ -324,8 +335,11 @@ private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
   }
   test("the node instance ${traceElement} should be final after finishing") {
     val tr = transaction()
-    val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
-    processInstance.finishTask(tr.writableEngineData, nodeInstanceF(), traceElement.resultPayload)
+    val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission().update(tr.writableEngineData) {
+      updateChild(nodeInstanceF()) {
+        finishTask(tr.writableEngineData, traceElement.resultPayload)
+      }
+    }
     assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
   }
 }
@@ -381,7 +395,11 @@ fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance
   val nodeInstance = traceElement.getNodeInstance(this, instance) ?: throw ProcessTestingException("No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(this)}")
   if (nodeInstance.state != Complete) {
     System.err.println("Re-finishing node ${nodeInstance.node.id} $nodeInstance for instance $instance")
-    instance.finishTask(writableEngineData, nodeInstance, traceElement.resultPayload)
+    instance.update(writableEngineData) {
+      updateChild(nodeInstance) {
+        finishTask(writableEngineData, traceElement.resultPayload)
+      }
+    }
   }
   assert(nodeInstance.state == Complete)
 }

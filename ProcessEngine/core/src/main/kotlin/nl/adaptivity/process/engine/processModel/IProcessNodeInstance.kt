@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 
@@ -32,4 +33,7 @@ interface IProcessNodeInstance {
   val entryNo:Int
   val  state: NodeInstanceState
   fun  builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*,*>
+
+  fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
+
 }

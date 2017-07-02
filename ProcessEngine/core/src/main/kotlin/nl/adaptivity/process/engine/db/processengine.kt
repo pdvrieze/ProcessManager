@@ -127,7 +127,7 @@ object ProcessEngineDB : uk.ac.bournemouth.kotlinsql.Database(1) {
   object nodedata : MutableTable("nodedata", EXTRACONF) {
     val name by VARCHAR(30) { NOT_NULL }
     val pnihandle by reference(processNodeInstances.pnihandle) { NOT_NULL }
-    val data by TEXT() { NOT_NULL }
+    val data by TEXT { NOT_NULL }
     override fun init() {
       PRIMARY_KEY(name, pnihandle)
       FOREIGN_KEY(pnihandle).REFERENCES(processNodeInstances.pnihandle)

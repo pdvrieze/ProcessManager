@@ -39,12 +39,12 @@ class WASP4: ModelSpek(run {
   val end2 = model.comp1.end2
 
   val validTraces = with(model) { trace{
-    start1 .. ac1 .. start2 .. ac2 .. (end2 % comp1) .. ac3 ..end
+    (start1 .. ac1 .. start2 .. ac2) * (end2 % comp1).. ac3 ..end
   }}
   val invalidTraces = with(model) { trace {
     ac1 or comp1 or start2 or ac2 or end2 or ac3 or end or
-      (start1 .. (comp1 or start2 or ac2 or end2 or ac3 or end or
-        (ac1.. start2.opt .. (comp1 or end2 or ac3 or end or
+      (start1 ..(comp1 or start2 or ac2 or end2 or ac3 or end or
+        ((ac1.. start2.opt) * (comp1 or end2 or ac3 or end or
           ( ac2 .. (comp1.opt % end2.opt) .. end )))))
   }}
   ModelData(model, validTraces, invalidTraces)

@@ -34,7 +34,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 /**
  * Class representing a node instance that wraps a composite activity.
  */
-class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
+class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstance>(builder) {
 
   interface Builder: ProcessNodeInstance.Builder<ExecutableActivity, CompositeInstance> {
     var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
@@ -120,45 +120,7 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
 
   override val node: ExecutableActivity get() = super.node as ExecutableActivity
 
-  constructor(node: ExecutableActivity,
-              predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
-              processInstanceBuilder: ProcessInstance.Builder,
-              processInstance: ProcessInstance,
-              entryNo: Int,
-              childInstance: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid()) : super(node, listOf(predecessor), processInstanceBuilder,
-                                                                                      processInstance.getHandle(), processInstance.owner, entryNo) {
-    this.hChildInstance = childInstance
-  }
-
-  constructor(builder: Builder) : super(builder) {
-    hChildInstance = builder.hChildInstance
-  }
-
   override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
-
-  @Deprecated("Use builder")
-  fun updateComposite(writableEngineData: MutableProcessEngineDataAccess,
-                      body: ExtBuilder.() -> Unit): ProcessInstance.PNIPair<CompositeInstance> {
-    return super.update(writableEngineData, { (this as ExtBuilder).body() })
-  }
-
-  @Deprecated("Use builder")
-  override fun startTask(engineData: MutableProcessEngineDataAccess,
-                         processInstance: ProcessInstance): ProcessInstance.PNIPair<CompositeInstance> {
-    return processInstance.updateWithNode(engineData) {
-      builder(this).apply { startTask(engineData) }
-    }
-  }
-
-  @Deprecated("Use builder")
-  override fun finishTask(engineData: MutableProcessEngineDataAccess,
-                          processInstance: ProcessInstance,
-                          resultPayload: Node?): ProcessInstance.PNIPair<CompositeInstance> {
-    @Suppress("DEPRECATION")
-    return updateComposite(engineData) {
-      finishTask(engineData, resultPayload)
-    }
-  }
 
   fun getPayload(engineData: ProcessEngineDataAccess):DocumentFragment? {
     val defines = getDefines(engineData)
@@ -178,5 +140,9 @@ class CompositeInstance : ProcessNodeInstance<CompositeInstance> {
     }
 
     return frag
+  }
+
+  init {
+    hChildInstance = builder.hChildInstance
   }
 }

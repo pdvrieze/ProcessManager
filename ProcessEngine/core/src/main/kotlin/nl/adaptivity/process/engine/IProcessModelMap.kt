@@ -56,10 +56,6 @@ inline fun <T:ProcessTransaction, R> IProcessModelMap<T>.inReadonlyTransaction(t
   return withTransaction(transaction).body()
 }
 
-inline fun <T:ProcessTransaction, R> IMutableProcessModelMap<T>.inWriteTransaction(transaction: T, body: IMutableProcessModelMapAccess.()->R):R {
-  return withTransaction(transaction).body()
-}
-
 private class ProcessModelMapForwarder<T:ProcessTransaction>(transaction: T, override val delegate:IProcessModelMap<T>)
   : HandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IProcessModelMapAccess {
 

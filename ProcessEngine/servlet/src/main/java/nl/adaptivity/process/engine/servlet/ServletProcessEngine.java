@@ -30,8 +30,8 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.NodeInstanceState;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance.Builder;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
@@ -46,11 +46,7 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
-import nl.adaptivity.xml.SerializableList;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlSerializable;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -71,6 +67,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
+import javax.xml.stream.events.Namespace;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 
@@ -111,32 +108,6 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     @Override
     public NewServletMessage createMessage(@Nullable final IXmlMessage message) {
       return new NewServletMessage(message, mLocalEndPoint);
-    }
-
-    @Override
-    public boolean sendMessage(@NotNull final MutableProcessEngineDataAccess engineData,
-                               final NewServletMessage protoMessage,
-                               @NotNull final ProcessNodeInstance<?> instance)
-    {
-      final Handle<? extends SecureObject<ProcessNodeInstance<?>>> nodeHandle = instance.getHandle();
-
-      protoMessage.setHandle(engineData, instance);
-
-      Future<DataSource> result = MessagingRegistry.sendMessage(protoMessage, new MessagingCompletionListener((ComparableHandle)nodeHandle, protoMessage
-          .getOwner()), DataSource.class, new Class<?>[0]);
-      if (result.isCancelled()) { return false; }
-      if (result.isDone()) {
-        try {
-          result.get();
-        } catch (ExecutionException e) {
-          Throwable cause = e.getCause();
-          if (cause instanceof RuntimeException) { throw (RuntimeException) cause; }
-          throw new RuntimeException(cause);
-        } catch (InterruptedException e) {
-          return false;
-        }
-      }
-      return true;
     }
 
     @Override
@@ -922,8 +893,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
               final Builder builder = inst.builder(processInstance.builder());
               builder.setState(NodeInstanceState.Sent);
 
-              // TODO in Kotlin this could use the update closure that would update by itself.
-              processInstance.updateNode(transaction.getWritableEngineData(), builder.build());
+              builder.store(transaction.getWritableEngineData());
             }
             transaction.commit();
           }

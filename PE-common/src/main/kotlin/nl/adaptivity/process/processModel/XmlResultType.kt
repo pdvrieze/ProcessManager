@@ -27,7 +27,6 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.DomUtil
 import nl.adaptivity.xml.*
 import org.w3c.dom.DocumentFragment
@@ -81,8 +80,8 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
   constructor(): super()
 
   @Deprecated("Use the version that takes a content array")
-  constructor(name: String, path: String, content: DocumentFragment?, namespaceContext: Iterable<nl.adaptivity.xml.Namespace>)
-      : this(name, path, content?.let{ DomUtil.toString(it).toCharArray() }, namespaceContext)
+  constructor(name: String, path: String, contentFragment: DocumentFragment?, namespaceContext: Iterable<nl.adaptivity.xml.Namespace>)
+      : this(name, path, contentFragment?.let{ DomUtil.toString(it).toCharArray() }, namespaceContext)
 
   constructor(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>)
       : super(content, originalNSContext, path, name)
@@ -152,13 +151,16 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     private val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
     @JvmStatic
-    operator fun get(pImport: IXmlResultType): XmlResultType {
-      if (pImport is XmlResultType) {
-        return pImport
-      }
-      val originalNSContext: Iterable<Namespace> = pImport.getOriginalNSContext()
-      return XmlResultType(pImport.getName(), pImport.getPath(), null as CharArray, originalNSContext)
-    }
+    @Deprecated("Use normal factory method", ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType"))
+    operator fun get(import: IXmlResultType) = XmlResultType(import)
   }
 
+}
+
+fun XmlResultType(import: IXmlResultType): XmlResultType {
+  if (import is XmlResultType) {
+    return import
+  }
+  val originalNSContext: Iterable<Namespace> = import.getOriginalNSContext()
+  return XmlResultType(import.getName(), import.getPath(), content = null, originalNSContext = originalNSContext)
 }

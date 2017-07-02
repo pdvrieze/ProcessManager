@@ -25,7 +25,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.deserializeHelper
 
 
 class XmlEndNode(builder: EndNode.Builder<*, *>,
@@ -90,8 +90,8 @@ class XmlEndNode(builder: EndNode.Builder<*, *>,
   companion object {
 
     @Throws(XmlException::class)
-    fun deserialize(`in`: XmlReader): XmlEndNode.Builder {
-      return Builder().deserializeHelper(`in`)
+    fun deserialize(reader: XmlReader): XmlEndNode.Builder {
+      return Builder().deserializeHelper(reader)
     }
   }
 

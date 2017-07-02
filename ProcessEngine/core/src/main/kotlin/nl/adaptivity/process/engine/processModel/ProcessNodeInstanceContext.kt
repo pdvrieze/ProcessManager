@@ -22,10 +22,9 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
-import java.lang.Long
 import java.util.*
 
-class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance<*>, private val mDefines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
+class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance<*>, private val defines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
@@ -35,32 +34,23 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
       "owner"          -> return ProcessData(valueName, CompactFragment(processNodeInstance.owner.name.xmlEncode()))
     }
 
-    for (define in mDefines) {
-      if (valueName == define.name) {
-        return define
-      }
-    }
+    defines.firstOrNull { valueName == it.name }?.let { return it }
 
     if (provideResults) {
-      for (result in processNodeInstance.results) {
-        if (valueName == result.name) {
-          return result
-        }
-      }
+      processNodeInstance.results
+        .firstOrNull { valueName == it.name }
+        ?.let { return it }
     }
     // allow for missing values in the database. If they were "defined" treat is as an empty value.
-    for (resultDef in processNodeInstance.node.defines) {
-      if (valueName == resultDef.name) {
-        return ProcessData(valueName, EMPTY_FRAGMENT)
-      }
-    }
+    processNodeInstance.node.defines
+      .firstOrNull { valueName == it.name }
+      ?.let { return ProcessData(valueName, EMPTY_FRAGMENT) }
+
     if (provideResults) {
       // allow for missing values in the database. If they were "defined" treat is as an empty value.
-      for (resultDef in processNodeInstance.node.results) {
-        if (valueName == resultDef.name) {
-          return ProcessData(valueName, EMPTY_FRAGMENT)
-        }
-      }
+      processNodeInstance.node.results
+        .firstOrNull { valueName == it.getName() }
+        ?.let { return ProcessData(valueName, EMPTY_FRAGMENT) }
     }
     return null
   }

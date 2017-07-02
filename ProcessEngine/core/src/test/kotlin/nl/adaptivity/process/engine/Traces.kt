@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.allChildren
 import nl.adaptivity.process.util.Identified
@@ -197,7 +196,7 @@ class TraceBuilder {
       size == 0       -> listOf(other)
       other.size == 0 -> listOf(this)
       else            -> (0..size).flatMap { split ->
-        listOf(slice(0 until split)..other[0])..(slice(split) / other.slice(1))
+        listOf(slice(0 until split)..other[0]) * (slice(split) / other.slice(1))
       }
     }
   }

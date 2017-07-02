@@ -70,22 +70,8 @@ interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableM
   val endNodeCount: Int
   fun toInputs(payload: Node?): List<ProcessData> {
     // TODO make this work properly
-    val imports = imports
-    val result = ArrayList<ProcessData>(imports.size)
-    for (import_ in imports) {
-      result.add(XmlResultType.get(import_).apply(payload))
-    }
-    return result
-  }
 
-  fun toOutputs(payload: Node?): List<ProcessData> {
-    // TODO make this work properly
-    val exports = exports
-    val result = ArrayList<ProcessData>(exports.size)
-    for (export in exports) {
-      //      result.add(XmlDefineType.get(export).apply(pPayload));
-    }
-    return result
+    return imports.map { XmlResultType(it).apply(payload) }
   }
 
   fun getNode(nodeId: String) : ExecutableProcessNode?

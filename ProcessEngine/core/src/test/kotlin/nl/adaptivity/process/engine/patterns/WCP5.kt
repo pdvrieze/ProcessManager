@@ -32,7 +32,7 @@ class WCP5: ModelSpek(run{
     val end by endNode(ac3 )
   }
   val validTraces = with(model) { trace {
-    start .. ((ac1 or ac2) .. (((split % join).. ac3 ..end)))
+    start ..((ac1 or ac2) * (((split % join).. ac3 ..end)))
   } }
   val invalidTraces = with(model) { trace {
     ac1 or ac2 or ac3 or end or join or split or

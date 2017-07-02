@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -102,7 +101,7 @@ public class TestXmlResultType {
 
     final ProcessData actual = xrt.apply(testData);
 
-    final ProcessData expected = new ProcessData("user", new CompactFragment(Collections.<Namespace>emptyList(), "Paul".toCharArray()));
+    final ProcessData expected = new ProcessData("user", XmlStreamingKt.CompactFragment(Collections.<Namespace>emptyList(), "Paul".toCharArray()));
     assertEquals(actual.getName(), expected.getName());
     assertEquals(actual.getContent(), expected.getContent());
 //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
@@ -122,7 +121,7 @@ public class TestXmlResultType {
 
     final XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", (char[]) null, null);
 
-    final ProcessData expected = new ProcessData("user", new CompactFragment("Paul"));
+    final ProcessData expected = new ProcessData("user", XmlStreamingKt.CompactFragment("Paul"));
     final ProcessData actual = xrt.apply(testData);
     assertEquals(actual.getName(), expected.getName());
     assertEquals(actual.getContent(), expected.getContent());

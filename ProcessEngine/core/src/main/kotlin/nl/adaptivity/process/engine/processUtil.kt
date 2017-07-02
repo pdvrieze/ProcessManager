@@ -31,7 +31,7 @@ import java.io.FileNotFoundException
  * Utilities for handling process things
  */
 
-fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw ProcessException("The node with id ${id} is missing")
+fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw ProcessException("The node with id $id is missing")
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun <N: ProcessNode<*,*>> N?.mustExist(id:String): N = mustExist(Identifier(id))

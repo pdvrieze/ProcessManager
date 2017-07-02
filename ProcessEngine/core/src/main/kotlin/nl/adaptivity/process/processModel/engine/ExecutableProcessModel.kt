@@ -38,7 +38,10 @@ typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode, Execu
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ExecutableProcessModel.Factory::class)
-class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon/*, MutableHandleAware<ExecutableProcessModel>*/, SecureObject<ExecutableProcessModel> {
+class ExecutableProcessModel @JvmOverloads constructor(builder: Builder,
+                                                       pedantic: Boolean = true) : RootProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>(
+  builder, EXEC_NODEFACTORY,
+  pedantic), ExecutableModelCommon/*, MutableHandleAware<ExecutableProcessModel>*/, SecureObject<ExecutableProcessModel> {
 
   class Builder : RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
     constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
@@ -86,9 +89,6 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
   override fun withPermission() = this
 
-  @JvmOverloads
-  constructor(builder: Builder, pedantic:Boolean = true) : super(builder, EXEC_NODEFACTORY, pedantic)
-
   override fun builder(): Builder = Builder(this)
 
   override fun update(body: RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>.() -> Unit): ExecutableProcessModel {
@@ -102,26 +102,6 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     return ProcessModelRef(name, this.getHandle(), uuid)
   }
 
-  /**
-   * Ensure that the given node is owned by this model.
-   * @param processNode
-   */
-  override fun addNode(processNode: ExecutableProcessNode): Boolean {
-    throw UnsupportedOperationException("Editing not supported")
-/*
-    if (super.addNode(processNode)) {
-      processNode.setOwnerModel(this)
-      return true
-    }
-    return false
-*/
-    // XXX Remove
-  }
-
-  override fun removeNode(processNode: ExecutableProcessNode): Boolean {
-    throw UnsupportedOperationException("This will break in all kinds of ways")
-  }
-
   override fun setModelNodes(processNodes: Collection<ExecutableProcessNode>) {
     throw UnsupportedOperationException("This is broken")
   }
@@ -132,7 +112,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
 
   fun cacheStrings(stringCache: StringCache) {
     if (owner is SimplePrincipal) {
-      owner = SimplePrincipal(stringCache.lookup(owner.getName()))
+      owner = SimplePrincipal(stringCache.lookup(owner.name))
     } else if (_cls_darwin_principal != null) {
       if (_cls_darwin_principal!!.isInstance(owner)) {
         try {
@@ -149,10 +129,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     setName(stringCache.lookup(name))
     val oldRoles = roles
     if (oldRoles.isNotEmpty()) {
-      val newRoles = HashSet<String>(oldRoles.size + (oldRoles.size shr 1))
-      for (role in oldRoles) {
-        newRoles.add(stringCache.lookup(role))
-      }
+      val newRoles = oldRoles.map { stringCache.lookup(it) }
       setRoles(newRoles)
     }
   }
@@ -190,7 +167,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
     /**
      * Helper method that helps enumerating all elements in the model
 
-     * @param to The collection that will contain the result.
+     * @param destination The collection that will contain the result.
      * *
      * @param seen A set of process names that have already been seen (and should
      * *          not be added again.
@@ -198,16 +175,15 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode, Execu
      * @param node The node to start extraction from. This will go on to the
      * *          successors.
      */
-    private fun extractElements(to: MutableCollection<in ExecutableProcessNode>,
-                                seen: HashSet<String>,
-                                node: ExecutableProcessNode) {
-      if (seen.contains(node.id)) {
-        return
-      }
-      to.add(node)
+    private fun extractElementsTo(destination: MutableCollection<in ExecutableProcessNode>,
+                                  seen: MutableSet<String>,
+                                  node: ExecutableProcessNode) {
+      if (node.id in seen) return
+
+      destination.add(node)
       seen.add(node.id)
       for (successor in node.successors) {
-        extractElements(to, seen, successor as ExecutableProcessNode)
+        extractElementsTo(destination, seen, successor as ExecutableProcessNode)
       }
     }
   }
@@ -225,8 +201,6 @@ val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ExecutableProcessNode.Bu
 
   override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
 }
-
-val toExecutableProcessNode = EXEC_NODEFACTORY
 
 object EXEC_NODEFACTORY: ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableModelCommon> {
 

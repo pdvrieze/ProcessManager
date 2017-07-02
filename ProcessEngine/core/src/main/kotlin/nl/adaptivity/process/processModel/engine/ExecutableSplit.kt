@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -62,6 +61,5 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
                                                                                        entryNo)
   }
 
-  override fun startTask(instance: ProcessNodeInstance<*>) = false
-
+  override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = false
 }

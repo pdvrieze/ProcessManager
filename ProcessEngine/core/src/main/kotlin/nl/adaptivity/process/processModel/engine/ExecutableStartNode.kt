@@ -16,14 +16,13 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.Handles
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import java.sql.SQLException
 
 
 class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
@@ -57,31 +56,13 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
                                                   processInstanceBuilder.owner,
                                                   entryNo)
 
-  fun createOrReuseInstance(processInstance: ProcessInstance, entryNo: Int)
-      = processInstance.getNodeInstance(this, entryNo) ?: DefaultProcessNodeInstance(this, Handles.getInvalid(), processInstance, entryNo)
-
-/*
-  fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.ExtBuilder, entryNo: Int)
-      = processInstanceBuilder.getNodeInstance(this, entryNo) ?:
-        ProcessNodeInstance.BaseBuilder<ExecutableProcessNode>(this, emptyList(),
-                                                               processInstanceBuilder.handle,
-                                                               processInstanceBuilder.owner, entryNo)
-*/
-
-  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>) = ConditionResult.TRUE
-
-  @Throws(SQLException::class)
-  override fun provideTask(engineData: ProcessEngineDataAccess,
-                           processInstance: ProcessInstance,
-                           instance: ProcessNodeInstance<*>) = true
+  override fun condition(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance) = ConditionResult.TRUE
 
   override fun provideTask(engineData: ProcessEngineDataAccess,
                            instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 
-  override fun takeTask(instance: ProcessNodeInstance<*>) = true
   override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
-  override fun startTask(instance: ProcessNodeInstance<*>) = true
   override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
 }

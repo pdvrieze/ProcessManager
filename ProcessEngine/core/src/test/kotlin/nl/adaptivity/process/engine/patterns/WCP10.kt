@@ -35,7 +35,7 @@ class WCP10: ModelSpek(run {
   }}
   val invalidTraces = with(model) { trace {
     join or ac2 or ac3 or end or
-      (start1 .. join[1] .. ac1[1] .. ac2[1] .. split[1] ..(ac3[ANYINSTANCE] or split[2] or end[ANYINSTANCE]))
+      ((start1 .. join[1] .. ac1[1] .. ac2[1] .. split[1]) * (ac3[ANYINSTANCE] or split[2] or end[ANYINSTANCE]))
   }}
   ModelData(model, validTraces, invalidTraces)
 })

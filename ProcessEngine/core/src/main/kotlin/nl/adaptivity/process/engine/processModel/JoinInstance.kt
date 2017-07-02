@@ -20,15 +20,10 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handles
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.ProcessInstance.PNIPair
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
 import java.security.Principal
-import java.sql.SQLException
-import java.util.*
 
 
 class JoinInstance : ProcessNodeInstance<JoinInstance> {
@@ -73,19 +68,19 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
       var committedPredecessorCount = 0
       var completedPredecessorCount = 0
-      for(predecessorHandle in predecessors) {
-        val predecessor = processInstanceBuilder.getChild(predecessorHandle)
-        if (predecessor.state.isCommitted) {
-          if (! predecessor.state.isFinal) {
-            throw ProcessException("Predecessor ${predecessor} is committed but not final, cannot finish join without cancelling the predecessor")
+      predecessors
+        .map { processInstanceBuilder.getChild(it) }
+        .filter { it.state.isCommitted }
+        .forEach {
+          if (! it.state.isFinal) {
+            throw ProcessException("Predecessor $it is committed but not final, cannot finish join without cancelling the predecessor")
           } else {
             committedPredecessorCount++
-            if (predecessor.state== NodeInstanceState.Complete) {
+            if (it.state== NodeInstanceState.Complete) {
               completedPredecessorCount++
             }
           }
         }
-      }
       val cancelablePredecessors = mutableListOf<IProcessNodeInstance>()
       if (!node.isMultiMerge) {
         processInstanceBuilder
@@ -94,7 +89,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
 
       if (committedPredecessorCount<node.min) {
-        throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached (predecessor count: ${committedPredecessorCount})")
+        throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached (predecessor count: $committedPredecessorCount)")
       }
       for(instanceToCancel in cancelablePredecessors) {
         processInstanceBuilder.updateChild(instanceToCancel) {
@@ -133,10 +128,6 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
   override fun getHandle(): ComparableHandle<SecureObject<JoinInstance>>
         = super.getHandle() as ComparableHandle<SecureObject<JoinInstance>>
 
-  /** Is this join completed or can other entries be added? */
-  val isFinished: Boolean
-    get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
-
   fun canFinish() = predecessors.size>=node.min
 
   constructor(node: ExecutableJoin,
@@ -149,156 +140,12 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
-    assert(predecessors.none { !it.valid }, {"When creating joins all handles should be valid ${predecessors}"})
+    assert(predecessors.none { !it.valid }, {"When creating joins all handles should be valid $predecessors"})
   }
 
   constructor(builder:Builder): this(builder.node, builder.predecessors, builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
 
-  @JvmName("updateJoin")
-  fun updateJoin(writableEngineData: MutableProcessEngineDataAccess, instance: ProcessInstance, body: Builder.() -> Unit): PNIPair<JoinInstance> {
-    val processInstanceBuilder = instance.builder()
-    val origHandle = getHandle()
-    val builder = builder(processInstanceBuilder).apply(body)
-    if (builder.changed) {
-      if (origHandle.valid && getHandle().valid) {
-        val nodeFuture = processInstanceBuilder.storeChild(builder)
-        return PNIPair(processInstanceBuilder.build(writableEngineData), nodeFuture.get() as JoinInstance)
-      }
-    }
-    return PNIPair(instance, this)
-  }
-
   override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
-
-  @Deprecated("Use updateJoin when using this function directly.", ReplaceWith("updateJoin(transaction, body)"))
-
-  @Throws(SQLException::class)
-  fun addPredecessor(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, predecessor: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): PNIPair<JoinInstance>? {
-
-    if (canAddNode(engineData) && predecessor !in predecessors) {
-      return updateJoin(engineData, processInstance) {
-        predecessors.add(predecessor)
-      }
-    }
-    return null
-  }
-
-  @Throws(SQLException::class)
-  override fun startTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<JoinInstance> {
-    if (node.startTask(this)) {
-      return updateTaskState(engineData, processInstance)
-    }
-    return PNIPair(processInstance, this)
-  }
-
-  @Deprecated("Use the builder directly")
-  @Suppress("UNCHECKED_CAST")
-  override fun finishTask(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance, resultPayload: Node?): PNIPair<JoinInstance> {
-    return update(engineData) {
-      finishTask(engineData, resultPayload)
-    }
-  }
-
-  /**
-   * Update the state of the task, based on the predecessors
-   * @param engineData The data to base the operation on
-   *
-   * @return `true` if the task is complete, `false` if not.
-   *
-   * @throws SQLException
-   */
-  @Throws(SQLException::class)
-  private fun updateTaskState(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): PNIPair<JoinInstance> {
-
-    fun next() = updateJoin(engineData, processInstance) { state = NodeInstanceState.Started }.let {
-      it.instance.finishTask(engineData, it.node, null)
-    }
-
-    if (state == NodeInstanceState.Complete) return PNIPair(processInstance, this) // Don't update if we're already complete
-
-    val join = node
-    val totalPossiblePredecessors = join.predecessors.size
-    val realizedPredecessors = predecessors.size
-
-    if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
-      return next()
-    }
-
-    var complete = 0
-    var skipped = 0
-    for (predecessor in resolvePredecessors(engineData)) {
-      when (predecessor.state) {
-        NodeInstanceState.Complete -> complete += 1
-
-        NodeInstanceState.Skipped,
-        NodeInstanceState.SkippedCancel,
-        NodeInstanceState.Cancelled,
-        NodeInstanceState.SkippedFail,
-        NodeInstanceState.Failed   -> skipped += 1
-        else                       -> Unit // do nothing
-      }
-    }
-    if (totalPossiblePredecessors - skipped < join.min) {
-      cancelNoncompletedPredecessors(engineData, processInstance).let { processInstance ->
-        failTask(engineData, processInstance, ProcessException("Too many predecessors have failed"))
-      }
-    }
-
-    if (complete >= join.min) {
-      if (complete >= join.max || processInstance.getActivePredecessorsFor(engineData, this).isEmpty()) {
-        return next()
-      }
-    }
-    return PNIPair(processInstance, this)
-  }
-
-  @Throws(SQLException::class)
-  private fun cancelNoncompletedPredecessors(engineData: MutableProcessEngineDataAccess, processInstance: ProcessInstance): ProcessInstance {
-    val preds = processInstance.getActivePredecessorsFor(engineData, this)
-    return preds.fold(processInstance) { processInstance, pred -> pred.tryCancelTask(engineData, processInstance).instance }
-  }
-
-  // TODO use builders for this
-  @Throws(SQLException::class)
-  override fun tickle(engineData: MutableProcessEngineDataAccess,
-                      instance: ProcessInstance, messageService: IMessageService<*>): PNIPair<JoinInstance> {
-    val (processInstance, self) = super.tickle(engineData, instance, messageService)
-    val missingIdentifiers = TreeSet<Identified>(node.predecessors)
-    val data = engineData
-
-    predecessors
-          .forEach { missingIdentifiers
-                .remove(data.nodeInstance(it).withPermission().node) }
-
-    return self.updateJoin(engineData, processInstance) {
-      val updatedProcessInstance = engineData.instance(hProcessInstance).withPermission()
-      missingIdentifiers.asSequence()
-            .flatMap { updatedProcessInstance.getNodeInstances(it) }
-            .forEach { predecessors.add(it.getHandle()) }
-    }.let { updatedPair ->
-      updatedPair.node.updateTaskState(engineData, updatedPair.instance)
-    }.let { updatedPair ->
-      if (updatedPair.node.state== NodeInstanceState.Started) {
-        updatedPair.node.finishTask(engineData = engineData, processInstance = updatedPair.instance)
-      } else {
-        updatedPair
-      }
-    }
-  }
-
-  @Throws(SQLException::class)
-  private fun canAddNode(engineData: ProcessEngineDataAccess): Boolean {
-    if (!isFinished) {
-      return true
-    }
-    val processInstance = engineData.instance(hProcessInstance).withPermission()
-    val directSuccessors = processInstance.getDirectSuccessors(engineData, this)
-
-    return directSuccessors.asSequence()
-          .map { engineData.nodeInstance(it).withPermission() }
-          .none { it.state == NodeInstanceState.Started || it.state == NodeInstanceState.Complete }
-
-  }
 
   companion object {
     fun build(joinImpl: ExecutableJoin,

@@ -23,7 +23,6 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.CompactFragment
 import java.util.*
@@ -55,34 +54,6 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
   override fun sendMessage(engineData: MutableProcessEngineDataAccess,
                            protoMessage: IXmlMessage,
-                           instance: ProcessNodeInstance<*>): Boolean {
-    assert(instance.getHandle().valid) { "Sending messages from invalid nodes is a bad idea" }
-
-    val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
-      instance.instantiateXmlPlaceholders(engineData,
-          protoMessage.messageBody.getXmlReader(),
-          false,
-          localEndpoint)
-    } else {
-      CompactFragment(Collections.emptyList(), CharArray(0))
-    }
-    val processedMessage = XmlMessage(protoMessage.service,
-                                    protoMessage.endpoint,
-                                    protoMessage.operation,
-                                    protoMessage.url,
-                                    protoMessage.method,
-                                    protoMessage.contentType,
-                                    instantiatedContent)
-
-    processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
-    _messages.add(ExtMessage(processedMessage, instance.getHandle()))
-    val processInstance = engineData.instance(instance.hProcessInstance).withPermission()
-    instance.update(engineData) { state = NodeInstanceState.Sent }
-    return true
-  }
-
-  override fun sendMessage(engineData: MutableProcessEngineDataAccess,
-                           protoMessage: IXmlMessage,
                            instanceBuilder: ProcessNodeInstance.Builder<*,*>): Boolean {
     assert(instanceBuilder.handle.valid) { "Sending messages from invalid nodes is a bad idea (${instanceBuilder})" }
 
@@ -105,7 +76,8 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
     processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
     _messages.add(ExtMessage(processedMessage, instanceBuilder.handle))
-    instanceBuilder.state = NodeInstanceState.Sent
+    instanceBuilder.state = NodeInstanceState.Acknowledged
+    instanceBuilder.store(engineData)
     return true
   }
 }

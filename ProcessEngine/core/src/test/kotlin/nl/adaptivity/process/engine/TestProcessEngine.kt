@@ -23,6 +23,7 @@ import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.XmlMessage
@@ -52,6 +53,13 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
+import kotlin.collections.ArrayList
+import kotlin.collections.asSequence
+import kotlin.collections.forEach
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.sorted
+import kotlin.collections.sortedBy
 
 
 /**
@@ -161,9 +169,9 @@ class TestProcessEngine {
     assertEquals(ArrayList(sortedFinished), handles.sorted())
   }
 
-  private fun ProcessInstance.assertFinished(vararg handles: ProcessNodeInstance<*>) = apply {
+  private fun ProcessInstance.assertFinished(vararg handles: IProcessNodeInstance) = apply {
     val actual = ArrayList(sortedFinished)
-    val expected = handles.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
+    val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
     try {
       assertEquals(actual, expected)
     } catch (e: AssertionError) {
@@ -175,9 +183,9 @@ class TestProcessEngine {
     assertEquals(ArrayList(sortedActive), handles.sorted())
   }
 
-  private fun ProcessInstance.assertActive(vararg handles: ProcessNodeInstance<*>) = apply {
+  private fun ProcessInstance.assertActive(vararg handles: IProcessNodeInstance) = apply {
     val actual = ArrayList(sortedActive)
-    val expected = handles.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
+    val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
     try {
       assertEquals(actual, expected)
     } catch (e:AssertionError) {
@@ -189,14 +197,14 @@ class TestProcessEngine {
     assertEquals(ArrayList(sortedCompleted), handles.sorted())
   }
 
-  private fun ProcessInstance.assertCompleted(vararg nodes: ProcessNodeInstance<*>): ProcessInstance {
+  private fun ProcessInstance.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance {
     val actual = ArrayList(sortedCompleted)
-    val expected = nodes.asSequence().map { it.getHandle() }.sortedBy { it.handleValue }.toList()
+    val expected = nodes.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
     assertEquals(actual, expected)
     return this
   }
 
-  private fun ProcessNodeInstance<*>.assertStarted() = apply {
+  private fun IProcessNodeInstance.assertStarted() = apply {
     assertEquals(this.state, NodeInstanceState.Started)
   }
 
@@ -208,25 +216,25 @@ class TestProcessEngine {
     assertEquals(this.state, State.FINISHED)
   }
 
-  private fun ProcessNodeInstance<*>.assertSent() = apply {
+  private fun IProcessNodeInstance.assertSent() = apply {
     assertState(NodeInstanceState.Sent)
   }
 
-  private fun ProcessNodeInstance<*>.assertPending() = apply {
+  private fun IProcessNodeInstance.assertPending() = apply {
     assertState(NodeInstanceState.Pending)
   }
 
-  private fun ProcessNodeInstance<*>.assertAcknowledged() = apply {
+  private fun IProcessNodeInstance.assertAcknowledged() = apply {
     assertState(NodeInstanceState.Acknowledged)
   }
 
-  private fun ProcessNodeInstance<*>.assertComplete() = apply {
+  private fun IProcessNodeInstance.assertComplete() = apply {
     assertState(NodeInstanceState.Complete)
   }
 
-  private fun ProcessNodeInstance<*>.assertState(state: NodeInstanceState) {
+  private fun IProcessNodeInstance.assertState(state: NodeInstanceState) {
     try {
-      assertEquals(this.state, state, "Node ${this.node.id}(${this.getHandle()}) should be in the ${state.name} state")
+      assertEquals(this.state, state, "Node ${this.node.id}(${this.handle()}) should be in the ${state.name} state")
     } catch (e: AssertionError) {
       throw dropStack(e, 2)
     }
@@ -295,7 +303,12 @@ class TestProcessEngine {
       val taskNode = mStubMessageService.messageNode(transaction, 0)
       taskNode.assertSent()
       processInstance.assertActive(taskNode)
-      processInstance.finishTask(engineData, taskNode, null).node.assertComplete()
+      processInstance.update(engineData) {
+        updateChild(taskNode) {
+          finishTask(engineData)
+          assertComplete()
+        }
+      }
     }
 
     run {
@@ -352,7 +365,13 @@ class TestProcessEngine {
             }
           }
 
-          instance.finishTask(engineData, ac1, null).node.assertComplete()
+          instance.update(engineData) {
+            updateChild(ac1) {
+              finishTask(engineData)
+              assertComplete()
+            }
+          }
+
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -365,7 +384,11 @@ class TestProcessEngine {
           instance.assertActive(ac2, split, join)
           // check join is in the pending set
 
-          ac2.startTask(engineData, instance)
+          instance.update(transaction.writableEngineData) {
+            updateChild(ac2) {
+              startTask(transaction.writableEngineData)
+            }
+          }
         }
         run {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -377,7 +400,12 @@ class TestProcessEngine {
           instance.assertFinished(ac1, start)
           instance.assertActive(ac2, split, join)
 
-          instance.finishTask(engineData, ac2, null).node.assertComplete()
+          instance.update(engineData) {
+            updateChild(ac2) {
+              finishTask(engineData)
+              assertComplete()
+            }
+          }
         }
 
         run {

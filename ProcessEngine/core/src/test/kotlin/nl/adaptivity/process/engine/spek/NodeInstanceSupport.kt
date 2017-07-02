@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.ProcessTransaction
 import nl.adaptivity.process.engine.kfail
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.updateChild
 import nl.adaptivity.process.util.Identified
 import org.w3c.dom.Node
 import kotlin.reflect.KProperty
@@ -42,12 +43,19 @@ interface SafeNodeActions {
   val transaction: ProcessTransaction
 
   fun ProcessNodeInstance<*>.take(): ProcessNodeInstance<*> {
-    return this.update(transaction.writableEngineData) { state= NodeInstanceState.Taken }.node
+    val ib = transaction.writableEngineData.instance(hProcessInstance).withPermission().builder()
+    this.update(ib) { state= NodeInstanceState.Taken }
+    return transaction.readableEngineData.nodeInstance(handle()).withPermission()
   }
 
   fun ProcessNodeInstance<*>.start(): ProcessNodeInstance<*> {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    return startTask(transaction.writableEngineData, instance).node
+    instance.update(transaction.writableEngineData) {
+      updateChild(this@start) {
+        startTask(transaction.writableEngineData)
+      }
+    }
+    return transaction.readableEngineData.nodeInstance(getHandle()).withPermission()
   }
 
 }
@@ -56,7 +64,12 @@ interface ProcessNodeActions: SafeNodeActions {
 
   fun ProcessNodeInstance<*>.finish(payload: Node? = null): ProcessNodeInstance<*> {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    return instance.finishTask(transaction.writableEngineData, this, payload).node
+    instance.update(transaction.writableEngineData) {
+      updateChild(this@finish) {
+        finishTask(transaction.writableEngineData, payload)
+      }
+    }
+    return transaction.readableEngineData.nodeInstance(handle()).withPermission()
   }
 
 }

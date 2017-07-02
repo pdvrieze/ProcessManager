@@ -33,10 +33,10 @@ class WCP6(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
         (ac2 .. end2.opt .. end1))
     }
     ac1Condition && ! ac2Condition -> buildTrace {
-      start..(end1 or ((ac1..end1.opt).opt..(ac2 or end2)))
+      start..(end1 or ((ac1..end1.opt).opt * (ac2 or end2)))
     }
       !ac1Condition && ac2Condition -> buildTrace {
-        start..(end2 or ((ac2..end2.opt).opt..(ac1 or end1)))
+        start..(end2 or ((ac2..end2.opt).opt * (ac1 or end1)))
       }
       else -> kfail("Unsupported condition combination")
     }
@@ -44,22 +44,23 @@ class WCP6(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
 
   val validTraces = with (model) { when {
     ac1Condition && ac2Condition -> {
-      trace { start .. ( // these are valid
-        (ac1 .. end1 .. ac2) or
-          (ac2 .. end2 .. ac1)) .. (split % (end1 or end2))
+      trace {
+        (start ..( // these are valid
+            (ac1 .. end1 .. ac2) or
+              (ac2 .. end2 .. ac1))) * (split % (end1 or end2))
       }.removeInvalid()
     }
     ac1Condition && !ac2Condition -> buildTrace {
-      start .. ac1 .. (split % end1)
+      (start .. ac1) * (split % end1)
     }
     !ac1Condition && ac2Condition -> buildTrace {
-      start .. ac2 .. (split % end2)
+      (start .. ac2) * (split % end2)
     }
     else -> kfail("All cases need valid traces")
   } }
 
   val baseInvalid = with(model) { buildTrace {
-    ac1 or ac2 or (start.opt .. (end1 or end2 or split))
+    ac1 or ac2 or (start.opt * (end1 or end2 or split))
   } }
   ModelData(model, validTraces, baseInvalid + invalidTraces)
 }){

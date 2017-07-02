@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import java.security.Principal
 
-abstract class IProcessEngineData<T:ProcessTransaction>() : TransactionFactory<T> {
+abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> {
   protected abstract val processModels: IMutableProcessModelMap<T>
   protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
   protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>

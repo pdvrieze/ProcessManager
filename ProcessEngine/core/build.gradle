@@ -47,7 +47,7 @@ junitPlatform {
         }
     }
     selectors {
-        classes 'nl.adaptivity.process.engine.TestWorkflowPatterns2'
+        classes { 'nl.adaptivity.process.engine.TestWorkflowPatterns2' }
     }
 }
 
@@ -62,7 +62,6 @@ artifacts {
 dependencies {
     compile project(':java-common')
     compile project(':PE-common')
-    compile project(':darwin-sql')
     compileOnly project(':DarwinJavaApi')
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'

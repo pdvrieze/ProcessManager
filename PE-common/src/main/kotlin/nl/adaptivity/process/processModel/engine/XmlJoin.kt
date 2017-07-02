@@ -25,7 +25,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.deserializeHelper
 
 
 class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
@@ -107,14 +107,14 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
   companion object {
 
     @Throws(XmlException::class)
-    fun deserialize(`in`: XmlReader,
+    fun deserialize(reader: XmlReader,
                     buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlJoin {
-      return deserialize(`in`).build(buildHelper)
+      return deserialize(reader).build(buildHelper)
     }
 
     @Throws(XmlException::class)
-    fun deserialize(`in`: XmlReader): XmlJoin.Builder {
-      return XmlJoin.Builder().deserializeHelper(`in`)
+    fun deserialize(reader: XmlReader): XmlJoin.Builder {
+      return XmlJoin.Builder().deserializeHelper(reader)
     }
   }
 

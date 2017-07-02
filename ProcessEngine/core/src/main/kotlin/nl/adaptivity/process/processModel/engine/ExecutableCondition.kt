@@ -18,11 +18,14 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
 import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.writeSimpleElement
 import java.util.*
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
@@ -59,7 +62,7 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
    *
    * @return `true` if the condition holds, `false` if not
    */
-  fun eval(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult {
+  fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult {
     if (condition.isBlank()) return TRUE
     // TODO process the condition as xpath, expose the node's defines as variables
     val factory = XPathFactory.newInstance()
@@ -72,15 +75,6 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
     val xpath = factory.newXPath()
     val expression = xpath.compile(condition)
     return (expression.evaluate(doc.createDocumentFragment(), XPathConstants.BOOLEAN) as Boolean).toResult(resolver)
-  }
-
-  companion object {
-
-    @Throws(XmlException::class)
-    fun deserialize(reader: XmlReader): ExecutableCondition {
-      val condition = reader.readSimpleElement()
-      return ExecutableCondition(condition.toString())
-    }
   }
 
 }
@@ -100,7 +94,7 @@ fun ConditionResult(boolean: Boolean): ConditionResult {
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: ProcessNodeInstance<*>) : XPathFunctionResolver, XPathVariableResolver {
+class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: IProcessNodeInstance) : XPathFunctionResolver, XPathVariableResolver {
   override fun resolveVariable(variableName: QName): Any? {
     // Actually resolve variables
     return null

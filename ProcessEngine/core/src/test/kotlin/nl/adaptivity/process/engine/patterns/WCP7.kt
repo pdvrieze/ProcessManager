@@ -32,11 +32,11 @@ class WCP7(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
   val validTraces = with(model) { when {
     ac1Condition && ac2Condition -> {
       invalidTraces.addAll(trace {
-        start .. (ac1 or ac2) .. (end or join or split)
+        (start ..(ac1 or ac2)) * (end or join or split)
       })
 
       trace {
-        start .. (ac1 % ac2) .. (split % join % end)
+        (start ..(ac1 % ac2)) * (split % join % end)
       }
     }
     ac1Condition && !ac2Condition -> {
@@ -57,14 +57,14 @@ class WCP7(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
 
 
       trace {
-        start .. ac2 .. (split % join % end)
+        (start .. ac2) * (split % join % end)
       }
     }
     else -> kfail("All cases need valid traces")
   }}
 
   val baseInvalid = with(model) { trace {
-    ac1 or ac2 or ( start.opt .. (end or join or split))
+    ac1 or ac2 or (start.opt * (end or join or split))
   }}
   ModelData(model, validTraces, baseInvalid + invalidTraces)
 }) {

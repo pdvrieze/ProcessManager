@@ -30,7 +30,6 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.writeChild
-import java.sql.SQLException
 
 
 /**
@@ -65,8 +64,8 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
 
     constructor(node: Activity<*, *>) : super(node)
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableActivity(
-      this, buildHelper)
+    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
+      = ExecutableActivity(this, buildHelper)
   }
 
 
@@ -130,7 +129,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
   /**
    * Determine whether the process can start.
    */
-  override fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult {
+  override fun condition(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult {
     return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
   }
 
@@ -144,22 +143,6 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
       processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.handle(), processInstanceBuilder, Handles.getInvalid(), processInstanceBuilder.owner, entryNo)
   }
 
-  /**
-   * This will actually take the message element, and send it through the
-   * message service.
-   *
-   * @param engineData The data needed
-   *
-   * @param instance The processInstance that represents the actual activity
-   *           instance that the message responds to.
-   *
-   * @throws SQLException
-   */
-  @Throws(SQLException::class)
-  @Deprecated("Use the builder version")
-  override fun provideTask(engineData: ProcessEngineDataAccess,
-                           processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = childModel != null
-
   override fun provideTask(engineData: ProcessEngineDataAccess,
                            instanceBuilder: ProcessNodeInstance.Builder<*, *>) = childModel != null
 
@@ -169,24 +152,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
    *
    * @return `false`
    */
-  override fun takeTask(instance: ProcessNodeInstance<*>) = childModel!=null
-
-  /**
-   * Take the task. Tasks are either process aware or finished when a reply is
-   * received. In either case they should not be automatically taken.
-   *
-   * @return `false`
-   */
   override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = childModel!=null
-
-  /**
-   * Start the task. Tasks are either process aware or finished when a reply is
-   * received. In either case they should not be automatically started.
-   *
-   * @return `false`
-   */
-  @Deprecated("Use the builder version")
-  override fun startTask(instance: ProcessNodeInstance<*>) = false
 
   /**
    * Start the task. Tasks are either process aware or finished when a reply is

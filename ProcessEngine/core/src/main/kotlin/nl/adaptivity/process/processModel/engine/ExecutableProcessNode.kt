@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.updateChild
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
@@ -42,7 +43,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
 
     override fun predecessors(vararg values: Identifiable) {
       values.forEach {
-        predecessors.add(it.identifier ?: throw NullPointerException("Missing identifier for predecessor ${it}"))
+        predecessors.add(it.identifier ?: throw NullPointerException("Missing identifier for predecessor $it"))
       }
     }
 
@@ -95,21 +96,8 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * @return `true` if the node can be started, `false` if
    *          not.
    */
-  fun condition(engineData: ProcessEngineDataAccess, instance: ProcessNodeInstance<*>): ConditionResult = ConditionResult.TRUE
+  fun condition(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
-  /**
-   * Take action to make task available
-   *
-   * @param engineData
-   *
-   * @param instance The processnode instance involved.
-   *
-   * @return `true` if the task can/must be automatically taken
-   */
-  @Throws(SQLException::class)
-  @Deprecated("Use the version that takes a builder")
-  fun provideTask(engineData: ProcessEngineDataAccess,
-                  processInstance: ProcessInstance, instance: ProcessNodeInstance<*>): Boolean = true
 
   /**
    * Take action to make task available
@@ -124,39 +112,26 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
   fun provideTask(engineData: ProcessEngineDataAccess, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
     = true
 
-  /**
-   * Take action to accept the task (but not start it yet)
-   *
-   * @param instance The processnode instance involved.
-   *
-   * @return `true` if the task can/must be automatically started
-   */
-  @Deprecated("Use the version that takes a builder")
-  fun takeTask(instance: ProcessNodeInstance<*>): Boolean = true
-
   fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
-
-  @Deprecated("Use the version that takes a builder")
-  fun startTask(instance: ProcessNodeInstance<*>): Boolean = true
 
   fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 
   private fun preceeds(node: ExecutableProcessNode, reference: ExecutableProcessNode, seenIds: MutableSet<String>):Boolean {
     if (node in reference.predecessors) return true
     seenIds+=id
-    for (predecessorId in reference.predecessors) {
-      if (predecessorId.id !in seenIds) {
-        val predecessor = ownerModel.getNode(predecessorId)!!
-        return preceeds(node, predecessor, seenIds)
-      }
-    }
-    return false
+
+    return reference.predecessors.asSequence()
+             .filter { it.id !in seenIds }
+             .map { ownerModel.getNode(it)!! }
+             .firstOrNull()
+             ?.let { preceeds(node, it, seenIds) }
+           ?: false
   }
 
   /**
    * Determine whether this node is a "possible" predecessor of the reference node.
    */
-  infix fun  preceeds(reference: ExecutableProcessNode): Boolean {
+  public infix fun  preceeds(reference: ExecutableProcessNode): Boolean {
     if (this===reference) return false
     return preceeds(this, reference, HashSet<String>())
   }
@@ -164,7 +139,7 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
   /**
    * Determine whether this node is a "possible" successor of the reference node.
    */
-  infix fun succceeds(reference: ExecutableProcessNode): Boolean {
+  public infix fun succceeds(reference: ExecutableProcessNode): Boolean {
     if (this===reference) return false
     return preceeds(reference, this, HashSet<String>())
   }

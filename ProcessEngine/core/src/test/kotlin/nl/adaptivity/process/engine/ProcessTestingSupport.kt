@@ -20,8 +20,8 @@ import nl.adaptivity.process.engine.EngineTesting.*
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceSpecBody
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceTestBody
 import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.JoinInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.engine.spek.ProcessNodeActions
 import nl.adaptivity.process.engine.spek.SafeNodeActions
@@ -84,18 +84,6 @@ class EngineTesting {
   }
 
   val testData = EngineTestData.defaultEngine()
-
-  @Deprecated("Use testData", ReplaceWith("testData.engine"))
-  val processEngine get() = testData.engine
-
-//
-//  val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
-//  val stubMessageService = StubMessageService(localEndpoint)
-//  val stubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
-//    override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-//      return StubProcessTransaction(engineData)
-//    }
-//  }
 
 }
 
@@ -342,8 +330,13 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
             val childInstance = transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
             if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
               try {
-                transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-                  .finishTask(transaction.writableEngineData, nodeInstance, null)
+                transaction.readableEngineData.instance(nodeInstance.hProcessInstance)
+                  .withPermission()
+                  .update( transaction.writableEngineData) {
+                    updateChild(nodeInstance) {
+                      finishTask(transaction.writableEngineData, null)
+                    }
+                  }
               } catch (e: ProcessException) {
                 if (e.message?.startsWith(
                   "A Composite task cannot be finished until its child process is. The child state is:") ?: false) {
@@ -353,8 +346,13 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
             }
           } else if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
             try {
-              transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-                .finishTask(transaction.writableEngineData, nodeInstance, null)
+              transaction.readableEngineData.instance(nodeInstance.hProcessInstance)
+                .withPermission()
+                .update(transaction.writableEngineData) {
+                  updateChild(nodeInstance) {
+                    finishTask(transaction.writableEngineData, null)
+                  }
+                }
             } catch (e: ProcessException) {
               assertNotNull(e.message)
               assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
@@ -364,7 +362,11 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
           }
           val instance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
           try {
-            instance.finishTask(transaction.writableEngineData, nodeInstance, null)
+            instance.update(transaction.writableEngineData) {
+              updateChild(nodeInstance) {
+                finishTask(transaction.writableEngineData, null)
+              }
+            }
           } catch (e:ProcessException) {
             throw ProcessTestingException(e)
           }
