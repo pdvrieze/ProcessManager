@@ -116,7 +116,32 @@ fun HttpServletResponse.darwinError(req: HttpServletRequest, message: String, co
       style = "margin-top: 2em"
       +message.trim().replace("\n", "<br />")
     }
-    // TODO print backtrace, but only in debug
+    if (cause!=null && System.getProperty("DEBUG")?.let { it!="false" }?:false) {
+      p {
+        this.printCauseAsHtml(cause)
+      }
+    }
+  }
+}
+
+private fun  HtmlBlockTag.printCauseAsHtml(cause: Throwable) {
+  b { +cause.javaClass.simpleName }
+  +": ${cause.message}"
+  div {
+    style = "margin-left: 1em"
+    ul {
+      for (elem in cause.stackTrace) {
+        li { +elem.toString() }
+      }
+    }
+    cause.cause?.let {
+      i { + "caused by "}
+      printCauseAsHtml(it)
+    }
+    for(suppressed in  cause.suppressed) {
+      i { + "suppressing "}
+      printCauseAsHtml(suppressed)
+    }
   }
 }
 
