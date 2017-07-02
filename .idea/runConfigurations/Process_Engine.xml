@@ -131,7 +131,7 @@
     </ConfigurationWrapper>
     <method>
       <option name="Make" enabled="false" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":copyTomcatWars :copyTomcatClasspath" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":copyTomcatWars :copyTomcatClasspath :PE-server:assembleExtraBootCp" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>
