@@ -61,7 +61,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     BaseRect(final Rectangle bounds, final SVGPen<M> color) {
       super(color);
-      mBounds = bounds;
+      mBounds = bounds.clone();
     }
 
     void serializeRect(final XmlWriter out) throws XmlException {
@@ -311,7 +311,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       } else {
         out.attribute(null, "transform", null, "matrix("+mScale+",0,0,"+mScale+","+mX*mScale+","+mY*mScale+")");
       }
-      for (final IPaintedElem element:this.mPath) {
+      for (final IPaintedElem element:this.path) {
         element.serialize(out);
       }
       out.endTag(SVG_NAMESPACE, "g", null);
@@ -325,7 +325,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   
   private static boolean sUseBaselineAlign = false;
 
-  List<IPaintedElem> mPath = new ArrayList<>();
+  List<IPaintedElem> path = new ArrayList<>();
 
   private final Rectangle mBounds;
 
@@ -464,11 +464,11 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
         Doubles.isFinite(mBounds.width)) {
       return;
     }
-    if (mPath.size()>0) {
+    if (path.size() > 0) {
       final Rectangle tmpBounds = new Rectangle(0d, 0d, 0d, 0d);
-      mBounds.set(mPath.get(0).getBounds(tmpBounds));
-      for (int i = 1; i < mPath.size(); i++) {
-        mBounds.extendBounds(mPath.get(i).getBounds(tmpBounds));
+      mBounds.set(path.get(0).getBounds(tmpBounds));
+      for (int i = 1; i < path.size(); i++) {
+        mBounds.extendBounds(path.get(i).getBounds(tmpBounds));
       }
     }
   }
@@ -491,39 +491,46 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   @Override
   public Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> childCanvas(final double offsetX, final double offsetY, final double scale) {
     final SubCanvas<M> result = new SubCanvas<>(mStrategy, offsetX, offsetY, scale);
-    mPath.add(result);
+    mBounds.top=Double.NaN;
+    path.add(result);
     return result;
   }
 
   @Override
   public void drawFilledCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
-    mPath.add(new FilledCircle<>(x, y, radius, color.clone()));
+    mBounds.top=Double.NaN;
+    path.add(new FilledCircle<>(x, y, radius, color.clone()));
   }
 
   @Override
   public void drawRect(final Rectangle rect, final SVGPen<M> color) {
-    mPath.add(new Rect<>(rect, color));
+    mBounds.top=Double.NaN;
+    path.add(new Rect<>(rect, color));
   }
 
   @Override
   public void drawFilledRect(final Rectangle rect, final SVGPen<M> color) {
-    mPath.add(new FilledRect<>(rect, color));
+    mBounds.top=Double.NaN;
+    path.add(new FilledRect<>(rect, color));
   }
 
   @Override
   public void drawCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
-    mPath.add(new Circle<>(x, y, radius, color));
+    mBounds.top=Double.NaN;
+    path.add(new Circle<>(x, y, radius, color));
   }
 
   @Override
   public void drawRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> color) {
-    mPath.add(new RoundRect<>(rect, rx, ry, color));
+    mBounds.top=Double.NaN;
+    path.add(new RoundRect<>(rect, rx, ry, color));
 
   }
 
   @Override
   public void drawFilledRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> color) {
-    mPath.add(new FilledRoundRect<>(rect, rx, ry, color));
+    mBounds.top=Double.NaN;
+    path.add(new FilledRoundRect<>(rect, rx, ry, color));
   }
 
   @Override
@@ -553,7 +560,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   @Override
   public void drawPath(final SVGPath path, final SVGPen<M> stroke, final SVGPen<M> fill) {
-    mPath.add(new PaintedPath<>(path, stroke, fill));
+    mBounds.top=Double.NaN;
+    this.path.add(new PaintedPath<>(path, stroke, fill));
   }
 
   @Override
@@ -570,7 +578,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     } else {
       adjustedY = adjustToBaseline(textPos, y, pen);
     }
-    mPath.add(new DrawText<>(textPos, x, adjustedY, text, foldWidth, pen.clone()));
+    mBounds.top=Double.NaN;
+    path.add(new DrawText<>(textPos, x, adjustedY, text, foldWidth, pen.clone()));
 // Only for debug purposes
 //    mPath.add(new FilledCircle<>(pX, pY, 1d, mGreenPen));
 //    mPath.add(new FilledCircle<>(pX, y, 1d, mRedPen));
@@ -614,7 +623,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     out.attribute(null, "width", null, Double.toString(mBounds.width+mBounds.left*2));
     out.attribute(null, "height", null, Double.toString(mBounds.height+mBounds.top*2));
 
-    for (final IPaintedElem element:mPath) {
+    for (final IPaintedElem element: path) {
       try {element.serialize(out);} catch (XmlException e) {
         throw new RuntimeException(e);
       }
