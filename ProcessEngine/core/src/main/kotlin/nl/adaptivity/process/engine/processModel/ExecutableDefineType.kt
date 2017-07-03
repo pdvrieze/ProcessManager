@@ -28,6 +28,9 @@ import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.processModel.XmlDefineType
+import nl.adaptivity.process.processModel.name
+import nl.adaptivity.process.processModel.refName
+import nl.adaptivity.process.processModel.refNode
 import nl.adaptivity.util.xml.DomUtil
 import nl.adaptivity.xml.CompactFragment
 import nl.adaptivity.xml.SimpleNamespaceContext
@@ -42,7 +45,8 @@ import javax.xml.xpath.XPathExpressionException
 fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData {
   val processData: ProcessData
   val refNode = refNode
-  if (refNode != null) {
+  val refName = refName
+  if (refNode != null && refName!=null) {
     val predecessor = node.resolvePredecessor(engineData, refNode)
     val origpair = predecessor!!.getResult(engineData, refName)
     if (origpair == null) {

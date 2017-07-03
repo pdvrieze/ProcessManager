@@ -99,7 +99,7 @@ public class TestXmlResultType {
     final Document testData = getDB().parse(new InputSource(new StringReader("<result><value name='user'>Paul</value></result>")));
     final XmlResultType xrt = new XmlResultType("user", "/result/value[@name='user']/text()", (char[]) null, null);
 
-    final ProcessData actual = xrt.apply(testData);
+    final ProcessData actual = xrt.applyData(testData);
 
     final ProcessData expected = new ProcessData("user", XmlStreamingKt.CompactFragment(Collections.<Namespace>emptyList(), "Paul".toCharArray()));
     assertEquals(actual.getName(), expected.getName());
@@ -122,7 +122,7 @@ public class TestXmlResultType {
     final XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", (char[]) null, null);
 
     final ProcessData expected = new ProcessData("user", XmlStreamingKt.CompactFragment("Paul"));
-    final ProcessData actual = xrt.apply(testData);
+    final ProcessData actual = xrt.applyData(testData);
     assertEquals(actual.getName(), expected.getName());
     assertEquals(actual.getContent(), expected.getContent());
 //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
@@ -134,7 +134,7 @@ public class TestXmlResultType {
     final String testData = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
     final XmlReader in = XmlStreaming.newReader(new StringReader(testData));
 
-    final XmlDefineType testHolder = XmlDefineType.deserialize(in);
+    final XmlDefineType testHolder = XmlDefineType.Companion.deserialize(in);
 
     assertNotNull(SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext()));
     assertEquals(Companion.from(testHolder.getOriginalNSContext())

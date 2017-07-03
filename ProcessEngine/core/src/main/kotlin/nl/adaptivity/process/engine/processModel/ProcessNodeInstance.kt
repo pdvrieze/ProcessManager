@@ -319,7 +319,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
         throw ProcessException("instance ${node.id}:$handle($state) cannot be finished as it is already in a final state.")
       }
       state= Complete
-      node.results.mapTo(results.apply{clear()}) { it.apply(resultPayload) }
+      node.results.mapTo(results.apply{clear()}) { it.applyData(resultPayload) }
     }
 
 

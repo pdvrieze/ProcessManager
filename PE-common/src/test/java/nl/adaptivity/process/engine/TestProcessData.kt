@@ -204,10 +204,10 @@ class TestProcessData {
         "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
 
 
-    val result1_apply = result1.apply(testData).content
+    val result1_apply = result1.applyData(testData).content
     assertEquals(result1_apply.contentString, "Paul")
 
-    val result2_apply = result2.apply(testData).content
+    val result2_apply = result2.applyData(testData).content
     XMLAssert.assertXMLEqual("<user><fullname>Paul</fullname></user>", result2_apply.contentString)
 
   }
@@ -235,7 +235,7 @@ class TestProcessData {
     assertTrue(apply3 is Text)
     assertEquals(apply3.textContent, "Paul")
 
-    val apply1 = result.apply(testData)
+    val apply1 = result.applyData(testData)
     assertEquals(apply1.content.contentString, "Paul")
   }
 

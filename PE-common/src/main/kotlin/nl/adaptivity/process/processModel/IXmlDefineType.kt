@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,21 +16,54 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xml.Namespace
 import nl.adaptivity.xml.XmlSerializable
-import org.w3c.dom.Node
 
 
-interface IXmlResultType : XmlSerializable {
+interface IXmlDefineType : XmlSerializable {
 
   val content: CharArray?
 
   /**
-   * The value of the name property.
+   * Gets the value of the node property.
+   *
+   * @return possible object is [String]
+   */
+  fun getRefNode(): String?
+
+  /**
+   * Sets the value of the node property.
+   *
+   * @param value allowed object is [String]
+   */
+  fun setRefNode(value: String?)
+
+  /**
+   * Gets the value of the name property.
+   *
+   * @return possible object is [String]
+   */
+  fun getRefName(): String?
+
+  /**
+   * Sets the value of the name property.
+   *
+   * @param value allowed object is [String]
+   */
+  fun setRefName(value: String?)
+
+  /**
+   * Gets the value of the paramName property.
+   *
+   * @return possible object is [String]
    */
   fun getName(): String?
 
+  /**
+   * Sets the value of the paramName property.
+   *
+   * @param value allowed object is [String]
+   */
   fun setName(value:String?)
 
   /**
@@ -42,28 +75,32 @@ interface IXmlResultType : XmlSerializable {
 
   /**
    * Sets the value of the path property.
-   *
+
    * @param namespaceContext
-   *
+   * *
    * @param value allowed object is [String]
    */
   fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-  fun applyData(payload: Node?): ProcessData
-
   /**
-   * Get the namespace context for evaluating the xpath expression.
-   * @return the context
+   * Get the namespace context that defines the "missing" namespaces in the content.
+   * @return
    */
-  fun getOriginalNSContext(): Iterable<Namespace>
+  fun getOriginalNSContext(): Iterable<Namespace>?
+
 }
 
-val IXmlResultType.path:String?
-  inline get() = getPath()
+var IXmlDefineType.refNode:String?
+  inline get() = getRefNode()
+  inline set(value) {setRefNode(value)}
 
-var IXmlResultType.name:String?
+var IXmlDefineType.refName:String?
+  inline get() = getRefName()
+  inline set(value) {setRefName(value)}
+
+var IXmlDefineType.name:String?
   inline get() = getName()
   inline set(value) { setName(value) }
 
-val IXmlResultType.originalNSContext: Iterable<Namespace>
+val IXmlDefineType.originalNSContext: Iterable<Namespace>
   inline get() = getOriginalNSContext() ?: emptyList()

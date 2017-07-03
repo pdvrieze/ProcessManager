@@ -107,7 +107,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
    * *
    * @return
    */
-  override fun apply(payload: Node?): ProcessData {
+  override fun applyData(payload: Node?): ProcessData {
     // TODO add support for variable and function resolvers.
     try {
       // shortcircuit missing path

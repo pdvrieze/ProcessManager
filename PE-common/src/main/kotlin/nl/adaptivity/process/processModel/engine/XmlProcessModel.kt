@@ -186,23 +186,14 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
   }
 
   fun toInputs(payload: Node): List<ProcessData> {
-    // TODO make this work properly
-    val imports = getImports()
-    val result = ArrayList<ProcessData>(imports.size)
-    for (import_ in imports) {
-      result.add(XmlResultType[import_].apply(payload))
-    }
-    return result
+    return getImports().map { XmlResultType(it).applyData(payload) }
   }
 
   fun toOutputs(payload: Node): List<ProcessData> {
-    // TODO make this work properly
-    val exports = getExports()
-    val result = ArrayList<ProcessData>(exports.size)
-    for (export in exports) {
-      //      result.add(XmlDefineType.get(export).apply(pPayload));
-    }
-    return result
+    TODO("Implement processing of define types properly")
+/*
+    return getExports().map { XmlDefineType(it).applyData(null, payload) }
+*/
   }
 
   companion object {

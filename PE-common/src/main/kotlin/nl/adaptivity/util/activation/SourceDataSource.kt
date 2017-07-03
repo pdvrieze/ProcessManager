@@ -22,7 +22,8 @@ import java.io.OutputStream
 import javax.activation.DataSource
 import javax.xml.transform.Source
 
-class SourceDataSource(private val contentType: String, private val content: Source, private val name:String? = null) : DataSource {
+
+class SourceDataSource @JvmOverloads constructor(private val contentType: String, private val content: Source, private val name:String? = null) : DataSource {
 
   override fun getContentType() = contentType
 

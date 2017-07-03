@@ -59,7 +59,6 @@ abstract class XPathHolder : XMLContainer {
 
   val xPath:XPathExpression? get() = path
 
-
   constructor() : super()
 
   constructor(content: CharArray?, originalNSContext: Iterable<Namespace>, path: String?, name: String?) : super(originalNSContext, content) {
