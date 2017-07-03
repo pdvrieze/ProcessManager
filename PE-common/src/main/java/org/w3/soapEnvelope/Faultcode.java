@@ -60,6 +60,16 @@ import javax.xml.namespace.QName;
          })
 public class Faultcode {
 
+  enum Values {
+    VersionMismatch,
+    MustUnderstand,
+    DataEncodingUnknown,
+    Sender,
+    Receiver;
+
+    public final QName qName = new QName(Envelope.NAMESPACE, name(), Envelope.PREFIX);
+  }
+
   protected QName value;
 
   protected Subcode subcode;
@@ -70,8 +80,19 @@ public class Faultcode {
    * @return possible object is {@link QName }
    */
   @XmlName("Value")
-  public QName getValue() {
+  public QName getQNameValue() {
     return value;
+  }
+
+  public Values getValue(){
+    if (value==null) { return null; }
+    for (Values c:Values.values()) {
+      if (c.qName.getNamespaceURI().equals(value.getNamespaceURI()) &&
+          c.qName.getLocalPart().equals(value.getNamespaceURI())) {
+        return c;
+      }
+    }
+    return null;
   }
 
   /**
@@ -79,8 +100,12 @@ public class Faultcode {
    * 
    * @param value allowed object is {@link QName }
    */
-  public void setValue(final QName value) {
+  public void setQNameValue(final QName value) {
     this.value = value;
+  }
+
+  public void setValue (final Values value) {
+    this.value = value.qName;
   }
 
   /**
