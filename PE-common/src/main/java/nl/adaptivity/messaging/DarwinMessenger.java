@@ -362,7 +362,6 @@ public class DarwinMessenger implements IMessenger {
         mCancelled = true;
         return true;
       }
-      // TODO support interrupt running process
       return false;
     }
 
@@ -585,7 +584,6 @@ public class DarwinMessenger implements IMessenger {
           if (returnType.isAssignableFrom(SourceDataSource.class)) {
             resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", resultSource)));
           } else {
-            // TODO make sure to provide the needed context for deserialization.
             final T resultval = SoapHelper.processResponse(returnType, returnContext, null, resultSource);
             resultfuture = new MessageTask<>(resultval);
           }

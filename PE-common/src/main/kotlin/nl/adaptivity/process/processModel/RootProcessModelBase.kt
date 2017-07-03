@@ -29,7 +29,6 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.EventType
 import java.security.Principal
 import java.util.*
 import javax.xml.namespace.QName
@@ -76,8 +75,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         override fun visitJoin(join: Join<*, *>) = joinBuilder(join)
         override fun visitEndNode(endNode: EndNode<*, *>) = endNodeBuilder(endNode)
       }) }
-
-      // XXX Set child models from the base
     }
 
     override abstract fun build(pedantic: Boolean): RootProcessModelBase<NodeT, ModelT>

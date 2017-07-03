@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.ArraySet
-import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.*
 import nl.adaptivity.xml.*
 import java.util.*
@@ -229,8 +228,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         }
       }
     }
-
-    // TODO perhaps make this reciprocal
   }
 
   @Deprecated("Use builders instead of mutable process models")
