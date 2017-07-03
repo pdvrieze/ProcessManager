@@ -14,26 +14,21 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine;
+package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
-import nl.adaptivity.process.processModel.ProcessNode;
-import org.jetbrains.annotations.NotNull;
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
+import nl.adaptivity.process.processModel.ProcessNode
 
 
 /**
- * Created by pdvrieze on 27/11/16.
+ * Fix compilation by converting it properly to Kotlin.
  */
-public interface XmlProcessNode extends ProcessNode<XmlProcessNode, XmlModelCommon> {
+interface XmlProcessNode : ProcessNode<XmlProcessNode, XmlModelCommon> {
 
-  interface Builder extends ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon> {
+  interface Builder : ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon> {
 
-    @NotNull
-    @Override
-    XmlProcessNode build(@NotNull final BuildHelper<XmlProcessNode, XmlModelCommon> buildHelper);
+    override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlProcessNode
   }
 
-  @NotNull
-  @Override
-  Builder builder();
+  override fun builder(): Builder
 }
