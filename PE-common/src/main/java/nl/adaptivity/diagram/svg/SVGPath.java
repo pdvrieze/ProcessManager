@@ -121,17 +121,68 @@ public class SVGPath implements DiagramPath<SVGPath>{
                           .append(mX).append(' ').append(mY).append(' ');
     }
 
+// Property accessors start
     @Override
     public void getBounds(final Rectangle storage, final IPathElem previous, final Pen<?> stroke) {
-      // TODO calculate this more accurately by interpolation
-      double hsw=stroke.getStrokeWidth()/2;
-      final double left = Math.min(Math.min(previous.getX(), mCX1), Math.min(mCX2, mX))-hsw;
-      final double right = Math.max(Math.max(previous.getX(), mCX1), Math.max(mCX2, mX))-hsw;
-      double top = Math.max(Math.max(previous.getY(), mCY1), Math.max(mCY2, mY))+hsw;
-      double bottom = Math.min(Math.min(previous.getY(), mCY1), Math.min(mCY2, mY))-hsw;
-      storage.set(left, top, right - left, top - bottom);
+      final double hsw=stroke.getStrokeWidth()/2;
+      final double previousX = previous.getX();
+      final double previousY         = previous.getY();
+
+      final double dx = previousX;
+      final double cx = (3 * mCX1) - (3 * previousX);
+      final double bx = ((3 * mCX2) - (6 * mCX1)) + (3 * previousX);
+      final double ax = ((mX - (3 * mCX2)) + (3 * mCX1)) - previousX;
+
+      final double dy = previousY;
+      final double cy = (3 * mCY1) - (3 * previousY);
+      final double by = ((3 * mCY2) - (6 * mCY1)) + (3 * previousY);
+      final double ay = ((mY - (3 * mCY2)) + (3 * mCY1)) - previousY;
+
+      final double dax = 3*(getX() - (3 * mCX2) + (3 * mCX1) - previousX);
+      final double day = 3*(getY() - (3 * mCY2) + (3 * mCY1) - previousY);
+      final double dbx = 2*(((3 * mCX2) - (6 * mCX1)) + (3 * previousX));
+      final double dby = 2*(((3 * mCY2) - (6 * mCY1)) + (3 * previousY));
+      final double dcx = (3 * mCX1) - (3 * previousX);
+      final double dcy = (3 * mCY1) - (3 * previousY);
+
+
+      double left = Math.min(previousX, mX);
+      double right = Math.max(previousX, mX);
+      double top = Math.min(previousY, mY);
+      double bottom = Math.max(previousY, mY);
+
+      double t1=0d;
+      double t2=0d;
+      double t3=0d;
+      double t4=0d;
+
+      if (dax!=0d) {
+        t1 = (-dbx + Math.sqrt((dbx * dbx) - (4 * dax * dcx))) / (2 * dax);
+        t2 = (-dbx - Math.sqrt((dbx * dbx) - (4 * dax * dcx))) / (2 * dax);
+      }
+
+      if (day!=0d) {
+        t3 = (-dby + Math.sqrt((dby * dby) - (4 * day * dcy))) / (2 * day);
+        t4 = (-dby - Math.sqrt((dby * dby) - (4 * day * dcy))) / (2 * day);
+      }
+
+      for(double t: new double[]{t1, t2, t3, t4}) {
+        if ((t > 0d) && (t < 1d)) {
+          final double x = (((((ax * t) + bx) * t) + cx) * t) + dx;
+          left = Math.min(x, left);
+          right = Math.max(x, right);
+
+          final double y = (((((ay * t) + by) * t) + cy) * t) + dy;
+          top = Math.min(y, top);
+          bottom = Math.max(y, bottom);
+        }
+      }
+
+      storage.set(left-hsw, top-hsw, right - left + stroke.getStrokeWidth(), bottom - top + stroke.getStrokeWidth());
       
     }
+// Property acccessors end
+
   }
 
   private static class Close implements IPathElem {
