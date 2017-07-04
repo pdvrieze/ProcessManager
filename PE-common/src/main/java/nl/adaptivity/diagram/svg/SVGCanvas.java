@@ -470,6 +470,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       for (int i = 1; i < path.size(); i++) {
         mBounds.extendBounds(path.get(i).getBounds(tmpBounds));
       }
+    } else {
+      mBounds.set(0.0,0.0,0.0,0.0);
     }
   }
 
@@ -620,15 +622,26 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     out.startTag(SVG_NAMESPACE, "svg", null);
     out.namespaceAttr(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
     out.attribute(null, "version", null, "1.1");
-    out.attribute(null, "width", null, Double.toString(mBounds.width+mBounds.left*2));
-    out.attribute(null, "height", null, Double.toString(mBounds.height+mBounds.top*2));
+    out.attribute(null, "width", null, Double.toString(mBounds.width));
+    out.attribute(null, "height", null, Double.toString(mBounds.height));
+    final boolean closeGroup;
+    // As svg outer element only supports width and height, when the topleft corner is not at the
+    // origin then wrap the content into a group that translates appropriately.
+    if (mBounds.left!=0.0d || mBounds.top!=0.0d) {
+      closeGroup = true;
+      out.startTag(SVG_NAMESPACE, "g", null);
+      out.attribute(null, "transform", null, "translate("+ -mBounds.left+","+ -mBounds.top+")");
+    } else {
+      closeGroup = false;
+    }
+
 
     for (final IPaintedElem element: path) {
       try {element.serialize(out);} catch (XmlException e) {
         throw new RuntimeException(e);
       }
     }
-
+    if (closeGroup) out.endTag(SVG_NAMESPACE, "g", null);
     out.endTag(SVG_NAMESPACE, "svg", null);
   }
 }
