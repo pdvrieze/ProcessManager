@@ -17,7 +17,7 @@
 package nl.adaptivity.diagram
 
 
-data class Rectangle(@JvmField var left: Double, @JvmField var top: Double, @JvmField var width: Double, @JvmField var height: Double) : Cloneable {
+data class Rectangle(@JvmField var left: Double = Double.NaN, @JvmField var top: Double = Double.NaN, @JvmField var width: Double = Double.NaN, @JvmField var height: Double = Double.NaN) : Cloneable {
 
   public override fun clone(): Rectangle = super.clone() as Rectangle
 
