@@ -18,9 +18,11 @@ package nl.adaptivity.diagram.svg
 
 import nl.adaptivity.diagram.Rectangle
 import nl.adaptivity.xml.XmlStreaming
+import org.testng.Assert
 import org.testng.Assert.fail
 import org.testng.annotations.Test
 import org.testng.internal.EclipseInterface.*
+import java.io.CharArrayWriter
 
 
 /**
@@ -68,7 +70,56 @@ class SVGPathTest {
     assertEquals(bounds, Rectangle(27.81, 70.0, 217.396 - 27.81, 170.03 - 70.0),0.05)
   }
 
-
+  @Test
+  fun testSvgComplex() {
+    val canvas = SVGCanvas(JVMTextMeasurer()).apply {
+      run {
+        val splinePen = strategy.newPen().apply {
+          setColor(255, 0, 0)
+          strokeWidth = 0.5
+        }
+        val spline = strategy.newPath().apply {
+          moveTo(10.0, 5.0)
+          lineTo(10.0, 15.0)
+          cubicTo(10.0, 45.0, 50.0, -10.0, 60.0, 0.0)
+          cubicTo(70.0, 10.0, 60.0, 70.0, 20.0, 70.0)
+        }
+        val boundRect = Rectangle()
+        val boundPen = strategy.newPen().apply {
+          setColor(0, 0, 0)
+          strokeWidth = 0.3
+        }
+        spline.getBounds(boundRect, splinePen)
+        boundRect.outset(boundPen.strokeWidth / 2)
+        drawRect(boundRect, boundPen)
+        drawPath(spline, splinePen, null)
+      }
+      run {
+        val circleStroke = strategy.newPen().apply {
+          setColor(0,0,255)
+          strokeWidth=2.0
+        }
+        val circleFill = strategy.newPen().apply {
+          setColor(0,255,0, 48)
+        }
+        drawFilledCircle(20.0, 80.0, 15.0, circleFill)
+        drawCircle(20.0, 80.0, 15.0, circleStroke)
+      }
+    }
+    assertEquals(canvas.bounds, Rectangle(4.0,-1.783,60.157,97.783))
+    val writer = CharArrayWriter()
+    XmlStreaming.newWriter(writer).use {
+      canvas.serialize(it)
+    }
+    val RealSVG="<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"60.15679774997896\" height=\"97.78326010523611\">" +
+                "<g transform=\"translate(-4.0,1.783260105236116)\">" +
+                  "<rect x=\"9.6\" y=\"-1.6332601052361162\" width=\"54.40679774997896\" height=\"72.03326010523611\" style=\"stroke: #000000; stroke-width: 0.3; fill:none; \"/>" +
+                  "<path style=\"stroke: #ff0000; stroke-width: 0.5; fill:none; \" d=\"M10.0 5.0 L10.0 15.0 C10.0 45.0 50.0 -10.0 60.0 0.0 C70.0 10.0 60.0 70.0 20.0 70.0 \"/>" +
+                  "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke:none;fill: #00ff00; fill-opacity: 0.188235; \"/>" +
+                  "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke: #0000ff; stroke-width: 2.0; fill:none; \"/>" +
+                "</g></svg>"
+    Assert.assertEquals(writer.toString(), RealSVG)
+  }
 
 }
 
