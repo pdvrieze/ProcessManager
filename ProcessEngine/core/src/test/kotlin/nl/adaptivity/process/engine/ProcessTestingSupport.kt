@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.engine
 
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.EngineTesting.*
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceSpecBody
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceTestBody
@@ -404,3 +406,7 @@ fun kfail(message:String):Nothing {
 }
 
 internal fun Boolean.toXPath() = if (this) "true()" else "false()"
+
+operator fun ProcessTransaction.get(handle: Handle<SecureObject<ProcessInstance>>): ProcessInstance {
+  return this.readableEngineData.instance(handle).withPermission()
+}

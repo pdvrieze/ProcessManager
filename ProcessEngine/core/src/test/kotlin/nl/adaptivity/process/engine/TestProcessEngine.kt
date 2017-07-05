@@ -54,12 +54,6 @@ import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
 import kotlin.collections.ArrayList
-import kotlin.collections.asSequence
-import kotlin.collections.forEach
-import kotlin.collections.listOf
-import kotlin.collections.map
-import kotlin.collections.sorted
-import kotlin.collections.sortedBy
 
 
 /**
@@ -301,7 +295,7 @@ class TestProcessEngine {
       processInstance.assertCompleted() // no completions
 
       val taskNode = mStubMessageService.messageNode(transaction, 0)
-      taskNode.assertSent()
+      taskNode.assertAcknowledged()
       processInstance.assertActive(taskNode)
       processInstance.update(engineData) {
         updateChild(taskNode) {
@@ -324,19 +318,40 @@ class TestProcessEngine {
   }
 
   @Test
-  fun testCondition() {
+  fun testConditionFalse() {
     val model = ExecutableProcessModel.build {
       owner = mPrincipal
       val start = startNode { id="start" }
-      val ac = activity { id="ac"; predecessor=start; condition="false" }
+      val ac = activity { id="ac"; predecessor=start; condition="false()" }
       val end = endNode { id="end"; predecessor=ac }
     }
     testProcess(model) { transaction, model, instanceHandle ->
-      val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
-      val start = instance.child(transaction, "start")
-      val ac = instance.child(transaction, "ac").assertPending()
-      val end = instance.child(transaction, "end").assertSent()
-      instance.assertFinished(start)
+      transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
+        val start = instance.child(transaction, "start")
+        val ac = instance.child(transaction, "ac").apply { assertState(NodeInstanceState.Skipped) }
+        val end = instance.child(transaction, "end").apply { assertState(NodeInstanceState.Skipped) }
+        instance.assertFinished(start, ac)
+        assertEquals(instance.state, State.SKIPPED)
+      }
+    }
+  }
+
+  @Test
+  fun testConditionTrue() {
+    val model = ExecutableProcessModel.build {
+      owner = mPrincipal
+      val start = startNode { id="start" }
+      val ac = activity { id="ac"; predecessor=start; condition="true()" }
+      val end = endNode { id="end"; predecessor=ac }
+    }
+    testProcess(model) { transaction, model, instanceHandle ->
+      transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
+        val start = instance.child(transaction, "start")
+        val ac = instance.child(transaction, "ac").assertAcknowledged()
+//        val end = instance.child(transaction, "end").apply { assertState(NodeInstanceState.Skipped) }
+        instance.assertFinished(start)
+        assertEquals(instance.state, State.STARTED)
+      }
     }
   }
 
@@ -349,8 +364,8 @@ class TestProcessEngine {
           val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
           val start = instance.child(transaction, "start")
           val split = instance.child(transaction, "split1").assertStarted()
-          val ac1 = instance.child(transaction, "ac1").assertSent()
-          val ac2 = instance.child(transaction, "ac2").assertSent()
+          val ac1 = instance.child(transaction, "ac1").assertAcknowledged()
+          val ac2 = instance.child(transaction, "ac2").assertAcknowledged()
 
           instance.assertFinished(start)
           instance.assertActive(split, ac1, ac2)
@@ -378,7 +393,7 @@ class TestProcessEngine {
           val start = instance.child(transaction, "start")
           val split = instance.child(transaction, "split1").assertStarted()
           val ac1 = instance.child(transaction, "ac1").assertComplete()
-          val ac2 = instance.child(transaction, "ac2").assertSent()
+          val ac2 = instance.child(transaction, "ac2").assertAcknowledged()
           val join = instance.child(transaction, "join1").assertPending()
           instance.assertFinished(ac1, start)
           instance.assertActive(ac2, split, join)
