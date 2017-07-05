@@ -188,14 +188,22 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo )
 
         nonRegisteredNodeInstance.predecessors.add(predecessor.handle())
+        val conditionResult = nonRegisteredNodeInstance.condition(engineData)
+        if (conditionResult == ConditionResult.NEVER) {
+          nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
+          storeChild(nonRegisteredNodeInstance)
+          skipSuccessors(engineData, nonRegisteredNodeInstance, NodeInstanceState.Skipped)
+        } else if (conditionResult == ConditionResult.TRUE) {
+          storeChild(nonRegisteredNodeInstance)
 
-        storeChild(nonRegisteredNodeInstance)
+          if (nonRegisteredNodeInstance is JoinInstance.Builder) {
+            joinsToEvaluate.add(nonRegisteredNodeInstance)
+          } else {
+            startedTasks.add(nonRegisteredNodeInstance)
+          }
 
-        if (nonRegisteredNodeInstance is JoinInstance.Builder) {
-          joinsToEvaluate.add(nonRegisteredNodeInstance)
-        } else {
-          startedTasks.add(nonRegisteredNodeInstance)
         }
+
       }
       store(engineData)
 
