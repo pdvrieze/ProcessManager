@@ -22,7 +22,6 @@
 package nl.adaptivity.xml
 
 import net.devrieze.util.kotlin.asString
-import nl.adaptivity.xml.EventType
 import java.util.*
 import javax.xml.XMLConstants.DEFAULT_NS_PREFIX
 import javax.xml.XMLConstants.NULL_NS_URI
@@ -84,6 +83,15 @@ fun NamespaceContext.asQName(name: String): QName {
     return QName(reference.getNamespaceURI(DEFAULT_NS_PREFIX), name, DEFAULT_NS_PREFIX)
   }
 
+}
+
+fun XmlReader.isXml():Boolean {
+  try {
+    while (hasNext()) next()
+  } catch (e:XmlException) {
+    return false
+  }
+  return true;
 }
 
 fun CharSequence?.xmlEncode(): String? {
