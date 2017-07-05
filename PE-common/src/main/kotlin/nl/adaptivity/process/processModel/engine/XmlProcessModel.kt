@@ -20,7 +20,6 @@ import net.devrieze.util.CollectionUtil
 import net.devrieze.util.StringCache
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.util.Identifiable
@@ -28,7 +27,6 @@ import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
-import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
 
@@ -183,17 +181,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
       }
       setRoles(newRoles)
     }
-  }
-
-  fun toInputs(payload: Node): List<ProcessData> {
-    return getImports().map { XmlResultType(it).applyData(payload) }
-  }
-
-  fun toOutputs(payload: Node): List<ProcessData> {
-    TODO("Implement processing of define types properly")
-/*
-    return getExports().map { XmlDefineType(it).applyData(null, payload) }
-*/
   }
 
   companion object {
