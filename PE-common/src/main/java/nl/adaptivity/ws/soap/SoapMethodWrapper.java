@@ -27,10 +27,10 @@ import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.ws.WsMethodWrapper;
+import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
-import nl.adaptivity.xml.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
@@ -73,7 +73,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
   }
 
   public void unmarshalParams(@NotNull final Envelope envelope, final Map<String, DataSource> attachments) {
-    if (mParams != null) {
+    if (params != null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
 
@@ -122,17 +122,18 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     final Map<String, Node> headers = SoapHelper.getHeaderMap(envelope.getHeader());
     // TODO verify no unsupported headers that must be supported
 
-    final Class<?>[] parameterTypes = mMethod.getParameterTypes();
-    final Annotation[][] parameterAnnotations = mMethod.getParameterAnnotations();
+    final Class<?>[] parameterTypes = method.getParameterTypes();
+    final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 
-    mParams = new Object[parameterTypes.length];
+    this.params = new Object[parameterTypes.length];
 
     for (int i = 0; i < parameterTypes.length; ++i) {
       final WebParam annotation = Annotations.getAnnotation(parameterAnnotations[i], WebParam.class);
       final String name;
       if (annotation == null) {
         if (params.isEmpty()) {
-          throw new MessagingFormatException("Missing parameter "+(i+1)+" of type "+parameterTypes[i]+" for method "+mMethod);
+          throw new MessagingFormatException("Missing parameter " + (i+1) + " of type " + parameterTypes[i] + " for method " +
+                                             method);
         }
         name = params.keySet().iterator().next();
       } else {
@@ -141,10 +142,10 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       final Node value;
       if ((annotation != null) && annotation.header()) {
         if (parameterTypes[i].isAssignableFrom(Principal.class) && envelope.getHeader().getPrincipal()!=null) {
-          mParams[i] = envelope.getHeader().getPrincipal();
+          this.params[i] = envelope.getHeader().getPrincipal();
           continue; //Finish the parameter, we don't need to unmarshal
         } else if (parameterTypes[i].isAssignableFrom(String.class) && envelope.getHeader().getPrincipal()!=null) {
-          mParams[i] = envelope.getHeader().getPrincipal().getName();
+          this.params[i] = envelope.getHeader().getPrincipal().getName();
           continue;
         } else {
           value = headers.remove(name);
@@ -158,7 +159,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       }
 
       final SoapSeeAlso seeAlso = Annotations.getAnnotation(parameterAnnotations[i], SoapSeeAlso.class);
-      mParams[i] = SoapHelper.unMarshalNode(mMethod, parameterTypes[i], seeAlso == null ? new Class<?>[0] : seeAlso.value(), parameterAnnotations[i], value);
+      this.params[i] = SoapHelper.unMarshalNode(method, parameterTypes[i], seeAlso == null ? new Class<?>[0] : seeAlso.value(), parameterAnnotations[i], value);
 
     }
     if (params.size() > 0) {
@@ -167,9 +168,9 @@ public class SoapMethodWrapper extends WsMethodWrapper {
   }
 
   private void assertRootNode(@NotNull final XmlReader reader) throws XmlException {
-    final WebMethod wm = mMethod.getAnnotation(WebMethod.class);
+    final WebMethod wm = method.getAnnotation(WebMethod.class);
     if ((wm == null) || wm.operationName().equals("")) {
-      if (!StringUtil.isEqual(reader.getLocalName(),mMethod.getName())) {
+      if (!StringUtil.isEqual(reader.getLocalName(), method.getName())) {
         throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     } else {
@@ -177,7 +178,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
         throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     }
-    final WebService ws = mMethod.getDeclaringClass().getAnnotation(WebService.class);
+    final WebService ws = method.getDeclaringClass().getAnnotation(WebService.class);
     if (!((ws == null) || ws.targetNamespace().equals(""))) {
       if (!StringUtil.isEqual(ws.targetNamespace(), reader.getNamespaceUri())) {
         throw new MessagingFormatException("Root node does not correspond to operation namespace");
@@ -196,23 +197,23 @@ public class SoapMethodWrapper extends WsMethodWrapper {
 
   @NotNull
   public Source getResultSource() {
-    if (mResult instanceof Source) {
-      return (Source) mResult;
+    if (result instanceof Source) {
+      return (Source) result;
     }
 
     final List<Tripple<String, ? extends Class<?>, ?>> params;
     final List<Object> headers;
-    if (mResult == null && mMethod.getReturnType()==Void.class) {
+    if (result == null && method.getReturnType() == Void.class) {
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                              Tripple.tripple("result", Void.class, null));
       headers = Collections.emptyList();
 
-    } else if (mResult instanceof ActivityResponse) {
-      final ActivityResponse<?> activityResponse = (ActivityResponse<?>) mResult;
+    } else if (result instanceof ActivityResponse) {
+      final ActivityResponse<?> activityResponse = (ActivityResponse<?>) result;
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) );
-      headers = Collections.<Object> singletonList(mResult);
-    } else if (mResult!=null && ActivityResponse.class.getCanonicalName().equals(mResult.getClass().getCanonicalName())) {
+      headers = Collections.<Object> singletonList(result);
+    } else if (result != null && ActivityResponse.class.getCanonicalName().equals(result.getClass().getCanonicalName())) {
       /*
        * If the ActivityResponse was created by a different classloader like
        * when we directly invoke the endpoint through DarwinMessenger shortcut
@@ -223,8 +224,8 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       final Class<?> returnType;
       final Object returnValue;
       try {
-        returnType = (Class<?>) mResult.getClass().getMethod("getReturnType").invoke(mResult);
-        returnValue = mResult.getClass().getMethod("getReturnValue").invoke(mResult);
+        returnType = (Class<?>) result.getClass().getMethod("getReturnType").invoke(result);
+        returnValue = result.getClass().getMethod("getReturnValue").invoke(result);
       } catch (@NotNull final IllegalArgumentException e) {
         throw new MessagingException(e);
       } catch (@NotNull final SecurityException e) {
@@ -238,23 +239,23 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       }
       params = Arrays.asList( Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", returnType, returnValue) );
-      headers = Collections.<Object> singletonList(mResult);
+      headers = Collections.<Object> singletonList(result);
 
     } else {
 
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                              Tripple.tripple("result", mMethod.getReturnType(), mResult));
+                              Tripple.tripple("result", method.getReturnType(), result));
       headers = Collections.emptyList();
     }
     try {
-      return SoapHelper.createMessage(new QName(mMethod.getName() + "Response"), headers, params);
+      return SoapHelper.createMessage(new QName(method.getName() + "Response"), headers, params);
     } catch (@NotNull final XmlException | JAXBException e) {
       throw new MessagingException(e);
     }
   }
 
   public Object getResult() {
-    return mResult;
+    return result;
   }
 
 }

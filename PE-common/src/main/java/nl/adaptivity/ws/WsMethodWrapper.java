@@ -29,21 +29,21 @@ import java.lang.reflect.Method;
 public abstract class WsMethodWrapper {
 
   protected final Object mOwner;
-  protected final Method mMethod;
-  protected Object[] mParams;
-  protected Object mResult;
+  protected final Method method;
+  protected Object[]     params;
+  protected Object       result;
 
   public WsMethodWrapper(final Object owner, final Method method) {
     mOwner = owner;
-    mMethod = method;
+    this.method = method;
   }
 
   public void exec() {
-    if (mParams == null) {
+    if (params == null) {
       throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
     }
     try {
-      mResult = mMethod.invoke(mOwner, mParams);
+      result = method.invoke(mOwner, params);
     } catch (@NotNull final IllegalArgumentException | IllegalAccessException e) {
       throw new MessagingException(e);
     } catch (@NotNull final InvocationTargetException e) {
