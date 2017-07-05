@@ -37,7 +37,7 @@ public class RestMessageHandler {
 
   private Map<Class<?>, EnumMap<HttpMethod, PrefixMap<Method>>> cache;
 
-  private final Object mTarget;
+  private final Object target;
 
 
   public static RestMessageHandler newInstance(final Object pTarget) {
@@ -62,7 +62,7 @@ public class RestMessageHandler {
   }
 
   private RestMessageHandler(final Object pTarget) {
-    mTarget = pTarget;
+    target = pTarget;
   }
 
   public boolean processRequest(final HttpMethod pMethod, final HttpMessage pRequest, final HttpServletResponse pResponse) throws IOException {
@@ -84,23 +84,20 @@ public class RestMessageHandler {
     return false;
   }
 
-  /**
-   * TODO This could actually be cached, so reflection only needs to be done
-   * once!
-   */
-  private RestMethodWrapper getMethodFor(final HttpMethod pHttpMethod, final HttpMessage pHttpMessage) {
-    final Collection<Method> candidates = getCandidatesFor(pHttpMethod, pHttpMessage.getRequestPath());
+  private RestMethodWrapper getMethodFor(final HttpMethod httpMethod, final HttpMessage httpMessage) {
+    final Collection<Method> candidates = getCandidatesFor(httpMethod, httpMessage.getRequestPath());
     RestMethodWrapper result = null;
     RestMethod resultAnnotation = null;
+
     for (final Method candidate : candidates) {
       final RestMethod annotation = candidate.getAnnotation(RestMethod.class);
       final Map<String, String> pathParams = new HashMap<>();
 
-      if ((annotation != null) && (annotation.method() == pHttpMethod)
-          && pathFits(pathParams, annotation.path(), pHttpMessage.getRequestPath())
-          && conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pHttpMessage)) {
+      if ((annotation != null) && (annotation.method() == httpMethod)
+          && pathFits(pathParams, annotation.path(), httpMessage.getRequestPath())
+          && conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), httpMessage)) {
         if ((resultAnnotation == null) || isMoreSpecificThan(resultAnnotation, annotation)) {
-          result = RestMethodWrapper.Companion.get(mTarget, candidate);
+          result = RestMethodWrapper.Companion.get(target, candidate);
           result.setPathParams(pathParams);
           resultAnnotation = annotation;
         }
@@ -124,7 +121,7 @@ public class RestMessageHandler {
   }
 
   private Collection<Method> getCandidatesFor(final HttpMethod pHttpMethod, final String pPathInfo) {
-    final Class<?> targetClass = mTarget.getClass();
+    final Class<?> targetClass = target.getClass();
     EnumMap<HttpMethod, PrefixMap<Method>> v;
     if (cache == null) {
       cache = new HashMap<>();

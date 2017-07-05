@@ -23,7 +23,9 @@ import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.HttpMessage.Post;
 import nl.adaptivity.util.HttpMessage.Query;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.*;
 import org.jetbrains.annotations.NotNull;
@@ -529,9 +531,9 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
         final Document xml;
 
-        // TODO don't create a DOM tree here
-        xml = DomUtil.tryParseXml(new InputStreamReader(new ByteArrayInputStream(bytes), mCharacterEncoding));
-        if (xml == null) {
+        boolean isXml = XmlUtil.isXml(XmlStreaming.newReader(new InputStreamReader(new ByteArrayInputStream(bytes), mCharacterEncoding)));
+
+        if (! isXml) {
           addByteContent(bytes, request.getContentType());
         } else {
           CharsetDecoder decoder = mCharacterEncoding.newDecoder();

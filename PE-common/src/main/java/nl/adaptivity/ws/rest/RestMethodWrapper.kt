@@ -265,7 +265,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       }
     }
 
-    // XXX generizice this and share the same approach to unmarshalling in ALL code
     // TODO support collection/list parameters
     if (result != null && !parameterJavaClass.isInstance(result)) {
       if ((Types.isPrimitive(parameterJavaClass) || Types.isPrimitiveWrapper(parameterJavaClass)) && result is String) {
@@ -541,7 +540,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
     @Throws(XmlException::class)
     private fun <T> getParamXPath(paramType: Class<T>, xpath: String, body: CompactFragment): T? {
-      // TODO Avoid JAXB where possible, use XMLDeserializer instead
       val isCharSeq = CharSequence::class.java.isAssignableFrom(paramType)
       var match: Node?
       val fragment = DomUtil.childrenToDocumentFragment(body.getXmlReader())

@@ -99,7 +99,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
 
   @SuppressWarnings("EmptyMethod")
   private void processSoapHeader(@SuppressWarnings("unused") final Header header) {
-    // TODO Auto-generated method stub
+    // TODO Process soap headers
     //
     /* For now just ignore headers, i.e. none understood. Principal is recorded but not handled */
   }
@@ -120,7 +120,6 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     }
 
     final Map<String, Node> headers = SoapHelper.getHeaderMap(envelope.getHeader());
-    // TODO verify no unsupported headers that must be supported
 
     final Class<?>[] parameterTypes = method.getParameterTypes();
     final Annotation[][] parameterAnnotations = method.getParameterAnnotations();

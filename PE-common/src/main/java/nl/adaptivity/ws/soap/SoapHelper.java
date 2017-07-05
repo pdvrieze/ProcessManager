@@ -114,14 +114,14 @@ public class SoapHelper {
    * Create a Source encapsulating a soap message for the given operation name
    * and parameters.
    *
-   * @param pOperationName The name of the soap operation (name of the first
+   * @param operationName The name of the soap operation (name of the first
    *          child of the soap body)
-   * @param pHeaders A list of optional headers to add to the message.
-   * @param pParams The parameters of the message
+   * @param headers A list of optional headers to add to the message.
+   * @param params The parameters of the message
    * @return a Source that encapsulates the message.
    * @throws JAXBException
    */
-  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException, XmlException {
+  public static Source createMessage(final QName operationName, final List<?> headers, final List<Tripple<String, ? extends Class<?>, ?>> params) throws JAXBException, XmlException {
     DocumentBuilder db;
     {
       final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -135,12 +135,12 @@ public class SoapHelper {
     final Document resultDoc = db.newDocument();
 
     final Element envelope = createSoapEnvelope(resultDoc);
-    if ((pHeaders != null) && (pHeaders.size() > 0)) {
-      createSoapHeader(envelope, pHeaders);
+    if ((headers != null) && (headers.size() > 0)) {
+      createSoapHeader(envelope, headers);
     }
     final Element body = createSoapBody(envelope);
-    final Element message = createBodyMessage(body, pOperationName);
-    for (final Tripple<String, ? extends Class<?>, ?> param : pParams) {
+    final Element message = createBodyMessage(body, operationName);
+    for (final Tripple<String, ? extends Class<?>, ?> param : params) {
       addParam(message, param);
     }
     return new DOMSource(resultDoc);
