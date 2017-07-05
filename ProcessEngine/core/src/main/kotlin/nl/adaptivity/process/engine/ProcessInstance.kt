@@ -174,7 +174,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     fun  startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
-      assert ((predecessor !is JoinInstance) && (predecessor !is SplitInstance) && (!predecessor.state.isFinal)) {
+      assert ((predecessor is SplitInstance) || (predecessor.state.isFinal)) {
         "The predecessor $predecessor is not final when starting successors"
       }
 
