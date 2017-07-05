@@ -23,6 +23,7 @@ import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo;
 import nl.adaptivity.lang.Doubles;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.XMLConstants;
 
@@ -40,27 +41,32 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   private static abstract class PaintedElem<M extends MeasureInfo> implements IPaintedElem {
-    final SVGPen<M> mPen;
+    final SVGPen<M> stroke;
+    final SVGPen<M> fill;
 
-    PaintedElem(final SVGPen<M> color) {
-      mPen = color;
+    PaintedElem(final SVGPen<M> stroke, final SVGPen<M> fill) {
+      this.stroke = stroke;
+      this.fill = fill;
     }
 
     void serializeFill(final XmlWriter out) throws XmlException {
-      serializeStyle(out, null, mPen, null);
+      serializeStyle(out, null, fill, null);
     }
 
     void serializeStroke(final XmlWriter out) throws XmlException {
-      serializeStyle(out, mPen, null, null);
+      serializeStyle(out, stroke, null, null);
     }
 
+    void serializeStrokeFill(final XmlWriter out) throws XmlException {
+      serializeStyle(out, stroke, fill, null);
+    }
   }
 
   private static abstract class BaseRect<M extends MeasureInfo> extends PaintedElem<M> {
     final Rectangle mBounds;
 
-    BaseRect(final Rectangle bounds, final SVGPen<M> color) {
-      super(color);
+    BaseRect(final Rectangle bounds, final SVGPen<M> stroke, final SVGPen<M> fill) {
+      super(stroke, fill);
       mBounds = bounds.clone();
     }
 
@@ -74,7 +80,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     @Override
     public Rectangle getBounds(final Rectangle dest) {
-      final double strokeWidth = mPen.getStrokeWidth();
+      final double strokeWidth = stroke.getStrokeWidth();
       double delta = strokeWidth / 2;
       dest.set(mBounds.left-delta, mBounds.top-delta, mBounds.width+strokeWidth, mBounds.height+strokeWidth);
       return dest;
@@ -83,8 +89,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class Rect<M extends MeasureInfo> extends BaseRect<M> {
 
-    public Rect(final Rectangle bounds, final SVGPen<M> color) {
-      super(bounds, color);
+    public Rect(final Rectangle bounds, final SVGPen<M> stroke) {
+      super(bounds, stroke, null);
     }
 
     @Override
@@ -98,14 +104,18 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class FilledRect<M extends MeasureInfo> extends BaseRect<M> {
 
-    FilledRect(final Rectangle bounds, final SVGPen<M> color) {
-      super(bounds, color);
+    FilledRect(final Rectangle bounds, final SVGPen<M> fill) {
+      super(bounds, null, fill);
+    }
+
+    FilledRect(final Rectangle bounds, final SVGPen<M> stroke, final SVGPen<M> fill) {
+      super(bounds, stroke, fill);
     }
 
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
       serializeRect(out);
-      serializeFill(out);
+      serializeStrokeFill(out);
       out.endTag(SVG_NAMESPACE, "rect", null);
     }
 
@@ -115,8 +125,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final double mRx;
     final double mRy;
 
-    BaseRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> color) {
-      super(bounds, color);
+    BaseRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> stroke, final SVGPen<M> fill) {
+      super(bounds, stroke, fill);
       mRx = rx;
       mRy = ry;
     }
@@ -130,8 +140,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class RoundRect<M extends MeasureInfo> extends BaseRoundRect<M> {
 
-    RoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> color) {
-      super(bounds, rx, ry, color);
+    RoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> stroke) {
+      super(bounds, rx, ry, stroke, null);
     }
 
     @Override
@@ -145,8 +155,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class FilledRoundRect<M extends MeasureInfo> extends BaseRoundRect<M> {
 
-    FilledRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> color) {
-      super(bounds, rx, ry, color);
+    FilledRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> stroke, final SVGPen<M> fill) {
+      super(bounds, rx, ry, stroke, fill);
+    }
+
+    FilledRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> fill) {
+      super(bounds, rx, ry, null, fill);
     }
 
     @Override
@@ -164,8 +178,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final double mY;
     final double mRadius;
 
-    public BaseCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
-      super(color);
+    public BaseCircle(final double x, final double y, final double radius, final SVGPen<M> stroke, final SVGPen<M> fill) {
+      super(stroke, fill);
       mX = x;
       mY = y;
       mRadius = radius;
@@ -180,7 +194,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     @Override
     public Rectangle getBounds(final Rectangle dest) {
-      final double strokeWidth = mPen.getStrokeWidth();
+      final double strokeWidth = stroke==null ? 0d :stroke.getStrokeWidth();
       double delta = strokeWidth / 2;
       dest.set(mX-mRadius-delta, mY-mRadius-delta, mRadius*2+strokeWidth, mRadius*2+strokeWidth);
       return dest;
@@ -191,7 +205,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   private static class Circle<M extends MeasureInfo> extends BaseCircle<M> {
 
     public Circle(final double x, final double y, final double radius, final SVGPen<M> color) {
-      super(x, y, radius, color);
+      super(x, y, radius, color, null);
     }
 
     @Override
@@ -205,14 +219,18 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class FilledCircle<M extends MeasureInfo> extends BaseCircle<M> {
 
-    public FilledCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
-      super(x, y, radius, color);
+    public FilledCircle(final double x, final double y, final double radius, final SVGPen<M> fill) {
+      super(x, y, radius, null, fill);
+    }
+
+    public FilledCircle(final double x, final double y, final double radius, final SVGPen<M> stroke, final SVGPen<M> fill) {
+      super(x, y, radius, stroke, fill);
     }
 
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
       serializeCircle(out);
-      serializeFill(out);
+      serializeStrokeFill(out);
       out.endTag(SVG_NAMESPACE, "circle", null);
     }
 
@@ -257,7 +275,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final double mFoldWidth;
 
     public DrawText(final TextPos textPos, final double x, final double y, final String text, final double foldWidth, final SVGPen<M> color) {
-      super(color);
+      super(null, color);
       mTextPos = textPos;
       mX = x;
       mY = y;
@@ -270,7 +288,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       out.startTag(SVG_NAMESPACE, "text", null);
       out.attribute(null, "x", null, Double.toString(mX));
       out.attribute(null, "y", null, Double.toString(mY));
-      serializeStyle(out, null, mPen, mTextPos);
+      serializeStyle(out, null, fill, mTextPos);
       out.startTag(SVG_NAMESPACE, "tspan", null);
       out.text(mText);
       out.endTag(SVG_NAMESPACE, "tspan", null);
@@ -280,8 +298,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     @Override
     public Rectangle getBounds(final Rectangle dest) {
 
-      mPen.measureTextSize(dest, mX, mY, mText, mFoldWidth);
-      mTextPos.offset(dest, mPen);
+      stroke.measureTextSize(dest, mX, mY, mText, mFoldWidth);
+      mTextPos.offset(dest, stroke);
       return dest;
     }
   }
@@ -357,7 +375,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       }
       style.append("stroke-width: ").append(Double.toString(stroke.getStrokeWidth())).append("; ");
     } else {
-      style.append("stroke:none;");
+      style.append("stroke:none; ");
     }
     if (fill!=null) {
       final int color = fill.getColor();
@@ -499,56 +517,85 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   @Override
-  public void drawFilledCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
+  public void drawFilledCircle(final double x, final double y, final double radius, final SVGPen<M> fill) {
     mBounds.top=Double.NaN;
-    path.add(new FilledCircle<>(x, y, radius, color.clone()));
+    path.add(new FilledCircle<>(x, y, radius, fill.clone()));
   }
 
   @Override
-  public void drawRect(final Rectangle rect, final SVGPen<M> color) {
+  public void drawRect(final Rectangle rect, final SVGPen<M> stroke) {
     mBounds.top=Double.NaN;
-    path.add(new Rect<>(rect, color));
+    path.add(new Rect<>(rect, stroke));
   }
 
   @Override
-  public void drawFilledRect(final Rectangle rect, final SVGPen<M> color) {
+  public void drawFilledRect(final Rectangle rect, final SVGPen<M> fill) {
     mBounds.top=Double.NaN;
-    path.add(new FilledRect<>(rect, color));
+    path.add(new FilledRect<>(rect, fill));
   }
 
   @Override
-  public void drawCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
+  public void drawRect(@NotNull final Rectangle rect, @NotNull final SVGPen<M> stroke, @NotNull final SVGPen<M> fill) {
     mBounds.top=Double.NaN;
-    path.add(new Circle<>(x, y, radius, color));
+    path.add(new FilledRect<>(rect, stroke, fill));
   }
 
   @Override
-  public void drawRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> color) {
+  public void drawCircle(final double x, final double y, final double radius, final SVGPen<M> stroke) {
     mBounds.top=Double.NaN;
-    path.add(new RoundRect<>(rect, rx, ry, color));
+    path.add(new Circle<>(x, y, radius, stroke));
+  }
+
+  @Override
+  public void drawCircle(final double x,
+                         final double y,
+                         final double radius,
+                         @NotNull final SVGPen<M> stroke,
+                         @NotNull final SVGPen<M> fill)
+  {
+    mBounds.top=Double.NaN;
+    path.add(new FilledCircle<>(x, y, radius, stroke, fill));
+  }
+
+  @Override
+  public void drawRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> stroke) {
+    mBounds.top=Double.NaN;
+    path.add(new RoundRect<>(rect, rx, ry, stroke));
 
   }
 
   @Override
-  public void drawFilledRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> color) {
+  public void drawFilledRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> fill) {
     mBounds.top=Double.NaN;
-    path.add(new FilledRoundRect<>(rect, rx, ry, color));
+    path.add(new FilledRoundRect<>(rect, rx, ry, fill));
   }
 
   @Override
-  public void drawPoly(final double[] points, final SVGPen<M> color) {
+  public void drawRoundRect(@NotNull final Rectangle rect,
+                            final double rx,
+                            final double ry,
+                            @NotNull final SVGPen<M> stroke,
+                            @NotNull final SVGPen<M> fill)
+  {
+    mBounds.top=Double.NaN;
+    path.add(new FilledRoundRect<>(rect, rx, ry, stroke, fill));
+  }
+
+  @Override
+  public void drawPoly(final double[] points, final SVGPen<M> stroke) {
+    drawPoly(points, stroke, null);
+  }
+
+  public void drawPoly(final double[] points, final SVGPen<M> stroke, final SVGPen<M> fill) {
     if (points.length>1) {
       final SVGPath path = pointsToPath(points);
-      drawPath(path, color, null);
+      drawPath(path, stroke, fill);
     }
   }
 
   @Override
-  public void drawFilledPoly(final double[] points, final SVGPen<M> color) {
-    if (points.length>1) {
-      final SVGPath path = pointsToPath(points);
-      drawPath(path, null, color);
-    }
+  public void drawFilledPoly(final double[] points, final SVGPen<M> fill) {
+    drawPoly(points, null, fill);
   }
 
   private static SVGPath pointsToPath(final double[] points) {

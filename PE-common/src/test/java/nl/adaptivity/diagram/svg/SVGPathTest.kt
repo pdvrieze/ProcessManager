@@ -102,8 +102,7 @@ class SVGPathTest {
         val circleFill = strategy.newPen().apply {
           setColor(0,255,0, 48)
         }
-        drawFilledCircle(20.0, 80.0, 15.0, circleFill)
-        drawCircle(20.0, 80.0, 15.0, circleStroke)
+        drawCircle(20.0, 80.0, 15.0, circleStroke, circleFill)
       }
     }
     assertEquals(canvas.bounds, Rectangle(4.0,-1.783,60.157,97.783))
@@ -115,8 +114,7 @@ class SVGPathTest {
                 "<g transform=\"translate(-4.0,1.783260105236116)\">" +
                   "<rect x=\"9.6\" y=\"-1.6332601052361162\" width=\"54.40679774997896\" height=\"72.03326010523611\" style=\"stroke: #000000; stroke-width: 0.3; fill:none; \"/>" +
                   "<path style=\"stroke: #ff0000; stroke-width: 0.5; fill:none; \" d=\"M10.0 5.0 L10.0 15.0 C10.0 45.0 50.0 -10.0 60.0 0.0 C70.0 10.0 60.0 70.0 20.0 70.0 \"/>" +
-                  "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke:none;fill: #00ff00; fill-opacity: 0.188235; \"/>" +
-                  "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke: #0000ff; stroke-width: 2.0; fill:none; \"/>" +
+                  "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke: #0000ff; stroke-width: 2.0; fill: #00ff00; fill-opacity: 0.188235; \"/>" +
                 "</g></svg>"
     Assert.assertEquals(writer.toString(), RealSVG)
   }
