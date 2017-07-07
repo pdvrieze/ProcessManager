@@ -105,11 +105,6 @@ fun <T : HasExtent> DiagramNode(extentTarget: T,
  * @property rightNodes   The nodes that are logically larger than the current one in the partial order/digraph
  */
 class DiagramNode<out T>(val target: T, override var x:Double, override var y: Double, val leftExtent: Double, val rightExtent: Double, val topExtent: Double, val bottomExtent: Double) : Positioned {
-//
-//  constructor(orig: DiagramNode<T>, x: Double = orig.x, y: Double = orig.y) :
-//    this(target = orig.target, x = x, y = y,
-//         leftExtent = orig.leftExtent, rightExtent = orig.rightExtent,
-//         topExtent = orig.topExtent, bottomExtent = orig.bottomExtent)
 
   val leftNodes: MutableList<DiagramNode<@UnsafeVariance T>> = mutableListOf()
 

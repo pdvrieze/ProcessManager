@@ -45,6 +45,19 @@ data class Rectangle(@JvmField var left: Double = Double.NaN, @JvmField var top:
   val heightf: Float
     @JvmName("heightf") get() = height.toFloat()
 
+  val hasUndefined: Boolean get() = ! (left.isFinite() && top.isFinite() && width.isFinite() && height.isFinite())
+
+  /**
+   * Set the rectangle coordinates to be undefined.
+   */
+  fun clear() {
+    left = Double.NaN
+    width = Double.NaN
+    top = Double.NaN
+    height = Double.NaN
+
+  }
+
   /**
    * Create an offsetted rectangle. The offsets should not be prescaled. They will be scaled in the method.
    * The scaling is from the top left of the rectangle.
@@ -108,3 +121,9 @@ data class Rectangle(@JvmField var left: Double = Double.NaN, @JvmField var top:
     = contains(x.toDouble(), y.toDouble())
 
 }
+
+@Deprecated("Use property", ReplaceWith("right"))
+fun Rectangle.right() = right
+
+@Deprecated("Use property", ReplaceWith("bottom"))
+fun Rectangle.bottom() = bottom

@@ -136,7 +136,7 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
       val label = getDrawnLabel(textPen)
       if (!label.isNullOrBlank()) {
         val topCenter = ACTIVITYHEIGHT + STROKEWIDTH + textPen.textLeading / 2
-        drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, java.lang.Double.MAX_VALUE, textPen)
+        drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label!!, java.lang.Double.MAX_VALUE, textPen)
       }
     }
   }
@@ -144,11 +144,11 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
   /**
    * Get the label that would be drawn to the screen. This will set the pen to italics or not unless no label could be determined.
    * @param textPen The textPen to set to italics (or not).
-   * *
-   * @param <PEN_T>
-   * *
+   *
+   * @param PEN_T The pen type for the canvas
+   *
    * @return The actual label.
-  </PEN_T> */
+   */
   private fun <PEN_T : Pen<PEN_T>> getDrawnLabel(textPen: PEN_T): String? {
     return label ?: name?.apply { textPen.isTextItalics = false }
            ?: "<$id>".apply { textPen.isTextItalics = true }

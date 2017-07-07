@@ -125,7 +125,7 @@ interface Canvas<S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH
   @Deprecated("")
   fun drawFilledPoly(points: DoubleArray, color: PEN_T)
 
-  fun drawPath(path: PATH_T, stroke: PEN_T, fill: PEN_T)
+  fun drawPath(path: PATH_T, stroke: PEN_T, fill: PEN_T?=null)
 
   val theme: Theme<S, PEN_T, PATH_T>
 

@@ -19,10 +19,9 @@ package nl.adaptivity.process.diagram
 import nl.adaptivity.diagram.Diagram
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.RootProcessModel
 
 /**
- * Created by pdvrieze on 05/01/17.
+ * Drawable version of the process model.
  */
 interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?>, Diagram {
   interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?> {
@@ -30,7 +29,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
 
 
     override fun compositeActivityBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
-      TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+      TODO("DrawableChildModels still need to be implemented")
     }
   }
 
