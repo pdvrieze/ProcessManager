@@ -27,7 +27,9 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+class DrawableStartNode(builder: StartNode.Builder<*, *>,
+                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(
+  builder, buildHelper), DrawableProcessNode {
 
   class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
@@ -54,7 +56,7 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
       this, buildHelper)
   }
 
-  override val _delegate: DrawableProcessNode.Delegate
+  override val _delegate = DrawableProcessNode.Delegate(builder)
 
   override val idBase: String
     get() = IDBASE
@@ -66,10 +68,6 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
   override val rightExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_X
   override val topExtent get() = REFERENCE_OFFSET_Y
   override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
-
-  constructor(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
-    _delegate = DrawableProcessNode.Delegate(builder)
-  }
 
   override fun builder(): Builder {
     return Builder(this)
@@ -97,14 +95,6 @@ class DrawableStartNode : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode
 
       canvas.drawFilledCircle(realradius, realradius, realradius, fillPen)
     }
-  }
-
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(
-      canvas: Canvas<S, PEN_T, PATH_T>,
-      clipBounds: Rectangle?,
-      left: Double,
-      top: Double) {
-    defaultDrawLabel(this, canvas, clipBounds, left, top)
   }
 
   @Deprecated("Use builders")

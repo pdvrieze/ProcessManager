@@ -56,10 +56,6 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
   /** Determine whether the node represents an and split.  */
   fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double) {
-    defaultDrawLabel(this, canvas, clipBounds, left, top)
-  }
-
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
     if (hasPos()) {
       val dx = JOINWIDTH / 2

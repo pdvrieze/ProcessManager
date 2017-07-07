@@ -72,7 +72,9 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
 
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
-    PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double)
+    PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double) {
+    // TODO implement a proper drawLabel system. Perhaps that needs more knowledge of node bounds
+  }
 
   override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 

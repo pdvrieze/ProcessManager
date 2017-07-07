@@ -120,14 +120,6 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
     }
   }
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawLabel(
-      canvas: Canvas<S, PEN_T, PATH_T>,
-      clipBounds: Rectangle?,
-      left: Double,
-      top: Double) {
-    defaultDrawLabel(this, canvas, clipBounds, left, top)
-  }
-
   @Deprecated("Use the builder")
   override fun setId(id: String) = super.setId(id)
   @Deprecated("Use the builder")

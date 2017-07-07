@@ -51,8 +51,8 @@ fun <T : Positioned> DiagramNode(positionedTarget: T,
                      rightExtent = rightExtent,
                      topExtent = topExtent,
                      bottomExtent = bottomExtent,
-                     x = positionedTarget.x,
-                     y = positionedTarget.y)
+                     x = x,
+                     y = y)
 }
 
 fun <T : Bounded> DiagramNode(boundedTarget: T,
@@ -62,13 +62,13 @@ fun <T : Bounded> DiagramNode(boundedTarget: T,
                               rightExtent: Double = boundedTarget.rightExtent,
                               topExtent: Double = boundedTarget.topExtent,
                               bottomExtent: Double = boundedTarget.bottomExtent): DiagramNode<T> {
-  return DiagramNode<T>(target = boundedTarget,
-                        x= x,
-                        y= y,
-                        leftExtent = leftExtent,
-                        rightExtent = rightExtent,
-                        topExtent = topExtent,
-                        bottomExtent = bottomExtent)
+  return DiagramNode(target = boundedTarget,
+                     x= x,
+                     y= y,
+                     leftExtent = leftExtent,
+                     rightExtent = rightExtent,
+                     topExtent = topExtent,
+                     bottomExtent = bottomExtent)
 }
 
 fun <T : HasExtent> DiagramNode(extentTarget: T,

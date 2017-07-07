@@ -33,7 +33,9 @@ import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.writeSimpleElement
 
 
-open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+open class DrawableActivity(builder: Activity.Builder<*, *>,
+                            buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : ActivityBase<DrawableProcessNode, DrawableProcessModel?>(
+  builder, buildHelper), DrawableProcessNode {
 
   class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
 
@@ -69,7 +71,7 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
 
   }
 
-  override val _delegate: DrawableProcessNode.Delegate
+  override val _delegate: DrawableProcessNode.Delegate = DrawableProcessNode.Delegate(builder)
 
   val isBodySpecified get() = message != null
 
@@ -87,11 +89,6 @@ open class DrawableActivity : ActivityBase<DrawableProcessNode, DrawableProcessM
 
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
-
-  constructor(builder: Activity.Builder<*, *>,
-              buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
-    _delegate = DrawableProcessNode.Delegate(builder)
-  }
 
   override fun builder(): Builder {
     return Builder(this)

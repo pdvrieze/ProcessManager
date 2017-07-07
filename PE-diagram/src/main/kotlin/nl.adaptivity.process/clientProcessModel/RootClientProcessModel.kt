@@ -14,6 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:Suppress("DEPRECATION")
+
 package nl.adaptivity.process.clientProcessModel
 
 import net.devrieze.util.security.SimplePrincipal
@@ -27,12 +29,13 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import java.util.*
 
-abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>, MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+@Suppress("OverridingDeprecatedMember")
+abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
+                                                                nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>,
+                                                                pedantic: Boolean = builder.defaultPedantic) : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(
+  builder, nodeFactory, pedantic), MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
   abstract val layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
-
-  @JvmOverloads
-  constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>, pedantic: Boolean = builder.defaultPedantic) : super(builder, nodeFactory, pedantic)
 
   var topPadding = 5.0
     set(topPadding) {
@@ -76,15 +79,7 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
   }
 
   val startNodes: Collection<DrawableStartNode>
-    get() {
-      val result = ArrayList<DrawableStartNode>()
-      for (n in modelNodes) {
-        if (n is DrawableStartNode) {
-          result.add(n as DrawableStartNode)
-        }
-      }
-      return result
-    }
+    get() = modelNodes.filterIsInstance<DrawableStartNode>()
 
   override fun addNode(node: DrawableProcessNode): Boolean {
     if (super.addNode(node)) {
@@ -123,9 +118,6 @@ abstract class RootClientProcessModel : RootProcessModelBase<DrawableProcessNode
   }
 
   override fun removeNode(node: DrawableProcessNode): Boolean {
-    if (node == null) {
-      return false
-    }
     if (super.removeNode(node)) {
       disconnectNode(node)
       return true

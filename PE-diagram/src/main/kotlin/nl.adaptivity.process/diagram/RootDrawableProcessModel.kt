@@ -266,7 +266,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
             start.successors.asSequence().map { getNode(it) }.filterNotNull().filter {
               it.x.isFinite() && it.y.isFinite()
             }.map { end ->
-              val x1 = start.bounds.right()/*-STROKEWIDTH*/
+              val x1 = start.bounds.right/*-STROKEWIDTH*/
               val y1 = start.y
               val x2 = end.bounds.left/*+STROKEWIDTH*/
               val y2 = end.y
