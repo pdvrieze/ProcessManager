@@ -16,18 +16,13 @@
 
 package nl.adaptivity.util.xml
 
-import net.devrieze.util.kotlin.matches
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.EventType
-
-import javax.xml.XMLConstants
-import javax.xml.namespace.NamespaceContext
-
 import java.io.CharArrayReader
 import java.io.Reader
 import java.io.StringReader
-import java.util.Collections
-import java.util.HashSet
+import java.util.*
+import javax.xml.XMLConstants
+import javax.xml.namespace.NamespaceContext
 
 
 /**
