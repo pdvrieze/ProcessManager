@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin-platform-jre7'
+apply plugin: 'kotlin-platform-jvm'
 apply plugin: 'idea'
 
 version = '0.5.0'
