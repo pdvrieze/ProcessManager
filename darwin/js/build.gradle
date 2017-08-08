@@ -16,7 +16,7 @@ import java.nio.file.Files
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin2js'
+apply plugin: 'kotlin-platform-js'
 apply plugin: 'idea'
 
 description = 'Javascript support for the darwin web interface'
@@ -32,8 +32,11 @@ configurations {
 }
 
 dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
+    implement project(":darwin:shared")
+    compile project(":jscommon")
 }
 
 
@@ -90,7 +93,7 @@ if (symlinksSupported()) {
 }
 
 compileKotlin2Js {
-    dependsOn tasks.copyShared
+//    dependsOn tasks.copyShared
     kotlinOptions.outputFile = outDir + "darwin.js"
     kotlinOptions.sourceMap = true
     kotlinOptions.suppressWarnings = false

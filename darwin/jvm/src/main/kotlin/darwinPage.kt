@@ -49,7 +49,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
   if (request.isNoChromeRequested) {
     contentType("text/xml")
     result.append("<?xml version=\"1.0\" ?>\n")
-    result.appendXML().partialHTML {
+    result.appendHTML().partialHTML {
       title(windowTitle, pageTitle)
       script(context.jsLocalRef("main.js"))
       body() {
