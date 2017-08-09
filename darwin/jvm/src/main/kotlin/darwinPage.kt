@@ -25,6 +25,8 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+private const val DELAY_JS=true
+
 fun HttpServletResponse.contentType(type: String) {
   addHeader("Content-Type", type)
 }
@@ -65,7 +67,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
         title(windowTitle)
         styleLink(context.cssRef( "darwin.css"))
         meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
-        script(type= ScriptType.textJavaScript, src=context.jsGlobalRef("require.js")) { this.attributes["data-main"]=context.jsLocalRef("main.js") }
+        if (!DELAY_JS) script (type= ScriptType.textJavaScript, src=context.jsGlobalRef("require.js")) { this.attributes["data-main"]=context.jsLocalRef("main.js") }
       }
       body() {
         h1() {
@@ -102,6 +104,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
           span { id = "divider" }
           +"Darwin is a Bournemouth University Project"
         }
+        if (DELAY_JS) script (type= ScriptType.textJavaScript, src=context.jsGlobalRef("require.js")) { this.attributes["data-main"]=context.jsLocalRef("main.js") }
 //        script(type= ScriptType.textJavaScript, src="/js/darwin.js")
       }
     }
