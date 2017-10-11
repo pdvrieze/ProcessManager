@@ -24,7 +24,6 @@ import nl.adaptivity.ws.soap.SoapSeeAlso;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.xml.namespace.QName;
-
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -161,6 +160,7 @@ public final class MessagingSoapClientGenerator {
     try {
       generateClientJava(pkg, outClass, inClasses, cp, dstdir);
     } catch (Exception e) {
+      e.printStackTrace();
       ++_errorCount;
       System.exit(_errorCount);
     }
@@ -178,8 +178,7 @@ public final class MessagingSoapClientGenerator {
     @SuppressWarnings("resource")
     final FileSystem fs = FileSystems.getDefault();
     try {
-
-      final String pkgdir = destPkg.replaceAll("\\.", fs.getSeparator());
+      final String pkgdir = destPkg.replace(".", fs.getSeparator());
       final String classfilename = outClass + ".java";
       final Path outfile = fs.getPath(dstdir, pkgdir, classfilename);
 
@@ -222,7 +221,7 @@ public final class MessagingSoapClientGenerator {
       ++_errorCount;
       return;
     }
-    final String pkgname = pkg.replaceAll(fs.getSeparator(), ".");
+    final String pkgname = pkg.replace(fs.getSeparator(), ".");
     try {
       generateJava(outfile, endpointClass, pkgname, outClass);
     } catch (final IOException e) {
