@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface IAndroidCanvas extends nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath>{
   IAndroidCanvas scale(double scale);
-  IAndroidCanvas translate(double left, double right);
+  IAndroidCanvas translate(double dx, double dy);
   @NotNull
   @Override
   IAndroidCanvas childCanvas(final double offsetX, final double offsetY, double scale);

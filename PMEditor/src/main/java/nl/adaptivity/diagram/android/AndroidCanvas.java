@@ -70,8 +70,8 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public IAndroidCanvas translate(final double left, final double right) {
-      return new OffsetCanvas(mXOffset - left, mYOffset - right, mScale);
+    public IAndroidCanvas translate(final double dx, final double dy) {
+      return new OffsetCanvas(mXOffset - dx, mYOffset - dy, mScale);
     }
 
     private AndroidPen scalePen(final AndroidPen pen) {
@@ -374,8 +374,9 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public IAndroidCanvas translate(final double left, final double right) {
-    return new OffsetCanvas(left, right, 1);
+  public IAndroidCanvas translate(final double dx, final double dy) {
+    if (dx==0d && dy==0d) return this;
+    return new OffsetCanvas(dx, dy, 1);
   }
 
   @Override
