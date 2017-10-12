@@ -19,7 +19,7 @@ package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
 import nl.adaptivity.diagram.Canvas.TextPos
-import nl.adaptivity.diagram.Drawable.STATE_TOUCHED
+import nl.adaptivity.diagram.Drawable.Companion.STATE_TOUCHED
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIGHT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
@@ -56,7 +56,7 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
   /** Determine whether the node represents an and split.  */
   fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
     if (hasPos()) {
       val dx = JOINWIDTH / 2
       val hse = STROKEEXTEND / 2
@@ -116,13 +116,9 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
     setPos(left + DrawableJoinSplit.REFERENCE_OFFSET_X, top + DrawableJoinSplit.REFERENCE_OFFSET_Y)
   }
 
-  override fun getState(): Int {
-    return _delegate.state
-  }
-
-  override fun setState(state: Int) {
-    _delegate.state = state
-  }
+  override var state: Int
+    get() = _delegate.state
+    set(value) { _delegate.state = value }
 
   companion object {
 

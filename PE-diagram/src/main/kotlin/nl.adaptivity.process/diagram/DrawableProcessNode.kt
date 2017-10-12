@@ -61,14 +61,16 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
   val _delegate: Delegate
 
   val isCompat: Boolean get()= _delegate.isCompat
-  override fun getState():DrawableState = _delegate.state
-  override fun setState(state: DrawableState) {
-    if (_delegate.state == state) {
-      return
+
+  override var state: Int
+    get() = _delegate.state
+    set(value) {
+      if (_delegate.state == value) {
+        return
+      }
+      _delegate.state = value
+      ownerModel?.notifyNodeChanged(this)
     }
-    _delegate.state = state
-    ownerModel?.notifyNodeChanged(this)
-  }
 
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,

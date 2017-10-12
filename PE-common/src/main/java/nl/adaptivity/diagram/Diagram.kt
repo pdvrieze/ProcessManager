@@ -14,12 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.diagram;
-
-import java.util.Collection;
+package nl.adaptivity.diagram
 
 
-public interface GroupDrawable extends Drawable {
-
-  Collection<? extends Drawable> getChildElements();
-}
+interface Diagram : GroupDrawable// For now just a marker interface.

@@ -26,9 +26,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,10 +41,10 @@ import java.util.logging.Logger;
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class SimpleAdapter {
 
-  private volatile static MethodHandle _getContext;
+  private volatile static Method _getContext;
   private volatile static boolean _failedReflection = false;
-  private static MethodHandle _getAllDeclaredPrefixes;
-  private static MethodHandle _getNamespaceURI;
+  private static Method _getAllDeclaredPrefixes;
+  private static Method _getNamespaceURI;
 
   QName name;
   private nl.adaptivity.xml.SimpleNamespaceContext namespaceContext;
@@ -84,11 +82,10 @@ public class SimpleAdapter {
     try {
       if (_getContext == null) {
         synchronized (getClass()) {
-          final Lookup lookup = MethodHandles.lookup();
-          _getContext = lookup.unreflect(unmarshaller.getClass().getMethod("getContext"));
+          _getContext = unmarshaller.getClass().getMethod("getContext");
           context = _getContext.invoke(unmarshaller);
-          _getAllDeclaredPrefixes = lookup.unreflect(context.getClass().getMethod("getAllDeclaredPrefixes"));
-          _getNamespaceURI = lookup.unreflect(context.getClass().getMethod("getNamespaceURI", String.class));
+          _getAllDeclaredPrefixes = context.getClass().getMethod("getAllDeclaredPrefixes");
+          _getNamespaceURI = context.getClass().getMethod("getNamespaceURI", String.class);
 
         }
       } else {

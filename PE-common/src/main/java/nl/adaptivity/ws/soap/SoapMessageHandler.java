@@ -37,8 +37,6 @@ import javax.xml.transform.Source;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -175,8 +173,8 @@ public abstract class SoapMessageHandler {
   private static class SoapMessageHandlerAccessor extends SoapMessageHandler {
 
     private final Object mOther;
-    private final MethodHandle mProcessRequest;
-    private final MethodHandle mProcessMessage;
+    private final Method mProcessRequest;
+    private final Method mProcessMessage;
 
     public SoapMessageHandlerAccessor(final Object target) {
       try {
@@ -185,8 +183,8 @@ public abstract class SoapMessageHandler {
         Constructor<?> constructor = otherClass.getConstructor(Object.class);
         mOther = constructor.newInstance(target);
 
-        MethodHandle processRequest = null;
-        MethodHandle processMessage = null;
+        Method processRequest = null;
+        Method processMessage = null;
         for (Method m: otherClass.getDeclaredMethods()) {
           if (!Modifier.isPublic(m.getModifiers())) { continue; }
           int methodIdx=0;
@@ -196,11 +194,10 @@ public abstract class SoapMessageHandler {
             methodIdx = 2;
           } else { continue; }
           m.setAccessible(true); // force accessible
-          MethodHandle handle = MethodHandles.lookup().unreflect(m);
           if (methodIdx==1) {
-            processRequest = handle;
+            processRequest = m;
           } else {
-            processMessage = handle;
+            processMessage = m;
           }
         }
         if (processRequest==null || processMessage==null) { throw new IllegalStateException("Required methods not found"); }
@@ -215,7 +212,11 @@ public abstract class SoapMessageHandler {
     @Override
     public boolean processRequest(final HttpMessage pRequest, final HttpServletResponse pResponse) throws IOException {
       try {
-        return (Boolean) mProcessRequest.invoke(mOther, pRequest, pResponse);
+        try {
+          return (Boolean) mProcessRequest.invoke(mOther, pRequest, pResponse);
+        } catch (InvocationTargetException i) {
+          throw i.getCause();
+        }
       } catch (RuntimeException|IOException e) {
         throw e;
       } catch (Throwable throwable) {
@@ -227,7 +228,11 @@ public abstract class SoapMessageHandler {
     @Override
     public Source processMessage(final Reader source, final Map<String, DataSource> pAttachments) throws XmlException {
       try {
-        return (Source) mProcessMessage.invoke(mOther, source, pAttachments);
+        try {
+          return (Source) mProcessMessage.invoke(mOther, source, pAttachments);
+        } catch (InvocationTargetException i) {
+          throw i.getCause();
+        }
       } catch (RuntimeException|XmlException e) {
         throw e;
       } catch (Throwable throwable) {

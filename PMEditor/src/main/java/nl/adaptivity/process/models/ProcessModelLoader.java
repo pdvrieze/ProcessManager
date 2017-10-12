@@ -79,7 +79,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
         if (handleCursor.moveToFirst()) {
           handle = handleCursor.isNull(0)? null : Long.valueOf(handleCursor.getLong(0));
           publicationPending = handleCursor.getInt(1) == RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER;
-          modelHolder =new ProcessModelHolder(processModel, handle, id, publicationPending);
+          modelHolder =new ProcessModelHolder(processModel, handle==null ? -1L :handle, id, publicationPending);
         } else {
           modelHolder=null;
         }

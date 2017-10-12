@@ -18,6 +18,9 @@ package nl.adaptivity.diagram.android;
 
 import android.graphics.*;
 import android.graphics.Paint.Style;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 
@@ -55,6 +58,7 @@ public class AndroidCanvas implements IAndroidCanvas {
       mScale = scale;
     }
 
+    @NonNull
     @Override
     public IAndroidCanvas childCanvas(final double offsetX, final double offsetY, final double scale) {
       return new OffsetCanvas(this, offsetX, offsetY, scale);
@@ -66,8 +70,8 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public IAndroidCanvas translate(final double x, final double y) {
-      return new OffsetCanvas(mXOffset-x, mYOffset-y, mScale);
+    public IAndroidCanvas translate(final double left, final double right) {
+      return new OffsetCanvas(mXOffset - left, mYOffset - right, mScale);
     }
 
     private AndroidPen scalePen(final AndroidPen pen) {
@@ -75,8 +79,22 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public void drawCircle(final double x, final double y, final double radius, final AndroidPen pen) {
-      AndroidCanvas.this.drawCircle(transformX(x), transformY(y), radius*mScale, scalePen(pen));
+    public void drawCircle(final double x, final double y, final double radius, @NonNull final AndroidPen stroke) {
+      AndroidCanvas.this.drawCircle(transformX(x), transformY(y), radius*mScale, scalePen(stroke));
+    }
+
+    @Override
+    public void drawFilledCircle(final double x, final double y, final double radius, @NonNull final AndroidPen fill) {
+      AndroidCanvas.this.drawFilledCircle(transformX(x), transformY(y), radius*mScale, fill);
+    }
+
+    @Override
+    public void drawCircle(final double x, final double y, final double radius, @Nullable final AndroidPen stroke,
+                           @Nullable final AndroidPen fill) {
+      if (fill!=null)
+        AndroidCanvas.this.drawFilledCircle(transformX(x), transformY(y), radius*mScale, fill);
+      if (stroke!=null)
+        AndroidCanvas.this.drawCircle(transformX(x), transformY(y), radius*mScale, scalePen(stroke));
     }
 
     @Override
@@ -85,28 +103,32 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public void drawFilledCircle(final double x, final double y, final double radius, final AndroidPen pen) {
-      AndroidCanvas.this.drawFilledCircle(transformX(x), transformY(y), radius*mScale, scalePen(pen));
+    public void drawRect(@NonNull final Rectangle rect, @NonNull final AndroidPen stroke) {
+      AndroidCanvas.this.drawRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), scalePen(stroke));
     }
 
     @Override
-    public void drawRect(final Rectangle rect, final AndroidPen pen) {
-      AndroidCanvas.this.drawRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), scalePen(pen));
+    public void drawFilledRect(@NonNull final Rectangle rect, @NonNull final AndroidPen fill) {
+      AndroidCanvas.this.drawFilledRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), scalePen(fill));
     }
 
     @Override
-    public void drawFilledRect(final Rectangle rect, final AndroidPen pen) {
-      AndroidCanvas.this.drawFilledRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), scalePen(pen));
+    public void drawRect(@NonNull final Rectangle rect, @Nullable final AndroidPen stroke, @Nullable final AndroidPen fill) {
+      if (fill!=null)
+        AndroidCanvas.this.drawFilledRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), fill);
+
+      if (stroke!=null)
+        AndroidCanvas.this.drawRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), scalePen(stroke));
     }
 
     @Override
-    public void drawPoly(final double[] points, final AndroidPen pen) {
-      AndroidCanvas.this.drawPoly(transform(points), scalePen(pen));
+    public void drawPoly(@NonNull final double[] points, @NonNull final AndroidPen color) {
+      AndroidCanvas.this.drawPoly(transform(points), scalePen(color));
     }
 
     @Override
-    public void drawFilledPoly(final double[] points, final AndroidPen pen) {
-      AndroidCanvas.this.drawFilledPoly(transform(points), scalePen(pen));
+    public void drawFilledPoly(@NonNull final double[] points, @NonNull final AndroidPen color) {
+      AndroidCanvas.this.drawFilledPoly(transform(points), scalePen(color));
     }
 
     private double[] transform(final double[] points) {
@@ -129,7 +151,7 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public void drawPath(final AndroidPath path, final AndroidPen stroke, final AndroidPen fill) {
+    public void drawPath(@NonNull final AndroidPath path, @Nullable final AndroidPen stroke, @Nullable  final AndroidPen fill) {
       final Path transformedPath = transformPath(path);
       if (fill!=null) {
         AndroidCanvas.this.drawFilledPath(transformedPath, fill.getPaint());
@@ -149,28 +171,46 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public void drawRoundRect(final Rectangle rect, final double rx, final double ry, final AndroidPen pen) {
-      AndroidCanvas.this.drawRoundRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), rx*mScale, ry*mScale, scalePen(pen));
+    public void drawRoundRect(@NonNull final Rectangle rect, final double rx, final double ry, @NonNull final AndroidPen stroke) {
+      AndroidCanvas.this.drawRoundRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), rx*mScale, ry*mScale, scalePen(
+        stroke));
     }
 
     @Override
-    public void drawFilledRoundRect(final Rectangle rect, final double rx, final double ry, final AndroidPen pen) {
-      AndroidCanvas.this.drawFilledRoundRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), rx*mScale, ry*mScale, scalePen(pen));
+    public void drawFilledRoundRect(@NonNull final Rectangle rect, final double rx, final double ry, @NonNull
+    final AndroidPen fill) {
+      AndroidCanvas.this.drawFilledRoundRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), rx*mScale, ry*mScale, scalePen(
+        fill));
     }
 
+    @Override
+    public void drawRoundRect(@NonNull final Rectangle rect,
+                              final double rx,
+                              final double ry,
+                              @Nullable final AndroidPen stroke,
+                              @Nullable final AndroidPen fill) {
+      if (fill!=null)
+        AndroidCanvas.this.drawFilledRoundRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), rx*mScale, ry*mScale, scalePen(fill));
+      if (stroke!=null)
+        AndroidCanvas.this.drawRoundRect(rect.offsetScaled(-mXOffset, -mYOffset, mScale), rx*mScale, ry*mScale, scalePen(stroke));
+    }
+
+    @NonNull
     @Override
     public AndroidStrategy getStrategy() {
       return AndroidStrategy.INSTANCE;
     }
 
+    @NonNull
     @Override
     public Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme() {
       return AndroidCanvas.this.getTheme();
     }
 
     @Override
-    public void drawText(final TextPos textPos, final double left, final double bottom, final String text, final double foldWidth, final AndroidPen pen) {
-      AndroidCanvas.this.drawText(textPos, transformX(left), transformY(bottom), text, foldWidth*mScale, scalePen(pen), mScale);
+    public void drawText(@NonNull final TextPos textPos, final double left, final double baselineY, @NonNull final String text, final double foldWidth, @NonNull
+    final AndroidPen pen) {
+      AndroidCanvas.this.drawText(textPos, transformX(left), transformY(baselineY), text, foldWidth * mScale, scalePen(pen), mScale);
     }
 
   }
@@ -190,14 +230,15 @@ public class AndroidCanvas implements IAndroidCanvas {
 //    mGreenPaint.setColor(Color.rgb(0, 255, 0)); mGreenPaint.setStyle(Style.FILL);
   }
 
+  @NonNull
   @Override
   public IAndroidCanvas childCanvas(final double offsetX, final double offsetY, final double scale) {
     return new OffsetCanvas(offsetX, offsetY, scale);
   }
 
   @Override
-  public void drawFilledCircle(final double x, final double y, final double radius, final AndroidPen pen) {
-    final Paint paint    = pen.getPaint();
+  public void drawFilledCircle(final double x, final double y, final double radius, @NonNull final AndroidPen fill) {
+    final Paint paint    = fill.getPaint();
     final Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
     mCanvas.drawCircle((float) x, (float) y, (float) radius, paint);
@@ -205,58 +246,80 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public void drawCircle(final double x, final double y, final double radius, final AndroidPen pen) {
-    mCanvas.drawCircle((float) x, (float) y, (float) radius, pen.getPaint());
+  public void drawCircle(final double x, final double y, final double radius, @NonNull final AndroidPen stroke) {
+    mCanvas.drawCircle((float) x, (float) y, (float) radius, stroke.getPaint());
   }
 
   @Override
-  public void drawFilledRoundRect(final Rectangle rect, final double rx, final double ry, final AndroidPen pen) {
-    final Paint paint    = pen.getPaint();
+  public void drawCircle(final double x, final double y, final double radius, @Nullable final AndroidPen stroke, @Nullable final AndroidPen fill) {
+    if (fill!=null)
+      drawFilledCircle(x, y, radius, fill);
+    if (stroke!=null)
+      drawCircle(x, y, radius, stroke);
+  }
+
+  @Override
+  public void drawFilledRoundRect(@NonNull final Rectangle rect, final double rx, final double ry, @NonNull final AndroidPen fill) {
+    final Paint paint    = fill.getPaint();
     final Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    mCanvas.drawRoundRect(toRectF(rect), (float)rx, (float)ry, pen.getPaint());
+    mCanvas.drawRoundRect(toRectF(rect), (float)rx, (float)ry, fill.getPaint());
     paint.setStyle(oldStyle);
   }
 
   @Override
-  public void drawRoundRect(final Rectangle rect, final double rx, final double ry, final AndroidPen pen) {
-    mCanvas.drawRoundRect(toRectF(rect), (float)rx, (float)ry, pen.getPaint());
+  public void drawRoundRect(@NonNull final Rectangle rect, final double rx, final double ry, @NonNull final AndroidPen stroke) {
+    mCanvas.drawRoundRect(toRectF(rect), (float)rx, (float)ry, stroke.getPaint());
   }
 
   @Override
-  public void drawFilledRect(final Rectangle rect, final AndroidPen pen) {
-    final Paint paint    = pen.getPaint();
+  public void drawRoundRect(@NonNull final Rectangle rect, final double rx, final double ry, @Nullable final AndroidPen stroke, @Nullable final AndroidPen fill) {
+    if (fill!=null)
+      drawFilledRoundRect(rect, rx, ry, fill);
+    if (stroke!=null)
+      drawRoundRect(rect, rx, ry, stroke);
+  }
+
+  @Override
+  public void drawFilledRect(@NonNull final Rectangle rect, @NonNull final AndroidPen fill) {
+    final Paint paint    = fill.getPaint();
     final Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    mCanvas.drawRect(toRectF(rect), pen.getPaint());
+    mCanvas.drawRect(toRectF(rect), fill.getPaint());
     paint.setStyle(oldStyle);
   }
 
   @Override
-  public void drawRect(final Rectangle rect, final AndroidPen pen) {
-    mCanvas.drawRect(toRectF(rect), pen.getPaint());
+  public void drawRect(@NonNull final Rectangle rect, @NonNull final AndroidPen stroke) {
+    mCanvas.drawRect(toRectF(rect), stroke.getPaint());
   }
 
   @Override
-  public void drawPoly(final double[] points, final AndroidPen pen) {
-    mCanvas.drawPath(toPath(points), pen.getPaint());
+  public void drawRect(@NonNull final Rectangle rect, @Nullable final AndroidPen stroke, @Nullable final AndroidPen fill) {
+    if (fill!=null)
+      drawFilledRect(rect, fill);
+    drawRect(rect, stroke);
   }
 
   @Override
-  public void drawFilledPoly(final double[] points, final AndroidPen pen) {
-    final Paint paint    = pen.getPaint();
+  public void drawPoly(@NonNull final double[] points, @NonNull final AndroidPen color) {
+    mCanvas.drawPath(toPath(points), color.getPaint());
+  }
+
+  @Override
+  public void drawFilledPoly(@NonNull final double[] points, @NonNull final AndroidPen color) {
+    final Paint paint    = color.getPaint();
     final Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    mCanvas.drawPath(toPath(points), pen.getPaint());
+    mCanvas.drawPath(toPath(points), color.getPaint());
     paint.setStyle(oldStyle);
   }
 
   @Override
-  public void drawPath(final AndroidPath path, final AndroidPen stroke, final AndroidPen fill) {
+  public void drawPath(@NonNull final AndroidPath path, @NonNull final AndroidPen stroke, final AndroidPen fill) {
     if (fill!=null)
       drawFilledPath(path.getPath(), fill.getPaint());
-    if (stroke!=null)
-      drawPath(path.getPath(), stroke.getPaint());
+    drawPath(path.getPath(), stroke.getPaint());
   }
 
   void drawPath(final Path path, final Paint paint) {
@@ -288,11 +351,13 @@ public class AndroidCanvas implements IAndroidCanvas {
     return new RectF(rect.leftf(), rect.topf(), rect.rightf(), rect.bottomf());
   }
 
+  @NonNull
   @Override
   public AndroidStrategy getStrategy() {
     return AndroidStrategy.INSTANCE;
   }
 
+  @NonNull
   @Override
   public Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme() {
     if (mTheme==null) { mTheme = new AndroidTheme(getStrategy()); }
@@ -319,8 +384,9 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public void drawText(final TextPos textPos, final double x, final double y, final String text, final double foldWidth, final AndroidPen pen) {
-    drawText(textPos, x, y, text, foldWidth, pen, 1);
+  public void drawText(@NonNull final TextPos textPos, final double left, final double baselineY, @NonNull final String text, final double foldWidth, @NonNull
+  final AndroidPen pen) {
+    drawText(textPos, left, baselineY, text, foldWidth, pen, 1);
   }
   
   private void drawText(final TextPos textPos, final double x, final double y, final String text, final double foldWidth, final AndroidPen pen, final double scale) {
@@ -334,7 +400,7 @@ public class AndroidCanvas implements IAndroidCanvas {
 //    mCanvas.drawCircle((float)pX, (float)pY, 3f, mGreenPaint);
   }
 
-  private static float getBaseLine(final TextPos textPos, final double y, final AndroidPen pen, final double scale) {
+  private static float getBaseLine(final TextPos textPos, final double y, final Pen<?> pen, final double scale) {
     switch (textPos) {
     case MAXTOPLEFT:
     case MAXTOP:
@@ -347,7 +413,7 @@ public class AndroidCanvas implements IAndroidCanvas {
     case LEFT:
     case MIDDLE:
     case RIGHT:
-      return (float) (y+(0.5*pen.getTextAscent()-0.5*pen.getTextDescent())*scale);
+      return (float) (y + (((0.5 * pen.getTextAscent()) - (0.5 * pen.getTextDescent())) * scale));
     case BASELINEMIDDLE:
     case BASELINERIGHT:
     case BASELINELEFT:
@@ -364,31 +430,35 @@ public class AndroidCanvas implements IAndroidCanvas {
     throw new IllegalArgumentException(textPos.toString());
   }
 
-  private static float getLeft(final TextPos textPos, final double x, final String text, final double foldWidth, final AndroidPen pen, final double scale) {
+  private static float getLeft(final TextPos textPos,
+                               final double x,
+                               final String text,
+                               final double foldWidth,
+                               final AndroidPen pen,
+                               final double scale) {
     switch (textPos) {
-    case BASELINELEFT:
-    case BOTTOMLEFT:
-    case LEFT:
-    case MAXTOPLEFT:
-    case ASCENTLEFT:
-      return (float) x;
-    case MAXTOP:
-    case ASCENT:
-    case DESCENT:
-    case BASELINEMIDDLE:
-    case MIDDLE:
-    case BOTTOM:
-      return (float) (x - ((pen.measureTextWidth(text, foldWidth)*scale)/2));
-    case MAXTOPRIGHT:
-    case ASCENTRIGHT:
-    case DESCENTRIGHT:
-    case RIGHT:
-    case BASELINERIGHT:
-    case BOTTOMRIGHT:
-      return (float) (x - ((pen.measureTextWidth(text, foldWidth)*scale)));
+      case BASELINELEFT:
+      case BOTTOMLEFT:
+      case LEFT:
+      case MAXTOPLEFT:
+      case ASCENTLEFT:
+        return (float) x;
+      case ASCENT:
+      case DESCENT:
+      case BASELINEMIDDLE:
+      case MAXTOP:
+      case MIDDLE:
+      case BOTTOM:
+        return (float) (x - ((pen.measureTextWidth(text, foldWidth) * scale) / 2));
+      case MAXTOPRIGHT:
+      case ASCENTRIGHT:
+      case DESCENTLEFT:
+      case DESCENTRIGHT:
+      case RIGHT:
+      case BASELINERIGHT:
+      case BOTTOMRIGHT:
+        return (float) (x - ((pen.measureTextWidth(text, foldWidth) * scale)));
     }
     throw new IllegalArgumentException(textPos.toString());
   }
-
-
 }

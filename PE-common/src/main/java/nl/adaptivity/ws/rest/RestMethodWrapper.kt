@@ -36,8 +36,6 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.*
 import java.lang.invoke.MethodHandle
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
 import java.lang.reflect.*
 import java.nio.charset.Charset
 import javax.activation.DataHandler
@@ -113,7 +111,8 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
   private class Java8RestMethodWrapper(pOwner: Any, pMethod: Method) : RestMethodWrapper(pOwner, pMethod) {
 
-    private val mMethodHandle: MethodHandle
+    private val methodHandle: Method = pMethod
+    private val owner: Any = pOwner
     override val parameterAnnotations: Array<Array<Annotation>>
     override val elementWrapper: XmlElementWrapper?
     override val genericReturnType: Type
@@ -123,7 +122,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
     init {
       try {
-        mMethodHandle = MethodHandles.lookup().unreflect(pMethod).bindTo(pOwner)
         parameterAnnotations = pMethod.parameterAnnotations
         elementWrapper = pMethod.getAnnotation(XmlElementWrapper::class.java)
         genericReturnType = pMethod.genericReturnType
@@ -137,14 +135,14 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
     }
 
     override val parameterTypes: Array<Class<*>>
-      get() = mMethodHandle.type().parameterArray()
+      get() = methodHandle.parameterTypes
 
     override fun exec() {
       if (params == null) {
         throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
       }
       try {
-        result = mMethodHandle.invokeWithArguments(*params)
+        result = methodHandle.invoke(owner, *params)
       } catch (e: InvocationTargetException) {
         val cause = e.cause
         throw MessagingException(cause ?: e)
@@ -471,7 +469,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
   companion object {
 
-    @Volatile private var _getDelegate: MethodHandle? = null
+    @Volatile private var _getDelegate: Method? = null
 
     operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
       // Make it work with private methods and
@@ -582,12 +580,10 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       return result.item(0)
     }
 
-    private val delegateMethod: MethodHandle
+    private val delegateMethod: Method
       get() {
         return this._getDelegate ?: kotlin.run {
-           MethodHandles.lookup()
-            .findVirtual(Class.forName("nl.adaptivity.xml.StAXWriter"),
-                         "getDelegate", MethodType.methodType(XMLStreamWriter::class.java))
+          Class.forName("nl.adaptivity.xml.StAXWriter").getMethod("getDelegate", XMLStreamWriter::class.java)
              .also { this._getDelegate = it }
         }
       }

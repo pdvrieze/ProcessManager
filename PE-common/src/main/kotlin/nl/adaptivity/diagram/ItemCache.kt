@@ -48,11 +48,15 @@ class ItemCache {
   }
 
   private fun <PATH_T : DiagramPath<PATH_T>> setPath(strategyIdx: Int, pathIdx: Int, path: PATH_T) {
-    paths = paths.ensureArrayLength(strategyIdx + 1)
-    val sPaths = paths[strategyIdx].ensureArrayLength(pathIdx + 1)
+    if (strategyIdx<0) {
+      setPath(strategies.size, pathIdx, path)
+    } else {
+      paths = paths.ensureArrayLength(strategyIdx + 1)
+      val sPaths = paths[strategyIdx].ensureArrayLength(pathIdx + 1)
 
-    sPaths[pathIdx] = path
-    paths[strategyIdx] = sPaths
+      sPaths[pathIdx] = path
+      paths[strategyIdx] = sPaths
+    }
   }
 
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> setPathList(strategy: S, index: Int, pathList: List<PATH_T>) {
@@ -60,10 +64,14 @@ class ItemCache {
   }
 
   private fun <PATH_T : DiagramPath<PATH_T>> setPathList(strategyIdx: Int, pathListIdx: Int, pathList: List<PATH_T>) {
-    pathLists = pathLists.ensureArrayLength(strategyIdx + 1)
-    val sPathLists = pathLists[strategyIdx].ensureArrayLength(pathListIdx + 1)
-    pathLists[strategyIdx] = sPathLists
-    sPathLists[pathListIdx] = pathList as List<*>
+    if (strategyIdx<0) {
+      setPathList(strategies.size, pathListIdx, pathList)
+    } else {
+      pathLists = pathLists.ensureArrayLength(strategyIdx + 1)
+      val sPathLists = pathLists[strategyIdx].ensureArrayLength(pathListIdx + 1)
+      pathLists[strategyIdx] = sPathLists
+      sPathLists[pathListIdx] = pathList as List<*>
+    }
   }
 
   inline private fun <reified V> Array<V?>?.ensureArrayLength(length: Int) = when {

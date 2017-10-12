@@ -120,7 +120,7 @@ internal abstract class ConfigurableModel(
 
   override fun getNode(nodeId: Identifiable) = model.getNode(nodeId)
 
-  override fun getModelNodes() = model.getModelNodes()
+  override fun getModelNodes(): List<ExecutableProcessNode> = model.getModelNodes()
 
   override val childModels get() = model.childModels
 

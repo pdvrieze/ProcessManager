@@ -35,6 +35,9 @@ import java.util.*
 
 class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> = Builder()) : RootClientProcessModel(
   builder, DRAWABLE_NODE_FACTORY), DrawableProcessModel {
+  override fun getModelNodes(): List<DrawableProcessNode> {
+    return super.getModelNodes()
+  }
 
   class Builder : RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel.Builder {
 
@@ -111,7 +114,8 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     return _bounds
   }
 
-  private var state = Drawable.STATE_DEFAULT
+  override var state = Drawable.STATE_DEFAULT
+
   private var idSeq = 0
   var isFavourite: Boolean = false
   override var isInvalid: Boolean = false
@@ -185,14 +189,6 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     return if (isWithinBounds(x,y)) this else null
   }
 
-  override fun getState(): Int {
-    return state
-  }
-
-  override fun setState(state: Int) {
-    this.state = state
-  }
-
   override fun setNodes(nodes: Collection<DrawableProcessNode>) {
     // Null check here as setNodes is called during construction of the parent
     _bounds.clear()
@@ -252,7 +248,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     mItems.clearPath(0)
   }
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
     //    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
     val childCanvas = canvas.childCanvas(0.0, 0.0, 1.0)
     val strategy = canvas.strategy
@@ -291,9 +287,8 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     }
   }
 
-  override fun getChildElements(): Collection<Drawable> {
-    return getModelNodes()
-  }
+  override val childElements: Collection<Drawable>
+    get() = getModelNodes()
 
   /**
    * Normalize the process model. By default this may do nothing.

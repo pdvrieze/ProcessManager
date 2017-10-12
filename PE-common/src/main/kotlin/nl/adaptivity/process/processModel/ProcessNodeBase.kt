@@ -89,15 +89,13 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
   }
 
-  @Suppress("LeakingThis")
-  private var _predecessors = toIdentifiers(maxPredecessorCount, predecessors)
+  private var _predecessors = toIdentifiers(Int.MAX_VALUE, predecessors)
 
   override val predecessors: IdentifyableSet<out @JvmWildcard Identified>
     get() = _predecessors
 
 
-  @Suppress("LeakingThis")
-  private var _successors = toIdentifiers(maxSuccessorCount, successors)
+  private var _successors = toIdentifiers(Int.MAX_VALUE, successors)
 
   override val successors: IdentifyableSet<out @JvmWildcard Identified>
     get() = _successors

@@ -76,7 +76,7 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
   override val idBase: String
     get() = IDBASE
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
     if (hasPos()) {
       super.draw(canvas, clipBounds)
 

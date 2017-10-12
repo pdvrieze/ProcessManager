@@ -46,7 +46,7 @@ interface MutableIdentifyableSet<T: Identifiable> : IdentifyableSet<T>, MutableS
   override fun iterator(): MutableIterator<T>
 }
 
-interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, RandomAccess, Cloneable {
+interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, RandomAccess, Cloneable, List<T> {
 
   private class ReadonlyIterator<T> constructor(private val mIterator: ListIterator<T>) : ListIterator<T> {
 
@@ -76,7 +76,7 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
       return this
     }
 
-    fun subList(fromIndex: Int, toIndex: Int) = ReadOnlyIdentifyableSet(data.copyOfRange(fromIndex, toIndex))
+    override fun subList(fromIndex: Int, toIndex: Int) = ReadOnlyIdentifyableSet(data.copyOfRange(fromIndex, toIndex))
 
     override fun get(index: Int): T {
       return data[index]
@@ -114,6 +114,10 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
     override fun containsAll(elements: Collection<V>) = data.containsAll(elements)
 
     override fun isEmpty() = data.isEmpty()
+
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<V> {
+      TODO("not implemented, we don't really need it")
+    }
 
     override fun listIterator(index: Int): MutableListIterator<V> {
       return data.listIterator(index)
@@ -224,7 +228,7 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
       if (index!=0) throw IndexOutOfBoundsException(index.toString()) else return Collections.emptyListIterator()
     }
 
-    fun subList(fromIndex: Int, toIndex: Int): EmptyIdentifyableSet {
+    override fun subList(fromIndex: Int, toIndex: Int): EmptyIdentifyableSet {
       if (fromIndex!=0 || toIndex !=0) throw IndexOutOfBoundsException() else return this
     }
 
@@ -298,6 +302,12 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
         this.element = element
         return it
       }
+    }
+
+    override fun subList(fromIndex: Int, toIndex: Int): List<V> {
+      if (fromIndex==toIndex) return emptyList()
+      if(fromIndex==0 && toIndex>=1) return this
+      throw UnsupportedOperationException("No sublist is possible for a singleton identifyable set")
     }
 
     override val size: Int get() = if (element == null) 0 else 1
@@ -427,7 +437,7 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
 
   public abstract override fun clone(): IdentifyableSet<T>
 
-  operator fun get(pos: Int): T
+  override operator fun get(pos: Int): T
 
   operator fun get(key: Identifiable): T? {
     return key.id?.let{get(it)}
@@ -450,17 +460,17 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
     return null
   }
 
-  fun indexOf(element: @kotlin.UnsafeVariance T) : Int = indexOfFirst { it == element }
+  override fun indexOf(element: @kotlin.UnsafeVariance T) : Int = indexOfFirst { it == element }
 
-  fun lastIndexOf(element: @kotlin.UnsafeVariance T) : Int = indexOfLast { it == element }
+  override fun lastIndexOf(element: @kotlin.UnsafeVariance T) : Int = indexOfLast { it == element }
 
   override val keys: Set<String> get() = MyKeySet(this)
 
   override fun iterator(): Iterator<T> = listIterator(0)
 
-  fun listIterator(): ListIterator<T> = listIterator(0)
+  override fun listIterator(): ListIterator<T> = listIterator(0)
 
-  fun listIterator(initialPos:Int): ListIterator<T>
+  override fun listIterator(initialPos:Int): ListIterator<T>
 
   override fun spliterator(): Spliterator<@kotlin.UnsafeVariance T> {
     return Spliterators.spliterator(this, Spliterator.DISTINCT or Spliterator.NONNULL)
@@ -479,7 +489,7 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
   companion object {
 
     fun <V : Identifiable> processNodeSet(): MutableIdentifyableSet<V> {
-      return BaseIdentifyableSet()
+      return BaseIdentifyableSet<V>()
     }
 
     fun <V : Identifiable> processNodeSet(initialCapacity: Int): MutableIdentifyableSet<V> {

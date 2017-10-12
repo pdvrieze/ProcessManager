@@ -125,10 +125,11 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
   }
 
   protected abstract val _processNodes: IdentifyableSet<NodeT>
+
   private var _imports: List<IXmlResultType>
   private var _exports: List<IXmlDefineType>
 
-  override fun getModelNodes(): Collection<NodeT> = _processNodes
+  override fun getModelNodes(): List<NodeT> = _processNodes
 
   final override fun getImports(): Collection<IXmlResultType> = _imports
   protected fun setImports(value: Iterable<IXmlResultType>) {_imports = value.toList() }

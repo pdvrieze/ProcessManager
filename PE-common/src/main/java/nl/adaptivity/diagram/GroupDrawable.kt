@@ -14,10 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.diagram;
+package nl.adaptivity.diagram
 
 
+interface GroupDrawable : Drawable {
 
-public interface Diagram extends GroupDrawable {
-  // For now just a marker interface.
+  val childElements: Collection<Drawable>
 }

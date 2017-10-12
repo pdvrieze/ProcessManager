@@ -23,7 +23,6 @@ import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.STUB_DRAWABLE_BUILD_HELPER;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper;
 import nl.adaptivity.process.processModel.XmlDefineType;
@@ -79,7 +78,7 @@ public class ParcelableActivity extends DrawableActivity
   }
 
   public ParcelableActivity(final Activity<?, ?> orig, final boolean compat) {
-    super(builder(orig, compat), STUB_DRAWABLE_BUILD_HELPER.INSTANCE);
+    super(builder(orig, compat));
   }
 
   public ParcelableActivity(@NotNull final Activity.Builder<?, ?> builder,
@@ -88,7 +87,7 @@ public class ParcelableActivity extends DrawableActivity
   }
 
   public ParcelableActivity(@NotNull final Activity.Builder<?, ?> builder) {
-    this(builder, STUB_DRAWABLE_BUILD_HELPER.INSTANCE);
+    super(builder);
   }
 
   public EditableUserTask getUserTask() {

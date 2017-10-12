@@ -356,8 +356,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
    * @return An array of all nodes.
    */
-  override fun getModelNodes(): Collection<NodeT> {
-    return Collections.unmodifiableCollection(super.getModelNodes())
+  override fun getModelNodes(): List<NodeT> {
+    return Collections.unmodifiableList(super.getModelNodes())
   }
 
   @Deprecated("Use the builder to update models")

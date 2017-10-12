@@ -78,7 +78,7 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
    */
   override fun getNode(nodeId: Identifiable): NodeT?
 
-  override fun getModelNodes(): Collection<NodeT>
+  override fun getModelNodes(): List<NodeT>
 
   fun getName(): String?
 

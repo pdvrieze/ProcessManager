@@ -93,7 +93,7 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
-    PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
+    PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
 
     if (hasPos()) with(canvas) {
       val outerLinePen = theme.getPen(ENDNODEOUTERLINE,

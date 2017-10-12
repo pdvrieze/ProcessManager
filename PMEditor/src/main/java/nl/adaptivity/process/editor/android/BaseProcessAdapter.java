@@ -111,7 +111,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   @Override
   public DrawableProcessNode getItem(final int pos) {
     // TODO do this better
-    return ((List<DrawableProcessNode>) mDiagram.getModelNodes()).get(pos);
+    return mDiagram.getModelNodes().get(pos);
   }
 
   @Override

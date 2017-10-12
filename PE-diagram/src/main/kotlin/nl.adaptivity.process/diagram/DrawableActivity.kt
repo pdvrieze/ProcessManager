@@ -33,8 +33,9 @@ import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.writeSimpleElement
 
 
-open class DrawableActivity(builder: Activity.Builder<*, *>,
-                            buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : ActivityBase<DrawableProcessNode, DrawableProcessModel?>(
+
+open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<*, *>,
+                            buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) : ActivityBase<DrawableProcessNode, DrawableProcessModel?>(
   builder, buildHelper), DrawableProcessNode {
 
   class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
@@ -105,7 +106,7 @@ open class DrawableActivity(builder: Activity.Builder<*, *>,
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
-    PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle) {
+    PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
 
     if (hasPos()) with(canvas) {
       val linePen = theme.getPen(LINE, state and Drawable.STATE_TOUCHED.inv())

@@ -17,11 +17,16 @@
 package nl.adaptivity.process.diagram
 
 import net.devrieze.util.hasFlag
+import nl.adaptivity.diagram.Drawable.Companion.STATE_CUSTOM1
+import nl.adaptivity.diagram.Drawable.Companion.STATE_CUSTOM2
+import nl.adaptivity.diagram.Drawable.Companion.STATE_CUSTOM3
+import nl.adaptivity.diagram.Drawable.Companion.STATE_CUSTOM4
+import nl.adaptivity.diagram.Drawable.Companion.STATE_DEFAULT
+import nl.adaptivity.diagram.Drawable.Companion.STATE_SELECTED
+import nl.adaptivity.diagram.Drawable.Companion.STATE_TOUCHED
 import nl.adaptivity.diagram.DrawingStrategy
 import nl.adaptivity.diagram.Pen
 import nl.adaptivity.diagram.ThemeItem
-
-import nl.adaptivity.diagram.Drawable.*
 
 enum class ProcessThemeItems(private var mFill: Boolean = false,
                              private var mParent: ProcessThemeItems? = null,

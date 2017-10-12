@@ -83,7 +83,7 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>,
-                                                                                                              clipBounds: Rectangle) {
+                                                                                                              clipBounds: Rectangle?) {
     if (hasPos()) {
       val realradius = STARTNODERADIUS + STROKEWIDTH / 2
       val fillPen = canvas.theme.getPen(ProcessThemeItems.LINEBG, state and Drawable.STATE_TOUCHED.inv())
