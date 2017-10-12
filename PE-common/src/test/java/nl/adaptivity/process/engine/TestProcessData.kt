@@ -17,10 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.toString
-import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.XmlDefineType
-import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identifier
@@ -422,6 +419,69 @@ class TestProcessData {
     assertEquals(end.successors.toTypedArray(), toArray())
   }
 
+  @Test
+  @Throws(XmlException::class, FileNotFoundException::class)
+  fun testParseProcessModel2() {
+    val inputStream = getDocument("processmodel2.xml")
+    val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+    val model = XmlProcessModel.deserialize(parser)
+    checkModel2(model)
+  }
+
+
+  private fun checkModel2(model: XmlProcessModel) {
+    assertNotNull(model)
+
+    assertEquals(model.getModelNodes().size, 14,
+                 "There should be 14 effective elements in the process model (including an introduced split)")
+    val start = model.getNode("start") as XmlStartNode
+    val ac1 = model.getNode("ac1") as XmlActivity
+    val split1 = model.getNode("split1") as XmlSplit
+    val ac2 = model.getNode("ac2") as XmlActivity
+    val ac3 = model.getNode("ac3") as XmlActivity
+    val ac5 = model.getNode("ac5") as XmlActivity
+    val j1 = model.getNode("j1") as XmlJoin
+    val ac4 = model.getNode("ac4") as XmlActivity
+    val ac6 = model.getNode("ac6") as XmlActivity
+    val ac7 = model.getNode("ac7") as XmlActivity
+    val ac8 = model.getNode("ac8") as XmlActivity
+    val j2 = model.getNode("j2") as XmlJoin
+    val end = model.getNode("end") as XmlEndNode
+    val split2 = model.getNode("split2") as XmlSplit
+    val actualNodes = model.getModelNodes()
+    val expectedNodes = Arrays.asList<XmlProcessNode>(start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2, end, split2)
+
+    assertEquals(expectedNodes.size, actualNodes.size)
+    assertTrue(actualNodes.containsAll(expectedNodes))
+
+    assertEquals(start.predecessors.toTypedArray(), toArray())
+    assertEquals(start.successors.toTypedArray(), toArray(Identifier(split2.id!!)))
+
+    assertEquals(split2.predecessors.toTypedArray(), toArray(Identifier(start.id!!)))
+    assertEquals(split2.successors.toTypedArray(), toArray(Identifier(ac1.id!!), Identifier(ac6.id!!)))
+
+    assertEquals(ac1.predecessors.toTypedArray(), toArray(Identifier(split2.id!!)))
+    assertEquals(ac1.successors.toTypedArray(), toArray(Identifier(split1.id!!)))
+
+    assertEquals(split1.predecessors.toTypedArray(), toArray(Identifier(ac1.id!!)))
+    assertEquals(split1.successors.toTypedArray(), toArray(Identifier(ac2.id!!), Identifier(ac3.id!!)))
+
+    assertEquals(ac2.predecessors.toTypedArray(), toArray(Identifier(split1.id!!)))
+    assertEquals(ac2.successors.toTypedArray(), toArray(Identifier(j1.id!!)))
+
+    assertEquals(ac3.predecessors.toTypedArray(), toArray(Identifier(split1.id!!)))
+    assertEquals(ac3.successors.toTypedArray(), toArray(Identifier(ac5.id!!)))
+
+    assertEquals(ac4.predecessors.toTypedArray(), toArray(Identifier(j1.id!!)))
+    assertEquals(ac4.successors.toTypedArray(), toArray(Identifier(end!!.id!!)))
+
+    assertEquals(ac5.predecessors.toTypedArray(), toArray(Identifier(ac3.id!!)))
+    assertEquals(ac5.successors.toTypedArray(), toArray(Identifier(j1.id!!)))
+
+    assertEquals(end.predecessors.toTypedArray(), toArray(Identifier(ac4.id!!)))
+    assertEquals(end.successors.toTypedArray(), toArray())
+  }
+
 
   @Test
   @Throws(IOException::class, SAXException::class, XmlException::class)
@@ -467,11 +527,11 @@ class TestProcessData {
                   "    </fullname>\n" +
                   "  </user>\n" +
                   "</result>"
-    val found = result.toString()
+    val found = XmlStreaming.toString(result)
     try {
       XMLUnit.setIgnoreWhitespace(true)
       XMLAssert.assertXMLEqual(control, found)
-    } catch (e: AssertionError) {
+    } catch (e: Exception) {
       assertEquals(found, control)
     }
 
@@ -613,7 +673,7 @@ class TestProcessData {
                           "  </user>\n"
 
     val rt = XmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
-    assertEquals(rt.content?.toString(), expectedContent)
+    assertEquals(rt.content?.let{ String(it) }, expectedContent)
     val namespaces = rt.originalNSContext
     val it = namespaces.iterator()
     var ns = it.next()
@@ -666,17 +726,18 @@ class TestProcessData {
   @Test
   @Throws(Exception::class)
   fun testRoundTripActivity() {
-    val xml = "  <activity xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
-              "    <result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-              "    <result name=\"user\">\n" +
+    val xml = "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
+              "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+              "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+              "    <pe:result name=\"user\">\n" +
               "      <user xmlns=\"\"\n" +
               "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
               "        <fullname>\n" +
               "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
               "        </fullname>\n" +
               "      </user>\n" +
-              "    </result>\n" +
-              "    <message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+              "    </pe:result>\n" +
+              "    <pe:message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
               "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
               "        <Body>\n" +
               "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
@@ -695,9 +756,11 @@ class TestProcessData {
               "          </umh:postTask>\n" +
               "        </Body>\n" +
               "      </Envelope>\n" +
-              "    </message>\n" +
-              "  </activity>\n"
-    testRoundTrip(xml, XmlActivity::class.java, true)
+              "    </pe:message>\n" +
+              "  </pe:activity>\n" +
+              "</pe:processModel>\n"
+
+    testRoundTrip(xml, XmlProcessModel::class.java, true)
   }
 
   companion object {
@@ -723,12 +786,8 @@ class TestProcessData {
 
     @Throws(FileNotFoundException::class)
     private fun getDocument(name: String): InputStream {
-      var stream: InputStream? = TestProcessData::class.java.getResourceAsStream(
-          "/nl/adaptivity/process/engine/test/" + name)
-      if (stream == null) {
-        stream = FileInputStream("nl/adaptivity/process/engine/test/" + name)
-      }
-      return stream
+      return TestProcessData::class.java.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name) ?:
+             FileInputStream("nl/adaptivity/process/engine/test/" + name)
     }
 
     @BeforeMethod
@@ -741,7 +800,7 @@ class TestProcessData {
       getDocument(name).use { inputStream ->
         val input = XmlStreaming.newReader(inputStream, "UTF-8")
         try {
-          val factory = ProcessModel::class.java.getAnnotation(XmlDeserializer::class.java)
+          val factory = XmlProcessModel::class.java.getAnnotation(XmlDeserializer::class.java)
               .value.java
               .newInstance()
           return factory.deserialize(input) as XmlProcessModel
@@ -767,7 +826,8 @@ class TestProcessData {
     }
 
     @Throws(IOException::class, IllegalAccessException::class, InstantiationException::class, XmlException::class)
-    fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: Class<T>): String {
+    fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: Class<T>,
+                                            factoryOpt: XmlDeserializerFactory<T>? = null): String {
       val expected: String
       val streamReader: XmlReader
       val xif = XMLInputFactory.newFactory()
@@ -781,26 +841,29 @@ class TestProcessData {
         streamReader = XmlStreaming.newReader(StringReader(expected))
       }
 
-      return testRoundTrip(expected, streamReader, target, false)
+      return testRoundTrip(expected, streamReader, target, false, factoryOpt)
     }
 
     @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
             SAXException::class)
-    fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>): String {
-      return testRoundTrip(xml, target, false)
+    fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>,
+                                            factoryOpt: XmlDeserializerFactory<T>? = null): String {
+      return testRoundTrip(xml, target, false, factoryOpt)
     }
 
     @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
             SAXException::class)
-    fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>, ignoreNs: Boolean): String {
-      return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, ignoreNs)
+    fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>, ignoreNs: Boolean,
+                                            factoryOpt: XmlDeserializerFactory<T>? = null): String {
+      return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, ignoreNs, factoryOpt)
     }
 
     @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
     private fun <T : XmlSerializable> testRoundTrip(expected: String,
                                                     actual: XmlReader,
                                                     target: Class<T>,
-                                                    ignoreNs: Boolean): String {
+                                                    ignoreNs: Boolean,
+                                                    factoryOpt: XmlDeserializerFactory<T>? = null): String {
       assertNotNull(actual)
       val factory = target.getAnnotation(XmlDeserializer::class.java).value.java.newInstance() as XmlDeserializerFactory<*>
       val obj = factory.deserialize(actual) as XmlSerializable
