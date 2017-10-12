@@ -64,17 +64,19 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
     @Override
     public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
-      if (mPen ==null) { mPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
       if (mDiagram==null) { return; }
+      if (mPen ==null) { mPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
       for(final DrawableProcessNode start:mDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (final Identifiable endId: start.getSuccessors()) {
             final DrawableProcessNode end = start.getOwnerModel().getNode(endId);
-            if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
-              final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/ - mBounds.left) * scale);
-              final float y1 = (float) ((start.getY()-mBounds.top)*scale);
-              final float x2 = (float) ((end.getBounds().left/*+DrawableProcessModel.STROKEWIDTH*/ - mBounds.left) * scale);
-              final float y2 = (float) ((end.getY()-mBounds.top)* scale);
+            if ((end != null) && !(Double.isNaN(end.getX()) || Double.isNaN(end.getY()))) {
+              final float x1 =
+                (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/ - mBounds.left) * scale);
+              final float y1 = (float) ((start.getY() - mBounds.top) * scale);
+              final float x2 =
+                (float) ((end.getBounds().left/*+DrawableProcessModel.STROKEWIDTH*/ - mBounds.left) * scale);
+              final float y2 = (float) ((end.getY() - mBounds.top) * scale);
 //              pCanvas.drawLine(x1, y1, x2, y2, mPen);
               LineView.drawArrow(canvas, theme, x1, y1, x2, y2, scale);
             }
