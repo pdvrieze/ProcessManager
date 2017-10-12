@@ -132,8 +132,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         for (node in builder.nodes) {
-          for (pred in node.predecessors) {
-            builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id!!))
+          node.id?.let { nodeId ->
+            for (pred in node.predecessors) {
+              builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(nodeId))
+            }
           }
         }
         return builder
@@ -232,7 +234,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   override val childModels: Collection<ChildProcessModelBase<NodeT, ModelT>> get() = _childModels
   private val _childModels: IdentifyableSet<out ChildProcessModelBase<NodeT, ModelT>>
 
-  override val _processNodes: MutableIdentifyableSet<NodeT>
+  override final val _processNodes: MutableIdentifyableSet<NodeT>
 
   constructor(builder: Builder<NodeT, ModelT>, nodeFactory: NodeFactory<NodeT, ModelT>, pedantic: Boolean = builder.defaultPedantic): super( builder, pedantic) {
     @Suppress("LeakingThis")
@@ -269,6 +271,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         if (uuid != null) {
           writeAttribute("uuid", uuid!!.toString())
         }
+        out.ignorableWhitespace("\n  ")
         out.writeChildren(imports)
         out.writeChildren(exports)
         out.writeChildren(_childModels)
