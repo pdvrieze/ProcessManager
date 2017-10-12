@@ -104,6 +104,15 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
     }
   }
 
+  override val leftExtent: Double
+    get() = (JOINWIDTH + STROKEEXTEND) / 2
+  override val rightExtent: Double
+    get() = (JOINWIDTH + STROKEEXTEND) / 2
+  override val topExtent: Double
+    get() = (JOINWIDTH + STROKEEXTEND) / 2
+  override val bottomExtent: Double
+    get() = (JOINWIDTH + STROKEEXTEND) / 2
+
   override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {

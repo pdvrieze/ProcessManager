@@ -66,6 +66,15 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
   override val isCompat: Boolean
     get() = false
 
+  override val leftExtent: Double
+    get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
+  override val rightExtent: Double
+    get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
+  override val topExtent: Double
+    get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
+  override val bottomExtent: Double
+    get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
+
   @Deprecated("Use the builder", ReplaceWith("this(Builder(orig))"))
   constructor(orig: EndNode<*, *>) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
 

@@ -114,6 +114,15 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     return _bounds
   }
 
+  override val leftExtent: Double
+    get() = TODO("not implemented")
+  override val rightExtent: Double
+    get() = TODO("not implemented")
+  override val topExtent: Double
+    get() = TODO("not implemented")
+  override val bottomExtent: Double
+    get() = TODO("not implemented")
+
   override var state = Drawable.STATE_DEFAULT
 
   private var idSeq = 0

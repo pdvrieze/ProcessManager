@@ -91,6 +91,15 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
+  override val leftExtent: Double
+    get() = (ACTIVITYWIDTH + STROKEWIDTH) / 2
+  override val rightExtent: Double
+    get() = (ACTIVITYWIDTH + STROKEWIDTH) / 2
+  override val topExtent: Double
+    get() = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
+  override val bottomExtent: Double
+    get() = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
+
   override fun builder(): Builder {
     return Builder(this)
   }
@@ -104,9 +113,8 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
   override val idBase: String
     get() = IDBASE
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
-    PEN_T : Pen<PEN_T>,
-    PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+    draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
 
     if (hasPos()) with(canvas) {
       val linePen = theme.getPen(LINE, state and Drawable.STATE_TOUCHED.inv())
@@ -132,9 +140,9 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
     if (hasPos()) with(canvas){
       val textPen = theme.getPen(DIAGRAMLABEL, state)
       val label = getDrawnLabel(textPen)
-      if (!label.isNullOrBlank()) {
+      if (label!=null && label.isNotBlank()) {
         val topCenter = ACTIVITYHEIGHT + STROKEWIDTH + textPen.textLeading / 2
-        drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label!!, java.lang.Double.MAX_VALUE, textPen)
+        drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, java.lang.Double.MAX_VALUE, textPen)
       }
     }
   }
@@ -191,7 +199,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
     private const val REFERENCE_OFFSET_X = (ACTIVITYWIDTH + STROKEWIDTH) / 2
     private const val REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
     const val IDBASE = "ac"
-    private val _bounds by lazy { Rectangle(STROKEWIDTH / 2, STROKEWIDTH / 2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
+    private val _bounds by lazy { Rectangle(0.0, 0.0, ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH) }
 
     @Deprecated("Use the builder")
     @JvmStatic
