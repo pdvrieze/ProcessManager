@@ -33,8 +33,8 @@ import java.security.Principal
 import java.util.*
 
 
-class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> = Builder()) : RootClientProcessModel(
-  builder, DRAWABLE_NODE_FACTORY), DrawableProcessModel {
+class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> = Builder())
+  : RootClientProcessModel(builder, DRAWABLE_NODE_FACTORY), DrawableProcessModel {
   override fun getModelNodes(): List<DrawableProcessNode> {
     return super.getModelNodes()
   }

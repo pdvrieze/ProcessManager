@@ -32,8 +32,9 @@ import java.util.*
 @Suppress("OverridingDeprecatedMember")
 abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
                                                                 nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>,
-                                                                pedantic: Boolean = builder.defaultPedantic) : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(
-  builder, nodeFactory, pedantic), MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+                                                                pedantic: Boolean = builder.defaultPedantic)
+  : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(builder, nodeFactory, pedantic),
+    MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
   abstract val layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
 
