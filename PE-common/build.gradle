@@ -92,8 +92,8 @@ dependencies {
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+sourceCompatibility = JavaVersion.VERSION_1_7 //myJavaVersion
+targetCompatibility = JavaVersion.VERSION_1_7 //myJavaVersion
 
 sourceSets {
     xml {
