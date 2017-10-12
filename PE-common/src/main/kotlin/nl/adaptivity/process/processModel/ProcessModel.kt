@@ -216,28 +216,43 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
             }
       }
 
+      /* This injects split nodes.
+       * In principle the code is formatted as:
+       *
+       *          / RIGHT1
+       *    LEFT |- RIGHT2
+       *          \ RIGHT3
+       *
+       * The new split will be the "middle"
+       */
+
       nodes.asSequence()
-          .filter { it.successors.size > 1 && it !is Split.Builder<NodeT, ModelT> }
-          .map { nodeBuilder ->
-            splitBuilder().apply {
-              successors.addAll(nodeBuilder.successors)
+          .filter { left -> left.successors.size > 1 && left !is Split.Builder<NodeT, ModelT> }
+          .map { leftBuilder ->
+            splitBuilder().also { middle ->
+              // All successors of the left node will be successors of the new split.
+              middle.successors.addAll(leftBuilder.successors)
 
-              val curIdentifier = Identifier(nodeBuilder.id!!)
+              // Nodes without id can't have successors (as they have no predecessors
+              val leftId = Identifier(leftBuilder.id!!)
 
-              predecessor = curIdentifier
+              middle.predecessor = leftId
 
-              val newSplit = this
+              // Create a new identifier for this split, assign it to splitId
+              val splitId = Identifier(this@Builder.newId(middle.idBase).also { middle.id=it })
 
-              val splitId = Identifier(this@Builder.newId(this.idBase))
-
-              nodeBuilder.successors.asSequence()
+              // For all the original successors of the left node remove the left node as predecessor and add the split
+              // as new predecessor instead
+              leftBuilder.successors.asSequence()
                   .map { nodeMap[it.id] }
                   .filterNotNull()
-                  .forEach {
-                    it.predecessors.remove(curIdentifier)
-                    it.predecessors.add(splitId)
+                  .forEach { right ->
+                    right.predecessors.remove(leftId)
+                    right.predecessors.add(splitId)
                   }
-              nodeBuilder.successors.replaceBy(splitId)
+
+              // Replace the old successors of the left node with the new injected split
+              leftBuilder.successors.replaceBy(splitId)
 
             }
           }.toList().let { nodes.addAll(it) }
