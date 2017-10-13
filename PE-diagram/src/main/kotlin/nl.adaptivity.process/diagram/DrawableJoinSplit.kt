@@ -118,7 +118,13 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val realradiusX = (JOINWIDTH + STROKEEXTEND) / 2
     val realradiusY = (JOINHEIGHT + STROKEEXTEND) / 2
-    return Math.abs(x - this.x) <= realradiusX && Math.abs(y - this.y) <= realradiusY
+
+    // Scale the horizontal disposition to the expected radius. The values will be absolute so always positive
+    val dx = Math.abs(x - this.x) / realradiusX
+    val dy = Math.abs(y - this.y) / realradiusY
+
+    // Diamond means that the combined deviation has to be 1 if we correct for radius
+    return dx+dy<=1.0
   }
 
   fun setLogicalPos(left: Double, top: Double) {

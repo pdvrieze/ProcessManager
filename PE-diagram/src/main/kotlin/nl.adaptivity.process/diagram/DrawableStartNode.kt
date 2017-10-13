@@ -79,7 +79,9 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val realradius = STARTNODERADIUS + STROKEWIDTH / 2
-    return Math.abs(x - x) <= realradius && Math.abs(y - y) <= realradius
+    val dx = Math.abs(this.x - x)
+    val dy = Math.abs(this.y - y)
+    return dx*dx+dy*dy <= realradius*realradius
   }
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>,

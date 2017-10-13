@@ -104,12 +104,6 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
     return Builder(this)
   }
 
-  override fun isWithinBounds(x: Double, y: Double): Boolean {
-    val hwidth = (ACTIVITYWIDTH + STROKEWIDTH) / 2
-    val hheight = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
-    return Math.abs(x - x) <= hwidth && Math.abs(y - y) <= hheight
-  }
-
   override val idBase: String
     get() = IDBASE
 
@@ -199,7 +193,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
     private const val REFERENCE_OFFSET_X = (ACTIVITYWIDTH + STROKEWIDTH) / 2
     private const val REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
     const val IDBASE = "ac"
-    private val _bounds by lazy { Rectangle(0.0, 0.0, ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH) }
+    private val _bounds by lazy { Rectangle(STROKEWIDTH/2, STROKEWIDTH/2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
 
     @Deprecated("Use the builder")
     @JvmStatic
