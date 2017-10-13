@@ -218,7 +218,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   }
 
   @Override
-  public void onDecorationUp(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
+  public void onDecorationUp(final DiagramView view, final int position, final RelativeLightView decoration, final float diagX, final float diagY) {
     if (decoration==mCachedDecorations[2]) {
       if (mOverlay instanceof LineView) {
         view.invalidate(mOverlay);
@@ -227,7 +227,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
 
       DrawableProcessNode next=null;
       for(final DrawableProcessNode item: getDiagram().getModelNodes()) {
-        if(item.getItemAt(x, y) != null) {
+        if(item.getItemAt(diagX, diagY) != null) {
           next = item;
           break;
         }
