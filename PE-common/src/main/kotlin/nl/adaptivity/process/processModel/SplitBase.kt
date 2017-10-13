@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.smartStartTag
@@ -67,6 +68,15 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
     override val elementName: QName
       get() = Split.ELEMENTNAME
 
+    override fun deserializeAttribute(attributeNamespace: CharSequence,
+                                      attributeLocalName: CharSequence,
+                                      attributeValue: CharSequence): Boolean {
+      if (attributeNamespace.isNullOrEmpty() && attributeLocalName.toString()=="predecessor") {
+        predecessor = Identifier(attributeValue)
+        return true
+      } else
+        return super<JoinSplitBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+    }
   }
 
   constructor(ownerModel: ModelT,
