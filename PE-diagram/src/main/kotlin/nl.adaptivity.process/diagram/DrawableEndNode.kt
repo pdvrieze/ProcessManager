@@ -28,44 +28,7 @@ import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
-
-class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
-
-  class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
-
-    override val _delegate: DrawableProcessNode.Builder.Delegate
-
-    override var isCompat: kotlin.Boolean
-      get() = false
-      set(compat) {
-        if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
-      }
-
-    constructor(id: String? = null,
-                predecessor: Identified? = null,
-                label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                multiInstance: Boolean = false,
-                state: Int = Drawable.STATE_DEFAULT) : super(id, predecessor, label, defines, results, x, y, multiInstance) {
-      _delegate = DrawableProcessNode.Builder.Delegate(state, false)
-    }
-
-    constructor(node: EndNode<*, *>) : super(node) {
-      _delegate = DrawableProcessNode.Builder.Delegate(node)
-    }
-
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableEndNode(this, buildHelper)
-  }
-
-  override val _delegate: DrawableProcessNode.Delegate
-
-  override val idBase: String get() = IDBASE
-  override val isCompat: Boolean
-    get() = false
-
+interface IDrawableEndNode: IDrawableProcessNode {
   override val leftExtent: Double
     get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
   override val rightExtent: Double
@@ -74,32 +37,7 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
     get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
   override val bottomExtent: Double
     get() = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
-
-  @Deprecated("Use the builder", ReplaceWith("this(Builder(orig))"))
-  constructor(orig: EndNode<*, *>) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
-
-  constructor(builder: EndNode.Builder<*, *>,
-              buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
-    _delegate = DrawableProcessNode.Delegate(builder)
-  }
-
-  override fun builder(): Builder {
-    return Builder(this)
-  }
-
-  override fun clone(): DrawableEndNode {
-    if (javaClass == DrawableEndNode::class.java) {
-      return DrawableEndNode(this)
-    }
-    throw CloneNotSupportedException()
-  }
-
-  override fun isWithinBounds(x: Double, y: Double): Boolean {
-    val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
-    val dx = Math.abs(this.x - x)
-    val dy = Math.abs(this.y - y)
-    return dx*dx+dy*dy <= realradius*realradius
-  }
+  override val maxSuccessorCount: Int get() = 0
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
@@ -128,6 +66,77 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
                        ENDNODEOUTERRADIUS + hsw,
                        ENDNODEINNERRRADIUS, innerPen)
     }
+  }
+
+  override fun isWithinBounds(x: Double, y: Double): Boolean {
+    val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
+    val dx = Math.abs(this.x - x)
+    val dy = Math.abs(this.y - y)
+    return dx*dx+dy*dy <= realradius*realradius
+  }
+
+}
+
+class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode, IDrawableEndNode {
+
+  class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, IDrawableEndNode {
+
+    override val _delegate: DrawableProcessNode.Builder.Delegate
+
+    override var isCompat: kotlin.Boolean
+      get() = false
+      set(compat) {
+        if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
+      }
+
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
+                label: String? = null,
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                isMultiInstance: Boolean = false,
+                state: Int = Drawable.STATE_DEFAULT) : super(id, predecessor, label, defines, results, x, y, isMultiInstance) {
+      _delegate = DrawableProcessNode.Builder.Delegate(state, false)
+    }
+
+    constructor(node: EndNode<*, *>) : super(node) {
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
+    }
+
+    override fun copy() =
+      Builder(id, predecessor?.identifier, label, x, y, defines, results, isMultiInstance, state)
+
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableEndNode(this, buildHelper)
+  }
+
+  override val _delegate: DrawableProcessNode.Delegate
+
+  override val idBase: String get() = IDBASE
+  override val isCompat: Boolean
+    get() = false
+
+  override val maxPredecessorCount get() = super<EndNodeBase>.maxPredecessorCount
+  override val maxSuccessorCount get() = super<EndNodeBase>.maxSuccessorCount
+
+  @Deprecated("Use the builder", ReplaceWith("this(Builder(orig))"))
+  constructor(orig: EndNode<*, *>) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
+
+  constructor(builder: EndNode.Builder<*, *>,
+              buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
+    _delegate = DrawableProcessNode.Delegate(builder)
+  }
+
+  override fun builder(): Builder {
+    return Builder(this)
+  }
+
+  override fun copy(): DrawableEndNode {
+    if (javaClass == DrawableEndNode::class.java) {
+      return DrawableEndNode(this)
+    }
+    throw CloneNotSupportedException()
   }
 
   @Deprecated("Use the builder")

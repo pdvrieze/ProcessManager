@@ -26,7 +26,6 @@ import android.provider.BaseColumns;
 import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.data.ProcessModelPipeProvider;
 import nl.adaptivity.process.data.ProviderHelper;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMParser;
@@ -594,8 +593,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   private static RootDrawableProcessModel getProcessModel(final InputStream in, final boolean favourite) {
-    final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
-    final RootDrawableProcessModel drawableProcessModel = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+    final LayoutAlgorithm          layoutAlgorithm      = new LayoutAlgorithm();
+    final RootDrawableProcessModel drawableProcessModel = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm).build();
     drawableProcessModel.setFavourite(favourite);
     return drawableProcessModel;
   }

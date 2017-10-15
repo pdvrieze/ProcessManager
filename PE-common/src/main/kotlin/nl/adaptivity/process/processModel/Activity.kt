@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import javax.xml.namespace.QName
 
 
@@ -27,11 +28,11 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
   interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.IBuilder<T, M> {
     var condition: String?
 
-    var predecessor: Identifiable?
+    var predecessor: Identified?
       get() = predecessors.firstOrNull()
       set(value) { predecessors.replaceByNotNull(value?.identifier) }
 
-    var successor: Identifiable?
+    var successor: Identified?
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }
 

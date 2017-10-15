@@ -36,7 +36,7 @@ import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessModel.Builder;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.BaseProcessAdapter;
 import nl.adaptivity.process.editor.android.PMEditor;
@@ -204,7 +204,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
     } else {
       mBinding.diagramView1.getParent().requestLayout(); // Do a layout
-      mItem = new BaseProcessAdapter(RootDrawableProcessModel.get(data.model));
+      mItem = new BaseProcessAdapter(RootDrawableProcessModel.get(data.model).builder());
       mModelHandle = data.handle;
       mBinding.diagramView1.setAdapter(mItem);
       updateDiagramScale();
@@ -265,16 +265,16 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   protected void cloneWithName(final String newName) {
     // TODO Auto-generated method stub
-    final DrawableProcessModel currentModel = ((BaseProcessAdapter) mBinding.diagramView1.getAdapter()).getDiagram();
-    if (currentModel instanceof RootDrawableProcessModel) {
+    final Builder currentModel = ((BaseProcessAdapter) mBinding.diagramView1.getAdapter()).getDiagram();
+    if (currentModel instanceof RootDrawableProcessModel.Builder) {
 
-      final RootDrawableProcessModel newModel = ((RootDrawableProcessModel) currentModel).clone();
+      final RootDrawableProcessModel.Builder newModel = ((RootDrawableProcessModel.Builder) currentModel).copy();
       newModel.setName(newName);
       newModel.setUuid(UUID.randomUUID());
 
       final Uri uri;
       try {
-        uri = ProcessModelProvider.newProcessModel(getActivity(), newModel);
+        uri = ProcessModelProvider.newProcessModel(getActivity(), newModel.build());
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -333,7 +333,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public DrawableProcessModel getProcessModel() {
+  public Builder getProcessModel() {
     return mItem.getDiagram();
   }
 }

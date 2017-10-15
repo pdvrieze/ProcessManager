@@ -28,68 +28,25 @@ import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.Split
 
-interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+interface IDrawableJoinSplit: IDrawableProcessNode {
+  override val leftExtent: Double
+    get() = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2
+  override val rightExtent: Double
+    get() = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2
+  override val topExtent: Double
+    get() = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2
+  override val bottomExtent: Double
+    get() = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2
 
-  class Delegate(builder: ProcessNode.IBuilder<*, *>): DrawableProcessNode.Delegate(builder) {
+  val itemCache: ItemCache
+  val min: Int
+  val max: Int
 
-    val itemCache = ItemCache()
+  val maxSiblings: Int get() = if (this is IDrawableSplit) successors.size else predecessors.size
 
-  }
-
-  interface Builder : DrawableProcessNode.Builder, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?> {
-
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableJoinSplit
-  }
-
-  override fun builder(): Builder
-
-  override val _delegate: Delegate
-
-  val maxSiblings: Int get() = if (this is Split<*,*>) successors.size else predecessors.size
-
-  /** Determine whether the node represents an or split.  */
-  fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings
-
-  /** Determine whether the node represents an xor split.  */
-  fun isXor(): Boolean = this.min == 1 && this.max == 1
-
-  /** Determine whether the node represents an and split.  */
-  fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
-
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
-    if (hasPos()) {
-      val dx = JOINWIDTH / 2
-      val hse = STROKEEXTEND / 2
-      val path = _delegate.itemCache.getPath(canvas.strategy, 0) {
-        val dy = JOINHEIGHT / 2
-
-        moveTo(hse, dy + hse)
-        lineTo(dx + hse, hse)
-        lineTo(JOINWIDTH + hse, dy + hse)
-        lineTo(dx + hse, JOINHEIGHT + hse)
-        close()
-      }
-
-      val linePen = canvas.theme.getPen(ProcessThemeItems.LINE, _delegate.state and STATE_TOUCHED.inv())
-      val bgPen = canvas.theme.getPen(ProcessThemeItems.BACKGROUND, _delegate.state)
-
-      if (_delegate.state and STATE_TOUCHED != 0) {
-        val touchedPen = canvas.theme.getPen(ProcessThemeItems.LINE, STATE_TOUCHED)
-        canvas.drawPath(path, touchedPen, null)
-      }
-      canvas.drawPath(path, linePen, bgPen)
-
-      if (this.ownerModel != null || this.min >= 0 || this.max >= 0) {
-        val textPen = canvas.theme.getPen(ProcessThemeItems.DIAGRAMTEXT, _delegate.state)
-        val s = this.minMaxText
-
-        canvas.drawText(TextPos.DESCENT, hse + dx, -hse, s, java.lang.Double.MAX_VALUE, textPen)
-      }
-    }
-  }
-
-  val minMaxText:String get() {
-    if (TEXT_DESC) when {
+  val minMaxText: String
+    get() {
+    if (DrawableJoinSplit.TEXT_DESC) when {
       isXor() -> return "xor"
       isOr() -> return "or"
       isAnd() -> return "and"
@@ -104,20 +61,41 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
     }
   }
 
-  override val leftExtent: Double
-    get() = (JOINWIDTH + STROKEEXTEND) / 2
-  override val rightExtent: Double
-    get() = (JOINWIDTH + STROKEEXTEND) / 2
-  override val topExtent: Double
-    get() = (JOINWIDTH + STROKEEXTEND) / 2
-  override val bottomExtent: Double
-    get() = (JOINWIDTH + STROKEEXTEND) / 2
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
+    if (hasPos()) {
+      val dx = JOINWIDTH / 2
+      val hse = DrawableJoinSplit.STROKEEXTEND / 2
+      val path = itemCache.getPath(canvas.strategy, 0) {
+        val dy = JOINHEIGHT / 2
 
-  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
+        moveTo(hse, dy + hse)
+        lineTo(dx + hse, hse)
+        lineTo(JOINWIDTH + hse, dy + hse)
+        lineTo(dx + hse, JOINHEIGHT + hse)
+        close()
+      }
+
+      val linePen = canvas.theme.getPen(ProcessThemeItems.LINE, state and STATE_TOUCHED.inv())
+      val bgPen = canvas.theme.getPen(ProcessThemeItems.BACKGROUND, state)
+
+      if (state and STATE_TOUCHED != 0) {
+        val touchedPen = canvas.theme.getPen(ProcessThemeItems.LINE, STATE_TOUCHED)
+        canvas.drawPath(path, touchedPen, null)
+      }
+      canvas.drawPath(path, linePen, bgPen)
+
+      if (this.min >= 0 || this.max >= 0) {
+        val textPen = canvas.theme.getPen(ProcessThemeItems.DIAGRAMTEXT, state)
+        val s = this.minMaxText
+
+        canvas.drawText(TextPos.DESCENT, hse + dx, -hse, s, java.lang.Double.MAX_VALUE, textPen)
+      }
+    }
+  }
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
-    val realradiusX = (JOINWIDTH + STROKEEXTEND) / 2
-    val realradiusY = (JOINHEIGHT + STROKEEXTEND) / 2
+    val realradiusX = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2
+    val realradiusY = (JOINHEIGHT + DrawableJoinSplit.STROKEEXTEND) / 2
 
     // Scale the horizontal disposition to the expected radius. The values will be absolute so always positive
     val dx = Math.abs(x - this.x) / realradiusX
@@ -126,6 +104,38 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
     // Diamond means that the combined deviation has to be 1 if we correct for radius
     return dx+dy<=1.0
   }
+
+  /** Determine whether the node represents an or split.  */
+  fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings
+
+  /** Determine whether the node represents an xor split.  */
+  fun isXor(): Boolean = this.min == 1 && this.max == 1
+
+  /** Determine whether the node represents an and split.  */
+  fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
+
+}
+
+interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode, IDrawableJoinSplit {
+
+  class Delegate(builder: ProcessNode.IBuilder<*, *>): DrawableProcessNode.Delegate(builder) {
+
+    val itemCache = ItemCache()
+
+  }
+
+  interface Builder : DrawableProcessNode.Builder, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableJoinSplit {
+
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableJoinSplit
+  }
+
+  override fun builder(): Builder
+
+  override val _delegate: Delegate
+
+  override val maxSiblings: Int get() = if (this is Split<*,*>) successors.size else predecessors.size
+
+  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 
   fun setLogicalPos(left: Double, top: Double) {
     setPos(left + DrawableJoinSplit.REFERENCE_OFFSET_X, top + DrawableJoinSplit.REFERENCE_OFFSET_Y)

@@ -44,7 +44,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   @Override
   public DrawableDrawable clone() {
     if (getClass()==DrawableDrawable.class) {
-      return new DrawableDrawable(mImage.clone(), mTheme, mAutoscale);
+      return new DrawableDrawable(mImage.copy(), mTheme, mAutoscale);
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }

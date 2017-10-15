@@ -17,9 +17,10 @@
 package nl.adaptivity.process.editor.android;
 
 import android.util.Log;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.AbstractLayoutStepper;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.processModel.RootProcessModel;
 import nl.adaptivity.xml.*;
 import org.xmlpull.v1.XmlPullParserException;
@@ -91,7 +92,7 @@ public final class PMParser {
     return serializer;
   }
 
-  public static RootDrawableProcessModel parseProcessModel(final Reader in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  public static RootDrawableProcessModel.Builder parseProcessModel(final Reader in, final LayoutAlgorithm simpleLayoutAlgorithm, final LayoutAlgorithm advancedAlgorithm) {
     try {
       return parseProcessModel(new AndroidXmlReader(in), simpleLayoutAlgorithm, advancedAlgorithm);
     } catch (Exception e){
@@ -100,7 +101,7 @@ public final class PMParser {
     }
   }
 
-  public static RootDrawableProcessModel parseProcessModel(final InputStream in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  public static RootDrawableProcessModel.Builder parseProcessModel(final InputStream in, final LayoutAlgorithm simpleLayoutAlgorithm, final LayoutAlgorithm advancedAlgorithm) {
     try {
       return parseProcessModel(new AndroidXmlReader(in, "UTF-8"), simpleLayoutAlgorithm, advancedAlgorithm);
     } catch (Exception e){
@@ -109,11 +110,11 @@ public final class PMParser {
     }
   }
 
-  public static RootDrawableProcessModel parseProcessModel(final XmlReader in, final LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, final LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) throws XmlException {
-    final RootDrawableProcessModel result = RootDrawableProcessModel.deserialize(in);
+  public static RootDrawableProcessModel.Builder parseProcessModel(final XmlReader in, final LayoutAlgorithm simpleLayoutAlgorithm, final LayoutAlgorithm advancedAlgorithm) throws XmlException {
+    final Builder result = Builder.deserialize(in);
     if (result.hasUnpositioned()) {
       result.setLayoutAlgorithm(advancedAlgorithm);
-      result.layout();
+      result.layout(new AbstractLayoutStepper());
     } else {
       result.setLayoutAlgorithm(simpleLayoutAlgorithm);
     }

@@ -52,7 +52,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
   interface Builder<NodeT : ProcessNode<NodeT,ModelT>, ModelT: ProcessModel<NodeT,ModelT>?> {
     val defaultPedantic get() = false
     val rootBuilder: RootProcessModel.Builder<NodeT, ModelT>
-    val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>>
+    val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>>
     val imports: MutableList<IXmlResultType>
     val exports: MutableList<IXmlDefineType>
 

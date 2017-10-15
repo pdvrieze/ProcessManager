@@ -45,7 +45,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(build
                 results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
-                multiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), emptyList(), label, defines, results, x, y, multiInstance)
+                isMultiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), emptyList(), label, defines, results, x, y, isMultiInstance)
 
     constructor(node: EndNode<*, *>) : super(node)
 

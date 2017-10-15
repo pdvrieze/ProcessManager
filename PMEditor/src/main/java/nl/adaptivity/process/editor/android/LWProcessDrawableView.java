@@ -20,6 +20,7 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.IAndroidCanvas;
 import nl.adaptivity.diagram.android.LWDrawableView;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.IDrawableProcessNode;
 
 
 /**
@@ -28,13 +29,13 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
  */
 public class LWProcessDrawableView extends LWDrawableView {
 
-  public LWProcessDrawableView(final DrawableProcessNode item) {
+  public LWProcessDrawableView(final DrawableProcessNode.Builder item) {
     super(item);
   }
 
   @Override
-  public DrawableProcessNode getItem() {
-    return (DrawableProcessNode) super.getItem();
+  public DrawableProcessNode.Builder getItem() {
+    return (DrawableProcessNode.Builder) super.getItem();
   }
 
   @Override

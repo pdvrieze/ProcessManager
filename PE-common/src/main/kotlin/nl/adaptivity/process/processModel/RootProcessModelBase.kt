@@ -286,14 +286,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     return _processNodes.removeAt(nodePos)
   }
 
-  fun hasUnpositioned(): Boolean {
-    for (node in modelNodes) {
-      if (!node.hasPos()) {
-        return true
-      }
-    }
-    return false
-  }
+  fun hasUnpositioned() = modelNodes.any { !it.hasPos }
 
   override fun getChildModel(childId: Identifiable) = _childModels[childId]
 

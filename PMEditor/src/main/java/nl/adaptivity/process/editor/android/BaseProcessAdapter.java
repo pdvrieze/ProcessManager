@@ -23,13 +23,13 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.android.graphics.LineView;
+import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.*;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.ProcessThemeItems;
-import nl.adaptivity.process.diagram.RootDrawableProcessModel;
+import nl.adaptivity.process.diagram.*;
+import nl.adaptivity.process.diagram.DrawableProcessModel.Builder;
+import nl.adaptivity.process.processModel.ProcessNode.IBuilder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.IdentifyableSet;
 
@@ -38,13 +38,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, DrawableProcessNode> {
+public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, DrawableProcessNode.Builder> {
 
   protected static class ConnectorView extends AbstractLightView {
 
     private Paint mPen;
     private final RectF mBounds = new RectF();
-    private final DrawableProcessModel mDiagram;
+    private final DrawableProcessModel.Builder mDiagram;
 
     public ConnectorView(final BaseProcessAdapter parent) {
       parent.getBounds(mBounds);
@@ -66,10 +66,10 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
       if (mDiagram==null) { return; }
       if (mPen ==null) { mPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
-      for(final DrawableProcessNode start:mDiagram.getModelNodes()) {
+      for(final IDrawableProcessNode start:mDiagram.getChildElements()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (final Identifiable endId: start.getSuccessors()) {
-            final DrawableProcessNode end = start.getOwnerModel().getNode(endId);
+            final DrawableProcessNode.Builder end = mDiagram.getNode(endId.getId());
             if ((end != null) && !(Double.isNaN(end.getX()) || Double.isNaN(end.getY()))) {
               final float x1 =
                 (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/ - mBounds.left) * scale);
@@ -87,38 +87,38 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   }
 
-  private final DrawableProcessModel mDiagram;
-  protected final Map<DrawableProcessNode, LWDrawableView> mViewCache = new HashMap<>();
+  private final Builder mDiagram;
+  protected final Map<DrawableProcessNode.Builder, LWDrawableView> mViewCache = new HashMap<>();
   private LightView mBackground;
   private final RectF   mBounds  = new RectF();
   private       boolean mInvalid = true;
   private AndroidTheme mTheme;
 
-  public BaseProcessAdapter(final DrawableProcessModel diagram) {
+  public BaseProcessAdapter(final DrawableProcessModel.Builder diagram) {
     mDiagram = diagram;
   }
 
-  public void updateItem(final int pos, final DrawableProcessNode newValue) {
+  public void updateItem(final int pos, final DrawableProcessNode.Builder newValue) {
     // TODO do this better
-    ((List<DrawableProcessNode>) mDiagram.getModelNodes()).set(pos, newValue);
+    mDiagram.getNodes().set(pos, newValue);
     invalidate();
   }
 
   @Override
   public int getCount() {
     if (mDiagram==null) { return 0; }
-    return mDiagram.getModelNodes().size();
+    return mDiagram.getNodes().size();
   }
 
   @Override
-  public DrawableProcessNode getItem(final int pos) {
+  public DrawableProcessNode.Builder getItem(final int pos) {
     // TODO do this better
-    return mDiagram.getModelNodes().get(pos);
+    return (DrawableProcessNode.Builder) mDiagram.getNodes().get(pos);
   }
 
   @Override
   public LWDrawableView getView(final int position) {
-    final DrawableProcessNode item = getItem(position);
+    final DrawableProcessNode.Builder item = getItem(position);
     LWDrawableView result = mViewCache.get(item);
     if (result!=null) {
       return result;
@@ -152,7 +152,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
         diagramBounds.set(0f, 0f, 0f, 0f);
         return;
       }
-      DrawableProcessNode item = getItem(0);
+      Bounded   item   = getItem(0);
       Rectangle bounds = item.getBounds();
       mBounds.set((float) bounds.left, (float) bounds.top, bounds.rightf(), bounds.bottomf());
       for(int i=1; i<len; ++i) {
@@ -215,7 +215,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     mInvalid = true;
   }
 
-  public DrawableProcessModel getDiagram() {
+  public DrawableProcessModel.Builder getDiagram() {
     return mDiagram;
   }
 

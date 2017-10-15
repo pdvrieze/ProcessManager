@@ -36,7 +36,7 @@ abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootPro
   : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(builder, nodeFactory, pedantic),
     MutableRootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
-  abstract val layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
+  abstract val layoutAlgorithm: LayoutAlgorithm
 
   var topPadding = 5.0
     set(topPadding) {

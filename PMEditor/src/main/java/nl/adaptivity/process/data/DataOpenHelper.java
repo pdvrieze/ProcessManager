@@ -22,9 +22,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
@@ -138,16 +138,16 @@ public class DataOpenHelper extends SQLiteOpenHelper {
     db.execSQL(SQL_CREATE_VIEW_TASKSEXT);
 
     if (CREATE_DEFAULT_MODEL) {
-      final String                               modelName       = mContext.getString(R.string.example_1_name);
-      final ContentValues                        cv              = new ContentValues();
-      final InputStream                          in              = mContext.getResources().openRawResource(R.raw.processmodel);
-      final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
-      final RootDrawableProcessModel             model           = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+      final String          modelName       = mContext.getString(R.string.example_1_name);
+      final ContentValues   cv              = new ContentValues();
+      final InputStream     in              = mContext.getResources().openRawResource(R.raw.processmodel);
+      final LayoutAlgorithm layoutAlgorithm = new LayoutAlgorithm();
+      final Builder         model           = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
       model.setName(modelName);
       final CharArrayWriter out = new CharArrayWriter();
       try {
         try {
-          PMParser.serializeProcessModel(out, model);
+          PMParser.serializeProcessModel(out, model.build());
         } catch (IOException | XmlPullParserException e) {
           throw new RuntimeException(e);
         }

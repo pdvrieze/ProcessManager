@@ -25,7 +25,7 @@ typealias DrawableState = Int
 
 
 
-interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?>, Drawable {
+interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
 
   open class Delegate(builder: ProcessNode.IBuilder<*, *>) {
 
@@ -34,7 +34,7 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
 
   }
 
-  interface Builder : ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?> {
+  interface Builder : ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
 
     class Delegate(var state: Int, var isCompat: Boolean) {
       constructor(node: ProcessNode<*, *>) :
@@ -49,9 +49,14 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
       get() = _delegate.isCompat
       set(value) { _delegate.isCompat  = value }
 
-    var state: DrawableState
+    override var state: DrawableState
       get() = _delegate.state
       set(value) { _delegate.state = value }
+
+    override fun translate(dX: Double, dY: Double) {
+      x += dX
+      y += dY
+    }
 
     override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableProcessNode
   }
@@ -62,6 +67,9 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
 
   val isCompat: Boolean get()= _delegate.isCompat
 
+  override val maxSuccessorCount: Int
+  override val maxPredecessorCount: Int
+
   override var state: Int
     get() = _delegate.state
     set(value) {
@@ -71,12 +79,14 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
       _delegate.state = value
       ownerModel?.notifyNodeChanged(this)
     }
+/*
 
-  fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
     PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?, left: Double, top: Double) {
     // TODO implement a proper drawLabel system. Perhaps that needs more knowledge of node bounds
   }
+*/
 
   override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 
@@ -99,9 +109,6 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
    */
   @Deprecated("Use builders")
   fun setY(y: Double)
-
-  @Deprecated("This does not work that correctly because it resets the owner")
-  override fun clone(): DrawableProcessNode = builder().build(STUB_DRAWABLE_BUILD_HELPER)
 
   @Deprecated("Use builders")
   override fun setPos(left: Double, top: Double)  {

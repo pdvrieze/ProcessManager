@@ -45,7 +45,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
       imports: Collection<IXmlResultType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList()) : ProcessModel.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
 
-    override val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableSet()
+    override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 

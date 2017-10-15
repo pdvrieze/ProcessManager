@@ -125,7 +125,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       x: Double = Double.NaN,
       y: Double = Double.NaN,
       multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
-    override val nodes: MutableSet<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableSet()
+
+    override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
     override val imports: MutableList<IXmlResultType> = imports.toMutableList()
     override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
     override var condition: String? = null

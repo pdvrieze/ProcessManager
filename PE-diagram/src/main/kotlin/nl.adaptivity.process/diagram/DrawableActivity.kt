@@ -32,13 +32,64 @@ import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.writeSimpleElement
 
+interface IDrawableActivity: IDrawableProcessNode {
+  override val leftExtent: Double
+    get() = (ACTIVITYWIDTH + STROKEWIDTH) / 2
+  override val rightExtent: Double
+    get() = (ACTIVITYWIDTH + STROKEWIDTH) / 2
+  override val topExtent: Double
+    get() = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
+  override val bottomExtent: Double
+    get() = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
 
+
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+    draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
+
+    if (hasPos()) with(canvas) {
+      val linePen = theme.getPen(LINE, state and Drawable.STATE_TOUCHED.inv())
+      val bgPen = theme.getPen(BACKGROUND, state)
+
+      if (state and Drawable.STATE_TOUCHED != 0) {
+        val touchedPen = theme.getPen(LINE, Drawable.STATE_TOUCHED)
+        drawRoundRect(DrawableActivity._bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, touchedPen)
+      }
+
+      drawFilledRoundRect(DrawableActivity._bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen)
+      drawRoundRect(DrawableActivity._bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen)
+    }
+  }
+
+  val name: String?
+
+  /**
+   * Get the label that would be drawn to the screen. This will set the pen to italics or not unless no label could be determined.
+   * @param textPen The textPen to set to italics (or not).
+   *
+   * @param PEN_T The pen type for the canvas
+   *
+   * @return The actual label.
+   */
+  override fun <PEN_T : Pen<PEN_T>> getDrawnLabel(textPen: PEN_T): String? {
+    return label ?: name?.apply { textPen.isTextItalics = false }
+           ?: "<$id>".apply { textPen.isTextItalics = true }
+  }
+
+  companion object {
+    val _bounds by lazy { Rectangle(STROKEWIDTH / 2, STROKEWIDTH / 2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
+
+    private const val REFERENCE_OFFSET_X = (ACTIVITYWIDTH + STROKEWIDTH) / 2
+    private const val REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
+
+  }
+
+}
 
 open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<*, *>,
-                            buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) : ActivityBase<DrawableProcessNode, DrawableProcessModel?>(
-  builder, buildHelper), DrawableProcessNode {
+                            buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) :
+  ActivityBase<DrawableProcessNode, DrawableProcessModel?>(builder, buildHelper), DrawableProcessNode, IDrawableActivity {
 
-  class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
+  final class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, IDrawableActivity {
 
     constructor() : this(id=null)
 
@@ -66,10 +117,19 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
       _delegate = DrawableProcessNode.Builder.Delegate(node)
     }
 
+    override fun copy(): Builder {
+      return Builder(id, predecessor?.identifier, successor, label, x, y, defines, results, XmlMessage.get(message), condition, name, state, isMultiInstance, isCompat)
+    }
+
     override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableActivity {
       return DrawableActivity(this, buildHelper)
     }
 
+  }
+
+  override fun copy(): IDrawableProcessNode {
+    if (this::class.java!=DrawableActivity::class.java) throw UnsupportedOperationException("Copy must be overridden at the leaf")
+    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
   }
 
   override val _delegate: DrawableProcessNode.Delegate = DrawableProcessNode.Delegate(builder)
@@ -91,14 +151,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
   override val maxSuccessorCount: Int
     get() = if (isCompat) Integer.MAX_VALUE else 1
 
-  override val leftExtent: Double
-    get() = (ACTIVITYWIDTH + STROKEWIDTH) / 2
-  override val rightExtent: Double
-    get() = (ACTIVITYWIDTH + STROKEWIDTH) / 2
-  override val topExtent: Double
-    get() = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
-  override val bottomExtent: Double
-    get() = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
+  override val maxPredecessorCount: Int get() = 1
 
   override fun builder(): Builder {
     return Builder(this)
@@ -106,53 +159,6 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
 
   override val idBase: String
     get() = IDBASE
-
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
-    draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
-
-    if (hasPos()) with(canvas) {
-      val linePen = theme.getPen(LINE, state and Drawable.STATE_TOUCHED.inv())
-      val bgPen = theme.getPen(BACKGROUND, state)
-
-      if (state and Drawable.STATE_TOUCHED != 0) {
-        val touchedPen = theme.getPen(LINE, Drawable.STATE_TOUCHED)
-        drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, touchedPen)
-      }
-
-      drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen)
-      drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen)
-    }
-  }
-
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
-    PEN_T : Pen<PEN_T>,
-    PATH_T : DiagramPath<PATH_T>> drawLabel(canvas: Canvas<S, PEN_T, PATH_T>,
-                                            clipBounds: Rectangle?,
-                                            left: Double,
-                                            top: Double) {
-
-    if (hasPos()) with(canvas){
-      val textPen = theme.getPen(DIAGRAMLABEL, state)
-      val label = getDrawnLabel(textPen)
-      if (label!=null && label.isNotBlank()) {
-        val topCenter = ACTIVITYHEIGHT + STROKEWIDTH + textPen.textLeading / 2
-        drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, java.lang.Double.MAX_VALUE, textPen)
-      }
-    }
-  }
-
-  /**
-   * Get the label that would be drawn to the screen. This will set the pen to italics or not unless no label could be determined.
-   * @param textPen The textPen to set to italics (or not).
-   *
-   * @param PEN_T The pen type for the canvas
-   *
-   * @return The actual label.
-   */
-  private fun <PEN_T : Pen<PEN_T>> getDrawnLabel(textPen: PEN_T): String? {
-    return label ?: name?.apply { textPen.isTextItalics = false }
-           ?: "<$id>".apply { textPen.isTextItalics = true }
-  }
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {
@@ -189,11 +195,8 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
   override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
 
   companion object {
-
-    private const val REFERENCE_OFFSET_X = (ACTIVITYWIDTH + STROKEWIDTH) / 2
-    private const val REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT + STROKEWIDTH) / 2
     const val IDBASE = "ac"
-    private val _bounds by lazy { Rectangle(STROKEWIDTH/2, STROKEWIDTH/2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
+    val _bounds by lazy { Rectangle(STROKEWIDTH / 2, STROKEWIDTH / 2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
 
     @Deprecated("Use the builder")
     @JvmStatic

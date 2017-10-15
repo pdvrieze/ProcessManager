@@ -24,6 +24,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessModel.Builder;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 
 import java.io.File;
@@ -50,7 +51,7 @@ public class PMProcessesFragment extends Fragment {
   }
 
   public interface PMProvider {
-    DrawableProcessModel getProcessModel();
+    Builder getProcessModel();
   }
 
   private RootDrawableProcessModel mProcessModel;
@@ -142,7 +143,7 @@ public class PMProcessesFragment extends Fragment {
 
   @Override
   public boolean onOptionsItemSelected(final MenuItem item) {
-    DrawableProcessModel pm = null;
+    DrawableProcessModel.Builder pm = null;
     if ((item.getItemId()==R.id.ac_export||item.getItemId()==R.id.ac_export_svg||item.getItemId()==R.id.ac_share_pm||item.getItemId()==R.id.ac_share_pm_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
       Toast.makeText(getActivity(), "No process model available", Toast.LENGTH_LONG).show();
@@ -150,16 +151,16 @@ public class PMProcessesFragment extends Fragment {
     }
     switch (item.getItemId()) {
       case R.id.ac_export:
-        doSaveFile(pm.getRootModel());
+        doSaveFile(pm.build().getRootModel());
         return true;
       case R.id.ac_export_svg:
-        doExportSVG(pm);
+        doExportSVG(pm.build());
         return true;
       case R.id.ac_share_pm:
-        doShareFile(pm.getRootModel());
+        doShareFile(pm.build().getRootModel());
         return true;
       case R.id.ac_share_pm_svg:
-        doShareSVG(pm);
+        doShareSVG(pm.build());
         return true;
       default:
         return super.onOptionsItemSelected(item);

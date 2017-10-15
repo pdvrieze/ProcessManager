@@ -31,56 +31,14 @@ import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
 
-class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Split<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
-
-  class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder {
-
-    override val _delegate: DrawableProcessNode.Builder.Delegate
-
-    constructor(id: String? = null,
-                predecessor: Identified? = null,
-                successors: Collection<Identified> = emptyList(),
-                label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                min: Int = 1,
-                max: Int = -1,
-                state: DrawableState = Drawable.STATE_DEFAULT,
-                multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance) {
-      _delegate = DrawableProcessNode.Builder.Delegate(state, false)
-    }
-
-    constructor(node: Split<*, *>) : super(node) {
-      _delegate = DrawableProcessNode.Builder.Delegate(node)
-    }
-
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableSplit(
-      this, buildHelper)
-
-  }
-
-  override val _delegate : DrawableJoinSplit.Delegate
-
-  constructor(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
-    _delegate = DrawableJoinSplit.Delegate(builder)
-  }
-
-  override fun builder(): Builder {
-    return Builder(this)
-  }
-
-  override fun clone(): DrawableSplit { return builder().build(STUB_DRAWABLE_BUILD_HELPER) }
-
-  override val idBase: String
-    get() = IDBASE
+interface IDrawableSplit: IDrawableJoinSplit {
+  override val maxSuccessorCount: Int get() = Int.MAX_VALUE
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
     if (hasPos()) {
       super.draw(canvas, clipBounds)
 
-      val path = _delegate.itemCache.getPath(canvas.strategy, 1) {
+      val path = itemCache.getPath(canvas.strategy, 1) {
         if (DrawableJoinSplit.CURVED_ARROWS) {
           moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
           lineTo(CENTER_X - INLEN, CENTER_Y)
@@ -104,10 +62,80 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
 
       }
 
-      val linePen = canvas.theme.getPen(ProcessThemeItems.INNERLINE, _delegate.state and Drawable.STATE_TOUCHED.inv())
+      val linePen = canvas.theme.getPen(ProcessThemeItems.INNERLINE, state and Drawable.STATE_TOUCHED.inv())
       canvas.drawPath(path, linePen, null)
     }
   }
+
+  companion object {
+    private const val ARROWHEADDX = JOINWIDTH * 0.2
+    private const val ARROWHEADDY = JOINWIDTH * 0.2
+
+    private val ARROWHEADADJUST = 0.5 * STROKEWIDTH * Math.sqrt(0.5 / (Math.sin(DrawableJoinSplit.ARROWHEADANGLE) * Math.sin(DrawableJoinSplit.ARROWHEADANGLE)))
+    /** The y coordinate if the line were horizontal.  */
+    private val ARROWDFAR = DrawableJoinSplit.ARROWLEN * Math.sin(0.25 * Math.PI - DrawableJoinSplit.ARROWHEADANGLE)
+    /** The x coordinate if the line were horizontal.  */
+    private val ARROWDNEAR = DrawableJoinSplit.ARROWLEN * Math.cos(0.25 * Math.PI - DrawableJoinSplit.ARROWHEADANGLE)
+
+    private val INLEN = Math.sqrt(ARROWHEADDX * ARROWHEADDX + ARROWHEADDY * ARROWHEADDY)
+
+  }
+
+}
+
+class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Split<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit, IDrawableSplit {
+
+  class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder, IDrawableSplit {
+
+    override val _delegate: DrawableProcessNode.Builder.Delegate
+
+    constructor(id: String? = null,
+                predecessor: Identified? = null,
+                successors: Collection<Identified> = emptyList(),
+                label: String? = null,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                min: Int = 1,
+                max: Int = -1,
+                state: DrawableState = Drawable.STATE_DEFAULT,
+                multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance) {
+      _delegate = DrawableProcessNode.Builder.Delegate(state, false)
+    }
+
+    override val itemCache = ItemCache()
+
+    constructor(node: Split<*, *>) : super(node) {
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
+    }
+
+    override fun copy()
+      = Builder(id, predecessor?.identifier, successors, label, defines, results, x, y, min, max, state, isMultiInstance)
+
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>)
+      = DrawableSplit(this, buildHelper)
+
+  }
+
+  override val _delegate : DrawableJoinSplit.Delegate
+  override val itemCache = ItemCache()
+
+  override val maxSuccessorCount get() = super<SplitBase>.maxSuccessorCount
+  override val maxPredecessorCount get() = super<SplitBase>.maxPredecessorCount
+
+  constructor(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder, buildHelper) {
+    _delegate = DrawableJoinSplit.Delegate(builder)
+  }
+
+  override fun builder(): Builder {
+    return Builder(this)
+  }
+
+  override fun copy(): DrawableSplit { return builder().build(STUB_DRAWABLE_BUILD_HELPER) }
+
+  override val idBase: String
+    get() = IDBASE
 
   @Deprecated("Use builders")
   override fun setId(id: String) = super.setId(id)

@@ -43,7 +43,6 @@ import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCal
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.ui.ProcessSyncManager;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMEditor;
@@ -243,9 +242,9 @@ public class ProcessModelListFragment extends MasterListFragment<ProcessSyncMana
         try {
           final InputStream in = getActivity().getContentResolver().openInputStream(data.getData());
           try {
-            final RootDrawableProcessModel pm  = PMParser.parseProcessModel(in, LayoutAlgorithm.Companion.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
-            pm.setHandleValue(-1);
-            final Uri                  uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
+            final RootDrawableProcessModel.Builder pm  = PMParser.parseProcessModel(in, LayoutAlgorithm.Companion.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm());
+            pm.setHandle(-1L);
+            final Uri                  uri = ProcessModelProvider.newProcessModel(getActivity(), pm.build());
             final long                 id  = ContentUris.parseId(uri);
             if (isVisible()&& ! isRemoving()) {
               doOnItemSelected(AdapterView.INVALID_POSITION, id);

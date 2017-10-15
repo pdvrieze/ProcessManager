@@ -34,32 +34,74 @@ import java.util.*
 
 
 class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> = Builder())
-  : RootClientProcessModel(builder, DRAWABLE_NODE_FACTORY), DrawableProcessModel {
-  override fun getModelNodes(): List<DrawableProcessNode> {
-    return super.getModelNodes()
-  }
+  : RootClientProcessModel(builder, DRAWABLE_NODE_FACTORY), DrawableProcessModel, Cloneable {
 
   class Builder : RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessModel.Builder {
 
-    override var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>
+    override var topPadding = 5.0
+      set(topPadding) {
+        val offset = topPadding - this.topPadding
+        for (n in childElements) {
+          n.y += offset
+        }
+        field = topPadding
+      }
+
+    override var leftPadding = 5.0
+      set(leftPadding) {
+        val offset = leftPadding - this.leftPadding
+        for (n in childElements) {
+          n.x+=offset
+        }
+        field = leftPadding
+      }
+
+    override var bottomPadding = 5.0
+
+    override var rightPadding = 5.0
+
+    override val x: Double get() = 0.0
+    override val y: Double get() = 0.0
+    override val leftExtent: Double get() = 0.0
+    override val topExtent: Double get() = 0.0
+
+    override val rightExtent: Double
+      get() = childElements.map { it.x + it.rightExtent }.max() ?: 0.0
+    override val bottomExtent: Double
+      get() = childElements.map { it.y + it.bottomExtent }.max() ?: 0.0
+
+    override var state = Drawable.STATE_DEFAULT
+
+    override val itemCache = ItemCache()
+
+    override var layoutAlgorithm: LayoutAlgorithm
 
     constructor(): this(name=null)
 
     constructor(nodes: Collection<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
-                childModels: Collection<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
+                childModels: Collection<ChildProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>> = emptyList(),
                 name: String? = null,
                 handle: Long = -1L,
                 owner: Principal = SYSTEMPRINCIPAL,
-                roles: MutableList<String> = mutableListOf<String>(),
+                roles: Collection<String> = emptyList(),
                 uuid: UUID? = null,
-                imports: MutableList<IXmlResultType> = mutableListOf<IXmlResultType>(),
-                exports: MutableList<IXmlDefineType> = mutableListOf<IXmlDefineType>(),
-                layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
+                imports: Collection<IXmlResultType> = emptyList(),
+                exports: Collection<IXmlDefineType> = emptyList(),
+                layoutAlgorithm: LayoutAlgorithm = LayoutAlgorithm()) : super(nodes, childModels, name, handle, owner, roles, uuid, imports, exports) {
       this. layoutAlgorithm = layoutAlgorithm
     }
 
     constructor(base: RootProcessModel<*, *>) : super(base) {
-      this.layoutAlgorithm = (base as? DrawableProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
+      this.layoutAlgorithm = (base as? DrawableProcessModel.Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+    }
+
+    override fun copy(): Builder {
+      if (this::class != Builder::class) throw UnsupportedOperationException("Copy must be overridden to be valid")
+      return Builder(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, layoutAlgorithm)
+    }
+
+    override fun getNode(nodeId: String): DrawableProcessNode.Builder? {
+      return nodes.firstOrNull { it.id == nodeId }?.let { it as DrawableProcessNode.Builder }
     }
 
     override fun childModelBuilder(): ChildProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?> {
@@ -91,6 +133,55 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     override fun endNodeBuilder(endNode: EndNode<*, *>) = DrawableEndNode.Builder(endNode)
 
     override fun build(pedantic: Boolean) = RootDrawableProcessModel(this)
+
+    override fun build() = build(true)
+
+    override val childElements: List<DrawableProcessNode.Builder> get() = nodes as List<DrawableProcessNode.Builder> // We know they are drawable
+
+    val diagramNodes = toDiagramNodes(nodes)
+
+    override fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder>) {
+      val b= build()
+      val leftPadding =b.leftPadding
+      val topPadding =b.topPadding
+      if (layoutAlgorithm.layout(toDiagramNodes(nodes), layoutStepper)) {
+        var maxX = java.lang.Double.MIN_VALUE
+        var maxY = java.lang.Double.MIN_VALUE
+        for (n in diagramNodes) {
+          n.target.x = n.x + leftPadding
+          n.target.y= n.y + topPadding
+          maxX = Math.max(n.right, maxX)
+          maxY = Math.max(n.bottom, maxY)
+        }
+      }
+    }
+
+
+    companion object {
+      @JvmStatic
+      fun deserialize(reader: XmlReader) = RootProcessModelBase.Builder.deserialize(Builder(), reader)
+
+
+      private fun toDiagramNodes(modelNodes: Collection<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>>): List<DiagramNode<DrawableProcessNode.Builder>> {
+        val nodeMap = HashMap<String, DiagramNode<DrawableProcessNode.Builder>>()
+        val result = modelNodes.map { node  ->
+          DiagramNode(node as DrawableProcessNode.Builder).apply { node.id?.let { nodeMap[it] = this } ?: Unit }
+        }
+
+        for (diagramNode in result) {
+          val modelNode = diagramNode.target
+          modelNode.successors.asSequence()
+            .map { nodeMap[it.id] }
+            .filterNotNullTo(diagramNode.rightNodes)
+
+          modelNode.predecessors.asSequence()
+            .map { nodeMap[it.id] }
+            .filterNotNullTo(diagramNode.leftNodes)
+        }
+        return result
+      }
+
+    }
   }
 
   class Factory : XmlDeserializerFactory<RootDrawableProcessModel> {
@@ -100,11 +191,11 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
   }
 
-  override var layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode> = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+  override var layoutAlgorithm: LayoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
 
   override val rootModel: RootDrawableProcessModel get() = this
 
-  private val mItems = ItemCache()
+  override val itemCache: ItemCache = ItemCache()
   private var _bounds: Rectangle = Rectangle()
 
   override val bounds: Rectangle get() {
@@ -133,7 +224,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
   constructor(original: RootProcessModel<*, *>) : this(Builder(original))
 
   @JvmOverloads
-  constructor(uuid: UUID, name: String, nodes: Collection<DrawableProcessNode>, layoutAlgorithm: LayoutAlgorithm<DrawableProcessNode>? = null) :
+  constructor(uuid: UUID, name: String, nodes: Collection<DrawableProcessNode>, layoutAlgorithm: LayoutAlgorithm? = null) :
     this(Builder(name=name, uuid=uuid, nodes=nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) }, layoutAlgorithm = layoutAlgorithm?: LayoutAlgorithm())) {
 
     with(this.layoutAlgorithm) {
@@ -154,23 +245,12 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
   override fun getHandle(): Handle<RootDrawableProcessModel> = Handles.handle<RootDrawableProcessModel>(handleValue)
 
-  override fun clone(): RootDrawableProcessModel {
+  override fun copy(): RootDrawableProcessModel {
+    if (this::class!=RootDrawableProcessModel::class) throw UnsupportedOperationException("Copy must be implemented on a leaf")
     return RootDrawableProcessModel(this)
   }
 
-  override fun translate(dX: Double, dY: Double) {
-    childElements.forEach {
-      translate(dX, dY)
-    }
-  }
-
-  /**
-   * Setting the position of the diagram will be the same as translating the  items
-   */
-  @Deprecated("Use translate as that is the implementation used", ReplaceWith("translage(left, top)"))
-  override fun setPos(left: Double, top: Double) {
-    translate(left, top)
-  }
+  override fun clone(): RootDrawableProcessModel = copy()
 
   @Deprecated("This should already be done by builders")
   internal fun ensureIds() {
@@ -192,11 +272,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     return node
   }
 
-  override fun getItemAt(x: Double, y: Double): Drawable? {
-    childElements.asSequence().mapNotNull { it.getItemAt(x,y) }.firstOrNull()?.let { return it }
-
-    return if (isWithinBounds(x,y)) this else null
-  }
+  override fun getNode(nodeId: String): DrawableProcessNode? = super<RootClientProcessModel>.getNode(nodeId)
 
   override fun setNodes(nodes: Collection<DrawableProcessNode>) {
     // Null check here as setNodes is called during construction of the parent
@@ -211,7 +287,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
   override fun layout() {
     super.layout()
     updateBounds()
-    mItems.clearPath(0)
+    itemCache.clearPath(0)
   }
 
   override fun notifyNodeChanged(node: DrawableProcessNode) {
@@ -254,49 +330,10 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
   }
 
   private fun invalidateConnectors() {
-    mItems.clearPath(0)
+    itemCache.clearPath(0)
   }
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
-    //    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
-    val childCanvas = canvas.childCanvas(0.0, 0.0, 1.0)
-    val strategy = canvas.strategy
-
-    val arcPen = canvas.theme.getPen(ProcessThemeItems.LINE, state)
-
-    val con = mItems.getPathList<S,PEN_T, PATH_T>(strategy, 0) {
-      modelNodes.asSequence()
-          .filter { it.x.isFinite() && it.y.isFinite() }
-          .flatMap { start ->
-            start.successors.asSequence().map { getNode(it) }.filterNotNull().filter {
-              it.x.isFinite() && it.y.isFinite()
-            }.map { end ->
-              val x1 = start.bounds.right/*-STROKEWIDTH*/
-              val y1 = start.y
-              val x2 = end.bounds.left/*+STROKEWIDTH*/
-              val y2 = end.y
-              Connectors.getArrow(strategy, x1, y1, 0.0, x2, y2, Math.PI, arcPen)
-            }
-          }.toList()
-    }
-
-    for (path in con) {
-      childCanvas.drawPath(path, arcPen)
-    }
-
-    for (node in getModelNodes()) {
-      val b = node.bounds
-      node.draw(childCanvas.childCanvas(b.left, b.top, 1.0), null)
-    }
-
-    for (node in getModelNodes()) {
-      // TODO do something better with the left and top coordinates
-      val b = node.bounds
-      node.drawLabel(childCanvas.childCanvas(b.left, b.top, 1.0), null, node.x, node.y)
-    }
-  }
-
-  override val childElements: Collection<Drawable>
+  override val childElements: List<DrawableProcessNode>
     get() = getModelNodes()
 
   /**

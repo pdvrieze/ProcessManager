@@ -17,7 +17,7 @@
 package nl.adaptivity.diagram
 
 
-interface Drawable : Bounded, Cloneable {
+interface Drawable : Bounded {
 
   /**
    * The current state of the drawable. Individual implementations should specify what each state value means.
@@ -41,12 +41,13 @@ interface Drawable : Bounded, Cloneable {
    *
    * @return A copy.
    */
-  public override fun clone(): Drawable
+  public fun copy(): Drawable
 
 
   fun translate(dX: Double, dY: Double)
 
-  fun setPos(left: Double, top: Double)
+  @Deprecated("Don't use this as it isn't really correct")
+  fun setPos(left: Double, top: Double) = translate(left - x - leftExtent, top - y - topExtent)
 
   override fun getItemAt(x: Double, y: Double): Drawable?
 

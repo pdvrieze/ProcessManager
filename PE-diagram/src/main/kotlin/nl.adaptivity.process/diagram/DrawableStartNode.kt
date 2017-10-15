@@ -26,63 +26,13 @@ import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
-
-class DrawableStartNode(builder: StartNode.Builder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(
-  builder, buildHelper), DrawableProcessNode {
-
-  class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder {
-
-    override val _delegate: DrawableProcessNode.Builder.Delegate
-
-    constructor(id: String? = null,
-                successor: Identified? = null,
-                label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                state: DrawableState = Drawable.STATE_DEFAULT,
-                isCompat: Boolean = false,
-                multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance) {
-      _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
-    }
-
-    constructor(node: StartNode<*, *>) : super(node) {
-      _delegate = DrawableProcessNode.Builder.Delegate(node)
-    }
-
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableStartNode(
-      this, buildHelper)
-  }
-
-  override val _delegate = DrawableProcessNode.Delegate(builder)
-
-  override val idBase: String
-    get() = IDBASE
-
-  override val maxSuccessorCount: Int
-    get() = if (isCompat) Integer.MAX_VALUE else 1
-
+interface IDrawableStartNode: IDrawableProcessNode {
   override val leftExtent get() = REFERENCE_OFFSET_X
   override val rightExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_X
   override val topExtent get() = REFERENCE_OFFSET_Y
   override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
 
-  override fun builder(): Builder {
-    return Builder(this)
-  }
-
-  override fun clone(): DrawableStartNode {
-    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
-  }
-
-  override fun isWithinBounds(x: Double, y: Double): Boolean {
-    val realradius = STARTNODERADIUS + STROKEWIDTH / 2
-    val dx = Math.abs(this.x - x)
-    val dy = Math.abs(this.y - y)
-    return dx*dx+dy*dy <= realradius*realradius
-  }
+  override val maxPredecessorCount: Int get() = 0
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>,
                                                                                                               clipBounds: Rectangle?) {
@@ -97,6 +47,71 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
 
       canvas.drawFilledCircle(realradius, realradius, realradius, fillPen)
     }
+  }
+
+  companion object {
+    val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
+    val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
+  }
+
+}
+
+class DrawableStartNode(builder: StartNode.Builder<*, *>,
+                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(
+  builder, buildHelper), DrawableProcessNode, IDrawableStartNode {
+
+  class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, IDrawableStartNode {
+
+    override val _delegate: DrawableProcessNode.Builder.Delegate
+
+    constructor(id: String? = null,
+                successor: Identified? = null,
+                label: String? = null,
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList(),
+                x: Double = Double.NaN,
+                y: Double = Double.NaN,
+                state: DrawableState = Drawable.STATE_DEFAULT,
+                isCompat: Boolean = false,
+                isMultiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, isMultiInstance) {
+      _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
+    }
+
+    constructor(node: StartNode<*, *>) : super(node) {
+      _delegate = DrawableProcessNode.Builder.Delegate(node)
+    }
+
+    override fun copy(): IDrawableProcessNode {
+      return Builder(id, successor?.identifier, label, defines, results, x, y, state, isCompat, isMultiInstance)
+    }
+
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableStartNode(
+      this, buildHelper)
+  }
+
+  override val _delegate = DrawableProcessNode.Delegate(builder)
+
+  override val idBase: String
+    get() = IDBASE
+
+  override val maxSuccessorCount: Int
+    get() = if (isCompat) Integer.MAX_VALUE else 1
+
+  override val maxPredecessorCount get() = super<StartNodeBase>.maxPredecessorCount
+
+  override fun builder(): Builder {
+    return Builder(this)
+  }
+
+  override fun copy(): DrawableStartNode {
+    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
+  }
+
+  override fun isWithinBounds(x: Double, y: Double): Boolean {
+    val realradius = STARTNODERADIUS + STROKEWIDTH / 2
+    val dx = Math.abs(this.x - x)
+    val dy = Math.abs(this.y - y)
+    return dx*dx+dy*dy <= realradius*realradius
   }
 
   @Deprecated("Use builders")
@@ -120,8 +135,8 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
 
   companion object {
 
-    private val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
-    private val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
+    val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
+    val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
     val IDBASE = "start"
 
     @Throws(XmlException::class)

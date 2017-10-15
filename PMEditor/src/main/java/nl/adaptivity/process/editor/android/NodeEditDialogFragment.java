@@ -96,7 +96,7 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
 
     if (getActivity() instanceof NodeEditListener) {
       final NodeEditListener    listener = (NodeEditListener) getActivity();
-      final DrawableProcessNode node     = listener.getNode(mPos);
+      final DrawableProcessNode.Builder node     = listener.getNode(mPos);
       mEtLabel.setText(node.getLabel());
       mRgMinMax.setVisibility(View.GONE);
       mVgMinMax.setVisibility(View.GONE);
@@ -133,7 +133,7 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     if (which==DialogInterface.BUTTON_POSITIVE) {
       if (getActivity() instanceof NodeEditListener) {
         final NodeEditListener    listener = (NodeEditListener) getActivity();
-        final DrawableProcessNode node     = listener.getNode(mPos);
+        final DrawableProcessNode.Builder node     = listener.getNode(mPos);
         node.setLabel(mEtLabel.getText().toString());
         listener.onNodeEdit(mPos);
       }

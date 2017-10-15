@@ -21,9 +21,9 @@ package nl.adaptivity.diagram
  */
 interface HasExtent {
 
-  val leftExtent: Double get() = 0.0
-  val rightExtent: Double get() = 0.0
-  val topExtent: Double get() = 0.0
-  val bottomExtent: Double get() = 0.0
+  val leftExtent: Double //get() = 0.0
+  val rightExtent: Double //get() = 0.0
+  val topExtent: Double //get() = 0.0
+  val bottomExtent: Double //get() = 0.0
 
 }

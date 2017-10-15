@@ -34,6 +34,7 @@ import nl.adaptivity.android.graphics.RadioButtonHelper;
 import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.DrawableProcessNode.Builder;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
 import nl.adaptivity.process.processModel.IXmlResultType;
@@ -144,23 +145,26 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
 
   private ArrayList<ResultReference> getAccessibleVariables() {
     final NodeEditListener           listener = (NodeEditListener) getActivity();
-    final DrawableProcessNode        node     = listener.getNode(mPos);
-    final List<DrawableProcessNode>  seen     = new ArrayList<>();
+    final DrawableProcessNode.Builder        node     = listener.getNode(mPos);
+    final List<DrawableProcessNode.Builder>  seen     = new ArrayList<>();
     final ArrayList<ResultReference> result   = new ArrayList<>();
-    getAccessibleVariablesFromPredecessors(node, seen, result);
+    getAccessibleVariablesFromPredecessors(node, seen, result, listener);
 
     return result;
   }
 
-  private void getAccessibleVariablesFromPredecessors(final DrawableProcessNode reference, final List<DrawableProcessNode> seen, final List<ResultReference> gather) {
+  private void getAccessibleVariablesFromPredecessors(final Builder reference,
+                                                      final List<DrawableProcessNode.Builder> seen,
+                                                      final List<ResultReference> gather,
+                                                      final NodeEditListener listener) {
     for(final Identifiable predId: reference.getPredecessors()) {
-      final @Nullable DrawableProcessNode pred = reference.getOwnerModel().getNode(predId);
+      final @Nullable DrawableProcessNode.Builder pred = listener.getNode(predId);
       if (! seen.contains(pred)) {
         for(final IXmlResultType result: pred.getResults()) {
           gather.add(VariableReference.newResultReference(pred, result));
         }
         seen.add(pred);
-        getAccessibleVariablesFromPredecessors(pred, seen, gather);
+        getAccessibleVariablesFromPredecessors(pred, seen, gather, listener);
       }
     }
   }
