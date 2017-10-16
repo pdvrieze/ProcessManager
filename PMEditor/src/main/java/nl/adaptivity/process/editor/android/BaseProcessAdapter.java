@@ -210,16 +210,18 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   @Override
   public Point closestAttractor(final int element, final double x, final double y) {
     DrawableProcessNode.Builder node = getItem(element);
-    double attrX = Double.POSITIVE_INFINITY;
-    double attrY = Double.POSITIVE_INFINITY;
+    double attrX = Double.NaN;
+    double attrY = Double.NaN;
+    double minDy = Double.POSITIVE_INFINITY;
     for (Identified predId : CollectionUtil.combine(node.getPredecessors(), node.getSuccessors())) {
       DrawableProcessNode.Builder pred = mDiagram.getNode(predId.getId());
       double dy = Math.abs(pred.getY()-y);
-      if (dy<attrY) {
+      if (dy<minDy) {
+        minDy = dy;
         attrY = pred.getY();
       }
     }
-    if (!Double.isInfinite(attrY)) {
+    if (!Double.isNaN(attrY)) {
       return Point.of(node.getX(), attrY);
     }
     return null;
