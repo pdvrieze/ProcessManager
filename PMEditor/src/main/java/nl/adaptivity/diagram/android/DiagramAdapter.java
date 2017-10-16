@@ -18,6 +18,7 @@ package nl.adaptivity.diagram.android;
 
 import android.graphics.RectF;
 import android.view.MotionEvent;
+import nl.adaptivity.diagram.Point;
 import nl.adaptivity.diagram.Theme;
 
 import java.util.List;
@@ -30,6 +31,15 @@ import java.util.List;
  * @param <V> The type of the actual child nodes.
  */
 public interface DiagramAdapter<T extends LightView, V> {
+
+  /**
+   * Return a point that is to be the attractor for the element when considering the given coordinates as reference
+   * @param element The element number
+   * @param x The x coordinate of the reference point
+   * @param y The y coordinate of the reference point
+   * @return A point that is the reference
+   */
+  Point closestAttractor(int element, double x, double y);
 
   int getCount();
 

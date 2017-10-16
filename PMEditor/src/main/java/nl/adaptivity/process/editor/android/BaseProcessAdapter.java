@@ -21,9 +21,11 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+import net.devrieze.util.CollectionUtil;
 import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.android.graphics.LineView;
 import nl.adaptivity.diagram.Bounded;
+import nl.adaptivity.diagram.Point;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.*;
@@ -31,12 +33,11 @@ import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel.Builder;
 import nl.adaptivity.process.processModel.ProcessNode.IBuilder;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identified;
 import nl.adaptivity.process.util.IdentifyableSet;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, DrawableProcessNode.Builder> {
 
@@ -66,7 +67,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
       if (mDiagram==null) { return; }
       if (mPen ==null) { mPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
-      for(final IDrawableProcessNode start:mDiagram.getChildElements()) {
+      for(final IDrawableProcessNode start:new ArrayList<>(mDiagram.getChildElements())) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (final Identifiable endId: start.getSuccessors()) {
             final DrawableProcessNode.Builder end = mDiagram.getNode(endId.getId());
@@ -204,6 +205,24 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   @Override
   public double getGravityY(final int pos) {
     return getItem(pos).getY();
+  }
+
+  @Override
+  public Point closestAttractor(final int element, final double x, final double y) {
+    DrawableProcessNode.Builder node = getItem(element);
+    double attrX = Double.POSITIVE_INFINITY;
+    double attrY = Double.POSITIVE_INFINITY;
+    for (Identified predId : CollectionUtil.combine(node.getPredecessors(), node.getSuccessors())) {
+      DrawableProcessNode.Builder pred = mDiagram.getNode(predId.getId());
+      double dy = Math.abs(pred.getY()-y);
+      if (dy<attrY) {
+        attrY = pred.getY();
+      }
+    }
+    if (!Double.isInfinite(attrY)) {
+      return Point.of(node.getX(), attrY);
+    }
+    return null;
   }
 
   public boolean isInvalid() {
