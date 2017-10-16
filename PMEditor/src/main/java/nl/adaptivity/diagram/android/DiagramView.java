@@ -34,6 +34,7 @@ import android.widget.ZoomButtonsController;
 import android.widget.ZoomButtonsController.OnZoomListener;
 import net.devrieze.util.Tupple;
 import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.diagram.Point;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.process.editor.android.BuildConfig;
@@ -45,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class DiagramView extends View implements OnZoomListener{
+public class DiagramView extends View implements OnZoomListener {
 
 
 
@@ -123,23 +124,31 @@ public class DiagramView extends View implements OnZoomListener{
       if (isEditable()&& (mMoving>=0 || mMoveItem)) {
         final int touchedElement = mMoving >= 0 ? mMoving: getTouchedElement(e1);
         if (touchedElement>=0) {
+          final double touchedElemX = mAdapter.getGravityX(touchedElement);
+          final double touchedElemY = mAdapter.getGravityY(touchedElement);
           if (mMoving <0) {
             if (Math.max(Math.abs(distanceY),Math.abs(distanceX))>MIN_DRAG_DIST) {
               mMoving = touchedElement;
-              mOrigX = mAdapter.getGravityX(touchedElement);
-              mOrigY = mAdapter.getGravityY(touchedElement);
+              mOrigX = touchedElemX;
+              mOrigY = touchedElemY;
               // Cancel the selection on drag.
               setSelection(-1);
             }
           }
           if (mMoving>=0) {
-            final LightView lv = mAdapter.getView(touchedElement);
-            if (mGridSize>0) {
+            final LightView lv   = mAdapter.getView(touchedElement);
+            Point attractor = mAdapter.closestAttractor(touchedElement, toDiagramX(e2.getX()), toDiagramY(e2.getY()));
+
+            if ((attractor != null) &&
+                (attractor.distanceTo(Point.of(toDiagramX(e2.getX()), toDiagramY(e2.getY()))) < mGridSize)) {
+              lv.move((float)(attractor.x-touchedElemX), (float) (attractor.y - touchedElemY));
+
+            } else if (mGridSize>0) {
               final double dX   = (e2.getX() - e1.getX()) / mScale;
               final float  newX = Math.round((mOrigX + dX) / mGridSize) * mGridSize;
               final double dY   = (e2.getY() - e1.getY()) / mScale;
               final float  newY = Math.round((mOrigY + dY) / mGridSize) * mGridSize;
-              lv.move((float)(newX- mAdapter.getGravityX(touchedElement)), (float) (newY- mAdapter.getGravityY(touchedElement)));
+              lv.move((float)(newX - touchedElemX), (float) (newY - touchedElemY));
             } else {
               lv.move((float)(-distanceX/ mScale), (float) (-distanceY/ mScale));
             }
