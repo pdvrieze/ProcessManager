@@ -490,11 +490,17 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     private WaitTask mTask;
     private DrawableProcessModel.Builder mPm;
 
-    LayoutTask(final DrawableProcessModel.Builder pm) {
+    LayoutTask(final DrawableProcessModel.Builder pm, boolean fullReset) {
       if (pm!=null) {
         mPm = pm;
       } else if (mPm == null || mPm.getNodes().isEmpty()) {
         mPm = loadInitialProcessModel(NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm());
+      }
+      if (fullReset) {
+        for(DrawableProcessNode.Builder node :mPm.getChildElements()) {
+          node.setX(Double.NaN);
+          node.setY(Double.NaN);
+        }
       }
     }
 
@@ -853,18 +859,21 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     double minX = Double.POSITIVE_INFINITY;
     double minY = Double.POSITIVE_INFINITY;
     double maxY = Double.NEGATIVE_INFINITY;
-    for(final DrawableProcessNode.Builder node: getPm().getChildElements()) {
-      if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
-        final Rectangle bounds = node.getBounds();
-        if (bounds.left<minX) { minX = bounds.left; }
-        if (bounds.top<minY) { minY = bounds.top; }
-        if (bounds.bottom()>maxY) { maxY = bounds.bottom(); }
+    final DrawableProcessModel.Builder pm = getPm();
+    if (pm!=null) {
+      for (final DrawableProcessNode.Builder node : pm.getChildElements()) {
+        if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
+          final Rectangle bounds = node.getBounds();
+          if (bounds.left < minX) { minX = bounds.left; }
+          if (bounds.top < minY) { minY = bounds.top; }
+          if (bounds.bottom() > maxY) { maxY = bounds.bottom(); }
+        }
       }
+      final double offsetX = Double.isInfinite(minX) ? 0 : minX - pm.getLeftPadding();
+      final double offsetY = Double.isInfinite(minY) ? 0 : minY - pm.getTopPadding();
+      diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
+      diagramView1.setOffsetY(offsetY - (((diagramView1.getHeight() / diagramView1.getScale()) - (maxY - minY)) / 2));
     }
-    final double offsetX= Double.isInfinite(minX)? 0 : minX - getPm().getLeftPadding();
-    final double offsetY= Double.isInfinite(minY)? 0 : minY - getPm().getTopPadding();
-    diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
-    diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
 
   private DrawableProcessModel.Builder loadInitialProcessModel() {
@@ -955,7 +964,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         if (mLayoutTask!=null) {
           mLayoutTask.next();
         } else {
-          mLayoutTask = new LayoutTask(getPm());
+          mLayoutTask = new LayoutTask(getPm(), false);
           mLayoutTask.execute();
         }
         break;
@@ -965,7 +974,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           mLayoutTask.playAll();
         }
         mPm = null; // unset the process model
-        mLayoutTask = new LayoutTask(getPm());
+        mLayoutTask = new LayoutTask(getPm(), true);
         mLayoutTask.execute();
         break;
       case R.id.ac_play:
