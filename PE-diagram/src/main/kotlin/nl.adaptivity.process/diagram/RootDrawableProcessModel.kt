@@ -138,13 +138,12 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
     override val childElements: List<DrawableProcessNode.Builder> get() = nodes as List<DrawableProcessNode.Builder> // We know they are drawable
 
-    val diagramNodes = toDiagramNodes(nodes)
-
     override fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder>) {
       val b= build()
       val leftPadding =b.leftPadding
       val topPadding =b.topPadding
-      if (layoutAlgorithm.layout(toDiagramNodes(nodes), layoutStepper)) {
+      val diagramNodes = toDiagramNodes(nodes)
+      if (layoutAlgorithm.layout(diagramNodes, layoutStepper)) {
         var maxX = java.lang.Double.MIN_VALUE
         var maxY = java.lang.Double.MIN_VALUE
         for (n in diagramNodes) {
