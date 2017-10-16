@@ -642,7 +642,14 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       }
       builder.setX(diagramX);
       builder.setY(diagramY);
+      // Reset id and label
+      builder.setId(null);
+      builder.setLabel(null);
       mPm.getNodes().add(builder);
+
+      // Get an id from the process model builder. That will ensure uniqueness.
+      mPm.ensureId(builder);
+
       diagramView1.invalidate();
       return true;
     } catch (IllegalArgumentException e) {
