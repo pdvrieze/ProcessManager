@@ -20,6 +20,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.*;
 import android.graphics.Paint.Style;
 import android.graphics.drawable.Drawable;
@@ -29,10 +30,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.*;
 import android.view.View.DragShadowBuilder;
 import android.view.View.OnDragListener;
+import android.view.View.OnLayoutChangeListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
@@ -622,6 +625,9 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   }
 
+  private int mBaseDiagramPaddingLeft;
+  private int mBaseDiagramPaddingBottom;
+
   /**
    * Called in response to a drag-drop of items.
    * @param event The corresponding event.
@@ -719,6 +725,27 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     diagramView1.setOffsetY(0d);
     diagramView1.setOnNodeClickListener(this);
     diagramView1.setOnDragListener(mItemDragListener);
+
+    mBaseDiagramPaddingLeft = diagramView1.getPaddingLeft();
+    mBaseDiagramPaddingBottom = diagramView1.getPaddingBottom();
+
+    CardView dragSelector = (CardView) findViewById(R.id.dragSelector);
+
+    dragSelector.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+      @Override
+      public void onLayoutChange(final View v,
+                                 final int left, final int top, final int right, final int bottom,
+                                 final int oldLeft, final int oldTop, final int oldRight, final int oldBottom) {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+          diagramView1.setPadding(right + mBaseDiagramPaddingLeft, diagramView1.getPaddingTop(),
+                                  diagramView1.getPaddingRight(), diagramView1.getPaddingBottom());
+        } else {
+          diagramView1.setPadding(diagramView1.getPaddingLeft(), diagramView1.getPaddingTop(),
+                                  diagramView1.getPaddingRight(), bottom-top+mBaseDiagramPaddingBottom);
+        }
+      }
+    });
+
 
     elementsView = (LinearLayout) findViewById(R.id.diagramElementsGroup);
     if (elementsView!=null) {
