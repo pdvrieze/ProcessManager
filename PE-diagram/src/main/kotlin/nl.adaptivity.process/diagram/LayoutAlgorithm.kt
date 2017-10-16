@@ -461,7 +461,9 @@ open class LayoutAlgorithm {
         y = (aboveSiblings.lowest()!!.y + belowSiblings.highest()!!.y) / 2
       } else if (leftNodes.size > 1) {
         y = (leftNodes.highest()!!.y + leftNodes.lowest()!!.y) / 2
-      } else if (leftNodes.size == 1 && rightNodes.size < 2) {
+
+        // If we are not a sibling, just align with the previous node
+      } else if (leftNodes.size == 1 && rightNodes.size < 2 && leftNodes[0].rightNodes.size==1) {
         y = leftNodes[0].y
       }
 
@@ -497,22 +499,22 @@ open class LayoutAlgorithm {
     }
 
     internal fun List<DiagramNode<T>>.getBottomY(add: Double): Double {
-      return (lowest()?.let { (it.bottom + add).also { layoutStepper.reportMinY(this, it) } })
+      return (lowest(false)?.let { (it.bottom + add).also { layoutStepper.reportMinY(this, it) } })
              ?: Double.NEGATIVE_INFINITY
     }
 
     private fun List<DiagramNode<T>>.getTopY(subtract: Double): Double {
-      return (highest()?.let { (it.top - subtract).also { layoutStepper.reportMaxY(this, it) } })
+      return (highest(false)?.let { (it.top - subtract).also { layoutStepper.reportMaxY(this, it) } })
              ?: Double.POSITIVE_INFINITY
     }
 
     private fun List<DiagramNode<T>>.getMinX(add: Double): Double {
-      return (rightMost()?.let { (it.right + add).also { layoutStepper.reportMinX(this, it) } })
+      return (rightMost(false)?.let { (it.right + add).also { layoutStepper.reportMinX(this, it) } })
              ?: Double.NEGATIVE_INFINITY
     }
 
     private fun List<DiagramNode<T>>.getMaxX(subtract: Double): Double {
-      return (leftMost()?.let { (it.left - subtract).also { layoutStepper.reportMaxX(this, it) } })
+      return (leftMost(false)?.let { (it.left - subtract).also { layoutStepper.reportMaxX(this, it) } })
              ?: Double.POSITIVE_INFINITY
     }
 
@@ -569,14 +571,21 @@ open class LayoutAlgorithm {
 
       // If we have nodes left and right position this one in the middle
       if (!(leftNodes.isEmpty() || rightNodes.isEmpty())) {
-        x = (leftNodes.rightMost()!!.x + rightNodes.leftMost()!!.x) / 2
+        x = (leftNodes.rightMost()!!.right + rightNodes.leftMost()!!.left) / 2
       }
 
+      // If we have siblings above and below, center in the middle between the siblings
       if (!(aboveSiblings.isEmpty() || belowSiblings.isEmpty())) {
-        y = (aboveSiblings.lowest()!!.y + belowSiblings.highest()!!.y) / 2
+        y = (aboveSiblings.lowest()!!.bottom + belowSiblings.highest()!!.top) / 2
+
+        // If we have multiple nodes to our right, but one to our left, center in the middle between the nodes.
       } else if (rightNodes.size > 1 && leftNodes.size < 2) {
         y = (rightNodes.highest()!!.y + rightNodes.lowest()!!.y) / 2
-      } else if (rightNodes.size == 1 && leftNodes.isEmpty()) {
+
+        // If we have one node to the right and to the left either nothing, or we have siblings, use the right node to
+        // set the position
+      } else if (rightNodes.size == 1 && (leftNodes.isEmpty() ||
+                                          (leftNodes.size==1 && leftNodes[0].rightNodes.size>1))) {
         y = rightNodes[0].y
       }
 
