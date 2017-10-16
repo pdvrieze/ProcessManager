@@ -34,4 +34,14 @@ public final class Point {
   public String toString() {
     return "(" + x + ", " + y + ')';
   }
+
+  public double distanceTo(final Point other) {
+    final double dx = other.x - x;
+    final double dy = other.y - y;
+    return Math.sqrt(dx*dx+dy*dy);
+  }
+
+  public static Point of(final double x, final double y) {
+    return new Point(x,y);
+  }
 }
