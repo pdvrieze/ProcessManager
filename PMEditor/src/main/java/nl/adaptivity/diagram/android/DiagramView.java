@@ -22,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.*;
+import android.graphics.Paint.Style;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -159,8 +160,8 @@ public class DiagramView extends View implements OnZoomListener {
         return false;
       } else {
         final double scale = getScale();
-        setOffsetX(getOffsetX()+(distanceX/scale));
-        setOffsetY(getOffsetY()+(distanceY/scale));
+        setOffsetX(getOffsetX() + (distanceX / scale));
+        setOffsetY(getOffsetY() + (distanceY / scale));
         return true;
       }
     }
@@ -264,8 +265,8 @@ public class DiagramView extends View implements OnZoomListener {
     @Override
     public boolean onScaleBegin(final ScaleGestureDetector detector) {
       final double newScale = getScale() * detector.getScaleFactor();
-      mPreviousDiagramX = getOffsetX()+ detector.getFocusX()/newScale;
-      mPreviousDiagramY = getOffsetY()+ detector.getFocusY()/newScale;
+      mPreviousDiagramX = getOffsetX() + detector.getFocusX() / newScale;
+      mPreviousDiagramY = getOffsetY() + detector.getFocusY() / newScale;
 
       return super.onScaleBegin(detector);
     }
@@ -311,6 +312,7 @@ public class DiagramView extends View implements OnZoomListener {
 
   private static final int DEFAULT_GRID_SIZE=8;
   private static final float DEFAULT_MAX_SCALE= (float) (2 * DENSITY);
+  private Paint mBoundsPaint;
 
   public DiagramView(final Context context, final AttributeSet attrs, final int defStyle) {
     super(context, attrs, defStyle);
@@ -352,6 +354,11 @@ public class DiagramView extends View implements OnZoomListener {
       }
     }
     setLayerType(LAYER_TYPE_SOFTWARE, null);
+
+    mBoundsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    mBoundsPaint.setStyle(Style.FILL_AND_STROKE);
+    mBoundsPaint.setStrokeWidth(4);
+    mBoundsPaint.setARGB(64,128,128,255);
   }
 
   private static boolean isNotEmulator() {
@@ -504,13 +511,14 @@ public class DiagramView extends View implements OnZoomListener {
     if (mTouchActionOptimize) {
       ensureValidCache();
 
-      mTmpRectF.left = (float) ((mCacheRect.left- mOffsetX)* mScale);
-      mTmpRectF.top = (float) ((mCacheRect.top- mOffsetY)* mScale);
+      mTmpRectF.left = (float) ((mCacheRect.left - mOffsetX) * mScale) + getPaddingLeft();
+      mTmpRectF.top = (float) ((mCacheRect.top - mOffsetY) * mScale) + getPaddingTop();
       mTmpRectF.right = (float) (mTmpRectF.left+mCacheRect.width* mScale);
       mTmpRectF.bottom = (float) (mTmpRectF.top+mCacheRect.height* mScale);
 
       canvas.drawBitmap(mCacheBitmap, null, mTmpRectF, null);
     } else {
+
 
       drawDiagram(canvas);
 
@@ -550,7 +558,7 @@ public class DiagramView extends View implements OnZoomListener {
       mCacheCanvas = new Canvas(mCacheBitmap);
       mCacheBitmap.eraseColor(0x00000000);
 
-      mCacheCanvas.translate((float)((mOffsetX - mCacheRect.left)* mScale), (float) ((mOffsetY - mCacheRect.top)* mScale));
+      mCacheCanvas.translate((float)((mOffsetX - mCacheRect.left) * mScale) - getPaddingLeft(), (float) ((mOffsetY - mCacheRect.top) * mScale) - getPaddingTop());
 
       drawDiagram(mCacheCanvas);
       drawOverlay(mCacheCanvas);
@@ -610,19 +618,19 @@ public class DiagramView extends View implements OnZoomListener {
   }
 
   public float toCanvasX(final double x) {
-    return (float) ((x- mOffsetX)* mScale);
+    return (float) ((x - mOffsetX) * mScale) + getPaddingLeft();
   }
 
   public float toCanvasY(final double y) {
-    return (float) ((y- mOffsetY)* mScale);
+    return (float) ((y - mOffsetY) * mScale) + getPaddingTop();
   }
 
   public float toDiagramX(final float x) {
-    return (float) (x/ mScale + mOffsetX);
+    return (float) ((x-getPaddingLeft())/ mScale + mOffsetX);
   }
 
   public float toDiagramY(final float y) {
-    return (float) (y/ mScale + mOffsetY);
+    return (float) ((y-getPaddingTop())/ mScale + mOffsetY);
   }
 
   private void getItemBounds(final int pos, final RectF rect) {
@@ -710,10 +718,10 @@ public class DiagramView extends View implements OnZoomListener {
   private void updateCacheRect(final Rectangle cacheRect) {
     final RectF diagrambounds = mTmpRectF;
     mAdapter.getBounds(diagrambounds);
-    final double diagLeft   = Math.max(diagrambounds.left - 1, mOffsetX - CACHE_PADDING);
-    final double diagWidth  = Math.min(diagrambounds.right - diagLeft + 6, (getWidth() / mScale) + (CACHE_PADDING * 2));
-    final double diagTop    = Math.max(diagrambounds.top - 1, mOffsetY - CACHE_PADDING);
-    final double diagHeight = Math.min(diagrambounds.bottom - diagTop + 6, (getHeight() / mScale) + (CACHE_PADDING * 2));
+    final double diagLeft   = Math.max(diagrambounds.left - 1, mOffsetX - CACHE_PADDING - getPaddingLeft());
+    final double diagWidth  = Math.min(diagrambounds.right - diagLeft + 6, (getWidth() / mScale) + (CACHE_PADDING * 2)+getPaddingLeft()+getPaddingRight());
+    final double diagTop    = Math.max(diagrambounds.top - 1, mOffsetY - CACHE_PADDING - getPaddingTop());
+    final double diagHeight = Math.min(diagrambounds.bottom - diagTop + 6, (getHeight() / mScale) + (CACHE_PADDING * 2)+getPaddingTop()+getPaddingBottom());
     cacheRect.set(diagLeft, diagTop, diagWidth, diagHeight);
   }
 
