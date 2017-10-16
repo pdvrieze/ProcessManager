@@ -37,6 +37,9 @@ open class LayoutAlgorithm {
 
   var horizSeparation = RootDrawableProcessModel.DEFAULT_HORIZ_SEPARATION
 
+  var minHorizSeparation = RootDrawableProcessModel.DEFAULT_HORIZ_SEPARATION
+  var minVertSeparation = RootDrawableProcessModel.DEFAULT_VERT_SEPARATION
+
   var defaultNodeWidth = 30.0
   var defaultNodeHeight = 30.0
 
@@ -55,18 +58,18 @@ open class LayoutAlgorithm {
     var minY = java.lang.Double.NEGATIVE_INFINITY
     for (partition in partition(nodes)) {
       changed = layoutPartition(partition, minY, layoutStepper) || changed
-      minY = getMinY(partition, vertSeparation, layoutStepper)
+      minY = getBottomY(partition, vertSeparation, layoutStepper)
     }
     // TODO if needed, lay out single element partitions differently.
     return changed
   }
 
-  fun <T: Positioned> layoutPartition(nodes: List<DiagramNode<T>>, minY: Double, layoutStepper: LayoutStepper<T>): Boolean {
+  open fun <T: Positioned> layoutPartition(nodes: List<DiagramNode<T>>, topY: Double, layoutStepper: LayoutStepper<T>): Boolean {
     var changed = false
     for (node in nodes) {
       if (java.lang.Double.isNaN(node.x) || java.lang.Double.isNaN(node.y)) {
         changed = layoutNodeInitial(nodes, node,
-                                    minY, layoutStepper) || changed // always force as that should be slightly more efficient
+                                    topY, layoutStepper) || changed // always force as that should be slightly more efficient
       }
       changed = changed or (node.target.x != node.x || node.target.y != node.y)
     }
@@ -130,7 +133,7 @@ open class LayoutAlgorithm {
     var changed = false
     for (partition in partition(nodes)) {
       changed = tightenPartitionPositions(partition, minX, minY, layoutStepper) or changed
-      minY = getMinY(partition, vertSeparation, layoutStepper) // put the partitions below each other
+      minY = getBottomY(partition, vertSeparation, layoutStepper) // put the partitions below each other
     }
     return changed
   }
@@ -340,7 +343,7 @@ open class LayoutAlgorithm {
       }
     }
 
-    val newMinY = Math.max(getMinY(aboveNodes, vertSeparation + baseNode.topExtent, layoutStepper), minY + baseNode.topExtent)
+    val newMinY = Math.max(getBottomY(aboveNodes, vertSeparation + baseNode.topExtent, layoutStepper), minY + baseNode.topExtent)
     val newMinX = getMinX(leftNodes, horizSeparation + baseNode.leftExtent, layoutStepper)
 
     if (leftNodes.isEmpty()) {
@@ -372,8 +375,8 @@ open class LayoutAlgorithm {
     val aboveSiblings = getPrecedingSiblings(node, layoutStepper)
     val belowSiblings = getFollowingSiblings(node, layoutStepper)
 
-    val minY = getMinY(nodesAbove(node), vertSeparation + node.topExtent, layoutStepper)
-    val maxY = getMaxY(belowSiblings, vertSeparation + node.bottomExtent, layoutStepper)
+    val minY = getBottomY(nodesAbove(node), vertSeparation + node.topExtent, layoutStepper)
+    val maxY = getTopY(belowSiblings, vertSeparation + node.bottomExtent, layoutStepper)
 
     val minX = getMinX(leftNodes, horizSeparation + node.leftExtent, layoutStepper)
     val maxX = getMaxX(rightNodes, horizSeparation + node.rightExtent, layoutStepper)
@@ -443,7 +446,7 @@ open class LayoutAlgorithm {
     return changed
   }
 
-  private fun <T: Positioned> getMinY(nodes: List<DiagramNode<T>>, add: Double, layoutStepper: LayoutStepper<T>): Double {
+  private fun <T: Positioned> getBottomY(nodes: List<DiagramNode<T>>, add: Double, layoutStepper: LayoutStepper<T>): Double {
     val result = bottom(lowest(nodes, layoutStepper), java.lang.Double.NEGATIVE_INFINITY) + add
     if (!java.lang.Double.isInfinite(result)) {
       layoutStepper.reportMinY(nodes, result)
@@ -451,7 +454,7 @@ open class LayoutAlgorithm {
     return result
   }
 
-  private fun <T: Positioned> getMaxY(nodes: List<DiagramNode<T>>, subtract: Double, layoutStepper: LayoutStepper<T>): Double {
+  private fun <T: Positioned> getTopY(nodes: List<DiagramNode<T>>, subtract: Double, layoutStepper: LayoutStepper<T>): Double {
     val result = top(highest(nodes, layoutStepper), java.lang.Double.POSITIVE_INFINITY) - subtract
     if (!java.lang.Double.isInfinite(result)) {
       layoutStepper.reportMaxY(nodes, result)
@@ -572,11 +575,11 @@ open class LayoutAlgorithm {
 
 
   private fun <T: Positioned> lowest(nodes: List<DiagramNode<T>>, layoutStepper: LayoutStepper<T>, report:Boolean = true)
-    = nodes.minBy { it.bottom }?.apply { if (report) layoutStepper.reportLowest(nodes, this) }
+    = nodes.maxBy { it.bottom }?.apply { if (report) layoutStepper.reportLowest(nodes, this) }
 
 
   private fun <T: Positioned> highest(nodes: List<DiagramNode<T>>, layoutStepper: LayoutStepper<T>, report:Boolean = true)
-    = nodes.maxBy { it.top }?.apply { if (report) layoutStepper.reportHighest(nodes, this) }
+    = nodes.minBy { it.top }?.apply { if (report) layoutStepper.reportHighest(nodes, this) }
 
   private fun <T: Positioned> leftMost(nodes: List<DiagramNode<T>>, layoutStepper: LayoutStepper<T>, report:Boolean = true)
     = nodes.minBy { it.left }?.apply { if (report) layoutStepper.reportLeftmost(nodes, this) }
@@ -818,8 +821,7 @@ open class LayoutAlgorithm {
       val partitions = ArrayList<List<DiagramNode<T>>>()
       val nodesCopy = nodes.toMutableList()
 
-      fun addToPartition(node: DiagramNode<T>,
-                                          partition: ArrayList<DiagramNode<T>>) {
+      fun addToPartition(node: DiagramNode<T>, partition: ArrayList<DiagramNode<T>>) {
         if (!partition.contains(node)) {
           partition.add(node)
           if (nodesCopy.remove(node)) {
