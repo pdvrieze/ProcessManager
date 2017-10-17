@@ -123,7 +123,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     return mCachedEndDecorations;
   }
 
-  private static void layoutHorizontal(final double centerX, final double top, final double scale, final LightView[] decorations) {
+  private static void layoutHorizontal(final double centerX, final double top, final double scale, final RelativeLightView[] decorations) {
     if (decorations.length==0) { return; }
     final double hspacing = DECORATION_HSPACING / scale;
     double totalWidth = -hspacing;
@@ -135,7 +135,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     }
     float leftF = (float) (centerX-totalWidth/2);
     final float topF = (float) top;
-    for(final LightView decoration: decorations) {
+    for(final RelativeLightView decoration: decorations) {
       decoration.setPos(leftF, topF);
       decoration.getBounds(bounds);
       leftF+=bounds.width()+hspacing;

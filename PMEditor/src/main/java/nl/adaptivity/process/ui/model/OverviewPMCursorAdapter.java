@@ -25,7 +25,11 @@ import android.view.ViewGroup;
 import nl.adaptivity.diagram.android.AndroidStrategy;
 import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DrawableDrawable;
+import nl.adaptivity.process.diagram.AbstractLayoutStepper;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.LayoutStepper;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
+import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.OverviewModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
@@ -73,9 +77,11 @@ public final class OverviewPMCursorAdapter extends BasePMCursorAdapter<OverviewP
     viewHolder.binding.setName(mNameColumn >= 0 ? cursor.getString(mNameColumn) : null);
     viewHolder.binding.setInstanceCount(mCountColumn>=0 ? cursor.getInt(mCountColumn): 0);
     if (mModelColumn>=0) try {
-      final RootDrawableProcessModel model = RootDrawableProcessModel.deserialize(XmlStreaming.newReader(new StringReader(cursor.getString(mModelColumn))));
+      RootDrawableProcessModel model = RootDrawableProcessModel.deserialize(XmlStreaming.newReader(new StringReader(cursor.getString(mModelColumn))));
       if (model.hasUnpositioned()) {
-        model.layout();
+        final Builder b = model.builder();
+        b.layout(new AbstractLayoutStepper<DrawableProcessNode.Builder>());
+        model = b.build();
       }
       final Drawable d = new DrawableDrawable(model, new AndroidTheme(AndroidStrategy.INSTANCE), true);
       viewHolder.binding.setThumbnail(d);

@@ -79,19 +79,6 @@ AbstractLightView implements LightView {
     return;
   }
 
-  @Override
-  public void move(final float x, final float y) {
-    mX1+=x;
-    mX2+=x;
-    mY1+=y;
-    mY2+=y;
-  }
-
-  @Override
-  public void setPos(final float left, final float top) {
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
   public void setPos(final float x1, final float y1, final float x2, final float y2) {
     mX1 = x1;
     mY1 = y1;

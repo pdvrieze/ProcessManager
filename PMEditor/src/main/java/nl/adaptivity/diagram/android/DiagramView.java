@@ -142,16 +142,15 @@ public class DiagramView extends View implements OnZoomListener {
 
             if ((attractor != null) &&
                 (attractor.distanceTo(Point.of(toDiagramX(e2.getX()), toDiagramY(e2.getY()))) < mGridSize)) {
-              lv.move((float)(attractor.x-touchedElemX), (float) (attractor.y - touchedElemY));
-
+              mAdapter.setPos(touchedElement, attractor.x, attractor.y);
             } else if (mGridSize>0) {
               final double dX   = (e2.getX() - e1.getX()) / mScale;
               final float  newX = Math.round((mOrigX + dX) / mGridSize) * mGridSize;
               final double dY   = (e2.getY() - e1.getY()) / mScale;
               final float  newY = Math.round((mOrigY + dY) / mGridSize) * mGridSize;
-              lv.move((float)(newX - touchedElemX), (float) (newY - touchedElemY));
+              mAdapter.setPos(touchedElement, newX, newY);
             } else {
-              lv.move((float)(-distanceX/ mScale), (float) (-distanceY/ mScale));
+              mAdapter.setPos(touchedElement, touchedElemX - (distanceX/ mScale), touchedElemY - (distanceY/mScale));
             }
             invalidate();
           }

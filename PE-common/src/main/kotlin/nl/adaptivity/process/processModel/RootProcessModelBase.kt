@@ -281,11 +281,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     }
   }
 
-  @Deprecated("Use the builder to update models")
-  protected open fun removeNode(nodePos: Int): NodeT {
-    return _processNodes.removeAt(nodePos)
-  }
-
   fun hasUnpositioned() = modelNodes.any { !it.hasPos }
 
   override fun getChildModel(childId: Identifiable) = _childModels[childId]
@@ -354,24 +349,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
    */
   override fun getModelNodes(): List<NodeT> {
     return Collections.unmodifiableList(super.getModelNodes())
-  }
-
-  @Deprecated("Use the builder to update models")
-  protected open fun addNode(node: NodeT): Boolean {
-    if (_processNodes.add(node)) {
-      return true
-    }
-    return false
-  }
-
-  @Deprecated("Use the builder to update models")
-  protected open fun removeNode(node: NodeT): Boolean {
-    return _processNodes.remove(node)
-  }
-
-  @Deprecated("Use the builder to update models")
-  protected open fun setNode(pos: Int, newValue: NodeT): NodeT {
-    return _processNodes.set(pos, newValue)
   }
 
   /**

@@ -119,21 +119,8 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setPos(final float left, final float top) {
-    mLeft = left;
-    mTop = top;
-  }
-
-  @Override
   public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
     mScale = scale;
     mDrawable.draw(canvas);
   }
-
-  @Override
-  public void move(final float x, final float y) {
-    mTop = mTop+y;
-    mLeft = mLeft+x;
-  }
-
 }

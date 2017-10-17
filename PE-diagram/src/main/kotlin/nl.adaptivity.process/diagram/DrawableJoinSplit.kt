@@ -137,10 +137,6 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
 
   override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 
-  fun setLogicalPos(left: Double, top: Double) {
-    setPos(left + DrawableJoinSplit.REFERENCE_OFFSET_X, top + DrawableJoinSplit.REFERENCE_OFFSET_Y)
-  }
-
   override var state: Int
     get() = _delegate.state
     set(value) { _delegate.state = value }

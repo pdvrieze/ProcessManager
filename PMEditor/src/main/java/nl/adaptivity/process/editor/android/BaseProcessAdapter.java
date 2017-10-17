@@ -31,10 +31,8 @@ import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel.Builder;
-import nl.adaptivity.process.processModel.ProcessNode.IBuilder;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identified;
-import nl.adaptivity.process.util.IdentifyableSet;
 
 import java.util.*;
 
@@ -56,12 +54,6 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     public void getBounds(final RectF dest) {
       dest.set(mBounds);
     }
-
-    @Override
-    public void move(final float x, final float y) { /* ignore */ }
-
-    @Override
-    public void setPos(final float x, final float y) { /* ignore */ }
 
     @Override
     public void draw(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final double scale) {
@@ -225,6 +217,13 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
       return Point.of(node.getX(), attrY);
     }
     return null;
+  }
+
+  @Override
+  public void setPos(final int element, final double diagx, final double diagy) {
+    DrawableProcessNode.Builder item = getItem(element);
+    item.setX(diagx);
+    item.setY(diagy);
   }
 
   public boolean isInvalid() {

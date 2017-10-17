@@ -167,18 +167,6 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     return _processNodes[pos]
   }
 
-  /**
-   * Set the process nodes for the model. This will actually just retrieve the
-   * [XmlEndNode]s and sets the model accordingly. This does mean that only
-   * passing [XmlEndNode]s will have the same result, and the other nodes
-   * will be pulled in.
-
-   * @param processNodes The process nodes to base the model on.
-   */
-  protected open fun setModelNodes(processNodes: Collection<NodeT>) {
-    (processNodes as MutableIdentifyableSet).replaceBy(processNodes)
-  }
-
 
   companion object {
 

@@ -49,7 +49,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
 
   fun builder(): Builder
 
-  var layoutAlgorithm: LayoutAlgorithm
+  val layoutAlgorithm: LayoutAlgorithm
 
   override val x: Double get() = 0.0
 
@@ -60,9 +60,6 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
   override val childElements: List<DrawableProcessNode> get() = getModelNodes()
 
   override val rootModel: RootDrawableProcessModel
-
-  @Deprecated("Do this on a builder")
-  fun layout()
 
   fun notifyNodeChanged(node: DrawableProcessNode) = Unit
 }

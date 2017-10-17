@@ -25,6 +25,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 
+/**
+ * Lightview implementation that wraps another lightview and allows for relative positioning to be specified, as well
+ * as direct manipulation of it's position.
+ */
 public class RelativeLightView implements LightView {
 
   @IntDef(flag=true, value={DEFAULT, HGRAVITY, LEFT, RIGHT, VGRAVITY, TOP, BOTTOM})
@@ -44,6 +48,8 @@ public class RelativeLightView implements LightView {
   private final int mRelativePos;
 
   private final LightView mView;
+  private float mLeft = 0.0f;
+  private float mTop = 0.0f;
 
   public RelativeLightView(final LightView view, @LVGravity final int relativePos) {
     mView = view;
@@ -98,6 +104,12 @@ public class RelativeLightView implements LightView {
   @Override
   public void getBounds(final RectF target) {
     mView.getBounds(target);
+
+    // Adjust the bounds to the ones needed
+    target.left+=mLeft;
+    target.top+=mTop;
+    target.right+=mLeft;
+    target.bottom+=mTop;
   }
 
   @Override
@@ -105,14 +117,11 @@ public class RelativeLightView implements LightView {
     mView.draw(canvas, theme, scale);
   }
 
-  @Override
-  public void move(final float x, final float y) {
-    mView.move(x, y);
-  }
-
-  @Override
   public void setPos(final float left, final float top) {
-    mView.setPos(left, top);
+    RectF bounds = new RectF();
+    mView.getBounds(bounds);
+    mLeft = left - bounds.left;
+    mTop = top - bounds.top;
   }
 
 }

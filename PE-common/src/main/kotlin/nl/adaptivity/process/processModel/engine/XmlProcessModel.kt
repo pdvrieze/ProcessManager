@@ -133,29 +133,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     return super.getChildModel(childId)?.let {it as XmlChildModel}
   }
 
-  /**
-   * Ensure that the given node is owned by this model.
-   * @param processNode
-   */
-  public override fun addNode(processNode: XmlProcessNode): Boolean {
-    throw UnsupportedOperationException("Xml Process models are immutable")
-  }
-
-  public override fun removeNode(processNode: XmlProcessNode): Boolean {
-    throw UnsupportedOperationException("This will break in all kinds of ways")
-  }
-
-  public override fun setModelNodes(processNodes: Collection<XmlProcessNode>) {
-    super.setModelNodes(processNodes)
-    var endNodeCount = 0
-    for (n in processNodes) {
-      if (n is XmlEndNode) {
-        ++endNodeCount
-      }
-    }
-    mEndNodeCount = endNodeCount
-  }
-
   fun cacheStrings(stringCache: StringCache) {
     if (owner is SimplePrincipal) {
       owner = SimplePrincipal(stringCache.lookup(owner.name))

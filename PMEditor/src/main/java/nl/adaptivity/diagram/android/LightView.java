@@ -39,10 +39,6 @@ public interface LightView {
 
   void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale);
 
-  void move(float x, float y);
-
-  void setPos(float left, float top);
-
   void setActive(boolean active);
 
   boolean isActive();

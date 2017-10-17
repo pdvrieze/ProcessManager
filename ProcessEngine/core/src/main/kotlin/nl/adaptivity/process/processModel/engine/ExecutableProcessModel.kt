@@ -102,10 +102,6 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: Builder,
     return ProcessModelRef(name, this.getHandle(), uuid)
   }
 
-  override fun setModelNodes(processNodes: Collection<ExecutableProcessNode>) {
-    throw UnsupportedOperationException("This is broken")
-  }
-
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
      */

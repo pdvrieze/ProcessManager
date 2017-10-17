@@ -32,13 +32,13 @@ interface IDrawableProcessModel: Diagram {
   override val childElements: List<IDrawableProcessNode>
 
 
-  var topPadding:Double
+  val topPadding:Double
 
-  var leftPadding: Double
+  val leftPadding: Double
 
-  var bottomPadding: Double
+  val bottomPadding: Double
 
-  var rightPadding: Double
+  val rightPadding: Double
 
 
   fun getNode(nodeId: String): IDrawableProcessNode? = childElements.firstOrNull { it.id == nodeId }

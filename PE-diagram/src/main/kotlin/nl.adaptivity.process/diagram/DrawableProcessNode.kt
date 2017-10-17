@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.processModel.MutableProcessNode
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 
@@ -25,7 +24,7 @@ typealias DrawableState = Int
 
 
 
-interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
+interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
 
   open class Delegate(builder: ProcessNode.IBuilder<*, *>) {
 
@@ -109,12 +108,6 @@ interface DrawableProcessNode : MutableProcessNode<DrawableProcessNode, Drawable
    */
   @Deprecated("Use builders")
   fun setY(y: Double)
-
-  @Deprecated("Use builders")
-  override fun setPos(left: Double, top: Double)  {
-    setX(left + leftExtent)
-    setY(top + topExtent)
-  }
 
   @Deprecated("Use builders")
   fun setLabel(label: String?)

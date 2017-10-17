@@ -25,7 +25,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
@@ -139,9 +138,8 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     override val childElements: List<DrawableProcessNode.Builder> get() = nodes as List<DrawableProcessNode.Builder> // We know they are drawable
 
     override fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder>) {
-      val b= build()
-      val leftPadding =b.leftPadding
-      val topPadding =b.topPadding
+      val leftPadding =this.leftPadding
+      val topPadding =this.topPadding
       val diagramNodes = toDiagramNodes(nodes)
       if (layoutAlgorithm.layout(diagramNodes, layoutStepper)) {
         var maxX = java.lang.Double.MIN_VALUE
@@ -190,7 +188,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
   }
 
-  override var layoutAlgorithm: LayoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+  override val layoutAlgorithm: LayoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
 
   override val rootModel: RootDrawableProcessModel get() = this
 
@@ -205,13 +203,13 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
   }
 
   override val leftExtent: Double
-    get() = TODO("not implemented")
+    get() = 0.0
   override val rightExtent: Double
-    get() = TODO("not implemented")
+    get() = bounds.width
   override val topExtent: Double
-    get() = TODO("not implemented")
+    get() = 0.0
   override val bottomExtent: Double
-    get() = TODO("not implemented")
+    get() = bounds.height
 
   override var state = Drawable.STATE_DEFAULT
 
@@ -224,19 +222,15 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
   @JvmOverloads
   constructor(uuid: UUID, name: String, nodes: Collection<DrawableProcessNode>, layoutAlgorithm: LayoutAlgorithm? = null) :
-    this(Builder(name=name, uuid=uuid, nodes=nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) }, layoutAlgorithm = layoutAlgorithm?: LayoutAlgorithm())) {
-
-    with(this.layoutAlgorithm) {
+    this(Builder(name=name, uuid=uuid, nodes=nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) }, layoutAlgorithm = (layoutAlgorithm?: LayoutAlgorithm()).apply {
       defaultNodeWidth = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
-                                                  Math.max(ACTIVITYWIDTH, JOINWIDTH))
+                                  Math.max(ACTIVITYWIDTH, JOINWIDTH))
       defaultNodeHeight = Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
-                                                   Math.max(ACTIVITYHEIGHT, JOINHEIGHT))
+                                   Math.max(ACTIVITYHEIGHT, JOINHEIGHT))
       horizSeparation = DEFAULT_HORIZ_SEPARATION
       vertSeparation = DEFAULT_VERT_SEPARATION
-    }
-    ensureIds()
-    layout()
-  }
+
+    }))
 
   override fun builder() = Builder(this)
 
@@ -251,43 +245,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
   override fun clone(): RootDrawableProcessModel = copy()
 
-  @Deprecated("This should already be done by builders")
-  internal fun ensureIds() {
-    for (node in getModelNodes()) {
-      ensureId(node)
-    }
-  }
-
-  @Deprecated("This is already done by builders")
-  private fun <T : DrawableProcessNode> ensureId(node: T): T {
-    if (node.id == null) {
-      val idBase = node.idBase
-      var newId = idBase + idSeq++
-      while (getNode(Identifier(newId)) != null) {
-        newId = idBase + idSeq++
-      }
-      node.setId(newId)
-    }
-    return node
-  }
-
   override fun getNode(nodeId: String): DrawableProcessNode? = super<RootClientProcessModel>.getNode(nodeId)
-
-  override fun setNodes(nodes: Collection<DrawableProcessNode>) {
-    // Null check here as setNodes is called during construction of the parent
-    _bounds.clear()
-    super.setNodes(nodes)
-  }
-
-  public override fun setNode(pos: Int, newValue: DrawableProcessNode): DrawableProcessNode {
-    return super.setNode(pos, newValue)
-  }
-
-  override fun layout() {
-    super.layout()
-    updateBounds()
-    itemCache.clearPath(0)
-  }
 
   override fun notifyNodeChanged(node: DrawableProcessNode) {
     invalidateConnectors()
@@ -388,10 +346,6 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
       }
     }
 
-  }
-
-  init {
-    layoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
   }
 }
 

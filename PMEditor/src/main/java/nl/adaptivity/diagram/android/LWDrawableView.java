@@ -116,16 +116,6 @@ public class LWDrawableView implements LightView{
   }
 
 
-  @Override
-  public void move(final float x, final float y) {
-    mItem.translate(x, y);
-  }
-
-  @Override
-  public void setPos(final float left, final float top) {
-    mItem.setPos(left, top);
-  }
-
   public Drawable getItem() {
     return mItem;
   }

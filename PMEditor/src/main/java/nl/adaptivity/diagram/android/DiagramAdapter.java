@@ -72,4 +72,6 @@ public interface DiagramAdapter<T extends LightView, V> {
 
   double getGravityY(int pos);
 
+  /** Set the position of the given element. The coordinates are diagram coordinates. */
+  void setPos(int element, double diagx, double diagy);
 }
