@@ -372,7 +372,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       val jaxbSource = JAXBSource(jaxbContext, result)
       setContentType(pResponse, "text/xml")
       Sources.writeToStream(jaxbSource, pResponse.outputStream)
-    } ?: serializeValue(pResponse, null)
+    } ?: serializeValue(pResponse, result)
   }
 
   private fun setContentType(pResponse: HttpServletResponse, pDefault: String) {
