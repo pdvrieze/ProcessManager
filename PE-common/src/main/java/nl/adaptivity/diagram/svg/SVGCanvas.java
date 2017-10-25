@@ -298,7 +298,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     @Override
     public Rectangle getBounds(final Rectangle dest) {
 
-      stroke.measureTextSize(dest, mX, mY, mText, mFoldWidth);
+      fill.measureTextSize(dest, mX, mY, mText, mFoldWidth);
       mTextPos.offset(dest, stroke);
       return dest;
     }
