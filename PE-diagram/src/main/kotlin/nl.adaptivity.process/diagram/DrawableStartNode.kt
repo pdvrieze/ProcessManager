@@ -64,6 +64,8 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
 
     override val _delegate: DrawableProcessNode.Builder.Delegate
 
+    constructor(): this(id=null)
+
     constructor(id: String? = null,
                 successor: Identified? = null,
                 label: String? = null,

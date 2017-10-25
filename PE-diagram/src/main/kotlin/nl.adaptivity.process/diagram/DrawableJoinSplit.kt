@@ -84,7 +84,9 @@ interface IDrawableJoinSplit: IDrawableProcessNode {
       }
       canvas.drawPath(path, linePen, bgPen)
 
-      if (this.min >= 0 || this.max >= 0) {
+      drawDecoration(canvas, clipBounds)
+
+      if (this.min >= 0 || this.max > 0) {
         val textPen = canvas.theme.getPen(ProcessThemeItems.DIAGRAMTEXT, state)
         val s = this.minMaxText
 
@@ -92,6 +94,8 @@ interface IDrawableJoinSplit: IDrawableProcessNode {
       }
     }
   }
+
+  fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?)
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
     val realradiusX = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2

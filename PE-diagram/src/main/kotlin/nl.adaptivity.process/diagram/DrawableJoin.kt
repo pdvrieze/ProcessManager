@@ -32,20 +32,20 @@ interface IDrawableJoin: IDrawableJoinSplit {
 
   override val maxPredecessorCount: Int get() = Int.MAX_VALUE
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
     if (hasPos()) {
-      super.draw(canvas, clipBounds)
-
       val path = itemCache.getPath(canvas.strategy, 1) {
         if (CURVED_ARROWS) {
           moveTo(CENTER_X + INLEN, CENTER_Y)
-          lineTo(CENTER_X + ARROWHEADD_X - ARROWHEAD_ADJUST, CENTER_X)
+          lineTo(CENTER_X + ARROWHEADD_X - ARROWHEAD_ADJUST, CENTER_Y)
           moveTo(CENTER_X + ARROWHEADD_X - ARROWDNEAR, CENTER_Y - ARROWDFAR)
           lineTo(CENTER_X + ARROWHEADD_X, CENTER_Y)
           lineTo(CENTER_X + ARROWHEADD_X - ARROWDNEAR, CENTER_Y + ARROWDFAR)
           moveTo(CENTER_X - IND_X, CENTER_Y - IND_Y)
           cubicTo(CENTER_X - IND_X * (1 - ARROWCONTROLRATIO), CENTER_Y - IND_Y * (1 - ARROWCONTROLRATIO), CENTER_X + INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + INLEN, CENTER_Y)
           cubicTo(CENTER_X + INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X - IND_X * (1 - ARROWCONTROLRATIO), CENTER_Y + IND_Y * (1 - ARROWCONTROLRATIO), CENTER_X - IND_X, CENTER_Y + IND_Y)
+          moveTo(CENTER_X + INLEN, CENTER_Y)
+          lineTo(CENTER_X + ARROWHEADD_X, CENTER_Y)
         } else {
           moveTo(CENTER_X, CENTER_Y)
           lineTo(CENTER_X + ARROWHEADD_X - ARROWHEAD_ADJUST, CENTER_X)
@@ -83,6 +83,8 @@ class DrawableJoin : JoinBase<DrawableProcessNode, DrawableProcessModel?>, Join<
   class Builder : JoinBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder, IDrawableJoin {
 
     override val _delegate: DrawableProcessNode.Builder.Delegate
+
+    constructor(): this(id=null)
 
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),

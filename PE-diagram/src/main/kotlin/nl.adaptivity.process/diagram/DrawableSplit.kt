@@ -34,17 +34,17 @@ import nl.adaptivity.xml.deserializeHelper
 interface IDrawableSplit: IDrawableJoinSplit {
   override val maxSuccessorCount: Int get() = Int.MAX_VALUE
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
+  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
     if (hasPos()) {
-      super.draw(canvas, clipBounds)
-
       val path = itemCache.getPath(canvas.strategy, 1) {
         if (DrawableJoinSplit.CURVED_ARROWS) {
           moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
           lineTo(CENTER_X - INLEN, CENTER_Y)
           cubicTo(CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY * (1 - ARROWCONTROLRATIO) + ARROWHEADADJUST, CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY + ARROWHEADADJUST)
+          lineTo(CENTER_X + ARROWHEADDX, CENTER_Y - ARROWHEADDY)
           moveTo(CENTER_X - INLEN, CENTER_Y)
           cubicTo(CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST, CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY - ARROWHEADADJUST)
+          lineTo(CENTER_X + ARROWHEADDX, CENTER_Y + ARROWHEADDY)
         } else {
           moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
           lineTo(CENTER_X, CENTER_Y)
@@ -88,6 +88,8 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
   class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder, IDrawableSplit {
 
     override val _delegate: DrawableProcessNode.Builder.Delegate
+
+    constructor(): this(id=null)
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,

@@ -88,6 +88,7 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
       set(compat) {
         if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
       }
+    constructor(): this(id=null)
 
     constructor(id: String? = null,
                 predecessor: Identified? = null,
