@@ -85,6 +85,7 @@ public class SVGPath implements DiagramPath<SVGPath>{
 
     @Override
     public void getBounds(final Rectangle storage, final IPathElem previous, final Pen<?> stroke) {
+      // TODO this is not valid as it does not consider miters, nor does it support link closing
       final double sw = stroke.getStrokeWidth();
       if (Doubles.isFinite(sw) && sw > 0d) {
         double hsw = sw / 2;
