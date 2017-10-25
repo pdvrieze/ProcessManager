@@ -33,6 +33,8 @@ import java.util.List;
 
 public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
+  public static final double SERIALIZATION_MIN_OFFSET=0.000001;
+
   interface IPaintedElem {
 
     void serialize(XmlWriter out) throws XmlException;
@@ -80,7 +82,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     @Override
     public Rectangle getBounds(final Rectangle dest) {
-      final double strokeWidth = stroke.getStrokeWidth();
+      final double strokeWidth = stroke==null ? 0.0 : stroke.getStrokeWidth();
       double delta = strokeWidth / 2;
       dest.set(mBounds.left-delta, mBounds.top-delta, mBounds.width+strokeWidth, mBounds.height+strokeWidth);
       return dest;
@@ -299,7 +301,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public Rectangle getBounds(final Rectangle dest) {
 
       fill.measureTextSize(dest, mX, mY, mText, mFoldWidth);
-      mTextPos.offset(dest, stroke);
+      mTextPos.offset(dest, fill);
       return dest;
     }
   }
@@ -674,7 +676,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final boolean closeGroup;
     // As svg outer element only supports width and height, when the topleft corner is not at the
     // origin then wrap the content into a group that translates appropriately.
-    if (mBounds.left!=0.0d || mBounds.top!=0.0d) {
+    if (Math.abs(mBounds.left)>SERIALIZATION_MIN_OFFSET || Math.abs(mBounds.top)>SERIALIZATION_MIN_OFFSET) {
       closeGroup = true;
       out.startTag(SVG_NAMESPACE, "g", null);
       out.attribute(null, "transform", null, "translate("+ -mBounds.left+","+ -mBounds.top+")");
