@@ -36,23 +36,21 @@ public class ImageGen {
 
 
   public static void main(String[] args) throws IOException {
-    DrawableProcessModel owner = new DrawableProcessModel(UUID.randomUUID(), "", Collections.<DrawableProcessNode>emptyList());
-
-    drawNode(new DrawableStartNode.Builder().build(buildHelper), "startNode.svg");
-    drawNode(new DrawableSplit.Builder().build(buildHelper), "split.svg");
-    drawNode(new DrawableJoin.Builder().build(buildHelper), "join.svg");
-    drawNode(new DrawableActivity.Builder().build(buildHelper), "activity.svg");
-    drawNode(new DrawableEndNode.Builder().build(buildHelper), "endNode.svg");
+    drawNode(new DrawableStartNode.Builder(), "startNode.svg");
+    drawNode(new DrawableSplit.Builder(), "split.svg");
+    drawNode(new DrawableJoin.Builder(), "join.svg");
+    drawNode(new DrawableActivity.Builder(), "activity.svg");
+    drawNode(new DrawableEndNode.Builder(), "endNode.svg");
   }
 
-  private static void drawNode(final DrawableProcessNode processNode, final String fileName) throws IOException {
+  private static void drawNode(final DrawableProcessNode.Builder drawable, final String fileName) throws IOException {
     try (final FileWriter fileWriter = new FileWriter(fileName);
          final XmlWriter xmlWriter = XmlStreaming.newWriter(fileWriter)) {
       SVGCanvas<JvmMeasureInfo> canvas = new SVGCanvas<>(new JVMTextMeasurer());
-      Rectangle                 bounds = processNode.getBounds();
-      processNode.setX(bounds.width/2d);
-      processNode.setY(bounds.height/2d);
-      processNode.draw(canvas, null);
+      Rectangle                 bounds = drawable.getBounds();
+      drawable.setX(bounds.width/2d);
+      drawable.setY(bounds.height/2d);
+      drawable.draw(canvas, null);
       canvas.serialize(xmlWriter);
     }
   }
