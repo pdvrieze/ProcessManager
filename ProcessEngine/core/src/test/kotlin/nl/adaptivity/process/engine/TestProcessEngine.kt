@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. 
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -322,7 +322,7 @@ class TestProcessEngine {
     val model = ExecutableProcessModel.build {
       owner = mPrincipal
       val start = startNode { id="start" }
-      val ac = activity { id="ac"; predecessor=start; condition="false()" }
+      val ac = activity { id="ac"; predecessor=start.identifier; condition="false()" }
       val end = endNode { id="end"; predecessor=ac }
     }
     testProcess(model) { transaction, model, instanceHandle ->
@@ -341,7 +341,7 @@ class TestProcessEngine {
     val model = ExecutableProcessModel.build {
       owner = mPrincipal
       val start = startNode { id="start" }
-      val ac = activity { id="ac"; predecessor=start; condition="true()" }
+      val ac = activity { id="ac"; predecessor=start.identifier; condition="true()" }
       val end = endNode { id="end"; predecessor=ac }
     }
     testProcess(model) { transaction, model, instanceHandle ->
@@ -504,7 +504,7 @@ class TestProcessEngine {
         max = 2
       }
       val ac1 = activity {
-        predecessor = split1
+        predecessor = split1.identifier
         id = "ac1"
         message = XmlMessage()
         result {
@@ -513,7 +513,7 @@ class TestProcessEngine {
         }
       }
       val ac2 = activity {
-        predecessor = split1
+        predecessor = split1.identifier
         id = "ac2"
         message = XmlMessage()
         result {

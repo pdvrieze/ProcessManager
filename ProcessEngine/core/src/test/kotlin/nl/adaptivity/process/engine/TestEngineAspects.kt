@@ -30,7 +30,7 @@ class TestEngineAspects: Spek({
       val model = ExecutableProcessModel.build {
         owner = EngineTestData.principal
         val start1 = startNode { id="start1" }
-        val ac1 = activity { id="ac1"; predecessor = start1 }
+        val ac1 = activity { id="ac1"; predecessor = start1.identifier }
 /*
         val comp = composite {
           id="comp"
