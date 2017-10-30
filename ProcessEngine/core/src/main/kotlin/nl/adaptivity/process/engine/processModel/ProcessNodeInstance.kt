@@ -291,7 +291,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState)
     fun doSkipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
-      if (state.isFinal && state!=newState) throw ProcessException("Attempting to skip a finalised node")
+      if (state.isFinal && state!=newState) {
+        throw ProcessException("Attempting to skip a finalised node ${node.id}(${handle}-$entryNo)")
+      }
       state = newState
     }
 
@@ -398,6 +400,10 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       state = Complete
       store(engineData)
       engineData.commit()
+
+      // The splits need to be updated before successors are started. This prevents unneeded/unexpected cancellations.
+      // Joins should trigger updates before cancellations anyway though as a safeguard.
+      processInstanceBuilder.updateSplits(engineData)
       processInstanceBuilder.startSuccessors(engineData, this)
       processInstanceBuilder.updateSplits(engineData)
       processInstanceBuilder.updateState(engineData)
