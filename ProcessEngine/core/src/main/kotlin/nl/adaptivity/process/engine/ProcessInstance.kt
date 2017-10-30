@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -174,7 +174,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     fun  startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
-      assert ((predecessor is SplitInstance) || (predecessor.state.isFinal)) {
+      assert((predecessor.state.isFinal) || (predecessor !is SplitInstance)) {
         "The predecessor $predecessor is not final when starting successors"
       }
 
