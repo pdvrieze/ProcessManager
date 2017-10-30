@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -93,7 +93,9 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
       for(instanceToCancel in cancelablePredecessors) {
         processInstanceBuilder.updateChild(instanceToCancel) {
-          cancelAndSkip(engineData)
+          if(updateTaskState(engineData)) {
+            state = NodeInstanceState.Complete
+          } else if (! state.isFinal) cancelAndSkip(engineData)
         }
       }
       super.doFinishTask(engineData, resultPayload)
