@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016. 
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -150,14 +150,17 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
   var activeCount = 0
   var committedCount =0
 
-  processInstanceBuilder.allChildren { handle in it.predecessors }.map{it.state}.forEach { state ->
-    when {
-      state.isSkipped -> skippedCount++
-      state == NodeInstanceState.Failed -> failedCount++
-      state.isCommitted -> committedCount++
-      state.isActive -> activeCount++
+  processInstanceBuilder
+    .allChildren { handle in it.predecessors }
+    .map{it.state}
+    .forEach { state ->
+      when {
+        state.isSkipped -> skippedCount++
+        state == NodeInstanceState.Failed -> failedCount++
+        state.isCommitted -> committedCount++
+        state.isActive -> activeCount++
+      }
     }
-  }
 
   for (successorNode in successorNodes) {
     if (committedCount>=node.max) break // stop the loop when we are at the maximum successor count
