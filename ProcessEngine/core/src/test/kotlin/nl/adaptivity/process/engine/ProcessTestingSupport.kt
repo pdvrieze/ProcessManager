@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -401,7 +401,7 @@ fun Dsl.givenProcess(engine: ProcessEngine<StubProcessTransaction>, processModel
 */
 
 fun kfail(message:String):Nothing {
-  fail(message)
+  fail<Any?>(message)
   throw UnsupportedOperationException("This code should not be reachable")
 }
 
