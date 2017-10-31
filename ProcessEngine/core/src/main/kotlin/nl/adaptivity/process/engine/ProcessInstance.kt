@@ -234,7 +234,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       for (successorNode in predecessor.node.successors.map { processModel.getNode(it)!! }.toList()) {
         // Attempt to get the successor instance as it may already be final. In that case the system would attempt to
         // create a new instance. We don't want to do that just to skip it.
-        val successorInstance =  getChild(successorNode, predecessor.entryNo) ?: successorNode.createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
+        val successorInstance =  getChild(successorNode, predecessor.entryNo)
+                                 ?: successorNode.createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo).also { storeChild(it) }
         successorInstance.skipTask(engineData, state)
       }
     }
@@ -397,6 +398,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override fun <T : ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T> {
       return InstanceFuture<T, ExecutableProcessNode>(child).apply {
         if (!handle.valid) throw IllegalArgumentException("Storing a non-existing child")
+        _pendingChildren.firstOrNull { it.origBuilder.handle == child.handle && it.origBuilder!=child }?.let { oldChild ->
+          throw ProcessException("Attempting to store a new child with an already existing handle")
+        }
         if (! _pendingChildren.any { it.origBuilder == child }) _pendingChildren.add(this)
       }
     }
