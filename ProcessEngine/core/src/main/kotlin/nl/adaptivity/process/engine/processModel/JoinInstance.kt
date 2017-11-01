@@ -93,9 +93,9 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
       for(instanceToCancel in cancelablePredecessors) {
         processInstanceBuilder.updateChild(instanceToCancel) {
-          if(updateTaskState(engineData)) {
-            state = NodeInstanceState.Complete
-          } else if (! state.isFinal) cancelAndSkip(engineData)
+          if(this is JoinInstance.Builder && this.updateTaskState(engineData)) {
+            this.state = NodeInstanceState.Complete
+          } else if (! state.isFinal) this.cancelAndSkip(engineData)
         }
       }
       super.doFinishTask(engineData, resultPayload)
