@@ -376,6 +376,14 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     }
 
     final override fun provideTask(engineData: MutableProcessEngineDataAccess) {
+      if (this !is JoinInstance.Builder) {
+        val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
+        for (predecessor in predecessors) {
+          if (predecessor !is SplitInstance && !predecessor.state.isFinal) {
+            throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor.handle} - ${predecessor.state}]")
+          }
+        }
+      }
       if (doProvideTask(engineData).also { softUpdateState(engineData, Sent) } ) {
         takeTask(engineData)
       }
