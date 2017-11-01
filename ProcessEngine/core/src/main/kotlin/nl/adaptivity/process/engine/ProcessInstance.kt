@@ -398,7 +398,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override fun <T : ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T> {
       return InstanceFuture<T, ExecutableProcessNode>(child).apply {
         if (!handle.valid) throw IllegalArgumentException("Storing a non-existing child")
-        _pendingChildren.firstOrNull { it.origBuilder.handle == child.handle && it.origBuilder!=child }?.let { oldChild ->
+        _pendingChildren.firstOrNull { child.handle.valid && it.origBuilder.handle == child.handle && it.origBuilder!=child }?.let { oldChild ->
           throw ProcessException("Attempting to store a new child with an already existing handle")
         }
         if (! _pendingChildren.any { it.origBuilder == child }) _pendingChildren.add(this)
@@ -472,11 +472,15 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override fun <T : ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T> {
       return InstanceFuture<T, ExecutableProcessNode>(child).apply {
-        val existingIdx = _pendingChildren.indexOfFirst { it.origBuilder == child || (it.origBuilder.node==child.node && it.origBuilder.entryNo == child.entryNo) }
-        if (existingIdx>=0)
+        val existingIdx = _pendingChildren.indexOfFirst { it.origBuilder == child || (child.handle.valid && it.origBuilder.handle == child.handle) || (it.origBuilder.node==child.node && it.origBuilder.entryNo == child.entryNo) }
+        if (existingIdx>=0) {
           _pendingChildren[existingIdx] = this
-        else
+        } else {
+          _pendingChildren.firstOrNull { child.handle.valid && it.origBuilder.handle == child.handle && it.origBuilder!=child }?.let { oldChild ->
+            throw ProcessException("Attempting to store a new child with an already existing handle")
+          }
           _pendingChildren.add(this)
+        }
       }
     }
 
@@ -487,12 +491,16 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                .map { it.origBuilder as ProcessNodeInstance.Builder<N, *> } +
              base.childNodes.asSequence()
                 .map { it.withPermission() }
-                .filter { it.node == node }
+                .filter { child ->
+                  child.node == node &&
+                  _pendingChildren.none { pending ->
+                    child.node == pending.origBuilder.node && child.entryNo == pending.origBuilder.entryNo
+                  }
+                }
                 .map {
                   (it.builder(this) as ProcessNodeInstance.Builder<N, *>).also {
                     // The type stuff here is a big hack to avoid having to "know" what the instance type actually is
-                    _pendingChildren.add(
-                      InstanceFuture<ProcessNodeInstance<*>, ExecutableProcessNode>(it))
+                    _pendingChildren.add(InstanceFuture<ProcessNodeInstance<*>, ExecutableProcessNode>(it))
                   }
                 }
 
@@ -669,7 +677,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     val updatedNodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, ProcessNodeInstance<*>>()
     for (future in pending) {
       if (! future.origBuilder.handle.valid) {
-        createdNodes+=data.putNodeInstance(future)
+        // Set the handle on the builder so that lookups in the future will be more correct.
+        createdNodes+=data.putNodeInstance(future).also { future.origBuilder.handle = it.handle() }
       } else {
         assert(future.origBuilder.hProcessInstance == handle)
         updatedNodes[future.origBuilder.handle]=data.storeNodeInstance(future)
