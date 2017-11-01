@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -240,7 +240,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   override fun set(transaction: T, handle: Handle<out V>, value: V): V? {
     invalidateCache(handle)
     delegate.set(transaction, handle, value)
-    return storeInCache(transaction, handle, value)
+    return storeInCache(transaction, handle, delegate.get(transaction, handle) as V)
   }
 
   private fun storeInCache(transaction: T, pHandle: Handle<out V>, pV: V): V {
