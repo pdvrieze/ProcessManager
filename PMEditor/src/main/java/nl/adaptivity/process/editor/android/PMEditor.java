@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -973,7 +973,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           mLayoutTask.cancel(false);
           mLayoutTask.playAll();
         }
-        mPm = null; // unset the process model
+        mPm = new RootDrawableProcessModel.Builder(); // unset the process model
         mLayoutTask = new LayoutTask(getPm(), true);
         mLayoutTask.execute();
         break;
