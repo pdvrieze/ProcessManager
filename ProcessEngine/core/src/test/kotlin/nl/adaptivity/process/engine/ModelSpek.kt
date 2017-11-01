@@ -319,14 +319,16 @@ private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
     assertFalse(nodeInstance.state == Sent) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in sent (not acknowledged) state"}
   }
   test("node instance ${traceElement} should be committed after starting") {
+    var nodeInstance = nodeInstanceF()
+    assertEquals(traceElement.nodeId, nodeInstance.node.id)
     val tr = transaction()
-    val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission()
+    val processInstance = tr.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
     processInstance.update(tr.writableEngineData) {
-      updateChild(nodeInstanceF()) {
+      updateChild(nodeInstance) {
         startTask(tr.writableEngineData)
       }
     }
-    val nodeInstance = nodeInstanceF()
+    nodeInstance = nodeInstanceF()
 
     Assertions.assertTrue(nodeInstance.state.isCommitted) {
       "The instance state was ${processInstance.toDebugString(transaction)}"
@@ -382,6 +384,11 @@ private fun SpecBody.testEndNode(transaction: Getter<StubProcessTransaction>,
       "Instance is: ${parentInstance.toDebugString(transaction)}"
     }
   }
+  test("The predecessors of $traceElement should be final") {
+    Assertions.assertTrue(
+      nodeInstanceF().predecessors.map { transaction().readableEngineData.nodeInstance(it).withPermission() }.all { it.state.isFinal },
+      "All immediate predecessors of an end node should be final")
+  }
 }
 
 private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
@@ -404,15 +411,23 @@ fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance
   assert(nodeInstance.state == Complete)
 }
 
+/** A Queue of operations to perform */
 private class StateQueue {
+  /** The specific operationsin the queue. */
   private val operations = mutableListOf<()->Unit>()
+  /** The state of the operation execution. A `true` value means it has been executed, `false` not.*/
   private val operationState = mutableListOf<Boolean>()
 
+  /** Add an operation to the queue */
   fun add(operation:()->Unit) {
     operations.add(operation)
     operationState.add(false)
   }
 
+  /**
+   * Create a [SolidQueue] that can be executed to the current state. It remembers the current list so if the
+   * queue grows in the future the subqueue is still valid.
+   */
   fun solidify() = SolidQueue(operations.size-1)
 
 

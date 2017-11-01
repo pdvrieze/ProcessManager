@@ -194,7 +194,7 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
     }
   }
   if (nonSeenChildNodes.isNotEmpty()) {
-    kfail("All child nodes should be in the full trace or skipped. Nodes that were not seen: [${nonSeenChildNodes.joinToString()}]" )
+    kfail("All actual child nodes should be in the full trace or skipped. Nodes that were not seen: [${nonSeenChildNodes.joinToString()}]" )
   }
 }
 
