@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -34,6 +34,7 @@ public class JAXBCollectionWrapper {
 
   private final Class<?> mElementType;
 
+  @SuppressWarnings("WeakerAccess")
   public JAXBCollectionWrapper() {
     mCollection = new ArrayList<>();
     mElementType = Object.class;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,6 +16,8 @@
 
 package net.devrieze.util;
 
+import org.jetbrains.annotations.Contract;
+
 import java.util.*;
 
 
@@ -24,9 +26,9 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
   private static class NodeIterator<T> implements Iterator<Entry<T>> {
 
-    Deque<Node<T>> stack;
+    final Deque<Node<T>> stack;
 
-    public NodeIterator(final Node<T> pRoot) {
+    protected NodeIterator(final Node<T> pRoot) {
       stack = new ArrayDeque<>();
       stack.push(pRoot);
       getLeftMost();
@@ -104,7 +106,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
     @Override
     public boolean hasNext() {
-      return stack.size() > 0;
+      return !stack.isEmpty();
     }
 
     @Override
@@ -127,81 +129,92 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
   }
 
-  private static class CompareResult {
+  private static final class CompareResult {
 
-    public static final CompareResult LEFT = new CompareResult(null, XCompareResult.XLEFT);
+    static final CompareResult LEFT = new CompareResult(null, XCompareResult.XLEFT);
 
     @SuppressWarnings("unused")
-    public static final CompareResult ABOVE = new CompareResult(null, XCompareResult.XABOVE);
+    static final CompareResult ABOVE = new CompareResult(null, XCompareResult.XABOVE);
 
-    public static final CompareResult EQUAL = new CompareResult(null, XCompareResult.XEQUAL);
+    static final CompareResult EQUAL = new CompareResult(null, XCompareResult.XEQUAL);
 
-    public static final CompareResult BELOW = new CompareResult(null, XCompareResult.XBELOW);
+    static final CompareResult BELOW = new CompareResult(null, XCompareResult.XBELOW);
 
-    public static final CompareResult RIGHT = new CompareResult(null, XCompareResult.XRIGHT);
+    static final CompareResult RIGHT = new CompareResult(null, XCompareResult.XRIGHT);
 
     final CharSequence commonPrefix;
 
     final XCompareResult cmp;
 
     private CompareResult(final CharSequence pCommonPrefix, final XCompareResult pCmp) {
-      commonPrefix = pCommonPrefix ==null ? null : pCommonPrefix;
+      commonPrefix = pCommonPrefix;
       cmp = pCmp;
     }
 
     /**
      * Check whether the comparison corresponds to the given index.
      * @param pIndex The positional index
-     * @return <code>true</code> when it is, <code>false</code> when not.
+     * @return {@code true} when it is, <code>false</code> when not.
      */
+    @Contract(pure = true)
     @SuppressWarnings("unused")
-    public boolean is(int pIndex) {
+    public boolean is(final int pIndex) {
       return cmp.is(pIndex);
     }
 
-    public boolean isOpposite(int pIndex) {
+    @Contract(pure = true)
+    boolean isOpposite(final int pIndex) {
       return cmp.isOpposite(pIndex);
     }
 
-    public boolean isLeft() {
+    @Contract(pure = true)
+    boolean isLeft() {
       return cmp.isLeft();
     }
 
-    public boolean isAbove() {
+    @Contract(pure = true)
+    boolean isAbove() {
       return cmp.isAbove();
     }
 
-    public boolean isEqual() {
+    @Contract(pure = true)
+    boolean isEqual() {
       return cmp.isEqual();
     }
 
-    public boolean isBelow() {
+    @Contract(pure = true)
+    boolean isBelow() {
       return cmp.isBelow();
     }
 
-    public boolean isEqOrBelow() {
+    @Contract(pure = true)
+    boolean isEqOrBelow() {
       return cmp.isEqOrBelow();
     }
 
     @SuppressWarnings("unused")
-    public boolean isEqOrAbove() {
+    @Contract(pure = true)
+    boolean isEqOrAbove() {
       return cmp.isEqOrBelow();
     }
 
-    public boolean isRight() {
+    @Contract(pure = true)
+    boolean isRight() {
       return cmp.isRight();
     }
 
+    @Contract(pure = true)
     public CompareResult invert() {
       return new CompareResult(commonPrefix, cmp.invert());
     }
 
     @Override
+    @Contract(pure = true)
     public String toString() {
       if (commonPrefix == null) {
         return cmp.toString();
       } else {
-        return cmp.toString() + "[\"" + commonPrefix + "\"]";
+        return cmp + "[\"" + commonPrefix + "\"]";
       }
     }
 
@@ -216,7 +229,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
     public final int index;
 
-    XCompareResult(int pIndex) {
+    XCompareResult(final int pIndex) {
       index = pIndex;
     }
 
@@ -237,35 +250,43 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       }
     }
 
-    public boolean is(int pIndex) {
+    @Contract(pure = true)
+    boolean is(final int pIndex) {
       return pIndex==index;
     }
 
-    public boolean isOpposite(int pIndex) {
+    @Contract(pure = true)
+    boolean isOpposite(final int pIndex) {
       return 2-pIndex==index;
     }
 
-    public boolean isLeft() {
+    @Contract(pure = true)
+    boolean isLeft() {
       return this == XLEFT;
     }
 
-    public boolean isAbove() {
+    @Contract(pure = true)
+    boolean isAbove() {
       return this == XABOVE;
     }
 
-    public boolean isEqual() {
+    @Contract(pure = true)
+    boolean isEqual() {
       return this == XEQUAL;
     }
 
-    public boolean isBelow() {
+    @Contract(pure = true)
+    boolean isBelow() {
       return this == XBELOW;
     }
 
-    public boolean isEqOrBelow() {
+    @Contract(pure = true)
+    boolean isEqOrBelow() {
       return (this == XEQUAL) || (this == XBELOW);
     }
 
-    public boolean isRight() {
+    @Contract(pure = true)
+    boolean isRight() {
       return this == XRIGHT;
     }
   }
@@ -274,10 +295,11 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
   private static final int BELOWIDX=1;
   private static final int RIGHTIDX=2;
 
+  @SuppressWarnings({"AccessingNonPublicFieldOfAnotherObject"})
   private static final class Node<T> {
 
     @SuppressWarnings("unchecked")
-    private Node<T>[] mChildren = new Node[3];
+    private final Node<T>[] mChildren = new Node[3];
 
     public final CharSequence prefix;
 
@@ -285,20 +307,20 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
     private int mCount;
 
-    public Node(final CharSequence pPrefix) {
-      prefix = pPrefix;
+    public Node(final CharSequence prefix) {
+      this.prefix = prefix;
     }
 
-    public Node(final Node<T> pOrig) {
+    public Node(final Node<T> orig) {
       for(int i=mChildren.length-1;i>=0; --i) {
-        Node src = pOrig.mChildren[i];
+        final Node<T> src = orig.mChildren[i];
         if (src!=null) {
-          mChildren[i] = new Node(src);
+          mChildren[i] = new Node<>(src);
         }
       }
-      value = pOrig.value;
-      prefix = pOrig.prefix;
-      mCount = pOrig.mCount;
+      value = orig.value;
+      prefix = orig.prefix;
+      mCount = orig.mCount;
 
     }
 
@@ -311,7 +333,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       mCount = 1;
     }
 
-    public int add(CompareResult pCompare, Node<T> child) {
+    public int add(final CompareResult pCompare, final Node<T> child) {
       int expectedCount = 0;
 
       assert (expectedCount = mCount + child.mCount)!=Integer.MIN_VALUE;
@@ -324,7 +346,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return result;
     }
 
-    protected int addChild(int pos, Node<T> child) {
+    private int addChild(final int pos, final Node<T> child) {
       Node<T> current = mChildren[pos];
       if (current==null) {
         setChild(pos, child);
@@ -332,7 +354,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       } else{
         CompareResult cmp = prefixCompare(0, current.prefix, child.prefix);
         if ((pos!=BELOWIDX && cmp.isOpposite(pos))||cmp.isAbove()) {
-          int result = child.mCount;
+          final int result = child.mCount;
           interpose(pos, cmp.invert(), child);
           rebalance(pos);
           return result;
@@ -354,9 +376,9 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       }
     }
 
-    public boolean remove(CompareResult pCompare, Entry<?> pEntry) {
+    public boolean remove(final CompareResult pCompare, final Entry<?> pEntry) {
       if(pEntry.getValue()==null) { throw new NullPointerException(); }
-      int oldCount = mCount;
+      final int oldCount = mCount;
       assert pCompare.cmp == prefixCompare(prefix, pEntry.getPrefix()).cmp;
       assert ! pCompare.isAbove();
       assert !(pCompare.isEqual() && pEntry.getValue().equals(value));
@@ -367,12 +389,12 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return result;
     }
 
-    protected boolean removeChild(int idx, CompareResult pCompare, Entry<?> pEntry) {
+    private boolean removeChild(final int idx, final CompareResult pCompare, final Entry<?> pEntry) {
       final Node<T> current = mChildren[idx];
       if (current==null) { return false; }
-      CompareResult cmp = prefixCompare(0, current.prefix, pEntry.getPrefix());
+      final CompareResult cmp = prefixCompare(0, current.prefix, pEntry.getPrefix());
       if (cmp.isEqual() && pEntry.getValue().equals(current.value)) {
-        Node<T> oldNode = setChild(idx, null);
+        final Node<T> oldNode = setChild(idx, null);
         oldNode.value=null;
         addIndividualElements(pCompare, oldNode);
         return true;
@@ -381,15 +403,15 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       }
     }
 
-    private boolean reduceCount(boolean pDoReduce) {
+    private boolean reduceCount(final boolean pDoReduce) {
       if (pDoReduce) { --mCount; }
       return pDoReduce;
     }
 
-    private void rebalance(int idx) {
+    private void rebalance(final int idx) {
       final Node<T> originalRoot = mChildren[idx];
       if (originalRoot==null) { return; }
-      int originalCount = originalRoot.mCount;
+      final int originalCount = originalRoot.mCount;
 
       final int balanceFactor = getBalanceFactor(originalRoot);
 
@@ -402,13 +424,13 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
     }
 
     private static int getBalanceFactor(final Node<?> root) {
-      int leftCnt = root.getLeft()==null ? 0 : root.getLeft().mCount;
-      int rightCnt = root.getRight()==null ? 0 : root.getRight().mCount;
+      final int leftCnt  = root.getLeft() == null ? 0 : root.getLeft().mCount;
+      final int rightCnt = root.getRight() == null ? 0 : root.getRight().mCount;
       assert leftCnt+rightCnt+(root.value==null ? 0 : 1) + (root.getBelow()==null ? 0 : root.getBelow().mCount) == root.mCount;
       return rightCnt-leftCnt;
     }
 
-    private static <U> Node<U> rotateLeft(final Node<U> originalRoot, boolean testPivotBalance) {
+    private static <U> Node<U> rotateLeft(final Node<U> originalRoot, final boolean testPivotBalance) {
       Node<U> pivot = originalRoot.setRight(null);
       if (testPivotBalance && getBalanceFactor(pivot)<=-1) {
         pivot = rotateRight(pivot, false);
@@ -420,7 +442,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return pivot;
     }
 
-    private static <U> Node<U> rotateRight(final Node<U> originalRoot, boolean testPivotBalance) {
+    private static <U> Node<U> rotateRight(final Node<U> originalRoot, final boolean testPivotBalance) {
       Node<U> pivot = originalRoot.setLeft(null);
       if (testPivotBalance && getBalanceFactor(pivot)>=1) {
         pivot = rotateLeft(pivot, false);
@@ -432,35 +454,34 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return pivot;
     }
 
-    protected void interpose(int pIndex, CompareResult pCompareResult, Node<T> pNewChild) {
+    private void interpose(final int pIndex, final CompareResult pCompareResult, final Node<T> pNewChild) {
       // Remove the old child from this node.
-      Node<T> oldChild = setChild(pIndex, null);
+      final Node<T> oldChild = setChild(pIndex, null);
 
       // First add the old child to the new one (so newChild has the correct node count)
       pNewChild.addIndividualElements(pCompareResult, oldChild);
-      final Node<T> left = pNewChild;
 
       // Then set the new left.
-      setChild(pIndex, left);
+      setChild(pIndex, pNewChild);
     }
 
-    private void addIndividualElements(CompareResult pCompareResult, Node<T> pSource) {
-      Node<T> sourceLeft = pSource.setLeft(null);
-      Node<T> sourceRight = pSource.setRight(null);
+    private void addIndividualElements(final CompareResult pCompareResult, final Node<T> pSource) {
+      final Node<T> sourceLeft  = pSource.setLeft(null);
+      final Node<T> sourceRight = pSource.setRight(null);
 
       if (pSource.value!=null) {
         // We can ignore the below nodes as they would remain under the source
-        this.add(pCompareResult, pSource);
+        add(pCompareResult, pSource);
       } else if (pSource.getBelow()!=null){
         // The source is a placeholder, and can be removed. In this case
         // the below nodes must also be added (these could not exist if remove just demoted this node)
         add(pCompareResult, pSource.getBelow());
       }
       if (sourceLeft!=null) {
-        this.add(prefixCompare(this.prefix, sourceLeft.prefix), sourceLeft);
+        add(prefixCompare(prefix, sourceLeft.prefix), sourceLeft);
       }
       if (sourceRight!=null) {
-        this.add(prefixCompare(this.prefix, sourceRight.prefix), sourceRight);
+        add(prefixCompare(prefix, sourceRight.prefix), sourceRight);
       }
     }
 
@@ -476,8 +497,8 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return setChild(BELOWIDX, below);
     }
 
-    private Node<T> setChild(int pIndex, Node<T> child) {
-      Node<T> result = mChildren[pIndex];
+    private Node<T> setChild(final int pIndex, final Node<T> child) {
+      final Node<T> result = mChildren[pIndex];
       if (result != child) {
         if (result != null) {
           mCount -= result.mCount;
@@ -516,10 +537,10 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return result.toString();
     }
 
-    public void appendTo(StringBuilder b, String strprefix, String labelLine) {
-      final int paddingLength = Math.max(0, labelLine.length()-strprefix.length()+prefix.length()-2);
-      StringBuilder basePrefix = new StringBuilder().append(strprefix).append(StringUtil.charRepeat(paddingLength,' '));
-      boolean inlineValue = getBelow()!=null || getLeft()!=null || getRight()!=null;
+    public void appendTo(final StringBuilder b, final String strprefix, final String labelLine) {
+      final int           paddingLength = Math.max(0, labelLine.length()-strprefix.length()+prefix.length()-2);
+      final StringBuilder basePrefix    = new StringBuilder().append(strprefix).append(StringUtil.charRepeat(paddingLength, ' '));
+      final boolean       inlineValue   = getBelow() != null || getLeft() != null || getRight() != null;
 
       if (getLeft()==null) {
         b.append(basePrefix).append("     [===== (");
@@ -532,10 +553,10 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       }
       b.append('\n');
 
-      StringBuilder belowPrefix = new StringBuilder().append(basePrefix).append("     ");
+      final StringBuilder belowPrefix = new StringBuilder().append(basePrefix).append("     ");
       belowPrefix.append("|");
 
-      String siblingPrefix = new StringBuilder(basePrefix.length()+1).append(basePrefix).append('|').toString();
+      final String siblingPrefix = new StringBuilder(basePrefix.length() + 1).append(basePrefix).append('|').toString();
 
 
       if (getLeft()!=null) {
@@ -543,16 +564,16 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
         b.append('\n').append(basePrefix).append("\\----\\\n");
       }
       if (!inlineValue) {
-        b.append(labelLine).append('"').append(this.prefix).append('\"');
+        b.append(labelLine).append('"').append(prefix).append('\"');
         b.append(StringUtil.charRepeat(Math.max(0, 2-prefix.length()-strprefix.length()), ' '));
         b.append(" ] ").append("value=\"").append(value).append("\"\n");
       } else if (getBelow()!=null){
 //        b.append(belowPrefix).append('\n');
-        getBelow().appendTo(b, belowPrefix.toString(), labelLine+ '"' +this.prefix+'"'+
-            StringUtil.charRepeat(Math.max(0, 2-prefix.length()-strprefix.length()), ' ').toString()+" ] b=");
+        getBelow().appendTo(b, belowPrefix.toString(), labelLine + '"' + prefix + '"' +
+                                                       StringUtil.charRepeat(Math.max(0, 2-prefix.length()-strprefix.length()), ' ') + " ] b=");
         b.append('\n');
       } else {
-        b.append(labelLine).append('"').append(this.prefix).append('\"');
+        b.append(labelLine).append('"').append(prefix).append('\"');
         b.append(StringUtil.charRepeat(Math.max(0, 2-prefix.length()-strprefix.length()), ' '));
         b.append(" ]\n");
       }
@@ -574,7 +595,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
     @SuppressWarnings("unchecked")
     @Override
     public Node<T> clone() {
-      return new Node<T>(this);
+      return new Node<>(this);
     }
   }
 
@@ -663,13 +684,12 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
 
   @Override
   public Iterator<Entry<V>> iterator() {
-    final NodeIterator<V> iter = new NodeIterator<>(mRoot);
-    return iter;
+    return new NodeIterator<>(mRoot);
   }
 
   public List<Entry<V>> toList() {
     final List<Entry<V>> list = toList(new ArrayList<Entry<V>>(mRoot.getCount()), mRoot);
-    assert (mRoot==null && list.size()==0) || (list.size()==mRoot.getCount());
+    assert (mRoot==null && list.isEmpty()) || (list.size() == mRoot.getCount());
     return list;
   }
 
@@ -700,8 +720,8 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       throw new NullPointerException();
     }
 
-    final Node<V> n = new Node<>(prefix, value);
-    int cnt = put(n);
+    final Node<V> n   = new Node<>(prefix, value);
+    final int     cnt = put(n);
     assert cnt==1;
   }
 
@@ -711,8 +731,7 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       return 1;
     } else {
       final CompareResult cmp = prefixCompare(0, mRoot.prefix, n.prefix);
-      int cnt = mRoot.add(cmp, n);
-      return cnt;
+      return mRoot.add(cmp, n);
     }
   }
 
@@ -906,8 +925,8 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
     }
     final Node<V> copy = baseNode.clone();
 
-    Node<V> left = copy.setLeft(null);
-    Node<V> right = copy.setRight(null);
+    final Node<V> left  = copy.setLeft(null);
+    final Node<V> right = copy.setRight(null);
 
     final Node<V> resultNode;
     if (copy.prefix.length()==pPrefix.length()) {
@@ -917,13 +936,13 @@ public class PrefixMap<V> extends AbstractCollection<PrefixMap.Entry<V>> {
       resultNode.add(CompareResult.BELOW, copy);
 
       if (left!=null) {
-        CompareResult cmpLeft = prefixCompare(pPrefix, left.prefix);
+        final CompareResult cmpLeft = prefixCompare(pPrefix, left.prefix);
         if (cmpLeft.isBelow()) {
           resultNode.add(cmpLeft, left);
         }
       }
       if (right!=null){
-        CompareResult cmpRight = prefixCompare(pPrefix, right.prefix);
+        final CompareResult cmpRight = prefixCompare(pPrefix, right.prefix);
         if (cmpRight.isBelow()) {
           resultNode.add(cmpRight, right);
         }

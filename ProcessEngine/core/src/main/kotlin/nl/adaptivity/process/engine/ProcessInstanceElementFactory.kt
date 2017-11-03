@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.db.AbstractElementFactory
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -51,7 +52,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val owner = SimplePrincipal(pi.owner.nullableValue(columns, values))
     val hProcessModel = pi.pmhandle.value(columns, values)
     val parentActivity = pi.parentActivity.value(columns, values)
-    val processModel = mProcessEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL).mustExist(hProcessModel)
+    val processModel = mProcessEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SYSTEMPRINCIPAL).mustExist(hProcessModel)
     val instancename = pi.name.nullableValue(columns, values)
     val piHandle = pi.pihandle.value(columns, values)
     val state = pi.state.nullableValue(columns, values) ?: State.NEW

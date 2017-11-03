@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
 import net.devrieze.util.lookup
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -48,7 +49,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: Builder,
                 childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
                 name: String? = null,
                 handle: Long = -1L,
-                owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+                owner: Principal = SYSTEMPRINCIPAL,
                 roles: Collection<String> = emptyList(),
                 uuid: UUID? = null,
                 imports: Collection<IXmlResultType> = emptyList(),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,10 +14,9 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-/**
- *
- */
 package net.devrieze.util;
+
+import org.jetbrains.annotations.Contract;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
@@ -38,9 +37,10 @@ public class ValueCollection<T> extends AbstractCollection<T> {
     mBackingCollection = pBackingCollection;
   }
 
+  @Contract(pure = true)
   @Override
-  public boolean contains(final Object pO) {
-    if (pO == null) {
+  public boolean contains(final Object o) {
+    if (o == null) {
       for (final Map.Entry<?, T> entry : mBackingCollection) {
         if (entry.getValue() == null) {
           return true;
@@ -48,7 +48,7 @@ public class ValueCollection<T> extends AbstractCollection<T> {
       }
     } else {
       for (final Map.Entry<?, T> entry : mBackingCollection) {
-        if (pO.equals(entry.getValue())) {
+        if (o.equals(entry.getValue())) {
           return true;
         }
       }
@@ -56,6 +56,7 @@ public class ValueCollection<T> extends AbstractCollection<T> {
     return false;
   }
 
+  @Contract(pure = true)
   @Override
   public boolean containsAll(final Collection<?> pC) {
     for (final Object o : pC) {
@@ -66,6 +67,7 @@ public class ValueCollection<T> extends AbstractCollection<T> {
     return true;
   }
 
+  @Contract(pure = true)
   @Override
   public boolean equals(final Object pO) {
     if (!(pO instanceof Iterable)) {
@@ -74,14 +76,14 @@ public class ValueCollection<T> extends AbstractCollection<T> {
     final Iterator<T> myIterator = iterator();
     final Iterator<?> otherIterator = ((Iterable<?>) pO).iterator();
     while (myIterator.hasNext()) {
-      final boolean b = otherIterator.hasNext() && myIterator.next().equals(otherIterator.next());
-      if (!b) {
+      if (!(otherIterator.hasNext() && myIterator.next().equals(otherIterator.next()))) {
         return false;
       }
     }
     return !otherIterator.hasNext();
   }
 
+  @Contract(pure = true)
   @Override
   public int hashCode() {
     int result = 0;
@@ -91,6 +93,7 @@ public class ValueCollection<T> extends AbstractCollection<T> {
     return result;
   }
 
+  @Contract(pure = true)
   @Override
   public boolean isEmpty() {
     return mBackingCollection.isEmpty();
@@ -101,21 +104,25 @@ public class ValueCollection<T> extends AbstractCollection<T> {
     return new ValueIterator<>(mBackingCollection.iterator());
   }
 
+  @Contract("_ -> fail")
   @Override
-  public boolean remove(final Object pO) {
+  public boolean remove(final Object o) {
     throw new UnsupportedOperationException();
   }
 
+  @Contract("_ -> fail")
   @Override
-  public boolean removeAll(final Collection<?> pC) {
+  public boolean removeAll(final Collection<?> c) {
     throw new UnsupportedOperationException();
   }
 
+  @Contract("_ -> fail")
   @Override
-  public boolean retainAll(final Collection<?> pC) {
+  public boolean retainAll(final Collection<?> c) {
     throw new UnsupportedOperationException();
   }
 
+  @Contract(pure = true)
   @Override
   public int size() {
     return mBackingCollection.size();

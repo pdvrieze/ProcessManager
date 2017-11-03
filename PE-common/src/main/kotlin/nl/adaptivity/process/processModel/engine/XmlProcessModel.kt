@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.CollectionUtil
 import net.devrieze.util.StringCache
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.*
@@ -46,7 +47,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
       childModels : Collection<XmlChildModel.Builder> = emptySet(),
       name: String? = null,
       handle: Long = -1L,
-      owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+      owner: Principal = SYSTEMPRINCIPAL,
       roles: List<String> = emptyList(),
       uuid: UUID? = null,
       imports: List<IXmlResultType> = emptyList(),

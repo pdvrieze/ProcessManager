@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -42,7 +42,7 @@ public interface Named {
    * @author Paul de Vrieze
    * @version 1.1 $Revision$
    */
-  public class NameCompare<T extends Named> implements Comparator<T> {
+  class NameCompare<T extends Named> implements Comparator<T> {
 
     /**
      * This comparator compares the name according to simple string comparison.
@@ -52,7 +52,6 @@ public interface Named {
      * @return &lt;0 iff pObj1 < pObj2 <br />
      *         ==0 iff pObj1 == pObj2 <br />
      *         &gt;0 iff pObj1 > pObj2
-     * @see Comparator#compare(Object, Object)
      */
     @Override
     public int compare(final T pObj1, final T pObj2) {

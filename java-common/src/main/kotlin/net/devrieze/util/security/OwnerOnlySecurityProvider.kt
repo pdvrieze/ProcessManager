@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -47,7 +47,7 @@ class OwnerOnlySecurityProvider(val adminRoles:Set<String>) : BaseSecurityProvid
 
   override fun getPermission(permission: SecurityProvider.Permission, subject: Principal?, objectPrincipal: Principal): PermissionResult {
     if (subject==null) return PermissionResult.UNAUTHENTICATED
-    if (subject== SecurityProvider.SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
+    if (subject== net.devrieze.util.security.SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
     if (subject == objectPrincipal) { return PermissionResult.GRANTED }
     if (subject is RolePrincipal) { if (adminRoles.any { subject.hasRole(it) }) return PermissionResult.GRANTED }
     return PermissionResult.DENIED

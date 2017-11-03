@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -46,10 +46,43 @@ import java.util.TreeMap;
  */
 public class HttpRequest {
 
+  private static class BytesDatasource implements DataSource {
+
+    private final String name;
+    private final byte[]   content;
+    private final MimeType contentType;
+
+    public BytesDatasource(final byte[] content, final String name, final MimeType contentType) {
+      this.name = name;
+      this.content = content;
+      this.contentType = contentType;
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+      return new ByteArrayInputStream(content);
+    }
+
+    @Override
+    public String getContentType() {
+      return contentType.toString();
+    }
+  }
+
   public static final MimeType TEXT_PLAIN = mimeType("text/plain");
 
   /** Enumeration for the various HTTP methods supported. */
-  public static enum Method {
+  public enum Method {
     OPTIONS("OPTIONS"),
     GET("GET"),
     HEAD("HEAD"),
@@ -95,8 +128,6 @@ public class HttpRequest {
                                          * either this (if omitted) or HTTP/1.1
                                          */
 
-  private char[] mContents = null;
-
   private int mResponse = 0;
 
   /*
@@ -113,19 +144,19 @@ public class HttpRequest {
     mQueries = new HashMap<>();
 
     if (pIn != null) {
-      String s;
       mHeaders = new HashMap<>();
 
       try {
+        String s;
         do {
           s = pIn.readLine();
-        } while (s.trim().length() == 0);
+        } while (s.trim().isEmpty());
 
         processFirstLine(s);
 
         /* now process the other parts of the request */
         s = pIn.readLine();
-        while ((s != null) && (s.trim().length() != 0)) {
+        while ((s != null) && (!s.trim().isEmpty())) {
           /* add headers */
           int i = s.indexOf(':');
 
@@ -142,13 +173,13 @@ public class HttpRequest {
 
         if (o != null) {
           final int cl = Integer.parseInt(o);
-          mContents = new char[cl];
+          final char[] mContents = new char[cl];
 
           for (int i = 0; i < cl; i++) {
             mContents[i] = (char) pIn.read();
           }
 
-          final String ct = getHeader("content-type");
+          final String ct = mHeaders.get("content-type");
 
           if (ct.toLowerCase().equals("application/x-www-form-urlencoded")) {
             final String query = new String(mContents);
@@ -163,7 +194,7 @@ public class HttpRequest {
           }
 
           if (query != null) {
-            procesUrlEncoded(query);
+            parseUrlEncodedHelper(mQueries, query);
           }
         }
       } catch (final Exception e) {
@@ -187,7 +218,7 @@ public class HttpRequest {
    * @param pKey The header name
    * @return the value
    */
-  public String getHeader(final String pKey) {
+  public final String getHeader(final String pKey) {
     return mHeaders.get(pKey);
   }
 
@@ -206,8 +237,8 @@ public class HttpRequest {
    *
    * @return A Hashtable with all queries.
    */
-  public HashMap<String, String> getQueries() {
-    return mQueries;
+  public Map<String,String> getQueries() {
+    return Collections.unmodifiableMap(mQueries);
   }
 
   /**
@@ -303,8 +334,6 @@ public class HttpRequest {
       throw new IllegalArgumentException("Content type does not specify a boundary");
     }
 
-    final Map<String, DataSource> result = new HashMap<>();
-
     try (final BufferedInputStream in = new BufferedInputStream(pIn)) {
 
       int b = in.read();
@@ -322,6 +351,7 @@ public class HttpRequest {
       ByteArrayOutputStream wsBuffer = null;
       StringBuilder headerLine = null;
       MimeType contentType = TEXT_PLAIN;
+      final Map<String, DataSource> result = new HashMap<>();
       while (b >= 0) {
 
 
@@ -436,7 +466,7 @@ public class HttpRequest {
                     }
                     if (stage > 4) {
                       final byte[] ws = wsBuffer ==null ? new byte[0] : wsBuffer.toByteArray();
-                      for (int i = 0; i < ws.length; ++i) {
+                      for (final byte w : ws) {
                         content.write(ws);
                       }
                       if (stage > 5) {
@@ -461,30 +491,8 @@ public class HttpRequest {
     }
   }
 
-  private static DataSource toDataSource(final ByteArrayOutputStream pContent, final String pName, final MimeType pContentType) {
-    final byte[] content = pContent.toByteArray();
-    return new DataSource() {
-
-      @Override
-      public OutputStream getOutputStream() throws IOException {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public String getName() {
-        return pName;
-      }
-
-      @Override
-      public InputStream getInputStream() throws IOException {
-        return new ByteArrayInputStream(content);
-      }
-
-      @Override
-      public String getContentType() {
-        return pContentType.toString();
-      }
-    };
+  private static DataSource toDataSource(final ByteArrayOutputStream content, final String name, final MimeType contentType) {
+    return new BytesDatasource(content.toByteArray(), name, contentType);
   }
 
   public static Map<String, String> parseUrlEncoded(final CharSequence pSource) {
@@ -515,7 +523,7 @@ public class HttpRequest {
         }
       } else {
         if (('&' == query.charAt(i)) || (';' == query.charAt(i))) {
-          String value;
+          final String value;
           try {
             value = URLDecoder.decode(query.subSequence(startPos, i).toString(), "UTF-8");
           } catch (final UnsupportedEncodingException e) {

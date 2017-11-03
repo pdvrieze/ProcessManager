@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -37,6 +37,7 @@ package net.devrieze.util;
 public abstract class StringRep implements CharSequence {
 
   /** The default quotes that are used. */
+  @SuppressWarnings("FieldNamingConvention")
   public static final String _DEFAULTQUOTES = "\"\"\'\'()[]{}";
 
   /**
@@ -52,47 +53,32 @@ public abstract class StringRep implements CharSequence {
     /**
      * Create a new CharArrayStringRep based on the given character array.
      * 
-     * @param pElement The character array to be wrapped.
+     * @param element The character array to be wrapped.
      */
-    private CharArrayStringRep(final char[] pElement) {
-      mElement = pElement;
+    private CharArrayStringRep(final char[] element) {
+      mElement = element;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char charAt(final int pIndex) {
       return mElement[pIndex];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int length() {
       return mElement.length;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char[] toCharArray() {
-      return mElement;
+      return mElement.clone();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
       return new String(mElement);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuffer toStringBuffer() {
       final StringBuffer result = new StringBuffer(mElement.length);
@@ -101,9 +87,6 @@ public abstract class StringRep implements CharSequence {
       return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuilder toStringBuilder() {
       final StringBuilder result = new StringBuilder(mElement.length);
@@ -133,21 +116,18 @@ public abstract class StringRep implements CharSequence {
      * 
      * @param pBegin the index of the first character
      * @param pEnd the index of the first character not belonging to the string
-     * @param pElement the string to base the rep of.
+     * @param element the string to base the rep of.
      */
-    private IndexedCharArrayStringRep(final int pBegin, final int pEnd, final char[] pElement) {
-      if ((pEnd < pBegin) || (pBegin < 0) || (pEnd >= pElement.length)) {
+    private IndexedCharArrayStringRep(final int pBegin, final int pEnd, final char[] element) {
+      if ((pEnd < pBegin) || (pBegin < 0) || (pEnd >= element.length)) {
         throw new IndexOutOfBoundsException();
       }
 
       mBegin = pBegin;
       mEnd = pEnd;
-      mElement = pElement;
+      mElement = element;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char charAt(final int pIndex) {
       final int index = pIndex + mBegin;
@@ -159,17 +139,11 @@ public abstract class StringRep implements CharSequence {
       return mElement[pIndex + mBegin];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int length() {
       return mEnd - mBegin;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char[] toCharArray() {
       final char[] result = new char[length()];
@@ -178,17 +152,11 @@ public abstract class StringRep implements CharSequence {
       return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
       return new String(mElement, mBegin, mEnd - mBegin);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuffer toStringBuffer() {
       final int length = mEnd - mBegin;
@@ -198,9 +166,6 @@ public abstract class StringRep implements CharSequence {
       return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuilder toStringBuilder() {
       final int length = mEnd - mBegin;
@@ -233,21 +198,18 @@ public abstract class StringRep implements CharSequence {
      * 
      * @param pBegin the start index of the substring
      * @param pEnd the end index of the substring
-     * @param pElement The string to base this one of
+     * @param element The string to base this one of
      */
-    private RepStringRep(final int pBegin, final int pEnd, final StringRep pElement) {
-      if ((pEnd < pBegin) || (pBegin < 0) || (pEnd > pElement.length())) {
+    private RepStringRep(final int pBegin, final int pEnd, final StringRep element) {
+      if ((pEnd < pBegin) || (pBegin < 0) || (pEnd > element.length())) {
         throw new IndexOutOfBoundsException();
       }
 
       mBegin = pBegin;
       mEnd = pEnd;
-      mElement = pElement;
+      mElement = element;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char charAt(final int pIndex) {
       final int index = pIndex + mBegin;
@@ -259,17 +221,23 @@ public abstract class StringRep implements CharSequence {
       return mElement.charAt(pIndex + mBegin);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public StringRep substring(final int pStart, final int pEnd) {
+      if ((pStart < 0) || (pEnd > length())) {
+        throw new IndexOutOfBoundsException();
+      }
+
+      final int begin = mBegin + pStart;
+      final int end = (begin + pEnd) - pStart;
+
+      return createRep(begin, end, mElement);
+    }
+
     @Override
     public int length() {
       return mEnd - mBegin;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char[] toCharArray() {
       final char[] origCharArray = mElement.toCharArray();
@@ -279,17 +247,11 @@ public abstract class StringRep implements CharSequence {
       return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
       return new String(mElement.toCharArray(), mBegin, mEnd - mBegin);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuffer toStringBuffer() {
       final int length = mEnd - mBegin;
@@ -299,9 +261,6 @@ public abstract class StringRep implements CharSequence {
       return foo;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuilder toStringBuilder() {
       final int length = mEnd - mBegin;
@@ -319,31 +278,22 @@ public abstract class StringRep implements CharSequence {
     /**
      * Create a new StringBufferStringRep based on this element.
      * 
-     * @param pElement the stringbuffer to base of
+     * @param element the stringbuffer to base of
      */
-    private CharSequenceStringRep(final CharSequence pElement) {
-      mElement = pElement;
+    private CharSequenceStringRep(final CharSequence element) {
+      mElement = element;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char charAt(final int pIndex) {
       return mElement.charAt(pIndex);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int length() {
       return mElement.length();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char[] toCharArray() {
       final char[] buffer = new char[mElement.length()];
@@ -353,17 +303,11 @@ public abstract class StringRep implements CharSequence {
       return buffer;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
       return mElement.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuffer toStringBuffer() {
       if (mElement instanceof StringBuffer) {
@@ -372,9 +316,6 @@ public abstract class StringRep implements CharSequence {
       return new StringBuffer(mElement);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuilder toStringBuilder() {
       if (mElement instanceof StringBuilder) {
@@ -392,55 +333,37 @@ public abstract class StringRep implements CharSequence {
     /**
      * Create a new StringStringRep based on this string.
      * 
-     * @param pElement the string to base the rep on.
+     * @param element the string to base the rep on.
      */
-    private StringStringRep(final String pElement) {
-      mElement = pElement;
+    private StringStringRep(final String element) {
+      mElement = element;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char charAt(final int pIndex) {
       return mElement.charAt(pIndex);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public int length() {
       return mElement.length();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public char[] toCharArray() {
       return mElement.toCharArray();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String toString() {
       return mElement;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuffer toStringBuffer() {
       return new StringBuffer(mElement);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public StringBuilder toStringBuilder() {
       return new StringBuilder(mElement);
@@ -487,8 +410,8 @@ public abstract class StringRep implements CharSequence {
      * 
      * @param pStringRep The StringRep to iterate over
      * @param pToken The token that splits the elements
-     * @param pQuotes <code>true</code> if quotes need to be taken into account,
-     *          <code>false</code> if not
+     * @param pQuotes {@code true} if quotes need to be taken into account,
+     *          {@code false} if not
      */
     private StringRepIteratorImpl(final StringRep pStringRep, final char pToken, final boolean pQuotes) {
       mStringRep = pStringRep;
@@ -508,9 +431,6 @@ public abstract class StringRep implements CharSequence {
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean hasNext() {
       /*
@@ -547,7 +467,7 @@ public abstract class StringRep implements CharSequence {
         return createRep("");
       }
 
-      int newPos;
+      final int newPos;
 
       if (mQuotes) {
         newPos = nextPosQuoted();
@@ -556,10 +476,9 @@ public abstract class StringRep implements CharSequence {
       }
 
       int right = newPos - 1;
-      char c;
 
       /* trim on right whitespace */
-      c = mStringRep.charAt(right);
+      char c = mStringRep.charAt(right);
       while ((mPos <= right) && ((c == ' ') || (c == '\n') || (c == '\t'))) {
         right--;
         c = mStringRep.charAt(right);
@@ -663,43 +582,31 @@ public abstract class StringRep implements CharSequence {
   /**
    * Create a new StringRep.
    * 
-   * @param pElement The string to be encapsulated
+   * @param element The string to be encapsulated
    * @return a new StringRep
    */
-  public static final StringRep createRep(final String pElement) {
-    return new StringStringRep(pElement);
+  public static StringRep createRep(final String element) {
+    return new StringStringRep(element);
   }
 
   /**
    * Create a new StringRep.
    * 
-   * @param pElement The string to be encapsulated
+   * @param element The string to be encapsulated
    * @return a new StringRep
    */
-  public static final StringRep createRep(final CharSequence pElement) {
-    return new CharSequenceStringRep(pElement);
+  public static StringRep createRep(final CharSequence element) {
+    return new CharSequenceStringRep(element);
   }
 
   /**
    * Create a new StringRep.
    * 
-   * @param pElement The string to be encapsulated
+   * @param element The string to be encapsulated
    * @return a new StringRep
    */
-  public static final StringRep createRep(final char[] pElement) {
-    return new CharArrayStringRep(pElement);
-  }
-
-  /**
-   * Create a new StringRep.
-   * 
-   * @param pStart The starting index
-   * @param pEnd The end index
-   * @param pElement The string to be encapsulated
-   * @return a new StringRep
-   */
-  public static final StringRep createRep(final int pStart, final int pEnd, final char[] pElement) {
-    return new IndexedCharArrayStringRep(pStart, pEnd, pElement);
+  public static StringRep createRep(final char[] element) {
+    return new CharArrayStringRep(element);
   }
 
   /**
@@ -707,24 +614,24 @@ public abstract class StringRep implements CharSequence {
    * 
    * @param pStart The starting index
    * @param pEnd The end index
-   * @param pElement The string to be encapsulated
+   * @param element The string to be encapsulated
+   * @return a new StringRep
+   */
+  public static StringRep createRep(final int pStart, final int pEnd, final char[] element) {
+    return new IndexedCharArrayStringRep(pStart, pEnd, element);
+  }
+
+  /**
+   * Create a new StringRep.
+   * 
+   * @param start The starting index
+   * @param end The end index
+   * @param element The string to be encapsulated
    * @return a new StringRep
    * @throws IndexOutOfBoundsException When the index values are invalid
    */
-  public static final StringRep createRep(final int pStart, final int pEnd, final StringRep pElement) {
-    if ((pStart < 0) || (pEnd > pElement.length())) {
-      throw new IndexOutOfBoundsException();
-    }
-
-    if (pElement instanceof RepStringRep) {
-      final RepStringRep rsr = (RepStringRep) pElement;
-      final int begin = rsr.mBegin + pStart;
-      final int end = (begin + pEnd) - pStart;
-
-      return createRep(begin, end, rsr.mElement);
-    }
-
-    return new RepStringRep(pStart, pEnd, pElement);
+  public static StringRep createRep(final int start, final int end, final StringRep element) {
+    return element.substring(start, end);
   }
 
   /**
@@ -755,15 +662,6 @@ public abstract class StringRep implements CharSequence {
   }
 
   /**
-   * Get the character at the specified index.
-   * 
-   * @param pIndex the index
-   * @return the character
-   */
-  @Override
-  public abstract char charAt(final int pIndex);
-
-  /**
    * append the string to a new rep.
    * 
    * @param pRep the to be appended string
@@ -771,7 +669,7 @@ public abstract class StringRep implements CharSequence {
    */
   public StringRep appendCombine(final CharSequence pRep) {
     final StringBuilder b = toStringBuilder();
-    b.append(pRep.toString());
+    b.append(pRep);
 
     return createRep(b);
   }
@@ -780,25 +678,17 @@ public abstract class StringRep implements CharSequence {
    * Check whether the rep ends with the the character.
    * 
    * @param pChar the character
-   * @return <code>true</code> if it is the last char
+   * @return {@code true} if it is the last char
    */
   public boolean endsWith(final char pChar) {
     return charAt(length() - 1) == pChar;
   }
 
   /**
-   * The length of the string.
-   * 
-   * @return the length
-   */
-  @Override
-  public abstract int length();
-
-  /**
    * Get the index of a character in the buffer.
    * 
    * @param pChar The character to be found
-   * @param pQuote If <code>true</code> take quotes into account
+   * @param pQuote If {@code true} take quotes into account
    * @return -1 if not found, else the index of the character
    */
   public int indexOf(final char pChar, final boolean pQuote) {
@@ -822,7 +712,7 @@ public abstract class StringRep implements CharSequence {
    * 
    * @param pChar The character to be found
    * @param pStartIndex the index where searching should start
-   * @param pQuote If <code>true</code> take quotes into account
+   * @param pQuote If {@code true} take quotes into account
    * @return -1 if not found, else the index of the character
    * @throws NumberFormatException When quotes in the string are unmatched
    */
@@ -966,7 +856,7 @@ public abstract class StringRep implements CharSequence {
    * the token.
    * 
    * @param pToken the token
-   * @param pQuotes if <code>true</code>, double quotes are recognised
+   * @param pQuotes if {@code true}, double quotes are recognised
    * @return the iterator
    */
   public StringRepIterator splitOn(final char pToken, final boolean pQuotes) {
@@ -978,7 +868,7 @@ public abstract class StringRep implements CharSequence {
    * the token.
    * 
    * @param pToken the token
-   * @param pQuotes if <code>true</code>, double quotes are recognised
+   * @param pQuotes if {@code true}, double quotes are recognised
    * @return the iterator
    */
   public StringRepIterator splitOn(final char pToken, final CharSequence pQuotes) {
@@ -1000,7 +890,7 @@ public abstract class StringRep implements CharSequence {
    * Check whether the rep starts with the the character.
    * 
    * @param pChar the character
-   * @return <code>true</code> if it is the first char
+   * @return {@code true} if it is the first char
    */
   public boolean startsWith(final char pChar) {
     if (length() == 0) {
@@ -1015,14 +905,6 @@ public abstract class StringRep implements CharSequence {
    * @return a chararray
    */
   public abstract char[] toCharArray();
-
-  /**
-   * The string representation.
-   * 
-   * @return the string
-   */
-  @Override
-  public abstract String toString();
 
   /**
    * The stringbuffer representation.
@@ -1046,8 +928,12 @@ public abstract class StringRep implements CharSequence {
    * @return A new rep (note that this can be the same one, but does not need to
    *         be)
    */
-  public final StringRep substring(final int pStart, final int pEnd) {
-    return createRep(pStart, pEnd, this);
+  public StringRep substring(final int pStart, final int pEnd) {
+    if ((pStart < 0) || (pEnd > length())) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    return new RepStringRep(pStart, pEnd, this);
   }
 
   /**
@@ -1058,13 +944,12 @@ public abstract class StringRep implements CharSequence {
    *         be)
    */
   public final StringRep substring(final int pStart) {
-    return createRep(pStart, length(), this);
+    return substring(pStart, length());
   }
 
   /**
    * Get a subsequence. This is actually equal to the substring method.
-   * 
-   * @see CharSequence#subSequence(int, int)
+   *
    */
   @Override
   public CharSequence subSequence(final int pStart, final int pEnd) {
@@ -1075,18 +960,17 @@ public abstract class StringRep implements CharSequence {
    * Does the string start with the specified substring.
    * 
    * @param pString The substring
-   * @return <code>true</code> if it starts with it
+   * @return {@code true} if it starts with it
    */
   public boolean endsWith(final CharSequence pString) {
     if (pString.length() > length()) {
       return false;
     }
 
-    int i;
     final int length = pString.length();
     final int start = length() - length;
 
-    for (i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       if (charAt(start + i) != pString.charAt(i)) {
         return false;
       }
@@ -1099,17 +983,16 @@ public abstract class StringRep implements CharSequence {
    * Does the string start with the specified substring.
    * 
    * @param pString The substring
-   * @return <code>true</code> if it starts with it
+   * @return {@code true} if it starts with it
    */
   public boolean startsWith(final CharSequence pString) {
     if (pString.length() > length()) {
       return false;
     }
 
-    int i;
     final int length = pString.length();
 
-    for (i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       if (charAt(i) != pString.charAt(i)) {
         return false;
       }

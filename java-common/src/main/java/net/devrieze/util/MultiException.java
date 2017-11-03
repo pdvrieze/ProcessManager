@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,6 +16,7 @@
 
 package net.devrieze.util;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,11 +68,11 @@ public class MultiException extends RuntimeException {
   }
 
   @SuppressWarnings("resource")
-  public void printStackTrace(final Writer pS) {
-    if (pS instanceof PrintWriter) {
-      printStackTrace((PrintWriter) pS);
+  public void printStackTrace(final Writer writer) {
+    if (writer instanceof PrintWriter) {
+      printStackTrace((PrintWriter) writer);
     } else {
-      printStackTrace(new PrintWriter(pS));
+      printStackTrace(new PrintWriter(writer));
     }
   }
 
@@ -84,9 +85,14 @@ public class MultiException extends RuntimeException {
     }
   }
 
-  public MultiException(final Throwable pError) {
+  /**
+   * Create a new MultiException
+   * @param error The initial error to record in the exception
+   */
+  @SuppressWarnings("WeakerAccess")
+  public MultiException(final Throwable error) {
     mExceptions = new ArrayList<>();
-    mExceptions.add(pError);
+    mExceptions.add(error);
   }
 
   @NotNull
@@ -101,13 +107,18 @@ public class MultiException extends RuntimeException {
     return error;
   }
 
-  public static void throwIfError(@Nullable MultiException pTarget) {
-    if (pTarget!=null) {
-      if (pTarget.mExceptions.size()==1) {
-        final Throwable e = pTarget.mExceptions.get(0);
+  /**
+   * When there is at least one wrapped exception, throw the first one. This method handles nulls.
+   * @param target The multiException to evaluate
+   */
+  @Contract(pure = true, value = "!null -> fail")
+  public static void throwIfError(@Nullable final MultiException target) {
+    if (target!=null) {
+      if (target.mExceptions.size()==1) {
+        final Throwable e = target.mExceptions.get(0);
         throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);
       } else {
-        throw pTarget;
+        throw target;
       }
     }
   }

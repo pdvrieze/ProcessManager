@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,6 +21,7 @@ import javax.xml.namespace.NamespaceContext;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -38,7 +39,7 @@ public class CombiningNamespaceContext implements NamespaceContext {
 
   @Override
   public String getNamespaceURI(final String prefix) {
-    String namespaceURI = mPrimary.getNamespaceURI(prefix);
+    final String namespaceURI = mPrimary.getNamespaceURI(prefix);
     if (namespaceURI==null || XMLConstants.NULL_NS_URI.equals(namespaceURI)) {
       return mSecondary.getNamespaceURI(prefix);
     }
@@ -47,18 +48,20 @@ public class CombiningNamespaceContext implements NamespaceContext {
 
   @Override
   public String getPrefix(final String namespaceURI) {
-    String prefix = mPrimary.getPrefix(namespaceURI);
+    final String prefix = mPrimary.getPrefix(namespaceURI);
     if (prefix == null || (XMLConstants.NULL_NS_URI.equals(namespaceURI)&& XMLConstants.DEFAULT_NS_PREFIX.equals(prefix))) {
       return mSecondary.getPrefix(namespaceURI);
     }
     return prefix;
   }
 
+// Property accessors start
+  @SuppressWarnings("unchecked")
   @Override
-  public Iterator getPrefixes(final String namespaceURI) {
-    Iterator<String> prefixes1 = mPrimary.getPrefixes(namespaceURI);
-    Iterator<String> prefixes2 = mSecondary.getPrefixes(namespaceURI);
-    HashSet prefixes = new HashSet();
+  public Iterator<String> getPrefixes(final String namespaceURI) {
+    final Iterator<String> prefixes1 = mPrimary.getPrefixes(namespaceURI);
+    final Iterator<String> prefixes2 = mSecondary.getPrefixes(namespaceURI);
+    final Set<String>      prefixes  = new HashSet<>();
     while (prefixes1.hasNext()) {
       prefixes.add(prefixes1.next());
     }
@@ -67,4 +70,5 @@ public class CombiningNamespaceContext implements NamespaceContext {
     }
     return prefixes.iterator();
   }
+// Property acccessors end
 }

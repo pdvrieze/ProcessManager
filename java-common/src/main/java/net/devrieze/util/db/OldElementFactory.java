@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 
+@Deprecated
 public interface OldElementFactory<T, TR extends Transaction> {
 
   CharSequence getTableName();
@@ -52,7 +53,7 @@ public interface OldElementFactory<T, TR extends Transaction> {
    * Called before processing a resultset. This gives the factory the chance to
    * cache column numbers.
    *
-   * @param pMetaData The metadata to use. <code>null</code> to force
+   * @param pMetaData The metadata to use. {@code null} to force
    *          forgetting.
    * @throws SQLException When something goes wrong.
    */
@@ -102,8 +103,8 @@ public interface OldElementFactory<T, TR extends Transaction> {
    * Cast the parameter to the type of elements created by the factory.
    *
    * @param pO The object to cast.
-   * @return The object as a T. If the parameter is <code>null</code> or not an
-   *         instance this function must return <code>null</code> and not throw.
+   * @return The object as a T. If the parameter is {@code null} or not an
+   *         instance this function must return {@code null} and not throw.
    */
   T asInstance(Object pO);
 

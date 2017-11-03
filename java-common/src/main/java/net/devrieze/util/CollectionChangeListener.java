@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,10 +19,10 @@ package net.devrieze.util;
 
 public interface CollectionChangeListener<V> {
 
-  public void elementAdded(V elem);
+  void elementAdded(V elem);
 
-  public void elementRemoved(V elem);
+  void elementRemoved(V elem);
 
-  public void collectionCleared();
+  void collectionCleared();
 
 }

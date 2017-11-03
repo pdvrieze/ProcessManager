@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -41,7 +41,7 @@ public final class CollectionUtil {
     U mFirst;
     U[] mOthers;
 
-    public CombiningIterable(U first, U[] others) {
+    public CombiningIterable(final U first, final U[] others) {
       mFirst = first;
       mOthers = others;
     }
@@ -55,7 +55,7 @@ public final class CollectionUtil {
 
   private static class ConcatenatedList<T> extends CombiningIterable<T, List<T>> implements List<T> {
 
-    public ConcatenatedList(List<T> first, List<T>[] others) {
+    public ConcatenatedList(final List<T> first, final List<T>[] others) {
       super(first, others);
     }
 
@@ -70,7 +70,7 @@ public final class CollectionUtil {
     @Override
     public int size() {
       int size=first().size();
-      for(List<? extends T> other:others()) {
+      for(final List<? extends T> other:others()) {
         size+=other.size();
       }
       return size;
@@ -79,16 +79,16 @@ public final class CollectionUtil {
     @Override
     public boolean isEmpty() {
       if (!first().isEmpty()) { return false; }
-      for(List<? extends T> other:others()) {
+      for(final List<? extends T> other:others()) {
         if (!other.isEmpty()) { return false; }
       }
       return true;
     }
 
     @Override
-    public boolean contains(Object o) {
+    public boolean contains(final Object o) {
       if (!first().contains(o)) { return true; }
-      for(List<? extends T> other:others()) {
+      for(final List<? extends T> other:others()) {
         if (other.contains(o)) { return true; }
       }
       return false;
@@ -97,14 +97,14 @@ public final class CollectionUtil {
     @NotNull
     @Override
     public Object[] toArray() {
-      Object[] result = new Object[size()];
+      final Object[] result = new Object[size()];
       return toArrayHelper(result);
     }
 
     @SuppressWarnings("unchecked")
-    private <V> V[] toArrayHelper(V[] result) {
+    private <V> V[] toArrayHelper(final V[] result) {
       int i=0;
-      for(T elem:this) {
+      for(final T elem:this) {
         result[i] = (V) elem;
         ++i;
       }
@@ -114,9 +114,9 @@ public final class CollectionUtil {
     @NotNull
     @SuppressWarnings("unchecked")
     @Override
-    public <V> V[] toArray(@NotNull V[] init) {
-      int size = size();
-      V[] result = init;
+    public <V> V[] toArray(@NotNull final V[] init) {
+      final int size   = size();
+      V[]       result = init;
       if (init.length<size) {
         result = (V[]) Array.newInstance(init.getClass().getComponentType(), size);
       } else if (init.length>size) {
@@ -126,25 +126,25 @@ public final class CollectionUtil {
     }
 
     @Override
-    public boolean add(T elem) {
+    public boolean add(final T elem) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean remove(Object object) {
+    public boolean remove(final Object object) {
       if (first().remove(object)) { return true; }
-      for(List<? extends T> other:others()) {
+      for(final List<? extends T> other:others()) {
         if (other.remove(object)) { return true; }
       }
       return false;
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> c) {
-      HashSet<Object> all = new HashSet<>(c);
+    public boolean containsAll(@NotNull final Collection<?> c) {
+      final HashSet<Object> all = new HashSet<>(c);
       all.removeAll(first());
       if (all.isEmpty()) { return true; }
-      for(List<? extends T> other:others()) {
+      for(final List<? extends T> other:others()) {
         all.removeAll(other);
         if (all.isEmpty()) { return true; }
       }
@@ -152,30 +152,28 @@ public final class CollectionUtil {
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends T> c) {
+    public boolean addAll(@NotNull final Collection<? extends T> c) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean addAll(int index, @NotNull Collection<? extends T> c) {
+    public boolean addAll(final int index, @NotNull final Collection<? extends T> c) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> c) {
-      boolean result;
-      result = first().removeAll(c);
-      for(List<? extends T> other:others()) {
+    public boolean removeAll(@NotNull final Collection<?> c) {
+      boolean result = first().removeAll(c);
+      for(final List<? extends T> other:others()) {
         result = other.removeAll(c)||result;
       }
       return result;
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> c) {
-      boolean result;
-      result = first().retainAll(c);
-      for(List<? extends T> other:others()) {
+    public boolean retainAll(@NotNull final Collection<?> c) {
+      boolean result = first().retainAll(c);
+      for(final List<? extends T> other:others()) {
         result = other.retainAll(c)||result;
       }
       return result;
@@ -189,13 +187,13 @@ public final class CollectionUtil {
     }
 
     @Override
-    public T get(int index) {
+    public T get(final int index) {
       int offset = first().size();
       if (index<offset) {
         return first().get(index);
       }
-      for(List<? extends T> other:others()) {
-        int oldOffset = offset;
+      for(final List<? extends T> other:others()) {
+        final int oldOffset = offset;
         offset+=other.size();
         if (index<offset) {
           return other.get(index - oldOffset);
@@ -205,7 +203,7 @@ public final class CollectionUtil {
     }
 
     @Override
-    public T set(int index, T element) {
+    public T set(final int index, final T element) {
       throw new UnsupportedOperationException();
 //      int offset = first().size();
 //      if (index<offset) {
@@ -222,18 +220,18 @@ public final class CollectionUtil {
     }
 
     @Override
-    public void add(int index, T element) {
+    public void add(final int index, final T element) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public T remove(int index) {
+    public T remove(final int index) {
       int offset = first().size();
       if (index<offset) {
         return first().remove(index);
       }
-      for(List<? extends T> other:others()) {
-        int oldOffset = offset;
+      for(final List<? extends T> other:others()) {
+        final int oldOffset = offset;
         offset+=other.size();
         if (index<offset) {
           return other.remove(index - oldOffset);
@@ -243,14 +241,14 @@ public final class CollectionUtil {
     }
 
     @Override
-    public int indexOf(Object o) {
+    public int indexOf(final Object o) {
       {
-        int idx = first().indexOf(o);
+        final int idx = first().indexOf(o);
         if (idx>=0) { return idx; }
       }
       int offset = first().size();
-      for(List<? extends T> other:others()) {
-        int idx = other.indexOf(o);
+      for(final List<? extends T> other:others()) {
+        final int idx = other.indexOf(o);
         if (idx>=0) {
           return offset+idx;
         }
@@ -260,12 +258,12 @@ public final class CollectionUtil {
     }
 
     @Override
-    public int lastIndexOf(Object o) {
+    public int lastIndexOf(final Object o) {
       int offset = size()-others()[mOthers.length-1].size();
       for(int i=mOthers.length-1; i>=0; --i) {
-        List<? extends T> other = others()[i];
+        final List<? extends T> other = others()[i];
         offset -= other.size();
-        int idx = other.lastIndexOf(o);
+        final int idx = other.lastIndexOf(o);
         if (idx>=0) {
           return offset+idx;
         }
@@ -281,13 +279,13 @@ public final class CollectionUtil {
 
     @NotNull
     @Override
-    public ListIterator<T> listIterator(int index) {
+    public ListIterator<T> listIterator(final int index) {
       return new CombiningListIterator<>(this, index);
     }
 
     @NotNull
     @Override
-    public List<T> subList(int fromIndex, int toIndex) {
+    public List<T> subList(final int fromIndex, final int toIndex) {
       throw new UnsupportedOperationException();
     }
 
@@ -296,16 +294,16 @@ public final class CollectionUtil {
   private static final class CombiningIterator<T> implements Iterator<T> {
 
     private int mIteratorIdx=0;
-    private List<Iterator<? extends T>> mIterators;
+    private final List<Iterator<? extends T>> mIterators;
 
-    public CombiningIterator(CombiningIterable<T, ? extends Iterable<? extends T>> iterable) {
+    public CombiningIterator(final CombiningIterable<T, ? extends Iterable<? extends T>> iterable) {
       mIterators = toIterators(iterable.mFirst, iterable.mOthers);
     }
 
-    private static <T> List<Iterator<? extends T>> toIterators(Iterable<? extends T> first, Iterable<? extends T>[] others) {
-      List<Iterator<? extends T>> result = new ArrayList<>(others.length+1);
+    private static <T> List<Iterator<? extends T>> toIterators(final Iterable<? extends T> first, final Iterable<? extends T>[] others) {
+      final List<Iterator<? extends T>> result = new ArrayList<>(others.length + 1);
       result.add(first.iterator());
-      for(Iterable<? extends T> other:others) {
+      for(final Iterable<? extends T> other:others) {
         result.add(other.iterator());
       }
       return result;
@@ -344,13 +342,13 @@ public final class CollectionUtil {
 
     private int mIteratorIdx=0;
     private int mItemIdx=0;
-    private List<ListIterator<? extends T>> mIterators;
+    private final List<ListIterator<? extends T>> mIterators;
 
-    public CombiningListIterator(ConcatenatedList<T> list) {
+    public CombiningListIterator(final ConcatenatedList<T> list) {
       mIterators = toIterators(list.first(), list.others());
     }
 
-    public CombiningListIterator(ConcatenatedList<T> list, int index) {
+    public CombiningListIterator(final ConcatenatedList<T> list, final int index) {
       final List<? extends T> first = list.first();
       final List<? extends T>[] others = list.others();
       mIteratorIdx = -1;
@@ -363,8 +361,8 @@ public final class CollectionUtil {
         mIterators.add(first.listIterator());
       }
 
-      int offset = first.size();
-      for(List<? extends T> other:others) {
+      final int offset = first.size();
+      for(final List<? extends T> other:others) {
         if (mIteratorIdx<0 && index-offset<other.size()) {
           mIterators.add(other.listIterator(index-offset));
           mIteratorIdx = mIterators.size()-1;
@@ -375,10 +373,10 @@ public final class CollectionUtil {
       if (mIteratorIdx<0) { throw new IndexOutOfBoundsException(); }
     }
 
-    private static <T> List<ListIterator<? extends T>> toIterators(List<? extends T> first, List<? extends T>[] others) {
-      List<ListIterator<? extends T>> result = new ArrayList<>(others.length+1);
+    private static <T> List<ListIterator<? extends T>> toIterators(final List<? extends T> first, final List<? extends T>[] others) {
+      final List<ListIterator<? extends T>> result = new ArrayList<>(others.length + 1);
       result.add(first.listIterator());
-      for(List<? extends T> other:others) {
+      for(final List<? extends T> other:others) {
         result.add(other.listIterator());
       }
       return result;
@@ -449,12 +447,12 @@ public final class CollectionUtil {
     }
 
     @Override
-    public void set(T e) {
+    public void set(final T e) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public void add(T e) {
+    public void add(final T e) {
       throw new UnsupportedOperationException();
     }
 
@@ -487,8 +485,8 @@ public final class CollectionUtil {
     }
 
     private void fireElementRemoved() {
-      RuntimeException error = null;
       if (mListeners != null) {
+        RuntimeException error = null;
         for (final CollectionChangeListener<? super T> listener : mListeners) {
           try {
             listener.elementRemoved(last);
@@ -704,19 +702,19 @@ public final class CollectionUtil {
 
     @NotNull
     @Override
-    public SortedSet<T> subSet(T fromElement, T toElement) {
+    public SortedSet<T> subSet(final T fromElement, final T toElement) {
       throw new IllegalArgumentException();
     }
 
     @NotNull
     @Override
-    public SortedSet<T> headSet(T toElement) {
+    public SortedSet<T> headSet(final T toElement) {
       throw new IllegalArgumentException();
     }
 
     @NotNull
     @Override
-    public SortedSet<T> tailSet(T fromElement) {
+    public SortedSet<T> tailSet(final T fromElement) {
       throw new IllegalArgumentException();
     }
 
@@ -748,7 +746,7 @@ public final class CollectionUtil {
   }
 
   public static boolean hasNull(final Collection<?> objects) {
-    for(Object o:objects) {
+    for(final Object o:objects) {
       if (o==null) return true;
     }
     return false;
@@ -790,6 +788,7 @@ public final class CollectionUtil {
     return content==null || content.length==0;
   }
 
+  @SuppressWarnings("ChainOfInstanceofChecks")
   public static <T> ArrayList<T> toArrayList(final Iterable<T> values) {
     if (values instanceof ArrayList) {
       return (ArrayList<T>) values;
@@ -797,19 +796,23 @@ public final class CollectionUtil {
     if (values instanceof Collection) {
       return new ArrayList<>((Collection<T>) values);
     }
-    ArrayList<T> result = new ArrayList<>();
-    for (T value : values) {
+    final ArrayList<T> result = new ArrayList<>();
+    for (final T value : values) {
       result.add(value);
     }
     return result;
   }
 
-  @SuppressWarnings("unchecked")
+  /**
+   * @deprecated Use {@link Collections#emptySortedSet()} when on Java 1.8
+   */
+  @Deprecated
+  @SuppressWarnings({"unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
   public static <T> SortedSet<T> emptySortedSet() {
     return EMPTYSORTEDSET;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "AssignmentOrReturnOfFieldWithMutableType"})
   public static <T> LinkedHashSet<T> emptyLinkedHashSet() {
     return EMPTYLINKEDHASHSET;
   }
@@ -835,20 +838,20 @@ public final class CollectionUtil {
     public boolean isEmpty() { return true; }
 
     @Override
-    public boolean contains(Object o) { return false; }
+    public boolean contains(final Object o) { return false; }
 
     @Override
-    public boolean add(T e) { throw new UnsupportedOperationException("Not mutable"); }
+    public boolean add(final T e) { throw new UnsupportedOperationException("Not mutable"); }
 
     @Override
-    public boolean remove(Object o) { return false; }
+    public boolean remove(final Object o) { return false; }
 
     @Override
     public void clear() { /* noop */ }
 
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
-    public Object clone() { return this; }
+    public EmptyLinkedHashSet<T> clone() { return this; }
 
   }
 
@@ -889,7 +892,7 @@ public final class CollectionUtil {
    * @return An iterable that combines both when iterating.
    */
   @SafeVarargs
-  public static <T> Iterable<T> combine(Iterable<? extends T> first, Iterable<? extends T>... others) {
+  public static <T> Iterable<T> combine(final Iterable<? extends T> first, final Iterable<? extends T>... others) {
     return new CombiningIterable<>(first, others);
   }
 
@@ -899,19 +902,17 @@ public final class CollectionUtil {
    * @param other The other iterable.
    * @return An iterable that combines both when iterating.
    */
-  public static <T> Iterable<T> combine(Iterable<? extends T> first, Iterable<? extends T> other) {
-    @SuppressWarnings("unchecked")
-    Iterable<? extends T>[] others = new Iterable[] { other };
+  public static <T> Iterable<T> combine(final Iterable<? extends T> first, final Iterable<? extends T> other) {
+    @SuppressWarnings("unchecked") final Iterable<? extends T>[] others = new Iterable[] { other };
     return new CombiningIterable<>(first, others);
   }
-  public static <T> List<T> concatenate(List<T> first, List<T> second) {
-    @SuppressWarnings("unchecked")
-    List<T>[] others = (List<T>[]) new List<?>[] { second };
+  public static <T> List<T> concatenate(final List<T> first, final List<T> second) {
+    @SuppressWarnings("unchecked") final List<T>[] others = (List<T>[]) new List<?>[] { second };
     return new ConcatenatedList<>(first, others);
   }
 
   @SafeVarargs
-  public static <T> List<T> concatenate(List<T> first, List<T>... others) {
+  public static <T> List<T> concatenate(final List<T> first, final List<T>... others) {
     return new ConcatenatedList<>(first, others);
   }
 
@@ -971,7 +972,7 @@ public final class CollectionUtil {
     return new MonitoringIterator<>(listeners, original);
   }
 
-  public static <T> void mergeLists(List<T> base, List<? extends T> other) {
+  public static <T> void mergeLists(final List<T> base, final List<? extends T> other) {
     for (int i = 0; i < other.size(); i++) {
       if (i>=base.size()) {
         for (int j = i; j < other.size(); j++) {
@@ -979,8 +980,8 @@ public final class CollectionUtil {
         }
         break;
       }
-      T current = base.get(i);
-      T replacement = other.get(i);
+      final T current     = base.get(i);
+      final T replacement = other.get(i);
       if (current == null ? replacement!=null : ! current.equals(replacement)) {
         // not equal
         Object next;
@@ -1028,7 +1029,7 @@ public final class CollectionUtil {
    * @param verifiers The classes to check. Only one needs to match.
    * @param <T> The type contained in the collection
    * @param <V> The resulting collection type.
-   * @return This returns <code>target</code>
+   * @return This returns {@code target}
    */
   @SafeVarargs
   public static <T, V extends Collection<T>> V addInstancesOf(final V target, final Iterable<?> source, @SuppressWarnings("unchecked") final Class<? extends T>... verifiers) {
@@ -1057,12 +1058,12 @@ public final class CollectionUtil {
     return target;
   }
 
-  public static <T> List<T> copy(Collection<? extends T> orig) {
+  public static <T> List<T> copy(final Collection<? extends T> orig) {
     if (orig==null) { return null; }
     if (orig.size()==1) {
       return Collections.singletonList(orig.iterator().next());
     }
-    ArrayList<T> result = new ArrayList<>(orig.size());
+    final ArrayList<T> result = new ArrayList<>(orig.size());
     result.addAll(orig);
     return result;
   }

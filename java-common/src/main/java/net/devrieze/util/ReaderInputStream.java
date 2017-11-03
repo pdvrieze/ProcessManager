@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -59,31 +59,29 @@ public class ReaderInputStream extends InputStream {
 
 
   @Override
-  public int read(final byte[] pB, final int pOff, final int pLen) throws IOException {
-    final int offset = pOff;
+  public int read(final byte[] bytes, final int offset, final int len) throws IOException {
     // If we still have stuff in the buffer, flush that first.
     if (mOut.remaining() > 0) {
-      final int length = Math.min(mOut.remaining(), pLen);
-      mOut.get(pB, offset, length);
+      final int length = Math.min(mOut.remaining(), len);
+      mOut.get(bytes, offset, length);
       return length;
     } else {
-      final ByteBuffer out = ByteBuffer.wrap(pB, pOff, pLen);
+      final ByteBuffer out = ByteBuffer.wrap(bytes, offset, len);
       updateBuffers2(out);
-      if ((out.remaining() == 0) && (pLen > 0)) {
+      if ((out.remaining() == 0) && (len > 0)) {
         return -1;
       }
       return out.remaining();
     }
   }
 
-  private void updateBuffers() throws IOException, CharacterCodingException {
+  private void updateBuffers() throws IOException {
     mOut.limit(mOut.capacity());
     updateBuffers2(mOut);
   }
 
-  private void updateBuffers2(final ByteBuffer pOut) throws IOException, CharacterCodingException {
-    pOut.mark();
-    CoderResult encodeResult = null;
+  private void updateBuffers2(final ByteBuffer out) throws IOException {
+    out.mark();
     if (mIn.remaining() == 0) {
       mIn.rewind();
       mIn.limit(mIn.capacity());
@@ -91,21 +89,21 @@ public class ReaderInputStream extends InputStream {
       if (readResult == -1) {
         mIn.limit(mIn.position());
         mIn.position(0);
-        encodeResult = mEncoder.encode(mIn, pOut, true);
-        pOut.limit(pOut.position());
-        pOut.reset();
+        CoderResult encodeResult = mEncoder.encode(mIn, out, true);
+        if (encodeResult.isError()) { encodeResult.throwException(); }
+        out.limit(out.position());
+        out.reset();
         return;
       } else {
         mIn.limit(readResult);
         mIn.position(0);
       }
     }
-    encodeResult = mEncoder.encode(mIn, pOut, false);
-    pOut.limit(pOut.position());
-    pOut.reset();
-    if (encodeResult.isError()) {
-      encodeResult.throwException();
-    }
+    CoderResult encodeResult = mEncoder.encode(mIn, out, false);
+    if (encodeResult.isError()) { encodeResult.throwException();}
+
+    out.limit(out.position());
+    out.reset();
   }
 
   public CodingErrorAction malformedInputAction() {
@@ -133,7 +131,7 @@ public class ReaderInputStream extends InputStream {
    * Skip characters, not bytes.
    */
   @Override
-  public long skip(long pN) throws IOException {
+  public long skip(final long pN) throws IOException {
     return mReader.skip(pN);
   }
 
@@ -143,7 +141,7 @@ public class ReaderInputStream extends InputStream {
   }
 
   @Override
-  public synchronized void mark(int pReadAheadLimit) {
+  public synchronized void mark(final int pReadAheadLimit) {
     try {
       mReader.mark(pReadAheadLimit);
     } catch (IOException ex) {

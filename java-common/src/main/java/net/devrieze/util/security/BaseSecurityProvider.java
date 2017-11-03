@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -53,13 +53,13 @@ public abstract class BaseSecurityProvider implements SecurityProvider {
   }
 
   @Override
-  public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+  public final PermissionResult ensurePermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject<?> secureObject) {
     return ensurePermission(getPermission(permission, subject, secureObject), " denied permission to " + subject.getName() + " to perform "
                                           + permission + " on " + secureObject + ". To allow this set a security provider.");
   }
 
   @Override
-  public final boolean hasPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject secureObject) {
+  public final boolean hasPermission(@NotNull final Permission permission, final Principal subject, @NotNull final SecureObject<?> secureObject) {
     return getPermission(permission, subject, secureObject)==PermissionResult.GRANTED;
   }
 

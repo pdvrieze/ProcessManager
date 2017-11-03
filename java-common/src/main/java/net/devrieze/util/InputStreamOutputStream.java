@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -104,9 +104,9 @@ public final class InputStreamOutputStream implements Callable<Boolean> {
    */
   @Override
   public Boolean call() throws IOException {
-    final byte[] buffer = new byte[_BUFFERSIZE];
-    int read;
     try {
+      final byte[] buffer = new byte[_BUFFERSIZE];
+      int          read;
       while ((read = mInputStream.read(buffer)) >= 0) {
         mOutputStream.write(buffer, 0, read);
       }

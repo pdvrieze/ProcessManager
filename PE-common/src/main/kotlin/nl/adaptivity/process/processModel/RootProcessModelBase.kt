@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts
@@ -41,15 +42,15 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
   @ProcessModelDSL
   abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(
-      nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
-      childModels: Collection<ChildProcessModel.Builder<NodeT,ModelT>>,
-      override var name: String? = null,
-      override var handle: Long = -1L,
-      override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
-      roles: Collection<String> = emptyList(),
-      override var uuid: UUID? = null,
-      imports: Collection<IXmlResultType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList()): ProcessModelBase.Builder<NodeT,ModelT>(nodes, imports, exports), RootProcessModel.Builder<NodeT,ModelT> {
+    nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
+    childModels: Collection<ChildProcessModel.Builder<NodeT,ModelT>>,
+    override var name: String? = null,
+    override var handle: Long = -1L,
+    override var owner: Principal = SYSTEMPRINCIPAL,
+    roles: Collection<String> = emptyList(),
+    override var uuid: UUID? = null,
+    imports: Collection<IXmlResultType> = emptyList(),
+    exports: Collection<IXmlDefineType> = emptyList()): ProcessModelBase.Builder<NodeT,ModelT>(nodes, imports, exports), RootProcessModel.Builder<NodeT,ModelT> {
 
     override val roles: MutableSet<String> = roles.toMutableSet()
 
@@ -224,7 +225,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
    * Set the owner of a model
    * @param owner
    */
-  private var _owner: Principal = SecurityProvider.SYSTEMPRINCIPAL
+  private var _owner: Principal = SYSTEMPRINCIPAL
   override var owner: Principal
     get() = _owner
     set(value) { _owner = value }

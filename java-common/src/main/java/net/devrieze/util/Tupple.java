@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -83,10 +83,9 @@ public final class Tupple<S, T> {
     mElem2 = pElem2;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString() {
-    return "(" + mElem1.toString() + ", " + mElem2.toString() + ")";
+    return "(" + mElem1 + ", " + mElem2 + ")";
   }
 
   public static <S, T> Tupple<S, T> tupple(final S pElem1, final T pElem2) {

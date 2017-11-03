@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -14,7 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:JvmName("CollectionUtil")
+
 package net.devrieze.util.collection
+
 
 /*
  * Created by pdvrieze on 02/12/16.

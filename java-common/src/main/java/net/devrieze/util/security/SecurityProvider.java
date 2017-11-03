@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -33,7 +33,8 @@ public interface SecurityProvider {
   /**
    * Simple marker interface to represent a permission.
    */
-  public interface Permission {
+  @SuppressWarnings("MarkerInterface")
+  interface Permission {
     // marker interface
   }
 
@@ -89,7 +90,7 @@ public interface SecurityProvider {
    * @throws AuthenticationNeededException Thrown if the user has no permission.
    * @return The result. This should always be {@link PermissionResult#GRANTED}.
    */
-  PermissionResult ensurePermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject secureObject);
+  PermissionResult ensurePermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject<?> secureObject);
 
   /**
    * Determine whether the user has the permission given
@@ -97,8 +98,8 @@ public interface SecurityProvider {
    * @param permission The permission to check
    * @param subject The user
    * @param secureObject The object of the activity
-   * @return <code>true</code> if the user has the permission,
-   *         <code>false</code> if not.
+   * @return {@code true} if the user has the permission,
+   *         {@code false} if not.
    */
   boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull SecureObject<?> secureObject);
 
@@ -109,8 +110,8 @@ public interface SecurityProvider {
    *
    * @param permission The permission to verify.
    * @param subject The user to check the permission against.
-   * @return <code>true</code> if the user has the permission,
-   *         <code>false</code> if not.
+   * @return {@code true} if the user has the permission,
+   *         {@code false} if not.
    */
   boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject);
 
@@ -123,8 +124,8 @@ public interface SecurityProvider {
    * @param permission The permission to verify.
    * @param subject The user to check the permission against.
    * @param objectPrincipal The principal that represents other part of the equation.
-   * @return <code>true</code> if the user has the permission,
-   *         <code>false</code> if not.
+   * @return {@code true} if the user has the permission,
+   *         {@code false} if not.
    */
   boolean hasPermission(@NotNull Permission permission, @Nullable Principal subject, @NotNull Principal objectPrincipal);
 

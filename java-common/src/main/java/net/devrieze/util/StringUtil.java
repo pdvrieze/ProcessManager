@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -23,6 +23,7 @@ package net.devrieze.util;
 
 import net.devrieze.lang.Const;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.util.*;
  * @author Paul de Vrieze
  * @version 0.1 $Revision$
  */
+@SuppressWarnings("OverlyComplexClass")
 public final class StringUtil {
 
 
@@ -47,7 +49,7 @@ public final class StringUtil {
 
     private boolean mLastSeenNewline;
 
-    public IndentingWriter(final int pLevel, final Writer pTarget) {
+    protected IndentingWriter(final int pLevel, final Writer pTarget) {
       mBuffer = new char[pLevel];
       mTarget = pTarget;
       for (int i = 0; i < pLevel; i++) {
@@ -100,6 +102,37 @@ public final class StringUtil {
 
   }
 
+  private static class RepeatingChars implements CharSequence {
+
+    private final char pChar;
+    private final int pCount;
+
+    public RepeatingChars(final char pChar, final int pCount) {
+      this.pChar = pChar;
+      this.pCount = pCount;
+    }
+
+    @Override
+    public char charAt(final int pIndex) {
+      return pChar;
+    }
+
+    @Override
+    public int length() {
+      return pCount;
+    }
+
+    @Override
+    public CharSequence subSequence(final int pStart, final int pEnd) {
+      return charRepeat(pEnd - pStart, pChar);
+    }
+
+    @Override
+    public String toString() {
+      return new StringBuilder(pCount).append(this).toString();
+    }
+  }
+
   /**
    * @deprecated Use {@link Const#_CR}
    */
@@ -128,7 +161,7 @@ public final class StringUtil {
   /**
    * Utility method to determine whether a string is null or empty
    * @param value The value to check.
-   * @return <code>true</code> if it is empty, <code>false</code> if not
+   * @return {@code true} if it is empty, {@code false} if not
    */
   @Contract(value="null -> true", pure=true)
   public static boolean isNullOrEmpty(final CharSequence value) {
@@ -136,8 +169,8 @@ public final class StringUtil {
   }
 
   public static String toLowerCase(final CharSequence string) {
-    StringBuilder result = new StringBuilder(string.length());
-    final int l = string.length();
+    final StringBuilder result = new StringBuilder(string.length());
+    final int           l      = string.length();
     for(int i=0; i<l; ++i) {
       result.append(Character.toLowerCase(string.charAt(i)));
     }
@@ -145,7 +178,7 @@ public final class StringUtil {
   }
 
   public static int indexOf(final CharSequence text, final char c) {
-    int length = text.length();
+    final int length = text.length();
     for(int i = 0; i< length; ++i) {
       if (text.charAt(i)==c) {
         return i;
@@ -171,6 +204,7 @@ public final class StringUtil {
    * @param pBuffer The buffer that needs to be quoted
    * @return The result of the quoting
    */
+  @SuppressWarnings("WeakerAccess")
   public static StringBuilder quoteBuilder(final CharSequence pBuffer) {
     final StringBuilder result = new StringBuilder(pBuffer.length() + _FORMAT_SLACK);
     result.append('"');
@@ -238,6 +272,7 @@ public final class StringUtil {
    * @param pBuffer The buffer that needs to be quoted
    * @return The result of the quoting
    */
+  @SuppressWarnings("WeakerAccess")
   public static StringRep quote(final int pStart, final int pEnd, final char[] pBuffer) {
     return quote(new String(pBuffer, pStart, pEnd));
   }
@@ -271,6 +306,7 @@ public final class StringUtil {
    * @param pBuffer The buffer that needs to be quoted
    * @return The result of the quoting
    */
+  @SuppressWarnings("WeakerAccess")
   public static StringBuffer quoteBuf(final char[] pBuffer) {
     return quoteBuf(0, pBuffer.length, pBuffer);
   }
@@ -283,6 +319,7 @@ public final class StringUtil {
    * @param pBuffer The buffer that needs to be quoted
    * @return The result of the quoting
    */
+  @SuppressWarnings("WeakerAccess")
   public static StringBuffer quoteBuf(final int pStart, final int pEnd, final char[] pBuffer) {
     final StringBuffer result = new StringBuffer(pBuffer.length + _FORMAT_SLACK);
     result.append('"');
@@ -312,7 +349,7 @@ public final class StringUtil {
 
   /**
    * @deprecated In favour of {@link #isEqual(CharSequence, CharSequence)}.
-   * @return <code>true</code> if eq<code>false</code> if not.
+   * @return {@code true} if eq{@code false} if not.
    */
   @Deprecated
   public static boolean sequencesEqual(final CharSequence pSeq1, final CharSequence pSeq2) {
@@ -320,16 +357,16 @@ public final class StringUtil {
   }
 
   /**
-   * Compare the two sequences for equality. This can return <code>true</code>
+   * Compare the two sequences for equality. This can return {@code true}
    * for objects of different classes as long as the sequences are equal.
    * Besides allowing arbitrary CharSequences, this also differs from {@link
-   *  String#equals(Object)} in that either value may be <code>null</code>
-   * and it will return <code>true</code> when both sequences are
-   * <code>null</code>.
+   *  String#equals(Object)} in that either value may be {@code null}
+   * and it will return {@code true} when both sequences are
+   * {@code null}.
    *
    * @param pSequence1 The first sequence.
    * @param pSequence2 The second sequence.
-   * @return <code>true</code> if equal, <code>false</code> if not.
+   * @return {@code true} if equal, {@code false} if not.
    */
   public static boolean isEqual(final CharSequence pSequence1, final CharSequence pSequence2) {
     if (pSequence1 == pSequence2) {
@@ -362,29 +399,7 @@ public final class StringUtil {
   }
 
   public static CharSequence charRepeat(final int pCount, final char pChar) {
-    return new CharSequence() {
-
-      @Override
-      public char charAt(final int pIndex) {
-        return pChar;
-      }
-
-      @Override
-      public int length() {
-        return pCount;
-      }
-
-      @Override
-      public CharSequence subSequence(final int pStart, final int pEnd) {
-        return charRepeat(pEnd - pStart, pChar);
-      }
-
-      @Override
-      public String toString() {
-        return new StringBuilder(pCount).append(this).toString();
-      }
-
-    };
+    return new RepeatingChars(pChar, pCount);
   }
 
   public static StringBuilder addChars(final StringBuilder pBuilder, final int pCount, final char pChar) {
@@ -411,7 +426,8 @@ public final class StringUtil {
     return new IndentingWriter(level, source);
   }
 
-  public static StringBuilder indentTo(final StringBuilder target, final int level, final CharSequence string) {
+  @NotNull
+  public static StringBuilder indentTo(@NotNull final StringBuilder target, final int level, @NotNull final CharSequence string) {
     target.ensureCapacity(target.length() + (2 * level) + string.length());
     for (int i = 0; i < level; i++) {
       target.append(' ');
@@ -480,7 +496,7 @@ public final class StringUtil {
    *
    * @param pString The string to search in.
    * @param pWord The word to search for.
-   * @return <code>true</code> if the word is contained.
+   * @return {@code true} if the word is contained.
    */
   public static boolean containsWord(final String pString, final String pWord) {
     int i = pString.indexOf(pWord);
@@ -501,6 +517,7 @@ public final class StringUtil {
    * @param pC The character to check
    * @return true if it is, false if not.
    */
+  @SuppressWarnings("WeakerAccess")
   public static boolean isLetter(final char pC) {
     return ((pC >= 'a') && (pC <= 'z')) || ((pC >= 'A') && (pC <= 'Z')) || ((pC >= '0') && (pC <= '9')) || (pC == '-');
   }
@@ -531,11 +548,11 @@ public final class StringUtil {
       }
       i++;
     }
-    return result.toArray(new String[] {});
+    return result.toArray(new String[result.size()]);
   }
 
   /**
-   * Prefix the given string with <code>a</code> or <code>an</code> depending on
+   * Prefix the given string with {@code a} or {@code an} depending on
    * the first character.
    *
    * @param pString The string to prefix.
@@ -560,7 +577,7 @@ public final class StringUtil {
    *
    * @param pString The string to search in.
    * @param pC The character to search.
-   * @return The result. Or <code>-1</code> when not found.
+   * @return The result. Or {@code -1} when not found.
    */
   public static int quoteIndexOf(final CharSequence pString, final char pC) {
     return quoteIndexOf(pString, pC, 0);
@@ -572,8 +589,9 @@ public final class StringUtil {
    * @param pString The string to search in.
    * @param pC The character to search.
    * @param pStartIndex The position to start searching at.
-   * @return The result. Or <code>-1</code> when not found.
+   * @return The result. Or {@code -1} when not found.
    */
+  @SuppressWarnings("WeakerAccess")
   public static int quoteIndexOf(final CharSequence pString, final char pC, final int pStartIndex) {
     int i = pStartIndex;
     while (i < pString.length()) {

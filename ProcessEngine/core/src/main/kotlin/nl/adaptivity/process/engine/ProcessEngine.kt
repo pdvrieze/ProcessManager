@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -245,7 +245,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    */
   fun getProcessModels(engineData: ProcessEngineDataAccess, user: Principal): Iterable<SecuredObject<ExecutableProcessModel>> {
     mSecurityProvider.ensurePermission(Permissions.LIST_MODELS, user)
-    if (user == SecurityProvider.SYSTEMPRINCIPAL) return engineData.processModels
+    if (user == SYSTEMPRINCIPAL) return engineData.processModels
     return engineData.processModels.mapNotNull {
       it.ifPermitted(mSecurityProvider, SecureObject.Permissions.READ, user)
     }
@@ -344,12 +344,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   fun updateProcessModel(engineData: MutableProcessEngineDataAccess, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     val oldModel = engineData.processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
 
-    if (oldModel.owner == SecurityProvider.SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
+    if (oldModel.owner == SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
 
     mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel)
     mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
 
-    if (processModel.owner == SecurityProvider.SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
+    if (processModel.owner == SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
       processModel.owner = oldModel.owner
     } else if (oldModel.owner.name != processModel.owner.name) {
       mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)

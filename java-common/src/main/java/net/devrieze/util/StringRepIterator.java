@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -32,7 +32,7 @@ public interface StringRepIterator {
   /**
    * Does the iterator have more elements.
    * 
-   * @return <code>true</code> if there is more
+   * @return {@code true} if there is more
    */
   boolean hasNext();
 

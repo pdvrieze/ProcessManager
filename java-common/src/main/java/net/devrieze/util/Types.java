@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -23,26 +23,34 @@ import java.util.Iterator;
 import java.util.Set;
 
 
+// Suppresses instanceof chain checks. The OO failure is in the Java library, not this code.
+
+
 public final class Types {
+
+  private static final Type[] NO_TYPES = new Type[0];
 
   private Types() {}
 
   /**
    * Determine the type parameters that are given as the concrete type in the
    * implementation of targetType by the basetype.
+   *
+   * @param targetType The type that has the type parameters that should be resolved.
+   * @param baseType The type to use for resolving.
    */
-  public static Type[] getTypeParametersFor(final Class<?> pTargetType, final Type pBaseType) {
-    final Class<?> baseType = rawType(pBaseType);
-    if (baseType == pTargetType) {
-      return getTypeParameters(pBaseType);
+  public static Type[] getTypeParametersFor(final Class<?> targetType, final Type baseType) {
+    final Class<?> rawBaseType = rawType(baseType);
+    if (rawBaseType == targetType) {
+      return getTypeParameters(baseType);
     } else {
       Type sup = null;
-      if (!baseType.isInterface() && pTargetType.isAssignableFrom(baseType.getSuperclass())) {
-        sup = baseType.getGenericSuperclass();
-      } else if (pTargetType.isInterface()) {
-        for (final Type i : baseType.getGenericInterfaces()) {
-          if (pTargetType.isAssignableFrom(rawType(i))) {
-            sup = i;
+      if (!rawBaseType.isInterface() && targetType.isAssignableFrom(rawBaseType.getSuperclass())) {
+        sup = rawBaseType.getGenericSuperclass();
+      } else if (targetType.isInterface()) {
+        for (final Type t : rawBaseType.getGenericInterfaces()) {
+          if (targetType.isAssignableFrom(rawType(t))) {
+            sup = t;
             break;
           }
         }
@@ -51,13 +59,13 @@ public final class Types {
         throw new IllegalArgumentException("Target type is not assignable from the parameter type");
       }
 
-      final Type[] param = getTypeParametersFor(pTargetType, sup);
+      final Type[] param = getTypeParametersFor(targetType, sup);
       final Type[] result = new Type[param.length];
       for (int i = 0; i < param.length; ++i) {
         final Type par = param[i];
         if (par instanceof TypeVariable<?>) {
           final String name = ((TypeVariable<?>) par).getName();
-          final TypeVariable<?>[] myParams = baseType.getTypeParameters();
+          final TypeVariable<?>[] myParams = rawBaseType.getTypeParameters();
           int j;
           for (j = 0; j < myParams.length; ++j) {
             if (myParams[j].getName().equals(name)) {
@@ -67,7 +75,7 @@ public final class Types {
           if (j >= myParams.length) {
             throw new RuntimeException("Unbound type parameter");
           }
-          result[i] = ((ParameterizedType) pBaseType).getActualTypeArguments()[j];
+          result[i] = ((ParameterizedType) baseType).getActualTypeArguments()[j];
 
         } else {
           result[i] = par;
@@ -77,9 +85,10 @@ public final class Types {
     }
   }
 
+  @SuppressWarnings("ChainOfInstanceofChecks")
   private static Type[] getTypeParameters(final Type pType) {
     if (pType instanceof Class) {
-      return new Type[0];
+      return NO_TYPES;
     }
     if (pType instanceof ParameterizedType) {
       return ((ParameterizedType) pType).getActualTypeArguments();
@@ -87,6 +96,7 @@ public final class Types {
     throw new UnsupportedOperationException("Other type parameters not supported");
   }
 
+  @SuppressWarnings("ChainOfInstanceofChecks")
   private static Class<?> rawType(final Type pType) {
     if (pType instanceof Class) {
       return (Class<?>) pType;
@@ -135,7 +145,7 @@ public final class Types {
   private static Class<?> commonAncestorClass(final Iterable<Class<?>> pResult) {
     final Set<Class<?>> result = new HashSet<>();
     for (final Class<?> candidate : pResult) {
-      if (result.size() == 0) {
+      if (result.isEmpty()) {
         result.add(candidate);
       } else {
         final Set<Class<?>> toAdd = new HashSet<>();
@@ -168,6 +178,7 @@ public final class Types {
     return rawType(pType);
   }
 
+  @SuppressWarnings("ChainOfInstanceofChecks")
   public static boolean isInstanceForReflection(final Class<?> pClass, final Object pResult) {
     if (pClass.isInstance(pResult)) {
       return true;
@@ -209,6 +220,7 @@ public final class Types {
         || (pClass == boolean.class) || (pClass == double.class) || (pClass == float.class);
   }
 
+  @SuppressWarnings("ChainOfInstanceofChecks")
   public static Object parsePrimitive(final Class<?> pClass, final String pString) {
     if ((pClass == Long.class) || (pClass == long.class)) {
       return Long.valueOf(pString);
@@ -237,6 +249,7 @@ public final class Types {
     return null;
   }
 
+  @SuppressWarnings("ChainOfInstanceofChecks")
   public static Class<?> classForReflection(final Class<?> pClass) {
     if (pClass == int.class) {
       return Integer.class;

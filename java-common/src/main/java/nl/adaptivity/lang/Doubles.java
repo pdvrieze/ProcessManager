@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -24,7 +24,7 @@ public final class Doubles {
 
   private Doubles() {}
 
-  public static boolean isFinite(double d) {
+  public static boolean isFinite(final double d) {
     return ! (Double.isNaN(d) || Double.isInfinite(d));
   }
 }

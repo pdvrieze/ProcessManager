@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
 import net.devrieze.util.db.AbstractElementFactory
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -51,7 +52,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
           }
        ?: ExecutableProcessModel.Builder().apply {
             owner?.let { this.owner = it }
-            this.owner = owner ?: SecurityProvider.SYSTEMPRINCIPAL
+            this.owner = owner ?: SYSTEMPRINCIPAL
             this.handle = handle.handleValue
           }
   }

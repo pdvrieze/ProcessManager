@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -37,13 +37,13 @@ public class StringCacheImpl implements StringCache {
   public static class SafeStringCache extends StringCacheImpl {
 
     @Override
-    public synchronized String lookup(final @Nullable String pString) {
+    public synchronized String lookup(@Nullable final String pString) {
       return super.lookup(pString);
     }
 
   }
 
-  WeakHashMap<String, String> mCache = new WeakHashMap<>();
+  final WeakHashMap<String, String> mCache = new WeakHashMap<>();
 
   /*
    * (non-Javadoc)
@@ -52,16 +52,19 @@ public class StringCacheImpl implements StringCache {
   @Override
   public String lookup(@Nullable final String pString) {
     if (pString==null) { return null; }
-    String result = mCache.get(pString);
-    if (result != null) {
-      return result;
+    {
+      final String result = mCache.get(pString);
+      if (result != null) {
+        return result;
+      }
     }
 
     // Use a narrow stringbuilder such as not to carry extra bytes into the cache.
     final StringBuilder builder = new StringBuilder(pString.length());
     builder.append(pString);
     builder.trimToSize();
-    result = builder.toString();
+
+    final String result = builder.toString();
     mCache.put(result, result);
     return result;
   }

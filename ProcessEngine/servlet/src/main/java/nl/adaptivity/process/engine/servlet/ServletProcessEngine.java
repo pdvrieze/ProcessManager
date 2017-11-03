@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,10 +19,7 @@ package nl.adaptivity.process.engine.servlet;
 import net.devrieze.util.ComparableHandle;
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
-import net.devrieze.util.security.AuthenticationNeededException;
-import net.devrieze.util.security.SecureObject;
-import net.devrieze.util.security.SecuredObject;
-import net.devrieze.util.security.SecurityProvider;
+import net.devrieze.util.security.*;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
@@ -885,7 +882,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         try {
           final DataSource result = future.get();
           try (TRXXX transaction = mProcessEngine.startTransaction()) {
-            ProcessNodeInstance<?> inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
+            ProcessNodeInstance<?> inst = mProcessEngine.getNodeInstance(transaction, handle, SYSTEMPRINCIPAL.INSTANCE);
             assert inst.getState() == NodeInstanceState.Pending;
             if (inst.getState() == NodeInstanceState.Pending) {
               ProcessInstance processInstance = transaction.getReadableEngineData().instance(inst.getHProcessInstance()).withPermission();

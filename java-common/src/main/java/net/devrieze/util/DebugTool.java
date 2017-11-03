@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -59,10 +59,10 @@ public final class DebugTool {
   /**
    * Set the debugging level for the program.
    * 
-   * @param pDebugLevel The level of debugging that is desired.
+   * @param debugLevel The level of debugging that is desired.
    */
-  public static void setDebugLevel(final int pDebugLevel) {
-    DebugTool.sDebugLevel = pDebugLevel;
+  public static void setDebugLevel(final int debugLevel) {
+    DebugTool.sDebugLevel = debugLevel;
     dPrintLn(1, "This Java program is debugged by net.devrieze.util.debugTool version 1.0");
     dPrintLn(1, " copyright 2001,2004 by Paul de Vrieze");
     if (_DEFAULT_ENABLE_ASSERTIONS) {
@@ -84,11 +84,11 @@ public final class DebugTool {
   /**
    * Set the stream to which the debugging is send.
    * 
-   * @param pDebugStream The stream to send the debugging to
+   * @param debugStream The stream to send the debugging to
    */
-  public static void setDebugStream(final PrintStream pDebugStream) {
-    ensureParamNotNull(pDebugStream);
-    DebugTool.sDebugStream = pDebugStream;
+  public static void setDebugStream(final PrintStream debugStream) {
+    ensureParamNotNull(debugStream);
+    DebugTool.sDebugStream = debugStream;
   }
 
   /**
@@ -104,33 +104,33 @@ public final class DebugTool {
    * Print with the specified debug level. If the level is lower than the
    * current level the message is printed, else it is ignored.
    * 
-   * @param pLevel The debug level of the message
-   * @param pMessage The message to be printed
+   * @param level The debug level of the message
+   * @param message The message to be printed
    */
-  public static void dPrintLn(final int pLevel, final CharSequence pMessage) {
-    if (sDebugLevel >= pLevel) {
-      sDebugStream.println(pMessage);
+  public static void dPrintLn(final int level, final CharSequence message) {
+    if (sDebugLevel >= level) {
+      sDebugStream.println(message);
     }
   }
 
   /**
    * Print the message with the default debug level.
    * 
-   * @param pMessage The message to be printed
+   * @param message The message to be printed
    * @see #dPrintLn(int, CharSequence)
    */
-  public static void dPrintLn(final CharSequence pMessage) {
-    dPrintLn(_DEF_DEBUG_LEVEL, pMessage);
+  public static void dPrintLn(final CharSequence message) {
+    dPrintLn(_DEF_DEBUG_LEVEL, message);
   }
 
   /**
    * Print the specified character. Do not print a line break.
    * 
-   * @param pLevel The debug level of the char
+   * @param level The debug level of the char
    * @param pChar the character to be printed
    */
-  public static void dPrint(final int pLevel, final char pChar) {
-    if (sDebugLevel >= pLevel) {
+  public static void dPrint(final int level, final char pChar) {
+    if (sDebugLevel >= level) {
       sDebugStream.print(pChar);
     }
 
@@ -153,21 +153,21 @@ public final class DebugTool {
   /**
    * Print a message with the default debug level. Do not print a line break.
    * 
-   * @param pMessage The message to print.
+   * @param message The message to print.
    */
-  public static void dPrint(final CharSequence pMessage) {
-    dPrint(_DEF_DEBUG_LEVEL, pMessage);
+  public static void dPrint(final CharSequence message) {
+    dPrint(_DEF_DEBUG_LEVEL, message);
   }
 
   /**
    * Print a message with the given level. Do not print a line break.
    * 
-   * @param pLevel The debug level.
-   * @param pMessage The message to print.
+   * @param level The debug level.
+   * @param message The message to print.
    */
-  public static void dPrint(final int pLevel, final CharSequence pMessage) {
-    if (sDebugLevel >= pLevel) {
-      sDebugStream.print(pMessage);
+  public static void dPrint(final int level, final CharSequence message) {
+    if (sDebugLevel >= level) {
+      sDebugStream.print(message);
     }
   }
 
@@ -185,11 +185,10 @@ public final class DebugTool {
     int i = 0;
     while (i < pArgs.length) {
       if (pArgs[i].toLowerCase().startsWith("--debug")) {
-        int j;
 
         try {
           if ((i + 1) < pArgs.length) {
-            j = Integer.parseInt(pArgs[i + 1]);
+            final int j = Integer.parseInt(pArgs[i + 1]);
             DebugTool.setDebugLevel(j);
             i++;
           } else {
@@ -221,18 +220,18 @@ public final class DebugTool {
    * Print with the specified debug level. If the level is lower than the
    * current level the message's stacktrace is printed, else it is ignored.
    * 
-   * @param pLevel The debug level of the message.
+   * @param level The debug level of the message.
    * @param pException The exception to be printed.
    */
-  public static void handle(final int pLevel, final Throwable pException) {
-    if (sDebugLevel >= pLevel) {
+  public static void handle(final int level, final Throwable pException) {
+    if (sDebugLevel >= level) {
       pException.printStackTrace(sDebugStream);
     }
   }
 
   /**
    * A utility function that helps checking that a parameter is not
-   * <code>null</code>.
+   * {@code null}.
    * 
    * @param pParam The parameter to check
    */
@@ -243,12 +242,12 @@ public final class DebugTool {
   /**
    * A utility function that helps checking that a parameter is not null.
    * 
-   * @param pParam The parameter to check
-   * @param pMessage The exception description
+   * @param param The parameter to check
+   * @param message The exception description
    */
-  public static void ensureParamNotNull(final Object pParam, final String pMessage) {
-    if (pParam == null) {
-      throw new IllegalArgumentException(pMessage);
+  public static void ensureParamNotNull(final Object param, final String message) {
+    if (param == null) {
+      throw new IllegalArgumentException(message);
     }
   }
 
@@ -256,12 +255,12 @@ public final class DebugTool {
    * A utility function that helps checking parameter conditions. This should
    * throw IllegalArgumentExceptions, so assert can not be used.
    * 
-   * @param pCondition The boolean result of the condition
-   * @param pMessage The message for the exception when it doesn't
+   * @param condition The boolean result of the condition
+   * @param message The message for the exception when it doesn't
    */
-  public static void ensureParamValid(final boolean pCondition, final String pMessage) {
-    if (!pCondition) {
-      throw new IllegalArgumentException(pMessage);
+  public static void ensureParamValid(final boolean condition, final String message) {
+    if (!condition) {
+      throw new IllegalArgumentException(message);
     }
   }
 

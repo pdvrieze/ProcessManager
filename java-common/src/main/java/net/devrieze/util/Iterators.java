@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,10 +16,13 @@
 
 package net.devrieze.util;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 
-public class Iterators {
+public final class Iterators {
 
 
   
@@ -28,7 +31,7 @@ public class Iterators {
     private final T mParent;
     private Iterator<? extends V> mIterator;
     
-    public AutoCloseIterable(T pIterable) {
+    protected AutoCloseIterable(final T pIterable) {
       mParent = pIterable;
     }
 
@@ -54,7 +57,7 @@ public class Iterators {
     @Override
     public V next() {
       try {
-        V n = mIterator.next();
+        final V n = mIterator.next();
         if (n==null) {
           mIterator = null;
           mParent.close();
@@ -66,6 +69,7 @@ public class Iterators {
         } catch (Exception ex) {
           e.addSuppressed(ex);
         }
+        //noinspection InstanceofCatchParameter
         if (e instanceof RuntimeException) {
           throw (RuntimeException) e;
         } else {
@@ -95,7 +99,7 @@ public class Iterators {
 
     private final Enumeration<T> mEnumeration;
 
-    public EnumIterator(final Enumeration<T> pEnumeration) {
+    protected EnumIterator(final Enumeration<T> pEnumeration) {
       mEnumeration = pEnumeration;
     }
 
@@ -157,7 +161,7 @@ public class Iterators {
 
     private final Iterable<? extends T>[] mIterables;
 
-    public MergedIterable(final Iterable<? extends T>[] pIterables) {
+    protected MergedIterable(final Iterable<? extends T>[] pIterables) {
       mIterables = pIterables;
     }
 
@@ -182,6 +186,8 @@ public class Iterators {
     return new MergedIterable<>(pIterables);
   }
 
+  @NotNull
+  @Contract(pure = true)
   public static <T> Iterable<T> toIterable(final Enumeration<T> e) {
     return new Iterable<T>() {
 
@@ -194,6 +200,7 @@ public class Iterators {
     };
   }
 
+  @SuppressWarnings("WeakerAccess")
   public static <T> List<T> toList(final Iterator<T> pIterator) {
     if (!pIterator.hasNext()) {
       return Collections.<T> emptyList();
@@ -218,7 +225,7 @@ public class Iterators {
     return toList(pIterable.iterator());
   }
   
-  public static <T extends Iterable<V> & AutoCloseable, V> Iterable<V> autoClose(T iterable) {
+  public static <T extends Iterable<V> & AutoCloseable, V> Iterable<V> autoClose(final T iterable) {
     return new AutoCloseIterable<>(iterable);
   }
 }

@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
@@ -362,7 +363,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   }
 
   data class BaseBuilder(override var handle: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid(),
-                         override var owner: Principal = SecurityProvider.SYSTEMPRINCIPAL,
+                         override var owner: Principal = SYSTEMPRINCIPAL,
                          override var processModel: ExecutableModelCommon,
                          override var instancename: String? = null,
                          override var uuid: UUID = UUID.randomUUID(),

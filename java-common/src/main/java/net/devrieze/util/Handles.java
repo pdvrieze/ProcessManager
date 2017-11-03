@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -27,7 +27,7 @@ public final class Handles {
 
     private final long mHandle;
 
-    private SimpleHandle(long pHandle) {
+    private SimpleHandle(final long pHandle) {
       mHandle = pHandle;
     }
 
@@ -60,14 +60,14 @@ public final class Handles {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
       if (this == obj)
         return true;
       if (obj == null)
         return false;
       if (getClass() != obj.getClass())
         return false;
-      SimpleHandle<?> other = (SimpleHandle<?>) obj;
+      final SimpleHandle<?> other = (SimpleHandle<?>) obj;
       if (mHandle != other.mHandle)
         return false;
       return true;
@@ -80,7 +80,7 @@ public final class Handles {
   @SuppressWarnings("unchecked")
   @NotNull public static <T> ComparableHandle<T> getInvalid() {
     return (ComparableHandle<T>) INVALID;
-  };
+  }
 
   private Handles() { /* Utility class */ }
 
@@ -90,7 +90,8 @@ public final class Handles {
    * @param pHandle The handle
    * @return a Handle<T> object corresponding to the handle.
    */
-  public static @NotNull <T> ComparableHandle<T> handle(final long pHandle) {
+  @NotNull
+  public static <T> ComparableHandle<T> handle(final long pHandle) {
     return pHandle<0 ? Handles.<T>getInvalid() : new SimpleHandle<T>(pHandle);
   }
 
@@ -111,8 +112,8 @@ public final class Handles {
   }
 
   public static <T> ComparableHandle<T> handle(final URI handle) {
-    String path = handle.getPath();
-    int slashPos = path.lastIndexOf('/');
+    final String path     = handle.getPath();
+    final int    slashPos = path.lastIndexOf('/');
     if (slashPos>0) {
       return handle(path.substring(slashPos+1));
     } else {

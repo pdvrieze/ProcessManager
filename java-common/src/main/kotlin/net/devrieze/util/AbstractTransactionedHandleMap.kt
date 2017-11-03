@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -25,7 +25,7 @@ import java.sql.SQLException
 abstract class AbstractTransactionedHandleMap<V:Any, T : Transaction> : MutableTransactionedHandleMap<V, T> {
 
   @Throws(SQLException::class)
-  override fun castOrGet(transaction: T, handle: Handle<out V>): V? {
+  override fun castOrGet(transaction: T, handle: Handle<V>): V? {
     return get(transaction, handle)
   }
 

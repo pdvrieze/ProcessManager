@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -31,7 +31,7 @@ interface SecureObject<out T> :SecuredObject<T> {
   }
 
   /**
-   * The owner of the object. Null values are not allowed. All unowned objects can have [SecurityProvider.SYSTEMPRINCIPAL] as owner.
+   * The owner of the object. Null values are not allowed. All unowned objects can have [SYSTEMPRINCIPAL] as owner.
    */
   val owner: Principal
 

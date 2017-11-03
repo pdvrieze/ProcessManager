@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,6 +21,10 @@
 
 package net.devrieze.util;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+
 /**
  * A linked list based stack implementation for characters.
  * 
@@ -32,21 +36,21 @@ public final class IntStack {
   private static final class Node {
 
     /** The next node. */
-    private final Node mNext;
+    final Node next;
 
     /** The value this node contains. */
-    private final int mValue;
+    final int value;
 
     /**
      * Create a new node.
      * 
-     * @param pValue The value in the node.
-     * @param pNext The next element. This may be {@code NULL}if there is no
+     * @param value The value in the node.
+     * @param next The next element. This may be {@code NULL}if there is no
      *          next element.
      */
-    private Node(final int pValue, final Node pNext) {
-      mNext = pNext;
-      mValue = pValue;
+    Node(final int value, final Node next) {
+      this.next = next;
+      this.value = value;
     }
 
     /**
@@ -54,25 +58,27 @@ public final class IntStack {
      * 
      * @return A string representation
      */
+    @NotNull
     @Override
     public String toString() {
-      if (mNext != null) {
-        return mNext.toString() + ", " + Integer.toString(mValue);
+      if (next != null) {
+        return next + ", " + Integer.toString(value);
       }
 
-      return Integer.toString(mValue);
+      return Integer.toString(value);
     }
   }
 
-  private Node mTop;
+  private Node top;
 
   /**
-   * Returns <code>true</code> if the stack is empty.
+   * Returns {@code true} if the stack is empty.
    * 
    * @return boolean
    */
+  @Contract(pure = true)
   public boolean isEmpty() {
-    return mTop == null;
+    return top == null;
   }
 
   /**
@@ -80,8 +86,9 @@ public final class IntStack {
    * 
    * @return The value at the top
    */
+  @Contract(pure = true)
   public int peek() {
-    return mTop.mValue;
+    return top.value;
   }
 
   /**
@@ -90,8 +97,8 @@ public final class IntStack {
    * @return the top character
    */
   public int pop() {
-    final int val = mTop.mValue;
-    mTop = mTop.mNext; /* fails if empty */
+    final int val = top.value;
+    top = top.next; /* fails if empty */
 
     return val;
   }
@@ -102,8 +109,7 @@ public final class IntStack {
    * @param pValue the value to be pushed
    */
   public void push(final int pValue) {
-    final Node node = new Node(pValue, mTop);
-    mTop = node;
+    top = new Node(pValue, top);
   }
 
   /**
@@ -111,8 +117,10 @@ public final class IntStack {
    * 
    * @return The string representation
    */
+  @NotNull
+  @Contract(pure = true)
   @Override
   public String toString() {
-    return "[" + mTop.toString() + "]";
+    return "[" + top + "]";
   }
 }
