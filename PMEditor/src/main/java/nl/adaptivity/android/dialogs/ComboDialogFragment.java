@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -109,6 +109,7 @@ public class ComboDialogFragment<T extends Parcelable> extends DialogFragment im
    *
    * @return The newly created dialog fragment.
    */
+  @NonNull
   public static <T extends Parcelable> ComboDialogFragment<T> newInstance(final int dialogId, final List<? extends T> values, final CharSequence title) {
     final Bundle args = new Bundle(2);
     args.putParcelableArrayList(KEY_VALUES, CollectionUtil.toArrayList(values));

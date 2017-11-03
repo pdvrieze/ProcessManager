@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,7 +19,10 @@ package nl.adaptivity.process.util;
 import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlWriterUtil;
 
 import javax.xml.namespace.QName;
 

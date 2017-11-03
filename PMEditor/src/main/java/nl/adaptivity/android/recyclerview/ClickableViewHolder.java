@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.recyclerview;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,7 +29,7 @@ public abstract class ClickableViewHolder extends ViewHolder implements OnClickL
 
   private final ClickableAdapter mClickableAdapter;
 
-  public ClickableViewHolder(final ClickableAdapter clickableAdapter, final View itemView) {
+  public ClickableViewHolder(final ClickableAdapter clickableAdapter, @NonNull final View itemView) {
     super(itemView);
     mClickableAdapter = clickableAdapter;
     itemView.setOnClickListener(this);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -43,7 +43,7 @@ import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
-import org.jetbrains.annotations.Nullable;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;

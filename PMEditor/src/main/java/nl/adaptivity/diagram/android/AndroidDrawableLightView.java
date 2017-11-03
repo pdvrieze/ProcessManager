@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,8 @@ package nl.adaptivity.diagram.android;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.AttrRes;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Theme;
 
 
@@ -76,7 +78,7 @@ public class AndroidDrawableLightView implements LightView {
     return hasState(android.R.attr.state_active);
   }
 
-  private void setState(final int stateResource, final boolean desiredState) {
+  private void setState(@AttrRes final int stateResource, final boolean desiredState) {
     final int[] oldState = mDrawable.getState();
     final int statePos = getStatePos(oldState, stateResource);
     if (desiredState) {
@@ -106,12 +108,12 @@ public class AndroidDrawableLightView implements LightView {
     return -1;
   }
 
-  private boolean hasState(final int stateResource) {
+  private boolean hasState(@AttrRes final int stateResource) {
     return getStatePos(mDrawable.getState(), stateResource)>=0;
   }
 
   @Override
-  public void getBounds(final RectF target) {
+  public void getBounds(@NonNull final RectF target) {
     target.top = mTop;
     target.left = mLeft;
     target.right = mLeft+ (float) (mDrawable.getIntrinsicWidth()/mScale);

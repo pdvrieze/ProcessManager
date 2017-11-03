@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -33,7 +33,7 @@ import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.util.Util;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 import org.w3.soapEnvelope.Envelope;
 
 import javax.xml.namespace.QName;
@@ -202,7 +202,7 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
     if (StringUtil.isEqual(Constants.MODIFY_NS_STR, reader.getNamespaceUri())) {
       final AttributeSequence attrVar = ModifyHelper.parseAttribute(reader);
       switch (attrVar.getParamName().toString()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -34,6 +34,8 @@ package nl.adaptivity.android.recyclerview;/*
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DataSetObserver;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 
 
@@ -61,14 +63,14 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
       //There is no notifyDataSetInvalidated() method in RecyclerView.Adapter
     }
   }
-  private final Context         mContext;
-  private       Cursor          mCursor;
-  private       boolean         mDataValid;
-  private       int             mRowIdColumn;
-  private final DataSetObserver mDataSetObserver;
+  private final          Context         mContext;
+  @Nullable private      Cursor          mCursor;
+  private                boolean         mDataValid;
+  private                int             mRowIdColumn;
+  @NonNull private final DataSetObserver mDataSetObserver;
 
 // Object Initialization
-  public CursorRecyclerViewAdapter(final Context context, final Cursor cursor) {
+  public CursorRecyclerViewAdapter(final Context context, @Nullable final Cursor cursor) {
     mContext = context;
     mCursor = cursor;
     mDataValid = cursor != null;
@@ -138,7 +140,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * Change the underlying cursor to a new cursor. If there is an existing cursor it will be
    * closed. This will use {@link #swapCursor(Cursor)} as delegate.
    */
-  public final void changeCursor(final Cursor cursor) {
+  public final void changeCursor(@NonNull final Cursor cursor) {
     final Cursor old = swapCursor(cursor);
     if (old != null) {
       old.close();
@@ -150,7 +152,8 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * {@link #changeCursor(Cursor)}, the returned old Cursor is <em>not</em>
    * closed.
    */
-  public Cursor swapCursor(final Cursor newCursor) {
+  @Nullable
+  public Cursor swapCursor(@NonNull final Cursor newCursor) {
     if (newCursor == mCursor) {
       return null;
     }
@@ -176,6 +179,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
   }
 
 // Property accessors start
+  @Nullable
   public Cursor getCursor() {
     return mCursor;
   }

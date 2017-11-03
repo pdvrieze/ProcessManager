@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -23,6 +23,8 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.text.InputType;
@@ -106,8 +108,9 @@ public class GetNameDialogFragment extends DialogFragment {
     mOwner = callbacks;
   }
 
+  @NonNull
   @Override
-  public Dialog onCreateDialog(final Bundle savedInstanceState) {
+  public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
     CharSequence prevName;
     final String title;
     final String message;
@@ -145,15 +148,18 @@ public class GetNameDialogFragment extends DialogFragment {
   }
 
   @Override
-  public void onSaveInstanceState(final Bundle outState) {
+  public void onSaveInstanceState(@NonNull final Bundle outState) {
     outState.putCharSequence(KEY_EDIT, mEditText.getText());
   }
 
-  public static GetNameDialogFragment show(final FragmentManager fragmentManager, final int id, final String title, final String message, final GetNameDialogFragmentCallbacks callbacks) {
+  @NonNull
+  public static GetNameDialogFragment show(@NonNull final FragmentManager fragmentManager, final int id, final String title, final String message, final GetNameDialogFragmentCallbacks callbacks) {
     return show(fragmentManager, id, title, message, callbacks, null);
   }
 
-  public static GetNameDialogFragment show(final FragmentManager fragmentManager, final int id, final String title, final String message, final GetNameDialogFragmentCallbacks callbacks, final String previous) {
+  @NonNull
+  public static GetNameDialogFragment show(@NonNull final FragmentManager fragmentManager, final int id, @Nullable final String title, @Nullable
+  final String message, final GetNameDialogFragmentCallbacks callbacks, @Nullable final String previous) {
     final GetNameDialogFragment f = new GetNameDialogFragment();
     f.setCallbacks(callbacks);
     f.setId(id);

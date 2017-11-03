@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -24,6 +24,7 @@ import android.graphics.Typeface;
 import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 
@@ -50,18 +51,21 @@ public class AndroidPen implements Pen<AndroidPen> {
     return mPaint;
   }
 
+  @NonNull
   @Override
   public AndroidPen setColor(@IntRange(from=0, to=255) final int red, @IntRange(from=0, to=255) final int green, @IntRange(from=0, to=255) final int blue) {
     mPaint.setARGB(255, red, green, blue);
     return this;
   }
 
+  @NonNull
   @Override
   public AndroidPen setColor(@IntRange(from=0, to=255) final int red, @IntRange(from=0, to=255) final int green, @IntRange(from=0, to=255) final int blue, @IntRange(from=0, to=255) final int alpha) {
     mPaint.setARGB(alpha, red, green, blue);
     return this;
   }
 
+  @NonNull
   @Override
   public AndroidPen setStrokeWidth(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final double strokeWidth) {
     mStrokeWidth = strokeWidth;
@@ -82,7 +86,8 @@ public class AndroidPen implements Pen<AndroidPen> {
     mPaint.setShadowLayer(radius, mShadowDx, mShadowDy, color);
   }
 
-  public AndroidPen scale(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final double scale) {
+  @NonNull
+  public AndroidPen scale(@FloatRange(from=0, to=Float.MAX_VALUE, fromInclusive = false) final double scale) {
     mPaint.setStrokeWidth((float) (mStrokeWidth*scale));
     if (mShadowRadius>0f) {
       mPaint.setShadowLayer((float) (mShadowRadius*scale), (float) (mShadowDx*scale), (float) (mShadowDy*scale), mShadowColor);
@@ -93,6 +98,7 @@ public class AndroidPen implements Pen<AndroidPen> {
     return this;
   }
 
+  @NonNull
   @Override
   public AndroidPen setFontSize(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) final double fontSize) {
     mPaint.setTextAlign(Align.LEFT);
@@ -115,8 +121,9 @@ public class AndroidPen implements Pen<AndroidPen> {
     return result;
   }
 
+  @NonNull
   @Override
-  public Rectangle measureTextSize(final Rectangle dest, final double x, final double y, final String text, final double foldWidth) {
+  public Rectangle measureTextSize(@NonNull final Rectangle dest, final double x, final double y, final String text, final double foldWidth) {
     final float ts = mPaint.getTextSize();
     mPaint.setTextSize(((float) mFontSize)*FONT_MEASURE_FACTOR);
     ensureFontMetrics();

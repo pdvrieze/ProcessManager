@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,7 +21,8 @@ import android.accounts.Account;
 import android.content.*;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.os.Trace;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
@@ -43,14 +44,14 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
     UPDATE_LIST_FROM_SERVER {
 
       @Override
-      public void execute(final DelegatingResources delegator, final ISyncAdapterDelegate delegate, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
+      public void execute(final DelegatingResources delegator, @NonNull final ISyncAdapterDelegate delegate, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
         delegate.updateListFromServer(delegator, provider, syncResult);
       }},
 
     UPDATE_ITEM_DETAILS_FROM_SERVER {
 
       @Override
-      public void execute(final DelegatingResources delegator, final ISyncAdapterDelegate delegate, final ContentProviderClient provider, final SyncResult syncResult)
+      public void execute(final DelegatingResources delegator, @NonNull final ISyncAdapterDelegate delegate, final ContentProviderClient provider, final SyncResult syncResult)
           throws XmlException, IOException, RemoteException, OperationApplicationException {
         delegate.updateItemDetails(delegator, provider, syncResult);
       }};
@@ -79,14 +80,16 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
   }
 
   @Override
-  public final void onPerformSync(final Account account, final Bundle extras, final String authority, final ContentProviderClient provider, final SyncResult syncResult) {
+  public final void onPerformSync(final Account account, final Bundle extras, final String authority, final ContentProviderClient provider, @NonNull
+  final SyncResult syncResult) {
     if (!ProcessSyncManager.isLocalsync(getContext())) {
       onPerformLocalSync(account, extras, authority, provider, syncResult);
     }
   }
 
   @Override
-  public void onPerformLocalSync(final Account account, final Bundle bundle, final String authority, final ContentProviderClient provider, final SyncResult syncResult) {
+  public void onPerformLocalSync(@Nullable final Account account, final Bundle bundle, final String authority, final ContentProviderClient provider, @NonNull
+  final SyncResult syncResult) {
     URI mBase = getSyncSource();
     if (!mBase.toString().endsWith("/")) {
       if (BuildConfig.DEBUG) throw new AssertionError("Sync sources should be forced to end with / in all cases.");
@@ -105,13 +108,13 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
           phase.execute(this, delegate, provider, syncResult);
         /*if (BuildConfig.DEBUG) { */
           Log.e(TAG, getClass().getSimpleName() + " FINISHED phase " + phase); //}
-        } catch (IllegalStateException | XmlException e) {
+        } catch (@NonNull IllegalStateException | XmlException e) {
           syncResult.stats.numParseExceptions++;
           Log.e(TAG, "Error parsing list", e);
         } catch (IOException e) {
           syncResult.stats.numIoExceptions++;
           Log.e(TAG, "Error contacting server", e);
-        } catch (RemoteException | OperationApplicationException e) {
+        } catch (@NonNull RemoteException | OperationApplicationException e) {
           syncResult.databaseError = true;
           Log.e(TAG, "Error updating database", e);
         } catch (Exception e) {

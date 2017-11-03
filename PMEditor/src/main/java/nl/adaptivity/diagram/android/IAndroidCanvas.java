@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,13 +17,15 @@
 package nl.adaptivity.diagram.android;
 
 import android.graphics.Bitmap;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 
 
 public interface IAndroidCanvas extends nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath>{
+  @NonNull
   IAndroidCanvas scale(double scale);
+  @NonNull
   IAndroidCanvas translate(double dx, double dy);
-  @NotNull
+  @NonNull
   @Override
   IAndroidCanvas childCanvas(final double offsetX, final double offsetY, double scale);
 

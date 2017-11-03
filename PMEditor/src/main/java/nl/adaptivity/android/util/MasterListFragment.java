@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,8 @@ package nl.adaptivity.android.util;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
@@ -54,7 +56,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
    * A dummy implementation of the {@link ListCallbacks} interface that does
    * nothing. Used only when this fragment is not attached to an activity.
    */
-  public final ListCallbacks sDummyCallbacks = new ListCallbacks() {
+  @Nullable public final ListCallbacks sDummyCallbacks = new ListCallbacks() {
     Context context = MasterListFragment.this.getContext();
     @Override public boolean onItemClicked(final int row, final long id) {/*dummy, not processed*/ return false; }
     @Override
@@ -75,7 +77,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
    * The fragment's current callback object, which is notified of list item
    * clicks.
    */
-  private ListCallbacks mCallbacks = sDummyCallbacks;
+  @Nullable private ListCallbacks mCallbacks = sDummyCallbacks;
 
   @Override
   public void onActivityCreated(final Bundle savedInstanceState) {
@@ -94,7 +96,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
   }
 
   @Override
-  public void onViewCreated(final View view, final Bundle savedInstanceState) {
+  public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     // Restore the previously serialized activated item position.
@@ -117,6 +119,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
     mCallbacks = sDummyCallbacks;
   }
 
+  @Nullable
   protected ListCallbacks<M> getCallbacks() {
     if (mCallbacks==sDummyCallbacks) {
       Fragment parent = getParentFragment();
@@ -153,7 +156,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
   }
 
   @Override
-  public void onSaveInstanceState(final Bundle outState) {
+  public void onSaveInstanceState(@NonNull final Bundle outState) {
     super.onSaveInstanceState(outState);
     final Adapter adapter = getListAdapter();
     if (adapter instanceof SelectableAdapter) {

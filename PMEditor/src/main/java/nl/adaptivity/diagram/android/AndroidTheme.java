@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,6 +17,7 @@
 package nl.adaptivity.diagram.android;
 
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.util.SparseArray;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.ThemeItem;
@@ -32,8 +33,8 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
   public static final int SELECTED_SHADE_COLOR=Color.argb(0xb0, 23, 166, 255);
 
 
-  private final AndroidStrategy                      mStrategy;
-  private final SparseArray<SparseArray<AndroidPen>> mPens;
+  private final          AndroidStrategy                      mStrategy;
+  @NonNull private final SparseArray<SparseArray<AndroidPen>> mPens;
 
   public AndroidTheme(final AndroidStrategy strategy){
     mStrategy = strategy;
@@ -41,7 +42,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
   }
 
   @Override
-  public AndroidPen getPen(final ThemeItem item, final int state) {
+  public AndroidPen getPen(@NonNull final ThemeItem item, final int state) {
     final int               itemState  = item.getEffectiveState(state);
     final int               themeState = overrideState(item, state, itemState);
     SparseArray<AndroidPen> statePens  = mPens.get(item.getItemNo());
@@ -90,7 +91,8 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
    * @param state The state of the item.
    * @return The overridden pen. Optimally this is actually the same pen passed in.
    */
-  private static AndroidPen overrideTheme(final AndroidPen pen, final ThemeItem item, final int state) {
+  @NonNull
+  private static AndroidPen overrideTheme(@NonNull final AndroidPen pen, final ThemeItem item, final int state) {
     if (item instanceof ProcessThemeItems) {
       switch ((ProcessThemeItems) item) {
         case BACKGROUND:

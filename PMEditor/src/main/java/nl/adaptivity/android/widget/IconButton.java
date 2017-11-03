@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -25,13 +25,9 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.support.annotation.ColorInt;
-import android.support.annotation.Dimension;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.IntDef;
+import android.support.annotation.*;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
@@ -74,7 +70,7 @@ public class IconButton extends ViewGroup {
     @LayoutRole
     public int role;
 
-    public LayoutParams(final Context c, final AttributeSet attrs) {
+    public LayoutParams(@NonNull final Context c, final AttributeSet attrs) {
       super(c, attrs);
       final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.IconButtonLP);
       //noinspection ResourceType
@@ -107,32 +103,33 @@ public class IconButton extends ViewGroup {
   public static final int DEFAULT_ICON_WIDTH_DP = 24;
   public static final int DEFAULT_ICON_HEIGHT_DP = 24;
 
-  private int mIconPadding;
-  private int mIconWidth;
-  private int mIconHeight;
-  private Drawable mIconDrawable;
-  private ColorStateList mDrawableTint;
+  private           int            mIconPadding;
+  private           int            mIconWidth;
+  private           int            mIconHeight;
+  @Nullable private Drawable       mIconDrawable;
+  private           ColorStateList mDrawableTint;
 
   public IconButton(final Context context) {
     super(context);
   }
 
-  public IconButton(final Context context, final AttributeSet attrs) {
+  public IconButton(@NonNull final Context context, final AttributeSet attrs) {
     this(context, attrs, R.attr.iconButtonStyle);
   }
 
-  public IconButton(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+  public IconButton(@NonNull final Context context, final AttributeSet attrs, @AttrRes final int defStyleAttr) {
     super(context, attrs, defStyleAttr);
     applyAttrs(context, attrs, defStyleAttr, R.style.Widget_IconButton);
   }
 
   @TargetApi(VERSION_CODES.LOLLIPOP)
-  public IconButton(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+  public IconButton(@NonNull final Context context, final AttributeSet attrs, final int defStyleAttr, @StyleRes
+  final int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
     applyAttrs(context, attrs, defStyleAttr, defStyleRes);
   }
 
-  private static int densityDpi(Context context) {
+  private static int densityDpi(@NonNull Context context) {
     if (VERSION.SDK_INT >= 17) {
       return Compat17.densityDpi(context.getResources().getConfiguration());
     } else {
@@ -140,7 +137,8 @@ public class IconButton extends ViewGroup {
     }
   }
 
-  private void applyAttrs(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+  private void applyAttrs(final Context context, final AttributeSet attrs, final int defStyleAttr, @StyleRes
+  final int defStyleRes) {
     final TypedArray a   = context.obtainStyledAttributes(attrs, R.styleable.IconButton, defStyleAttr, defStyleRes == 0 ? R.style.Widget_IconButton : defStyleRes);
     final int        dpi = densityDpi(context);
     mIconPadding = a.getDimensionPixelOffset(R.styleable.IconButton_iconPadding, DEFAULT_ICON_PADDING_DP * 160 / dpi);
@@ -262,7 +260,8 @@ public class IconButton extends ViewGroup {
 
   }
 
-  private View getIfMatches(final View candidate, final int role, final View origView, final String errorMessage) {
+  @Nullable
+  private View getIfMatches(final View candidate, final int role, @Nullable final View origView, final String errorMessage) {
     final LayoutParams lp = (LayoutParams) candidate.getLayoutParams();
     if (lp.role==role) {
       if (origView!=null) {
@@ -385,11 +384,12 @@ public class IconButton extends ViewGroup {
     mIconHeight = iconHeight;
   }
 
+  @Nullable
   public Drawable getIconDrawable() {
     return mIconDrawable;
   }
 
-  public void setIconDrawable(final Drawable iconDrawable) {
+  public void setIconDrawable(@Nullable final Drawable iconDrawable) {
     mIconDrawable = iconDrawable;
     if (iconDrawable!=null) {
       DrawableCompat.setLayoutDirection(iconDrawable, ViewCompat.getLayoutDirection(this));
@@ -447,16 +447,19 @@ public class IconButton extends ViewGroup {
     return lp.role>=0 && lp.role<3 && super.checkLayoutParams(p);
   }
 
+  @NonNull
   @Override
   public ViewGroup.LayoutParams generateLayoutParams(final AttributeSet attrs) {
     return new LayoutParams(getContext(), attrs);
   }
 
+  @NonNull
   @Override
   protected ViewGroup.LayoutParams generateLayoutParams(final ViewGroup.LayoutParams p) {
     return new LayoutParams(p);
   }
 
+  @NonNull
   @Override
   protected ViewGroup.LayoutParams generateDefaultLayoutParams() {
     return new LayoutParams(LayoutParams.ROLE_TITLE);

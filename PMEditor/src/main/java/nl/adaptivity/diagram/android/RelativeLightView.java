@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,7 @@ package nl.adaptivity.diagram.android;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Theme;
 
 import java.lang.annotation.Retention;
@@ -102,7 +103,7 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void getBounds(final RectF target) {
+  public void getBounds(@NonNull final RectF target) {
     mView.getBounds(target);
 
     // Adjust the bounds to the ones needed

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,7 +17,6 @@
 package nl.adaptivity.process.ui;
 
 import android.databinding.BindingAdapter;
-import android.support.annotation.AnyRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
 import android.widget.ImageView;

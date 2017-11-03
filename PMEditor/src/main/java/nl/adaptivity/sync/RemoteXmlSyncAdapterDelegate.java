@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -22,6 +22,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
@@ -51,6 +53,7 @@ import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
 public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
 
   public interface DelegatingResources {
+    @NonNull
     Context getContext();
     AuthenticatedWebClient getWebClient();
     URI getSyncSource();
@@ -59,16 +62,16 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
 
   private static final String TAG = RemoteXmlSyncAdapterDelegate.class.getSimpleName();
 
-  private final Uri mListContentUri;
-  private List<CVPair> mUpdateList;
-  private ISimpleSyncDelegate mActualDelegate;
+  private final     Uri                 mListContentUri;
+  @Nullable private List<CVPair>        mUpdateList;
+  @Nullable private ISimpleSyncDelegate mActualDelegate;
 
-  public RemoteXmlSyncAdapterDelegate(final Uri listContentUri) {
+  public RemoteXmlSyncAdapterDelegate(@NonNull final Uri listContentUri) {
     this(listContentUri, null);
 //    if (!(this instanceof ISimpleSyncDelegate)) { throw new IllegalArgumentException("You must implement ISimpleSyncDelegate"); }
   }
 
-  public RemoteXmlSyncAdapterDelegate(final Uri listContentUri, final ISimpleSyncDelegate delegate) {
+  public RemoteXmlSyncAdapterDelegate(@NonNull final Uri listContentUri, @Nullable final ISimpleSyncDelegate delegate) {
     if (delegate ==null) {
       if (!(this instanceof ISimpleSyncDelegate)) { throw new IllegalArgumentException("You must implement ISimpleSyncDelegate"); }
       mActualDelegate = (ISimpleSyncDelegate) this;
@@ -94,7 +97,8 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    */
   @Override
   public
-  final void updateListFromServer(final DelegatingResources delegator, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
+  final void updateListFromServer(final DelegatingResources delegator, @NonNull final ContentProviderClient provider, @NonNull
+  final SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
     final GetRequest        getList = new GetRequest(mActualDelegate.getListUrl(delegator.getSyncSource()));
     final HttpURLConnection result;
     try {
@@ -147,7 +151,8 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    */
 
   @Override
-  public final void updateItemDetails(final DelegatingResources delegator, final ContentProviderClient provider, final SyncResult syncResult) throws RemoteException, IOException, OperationApplicationException {
+  public final void updateItemDetails(final DelegatingResources delegator, @NonNull final ContentProviderClient provider, @NonNull
+  final SyncResult syncResult) throws RemoteException, IOException, OperationApplicationException {
     if (mUpdateList==null) {
       mUpdateList = Collections.emptyList();
     } else {
@@ -200,7 +205,9 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
-  public final List<CVPair> updateItemListFromServer(final DelegatingResources delegator, final ContentProviderClient provider, final SyncResult syncResult, final InputStream content) throws XmlException, RemoteException, IOException, OperationApplicationException {
+  @NonNull
+  public final List<CVPair> updateItemListFromServer(final DelegatingResources delegator, final ContentProviderClient provider, @NonNull
+  final SyncResult syncResult, @NonNull final InputStream content) throws XmlException, RemoteException, IOException, OperationApplicationException {
     final List<CVPair> result = new ArrayList<>();
     final List<CVPair> pendingResults = new ArrayList<>();
 
@@ -258,7 +265,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
             ContentValuesProvider newValues = null;
             try { // Don't jinx the entire sync when only the single update fails
               newValues = mActualDelegate.updateItemOnServer(delegator, provider, itemUri, localSyncState, syncResult);
-            } catch (IOException | RemoteException e) {
+            } catch (@NonNull IOException | RemoteException e) {
               Log.w(TAG, "Error updating the server", e);
               if (mActualDelegate.resolvePotentialConflict(provider, itemUri, remoteItem)) {
                 if (! remoteItem.getContentValues().containsKey(colSyncstate)) {
@@ -335,7 +342,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     return result;
   }
 
-  private boolean isChanged(final ISimpleSyncDelegate actualDelegate, final Cursor localItems, final ContentValuesProvider remoteItem) {
+  private boolean isChanged(@NonNull final ISimpleSyncDelegate actualDelegate, @NonNull final Cursor localItems, final ContentValuesProvider remoteItem) {
     for(final Entry<String, Object> remotePair: remoteItem.getContentValues().valueSet()) {
       final String remoteKey = remotePair.getKey();
       if (!actualDelegate.getSyncStateColumn().equals(remoteKey)) {
@@ -356,7 +363,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     return false;
   }
 
-  private static Object getLocalValue(final Cursor localItems, final int localColIdx, final Class<?> clazz) {
+  private static Object getLocalValue(@NonNull final Cursor localItems, final int localColIdx, final Class<?> clazz) {
     if (clazz==Integer.class) {
       return localItems.getInt(localColIdx);
     } else if (clazz==Long.class) {
@@ -383,7 +390,9 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     return -1;
   }
 
-  protected List<ContentValuesProvider> parseItems(final DelegatingResources delegator, final InputStream content) throws XmlException, IOException {
+  @NonNull
+  protected List<ContentValuesProvider> parseItems(final DelegatingResources delegator, @NonNull
+  final InputStream content) throws XmlException, IOException {
     final String                      colSyncstate = mActualDelegate.getSyncStateColumn();
     final XmlReader                   parser       = XmlStreaming.newReader(content, "UTF8");
     final List<ContentValuesProvider> items        = new ArrayList<>();

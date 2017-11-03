@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -18,6 +18,7 @@ package nl.adaptivity.android.graphics;
 
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.Connectors;
@@ -39,7 +40,7 @@ AbstractLightView implements LightView {
   }
 
   @Override
-  public void getBounds(final RectF target) {
+  public void getBounds(@NonNull final RectF target) {
     if (mX1<=mX2) {
       target.left =mX1;
       target.right=mX2;
@@ -73,7 +74,7 @@ AbstractLightView implements LightView {
     return;
   }
 
-  public static void drawStraightArrow(final Canvas canvas, final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final float canvasX1, final float canvasY1, final float canvasX2, final float canvasY2, final double scale) {
+  public static void drawStraightArrow(final Canvas canvas, @NonNull final Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final float canvasX1, final float canvasY1, final float canvasX2, final float canvasY2, final double scale) {
     final IAndroidCanvas androidCanvas = new AndroidCanvas(canvas, theme).childCanvas(0d, 0d, scale);
     Connectors.drawStraightArrow(androidCanvas, theme, canvasX1/scale, canvasY1/scale, canvasX2/scale, canvasY2/scale);
     return;

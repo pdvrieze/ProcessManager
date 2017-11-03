@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -36,7 +36,7 @@ import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlSerializableExt;
 import nl.adaptivity.xml.XmlStreaming;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 import org.w3.soapEnvelope.Envelope;
 
 import java.io.StringReader;
@@ -81,12 +81,12 @@ public class ParcelableActivity extends DrawableActivity
     super(builder(orig, compat));
   }
 
-  public ParcelableActivity(@NotNull final Activity.Builder<?, ?> builder,
-                            @NotNull final BuildHelper<DrawableProcessNode, DrawableProcessModel> buildHelper) {
+  public ParcelableActivity(@NonNull final Activity.Builder<?, ?> builder,
+                            @NonNull final BuildHelper<DrawableProcessNode, DrawableProcessModel> buildHelper) {
     super(builder, buildHelper);
   }
 
-  public ParcelableActivity(@NotNull final Activity.Builder<?, ?> builder) {
+  public ParcelableActivity(@NonNull final Activity.Builder<?, ?> builder) {
     super(builder);
   }
 

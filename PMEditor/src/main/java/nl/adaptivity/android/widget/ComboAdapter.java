@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,6 +17,7 @@
 package nl.adaptivity.android.widget;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 
@@ -39,6 +40,7 @@ public class ComboAdapter<T> extends ArrayAdapter<T> {
     return mList;
   }
 
+  @NonNull
   @Override
   public Filter getFilter() {
     return new ComboFilter(mList);

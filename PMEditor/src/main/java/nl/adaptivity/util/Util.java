@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,6 +17,9 @@
 package nl.adaptivity.util;
 
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,7 +34,7 @@ public final class Util {
 
   private Util() { /* xx */ }
 
-  public static boolean listEquals(final List<?> list1, final List<?> list2) {
+  public static boolean listEquals(@Nullable final List<?> list1, @Nullable final List<?> list2) {
     if (list1==null) { return list2==null; }
     if (list2==null) { return false; }
     if (list1.size()!=list2.size()) { return false; }
@@ -47,15 +50,15 @@ public final class Util {
   }
 
   /** Replacement for {@link java.util.Objects#equals} that works with lower jdk levels. */
-  public static boolean equals(final Object val1, final Object val2) {
+  public static boolean equals(@Nullable final Object val1, @Nullable final Object val2) {
     return (val1 == null) ? (val2 == null) : val1.equals(val2);
   }
 
-  public static String suggestNewName(final CharSequence previousName) {
+  public static String suggestNewName(@NonNull final CharSequence previousName) {
     return suggestNewName(previousName, null);
   }
 
-  public static String suggestNewName(final CharSequence previousName, final NameChecker nameChecker) {
+  public static String suggestNewName(final CharSequence previousName, @Nullable final NameChecker nameChecker) {
     int i=previousName.length()-1;
     while (Character.isDigit(previousName.charAt(i))) {
       --i;

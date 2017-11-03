@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -23,6 +23,7 @@ import android.accounts.AccountManagerFuture;
 import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.os.*;
+import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -74,14 +75,14 @@ public final class Compat {
     ViewCompat.postInvalidateOnAnimation(view);
   }
 
-  public static boolean isZoomIn(final MotionEvent event) {
+  public static boolean isZoomIn(@NonNull final MotionEvent event) {
     if (Build.VERSION.SDK_INT>=12) {
       return Compat12.isZoomIn(event);
     }
     return false;
   }
 
-  public static void closeWithError(final ParcelFileDescriptor pfd, final String error) {
+  public static void closeWithError(@NonNull final ParcelFileDescriptor pfd, final String error) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
       Compat19.closeWithError(pfd, error);
     } else {
@@ -94,7 +95,7 @@ public final class Compat {
     }
   }
 
-  public static Fragment getParentFragment(final Fragment fragment) {
+  public static Fragment getParentFragment(@NonNull final Fragment fragment) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN_MR1) {
       return Compat17.getParentFragment(fragment);
     } else {
@@ -111,7 +112,7 @@ public final class Compat {
   }
 
   @SuppressWarnings("deprecation")
-  public static AccountManagerFuture<Bundle> getAuthToken(final AccountManager accountManager, final Account account, final String accountTokenType, final Bundle options, final boolean notifyAuthFailure, final AccountManagerCallback<Bundle> callback, final Handler handler) {
+  public static AccountManagerFuture<Bundle> getAuthToken(@NonNull final AccountManager accountManager, final Account account, final String accountTokenType, final Bundle options, final boolean notifyAuthFailure, final AccountManagerCallback<Bundle> callback, final Handler handler) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
       return Compat14.getAuthToken(accountManager, account, accountTokenType, options, notifyAuthFailure, callback, handler);
     } else {

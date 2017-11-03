@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -18,6 +18,7 @@ package nl.adaptivity.diagram.android;
 
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
@@ -90,7 +91,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void getBounds(final RectF rect) {
+  public void getBounds(@NonNull final RectF rect) {
     final Rectangle bounds = mItem.getBounds();
     rect.set(bounds.leftf(), bounds.topf(), bounds.rightf(), bounds.bottomf());
   }
@@ -111,7 +112,7 @@ public class LWDrawableView implements LightView{
     onDraw(mAndroidCanvas.scale(scale), null);
   }
 
-  protected void onDraw(final IAndroidCanvas androidCanvas, final Rectangle clipBounds) {
+  protected void onDraw(@NonNull final IAndroidCanvas androidCanvas, final Rectangle clipBounds) {
     mItem.draw(androidCanvas, clipBounds);
   }
 

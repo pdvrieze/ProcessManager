@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -20,6 +20,8 @@ import android.databinding.ListChangeRegistry;
 import android.databinding.Observable;
 import android.databinding.Observable.OnPropertyChangedCallback;
 import android.databinding.ObservableList;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +33,7 @@ import java.util.Collection;
  */
 public class ContentObservableArrayList<T extends Observable> extends ArrayList<T> implements ObservableList<T> {
 
-  private transient ListChangeRegistry mListeners = new ListChangeRegistry();
+  @NonNull private transient ListChangeRegistry mListeners = new ListChangeRegistry();
 
   private final OnPropertyChangedCallback mChangeCallback = new OnPropertyChangedCallback() {
     @Override
@@ -48,7 +50,7 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public void addOnListChangedCallback(final OnListChangedCallback listener) {
+  public void addOnListChangedCallback(@NonNull final OnListChangedCallback listener) {
     if (mListeners == null) {
       mListeners = new ListChangeRegistry();
     }
@@ -63,7 +65,7 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public boolean add(final T object) {
+  public boolean add(@Nullable final T object) {
     if (super.add(object)) {
       notifyAdd(size() - 1, 1);
       if (object!=null) { object.addOnPropertyChangedCallback(mChangeCallback); }
@@ -73,14 +75,14 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public void add(final int index, final T object) {
+  public void add(final int index, @Nullable final T object) {
     super.add(index, object);
     notifyAdd(index, 1);
     if (object!=null) { object.addOnPropertyChangedCallback(mChangeCallback); }
   }
 
   @Override
-  public boolean addAll(final Collection<? extends T> collection) {
+  public boolean addAll(@NonNull final Collection<? extends T> collection) {
     final int     oldSize = size();
     final boolean added   = super.addAll(collection);
     if (added) {
@@ -93,7 +95,7 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public boolean addAll(final int index, final Collection<? extends T> collection) {
+  public boolean addAll(final int index, @NonNull final Collection<? extends T> collection) {
     final boolean added = super.addAll(index, collection);
     if (added) {
       notifyAdd(index, collection.size());
@@ -136,7 +138,7 @@ public class ContentObservableArrayList<T extends Observable> extends ArrayList<
   }
 
   @Override
-  public T set(final int index, final T object) {
+  public T set(final int index, @Nullable final T object) {
     final T val = super.set(index, object);
     if (val!=null) {
       val.removeOnPropertyChangedCallback(mChangeCallback);

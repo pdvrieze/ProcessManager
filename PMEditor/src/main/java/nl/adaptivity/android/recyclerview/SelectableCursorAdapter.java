@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,8 @@ package nl.adaptivity.android.recyclerview;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.CallSuper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 
 
@@ -38,14 +40,14 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
   }
 
   @Override
-  public void onClickView(final VH viewHolder) {
+  public void onClickView(@NonNull final VH viewHolder) {
     if (mSelectionEnabled) {
       setSelection(viewHolder.getAdapterPosition());
     }
   }
 
   @CallSuper
-  public void onBindViewHolder(final VH viewHolder, final Cursor cursor) {
+  public void onBindViewHolder(@NonNull final VH viewHolder, final Cursor cursor) {
 //    viewHolder.itemView.setSelected(viewHolder.getAdapterPosition()==mSelection);
     if (hasStableIds()) {
       viewHolder.itemView.setActivated(viewHolder.getItemId() == mSelectionId);
@@ -102,7 +104,7 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
   }
 
   @Override
-  public Cursor swapCursor(final Cursor newCursor) {
+  public Cursor swapCursor(@Nullable final Cursor newCursor) {
     final Cursor oldCursor = super.swapCursor(newCursor);
     if (hasStableIds() && newCursor!=null && mSelectionId!=RecyclerView.NO_ID) {
       setSelectedItem(mSelectionId);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.SyncResult;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 
 
@@ -45,6 +46,7 @@ public class DirectSyncTask extends AsyncTask<String, Void, Void>{
     mOnComplete = onComplete;
   }
 
+  @Nullable
   @Override
   protected Void doInBackground(final String... params) {
     final ContentProviderClient providerClient = mContext.getContentResolver().acquireContentProviderClient(TaskProvider.AUTHORITY);

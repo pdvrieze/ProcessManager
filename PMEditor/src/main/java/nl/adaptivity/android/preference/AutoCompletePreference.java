@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -25,6 +25,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.DialogPreference;
 import android.preference.Preference;
+import android.support.annotation.AttrRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
@@ -57,7 +60,7 @@ public class AutoCompletePreference extends DialogPreference {
   private String mText;
 
   @TargetApi(VERSION_CODES.LOLLIPOP)
-  public AutoCompletePreference(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+  public AutoCompletePreference(@NonNull final Context context, final AttributeSet attrs, @AttrRes final int defStyleAttr, final int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
 
     int suggestionsId;
@@ -92,15 +95,15 @@ public class AutoCompletePreference extends DialogPreference {
 
   }
 
-  public AutoCompletePreference(final Context context, final AttributeSet attrs, final int defStyleAttr) {
+  public AutoCompletePreference(@NonNull final Context context, final AttributeSet attrs, @AttrRes final int defStyleAttr) {
     this(context, attrs, defStyleAttr, 0);
   }
 
-  public AutoCompletePreference(final Context context, final AttributeSet attrs) {
+  public AutoCompletePreference(@NonNull final Context context, final AttributeSet attrs) {
     this(context, attrs, android.R.attr.editTextPreferenceStyle, 0);
   }
 
-  public AutoCompletePreference(final Context context) {
+  public AutoCompletePreference(@NonNull final Context context) {
     this(context, null, android.R.attr.editTextPreferenceStyle, 0);
   }
 
@@ -132,7 +135,7 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected void onBindDialogView(final View view) {
+  protected void onBindDialogView(@NonNull final View view) {
     super.onBindDialogView(view);
 
     final EditText editText = mEditText;
@@ -154,7 +157,7 @@ public class AutoCompletePreference extends DialogPreference {
    *
    * @param dialogView The dialog view.
    */
-  protected void onAddEditTextToDialogView(final View dialogView, final EditText editText) {
+  protected void onAddEditTextToDialogView(@NonNull final View dialogView, final EditText editText) {
     final ViewGroup container = (ViewGroup) dialogView
             .findViewById(R.id.edit_container);
     if (container != null) {
@@ -176,7 +179,7 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected Object onGetDefaultValue(final TypedArray a, final int index) {
+  protected Object onGetDefaultValue(@NonNull final TypedArray a, final int index) {
     return a.getString(index);
   }
 
@@ -218,7 +221,7 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   @Override
-  protected void onRestoreInstanceState(final Parcelable state) {
+  protected void onRestoreInstanceState(@Nullable final Parcelable state) {
     if (state == null || !state.getClass().equals(SavedState.class)) {
       // Didn't save state for us in onSaveInstanceState
       super.onRestoreInstanceState(state);
@@ -233,13 +236,13 @@ public class AutoCompletePreference extends DialogPreference {
   private static class SavedState extends BaseSavedState {
     String text;
 
-    public SavedState(final Parcel source) {
+    public SavedState(@NonNull final Parcel source) {
       super(source);
       text = source.readString();
     }
 
     @Override
-    public void writeToParcel(final Parcel dest, final int flags) {
+    public void writeToParcel(@NonNull final Parcel dest, final int flags) {
       super.writeToParcel(dest, flags);
       dest.writeString(text);
     }
@@ -250,7 +253,7 @@ public class AutoCompletePreference extends DialogPreference {
 
     public static final Parcelable.Creator<SavedState> CREATOR =
             new Parcelable.Creator<SavedState>() {
-              public SavedState createFromParcel(final Parcel in) {
+              public SavedState createFromParcel(@NonNull final Parcel in) {
                 return new SavedState(in);
               }
 

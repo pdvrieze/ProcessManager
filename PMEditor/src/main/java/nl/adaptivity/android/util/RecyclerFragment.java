@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.CallSuper;
 import android.support.annotation.IdRes;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -53,9 +54,9 @@ public class RecyclerFragment extends Fragment {
     }
   };
 
-  private RecyclerView.Adapter<? extends ViewHolder> mAdapter;
-  private RecyclerView mRecyclerView;
-  private boolean mListShown;
+  private           RecyclerView.Adapter<? extends ViewHolder> mAdapter;
+  @Nullable private RecyclerView                               mRecyclerView;
+  private           boolean                                    mListShown;
 
   public RecyclerFragment() {
   }
@@ -74,6 +75,7 @@ public class RecyclerFragment extends Fragment {
    * behavior of ListFragment.  In particular, this is currently the only
    * way to have the built-in indeterminant progress state be shown.
    */
+  @Nullable
   @Override
   public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                            final Bundle savedInstanceState) {
@@ -134,6 +136,7 @@ public class RecyclerFragment extends Fragment {
   /**
    * Get the activity's list view widget.
    */
+  @Nullable
   public RecyclerView getRecyclerView() {
     ensureList();
     return mRecyclerView;

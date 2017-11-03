@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,11 +16,15 @@
 
 package nl.adaptivity.android.util;
 
+import android.support.annotation.Nullable;
+
+
 /**
  * Created by pdvrieze on 14/11/15.
  */
 public abstract class AbstractHttpEntity implements HttpEntity {
 
+  @Nullable
   @Override
   public String getContentEncoding() {
     return null;

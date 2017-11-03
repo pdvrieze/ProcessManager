@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,6 +21,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.Arrays;
 
@@ -71,7 +73,7 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
     }
 
     @Override
-    public int compareTo(final CVPair another) {
+    public int compareTo(@NonNull final CVPair another) {
       final long rhs = another.mId;
       return mId < rhs ? -1 : (mId == rhs ? 0 : 1);
     }
@@ -92,7 +94,7 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
 
   RemoteXmlSyncAdapterDelegate mCoordinator;
 
-  public RemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final Uri listContentUri) {
+  public RemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, @NonNull final Uri listContentUri) {
     super(context, autoInitialize, null);
     init(listContentUri);
   }
@@ -103,16 +105,19 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
     setDelegates(Arrays.asList(mCoordinator));
   }
 
-  public RemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final boolean allowParallelSyncs, final Uri listContentUri) {
+  public RemoteXmlSyncAdapter(final Context context, final boolean autoInitialize, final boolean allowParallelSyncs, @NonNull
+  final Uri listContentUri) {
     super(context, autoInitialize, allowParallelSyncs, null);
     init(listContentUri);
   }
 
+  @Nullable
   @Override
   public String getListSelection() {
     return null;
   }
 
+  @Nullable
   @Override
   public String[] getListSelectionArgs() {
     return null;

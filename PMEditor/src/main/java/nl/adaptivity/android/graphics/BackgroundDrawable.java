@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -24,6 +24,9 @@ import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 
 
@@ -34,11 +37,11 @@ import android.support.v4.content.res.ResourcesCompat;
  */
 public class BackgroundDrawable extends Drawable {
 
-  private final Drawable mBackground;
-  private final Drawable mForeground;
+  @Nullable private final Drawable mBackground;
+  @Nullable private final Drawable mForeground;
   private final Rect mTmpRect = new Rect();
 
-  public BackgroundDrawable(final Context context, final int backgroundRes, final int foregroundRes) {
+  public BackgroundDrawable(@NonNull final Context context, @DrawableRes final int backgroundRes, @DrawableRes final int foregroundRes) {
     final Resources resources = context.getResources();
     final Theme     theme     = context.getTheme();
     mBackground = ResourcesCompat.getDrawable(resources, backgroundRes, theme);
@@ -136,7 +139,7 @@ public class BackgroundDrawable extends Drawable {
   }
 
   @Override
-  public void setBounds(final Rect bounds) {
+  public void setBounds(@NonNull final Rect bounds) {
     // This is what the parent does as well.
     setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
   }

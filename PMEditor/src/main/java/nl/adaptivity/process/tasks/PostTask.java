@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -23,7 +23,7 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 
 import javax.xml.namespace.QName;
 
@@ -108,7 +108,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
     if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceUri())) {
       switch (reader.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:

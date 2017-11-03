@@ -50,7 +50,7 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.process.util.Identifiable;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -137,8 +137,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   final static LayoutAlgorithm NULL_LAYOUT_ALGORITHM = new LayoutAlgorithm(){
     @Override
-    public <T extends Positioned> boolean layout(@NotNull final List<? extends DiagramNode<? extends T>> nodes,
-                                                 @NotNull final LayoutStepper<? super T> layoutStepper) {
+    public <T extends Positioned> boolean layout(@NonNull final List<? extends DiagramNode<? extends T>> nodes,
+                                                 @NonNull final LayoutStepper<? super T> layoutStepper) {
       return false;
     }
 
@@ -154,7 +154,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     private       Paint         mPaint;
     private final Drawable      mMinMaxOverlay;
 
-    public MoveDrawable(@Nullable final Drawable minMaxOverlay, @NotNull final List<float[]> arrows) {
+    public MoveDrawable(@Nullable final Drawable minMaxOverlay, @NonNull final List<float[]> arrows) {
       mMinMaxOverlay = minMaxOverlay;
       mArrows = arrows;
     }
@@ -377,8 +377,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
       mMinMaxOverlay = null;
     }
 
-    @NotNull
-    private MoveDrawable moveDrawable(@Nullable final Drawable minMaxOverlay, @NotNull final List<? extends DiagramNode<? extends DrawableProcessNode.Builder>> nodes) {
+    @NonNull
+    private MoveDrawable moveDrawable(@Nullable final Drawable minMaxOverlay, @NonNull final List<? extends DiagramNode<? extends DrawableProcessNode.Builder>> nodes) {
       final List<float[]> arrows = new ArrayList<>(nodes.size());
       for(final DiagramNode<? extends DrawableProcessNode.Builder> node: nodes) {
         if (! (Double.isNaN(node.getX())|| Double.isNaN(node.getY()))) {

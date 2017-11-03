@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,6 +21,7 @@ import android.content.ContentResolver;
 import android.content.SyncStatusObserver;
 import android.os.Debug;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import nl.adaptivity.process.editor.android.BuildConfig;
 
@@ -56,7 +57,7 @@ public class SyncManager {
       onInnerSyncStatusChanged(which);
     }
   };
-  private Object mSyncObserverHandle;
+  @Nullable private Object mSyncObserverHandle;
 
   private void onInnerSyncStatusChanged(final int which) {
     if (mAccount!=null) {
@@ -79,6 +80,7 @@ public class SyncManager {
     mAuthorities = authorities;
   }
 
+  @NonNull
   public SyncStatusObserverData addOnStatusChangeObserver(final String authority, @NonNull final SyncStatusObserver syncObserver) {
     final SyncStatusObserverData data;
     synchronized (this) {
@@ -94,7 +96,7 @@ public class SyncManager {
     return data;
   }
 
-  public void removeOnStatusChangeObserver(final SyncStatusObserverData handle) {
+  public void removeOnStatusChangeObserver(@NonNull final SyncStatusObserverData handle) {
     Log.d(TAG, "TRACE: Remove SyncObserver_"+handle.authority);
     synchronized (this) {
       if (mSyncObserverHandle != null && mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
@@ -110,6 +112,7 @@ public class SyncManager {
     return ContentResolver.getIsSyncable(mAccount, authority) > 0;
   }
 
+  @NonNull
   public List<String> getActiveSyncTargets() {
     final List<String> result = new ArrayList<>(2);
     synchronized (this) {

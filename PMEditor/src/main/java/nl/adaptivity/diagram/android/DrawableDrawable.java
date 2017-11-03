@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -21,6 +21,7 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 
@@ -40,6 +41,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
     mAutoscale = autoScale;
   }
 
+  @NonNull
   @SuppressWarnings("CloneDoesntCallSuperClone")
   @Override
   public DrawableDrawable clone() {
@@ -82,7 +84,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public boolean setState(final int[] stateSet) {
+  public boolean setState(@NonNull final int[] stateSet) {
     if (mImage!=null) {
       int dState = nl.adaptivity.diagram.Drawable.STATE_DISABLED;
       for(final int state:stateSet) {

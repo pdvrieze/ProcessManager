@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,7 @@ package nl.adaptivity.android.graphics;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Typeface;
+import android.support.annotation.NonNull;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.svg.SVGPen;
 import nl.adaptivity.diagram.svg.TextMeasurer;
@@ -47,6 +48,7 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
 
   private static final float FONT_MEASURE_FACTOR = 1f;
 
+  @NonNull
   @Override
   public AndroidMeasureInfo getTextMeasureInfo(final SVGPen<AndroidMeasureInfo> svgPen) {
     final Paint paint = new Paint();
@@ -64,8 +66,9 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
     return textMeasureInfo.mPaint.measureText(text)/FONT_MEASURE_FACTOR;
   }
 
+  @NonNull
   @Override
-  public Rectangle measureTextSize(final Rectangle dest, final AndroidMeasureInfo textMeasureInfo, final String text, final double foldWidth) {
+  public Rectangle measureTextSize(@NonNull final Rectangle dest, @NonNull final AndroidMeasureInfo textMeasureInfo, final String text, final double foldWidth) {
     dest.left = 0;
     dest.top = textMeasureInfo.mFontMetrics.top;
     dest.width = textMeasureInfo.mPaint.measureText(text)/FONT_MEASURE_FACTOR;

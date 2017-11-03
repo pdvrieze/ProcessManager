@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -22,7 +22,7 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 
 import javax.xml.namespace.QName;
 
@@ -64,7 +64,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   @CallSuper
   @Override
-  public boolean deserializeChild(@NotNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
     if (XmlReaderUtil.isElement(reader, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
                                                                                                                  .getLocalPart(), TaskItem.ELEMENTNAME
                                                                                                                                           .getPrefix())) {

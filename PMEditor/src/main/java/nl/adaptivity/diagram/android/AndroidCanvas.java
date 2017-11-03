@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -64,16 +64,19 @@ public class AndroidCanvas implements IAndroidCanvas {
       return new OffsetCanvas(this, offsetX, offsetY, scale);
     }
 
+    @NonNull
     @Override
     public IAndroidCanvas scale(final double scale) {
       return new OffsetCanvas(this, scale);
     }
 
+    @NonNull
     @Override
     public IAndroidCanvas translate(final double dx, final double dy) {
       return new OffsetCanvas(mXOffset - dx, mYOffset - dy, mScale);
     }
 
+    @NonNull
     private AndroidPen scalePen(final AndroidPen pen) {
       return pen.scale(mScale);
     }
@@ -98,7 +101,7 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public void drawBitmap(final double left, final double top, final Bitmap bitmap, final AndroidPen pen) {
+    public void drawBitmap(final double left, final double top, final Bitmap bitmap, @NonNull final AndroidPen pen) {
       AndroidCanvas.this.drawBitmap(transformX(left), transformY(top), bitmap, scalePen(pen));
     }
 
@@ -131,6 +134,7 @@ public class AndroidCanvas implements IAndroidCanvas {
       AndroidCanvas.this.drawFilledPoly(transform(points), scalePen(color));
     }
 
+    @NonNull
     private double[] transform(final double[] points) {
       final double[] result = new double[points.length];
       final int      len    = points.length-1;
@@ -161,6 +165,7 @@ public class AndroidCanvas implements IAndroidCanvas {
       }
     }
 
+    @NonNull
     private Path transformPath(final AndroidPath path) {
       final Path   transformedPath = new Path(path.getPath());
       final Matrix matrix          = new Matrix();
@@ -316,7 +321,8 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public void drawPath(@NonNull final AndroidPath path, @NonNull final AndroidPen stroke, final AndroidPen fill) {
+  public void drawPath(@NonNull final AndroidPath path, @NonNull final AndroidPen stroke, @org.jetbrains.annotations.Nullable
+  final AndroidPen fill) {
     if (fill!=null)
       drawFilledPath(path.getPath(), fill.getPaint());
     drawPath(path.getPath(), stroke.getPaint());
@@ -333,6 +339,7 @@ public class AndroidCanvas implements IAndroidCanvas {
     paint.setStyle(oldStyle);
   }
 
+  @NonNull
   private static Path toPath(final double[] points) {
     final Path result = new Path();
 
@@ -368,11 +375,13 @@ public class AndroidCanvas implements IAndroidCanvas {
     mCanvas = canvas;
   }
 
+  @NonNull
   @Override
   public IAndroidCanvas scale(final double scale) {
     return new OffsetCanvas(scale);
   }
 
+  @NonNull
   @Override
   public IAndroidCanvas translate(final double dx, final double dy) {
     if (dx==0d && dy==0d) return this;
@@ -380,7 +389,7 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public void drawBitmap(final double left, final double top, final Bitmap bitmap, final AndroidPen pen) {
+  public void drawBitmap(final double left, final double top, final Bitmap bitmap, @NonNull final AndroidPen pen) {
     mCanvas.drawBitmap(bitmap, (float) left, (float) top, pen.getPaint());
   }
 
@@ -390,7 +399,7 @@ public class AndroidCanvas implements IAndroidCanvas {
     drawText(textPos, left, baselineY, text, foldWidth, pen, 1);
   }
   
-  private void drawText(final TextPos textPos, final double x, final double y, final String text, final double foldWidth, final AndroidPen pen, final double scale) {
+  private void drawText(@NonNull final TextPos textPos, final double x, final double y, final String text, final double foldWidth, final AndroidPen pen, final double scale) {
     final Paint paint = pen.getPaint();
     paint.setStyle(Style.FILL);
     final float left     = getLeft(textPos, x, text, foldWidth, pen, scale);
@@ -401,7 +410,7 @@ public class AndroidCanvas implements IAndroidCanvas {
 //    mCanvas.drawCircle((float)pX, (float)pY, 3f, mGreenPaint);
   }
 
-  private static float getBaseLine(final TextPos textPos, final double y, final Pen<?> pen, final double scale) {
+  private static float getBaseLine(final TextPos textPos, final double y, @NonNull final Pen<?> pen, final double scale) {
     switch (textPos) {
     case MAXTOPLEFT:
     case MAXTOP:
@@ -435,7 +444,7 @@ public class AndroidCanvas implements IAndroidCanvas {
                                final double x,
                                final String text,
                                final double foldWidth,
-                               final AndroidPen pen,
+                               @NonNull final AndroidPen pen,
                                final double scale) {
     switch (textPos) {
       case BASELINELEFT:

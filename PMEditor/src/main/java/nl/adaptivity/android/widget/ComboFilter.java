@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.widget;
 
+import android.support.annotation.NonNull;
 import android.widget.Filter;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class ComboFilter<T> extends Filter {
     mList = list;
   }
 
+  @NonNull
   @Override
   protected FilterResults performFiltering(final CharSequence constraint) {
     final FilterResults result = new FilterResults();

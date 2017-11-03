@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -18,6 +18,7 @@ package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView.Recycler;
 import android.support.v7.widget.RecyclerView.State;
@@ -33,7 +34,7 @@ public class DynspanGridLayoutManager extends GridLayoutManager {
 
   private int mMinSpanWidth = -1;
 
-  public DynspanGridLayoutManager(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
+  public DynspanGridLayoutManager(@NonNull final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
     final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.DynspanGridLayoutManager, defStyleAttr, defStyleRes);
     mMinSpanWidth = a.getDimensionPixelSize(R.styleable.DynspanGridLayoutManager_minSpanWidth, -1);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -77,6 +77,7 @@ public abstract class ClickableListAdapter<T, VH extends ClickableViewHolder> ex
     return mContent.get(position);
   }
 
+  @NonNull
   public List<T> getContent() {
     return mContent;
   }

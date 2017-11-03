@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -44,8 +44,8 @@ import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
 import nl.adaptivity.xml.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.CharArrayWriter;
 import java.util.ArrayList;
@@ -199,7 +199,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     return updateDefine(result, annotatedSequence);
   }
 
-  @NotNull
+  @NonNull
   private XmlDefineType updateDefine(final XmlDefineType define, final Spanned annotatedSequence) {
     final CharArrayWriter caw = new CharArrayWriter();
     try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -19,6 +19,7 @@ package nl.adaptivity.android.graphics;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +40,7 @@ public class RadioButtonHelper extends FrameLayout {
 
   private final OnClickListener mClickListener = new OnClickListener() {
     @Override
-    public void onClick(final View v) {
+    public void onClick(@NonNull final View v) {
       radioButtonClicked(v);
     }
   };
@@ -84,6 +85,7 @@ public class RadioButtonHelper extends FrameLayout {
     }
   }
 
+  @IdRes
   public int getCheckedRadioButtonId() {
     return mCheckedId;
   }
@@ -126,7 +128,7 @@ public class RadioButtonHelper extends FrameLayout {
     }
   }
 
-  private void addRadioChildren(final ArrayList<RadioButton> target, final ViewGroup parent) {
+  private void addRadioChildren(@NonNull final ArrayList<RadioButton> target, final ViewGroup parent) {
     for (int i = 0; i < parent.getChildCount(); i++) {
       final View child = parent.getChildAt(i);
       if (child instanceof RadioButton) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -38,7 +38,7 @@ import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
-import org.jetbrains.annotations.NotNull;
+import android.support.annotation.NonNull;
 
 
 /**
@@ -131,7 +131,7 @@ public class VariableSpan extends ReplacementSpan {
     return mReference;
   }
 
-  @NotNull
+  @NonNull
   static Spanned getSpanned(final Context context, final XmlReader bodyStreamReader, final XmlDefineType define, @DrawableRes final int varspanBorderId) throws XmlException {
     final SpannableStringBuilder builder = new SpannableStringBuilder();
     while (bodyStreamReader.hasNext()) {

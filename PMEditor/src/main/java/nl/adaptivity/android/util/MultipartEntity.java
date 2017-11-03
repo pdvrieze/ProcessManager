@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -16,6 +16,7 @@
 
 package nl.adaptivity.android.util;
 
+import android.support.annotation.NonNull;
 import android.util.Pair;
 
 import java.io.*;
@@ -45,6 +46,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     return "--"+MultipartEntity.class.getSimpleName()+'-'+Long.toHexString(rnd.nextLong());
   }
 
+  @NonNull
   @Override
   public InputStream getContent() throws IOException, IllegalStateException {
     // TODO do this in a less memory intensive way
@@ -59,13 +61,14 @@ public class MultipartEntity extends AbstractHttpEntity {
     // TODO do nothing for now. Should verify the viability of the boundary
   }
 
+  @NonNull
   @Override
   public String getContentType() {
     return MIMETYPE_BASE+"; boundary="+mBoundary.substring(2);
   }
 
   @Override
-  public void setContentType(final String contentType) {
+  public void setContentType(@NonNull final String contentType) {
     if (contentType.startsWith(MIMETYPE_BASE)) {
       int i = contentType.indexOf(';', MIMETYPE_BASE.length())+1;
       while (i>=0) {
@@ -162,7 +165,7 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public void writeTo(final OutputStream outstream) throws IOException {
+  public void writeTo(@NonNull final OutputStream outstream) throws IOException {
     ensureBoundary();
     final Charset cs   = Charset.forName("UTF8");
     int           skip = 2;
