@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -34,7 +34,7 @@ interface HandleMap<V:Any> : Iterable<V> {
   @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
   fun isEmpty(): Boolean
 
-  operator fun contains(handle: Handle<out V>): Boolean
+  operator fun contains(handle: Handle<V>): Boolean
 
   /**
    * Determine whether the given handle is contained in the map.
@@ -46,12 +46,12 @@ interface HandleMap<V:Any> : Iterable<V> {
   @Deprecated("Don't use untyped handles", ReplaceWith("contains(Handles.handle(handle))", "net.devrieze.util.Handles"))
   operator fun contains(handle: Long): Boolean
 
-  operator fun get(handle: Handle<out V>): V?
+  operator fun get(handle: Handle<V>): V?
 
   /**
    * Request the handle map to invalidate any caches it has for this item
    */
-  fun invalidateCache(handle:Handle<out V>) = Unit
+  fun invalidateCache(handle:Handle<V>) = Unit
 
   @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
   fun getSize():Int
@@ -86,7 +86,7 @@ interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
 
 }
 
-fun <T> HANDLE_AWARE_ASSIGNER(transaction: Transaction, value:T, handle: Handle<T>):T? {
+fun <T> HANDLE_AWARE_ASSIGNER(@Suppress("UNUSED_PARAMETER") transaction: Transaction, value:T, handle: Handle<T>):T? {
   (value as? ReadableHandleAware<*>)?.let { if (it.getHandle()==handle) return value } // no change needed
   (value as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} // The handle has been set
   return null

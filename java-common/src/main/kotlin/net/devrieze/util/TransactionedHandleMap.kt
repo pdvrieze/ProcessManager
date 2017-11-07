@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -29,10 +29,10 @@ interface TransactionedHandleMap<V: Any, T : Transaction> {
   fun <W : V> put(transaction: T, value: W): ComparableHandle<W>
 
   @Throws(SQLException::class)
-  fun castOrGet(transaction: T, handle: Handle<out V>): V?
+  fun castOrGet(transaction: T, handle: Handle<V>): V?
 
   @Throws(SQLException::class)
-  operator fun get(transaction: T, handle: Handle<out V>): V?
+  operator fun get(transaction: T, handle: Handle<V>): V?
 
   fun iterable(transaction: T): Iterable<V>
 
@@ -40,12 +40,12 @@ interface TransactionedHandleMap<V: Any, T : Transaction> {
   fun containsElement(transaction: T, element: Any): Boolean
 
   @Throws(SQLException::class)
-  fun contains(transaction: T, handle: Handle<out V>): Boolean
+  fun contains(transaction: T, handle: Handle<V>): Boolean
 
   @Throws(SQLException::class)
   fun containsAll(transaction: T, c: Collection<*>): Boolean
 
-  fun invalidateCache(handle: Handle<out V>)
+  fun invalidateCache(handle: Handle<V>)
 
   fun invalidateCache()
 
@@ -69,7 +69,7 @@ interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHa
   override fun iterator(transaction: T, readOnly: Boolean): MutableAutoCloseableIterator<V>
 
   @Throws(SQLException::class)
-  fun remove(transaction: T, handle: Handle<out V>): Boolean
+  fun remove(transaction: T, handle: Handle<V>): Boolean
 
   override fun iterable(transaction: T): MutableIterable<V>
 
@@ -79,7 +79,7 @@ interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHa
    * @return The previous value, or null if none.
    */
   @Throws(SQLException::class)
-  operator fun set(transaction: T, handle: Handle<out V>, value: V): V?
+  operator fun set(transaction: T, handle: Handle<V>, value: V): V?
 
   @Throws(SQLException::class)
   fun clear(transaction: T)
@@ -95,11 +95,11 @@ open class  HandleMapForwarder<V: Any, T:Transaction>(val transaction: T, open v
 
   override fun isEmpty():Boolean { throw UnsupportedOperationException("Not available") }
 
-  override fun contains(handle: Handle<out V>) = delegate.contains(transaction, handle)
+  override fun contains(handle: Handle<V>) = delegate.contains(transaction, handle)
 
   override fun contains(handle: Long) = delegate.contains(transaction, Handles.handle(handle))
 
-  override fun get(handle: Handle<out V>) = delegate.get(transaction, handle)
+  override fun get(handle: Handle<V>) = delegate.get(transaction, handle)
 
   override fun getSize(): Int { throw UnsupportedOperationException("Not available") }
 
@@ -114,9 +114,9 @@ open class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, over
 
   override fun set(handle: Long, value: V) = delegate.set(transaction, Handles.handle(handle), value)
 
-  override fun set(handle: Handle<out V>, value: V) = delegate.set(transaction, handle, value)
+  override fun set(handle: Handle<V>, value: V) = delegate.set(transaction, handle, value)
 
-  override fun remove(handle: Handle<out V>) = delegate.remove(transaction, handle)
+  override fun remove(handle: Handle<V>) = delegate.remove(transaction, handle)
 
   override fun clear() = delegate.clear(transaction)
 }

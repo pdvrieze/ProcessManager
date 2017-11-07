@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -337,7 +337,7 @@ open class MemHandleMap<V:Any>
     return contains(element)
   }
 
-  override fun contains(handle: Handle<out V>): Boolean {
+  override fun contains(handle: Handle<V>): Boolean {
     @Suppress("DEPRECATION")
     return contains(handle.handleValue)
   }
@@ -427,7 +427,7 @@ open class MemHandleMap<V:Any>
   /* (non-Javadoc)
    * @see net.devrieze.util.HandleMap#get(net.devrieze.util.MemHandleMap.Handle)
    */
-  override fun get(handle: Handle<out V>): V? {
+  override fun get(handle: Handle<V>): V? {
     return get(handle.handleValue)
   }
 
@@ -455,7 +455,7 @@ open class MemHandleMap<V:Any>
     }
   }
 
-  override fun set(handle: Handle<out V>, value: V): V? {
+  override fun set(handle: Handle<V>, value: V): V? {
     @Suppress("DEPRECATION")
     return set(handle.handleValue, value)
   }
@@ -471,7 +471,7 @@ open class MemHandleMap<V:Any>
   /* (non-Javadoc)
        * @see net.devrieze.util.HandleMap#remove(net.devrieze.util.MemHandleMap.Handle)
        */
-  override fun remove(handle: Handle<out V>): Boolean {
+  override fun remove(handle: Handle<V>): Boolean {
     return remove(handle.handleValue)
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -41,6 +41,7 @@ inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvide
   }
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T:SecureObject<T>> SecureObject<T>.ifPermitted(securityProvider: SecurityProvider, permission: Permission, subject:Principal):T? {
   return when {
     securityProvider.hasPermission(permission, subject, this) -> withPermission()

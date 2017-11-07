@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -140,7 +140,7 @@ interface ElementFactory<BUILDER, T:Any, in TR: DBTransaction> {
    * @param newValue
    */
   @Throws(SQLException::class)
-  fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T)
+  fun postStore(connection: DBConnection, handle: Handle<T>, oldValue: T?, newValue: T)
 
   val keyColumn: Column<Handle<T>, *, *>
 

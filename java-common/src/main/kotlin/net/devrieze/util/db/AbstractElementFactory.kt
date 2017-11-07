@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -37,15 +37,15 @@ abstract class AbstractElementFactory<BUILDER, T:Any, TR:DBTransaction> : HMElem
 
   companion object {
 
-    inline fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.nullableValue(columns:List<Column<*,*,*>>, values:List<Any?>):T? {
+    fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.nullableValue(columns:List<Column<*,*,*>>, values:List<Any?>):T? {
       return values[columns.checkedIndexOf(this)]?.let{ type.cast(it) }
     }
 
-    inline fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.value(columns:List<Column<*,*,*>>, values:List<Any?>):T {
+    fun <T, S: IColumnType<T, S, C>, C:Column<T,S,C>> C.value(columns:List<Column<*,*,*>>, values:List<Any?>):T {
       return type.cast(values[columns.checkedIndexOf(this)]!!)
     }
 
-    inline fun List<Column<*,*,*>>.checkedIndexOf(column:Column<*,*,*>): Int {
+    fun List<Column<*,*,*>>.checkedIndexOf(column:Column<*,*,*>): Int {
       return indexOf(column).also {
         if (it<0) throw SQLException("Column $column not found in $this")
       }
@@ -56,12 +56,12 @@ abstract class AbstractElementFactory<BUILDER, T:Any, TR:DBTransaction> : HMElem
   override fun filter(select: Database._Where) = null
 
   @Throws(SQLException::class)
-  override fun postStore(connection: DBConnection, handle: Handle<out T>, oldValue: T?, newValue: T) {
+  override fun postStore(connection: DBConnection, handle: Handle<T>, oldValue: T?, newValue: T) {
     // Simple case, do nothing
   }
 
   @Throws(SQLException::class)
-  override fun preRemove(transaction: TR, handle: Handle<out T>) {
+  override fun preRemove(transaction: TR, handle: Handle<T>) {
     // Don't do anything
   }
 

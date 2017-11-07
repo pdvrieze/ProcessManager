@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -29,6 +29,6 @@ interface HMElementFactory<BUILDER, T:Any, TR:DBTransaction> : ElementFactory<BU
    * @throws SQLException When something goes wrong.
    */
   @Throws(SQLException::class)
-  fun preRemove(transaction: TR, handle: Handle<out T>)
+  fun preRemove(transaction: TR, handle: Handle<T>)
 
 }

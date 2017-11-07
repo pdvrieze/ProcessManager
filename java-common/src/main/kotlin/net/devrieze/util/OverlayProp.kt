@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -26,6 +26,7 @@ class OverlayProp<T>(private val update:()->Unit = {}, private val base: () -> T
   private var value:T? = null
 
   operator fun getValue(thisRef: Any?, property: KProperty<*>):T {
+    @Suppress("UNCHECKED_CAST")
     return if (set) value as T else base()
   }
 

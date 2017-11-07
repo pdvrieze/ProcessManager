@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -20,8 +20,8 @@ package net.devrieze.util
  * Created by pdvrieze on 27/11/16.
  */
 interface ReadableHandleAware<out T: Any> {
-  fun getHandle(): Handle<out @JvmWildcard T>
+  fun getHandle(): Handle<@JvmWildcard T>
 }
 
 @Deprecated("Use getHandle()", ReplaceWith("this.getHandle()"))
-val <T:Any> ReadableHandleAware<T>.handle: Handle<out @JvmWildcard T> get() = getHandle()
+val <T:Any> ReadableHandleAware<T>.handle: Handle<@JvmWildcard T> get() = getHandle()

@@ -49,6 +49,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
     }
 
     override fun iterator(): MutableIterator<T> {
+      @Suppress("DEPRECATION")
       return this@DbSet.unsafeIterator(false)
     }
 
@@ -192,6 +193,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
         }
       } catch (ex: SQLException) {
         val runtimeException = RuntimeException(ex)
+        @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         (runtimeException as java.lang.Throwable).addSuppressed(e)
         throw runtimeException
       }
@@ -316,6 +318,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
       val it = errors.iterator()
       val ex = it.next()
       while (it.hasNext()) {
+        @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         (ex as java.lang.Throwable).addSuppressed(it.next())
       }
       throw ex
@@ -324,6 +327,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
 
   @Throws(SQLException::class)
   fun isEmpty(pTransaction: TR): Boolean {
+    @Suppress("UNCHECKED_CAST")
     (iterator(pTransaction, true) as DbSet<TMP, T, TR>.ResultSetIterator).use { it -> return it.hasNext() }
   }
 
@@ -420,6 +424,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
         }
       } catch (ex: SQLException) {
         if (pCause != null) {
+          @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
           (pCause as java.lang.Throwable).addSuppressed(ex)
         } else {
           throw RuntimeException(ex)

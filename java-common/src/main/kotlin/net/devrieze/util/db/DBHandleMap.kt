@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -60,7 +60,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
   }
 
   @Throws(SQLException::class)
-  override fun get(transaction: TR, handle: Handle<out V>): V? {
+  override fun get(transaction: TR, handle: Handle<V>): V? {
     val comparableHandle = Handles.handle(handle)
     if (mPendingCreates.containsKey(comparableHandle)) {
       throw IllegalArgumentException("Pending create") // XXX This is not the best way
@@ -83,7 +83,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
   }
 
   @Throws(SQLException::class)
-  override fun castOrGet(transaction: TR, handle: Handle<out V>): V? {
+  override fun castOrGet(transaction: TR, handle: Handle<V>): V? {
     val element = elementFactory.asInstance(handle)
     if (element != null) {
       return element
@@ -92,14 +92,14 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
   }
 
   @Throws(SQLException::class)
-  override fun set(transaction: TR, handle: Handle<out V>, value: V): V? {
+  override fun set(transaction: TR, handle: Handle<V>, value: V): V? {
     val oldValue = get(transaction, handle)
 
     return set(transaction, handle, oldValue, value)
   }
 
   @Throws(SQLException::class)
-  protected operator fun set(transaction: TR, handle: Handle<out V>, oldValue: V?, newValue: V): V? {
+  protected operator fun set(transaction: TR, handle: Handle<V>, oldValue: V?, newValue: V): V? {
     if (elementFactory.isEqualForStorage(oldValue, newValue)) {
       return newValue
     }
@@ -146,7 +146,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: TR, handle: Handle<out V>): Boolean {
+  override fun contains(transaction: TR, handle: Handle<V>): Boolean {
     val query = database
           .SELECT(database.COUNT(elementFactory.createColumns[0]))
           .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
@@ -161,7 +161,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
   }
 
   @Throws(SQLException::class)
-  override fun remove(transaction: TR, handle: Handle<out V>): Boolean {
+  override fun remove(transaction: TR, handle: Handle<V>): Boolean {
     elementFactory.preRemove(transaction, handle)
     return database
           .DELETE_FROM(elementFactory.table)
@@ -169,9 +169,8 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
           .executeUpdate(transaction.connection)>0
   }
 
-  override fun invalidateCache(handle: Handle<out V>) {
-    // No-op, there is no cache
-  }
+  override fun invalidateCache(handle: Handle<V>) =// No-op, there is no cache
+    Unit
 
   override fun invalidateCache() { /* No-op, no cache */
   }
