@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -17,7 +17,7 @@
 package net.devrieze.util
 
 /**
- * @param  Type parameter that should help with compile time handle differentiation
+ * @param  T parameter that should help with compile time handle differentiation
  */
 interface Handle<out T: @JvmWildcard Any?> {
 
@@ -29,4 +29,5 @@ interface ComparableHandle<out T: @JvmWildcard Any?> : Handle<T>, Comparable<Com
   override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>) = handleValue.compareTo(other.handleValue)
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = Handles.handle(handleValue)

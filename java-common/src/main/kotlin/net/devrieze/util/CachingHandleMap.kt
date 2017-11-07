@@ -17,6 +17,7 @@
 package net.devrieze.util
 
 import net.devrieze.util.CachingHandleMap.WrappingIterator
+import net.devrieze.util.db.DBHandleMap
 import java.io.Closeable
 import java.io.IOException
 import java.sql.SQLException
@@ -25,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArraySet
 
 
 /**
- * A [OldDBHandleMap] that uses [WeakReferences][WeakReference] to store
+ * A [DBHandleMap] that caches
  * its results. Note that the [remove][WrappingIterator.remove] method on
  * the iterator is not efficient if the elements do not implement Handle as it
  * will loop through the cache to find the underlying value.
@@ -81,7 +82,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   }
 
   private inner class WrappingMutableIterator(transaction:T, iterator: MutableIterator<V>) : WrappingIterator(transaction, iterator), MutableIterator<V>, AutoCloseableIterator<V> {
-    override protected val iterator:MutableIterator<V> get() = super.iterator as MutableIterator<V>
+    override val iterator:MutableIterator<V> get() = super.iterator as MutableIterator<V>
     private var last: V? = null
 
     override fun remove() {
@@ -89,6 +90,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
         synchronized (cacheHandles) {
           val last = last
           if (last is Handle<*>) {
+            @Suppress("UNCHECKED_CAST")
             invalidateCache(last as Handle<V>)
           } else {
             for (i in cacheHandles.indices) {
@@ -158,7 +160,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
     }
   }
 
-  private fun putCache(transaction: T, handle: Handle<out V>, nonUpdatedValue: V?) {
+  private fun putCache(transaction: T, handle: Handle<V>, nonUpdatedValue: V?) {
     if (nonUpdatedValue != null) { // never store null
       if (handle.valid) {
         val updatedValue = handleAssigner(transaction, nonUpdatedValue, handle)
@@ -171,11 +173,11 @@ open class CachingHandleMap<V:Any, T : Transaction>(
         synchronized (cacheHandles) {
           transaction.addRollbackHandler({ invalidateCache(handle) })
           val pos = cacheHead
-          val handle = handle.handleValue
-          if (cacheHandles[pos] != handle) {
-            removeFromCache(handle)
+          val handleValue = handle.handleValue
+          if (cacheHandles[pos] != handleValue) {
+            removeFromCache(handleValue)
           }
-          cacheHandles[pos] = handle
+          cacheHandles[pos] = handleValue
           cacheValues[pos] = updatedValue
           cacheHead = (pos + 1) % cacheValues.size
 
@@ -206,7 +208,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   }
 
   @Throws(SQLException::class)
-  override fun get(transaction: T, handle: Handle<out V>): V? {
+  override fun get(transaction: T, handle: Handle<V>): V? {
     if (! handle.valid) return null
     var value: V?
     synchronized (cacheHandles) {
@@ -220,7 +222,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   }
 
   @Throws(SQLException::class)
-  override fun contains(transaction: T, handle: Handle<out V>): Boolean {
+  override fun contains(transaction: T, handle: Handle<V>): Boolean {
     if (getFromCache(handle.handleValue) != null) {
       return true
     }
@@ -237,13 +239,13 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   }
 
   @Throws(SQLException::class)
-  override fun set(transaction: T, handle: Handle<out V>, value: V): V? {
+  override fun set(transaction: T, handle: Handle<V>, value: V): V? {
     invalidateCache(handle)
     delegate.set(transaction, handle, value)
     return storeInCache(transaction, handle, delegate.get(transaction, handle) as V)
   }
 
-  private fun storeInCache(transaction: T, pHandle: Handle<out V>, pV: V): V {
+  private fun storeInCache(transaction: T, pHandle: Handle<V>, pV: V): V {
     if (!isPending(pHandle)) {
       val handle = pHandle.handleValue
       synchronized (cacheHandles) {
@@ -265,11 +267,11 @@ open class CachingHandleMap<V:Any, T : Transaction>(
     }
   }
 
-  private fun isPending(handle: Handle<out V>): Boolean {
+  private fun isPending(handle: Handle<V>): Boolean {
     return pendingHandles.contains(handle)
   }
 
-  override fun invalidateCache(handle: Handle<out V>) {
+  override fun invalidateCache(handle: Handle<V>) {
     removeFromCache(handle.handleValue)
   }
 
@@ -294,7 +296,7 @@ open class CachingHandleMap<V:Any, T : Transaction>(
   }
 
   @Throws(SQLException::class)
-  override fun remove(transaction: T, handle: Handle<out V>): Boolean {
+  override fun remove(transaction: T, handle: Handle<V>): Boolean {
     removeFromCache(handle.handleValue)
     return delegate.remove(transaction, handle)
   }

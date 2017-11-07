@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -168,6 +168,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   @Suppress("NOTHING_TO_INLINE")
   private inline fun OuterPos.toBufferPos(): BufferPos = (toInt() + firstElemIdx)% buffer.size
 
+  @Suppress("NOTHING_TO_INLINE")
   private inline fun BufferPos.toOuterPos(): OuterPos = (buffer.size + this - firstElemIdx) % buffer.size
 
   fun swap(first: OuterPos, second: OuterPos) {

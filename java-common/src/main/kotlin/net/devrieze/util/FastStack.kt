@@ -115,9 +115,7 @@ private object EMPTY: FastStack<Any> {
 class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous: FastStack<E> = FastStack()) : FastStack<E> {
 
   /**
-   * Get the last item in the stack.
-
-   * @return the element
+   * The last item in the stack.
    */
   val lastElem: E = elem
 
@@ -160,12 +158,12 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
   /**
    * Get a new fastStack representing the appended stack.
 
-   * @param pElem The element to append
+   * @param elem The element to append
    * *
    * @return A new FastStack element representing the new list.
    */
-  override fun append(pElem: E): FastStack<E> {
-    return FastStackImpl(pElem, this)
+  override fun append(elem: E): FastStack<E> {
+    return FastStackImpl(elem, this)
   }
 
   /**
@@ -174,7 +172,7 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
    * @return The shorter stack
    */
   fun shrink(): FastStack<E> {
-    return previous ?: FastStack()
+    return previous
   }
 
   override val size: Int = previous.size + 1
@@ -218,15 +216,13 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
 
    * @see java.util.Collection.containsAll
    */
-  override fun containsAll(collection: Collection<E>): Boolean {
-    val remaining = collection.toHashSet<E>()
+  override fun containsAll(elements: Collection<E>): Boolean {
+    val remaining = elements.toHashSet<E>()
 
     /**
      * Helper function for the containsAll function. This function is recursive.
      * It checks whether the current element is part of the HashSet. It it is, the
      * element is removed. When the hash is empty, the function returns true.
-
-     * @param pHash The hash set of elements that must be checked for containment
      * *
      * @return true if all elements are contained, false if not
      */
@@ -235,7 +231,7 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
       val element:E = last()
       remaining.remove(element)
       if(remaining.isEmpty()) return true
-      return previous!!.containsAll2()
+      return previous?.containsAll2() ?: false // previous is empty, but remaining items to check not
     }
 
     return containsAll2()
@@ -293,15 +289,15 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
   /**
    * For now unsupported, but could be implemented with a subclass.
 
-   * @param pFromIndex the starting index
+   * @param fromIndex the starting index
    * *
-   * @param pToIndex the end index
+   * @param toIndex the end index
    * *
    * @return The resulting list
    * *
    * @see java.util.List.subList
    */
-  override fun subList(pFromIndex: Int, pToIndex: Int): List<E> {
+  override fun subList(fromIndex: Int, toIndex: Int): List<E> {
     throw UnsupportedOperationException()
   }
 
@@ -394,8 +390,3 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
     containsCache = null
   }
 }
-/**
- * Create a new [FastStack]that contains the given element.
-
- * @param pElem The element to be contained in the stack
- */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -164,9 +164,9 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
     return ClosingIterable()
   }
 
-  @Deprecated("")
+  @Deprecated("Use a Kotlin safe wrapper")
   @SuppressWarnings("resource")
-  fun unsafeIterator(pReadOnly: Boolean): MutableAutoCloseableIterator<T> {
+  fun unsafeIterator(readOnly: Boolean): MutableAutoCloseableIterator<T> {
     val transaction: TR
     var statement: StatementHelper? = null
     try {
@@ -238,7 +238,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
     val select = database.SELECT(database.COUNT(column))
     val filter = elementFactory.filter(_Where())
     val query = if (filter==null) select else select.WHERE { filter }
-    return query.getSingleList(connection.connection) { cols, values -> values[0] as Int }
+    return query.getSingleList(connection.connection) { _, values -> values[0] as Int }
   }
 
   @Throws(SQLException::class)
@@ -250,7 +250,7 @@ open class DbSet<TMP, T:Any, TR: DBTransaction>(
           .WHERE { elementFactory.getPrimaryKeyCondition(this, instance) AND elementFactory.filter(this) }
 
     try {
-      return query.getSingleList(transaction.connection) { cols, data ->
+      return query.getSingleList(transaction.connection) { _, data ->
         data[0] as Int > 0
       }
     } catch (e:RuntimeException) {
