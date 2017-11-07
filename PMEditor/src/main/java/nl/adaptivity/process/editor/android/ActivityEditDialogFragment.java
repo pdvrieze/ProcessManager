@@ -158,7 +158,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
                                                       final List<ResultReference> gather,
                                                       final NodeEditListener listener) {
     for(final Identifiable predId: reference.getPredecessors()) {
-      final @Nullable DrawableProcessNode.Builder pred = listener.getNode(predId);
+      final DrawableProcessNode.Builder pred = listener.getNode(predId);
       if (! seen.contains(pred)) {
         for(final IXmlResultType result: pred.getResults()) {
           gather.add(VariableReference.newResultReference(pred, result));
