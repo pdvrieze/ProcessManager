@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -25,6 +25,7 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/** Should Javascript initialization be delayed to the footer of the page. */
 private const val DELAY_JS=true
 
 fun HttpServletResponse.contentType(type: String) {
