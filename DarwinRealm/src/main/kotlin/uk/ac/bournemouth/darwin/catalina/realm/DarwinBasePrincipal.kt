@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -25,7 +25,7 @@ import javax.security.auth.login.LoginContext
 
 /**
  * Base class for darwin principals. This will allo
-
+ *
  * @author Paul de Vrieze
  */
 abstract class DarwinBasePrincipal

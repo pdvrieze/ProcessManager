@@ -27,12 +27,13 @@ import java.util.*
  * Functions that work on both js/jvm but have different implementations
  */
 
-/**
+/*
  * Read the current element (and content) and all its siblings into a fragment.
- * @param in The source stream.
- * *
+ *
+ * @param this The source stream.
+ *
  * @return the fragment
- * *
+ *
  * @throws XmlException parsing failed
  */
 @Throws(XmlException::class)
@@ -51,7 +52,6 @@ fun XmlReader.siblingsToFragment(): CompactFragment
   try {
 
     val missingNamespaces = TreeMap<String, String>()
-    val gatheringContext: GatheringNamespaceContext? = null
     // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
     val initialDepth = depth - if (eventType === EventType.START_ELEMENT) 1 else 0
     var type: EventType? = eventType

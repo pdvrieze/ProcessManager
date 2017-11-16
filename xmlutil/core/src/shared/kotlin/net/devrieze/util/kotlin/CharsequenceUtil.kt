@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -24,11 +24,11 @@ package net.devrieze.util.kotlin
 inline infix fun CharSequence.matches(other:CharSequence):Boolean =
   this.equals(other)
 
-fun CharSequence.equals(other:CharSequence):Boolean {
-  if (this===other) return true
-  if (this.length!=other.length) return false
-  for(i in indices) {
-    if (this[i] != other[i]) return false
+fun equals(first: CharSequence, other: CharSequence):Boolean {
+  if (first ===other) return true
+  if (first.length!=other.length) return false
+  for(i in first.indices) {
+    if (first[i] != other[i]) return false
   }
   return true
 }

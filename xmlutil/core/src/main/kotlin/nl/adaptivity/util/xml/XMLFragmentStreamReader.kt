@@ -112,27 +112,30 @@ constructor(reader: Reader, wrapperNamespaceContext: Iterable<nl.adaptivity.xml.
   @Throws(XmlException::class)
   override fun next(): EventType
   {
-    val result = delegate.next()
-    when (result)
-    {
-      EventType.END_DOCUMENT                                                                                            -> return result
-      EventType.START_DOCUMENT, EventType.PROCESSING_INSTRUCTION, EventType.DOCDECL -> return next()
-      EventType.START_ELEMENT                                                                                           ->
-      {
-        if (WRAPPERNAMESPACE.contentEquals(delegate.namespaceUri)) return next()
-
-        extendNamespace()
-      }
-      EventType.END_ELEMENT                                                                                             ->
-      {
-        if (WRAPPERNAMESPACE.contentEquals(delegate.namespaceUri))
-        {
-          return delegate.next()
+    val delegateNext = delegate.next()
+    return when (delegateNext) {
+      EventType.END_DOCUMENT  -> delegateNext
+      EventType.START_DOCUMENT,
+      EventType.PROCESSING_INSTRUCTION,
+      EventType.DOCDECL       -> next()
+      EventType.START_ELEMENT -> {
+        if (WRAPPERNAMESPACE.contentEquals(delegate.namespaceUri)) {
+          // Special case the wrapping namespace, dropping the element.
+          next()
+        } else {
+          extendNamespace()
+          delegateNext
         }
-        localNamespaceContext = localNamespaceContext.parent ?: localNamespaceContext
       }
+      EventType.END_ELEMENT   -> if (WRAPPERNAMESPACE.contentEquals(delegate.namespaceUri)) {
+        // Drop the closing tag of the wrapper as well
+        delegate.next()
+      } else {
+        localNamespaceContext = localNamespaceContext.parent ?: localNamespaceContext
+        delegateNext
+      }
+      else                    -> delegateNext
     }
-    return result
   }
 
   @Throws(XmlException::class)
@@ -168,7 +171,7 @@ constructor(reader: Reader, wrapperNamespaceContext: Iterable<nl.adaptivity.xml.
   @Throws(XmlException::class)
   override fun getNamespaceUri(i: Int): CharSequence
   {
-    return localNamespaceContext!!.getNamespaceURI(i)
+    return localNamespaceContext.getNamespaceURI(i)
   }
 
   override val namespaceContext: NamespaceContext

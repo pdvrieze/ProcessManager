@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2017.
  *
  * This file is part of ProcessManager.
  *
@@ -34,7 +34,7 @@ interface XmlReader : Closeable, AutoCloseable {
   @Throws(XmlException::class)
   fun nextTag(): EventType {
     var event = next()
-    while (event !== EventType.START_ELEMENT && event !== EventType.END_ELEMENT && event != null)
+    while (event !== EventType.START_ELEMENT && event !== EventType.END_ELEMENT)
     {
       if (event === EventType.TEXT)
       {
@@ -64,11 +64,11 @@ interface XmlReader : Closeable, AutoCloseable {
   val prefix: CharSequence
     @Throws(XmlException::class) get
 
-  open val name: QName
+  val name: QName
     @Throws(XmlException::class)
     get
 
-  open val isStarted:Boolean
+  val isStarted:Boolean
 
   @Throws(XmlException::class)
   fun require(type: EventType, namespace: CharSequence?, name: CharSequence?)
@@ -270,7 +270,7 @@ fun XmlReader.readSimpleElement(): CharSequence {
 
 /**
  * Skil the preamble events in the stream reader
- * @param in The stream reader to skip
+ * @receiver The stream reader to skip
  */
 @Throws(XmlException::class)
 fun XmlReader.skipPreamble() {
@@ -295,10 +295,7 @@ fun XmlReader.isIgnorable(): Boolean {
 
 /**
  * Differs from [.siblingsToFragment] in that it skips the current event.
- * @param reader
- * *
- * @return
- * *
+ *
  * @throws XmlException
  */
 @Throws(XmlException::class)
@@ -319,9 +316,9 @@ fun XmlReader.siblingsToCharArray() = siblingsToFragment().content
 
 /**
  * Check that the current state is a start element for the given name. The mPrefix is ignored.
- * @param in The stream reader to check
- * *
- * @param type
+ * @receiver The stream reader to check
+ *
+ * @param type The event type to check
  * @param elementname The name to check against  @return `true` if it matches, otherwise `false`
  */
 
@@ -333,13 +330,13 @@ fun XmlReader.isElement(type: EventType, elementname: QName): Boolean {
 /**
  * Check that the current state is a start element for the given name. The mPrefix is ignored.
  * @param in The stream reader to check
- * *
+ *
  * @param elementNamespace  The namespace to check against.
- * *
+ *
  * @param elementName The local name to check against
- * *
+ *
  * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined
- * *
+ *
  * @return `true` if it matches, otherwise `false`
  */
 @Throws(XmlException::class)

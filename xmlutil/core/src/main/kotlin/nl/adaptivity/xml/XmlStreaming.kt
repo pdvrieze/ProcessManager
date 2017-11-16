@@ -213,7 +213,7 @@ val IGNORABLE_WHITESPACE : EventType = EventType.IGNORABLE_WHITESPACE
 val PROCESSING_INSTRUCTION : EventType = EventType.PROCESSING_INSTRUCTION
 
 @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.CDSECT", "nl.adaptivity.xml.XmlStreaming.EventType"))
-val CDATA = CDSECT
+val CDATA = EventType.CDSECT
 
 @Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
 @JvmField val TEXT = EventType.TEXT
