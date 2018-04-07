@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -30,7 +30,7 @@ import java.net.URI;
 /**
  * Created by pdvrieze on 11/01/16.
  */
-public abstract class AuthenticatedActivity extends AppCompatActivity implements AuthenticatedWebClientCallbacks {
+public abstract class AuthenticatedActivity extends AppCompatActivity {
 
   private class RequestAccountTask extends AsyncTask<URI, Void, Account> {
 
@@ -58,31 +58,7 @@ public abstract class AuthenticatedActivity extends AppCompatActivity implements
     return mAccount;
   }
 
-  @Override
-  public void showDownloadDialog() {
-    AuthenticatedWebClientFactory.doShowDownloadDialog(this, UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR);
-  }
-
-  @Override
-  public void onDownloadCancelled() {
-    // Do nothing. This is a hook to allow notification
-  }
-
-  @Override
-  public void startSelectAccountActivity(final Intent selectAccount) {
-    startActivityForResult(selectAccount, UIConstants.REQUEST_SELECT_ACCOUNT);
-  }
-
-  @Override
-  protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-    switch (requestCode) {
-      case UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR: AuthenticatedWebClientFactory.handleInstallAuthenticatorActivityResult(this, resultCode, data); break;
-      case UIConstants.REQUEST_SELECT_ACCOUNT:mAccount = AuthenticatedWebClientFactory.handleSelectAcountActivityResult(this, resultCode, data);
-    }
-    super.onActivityResult(requestCode, resultCode, data);
-  }
-
-  protected void doAccountDetermined(Account account) {
+    protected void doAccountDetermined(Account account) {
     // Hook for subclasses
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -103,7 +103,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())+"?state="+task.getState()),"");
     }
     postRequest.setContentType("text/xml; charset=utf-8");
-    final HttpURLConnection result = delegator.getWebClient().execute(postRequest);
+    final HttpURLConnection result = delegator.getWebClient().execute(getContext(), postRequest);
     try {
       final int resultCode = result.getResponseCode();
       if (resultCode >= 200 && resultCode < 400) {

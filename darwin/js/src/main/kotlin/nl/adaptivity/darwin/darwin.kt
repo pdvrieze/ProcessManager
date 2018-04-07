@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -21,7 +21,6 @@ import kotlinx.html.dom.create
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.MouseEvent
-import org.w3c.dom.events.target
 import org.w3c.xhr.FormData
 import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.JSServiceContext
@@ -138,7 +137,7 @@ private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
           "script" -> {
             childElement.attributes["src"]?.let { scripts.add(it.value) }
           }
-          "body"  -> if (body.size==0) {
+          "body"  -> if (body.isEmpty()) {
             body = childElement.innerHTML
           } else html.error("unexpected child in dynamic content: ${childElement.nodeName}")
         }
@@ -323,7 +322,7 @@ internal var dialogTitle: HTMLSpanElement? = null
 private var mBanner: Element? = null
 
 fun main(args: Array<String>) {
-  val newLocation = window.location.hash.let { if (it.isNullOrBlank()) window.location.pathname else it }
+  val newLocation = window.location.hash.let { if (it.isBlank()) window.location.pathname else it }
 
   (document.getElementById("xloginform") as? HTMLFormElement)?.let { form ->
     mUsernameFromManager = (form["username"] as? HTMLInputElement)?.value
@@ -333,7 +332,7 @@ fun main(args: Array<String>) {
 
   mContentPanel = document.getElementById("content") as HTMLElement
 
-  if (!window.location.hash.isNullOrBlank()) {
+  if (!window.location.hash.isBlank()) {
     requestRefreshMenu(newLocation)
   }
 
@@ -372,7 +371,7 @@ class JSContextTagConsumer<out T>(@Suppress("UNUSED_PARAMETER") context: JSServi
           .associateBy { it.id }
     dialog.visitDescendants { descendant ->
       if (descendant is HTMLElement) {
-        if (!descendant.id.isNullOrEmpty()) {
+        if (!descendant.id.isEmpty()) {
           buttons[descendant.id]?.let { button ->
             descendant.onclick = button.handler
           }
@@ -543,7 +542,7 @@ private fun updateMenuTabs() {
 
 private fun updateLinkItem(menuitem: HTMLAnchorElement) {
   var href = menuitem.pathname
-  if (! href.isNullOrEmpty()) {
+  if (! href.isEmpty()) {
     if (href == "/" && menuitem.hash.length > 1) {
       href = menuitem.hash.substring(1) // skip # character
     }

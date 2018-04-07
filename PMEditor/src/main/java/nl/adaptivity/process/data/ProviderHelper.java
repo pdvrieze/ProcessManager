@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -20,13 +20,13 @@ import android.accounts.Account;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.WorkerThread;
+import nl.adaptivity.android.coroutines.Maybe;
+import nl.adaptivity.android.coroutines.SerializableHandler;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.AuthenticatedWebClientCallbacks;
 import nl.adaptivity.android.util.AsyncCallableTask;
 import nl.adaptivity.process.ui.main.SettingsActivity;
 
@@ -67,7 +67,7 @@ public final class ProviderHelper {
   }
 
 
-  public static final class SyncCallable implements Callable<Account> {
+  public static final class SyncCallable implements Callable<Void> {
 
     private final URI      mAuthbase;
     private final boolean  mExpedited;
@@ -89,34 +89,29 @@ public final class ProviderHelper {
       mAuthbase = authbase;
     }
 
+    void handleAccountChosen(Activity a, Maybe<Account> maybeAccount) {
+      if (maybeAccount.isOk()) {
+        Account account = maybeAccount.flatMap();
+        if (AuthenticatedWebClientFactory.isAccountValid(a, account, getAuthBase(a))) {
+          if (mAuthority!=null) {
+            ProviderHelper.requestSync(account, mAuthority, mExpedited);
+          }
+        }
+      }
+    }
+
     @WorkerThread
     @Override
-    public Account call() throws Exception {
+    public Void call() throws Exception {
       final URI     source  = mAuthbase;
 
-      final AuthenticatedWebClientCallbacks callbacks;
-      if (mContext instanceof AuthenticatedWebClientCallbacks) {
-        callbacks = (AuthenticatedWebClientCallbacks) mContext;
-      } else {
-        callbacks = new AuthenticatedWebClientCallbacks() { // These callbacks will not do anything, just stop the flow
-          @Override
-          public void showDownloadDialog() { }
+      final SerializableHandler<Activity, Maybe<Account>> callbacks;
+      if (true) {
+        callbacks = this::handleAccountChosen;
 
-          @Override
-          public void startSelectAccountActivity(final Intent selectAccount) { }
-
-          @Override
-          public void onDownloadCancelled() { }
-        };
       }
 
-      final Account account = AuthenticatedWebClientFactory.tryEnsureAccount(mContext, source, callbacks);
-      if (account!=null && AuthenticatedWebClientFactory.isAccountValid(mContext, account, source)) {
-        if (mAuthority!=null) {
-          ProviderHelper.requestSync(account, mAuthority, mExpedited);
-        }
-        return account;
-      }
+      AuthenticatedWebClientFactory.tryEnsureAccount(mContext, source, callbacks);
       return null;
     }
 
@@ -132,7 +127,7 @@ public final class ProviderHelper {
   public static void requestSync(final Activity context, final String authority, final boolean expedited) {
     final URI authbase = getAuthBase(context);
     if (authbase!=null) {
-      new AsyncCallableTask<Account, SyncCallable>().execute(new SyncCallable(context, authority, authbase, expedited));
+      new AsyncCallableTask<Void, SyncCallable>().execute(new SyncCallable(context, authority, authbase, expedited));
     }
   }
 

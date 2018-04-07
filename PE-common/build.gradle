@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -92,8 +92,8 @@ dependencies {
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_7 //myJavaVersion
-targetCompatibility = JavaVersion.VERSION_1_7 //myJavaVersion
+sourceCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
+targetCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
 
 sourceSets {
     xml {

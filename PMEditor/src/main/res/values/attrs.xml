@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2016.
+  ~ Copyright (c) 2018.
   ~
   ~ This file is part of ProcessManager.
   ~
@@ -24,7 +24,7 @@
         <attr name="iconWidth" format="dimension"/>
         <attr name="iconHeight" format="dimension"/>
         <attr name="iconSrc" format="reference"/>
-        <attr name="iconTint" format="color|reference"/>
+        <attr name="myIconTint" format="color|reference"/>
     </declare-styleable>
     <declare-styleable name="IconButtonLP" >
         <attr name="role" format="integer">

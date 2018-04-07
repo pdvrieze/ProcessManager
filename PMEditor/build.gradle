@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -15,6 +15,7 @@
  */
 
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 version = '0.5.1'
 description = 'Android interface with process model editor and task interface'
@@ -22,7 +23,7 @@ description = 'Android interface with process model editor and task interface'
 configurations {
     cleanedAnnotations
 
-    compile.exclude group: 'org.jetbrains' , module:'annotations'
+    compile.exclude group: 'org.jetbrains', module: 'annotations'
 }
 
 dependencies {
@@ -60,30 +61,26 @@ dependencies {
 
 ext {
     if (!rootProject.hasProperty('androidTarget')) {
-        androidTarget = '25'
+        androidTarget = '26'
     }
     if (!rootProject.hasProperty('androidCompatVersion')) {
-        androidCompatVersion = '25.3.1'
+        androidCompatVersion = '26.3.1'
     }
     if (!rootProject.hasProperty('androidPluginVersion')) {
 //        androidPluginVersion = '2.2.2'
-        androidPluginVersion = '2.3.3'
-    }
-    if (!rootProject.hasProperty('androidBuildToolsVersion')) {
-        androidBuildToolsVersion = '26.0.2'
+        androidPluginVersion = '3.1.0'
     }
 }
 
 android {
     compileSdkVersion androidTarget
-    buildToolsVersion "${androidBuildToolsVersion}"
 
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion androidTarget
         versionCode 2
         versionName version
-        manifestPlaceholders = [ serverScheme:'https', serverHost:'darwin.bournemouth.ac.uk' ]
+        manifestPlaceholders = [serverScheme: 'https', serverHost: 'darwin.bournemouth.ac.uk']
 //        jackOptions {
 //            enabled = true
 //        }
@@ -94,13 +91,8 @@ android {
     }
 
     compileOptions {
-//        if (androidTarget==26 && androidPluginVersion.startsWith('3.0')) {
-//            sourceCompatibility org.gradle.api.JavaVersion.VERSION_1_8
-//            targetCompatibility org.gradle.api.JavaVersion.VERSION_1_8
-//        } else {
-            sourceCompatibility org.gradle.api.JavaVersion.VERSION_1_7
-            targetCompatibility org.gradle.api.JavaVersion.VERSION_1_7
-//        }
+        sourceCompatibility org.gradle.api.JavaVersion.VERSION_1_8
+        targetCompatibility org.gradle.api.JavaVersion.VERSION_1_8
     }
 
     lintOptions {
@@ -112,11 +104,11 @@ android {
 
         }
         debug {
-            manifestPlaceholders = [ serverScheme:'http', serverHost:'10.0.2.2' ]
+            manifestPlaceholders = [serverScheme: 'http', serverHost: '10.0.2.2']
 //            applicationIdSuffix ".debug"
 //            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                    'proguard-project.txt'
+                'proguard-project.txt'
             versionNameSuffix "-debug"
         }
     }
@@ -126,7 +118,7 @@ android {
     }
 }
 
-task cleanAnnotationsJar(type:Jar, dependsOn:configurations.cleanedAnnotations) {
+task cleanAnnotationsJar(type: Jar, dependsOn: configurations.cleanedAnnotations) {
     archiveName = "annotations-cleaned.jar"
     exclude 'org/jetbrains/annotations/NotNull.class'
     exclude 'org/jetbrains/annotations/Nullable.class'

@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2018.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+
+<pe:processModel xmlns:pe="http://adaptivity.nl/ProcessEngine/" name="Foo" owner="pdvrieze" uuid="e27eb791-855e-43b1-ac3f-928627c09df6">
+  <pe:start id="id0" x="-8.0" y="88.0"/>
+  <pe:activity id="id1" label="ac1" x="184.0" y="48.0" predecessor="split1">
+    <pe:message type="application/soap+xml" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+      <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+        <env:Body>
+          <umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler">
+            <umh:repliesParam>
+              <jbi:element xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="endpoint"/>
+            </umh:repliesParam>
+            <umh:taskParam>
+              <umh:task>
+                <umh:item name="lbl" type="label" value="My label"/>
+                <umh:item name="name" label="Name" type="text" value=""/>
+                <umh:item name="lbl2" type="label" value="Thanks"/>
+              </umh:task>
+            </umh:taskParam>
+          </umh:postTask>
+        </env:Body>
+      </env:Envelope>
+    </pe:message>
+  </pe:activity>
+  <pe:end id="id2" x="328.0" y="88.0" predecessor="join2"/>
+  <pe:activity id="ac0" label="ac2" x="184.0" y="128.0" predecessor="split1"/>
+  <pe:split id="split1" label="" x="112.0" y="88.0" min="2" max="2" predecessor="ac1"/>
+  <pe:join id="join2" label="" x="264.0" y="88.0" min="2" max="2">
+    <pe:predecessor>id1</pe:predecessor>
+    <pe:predecessor>ac0</pe:predecessor>
+  </pe:join>
+  <pe:activity id="ac1" label="Serious?" x="56.0" y="88.0" predecessor="id0">
+    <pe:message type="application/soap+xml" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+      <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+        <env:Body>
+          <umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler">
+            <umh:repliesParam>
+              <jbi:element xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="endpoint"/>
+            </umh:repliesParam>
+            <umh:taskParam>
+              <umh:task>
+                <umh:item name="l" type="label" value="Are you serious?"/>
+                <umh:item name="serious" label="yes/no" type="text" value=""/>
+              </umh:task>
+            </umh:taskParam>
+          </umh:postTask>
+        </env:Body>
+      </env:Envelope>
+    </pe:message>
+  </pe:activity>
+</pe:processModel>

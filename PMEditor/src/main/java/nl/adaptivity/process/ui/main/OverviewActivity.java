@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -303,7 +303,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
       }
       case R.id.nav_models: {
         if (!(mActiveFragment instanceof ProcessModelListOuterFragment)) {
-          mActiveFragment = ProcessModelListOuterFragment.newInstance(itemId);
+          mActiveFragment = ProcessModelListOuterFragment.Companion.newInstance(itemId);
           @SuppressLint("CommitTransaction")
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
                                                                         .replace(mBinding.overviewAppBar.overviewContainer.getId(), mActiveFragment, "models");

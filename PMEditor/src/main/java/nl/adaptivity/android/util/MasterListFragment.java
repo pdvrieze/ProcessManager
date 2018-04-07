@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -30,6 +30,7 @@ import android.view.View;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.sync.SyncManager;
+import org.jetbrains.annotations.NotNull;
 
 
 public class MasterListFragment<M extends SyncManager> extends RecyclerFragment {
@@ -49,7 +50,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
     boolean onItemClicked(final int row, final long id);
     void onItemSelected(int row, long id);
     boolean isTwoPane();
-    M getSyncManager();
+    @Nullable M getSyncManager();
   }
 
   /**
@@ -119,7 +120,7 @@ public class MasterListFragment<M extends SyncManager> extends RecyclerFragment 
     mCallbacks = sDummyCallbacks;
   }
 
-  @Nullable
+  @NotNull
   protected ListCallbacks<M> getCallbacks() {
     if (mCallbacks==sDummyCallbacks) {
       Fragment parent = getParentFragment();

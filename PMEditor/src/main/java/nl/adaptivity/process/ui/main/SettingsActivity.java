@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -18,7 +18,6 @@ package nl.adaptivity.process.ui.main;
 
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -40,13 +39,11 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.AuthenticatedWebClientCallbacks;
 import nl.adaptivity.android.preference.AutoCompletePreference;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.UIConstants;
-import nl.adaptivity.sync.SyncManager;
 
 import java.net.URI;
 import java.util.List;
@@ -63,7 +60,7 @@ import java.util.List;
  * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
  * API Guide</a> for more information on developing a Settings UI.
  */
-public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener, AuthenticatedWebClientCallbacks {
+public class SettingsActivity extends AppCompatPreferenceActivity implements OnPreferenceClickListener {
 
   private static class VerifyUpdatedAccountTask extends AsyncTask<Object,Void, String> {
 
@@ -152,21 +149,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   }
 
   @Override
-  public void showDownloadDialog() {
-    AuthenticatedWebClientFactory.doShowDownloadDialog(this, UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR);
-  }
-
-  @Override
-  public void startSelectAccountActivity(final Intent selectAccount) {
-    startActivityForResult(selectAccount, UIConstants.REQUEST_SELECT_ACCOUNT);
-  }
-
-  @Override
-  public void onDownloadCancelled() {
-    // Ignore
-  }
-
-  @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     switch (requestCode) {
       case UIConstants.REQUEST_SELECT_ACCOUNT: {
@@ -178,14 +160,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
           } else {
             mNeedsVerification = true;
           }
-        }
-        break;
-      }
-      case UIConstants.REQUEST_DOWNLOAD_AUTHENTICATOR: {
-        AuthenticatedWebClientFactory.handleInstallAuthenticatorActivityResult(this, resultCode, data);
-        if (resultCode==RESULT_OK) {
-          // Trigger an automatic new attempt to show the download dialog
-          AuthenticatedWebClientFactory.showAccountSelection(this, this, getAuthBase(this));
         }
         break;
       }
@@ -285,7 +259,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   @Override
   public boolean onPreferenceClick(final Preference preference) {
     if (AuthenticatedWebClient.KEY_ACCOUNT_NAME.equals(preference.getKey())) {
-      AuthenticatedWebClientFactory.showAccountSelection(this, this, getAuthBase(this));
+      startActivityForResult(AuthenticatedWebClientFactory.selectAccount(this, null, getAuthBase(this)), UIConstants.REQUEST_SELECT_ACCOUNT);
       return true;
     } else if (PREF_SYNC_FREQUENCY.equals(preference.getKey())) {
       Account account = AuthenticatedWebClientFactory.getStoredAccount(this);

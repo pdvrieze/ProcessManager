@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2018.
+ *
+ * This file is part of ProcessManager.
+ *
+ * ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+ * GNU Lesser General Public License as published by the Free Software Foundation.
+ *
+ * ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
+ * see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.adaptivity.process.editor.android;
 
 import net.devrieze.util.Streams;
@@ -6,6 +22,7 @@ import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.engine.TestProcessData;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.processModel.engine.XmlProcessModel;
 import nl.adaptivity.process.tasks.PostTask;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLAssert;
@@ -42,9 +59,9 @@ public class TestPMParser {
 
   @Test
   public void testParseNew() throws XmlPullParserException, XmlException {
-    InputStream inputStream = getClass().getResourceAsStream("/processmodel.xml");
-    XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
-    DrawableProcessModel model = DrawableProcessModel.deserialize(parser);
+    InputStream              inputStream = getClass().getResourceAsStream("/processmodel.xml");
+    XmlReader                parser      = new AndroidXmlReader(inputStream, "UTF-8");
+    DrawableProcessModel model       = new RootDrawableProcessModel(XmlProcessModel.deserialize(parser).getRootModel());
     checkModel1(model);
   }
 
@@ -52,7 +69,7 @@ public class TestPMParser {
   public void testParseSimple() throws XmlPullParserException, XmlException {
     InputStream inputStream = getClass().getResourceAsStream("/processmodel.xml");
     XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
-    DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
+    DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm()).build();
     checkModel1(model);
 
   }

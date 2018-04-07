@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -102,7 +102,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     final GetRequest        getList = new GetRequest(mActualDelegate.getListUrl(delegator.getSyncSource()));
     final HttpURLConnection result;
     try {
-      result = delegator.getWebClient().execute(getList);
+      result = delegator.getWebClient().execute(delegator.getContext(), getList);
     } catch (IOException e) {
       syncResult.stats.numIoExceptions++;
       return;

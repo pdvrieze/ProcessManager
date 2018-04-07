@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -166,7 +166,10 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   }
 
   @Suppress("NOTHING_TO_INLINE")
-  private inline fun OuterPos.toBufferPos(): BufferPos = (toInt() + firstElemIdx)% buffer.size
+  private inline fun OuterPos.toBufferPos(): BufferPos = when {
+    this <0 || this>=size -> throw IndexOutOfBoundsException("Invalid position: $this")
+    else -> (this + firstElemIdx) % buffer.size
+  }
 
   @Suppress("NOTHING_TO_INLINE")
   private inline fun BufferPos.toOuterPos(): OuterPos = (buffer.size + this - firstElemIdx) % buffer.size
@@ -187,7 +190,7 @@ class ArraySet<T>(initCapacity:Int=10): AbstractSet<T>() {
   fun removeAt(index:OuterPos) = removeAtOffset(index.toBufferPos())
 
   private fun removeAtOffset(offset: BufferPos): T {
-    val result = buffer[offset]!!
+    val result = buffer[offset] as T
 
     val bufferSize = buffer.size
     if (offset + 1 == nextElemIdx) { // optimize removing the last element

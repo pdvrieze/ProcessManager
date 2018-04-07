@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -124,7 +124,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   private static ContentValuesProvider postInstanceToServer(final DelegatingResources delegator, final URI url, final SyncResult syncResult) throws
           IOException, XmlException {
     final PostRequest post = new PostRequest(url, "");
-    final HttpURLConnection urlConnection = delegator.getWebClient().execute(post);
+    final HttpURLConnection urlConnection = delegator.getWebClient().execute(delegator.getContext(), post);
     try {
       final int status = urlConnection.getResponseCode();
       if (status >= 200 && status < 400) {
@@ -150,7 +150,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
       } else if (status==404) {
         ContentValues cv = new ContentValues(1);
         cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
-        if (Log.isLoggable(TAG, android.util.Log.DEBUG)) {
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, "Nonexisting process model: "+url.toString(), urlConnection.getResponseMessage(), urlConnection.getErrorStream());
         }
         ++syncResult.stats.numSkippedEntries;
@@ -158,7 +158,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
       } else {
         final String statusline = Integer.toString(urlConnection.getResponseCode()) + urlConnection.getResponseMessage();
         //noinspection WrongConstant
-        if (Log.isLoggable(TAG, android.util.Log.DEBUG)) {
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), statusline, urlConnection.getErrorStream());
         }
         // Don't throw an exception.
@@ -193,7 +193,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
 
     final URI uri =delegator.getSyncSource().resolve("processInstances/" + handle);
     final DeleteRequest request = new DeleteRequest(uri);
-    final HttpURLConnection urlConnection = delegator.getWebClient().execute(request);
+    final HttpURLConnection urlConnection = delegator.getWebClient().execute(delegator.getContext(), request);
     try {
       final int status = urlConnection.getResponseCode();
       if (status >= 200 && status < 400) {

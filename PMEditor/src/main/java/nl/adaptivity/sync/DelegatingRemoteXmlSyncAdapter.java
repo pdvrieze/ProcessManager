@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -98,7 +98,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
 
     if (account!=null){
       final URI authbase = AuthenticatedWebClientFactory.getAuthBase(mBase);
-      mHttpClient = AuthenticatedWebClientFactory.newClient(getContext(), account, authbase);
+      mHttpClient = AuthenticatedWebClientFactory.newClient(account, authbase);
     }
     for (final ISyncAdapterDelegate delegate : mDelegates) {
       for (final Phases phase : Phases.values()) {

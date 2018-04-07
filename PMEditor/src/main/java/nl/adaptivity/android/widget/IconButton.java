@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -144,7 +144,7 @@ public class IconButton extends ViewGroup {
     mIconPadding = a.getDimensionPixelOffset(R.styleable.IconButton_iconPadding, DEFAULT_ICON_PADDING_DP * 160 / dpi);
     mIconWidth = a.getDimensionPixelSize(R.styleable.IconButton_iconWidth, 0);
     mIconHeight = a.getDimensionPixelSize(R.styleable.IconButton_iconHeight, 0);
-    mDrawableTint = a.getColorStateList(R.styleable.IconButton_iconTint);
+    mDrawableTint = a.getColorStateList(R.styleable.IconButton_myIconTint);
     setIconDrawable(a.getDrawable(R.styleable.IconButton_iconSrc));
     a.recycle();
   }

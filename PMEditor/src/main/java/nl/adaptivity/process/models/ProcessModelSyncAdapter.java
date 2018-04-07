@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -70,6 +70,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
   public Collection<ContentProviderOperation> doUpdateItemDetails(final DelegatingResources delegator, final ContentProviderClient provider, final long id, final CVPair pair) throws
           RemoteException, IOException {
     long handle;
+
     if (pair != null && pair.mCV.getContentValues().containsKey(ProcessModels.COLUMN_HANDLE)) {
       handle = pair.mCV.getContentValues().getAsLong(ProcessModels.COLUMN_HANDLE);
     } else {
@@ -86,7 +87,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
     }
     final URI uri = getListUrl(delegator.getSyncSource()).resolve(Long.toString(handle));
     final GetRequest request = new GetRequest(uri);
-    final HttpURLConnection response = delegator.getWebClient().execute(request);
+    final HttpURLConnection response = delegator.getWebClient().execute(delegator.getContext(), request);
     if (response==null) {
       throw new IOException("Connection failed");
     }
@@ -140,7 +141,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
 
     final URI uri = delegator.getSyncSource().resolve("processModels/" + handle);
     final DeleteRequest request = new DeleteRequest(uri);
-    final HttpURLConnection response = delegator.getWebClient().execute(request);
+    final HttpURLConnection response = delegator.getWebClient().execute(delegator.getContext(), request);
     try {
       final int status = response.getResponseCode();
       if (status >= 200 && status < 400) {
@@ -220,7 +221,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
           IOException, XmlException {
     final PostRequest post = new PostRequest(url, model);
     post.setContentType("text/xml; charset=utf-8");
-    final HttpURLConnection response = delegator.getWebClient().execute(post);
+    final HttpURLConnection response = delegator.getWebClient().execute(delegator.getContext(), post);
     try {
       final int status = response.getResponseCode();
       if (status >= 200 && status < 400) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -140,7 +140,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * Change the underlying cursor to a new cursor. If there is an existing cursor it will be
    * closed. This will use {@link #swapCursor(Cursor)} as delegate.
    */
-  public final void changeCursor(@NonNull final Cursor cursor) {
+  public final void changeCursor(@Nullable final Cursor cursor) {
     final Cursor old = swapCursor(cursor);
     if (old != null) {
       old.close();
@@ -153,7 +153,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * closed.
    */
   @Nullable
-  public Cursor swapCursor(@NonNull final Cursor newCursor) {
+  public Cursor swapCursor(@Nullable final Cursor newCursor) {
     if (newCursor == mCursor) {
       return null;
     }
