@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -388,7 +388,11 @@ class AccountController : HttpServlet() {
     if (responseParam==null) {
       issueChallenge(req, resp, keyId)
     } else {
-      val response = Base64.getDecoder().decode(responseParam)
+      val response = try {
+        Base64.getUrlDecoder().decode(responseParam)
+      } catch (e: IllegalArgumentException) {
+        Base64.getDecoder().decode(responseParam)
+      }
       handleResponse(req, resp, keyId, response)
     }
   }
