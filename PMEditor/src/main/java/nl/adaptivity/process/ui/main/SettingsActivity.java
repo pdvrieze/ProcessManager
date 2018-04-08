@@ -259,7 +259,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
   @Override
   public boolean onPreferenceClick(final Preference preference) {
     if (AuthenticatedWebClient.KEY_ACCOUNT_NAME.equals(preference.getKey())) {
-      startActivityForResult(AuthenticatedWebClientFactory.selectAccount(this, null, getAuthBase(this)), UIConstants.REQUEST_SELECT_ACCOUNT);
+      startActivityForResult(AuthenticatedWebClientFactory.selectAccount(this, null, getAuthBase(this), true), UIConstants.REQUEST_SELECT_ACCOUNT);
       return true;
     } else if (PREF_SYNC_FREQUENCY.equals(preference.getKey())) {
       Account account = AuthenticatedWebClientFactory.getStoredAccount(this);
@@ -360,10 +360,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity implements OnP
 
     // Trigger the listener immediately with the preference's
     // current value.
-    sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, PreferenceManager.getDefaultSharedPreferences(preference
-                                                                                                                               .getContext())
+    sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, PreferenceManager.getDefaultSharedPreferences(preference.getContext())
                                                                                           .getString(preference.getKey(), ""));
-  }  /**
+  }
+
+  /**
    * This fragment shows data and sync preferences only. It is used when the
    * activity is showing a two-pane settings UI.
    */
