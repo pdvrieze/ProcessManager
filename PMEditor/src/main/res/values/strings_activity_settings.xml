@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2016.
+  ~ Copyright (c) 2018.
   ~
   ~ This file is part of ProcessManager.
   ~
@@ -36,14 +36,14 @@
 		<item>6 hours</item>
 		<item>Never</item>
 	</string-array>
-	<integer-array name="pref_sync_frequency_values">
+	<string-array name="pref_sync_frequency_values">
 		<item>15</item>
 		<item>30</item>
 		<item>60</item>
 		<item>180</item>
 		<item>360</item>
 		<item>-1</item>
-	</integer-array>
+	</string-array>
 
 	<string name="pref_title_system_sync_settings">System sync settings</string>
 
