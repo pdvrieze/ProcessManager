@@ -35,6 +35,7 @@ import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
+import javax.xml.stream.XMLStreamWriter
 
 const val DARWINCOOKIENAME = "DWNID"
 const val MAXTOKENLIFETIME = 864000 /* Ten days */
@@ -347,7 +348,14 @@ open class AccountDb(private val connection:DBConnection) {
 
 }
 
-class KeyInfo(val keyId:Int, val appname:String?, val lastUse: Date?)
+class KeyInfo(val keyId:Int, val appname:String?, val lastUse: Date?) {
+    fun toXmlWriter(writer: XMLStreamWriter) {
+        writer.writeEmptyElement("key")
+        writer.writeAttribute("id", keyId.toString())
+        appname?.let { writer.writeAttribute("appname", it) }
+        lastUse?.let { writer.writeAttribute("lastUse", it.time.toString()) }
+    }
+}
 
 class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=HttpURLConnection.HTTP_INTERNAL_ERROR) : RuntimeException(msg, cause) {
   override val message: String
