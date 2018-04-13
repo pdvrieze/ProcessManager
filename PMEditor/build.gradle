@@ -68,7 +68,7 @@ ext {
     }
     if (!rootProject.hasProperty('androidPluginVersion')) {
 //        androidPluginVersion = '2.2.2'
-        androidPluginVersion = '3.1.0'
+        androidPluginVersion = '3.1.1'
     }
 }
 
