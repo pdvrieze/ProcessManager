@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -86,7 +86,7 @@ open class AccountDb(private val connection:DBConnection) {
   }
 
   private fun generateAuthToken() = buildString {
-    Base64.getEncoder().encode(random.nextBytes(32)).asSequence()
+    Base64.getUrlEncoder().encode(random.nextBytes(32)).asSequence()
           .map(Byte::toChar)
           .forEach { c ->  when (c) {
       '+' -> append('-')
@@ -254,12 +254,19 @@ open class AccountDb(private val connection:DBConnection) {
                     }
   }
 
+    fun String.base64Decode(): ByteArray {
+        try {
+            return Base64.getUrlDecoder().decode(this)
+        } catch (e: IllegalArgumentException) {
+            return Base64.getDecoder().decode(this)
+        }
+    }
+
   private fun toRSAPubKey(keyData:String):RSAPublicKey {
     val colPos = keyData.indexOf(':')
     val modulusEnc = keyData.substring(0, colPos)
-    val modulusBytes = Base64.getDecoder().decode(modulusEnc)
-    val modulus = BigInteger(modulusBytes)
-    val publicExponent = BigInteger(Base64.getDecoder().decode(keyData.substring(colPos+1)))
+    val modulus = BigInteger(modulusEnc.base64Decode())
+    val publicExponent = BigInteger(keyData.substring(colPos+1).base64Decode())
 
     val factory = KeyFactory.getInstance(KEY_ALGORITHM)
     return factory.generatePublic(RSAPublicKeySpec(modulus, publicExponent)) as RSAPublicKey
@@ -270,7 +277,7 @@ open class AccountDb(private val connection:DBConnection) {
     val challenge = WebAuthDB.SELECT(c.challenge)
                              .WHERE { (c.keyid eq keyId) AND (c.requestip eq requestIp) }
                              .getSingleOrNull(connection)
-                             ?.let{ Base64.getDecoder().decode(it)} ?: return null
+                             ?.base64Decode() ?: return null
 
     val (user, encodedpubkey) = WebAuthDB.SELECT(p.user, p.pubkey)
           .WHERE { p.keyid eq keyId }
@@ -311,7 +318,7 @@ open class AccountDb(private val connection:DBConnection) {
 
   fun newChallenge(keyid: Int, requestIp: String): String {
     val conn = connection
-    val challenge = Base64.getEncoder().encodeToString(random.nextBytes(32))
+    val challenge = Base64.getUrlEncoder().encodeToString(random.nextBytes(32))
     try {
       return if (WebAuthDB
             .INSERT_OR_UPDATE(c.keyid, c.requestip, c.challenge, c.epoch)
