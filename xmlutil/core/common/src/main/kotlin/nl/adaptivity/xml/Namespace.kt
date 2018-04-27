@@ -31,7 +31,10 @@ interface Namespace {
 
 }
 
+@Suppress("NOTHING_TO_INLINE")
 @Deprecated("Use the property version", ReplaceWith("this.prefix"))
 inline fun Namespace.getPrefix() = prefix
+
+@Suppress("NOTHING_TO_INLINE")
 @Deprecated("Use the property version", ReplaceWith("this.namespaceURI"))
 inline fun Namespace.getNamespaceURI() = namespaceURI

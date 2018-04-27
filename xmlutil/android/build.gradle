@@ -25,6 +25,7 @@ archivesBaseName = "${project.parent.name}-${project.name}"
 
 dependencies {
     implementation project(':xmlutil:java')
+    implementation project(':xmlutil:core:android')
     implementation "com.android.support:appcompat-v7:${androidCompatVersion}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }

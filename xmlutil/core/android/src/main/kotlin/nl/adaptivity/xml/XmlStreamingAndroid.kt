@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
-@file:JvmName("JVMXmlStreamingKt")
+@file:JvmName("XmlStreamingAndroidKt")
 package nl.adaptivity.xml
 
 import nl.adaptivity.xml.XmlStreaming.deSerialize
