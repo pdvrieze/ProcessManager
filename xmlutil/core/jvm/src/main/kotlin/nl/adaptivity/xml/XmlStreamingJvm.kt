@@ -17,7 +17,6 @@
 package nl.adaptivity.xml
 
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.JavaCompactFragment
 import nl.adaptivity.xml.XmlStreaming.deSerialize
 import nl.adaptivity.xml.jvm.deSerialize
 import nl.adaptivity.xml.jvm.toCharArrayWriter
@@ -182,12 +181,6 @@ inline fun <reified T : Any> deserialize(input: Reader) = deSerialize(input, T::
 
 inline fun <reified T : Any> deserialize(input: String) = deSerialize(input, T::class.java)
 
-fun CompactFragment(content: String): CompactFragment = JavaCompactFragment(content)
-fun CompactFragment(namespaces: Iterable<Namespace>, content: CharArray?): CompactFragment = JavaCompactFragment(
-    namespaces, content ?: kotlin.CharArray(0))
-
-fun CompactFragment(namespaces: Iterable<Namespace>, content: String?): CompactFragment = JavaCompactFragment(
-    namespaces, content?.toCharArray() ?: kotlin.CharArray(0))
 
 
 @JvmField
