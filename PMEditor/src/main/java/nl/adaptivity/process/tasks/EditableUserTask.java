@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -31,7 +31,6 @@ import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
 import android.support.annotation.NonNull;
 import org.w3.soapEnvelope.Envelope;
@@ -117,8 +116,8 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   public XmlMessage asMessage() {
-    final QName        service    = UserTaskServiceDescriptor.SERVICENAME;
-    final String       endpoint   = UserTaskServiceDescriptor.ENDPOINT;
+    final QName        service    = UserTaskServiceDescriptor.Companion.getSERVICENAME();
+    final String       endpoint   = UserTaskServiceDescriptor.Companion.getENDPOINT();
     final String       operation  = PostTask.ELEMENTLOCALNAME;
     final StringWriter bodyWriter = new StringWriter();
     try {
@@ -203,7 +202,7 @@ public class EditableUserTask extends UserTaskBase {
 
   @Override
   public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
-    if (StringUtil.isEqual(Constants.MODIFY_NS_STR, reader.getNamespaceUri())) {
+    if (StringUtil.isEqual(Constants.INSTANCE.getMODIFY_NS_STR(), reader.getNamespaceUri())) {
       final AttributeSequence attrVar = ModifyHelper.parseAttribute(reader);
       switch (attrVar.getParamName().toString()) {
         case "summary": mSummary = attrVar; return true;

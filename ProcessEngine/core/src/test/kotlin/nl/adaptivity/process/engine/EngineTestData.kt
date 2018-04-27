@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -21,7 +21,6 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import java.net.URI
 import javax.xml.namespace.QName
@@ -51,7 +50,8 @@ open class EngineTestData(val messageService: StubMessageService, val engine: Pr
     StubMessageService(localEndpoint))
 
   companion object {
-    val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
+    val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine",
+                                                                       URI.create("http://localhost/"))
     val principal = SimplePrincipal("pdvrieze")
     fun defaultEngine() = EngineTestData()
   }

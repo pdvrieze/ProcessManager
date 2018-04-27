@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -165,10 +165,10 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: Builder,
      * Helper method that helps enumerating all elements in the model
 
      * @param destination The collection that will contain the result.
-     * *
+     *
      * @param seen A set of process names that have already been seen (and should
      * *          not be added again.
-     * *
+     *
      * @param node The node to start extraction from. This will go on to the
      * *          successors.
      */

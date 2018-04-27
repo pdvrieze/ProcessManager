@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -18,7 +18,7 @@ package nl.adaptivity.messaging;
 
 import net.devrieze.util.Annotations;
 import nl.adaptivity.rest.annotations.RestParam;
-import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.rest.annotations.RestParamType;
 import nl.adaptivity.ws.soap.SoapSeeAlso;
 
 import javax.jws.WebMethod;
@@ -425,7 +425,7 @@ public final class MessagingSoapClientGenerator {
           }
           if (annotation instanceof RestParam) {
             final RestParam restParam = (RestParam) annotation;
-            if (restParam.type() == ParamType.PRINCIPAL) {
+            if (restParam.type() == RestParamType.PRINCIPAL) {
               // We nead a principal header
               isPrincipal = true;
               if ((name == null) || (name.length() == 0)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -23,7 +23,6 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.CompactFragment
 import java.util.*
 

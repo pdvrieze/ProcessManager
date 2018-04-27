@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -14,8 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-@javax.xml.bind.annotation.XmlSchema(namespace = Constants.USER_MESSAGE_HANDLER_NS,
-                                     xmlns = { @javax.xml.bind.annotation.XmlNs(namespaceURI = Constants.USER_MESSAGE_HANDLER_NS,
+@javax.xml.bind.annotation.XmlSchema(namespace = Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(),
+                                     xmlns = { @javax.xml.bind.annotation.XmlNs(namespaceURI = Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(),
                                                                                 prefix = "umh") },
                                      elementFormDefault=XmlNsForm.QUALIFIED)
 package nl.adaptivity.process.userMessageHandler.server;

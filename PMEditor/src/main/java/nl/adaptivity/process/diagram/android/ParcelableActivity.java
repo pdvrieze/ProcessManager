@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -91,7 +91,7 @@ public class ParcelableActivity extends DrawableActivity
   }
 
   public EditableUserTask getUserTask() {
-    final XmlMessage message = XmlMessage.get(getMessage());
+    final XmlMessage message = XmlMessage.Companion.get(getMessage());
     if (message!=null && UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
             UserTaskServiceDescriptor.ENDPOINT.equals(message.getEndpoint())) {
       try {
@@ -160,7 +160,7 @@ public class ParcelableActivity extends DrawableActivity
     if (getMessage()==null) {
       dest.writeString("");
     } else {
-      dest.writeString(XmlSerializableExt.toString(XmlMessage.get(getMessage())));
+      dest.writeString(XmlSerializableExt.toString(XmlMessage.Companion.get(getMessage())));
     }
 
     writeDefines(dest);

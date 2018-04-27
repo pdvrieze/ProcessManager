@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.MemTransactionedHandleMap;
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance;
 import nl.adaptivity.process.engine.servlet.ServletProcessEngine;
 import org.jetbrains.annotations.NotNull;
 

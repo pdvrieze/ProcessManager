@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -22,7 +22,6 @@ import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB

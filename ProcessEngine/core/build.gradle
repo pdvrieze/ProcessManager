@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -60,8 +60,8 @@ artifacts {
 }
 
 dependencies {
-    compile project(':java-common')
-    compile project(':PE-common')
+    compile project(':java-common:jvm')
+    compile project(':PE-common:jvm')
     compileOnly project(':DarwinJavaApi')
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'

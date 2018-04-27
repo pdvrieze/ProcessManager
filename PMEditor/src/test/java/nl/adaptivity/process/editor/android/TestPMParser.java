@@ -94,7 +94,7 @@ public class TestPMParser {
     String source = Streams.toString(getClass().getResourceAsStream("/message.xml"), Charset.forName("UTF-8"));
 
     XmlReader parser = new AndroidXmlReader(new StringReader(source));
-    XmlMessage msg = XmlMessage.deserialize(parser);
+    XmlMessage msg = XmlMessage.Companion.deserialize(parser);
 
     String out = XmlSerializableExt.toString(msg);
 

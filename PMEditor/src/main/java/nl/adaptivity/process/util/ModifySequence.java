@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -46,7 +46,8 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
       }
     };
 
-    public static final QName ELEMENTNAME = new QName(Constants.MODIFY_NS_STR, "attribute", Constants.MODIFY_NS_PREFIX);
+    public static final QName ELEMENTNAME = new QName(Constants.INSTANCE.getMODIFY_NS_STR(), "attribute",
+                                                      Constants.INSTANCE.getMODIFY_NS_PREFIX());
     private final CharSequence mParamName;
     private final CharSequence mDefineName;
     private final CharSequence mXpath;
@@ -187,7 +188,8 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
 
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
-      final QName elementName = new QName(Constants.MODIFY_NS_STR, mElementName, Constants.MODIFY_NS_PREFIX);
+      final QName elementName = new QName(Constants.INSTANCE.getMODIFY_NS_STR(), mElementName,
+                                          Constants.INSTANCE.getMODIFY_NS_PREFIX());
       XmlWriterUtil.smartStartTag(out, elementName);
       XmlWriterUtil.writeAttribute(out, "refNode", mRefNodeId);
       XmlWriterUtil.writeAttribute(out, "value", mVariableName);

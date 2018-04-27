@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -24,8 +24,6 @@ import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
 import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlSerializable
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeSimpleElement
 import java.util.*
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory

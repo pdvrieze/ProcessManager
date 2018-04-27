@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -36,7 +36,6 @@ import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
 import android.support.annotation.NonNull;
 

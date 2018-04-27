@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -50,7 +50,7 @@ open class LayoutAlgorithm {
   /**
    * Layout the given nodes
    * @param nodes The nodes to layout
-   * *
+   *
    * @return Whether the nodes have changed.
    */
   open fun <T: Positioned> layout(nodes: List<DiagramNode<T>>, layoutStepper: LayoutStepper<T> = AbstractLayoutStepper()): Boolean {
@@ -96,7 +96,7 @@ open class LayoutAlgorithm {
     /**
      * Layout the given nodes
      * @param nodes The nodes to layout
-     * *
+     *
      * @return Whether the nodes have changed.
      */
     fun layout(nodes: List<DiagramNode<T>>): Boolean {
@@ -172,7 +172,7 @@ open class LayoutAlgorithm {
 
     /**
      * @param nodes The nodes in the diagram that could be layed out.
-     * *
+     *
      * @param baseNode The node to focus on.
      */
     private fun layoutNodeInitial(nodes: List<DiagramNode<T>>,
@@ -235,7 +235,7 @@ open class LayoutAlgorithm {
     /**
      * Get a minX value that is a valid number (not NaN or infinity). The fallback is 0.
      * @param nodes The nodes to try to find the mimimum of.
-     * *
+     *
      * @return The minimum left of all the nodes, or 0 if none exists.
      */
     protected fun getValidLeftBound(nodes: List<DiagramNode<T>>,
@@ -248,7 +248,7 @@ open class LayoutAlgorithm {
     /**
      * Get a minX value that is a valid number (not NaN or infinity). The fallback is 0.
      * @param nodes The nodes to try to find the mimimum of.
-     * *
+     *
      * @return The minimum left of all the nodes, or 0 if none exists.
      */
     protected fun getValidTopBound(nodes: List<DiagramNode<T>>,
@@ -392,7 +392,7 @@ open class LayoutAlgorithm {
      * This means that all nodes are checked on whether they are at least horizseparation and vertseparation from each other.
      * This method does **not** take into account the grid. In most cases this method should not change the layout.
      * @param this@verifyPositions The nodes to verify (or move)
-     * *
+     *
      * @return `true` if at least one node changed position, `false` if not.
      */
     private fun List<DiagramNode<T>>.verifyPositions(): Boolean {

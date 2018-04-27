@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -37,7 +37,8 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   public static final String TAG_TASKS = "tasks";
   public static final String ELEMENTLOCALNAME = "task";
-  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+  public static final QName ELEMENTNAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME,
+                                                    Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
   public static final String TAG_ITEM = "item";
   public static final String TAG_OPTION = "option";
   protected static final String TAG = "UserTask";

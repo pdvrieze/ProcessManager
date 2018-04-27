@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -69,11 +69,11 @@ dependencies {
     codegen project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
     codegen project(path: ':ProcessEngine:servlet', configuration: 'codeGen')
 //    compile 'generate'
-    api project(':JavaCommonApi')
-    api project(':java-common')
-    api project(':PE-common')
+    api project(':JavaCommonApi:jvm')
+    api project(':java-common:jvm')
+    api project(':PE-common:jvm')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    compileOnly project(path: ':PE-common', configuration:'compileOnly')
+    compileOnly project(path: ':PE-common:jvm', configuration:'compileOnly')
 }
 
 

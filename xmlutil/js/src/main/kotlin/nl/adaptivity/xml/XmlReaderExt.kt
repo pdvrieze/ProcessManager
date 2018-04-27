@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -28,9 +28,9 @@ import kotlin.browser.document
 /**
  * Read the current element (and content) and all its siblings into a fragment.
  * @param in The source stream.
- * *
+ *
  * @return the fragment
- * *
+ *
  * @throws XmlException parsing failed
  */
 fun XmlReader.siblingsToFragment(): CompactFragment

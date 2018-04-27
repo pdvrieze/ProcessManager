@@ -87,16 +87,19 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     if (! task.getItems().isEmpty()) {
       final StringWriter writer = new StringWriter(0x100);
       final XmlWriter serializer = XmlStreaming.newWriter(writer);
-      serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS);
-      serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
-      serializer.namespaceAttr(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS);
+      serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS());
+      serializer.startTag(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME,
+                          Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
+      serializer.namespaceAttr(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX(),
+                               Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS());
       serializer.attribute(null, "state", XMLConstants.DEFAULT_NS_PREFIX, task.getState().getAttrValue());
       for(final TaskItem item: task.getItems()) {
         if (! item.isReadOnly()) {
           item.serialize(serializer, false);
         }
       }
-      serializer.endTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+      serializer.endTag(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME,
+                        Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
       serializer.close();
       postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())), writer.toString());
     } else {
@@ -308,7 +311,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   @Override
   public ContentValuesProvider parseItem(final XmlReader in) throws XmlException, IOException {
 
-    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
+    in.require(EventType.START_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME);
     final String summary = StringUtil.toString(in.getAttributeValue(null, "summary"));
     final long handle = Long.parseLong(StringUtil.toString(in.getAttributeValue(null, "handle")));
     final long instHandle = Long.parseLong(StringUtil.toString(in.getAttributeValue(null, "instancehandle")));
@@ -317,7 +320,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     boolean hasItems = false;
     final List<GenericItem> items = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {
-      in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ExecutableUserTask.TAG_ITEM);
+      in.require(EventType.START_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ExecutableUserTask.TAG_ITEM);
       try {
         items.add(TaskItem.parseTaskGenericItem(in));
       } catch (XmlException e) {
@@ -326,12 +329,12 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
         }
         throw new XmlException(e.getMessage(), in, e);
       }
-      in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ExecutableUserTask.TAG_ITEM);
+      in.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ExecutableUserTask.TAG_ITEM);
       hasItems = true;
     }
 
     final ContentValues result = new ContentValues(6);
-    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
+    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME);
     result.put(Tasks.COLUMN_HANDLE, handle);
     result.put(Tasks.COLUMN_SUMMARY, summary);
     result.put(Tasks.COLUMN_OWNER, owner);
@@ -353,7 +356,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 
   @Override
   public String getItemNamespace() {
-    return Constants.USER_MESSAGE_HANDLER_NS;
+    return Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS();
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -23,12 +23,10 @@ import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.security.SYSTEMPRINCIPAL
-import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.EventType
 import org.w3.soapEnvelope.Envelope

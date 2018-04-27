@@ -494,7 +494,7 @@
     <TableColumn><![CDATA[160802]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.xml.SimpleNamespaceContext.<init>(java.util.Collection)]]></TableColumn>
+    <TableColumn><![CDATA[SimpleNamespaceContext.<init>(java.util.Collection)]]></TableColumn>
     <TableColumn><![CDATA[0.28%]]></TableColumn>
     <TableColumn><![CDATA[8.891 ms]]></TableColumn>
     <TableColumn><![CDATA[13.706 ms]]></TableColumn>
@@ -2013,7 +2013,7 @@
     <TableColumn><![CDATA[2037]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.xml.SimpleNamespaceContext.<init>(Iterable)]]></TableColumn>
+    <TableColumn><![CDATA[SimpleNamespaceContext.<init>(Iterable)]]></TableColumn>
     <TableColumn><![CDATA[0.05%]]></TableColumn>
     <TableColumn><![CDATA[1.558 ms]]></TableColumn>
     <TableColumn><![CDATA[15.434 ms]]></TableColumn>
@@ -2111,7 +2111,7 @@
     <TableColumn><![CDATA[3459]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.xml.SimpleNamespaceContext$Companion.from(Iterable)]]></TableColumn>
+    <TableColumn><![CDATA[SimpleNamespaceContext$Companion.from(Iterable)]]></TableColumn>
     <TableColumn><![CDATA[0.05%]]></TableColumn>
     <TableColumn><![CDATA[1.465 ms]]></TableColumn>
     <TableColumn><![CDATA[16.877 ms]]></TableColumn>
@@ -3322,7 +3322,7 @@
     <TableColumn><![CDATA[1730]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.xml.SimpleNamespaceContext$$special$$inlined$flatten$2.<init>()]]></TableColumn>
+    <TableColumn><![CDATA[SimpleNamespaceContext$$special$$inlined$flatten$2.<init>()]]></TableColumn>
     <TableColumn><![CDATA[0.02%]]></TableColumn>
     <TableColumn><![CDATA[0.58 ms]]></TableColumn>
     <TableColumn><![CDATA[0.732 ms]]></TableColumn>
@@ -4085,7 +4085,7 @@
     <TableColumn><![CDATA[6916]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.xml.SimpleNamespaceContext.<init>(String[])]]></TableColumn>
+    <TableColumn><![CDATA[SimpleNamespaceContext.<init>(String[])]]></TableColumn>
     <TableColumn><![CDATA[0.01%]]></TableColumn>
     <TableColumn><![CDATA[0.302 ms]]></TableColumn>
     <TableColumn><![CDATA[0.452 ms]]></TableColumn>

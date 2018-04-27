@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -361,12 +361,12 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
 
   public static List<ExecutableUserTask> parseTasks(final XmlReader in) throws XmlException {
     XmlReaderUtil.skipPreamble(in);
-    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
+    in.require(EventType.START_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TAG_TASKS);
     final ArrayList<ExecutableUserTask> result = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {
       result.add(deserialize(in));
     }
-    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
+    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TAG_TASKS);
     return result;
   }
 

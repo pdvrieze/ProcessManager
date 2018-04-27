@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -23,7 +23,6 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
-import android.support.annotation.NonNull;
 
 import javax.xml.namespace.QName;
 
@@ -35,7 +34,8 @@ import javax.xml.namespace.QName;
 public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "postTask";
-  public static final QName ELEMENTNAME=new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+  public static final QName ELEMENTNAME=new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME,
+                                                  Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
 
   public static class Factory implements XmlDeserializerFactory<PostTask> {
 
@@ -45,12 +45,16 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     }
   }
 
-  public static final CompactFragment DEFAULT_REPLIES_PARAM = XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi", Constants.MODIFY_NS_STR), "<jbi:element value=\"endpoint\"/>"
+  public static final CompactFragment DEFAULT_REPLIES_PARAM = XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi",
+                                                                                                                                          Constants.INSTANCE
+                                                                                                                                              .getMODIFY_NS_STR()), "<jbi:element value=\"endpoint\"/>"
           .toCharArray());
   public static final String REPLIESPARAM_LOCALNAME = "repliesParam";
-  public static final QName REPLIESPARAM_NAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, REPLIESPARAM_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+  public static final QName REPLIESPARAM_NAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), REPLIESPARAM_LOCALNAME,
+                                                          Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
   public static final String TASKPARAM_LOCALNAME = "taskParam";
-  public static final QName TASKPARAM_NAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+  public static final QName TASKPARAM_NAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TASKPARAM_LOCALNAME,
+                                                       Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
 
   public static final Factory FACTORY = new Factory();
 
@@ -109,7 +113,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
-    if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceUri())) {
+    if (StringUtil.isEqual(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), reader.getNamespaceUri())) {
       switch (reader.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
           mReplies = XmlReaderUtil.elementContentToFragment(reader);
@@ -118,7 +122,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
           reader.next();//The param tag has been handled.
           mTask = EditableUserTask.deserialize(reader);
           reader.nextTag();
-          reader.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME);
+          reader.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TASKPARAM_LOCALNAME);
           return true;
       }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -27,7 +27,6 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;

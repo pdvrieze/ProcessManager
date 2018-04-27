@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -27,7 +27,6 @@ import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.diagram.AbstractLayoutStepper;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.LayoutStepper;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.R;

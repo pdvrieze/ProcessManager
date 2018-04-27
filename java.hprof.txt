@@ -703,9 +703,9 @@ TRACE 300954:
 	java.util.logging.LogRecord.inferCaller(LogRecord.java:537)
 TRACE 300955:
 	kotlin.sequences.SequencesKt___SequencesKt.flatMap(_Sequences.kt:592)
-	nl.adaptivity.xml.SimpleNamespaceContext.<init>(SimpleNamespaceContext.kt:212)
-	nl.adaptivity.xml.SimpleNamespaceContext.<init>(SimpleNamespaceContext.kt:60)
-	nl.adaptivity.xml.SimpleNamespaceContext$Companion.from(SimpleNamespaceContext.kt:180)
+	SimpleNamespaceContext.<init>(SimpleNamespaceContext.kt:212)
+	SimpleNamespaceContext.<init>(SimpleNamespaceContext.kt:60)
+	SimpleNamespaceContext$Companion.from(SimpleNamespaceContext.kt:180)
 TRACE 300969:
 	java.util.stream.AbstractPipeline.<init>(AbstractPipeline.java:211)
 	java.util.stream.ReferencePipeline.<init>(ReferencePipeline.java:94)
@@ -1984,8 +1984,8 @@ TRACE 300765:
 	java.util.Formatter.format(Formatter.java:2501)
 	java.util.Formatter.format(Formatter.java:2455)
 TRACE 300766:
-	nl.adaptivity.xml.SimpleNamespaceContext.<init>(SimpleNamespaceContext.kt:Unknown line)
-	nl.adaptivity.xml.SimpleNamespaceContext$Companion.from(SimpleNamespaceContext.kt:180)
+	SimpleNamespaceContext.<init>(SimpleNamespaceContext.kt:Unknown line)
+	SimpleNamespaceContext$Companion.from(SimpleNamespaceContext.kt:180)
 	nl.adaptivity.util.xml.CompactFragment.<init>(CompactFragment.java:56)
 	nl.adaptivity.process.processModel.BaseMessage.getMessageBody(BaseMessage.java:178)
 TRACE 300767:
@@ -3578,7 +3578,7 @@ rank   self  accum   count trace method
  376  0.01% 96.86%       1 300763 nl.adaptivity.process.engine.ProcessInstance$startSuccessors$$inlined$run$lambda$1.invoke
  377  0.01% 96.87%       1 300764 java.util.HashMap.removeNode
  378  0.01% 96.88%       1 300765 java.util.regex.Matcher.find
- 379  0.01% 96.90%       1 300766 nl.adaptivity.xml.SimpleNamespaceContext.<init>
+ 379  0.01% 96.90%       1 300766 SimpleNamespaceContext.<init>
  380  0.01% 96.91%       1 300767 kotlin.collections.CollectionsKt__CollectionsKt.listOf
  381  0.01% 96.92%       1 300768 java.lang.Class.isInstance
  382  0.01% 96.93%       1 300772 java.util.Locale.equals

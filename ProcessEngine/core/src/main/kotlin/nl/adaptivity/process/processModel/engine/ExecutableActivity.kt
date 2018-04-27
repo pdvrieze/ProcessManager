@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -28,8 +28,6 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeChild
 
 
 /**

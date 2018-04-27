@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -121,7 +121,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
               builder.failureCause = Exception(data)
               null
             } else {
-              ProcessData(name, CompactFragment(data!!))
+                ProcessData(name, CompactFragment(data!!))
             }
           }.filterNotNull()
     builder.results.replaceBy(results)

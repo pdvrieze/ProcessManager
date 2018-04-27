@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -36,7 +36,7 @@ interface IMessageService<MSG_T> {
    * Create a message.
    *
    * @param message The message to create (for later sending)
-   * *
+   *
    * @return The sendable message that can be sent.
    */
   fun createMessage(message: IXmlMessage?): MSG_T

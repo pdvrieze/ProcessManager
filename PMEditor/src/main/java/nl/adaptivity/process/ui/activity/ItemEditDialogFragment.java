@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -44,7 +44,6 @@ import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
 import nl.adaptivity.xml.*;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.CharArrayWriter;

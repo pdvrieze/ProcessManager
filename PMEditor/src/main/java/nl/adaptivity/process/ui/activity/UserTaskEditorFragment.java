@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -52,7 +52,6 @@ import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -292,9 +291,11 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     for(final TaskItem item: items) {
       if (! (item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName()) || (item.getName() instanceof ModifySequence) )) {
         // TODO use existing prefix instead of hardcoded
-        final XmlResultType result = getResultFor(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, item.getName().toString());
+        final XmlResultType result = getResultFor(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX(), item.getName().toString());
         if (result==null) {
-          final XmlResultType newResult = new XmlResultType(getResultName("r_"+item.getName()), getResultPath(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, item.getName().toString()), (char[]) null, new SimpleNamespaceContext(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS));
+          final XmlResultType newResult = new XmlResultType(getResultName("r_"+item.getName()), getResultPath(
+              Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX(), item.getName().toString()), (char[]) null, new SimpleNamespaceContext(
+              Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX(), Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS()));
           mActivity.getResults().add(newResult);
         }
       }

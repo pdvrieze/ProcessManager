@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -27,7 +27,6 @@ import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
 import java.io.CharArrayWriter

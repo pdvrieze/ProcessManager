@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -37,7 +37,7 @@ public final class ModifyHelper {
    * @throws XmlException When a reading error occurs, including unexpected tags.
    */
   public static ModifySequence parseAny(final XmlReader in) throws XmlException {
-    in.require(EventType.START_ELEMENT, Constants.MODIFY_NS_STR, null);
+    in.require(EventType.START_ELEMENT, Constants.INSTANCE.getMODIFY_NS_STR(), null);
     switch (in.getLocalName().toString()) {
       case "attribute":
         return parseAttribute(in);
@@ -56,7 +56,7 @@ public final class ModifyHelper {
     final CharSequence xpath = in.getAttributeValue(null, "xpath");
     final CharSequence paramName = in.getAttributeValue(null, "name");
     in.nextTag();
-    in.require(EventType.END_ELEMENT, Constants.MODIFY_NS_STR, "attribute");
+    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getMODIFY_NS_STR(), "attribute");
     return ModifySequence.newAttributeSequence(paramName, defineName, xpath);
   }
 
@@ -65,7 +65,7 @@ public final class ModifyHelper {
     final CharSequence xpath = in.getAttributeValue(null, "xpath");
     final CharSequence localName = in.getLocalName();
     in.nextTag();
-    in.require(EventType.END_ELEMENT, Constants.MODIFY_NS_STR, localName);
+    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getMODIFY_NS_STR(), localName);
     return ModifySequence.newFragmentSequence(localName.toString(), defineName, xpath);
   }
 

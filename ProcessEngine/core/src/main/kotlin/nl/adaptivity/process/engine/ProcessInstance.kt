@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -20,7 +20,6 @@ import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
@@ -245,7 +244,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     /**
      * Trigger the instance to reactivate pending tasks.
      * @param engineData The database data to use
-     * *
+     *
      * @param messageService The message service to use for messenging.
      */
     @Throws(FileNotFoundException::class)
@@ -593,7 +592,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     override val valid: Boolean
-      get() = handleValue >= 0L
+      get() = isValid
   }
 
   val generation: Int

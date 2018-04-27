@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Process Engine" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 7.0.68 Process Engine" ALTERNATIVE_JRE_ENABLED="false">
     <option name="OPEN_IN_BROWSER" value="false" />
-    <option name="COMMON_VM_ARGUMENTS" value="-Dorg.apache.catalina.level=FINEST" />
+    <option name="COMMON_VM_ARGUMENTS" value="-Dorg.apache.catalina.level=ALL" />
     <option name="UPDATING_POLICY" value="redeploy-artifacts" />
     <deployment>
       <file path="$PROJECT_DIR$/PEUserMessageHandler/build/libs/PEUserMessageHandler-1.0.0.war">
@@ -21,7 +21,7 @@
       </file>
       <file path="$PROJECT_DIR$/accountmgr/build/libs/accountmgr.war">
         <settings>
-          <option name="CONTEXT_PATH" value="/accountmgr" />
+          <option name="CONTEXT_PATH" value="/accounts" />
         </settings>
       </file>
       <file path="$PROJECT_DIR$/ProcessEngine/servlet/build/libs/ProcessEngine-servlet-1.0.0.war">

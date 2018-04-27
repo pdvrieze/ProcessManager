@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -35,7 +35,6 @@ import nl.adaptivity.util.xml.DomUtil
 import nl.adaptivity.xml.CompactFragment
 import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.siblingsToFragment
 import org.w3c.dom.NodeList
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
@@ -59,8 +58,9 @@ fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNo
           processData = ProcessData(name, origpair.content)
         } else {
           processData = ProcessData(name,
-                                    DomUtil.nodeListToFragment(xPath.evaluate(origpair.contentFragment,
-                                                                              XPathConstants.NODESET) as NodeList))
+                                                                 DomUtil.nodeListToFragment(
+                                                                     xPath.evaluate(origpair.contentFragment,
+                                                                                    XPathConstants.NODESET) as NodeList))
         }
       } catch (e: XPathExpressionException) {
         throw RuntimeException(e)

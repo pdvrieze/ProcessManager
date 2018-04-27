@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -123,7 +123,9 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
 
     val transaction = getter { traceTransaction }
     val hinstance = startProcess(transaction, model, principal, "${model.name} instance for [${validTrace.joinToString()}]")
-    val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
+    val processInstanceF = getter {
+        transaction().readableEngineData.instance(hinstance()).withPermission()
+    }
 
     testTraceStarting(processInstanceF)
 
@@ -133,11 +135,11 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
       val previous = queue.solidify()
       // TODO we want to properly support the trace
       val nodeInstanceF = getter {
-        processInstanceF().let { processInstance: ProcessInstance ->
-          traceElement.getNodeInstance(transaction(), processInstance)
-          ?: throw NoSuchElementException(
-            "No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
-        }
+          processInstanceF().let { processInstance: ProcessInstance ->
+              traceElement.getNodeInstance(transaction(), processInstance)
+              ?: throw NoSuchElementException(
+                  "No node instance for $traceElement found in ${processInstance.toDebugString(transaction())}}")
+          }
       }
 
       queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
@@ -181,7 +183,9 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
   val transaction = getter { subject.engine.startTransaction() }
   val hinstance = startProcess(transaction, model, principal,
                                "${model.name} instance for [${invalidTrace.joinToString()}]}")
-  val processInstanceF = getter { transaction().readableEngineData.instance(hinstance()).withPermission() }
+  val processInstanceF = getter {
+      transaction().readableEngineData.instance(hinstance()).withPermission()
+  }
   specBody.given("${if (failureExpected) "invalid" else "valid" } trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")}") {
     test("Executing the trace should ${if (!failureExpected) "not fail" else "fail"}") {
       var success = false

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -32,7 +32,7 @@ abstract class DarwinBasePrincipal
 /**
  * Create a new [DarwinBasePrincipal]
  * @param realm The realm the principal is recorded against.
- * *
+ *
  * @param name The name of the principal.
  */
 (name: String, roles: List<out String> = Collections.emptyList(), userPrincipal: Principal? = null, loginContext: LoginContext? = null, gssCredential: GSSCredential? = null) : GenericPrincipal(name, null, roles, userPrincipal, loginContext, gssCredential), DarwinPrincipal {

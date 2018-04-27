@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -88,9 +88,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   /**
    * Get a list of pending tasks.
    * @return All tasks available
-   * *
+   *
    * @throws SQLException
-   * *
+   *
    */
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/allPendingTasks")
@@ -100,9 +100,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   /**
    * Get a list of pending tasks.
    * @param user The user whose tasks to display.
-   * *
+   *
    * @return All tasks available
-   * *
+   *
    * @throws SQLException
    */
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
@@ -119,15 +119,15 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    * completed state.
 
    * @param handle The handle/id of the task
-   * *
+   *
    * @param partialNewTask The partial task to use for updating.
-   * *
+   *
    * @param user The user whose task state to update.
-   * *
+   *
    * @return The Updated, complete, task.
-   * *
+   *
    * @throws SQLException When something went wrong with the query.
-   * *
+   *
    * @throws FileNotFoundException When the task handle is not valid. This will be translated into a 404 error.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}")
@@ -142,9 +142,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   /**
    * Retrieve the current pending task for the given handle.
    * @param handle The task handle (as recorded in the task handler, not the process engine handle).
-   * *
+   *
    * @param user The user whose task to retrieve.
-   * *
+   *
    * @return The task.
    */
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/\${handle}")
@@ -161,9 +161,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   /**
    * Mark a task as started.
    * @param handle The task handle.
-   * *
+   *
    * @param user The owner.
-   * *
+   *
    * @return The new state of the task after completion of the request.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Started"))
@@ -178,9 +178,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   /**
    * Mark a task as Taken.
    * @param handle The task handle.
-   * *
+   *
    * @param user The owner.
-   * *
+   *
    * @return The new state of the task after completion of the request.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Taken"))
@@ -197,9 +197,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    * Mark a task as Finished. This will allow the process engine to take the data, and transition it to completed once
    * it has fully handled the finishing of the task.
    * @param handle The task handle.
-   * *
+   *
    * @param user The owner.
-   * *
+   *
    * @return The new state of the task after completion of the request.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Finished"))

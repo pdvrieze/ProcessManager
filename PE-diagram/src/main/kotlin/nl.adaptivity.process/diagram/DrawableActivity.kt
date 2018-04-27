@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.diagram.Canvas.TextPos
 import nl.adaptivity.process.ProcessConsts.Endpoints
 import nl.adaptivity.process.diagram.ProcessThemeItems.*
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITYHEIGHT
@@ -29,8 +28,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeSimpleElement
 
 interface IDrawableActivity: IDrawableProcessNode {
   override val leftExtent: Double

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -44,7 +44,7 @@ dependencies {
 
     extraBootCp 'mysql:mysql-connector-java:5.1.36'
     extraBootCp project(':DarwinJavaApi')
-    extraBootCp project(':JavaCommonApi')
+    extraBootCp project(':JavaCommonApi:jvm')
     extraBootCp project(':DarwinRealm')
     // Todo dynamically determine version needed from -api version
     extraBootCp 'org.slf4j:slf4j-simple:1.7.16'
@@ -52,7 +52,7 @@ dependencies {
 
     tomcat 'mysql:mysql-connector-java:5.1.36'
     tomcat project(':DarwinJavaApi')
-    tomcat project(':JavaCommonApi')
+    tomcat project(':JavaCommonApi:jvm')
     tomcat project(':DarwinRealm')
 
     warContents project(path: ':PEUserMessageHandler', configuration: 'runtime')

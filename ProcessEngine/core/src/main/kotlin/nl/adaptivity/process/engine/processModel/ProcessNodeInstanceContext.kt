@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -29,10 +29,13 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
-      "handle"         -> return ProcessData(valueName, CompactFragment(processNodeInstance.getHandleValue().toString()))
-      "instancehandle" -> return ProcessData(valueName, CompactFragment(processNodeInstance.hProcessInstance.handleValue.toString()))
+      "handle"         -> return ProcessData(valueName, CompactFragment(
+          processNodeInstance.getHandleValue().toString()))
+      "instancehandle" -> return ProcessData(valueName, CompactFragment(
+          processNodeInstance.hProcessInstance.handleValue.toString()))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())
-      "owner"          -> return ProcessData(valueName, CompactFragment(processNodeInstance.owner.name.xmlEncode()))
+      "owner"          -> return ProcessData(valueName, CompactFragment(
+          processNodeInstance.owner.name.xmlEncode()))
     }
 
     defines.firstOrNull { valueName == it.name }?.let { return it }

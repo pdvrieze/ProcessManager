@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -62,7 +62,9 @@ import kotlin.collections.ArrayList
 class TestProcessEngine {
 
   internal lateinit var mProcessEngine: ProcessEngine<StubProcessTransaction>
-  private val mLocalEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"), "processEngine", URI.create("http://localhost/"))
+  private val mLocalEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"),
+                                                                              "processEngine",
+                                                                              URI.create("http://localhost/"))
   private val mStubMessageService: StubMessageService = StubMessageService(mLocalEndpoint)
   private val mStubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
     override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {

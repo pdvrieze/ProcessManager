@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -155,9 +155,9 @@ dependencies {
 //    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     apiCompileOnly project(':DarwinJavaApi')
-    apiCompileOnly project(path: ':PE-common', configuration:'compileOnly')
+    apiCompileOnly project(path: ':PE-common:jvm', configuration:'compileOnly')
 
-    apiCompile project(':PE-common')
+    apiCompile project(':PE-common:jvm')
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
     runtime project(':xmlutil:jvm')
@@ -169,18 +169,20 @@ dependencies {
     testCompile 'org.testng:testng:6.9.13.8'
     testCompile 'junit:junit:4.12'
     testCompile 'xmlunit:xmlunit:1.6'
-    testCompile project(path: ':PE-common', configuration:'compileOnly')
+    testCompile project(path: ':PE-common:jvm', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
+/*
     wsDoc project(":PE-common:endpointDoclet")
     wsDocOutput files(wsDestDir) { builtBy 'wsDoc' }
+*/
 }
 
 test {
     useTestNG()
 }
 
-
+/*
 task wsDoc(type:Javadoc) {
     dependsOn configurations.wsDoc
     dependsOn configurations.compile
@@ -192,8 +194,9 @@ task wsDoc(type:Javadoc) {
     options.doclet = "nl.adaptivity.ws.doclet.WsDoclet"
 
     doFirst() {
-        source=project.files(source, project(":PE-common").sourceSets.main.allJava)
+        source=project.files(source, project(":PE-common:jvm").sourceSets.main.allJava)
     }
 }
 
 assemble.dependsOn tasks.wsDoc
+*/

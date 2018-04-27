@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -214,7 +214,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
       }
     }
     if (!Double.isNaN(attrY)) {
-      return Point.of(node.getX(), attrY);
+      return Point.Companion.of(node.getX(), attrY);
     }
     return null;
   }

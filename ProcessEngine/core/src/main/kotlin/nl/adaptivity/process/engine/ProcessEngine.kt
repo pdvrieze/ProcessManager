@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -320,7 +320,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * Rename the process model with the given handle.
 
    * @param handle The handle to use.
-   * *
+   *
    * @param newName The new name
    */
   @Throws(FileNotFoundException::class)
@@ -386,7 +386,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
    * @param user The current user in relation to whom we need to find the
    * *          instances.
-   * *
+   *
    * @return All instances.
    */
   fun getOwnedProcessInstances(transaction: TRXXX, user: Principal): Iterable<ProcessInstance> {
@@ -405,7 +405,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
    * @param user The current user in relation to whom we need to find the
    * *          instances.
-   * *
+   *
    * @return All instances.
    */
   fun getVisibleProcessInstances(transaction: TRXXX, user: Principal): Iterable<ProcessInstance> {
@@ -507,15 +507,15 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * Convenience method to start a process based upon a process model handle.
 
    * @param handle The process model to start a new instance for.
-   * *
+   *
    * @param name The name of the new instance.
-   * *
+   *
    * @param uuid The UUID for the instances. Helps with synchronization errors not exploding into mass instantiation.
-   * *
+   *
    * @param payload The payload representing the parameters for the process.
-   * *
+   *
    * @return A Handle to the [ProcessInstance].
-   * *
+   *
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)
@@ -537,13 +537,13 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
 
    * @param transaction
-   * *
+   *
    * @param handle The handle of the task.
-   * *
+   *
    * @return The handle
-   * *
+   *
    * @throws SQLException
-   * *
+   *
    * @todo change the parameter to a handle object.
    */
   @Throws(SQLException::class)
@@ -604,11 +604,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * Update the state of the given task
 
    * @param handle Handle to the process instance.
-   * *
+   *
    * @param newState The new state
-   * *
+   *
    * @return
-   * *
+   *
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)
@@ -676,7 +676,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
 
    * @param handle The handle to finish.
-   * *
+   *
    * @param resultSource The source that is parsed into DOM nodes and then passed on
    * *          to [.finishTask]
    */
@@ -704,9 +704,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * Handle the fact that this task has been cancelled.
    *
    * @param transaction
-   * *
+   *
    * @param handle
-   * *
+   *
    * @throws SQLException
    */
   @Throws(SQLException::class, FileNotFoundException::class)

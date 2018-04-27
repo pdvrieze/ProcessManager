@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -25,8 +25,6 @@ import nl.adaptivity.xml.XmlWriter;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.UUID;
 
 
 /**

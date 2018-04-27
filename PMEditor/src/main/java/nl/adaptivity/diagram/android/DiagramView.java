@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -145,8 +145,8 @@ public class DiagramView extends View implements OnZoomListener {
             Point attractor = mAdapter.closestAttractor(touchedElement, toDiagramX(e2.getX()), toDiagramY(e2.getY()));
 
             if ((attractor != null) &&
-                (attractor.distanceTo(Point.of(toDiagramX(e2.getX()), toDiagramY(e2.getY()))) < mGridSize)) {
-              mAdapter.setPos(touchedElement, attractor.x, attractor.y);
+                (attractor.distanceTo(Point.Companion.of(toDiagramX(e2.getX()), toDiagramY(e2.getY()))) < mGridSize)) {
+              mAdapter.setPos(touchedElement, attractor.getX(), attractor.getY());
             } else if (mGridSize>0) {
               final double dX   = (e2.getX() - e1.getX()) / mScale;
               final float  newX = Math.round((mOrigX + dX) / mGridSize) * mGridSize;
