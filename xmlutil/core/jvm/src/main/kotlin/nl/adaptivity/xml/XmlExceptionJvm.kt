@@ -14,26 +14,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml
+package nl.adaptivity.xml
 
-import nl.adaptivity.xml.IterableNamespaceContext
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
-
+actual typealias IOException = java.io.IOException
 
 /**
- * A class representing an xml fragment compactly.
- * Created by pdvrieze on 06/11/15.2
+ * Simple exception for xml related things.
+ * Created by pdvrieze on 15/11/15.
  */
-interface CompactFragment : XmlSerializable {
+open class XmlException2 : IOException {
 
-    val isEmpty: Boolean
-        get() = content.isEmpty()
+    constructor() {}
 
-    val namespaces: IterableNamespaceContext
-    val content: CharArray
+    constructor(message: String) : super(message)
 
-    val contentString: String
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
-    fun getXmlReader(): XmlReader// = XMLFragmentStreamReader.from(this)
+    constructor(cause: Throwable) : super(cause)
+
+    constructor(message: String, reader: XmlReader, cause: Throwable) : super(
+        "${reader.locationInfo ?: "Unknown position"} - $message", cause)
 }

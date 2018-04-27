@@ -27,7 +27,6 @@ description = 'A library with generic support classes'
 dependencies {
 //    api project(':JavaCommonApi:jvm')
     compile project(':multiplatform:js')
-    compile project(":kotlinsql")
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     compile project(":JavaCommonApi:js")
     expectedBy project(":java-common:common")

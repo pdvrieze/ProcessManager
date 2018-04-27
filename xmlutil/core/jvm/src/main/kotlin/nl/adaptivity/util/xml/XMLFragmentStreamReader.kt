@@ -16,24 +16,24 @@
 
 package nl.adaptivity.util.xml
 
-import nl.adaptivity.xml.IterableNamespaceContext
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xml.*
 
 
 /**
- * A class representing an xml fragment compactly.
- * Created by pdvrieze on 06/11/15.2
+ * This streamreader allows for reading document fragments. It does so by wrapping the reader into a pair of wrapper elements, and then ignoring those on reading.
+
+ * Created by pdvrieze on 04/11/15.
  */
-interface CompactFragment : XmlSerializable {
+/*
+XXX EXPECT
+expect class XMLFragmentStreamReader : XmlDelegatingReader {
 
-    val isEmpty: Boolean
-        get() = content.isEmpty()
+    companion object {
+        fun from(fragment: CompactFragment): XMLFragmentStreamReader
+    }
 
-    val namespaces: IterableNamespaceContext
-    val content: CharArray
 
-    val contentString: String
-
-    fun getXmlReader(): XmlReader// = XMLFragmentStreamReader.from(this)
 }
+*/
+
+fun CompactFragment.getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)

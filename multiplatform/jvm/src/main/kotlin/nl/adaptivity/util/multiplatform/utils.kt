@@ -14,26 +14,14 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml
+package nl.adaptivity.util.multiplatform
 
-import nl.adaptivity.xml.IterableNamespaceContext
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
+import java.lang.AutoCloseable
 
-
-/**
- * A class representing an xml fragment compactly.
- * Created by pdvrieze on 06/11/15.2
- */
-interface CompactFragment : XmlSerializable {
-
-    val isEmpty: Boolean
-        get() = content.isEmpty()
-
-    val namespaces: IterableNamespaceContext
-    val content: CharArray
-
-    val contentString: String
-
-    fun getXmlReader(): XmlReader// = XMLFragmentStreamReader.from(this)
+actual fun assert(value: Boolean, lazyMessage: () -> String) {
+    kotlin.assert(value, lazyMessage)
 }
+
+actual fun assert(value: Boolean) = kotlin.assert(value)
+
+actual typealias AutoCloseable = AutoCloseable
