@@ -35,7 +35,7 @@ actual object XmlStreaming {
         ServiceLoader.load(service, service.classLoader)
     }
 
-    private var _factory: XmlStreamingFactory? = null
+    private var _factory: XmlStreamingFactory? = AndroidStreamingFactory()
 
     private val factory: XmlStreamingFactory
         get() {
