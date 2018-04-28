@@ -17,23 +17,20 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Named
-import nl.adaptivity.multiplatform.assert
-import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.xml.*
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.EventType
 import nl.adaptivity.xml.QName
 
 
 /** Class to represent data attached to process instances.  */
-expect class ProcessData(name: String?, value: CompactFragment) : Named, ExtXmlDeserializable, XmlSerializable {
+expect class ProcessData(name: String?, value: ICompactFragment) : Named, ExtXmlDeserializable, XmlSerializable {
 
-    var content: CompactFragment
+    var content: ICompactFragment
         private set
 
     val contentStream: XmlReader
 
-    fun copy(name: String? = this.name, value: CompactFragment = content): ProcessData
+    fun copy(name: String? = this.name, value: ICompactFragment = content): ProcessData
 
     companion object {
 

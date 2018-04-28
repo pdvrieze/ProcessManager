@@ -17,7 +17,7 @@
 package nl.adaptivity.util
 
 import net.devrieze.util.StringUtil
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.IOException
 import org.w3c.dom.*
@@ -255,9 +255,9 @@ object DomUtil {
     }
 
     @Throws(XmlException::class)
-    fun nodeListToFragment(nodeList: NodeList): CompactFragment {
+    fun nodeListToFragment(nodeList: NodeList): ICompactFragment {
         when (nodeList.length) {
-            0    -> return CompactFragment("")
+            0    -> return ICompactFragment("")
             1    -> {
                 val node = nodeList.item(0)
                 return nodeToFragment(node)
@@ -267,11 +267,11 @@ object DomUtil {
     }
 
     @Throws(XmlException::class)
-    fun nodeToFragment(node: Node?): CompactFragment {
+    fun nodeToFragment(node: Node?): ICompactFragment {
         if (node == null) {
-            return CompactFragment("")
+            return ICompactFragment("")
         } else if (node is Text) {
-            return CompactFragment(node.data)
+            return ICompactFragment(node.data)
         }
         return XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
     }

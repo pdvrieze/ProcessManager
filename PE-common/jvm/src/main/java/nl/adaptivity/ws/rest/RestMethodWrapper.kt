@@ -28,7 +28,7 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType
 import nl.adaptivity.util.HttpMessage
 import nl.adaptivity.util.KotlinEnumHelper
 import nl.adaptivity.util.activation.Sources
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.DomUtil
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
@@ -493,7 +493,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
     private fun getAttachment(pClass: Class<*>, pName: String?, pMessage: HttpMessage)
       = coerceSource(pClass, pMessage.getAttachment(pName))
 
-    private fun coerceBody(pTargetType: Class<*>, name: String, pBody: CompactFragment): Any? {
+    private fun coerceBody(pTargetType: Class<*>, name: String, pBody: ICompactFragment): Any? {
       val dataSource = object : DataSource {
         @Throws(IOException::class)
         override fun getInputStream()
@@ -536,7 +536,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       = pMessage.getPosts(pName)
 
     @Throws(XmlException::class)
-    private fun <T> getParamXPath(paramType: Class<T>, xpath: String, body: CompactFragment): T? {
+    private fun <T> getParamXPath(paramType: Class<T>, xpath: String, body: ICompactFragment): T? {
       val isCharSeq = CharSequence::class.java.isAssignableFrom(paramType)
       var match: Node?
       val fragment = DomUtil.childrenToDocumentFragment(body.getXmlReader())

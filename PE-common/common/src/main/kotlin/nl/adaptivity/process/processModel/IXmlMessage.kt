@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.QName
 
 
@@ -65,7 +65,7 @@ interface IXmlMessage {
      */
     var operation: String
 
-    val messageBody: CompactFragment
+    val messageBody: ICompactFragment
 
     /**
      * Gets the value of the url property.

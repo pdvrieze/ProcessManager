@@ -20,7 +20,7 @@ import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.multiplatform.assert
+import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData

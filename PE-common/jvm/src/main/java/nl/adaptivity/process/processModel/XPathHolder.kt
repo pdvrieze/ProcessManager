@@ -114,7 +114,9 @@ actual abstract class XPathHolder : XMLContainer {
     val origContext = reader.namespaceContext
     super.deserializeChildren(reader)
     val namespaces = TreeMap<String, String>()
-    val gatheringNamespaceContext = CombiningNamespaceContext(SimpleNamespaceContext.from(originalNSContext), GatheringNamespaceContext(reader.namespaceContext, namespaces))
+    val gatheringNamespaceContext = CombiningNamespaceContext(SimpleNamespaceContext.from(originalNSContext),
+                                                              GatheringNamespaceContext(
+                                                                  reader.namespaceContext, namespaces))
     visitNamespaces(gatheringNamespaceContext)
     if (namespaces.size > 0) {
       addNamespaceContext(SimpleNamespaceContext(namespaces))
@@ -129,8 +131,9 @@ actual abstract class XPathHolder : XMLContainer {
       // Have a namespace that gathers those namespaces that are not known already in the outer context
       val referenceContext = out.namespaceContext
       // TODO streamline this, the right context should not require the filtering on the output context later.
-      val nsc = GatheringNamespaceContext(CombiningNamespaceContext(referenceContext, SimpleNamespaceContext
-          .from(originalNSContext)), namepaces)
+      val nsc = GatheringNamespaceContext(
+          CombiningNamespaceContext(referenceContext, SimpleNamespaceContext
+              .from(originalNSContext)), namepaces)
       visitXpathUsedPrefixes(pathString, nsc)
       for ((key, value) in namepaces) {
         if (value != referenceContext.getNamespaceURI(key)) {

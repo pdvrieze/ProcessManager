@@ -16,9 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.multiplatform.assert
 import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.util.xml.NamespaceAddingStreamReader
 import nl.adaptivity.xml.*
@@ -28,7 +28,7 @@ import nl.adaptivity.xml.*
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, CompactFragment {
+abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFragment {
 
     override var content: CharArray = CharArray(0)
         protected set
@@ -53,7 +53,7 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, CompactFrag
         setContent(originalNSContext, content)
     }
 
-    constructor(fragment: CompactFragment) {
+    constructor(fragment: ICompactFragment) {
         setContent(fragment)
     }
 
@@ -78,7 +78,7 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, CompactFrag
         this.content = content
     }
 
-    fun setContent(content: CompactFragment) {
+    fun setContent(content: ICompactFragment) {
         setContent(content.namespaces, content.content)
     }
 
@@ -189,5 +189,7 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, CompactFrag
         }
     }
 
-
+    override fun getXmlReader(): XmlReader {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }

@@ -25,7 +25,7 @@
 package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.xml.JavaCompactFragmentKt;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.Attribute;
@@ -109,7 +109,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
     this(new Body<>(content));
   }
 
-  public static Envelope<CompactFragment> deserialize(final XmlReader in) throws XmlException {
+  public static Envelope<ICompactFragment> deserialize(final XmlReader in) throws XmlException {
     return deserialize(in, JavaCompactFragmentKt.getFACTORY());
   }
 

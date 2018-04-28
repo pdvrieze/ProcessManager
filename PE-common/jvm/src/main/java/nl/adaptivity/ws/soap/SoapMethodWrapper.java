@@ -24,7 +24,7 @@ import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.ws.WsMethodWrapper;
 import nl.adaptivity.xml.EventType;
@@ -103,9 +103,9 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     /* For now just ignore headers, i.e. none understood. Principal is recorded but not handled */
   }
 
-  private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<CompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
-    final Body<? extends CompactFragment> body   = envelope.getBody();
-    XmlReader                             reader = XMLFragmentStreamReaderKt.getXmlReader(body.getBodyContent());
+  private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<ICompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
+    final Body<? extends ICompactFragment> body   = envelope.getBody();
+    XmlReader                              reader = XMLFragmentStreamReaderKt.getXmlReader(body.getBodyContent());
     reader.nextTag();
     assertRootNode(reader);
 

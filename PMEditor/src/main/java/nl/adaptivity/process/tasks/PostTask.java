@@ -20,7 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
 
@@ -45,20 +45,21 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     }
   }
 
-  public static final CompactFragment DEFAULT_REPLIES_PARAM = XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi",
-                                                                                                                                          Constants.INSTANCE
+  public static final ICompactFragment
+                             DEFAULT_REPLIES_PARAM  = XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi",
+                                                                                                                                  Constants.INSTANCE
                                                                                                                                               .getMODIFY_NS_STR()), "<jbi:element value=\"endpoint\"/>"
           .toCharArray());
   public static final String REPLIESPARAM_LOCALNAME = "repliesParam";
-  public static final QName REPLIESPARAM_NAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), REPLIESPARAM_LOCALNAME,
+  public static final QName  REPLIESPARAM_NAME      = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), REPLIESPARAM_LOCALNAME,
                                                           Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
-  public static final String TASKPARAM_LOCALNAME = "taskParam";
-  public static final QName TASKPARAM_NAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TASKPARAM_LOCALNAME,
+  public static final String TASKPARAM_LOCALNAME    = "taskParam";
+  public static final QName  TASKPARAM_NAME         = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TASKPARAM_LOCALNAME,
                                                        Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
 
   public static final Factory FACTORY = new Factory();
 
-  private CompactFragment mReplies;
+  private ICompactFragment mReplies;
   private EditableUserTask mTask;
 
   public PostTask(final EditableUserTask task) {
@@ -70,7 +71,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @NonNull
-  public CompactFragment getReplies() {
+  public ICompactFragment getReplies() {
     if (mReplies==null) {
       return DEFAULT_REPLIES_PARAM;
     }
@@ -81,7 +82,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
    * Set the replies parameter. If not set, a default parameter will be passed.
    * @param replies The content of the replies parameter.
    */
-  public void setReplies(@Nullable final CompactFragment replies) {
+  public void setReplies(@Nullable final ICompactFragment replies) {
     mReplies = replies;
   }
 

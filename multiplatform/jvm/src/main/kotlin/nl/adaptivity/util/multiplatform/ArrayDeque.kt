@@ -14,21 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml
+package nl.adaptivity.util.multiplatform
 
+actual typealias Queue<E> = java.util.Queue<E>
 
-/**
- * This streamreader allows for reading document fragments. It does so by wrapping the reader into a pair of wrapper
- * elements, and then ignoring those on reading.
- * Created by pdvrieze on 04/11/15.
- */
-expect class XMLFragmentStreamReader : XmlDelegatingReader {
+actual typealias Deque<E> = java.util.Deque<E>
 
-    companion object {
-        fun from(fragment: ICompactFragment): XMLFragmentStreamReader
-    }
-
-
-}
-
-//fun CompactFragment.getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)
+actual typealias ArrayDeque<E> = java.util.ArrayDeque<E>

@@ -28,7 +28,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.Handles
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
 
@@ -50,7 +50,7 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
               handle: Handle<XmlProcessNodeInstance>,
               state: NodeInstanceState,
               results: Iterable<ProcessData>,
-              body: CompactFragment?) {
+              body: ICompactFragment?) {
     this.nodeId = nodeId
     this._predecessors.addAll(predecessors)
     this.processInstance = processInstance
@@ -68,7 +68,7 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
   val predecessors: List<Handle<XmlProcessNodeInstance>>
     get() = _predecessors
 
-  var body: CompactFragment? = null
+  var body: ICompactFragment? = null
 
   var handle = -1L
 

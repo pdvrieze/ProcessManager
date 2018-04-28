@@ -28,7 +28,7 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.createUri
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.xml.*
 
@@ -87,8 +87,8 @@ class XmlMessage : BaseMessage, IXmlMessage, ExtXmlDeserializable {
                 url: String,
                 method: String,
                 contentType: String,
-                messageBody: CompactFragment) : super(service, endpoint, operation, url, method, contentType,
-                                                      messageBody) {
+                messageBody: ICompactFragment) : super(service, endpoint, operation, url, method, contentType,
+                                                       messageBody) {
     }
 
 

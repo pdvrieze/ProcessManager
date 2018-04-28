@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.multiplatform.assert
+import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier

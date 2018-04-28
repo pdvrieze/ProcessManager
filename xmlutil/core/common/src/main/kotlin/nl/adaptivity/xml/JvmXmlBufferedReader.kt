@@ -16,7 +16,9 @@
 
 package nl.adaptivity.xml
 
-import java.util.*
+import nl.adaptivity.util.multiplatform.SimpleQueue
+import nl.adaptivity.util.multiplatform.addAll
+import nl.adaptivity.util.multiplatform.isNotEmpty
 
 typealias XmlBufferedReader = JvmXmlBufferedReader
 
@@ -28,7 +30,7 @@ open class JvmXmlBufferedReader constructor(delegate: XmlReader) : XmlBufferedRe
     override val namespaceContext: NamespaceContext
         get() = super.namespaceContext
 
-    private val peekBuffer = ArrayDeque<XmlEvent>()
+    private val peekBuffer = SimpleQueue<XmlEvent>()
 
     override val hasPeekItems get() = peekBuffer.isNotEmpty()
 

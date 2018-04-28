@@ -24,7 +24,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.xml.DomUtil;
 import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
@@ -293,13 +293,13 @@ public class SoapHelper {
   }
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Source source) throws XmlException {
-    XmlReader in = XmlStreaming.newReader(source);
-    Envelope<CompactFragment> env = Envelope.deserialize(in);
+    XmlReader                  in  = XmlStreaming.newReader(source);
+    Envelope<ICompactFragment> env = Envelope.deserialize(in);
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 
-  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Annotation[] useSiteAnnotations, final Envelope<CompactFragment> env) {
-    final CompactFragment bodyContent = env.getBody().getBodyContent();
+  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Annotation[] useSiteAnnotations, final Envelope<ICompactFragment> env) {
+    final ICompactFragment bodyContent = env.getBody().getBodyContent();
     try {
       XmlReader reader = XMLFragmentStreamReaderKt.getXmlReader(bodyContent);
       while (reader.hasNext()) {
@@ -326,7 +326,7 @@ public class SoapHelper {
   }
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Writable pContent) throws XmlException {
-    final Envelope<CompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
+    final Envelope<ICompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 

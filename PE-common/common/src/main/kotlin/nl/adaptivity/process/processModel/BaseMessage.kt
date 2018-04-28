@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlWriter
 
@@ -51,7 +52,7 @@ abstract class BaseMessage : XMLContainer, IXmlMessage {
             service = namespace?.let { QName(it, service!!.getLocalPart()) }
         }
 
-    override val messageBody: CompactFragment
+    override val messageBody: ICompactFragment
         get() = CompactFragment(originalNSContext, content)
 
     override val contentType: String
@@ -65,7 +66,7 @@ abstract class BaseMessage : XMLContainer, IXmlMessage {
                 url: String,
                 method: String,
                 contentType: String,
-                messageBody: CompactFragment) : super(messageBody) {
+                messageBody: ICompactFragment) : super(messageBody) {
         this.service = service
         this.endpoint = endpoint
         this.operation = operation
@@ -147,7 +148,7 @@ abstract class BaseMessage : XMLContainer, IXmlMessage {
     }
 
     override fun toString(): String {
-        return toString(this)
+        return XmlStreaming.toString(this)
     }
 
     override fun equals(other: Any?): Boolean {

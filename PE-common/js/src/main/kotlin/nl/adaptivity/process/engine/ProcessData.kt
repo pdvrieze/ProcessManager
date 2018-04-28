@@ -17,17 +17,17 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Named
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.xml.*
 
 
 /** Class to represent data attached to process instances.  */
-actual class ProcessData actual constructor(name: String?, value: CompactFragment) : Named, ExtXmlDeserializable, XmlSerializable {
+actual class ProcessData actual constructor(name: String?, value: ICompactFragment) : Named, ExtXmlDeserializable, XmlSerializable {
     override var name = name
         private set
 
-    actual var content: CompactFragment
+    actual var content: ICompactFragment
         private set
 
     override val elementName: QName
@@ -42,7 +42,7 @@ actual class ProcessData actual constructor(name: String?, value: CompactFragmen
 
     override fun copy(name: String?): ProcessData = copy(name, content)
 
-    actual fun copy(name:String?, value: CompactFragment) = ProcessData(name, value)
+    actual fun copy(name:String?, value: ICompactFragment) = ProcessData(name, value)
 
     override fun deserializeChildren(reader: XmlReader) {
         val expected = EventType.END_ELEMENT
@@ -97,11 +97,11 @@ actual class ProcessData actual constructor(name: String?, value: CompactFragmen
     actual companion object {
 
         actual fun missingData(name: String): ProcessData {
-            return ProcessData(name, CompactFragment(""))
+            return ProcessData(name, ICompactFragment(""))
         }
 
         actual fun deserialize(reader: XmlReader): ProcessData {
-            return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
+            return ProcessData(null, ICompactFragment("")).deserializeHelper(reader)
         }
     }
 }

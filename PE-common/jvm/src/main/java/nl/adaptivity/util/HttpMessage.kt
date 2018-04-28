@@ -21,7 +21,7 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SimplePrincipal
 import net.devrieze.util.webServer.HttpRequest
 import nl.adaptivity.util.HttpMessage.*
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.QName
@@ -66,7 +66,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         get() = PostCollection(_post)
 
     @get:XmlName("body")
-    var body: CompactFragment? = null
+    var body: ICompactFragment? = null
 
     private val _byteContent: MutableList<ByteContentDataSource> by lazy { ArrayList<ByteContentDataSource>() }
 
@@ -472,7 +472,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
                         buffer.get(chars)
                     }
 
-                    body = CompactFragment(emptyList(), chars)
+                    body = ICompactFragment(emptyList(), chars)
                 }
 
             }

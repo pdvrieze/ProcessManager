@@ -21,7 +21,7 @@ import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import java.util.*
 
@@ -29,12 +29,12 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
 
   override fun getData(valueName: String): ProcessData? {
     when (valueName) {
-      "handle"         -> return ProcessData(valueName, CompactFragment(
+      "handle"         -> return ProcessData(valueName, ICompactFragment(
           processNodeInstance.getHandleValue().toString()))
-      "instancehandle" -> return ProcessData(valueName, CompactFragment(
+      "instancehandle" -> return ProcessData(valueName, ICompactFragment(
           processNodeInstance.hProcessInstance.handleValue.toString()))
       "endpoint"       -> return ProcessData(valueName, createEndpoint())
-      "owner"          -> return ProcessData(valueName, CompactFragment(
+      "owner"          -> return ProcessData(valueName, ICompactFragment(
           processNodeInstance.owner.name.xmlEncode()))
     }
 
@@ -59,7 +59,7 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
     return null
   }
 
-  private fun createEndpoint(): CompactFragment
+  private fun createEndpoint(): ICompactFragment
   {
     val namespaces = SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS_STR))
     val content = StringBuilder()
@@ -70,7 +70,7 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
     content.append(" serviceLocalName=\"").append(localEndpoint.serviceName.localPart).append('"')
     content.append(" serviceNS=\"").append(localEndpoint.serviceName.namespaceURI).append('"')
     content.append(" />")
-    return CompactFragment(namespaces, content.toString().toCharArray())
+    return ICompactFragment(namespaces, content.toString().toCharArray())
   }
 
   override fun resolveDefaultValue(): List<XmlEvent> {
@@ -79,7 +79,7 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
 
   companion object {
 
-    private val EMPTY_FRAGMENT = CompactFragment(emptyList<Namespace>(), CharArray(0))
+    private val EMPTY_FRAGMENT = ICompactFragment(emptyList<Namespace>(), CharArray(0))
   }
 
 }

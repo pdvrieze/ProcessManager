@@ -26,7 +26,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import org.w3c.dom.Node
 import java.io.CharArrayWriter
@@ -184,7 +184,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   fun instantiateXmlPlaceholders(engineData: ProcessEngineDataAccess,
                                  source: Source,
                                  removeWhitespace: Boolean,
-                                 localEndpoint: EndpointDescriptor): CompactFragment
+                                 localEndpoint: EndpointDescriptor): ICompactFragment
   {
     val xmlReader = XmlStreaming.newReader(source)
     return instantiateXmlPlaceholders(engineData, xmlReader, removeWhitespace, localEndpoint)
@@ -227,7 +227,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
     val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
 
-    val body: CompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
+    val body: ICompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
       try {
         val xmlReader = message.messageBody.getXmlReader()
         instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)
@@ -249,7 +249,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
     override var state: NodeInstanceState
     val results: MutableList<ProcessData>
-    fun toXmlInstance(body: CompactFragment?): XmlProcessNodeInstance
+    fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance
     override val entryNo: Int
     var failureCause: Throwable?
 
@@ -336,7 +336,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
   abstract class AbstractBuilder<N: ExecutableProcessNode, T: ProcessNodeInstance<*>> : Builder<N, T> {
 
-    override fun toXmlInstance(body: CompactFragment?): XmlProcessNodeInstance {
+    override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
       return XmlProcessNodeInstance(nodeId= node.id,
                                     predecessors = predecessors.map { Handles.handle<XmlProcessNodeInstance>(it.handleValue) },
                                     processInstance = hProcessInstance.handleValue,
