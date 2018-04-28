@@ -33,8 +33,8 @@ test {
 dependencies {
     api project(':JavaCommonApi:jvm')
     api project(':multiplatform:jvm')
-//    compile project(":kotlinsql")
-    compile "org.jetbrains:annotations:13.0"
+//    implementation project(":kotlinsql")
+    implementation "org.jetbrains:annotations:13.0"
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     expectedBy project(":java-common:common")
     testImplementation 'org.testng:testng:6.9.13.8'
