@@ -81,13 +81,13 @@ dependencies {
     implementation project(':java-common:jvm')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    testCompile 'org.testng:testng:6.9.13.8'
-    testCompile 'junit:junit:4.12' // needed for xmlunit
-    testCompile 'xmlunit:xmlunit:1.6'
-    testCompile 'org.mockito:mockito-core:1.9.5'
-    testCompile project(':DarwinJavaApi')
-    testCompile project(':TestSupport')
-    testRuntime project(':xmlutil:jvm')
+    testImplementation 'org.testng:testng:6.9.13.8'
+    testImplementation 'junit:junit:4.12' // needed for xmlunit
+    testImplementation 'xmlunit:xmlunit:1.6'
+    testImplementation 'org.mockito:mockito-core:1.9.5'
+    testImplementation project(':DarwinJavaApi')
+    testImplementation project(':TestSupport')
+//    testRuntime project(':xmlutil:core:jvm')
     compileOnly project(':DarwinJavaApi')
 //    generateXml project(':DarwinJavaApi')
 //    generateXml "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"

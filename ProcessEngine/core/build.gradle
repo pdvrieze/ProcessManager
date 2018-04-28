@@ -76,7 +76,7 @@ dependencies {
     testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     testCompile project(':DarwinJavaApi')
     testCompile project(':TestSupport')
-    testRuntime project(':xmlutil:jvm')
+//    testRuntime project(':xmlutil:core:jvm')
     testCompile "org.junit.platform:junit-platform-engine:${junit5_version}"
     testRuntime "org.jetbrains.spek:spek-junit-platform-engine:${spekVersion}"
 }

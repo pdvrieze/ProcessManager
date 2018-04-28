@@ -48,7 +48,7 @@ dependencies {
     testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
     compile project(':ProcessEngine:core')
-    runtime project(':xmlutil:jvm')
+//    runtime project(':xmlutil:core:jvm')
 
     compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
     providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"

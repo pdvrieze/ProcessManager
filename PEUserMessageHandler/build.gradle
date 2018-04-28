@@ -160,7 +160,7 @@ dependencies {
     apiCompile project(':PE-common:jvm')
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    runtime project(':xmlutil:jvm')
+    runtime project(':xmlutil:core:jvm')
 
     compile project(':DarwinClients')
     compile project(':darwin-sql')
