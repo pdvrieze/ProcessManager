@@ -14,7 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-
 package nl.adaptivity.xml;
 
 import org.xmlpull.v1.XmlSerializer;
