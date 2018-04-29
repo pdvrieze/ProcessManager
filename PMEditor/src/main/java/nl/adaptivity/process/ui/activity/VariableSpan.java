@@ -36,6 +36,7 @@ import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
 import android.support.annotation.NonNull;
 

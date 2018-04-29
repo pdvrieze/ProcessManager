@@ -139,7 +139,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
   private static final long serialVersionUID = -6277449163953383974L;
 
-  public static final String SERVICE_NS = Constants.INSTANCE.getPROCESS_ENGINE_NS();
+  public static final String SERVICE_NS = Constants.PROCESS_ENGINE_NS;
   public static final String SERVICE_LOCALNAME = "ProcessEngine";
   public static final QName SERVICE_QNAME = new QName(SERVICE_NS, SERVICE_LOCALNAME);
 
@@ -243,7 +243,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         if (event.isStartElement()) {
           final StartElement se = event.asStartElement();
           final QName eName = se.getName();
-          if (Constants.INSTANCE.getMODIFY_NS_STR().equals(eName.getNamespaceURI())) {
+          if (Constants.MODIFY_NS_STR.equals(eName.getNamespaceURI())) {
             @SuppressWarnings("unchecked")
             final Iterator<Attribute> attributes = se.getAttributes();
             if (eName.getLocalPart().equals("attribute")) {
@@ -275,7 +275,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
           if (event instanceof Namespace) {
 
             final Namespace ns = (Namespace) event;
-            if (!ns.getNamespaceURI().equals(Constants.INSTANCE.getMODIFY_NS_STR())) {
+            if (!ns.getNamespaceURI().equals(Constants.MODIFY_NS_STR)) {
               xew.add(event);
             }
           } else {
@@ -708,7 +708,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
    * @return A list of process instances.
    */
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
-  @XmlElementWrapper(name = "processInstances", namespace = Constants.INSTANCE.getPROCESS_ENGINE_NS())
+  @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = RestParamType.PRINCIPAL) final Principal owner) {
     try (TRXXX transaction = mProcessEngine.startTransaction()){
       final List<ProcessInstanceRef> list = new ArrayList<>();
@@ -902,13 +902,13 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
             if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
               final Element header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
               if (header != null) {
-                rootNode = DomUtil.getFirstChild(header, Constants.INSTANCE.getPROCESS_ENGINE_NS(),
+                rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS,
                                                  ActivityResponse.Companion.getELEMENTLOCALNAME());
               }
             }
             if (rootNode != null) {
               // If we receive an ActivityResponse, treat that specially.
-              if (Constants.INSTANCE.getPROCESS_ENGINE_NS().equals(rootNode.getNamespaceURI()) && ActivityResponse.Companion
+              if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.Companion
                                                                                                       .getELEMENTLOCALNAME()
                                                                                                       .equals(rootNode.getLocalName())) {
                 final String taskStateAttr = rootNode.getAttribute(ActivityResponse.Companion.getATTRTASKSTATE());
@@ -962,7 +962,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
   @Override
   public QName getServiceName() {
-    return new QName(Constants.INSTANCE.getPROCESS_ENGINE_NS(), SERVICE_LOCALNAME);
+    return new QName(Constants.PROCESS_ENGINE_NS, SERVICE_LOCALNAME);
   }
 
   @Override
@@ -977,7 +977,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
   @Override
   public boolean isSameService(final EndpointDescriptor other) {
-    return Constants.INSTANCE.getPROCESS_ENGINE_NS().equals(other.getServiceName().getNamespaceURI()) &&
+    return Constants.PROCESS_ENGINE_NS.equals(other.getServiceName().getNamespaceURI()) &&
            SERVICE_LOCALNAME.equals(other.getServiceName().getLocalPart()) &&
            getEndpointName().equals(other.getEndpointName());
   }

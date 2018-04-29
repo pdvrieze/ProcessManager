@@ -31,7 +31,7 @@ import java.util.Collection;
 
 public class ServicesEndpoint {
 
-  @XmlElementWrapper(name = "actionsGroups", namespace = Constants.INSTANCE.getDARWIN_NS())
+  @XmlElementWrapper(name = "actionsGroups", namespace = Constants.DARWIN_NS)
   @RestMethod(method = HttpMethod.GET, path = "/actions")
   public Collection<ActionDescriptorGroup> getAvailableActions(@RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
     final ArrayList<ActionDescriptorGroup> result = new ArrayList<>();

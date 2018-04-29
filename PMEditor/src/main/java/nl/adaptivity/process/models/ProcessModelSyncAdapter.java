@@ -36,6 +36,7 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
 import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
 import org.xmlpull.v1.XmlPullParserException;
 

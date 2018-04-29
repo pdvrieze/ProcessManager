@@ -18,8 +18,9 @@ package nl.adaptivity.process.diagram.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.Log;
-import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
+import nl.adaptivity.process.ProcessConsts.Endpoints.USER_TASK_SERVICE_DESCRIPTOR;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -36,7 +37,6 @@ import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlSerializableExt;
 import nl.adaptivity.xml.XmlStreaming;
-import android.support.annotation.NonNull;
 import org.w3.soapEnvelope.Envelope;
 
 import java.io.StringReader;
@@ -50,8 +50,7 @@ import java.util.Set;
  * Activity implementation that is parcelable (can be passed along to other activities.
  * Created by pdvrieze on 15/01/16.
  */
-public class ParcelableActivity extends DrawableActivity
-  implements Parcelable {
+public class ParcelableActivity extends DrawableActivity implements Parcelable {
 
   private static final String TAG = "ParcelableActivity";
 
@@ -92,8 +91,8 @@ public class ParcelableActivity extends DrawableActivity
 
   public EditableUserTask getUserTask() {
     final XmlMessage message = XmlMessage.Companion.get(getMessage());
-    if (message!=null && UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
-            UserTaskServiceDescriptor.ENDPOINT.equals(message.getEndpoint())) {
+    if (message!=null && USER_TASK_SERVICE_DESCRIPTOR.SERVICENAME.equals(message.getService()) &&
+        USER_TASK_SERVICE_DESCRIPTOR.ENDPOINT.equals(message.getEndpoint())) {
       try {
         final Envelope<PostTask> envelope = Envelope.deserialize(message.getBodyStreamReader(), PostTask.FACTORY);
         return envelope.getBody().getBodyContent().getTask();

@@ -28,11 +28,12 @@ import nl.adaptivity.diagram.DrawingStrategy
 import nl.adaptivity.diagram.Pen
 import nl.adaptivity.diagram.ThemeItem
 
-enum class ProcessThemeItems(private var mFill: Boolean = false,
-                             private var mParent: ProcessThemeItems? = null,
-                             private var mStroke: Double = 0.0,
-                             private var mFontSize: Double = Double.NaN,
-                             vararg private var mSpecifiers: StateSpecifier) : ThemeItem {
+enum class ProcessThemeItems(
+    private var fill: Boolean = false,
+    private var parent: ProcessThemeItems? = null,
+    private var stroke: Double = 0.0,
+    private var fontSize: Double = Double.NaN,
+    vararg private var specifiers: StateSpecifier) : ThemeItem {
 
   LINE(RootDrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
        stateStroke(STATE_SELECTED, 0, 0, 255, 255, 2.0),
@@ -67,23 +68,21 @@ enum class ProcessThemeItems(private var mFill: Boolean = false,
   DIAGRAMLABEL(RootDrawableProcessModel.STROKEWIDTH, RootDrawableProcessModel.DIAGRAMLABEL_SIZE,
                state(STATE_DEFAULT, 0, 0, 0));
 
-  constructor(stroke: Double, parent: ProcessThemeItems) : this(mParent = parent, mStroke=stroke)
+  constructor(stroke: Double, parent: ProcessThemeItems) : this(false, parent = parent, stroke = stroke)
 
-  constructor(parent: ProcessThemeItems) : this(mFill = true, mParent = parent)
+  constructor(parent: ProcessThemeItems) : this(fill = true, parent = parent)
 
-  constructor(stroke: Double, vararg specifiers: StateSpecifier) : this(mStroke = stroke, mSpecifiers = *specifiers)
+  constructor(stroke: Double, vararg specifiers: StateSpecifier) : this(fill=false, stroke = stroke, specifiers = *specifiers)
 
   constructor(stroke: Double, fontSize: Double, vararg specifiers: StateSpecifier) :
-    this(mFill=true, mStroke = stroke, mFontSize = fontSize, mSpecifiers =  *specifiers)
+    this(fill = true, stroke = stroke, fontSize = fontSize, specifiers = *specifiers)
 
-  constructor(vararg specifiers: StateSpecifier) : this(mFill = true, mSpecifiers = *specifiers)
+  constructor(vararg specifiers: StateSpecifier) : this(fill = true, specifiers = *specifiers)
 
-  override fun getItemNo(): Int {
-    return ordinal
-  }
+  override val itemNo: Int get() = ordinal
 
   override fun getEffectiveState(state: Int): Int {
-    mParent?.let { return it.getEffectiveState(state) }
+    parent?.let { return it.getEffectiveState(state) }
 
     return effectiveStateHelper(state).ifInvalid(state)
   }
@@ -102,26 +101,26 @@ enum class ProcessThemeItems(private var mFill: Boolean = false,
     val specifier = getSpecifier(state)
     val result = with(specifier) { strategy.newPen().setColor(red, green, blue, alpha) }
 
-    if (!mFill) {
+    if (!fill) {
       val stroke = when {
-        mStroke > 0.0 -> mStroke
-        else -> mParent?.mStroke ?: mStroke
+        stroke > 0.0 -> stroke
+        else         -> parent?.stroke ?: stroke
       }
-      result.strokeWidth = stroke * specifier.strokeMultiplier
+      result.setStrokeWidth(stroke * specifier.strokeMultiplier)
     }
 
-    if (mFontSize.isFinite()) result.fontSize = mFontSize
+    if (fontSize.isFinite()) result.setFontSize(fontSize)
 
     return result
   }
 
 
   private fun getSpecifier(state: Int): StateSpecifier {
-    mParent?.apply { return getSpecifier(state) }
+    parent?.apply { return getSpecifier(state) }
 
-    mSpecifiers.firstOrNull { it.state == state }?.let { return it }
+    specifiers.firstOrNull { it.state == state }?.let { return it }
 
-    return mSpecifiers.reduce { a, b ->
+    return specifiers.reduce { a, b ->
       when {
         b.state hasFlag state && b.state > a.state -> b
         else -> a

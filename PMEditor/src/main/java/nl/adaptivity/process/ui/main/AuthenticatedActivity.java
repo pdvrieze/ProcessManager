@@ -17,12 +17,9 @@
 package nl.adaptivity.process.ui.main;
 
 import android.accounts.Account;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory.AuthenticatedWebClientCallbacks;
-import nl.adaptivity.process.ui.UIConstants;
 
 import java.net.URI;
 

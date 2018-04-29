@@ -131,17 +131,17 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   public static class DeserializerFactory implements XmlDeserializerFactory<TaskItem> {
 
     @Override
-    public TaskItem deserialize(final XmlReader reader) throws XmlException {
+    public TaskItem deserialize(final XmlReader reader) {
       return TaskItem.deserialize(reader);
     }
   }
 
   public static final String ELEMENTLOCALNAME = "item";
-  public static final QName ELEMENTNAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME,
-                                                    Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
+  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME,
+                                                    Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
   public static final String OPTION_ELEMENTLOCALNAME = "option";
-  public static final QName OPTION_ELEMENTNAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), OPTION_ELEMENTLOCALNAME,
-                                                           Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
+  public static final QName OPTION_ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, OPTION_ELEMENTLOCALNAME,
+                                                           Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
 
   private CharSequence mName;
 
@@ -212,16 +212,16 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     return new ObservableArrayList<>();
   }
 
-  public static TaskItem deserialize(final XmlReader in) throws XmlException {
+  public static TaskItem deserialize(final XmlReader in) {
     return parseTaskItem(in);
   }
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) {
     serialize(out, true);
   }
 
-  public void serialize(final XmlWriter out, final boolean serializeOptions) throws XmlException{
+  public void serialize(final XmlWriter out, final boolean serializeOptions){
     XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     if ((! (getName() instanceof XmlSerializable))) {
       XmlWriterUtil.writeAttribute(out, "name", getName());
@@ -249,20 +249,20 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
-  public static GenericItem parseTaskGenericItem(final XmlReader in) throws XmlException {
+  public static GenericItem parseTaskGenericItem(final XmlReader in) {
     return parseTaskItemHelper(in, genericFactory());
   }
 
-  private static <T extends TaskItem> T parseTaskItemHelper(@NonNull final XmlReader in, final Factory<T> factory) throws XmlException {
+  private static <T extends TaskItem> T parseTaskItemHelper(@NonNull final XmlReader in, final Factory<T> factory) {
     XmlReaderUtil.skipPreamble(in);
-    in.require(EventType.START_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), UserTaskBase.TAG_ITEM);
+    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_ITEM);
     CharSequence name = StringUtil.toString(in.getAttributeValue(null, "name"));
     CharSequence label = StringUtil.toString(in.getAttributeValue(null, "label"));
     CharSequence type = StringUtil.toString(in.getAttributeValue(null, "type"));
     CharSequence value = StringUtil.toString(in.getAttributeValue(null, "value"));
     final List<CharSequence> options = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {
-      if (StringUtil.isEqual(Constants.INSTANCE.getMODIFY_NS_STR(), in.getNamespaceUri())) {
+      if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceUri())) {
         if (StringUtil.isEqual("attribute", in.getLocalName())) {
           final AttributeSequence attr = ModifyHelper.parseAttribute(in);
           switch (attr.getParamName().toString()) {
@@ -275,30 +275,30 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
             case "value":
               value = attr; break;
             default:
-              throw  new XmlException("Unexpected attribute in process model");
+                new XmlException("Unexpected attribute in process model").doThrow();
           }
         } else {
           throw new UnsupportedOperationException("Non-attribute replacements are not supported yet by the editor");
         }
       } else {
-        in.require(EventType.START_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), UserTaskBase.TAG_OPTION);
+        in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_OPTION);
         XmlReaderUtil.skipPreamble(in);
         if (in.getEventType()==EventType.START_ELEMENT) {
-          if (StringUtil.isEqual(Constants.INSTANCE.getMODIFY_NS_STR(), in.getNamespaceUri())) {
+          if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceUri())) {
             options.add(ModifyHelper.parseAny(in));
           } else {
             in.require(EventType.TEXT, null, null);
           }
         }
         options.add(XmlReaderUtil.allText(in).toString());
-        in.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), UserTaskBase.TAG_OPTION);
+        in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_OPTION);
       }
     }
-    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), UserTaskBase.TAG_ITEM);
+    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_ITEM);
     return factory.create(name, label, type, value, options);
   }
 
-  public static TaskItem parseTaskItem(final XmlReader in) throws XmlException {
+  public static TaskItem parseTaskItem(final XmlReader in) {
     return TaskItem.parseTaskItemHelper(in, defaultFactory());
   }
 

@@ -88,7 +88,8 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
       } else {
         mItem = XmlStreaming.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
       }
-      mDefines = nl.adaptivity.xml.XmlUtil.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
+
+      mDefines = XmlStreamingAndroidKt.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
     } catch (XmlException e) {
       throw new RuntimeException(e);
     }

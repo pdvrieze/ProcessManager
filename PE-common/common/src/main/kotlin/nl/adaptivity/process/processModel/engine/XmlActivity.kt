@@ -105,7 +105,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     }
   }
 
-  private var mCondition: XmlCondition? = null
+  private var xmlCondition: XmlCondition? = null
 
   override fun builder(): Builder {
     return Builder(this)
@@ -113,7 +113,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
 
   @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {
-    out.writeChild(mCondition)
+    out.writeChild(xmlCondition)
   }
 
   /* (non-Javadoc)
@@ -123,9 +123,9 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
        * @see nl.adaptivity.process.processModel.IActivity#setCondition(java.lang.String)
        */
   override var condition: String?
-    get() = if (mCondition == null) null else mCondition!!.toString()
+    get() = xmlCondition?.toString()
     set(condition) {
-      mCondition = if (condition == null) null else XmlCondition(condition)
+      xmlCondition = condition?.let { XmlCondition(it) }
       notifyChange()
     }
 

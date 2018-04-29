@@ -33,6 +33,7 @@ buildscript {
 //    id "net.devrieze.gradlecodegen" version "0.5.6"
 //}
 
+apply plugin: 'java-library'
 apply plugin: 'kotlin-platform-jvm'
 apply plugin: 'idea'
 apply plugin: 'net.devrieze.gradlecodegen'
@@ -76,9 +77,9 @@ dependencies {
     expectedBy project(':PE-common:common')
 //    generateXml project(':xmlutil:generator')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation project(':xmlutil:core:jvm')
     implementation project(':multiplatform:jvm')
-    implementation project(':java-common:jvm')
+    api project(':xmlutil:core:jvm')
+    api project(':java-common:jvm')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
     testImplementation 'org.testng:testng:6.9.13.8'

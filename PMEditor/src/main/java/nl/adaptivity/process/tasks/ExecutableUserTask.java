@@ -44,7 +44,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   public static class Factory implements XmlDeserializerFactory<ExecutableUserTask> {
 
     @Override
-    public ExecutableUserTask deserialize(final XmlReader reader) throws XmlException {
+    public ExecutableUserTask deserialize(final XmlReader reader) {
       return ExecutableUserTask.deserialize(reader);
     }
   }
@@ -327,17 +327,17 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   }
 
   @Override
-  protected void serializeAdditionalAttributes(final List<XmlSerializable> pending, final XmlWriter out) throws XmlException {
+  protected void serializeAdditionalAttributes(final List<XmlSerializable> pending, final XmlWriter out) {
     if (mState!=null) { out.attribute(null, "state", null, mState.name()); }
     if (mHandle>=0) { out.attribute(null, "handle", null, Long.toString(mHandle)); }
   }
 
-  public static ExecutableUserTask deserialize(final XmlReader in) throws XmlException {
+  public static ExecutableUserTask deserialize(final XmlReader in) {
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.ExecutableUserTask>deserializeHelper(new ExecutableUserTask(), in);
   }
 
   @Override
-  protected void parseTaskItem(final XmlReader in) throws XmlException {
+  protected void parseTaskItem(final XmlReader in) {
     mItems.add(TaskItem.parseTaskItem(in));
   }
 
@@ -348,7 +348,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
     return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
   }
 
-  public static List<ExecutableUserTask> parseTasks(final InputStream in) throws XmlException {
+  public static List<ExecutableUserTask> parseTasks(final InputStream in) {
     final XmlReader parser;
     try {
       parser = XmlStreaming.newReader(in, "UTF-8");
@@ -359,14 +359,14 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
     return parseTasks(parser);
   }
 
-  public static List<ExecutableUserTask> parseTasks(final XmlReader in) throws XmlException {
+  public static List<ExecutableUserTask> parseTasks(final XmlReader in) {
     XmlReaderUtil.skipPreamble(in);
-    in.require(EventType.START_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TAG_TASKS);
+    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
     final ArrayList<ExecutableUserTask> result = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {
       result.add(deserialize(in));
     }
-    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), TAG_TASKS);
+    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
     return result;
   }
 

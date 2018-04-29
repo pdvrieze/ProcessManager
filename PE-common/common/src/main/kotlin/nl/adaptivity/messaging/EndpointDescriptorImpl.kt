@@ -112,8 +112,8 @@ class EndpointDescriptorImpl : EndpointDescriptor, XmlSerializable, SimpleXmlDes
         }
     }
 
-    override fun isSameService(other: EndpointDescriptor): Boolean {
-        return serviceNamespace == other.serviceName.getNamespaceURI() && serviceLocalName == other.serviceName.getLocalPart() && endpointName == other.endpointName
+    override fun isSameService(other: EndpointDescriptor?): Boolean {
+        return other!=null && serviceNamespace == other.serviceName.getNamespaceURI() && serviceLocalName == other.serviceName.getLocalPart() && endpointName == other.endpointName
     }
 
     override fun equals(other: Any?): Boolean {

@@ -31,6 +31,7 @@ import nl.adaptivity.android.darwin.AuthenticatedWebClient.GetRequest;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
 import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

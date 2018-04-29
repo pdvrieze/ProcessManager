@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.diagram
 
-import isBetween
 import nl.adaptivity.diagram.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.util.isBetween
 
 interface IDrawableProcessNode: Drawable, Identifiable {
 

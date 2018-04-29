@@ -28,6 +28,8 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.writeSimpleElement
 
 interface IDrawableActivity: IDrawableProcessNode {
   override val leftExtent: Double
@@ -157,7 +159,6 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
   override val idBase: String
     get() = IDBASE
 
-  @Throws(XmlException::class)
   override fun serializeCondition(out: XmlWriter) {
     if (!condition.isNullOrEmpty()) {
       out.writeSimpleElement(Condition.ELEMENTNAME, condition)

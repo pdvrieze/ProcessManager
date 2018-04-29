@@ -37,8 +37,8 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   public static final String TAG_TASKS = "tasks";
   public static final String ELEMENTLOCALNAME = "task";
-  public static final QName ELEMENTNAME = new QName(Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS(), ELEMENTLOCALNAME,
-                                                    Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS_PREFIX());
+  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME,
+                                                    Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
   public static final String TAG_ITEM = "item";
   public static final String TAG_OPTION = "option";
   protected static final String TAG = "UserTask";
@@ -46,7 +46,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) {
     XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     final List<XmlSerializable> pending = new ArrayList<>();
     ModifyHelper.writeAttribute(pending, out, "summary", getSummary());
@@ -65,7 +65,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   @CallSuper
   @Override
-  public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NonNull final XmlReader reader) {
     if (XmlReaderUtil.isElement(reader, EventType.START_ELEMENT, TaskItem.ELEMENTNAME.getNamespaceURI(), TaskItem.ELEMENTNAME
                                                                                                                  .getLocalPart(), TaskItem.ELEMENTNAME
                                                                                                                                           .getPrefix())) {
@@ -79,7 +79,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
    * Parse the current task item.
    * @param in
    */
-  protected abstract void parseTaskItem(final XmlReader in) throws XmlException;
+  protected abstract void parseTaskItem(final XmlReader in);
 
   @Override
   public boolean deserializeChildText(final CharSequence elementText) {
@@ -120,7 +120,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
    * @param pending Pending events (mainly modifyable values)
    * @param out The writer to write the attributes to.
    */
-  protected void serializeAdditionalAttributes(final List<XmlSerializable> pending, final XmlWriter out) throws XmlException {
+  protected void serializeAdditionalAttributes(final List<XmlSerializable> pending, final XmlWriter out) {
     // Just a hook
   }
 

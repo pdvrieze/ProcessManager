@@ -40,7 +40,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
       return super.getNode(nodeId) as DrawableProcessNode.Builder?
     }
 
-    fun hasUnpositioned() = nodes.any { !(it as Positioned).hasPos }
+    fun hasUnpositioned() = nodes.any { !(it as Positioned).hasPos() }
 
     fun build(): DrawableProcessModel
 

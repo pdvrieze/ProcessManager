@@ -26,7 +26,7 @@ import java.net.URI;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name = ActionDescriptor.ELEMENTNAME, namespace = Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS())
+@XmlRootElement(name = ActionDescriptor.ELEMENTNAME, namespace = Constants.USER_MESSAGE_HANDLER_NS)
 public class ActionDescriptor {
 
   static final String ELEMENTNAME = "action";

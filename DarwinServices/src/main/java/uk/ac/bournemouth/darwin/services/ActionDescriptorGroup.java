@@ -24,7 +24,7 @@ import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name = "actionGroup", namespace = Constants.INSTANCE.getUSER_MESSAGE_HANDLER_NS())
+@XmlRootElement(name = "actionGroup", namespace = Constants.USER_MESSAGE_HANDLER_NS)
 public class ActionDescriptorGroup {
 
   @XmlAttribute(name = "title")

@@ -51,6 +51,6 @@ interface EndpointDescriptor {
      * @param other The service to compare with
      * @return `true` if it is, `false` if it isn't.
      */
-    fun isSameService(other: EndpointDescriptor): Boolean
+    fun isSameService(other: EndpointDescriptor?): Boolean
 
 }

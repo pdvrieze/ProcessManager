@@ -55,8 +55,8 @@ class ProcessConsts {
 
             override val endpointLocation: URI? get() = null
 
-            override fun isSameService(other: EndpointDescriptor): Boolean {
-                return SERVICENAME.equals(other.serviceName) && ENDPOINT.equals(other.endpointName)
+            override fun isSameService(other: EndpointDescriptor?): Boolean {
+                return other!=null && SERVICENAME.equals(other.serviceName) && ENDPOINT.equals(other.endpointName)
             }
 
             val ENDPOINT = "internal"

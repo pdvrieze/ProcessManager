@@ -37,7 +37,7 @@ import java.util.List;
 
 public class MessagingEndpoint implements GenericEndpoint {
 
-  @XmlRootElement(namespace= Constants.INSTANCE.getDARWIN_NS(), name="endpoint")
+  @XmlRootElement(namespace= Constants.DARWIN_NS, name="endpoint")
   private static class XmlEndpointDescriptor {
 
     @XmlAttribute(name="service")
@@ -60,7 +60,7 @@ public class MessagingEndpoint implements GenericEndpoint {
   public static final String ENDPOINT = "messaging";
 
   public static final String SERVICE_LOCALNAME = "messaging";
-  public static final QName SERVICENAME = new QName(Constants.INSTANCE.getDARWIN_NS(), SERVICE_LOCALNAME);
+  public static final QName SERVICENAME = new QName(Constants.DARWIN_NS, SERVICE_LOCALNAME);
 
   private URI mURI;
 
@@ -86,7 +86,7 @@ public class MessagingEndpoint implements GenericEndpoint {
 
   @Override
   public boolean isSameService(final EndpointDescriptor other) {
-    return Constants.INSTANCE.getDARWIN_NS().equals(other.getServiceName().getNamespaceURI()) &&
+    return Constants.DARWIN_NS.equals(other.getServiceName().getNamespaceURI()) &&
            SERVICE_LOCALNAME.equals(other.getServiceName().getLocalPart()) &&
            getEndpointName().equals(other.getEndpointName());
   }
@@ -103,7 +103,7 @@ public class MessagingEndpoint implements GenericEndpoint {
     }
   }
 
-  @XmlElementWrapper(name = "endpoints", namespace = Constants.INSTANCE.getDARWIN_NS())
+  @XmlElementWrapper(name = "endpoints", namespace = Constants.DARWIN_NS)
   @RestMethod(method = HttpMethod.GET, path = "/endpoints")
   public List<XmlEndpointDescriptor> getEndpoints() {
     IMessenger messenger = MessagingRegistry.getMessenger();

@@ -116,7 +116,7 @@ public class PETransformer {
     }
 
     private void peekStartElement(final List<XmlEvent> results, @NotNull final StartElementEvent element) {
-      if (Constants.INSTANCE.getMODIFY_NS_STR().equals(element.getNamespaceUri())) {
+      if (Constants.MODIFY_NS_STR.equals(element.getNamespaceUri())) {
         final String localname = StringUtil.toString(element.getLocalName());
 
         final Map<String, CharSequence> attributes = parseAttributes(element);
@@ -142,7 +142,7 @@ public class PETransformer {
         boolean filterAttributes = false;
         final List<XmlEvent.Attribute> newAttrs = new ArrayList<>();
         for(final XmlEvent.Attribute attr : element.getAttributes()) {
-          if (attr.hasNamespaceUri() && StringUtil.isEqual(Constants.INSTANCE.getMODIFY_NS_STR(), attr.getValue())) {
+          if (attr.hasNamespaceUri() && StringUtil.isEqual(Constants.MODIFY_NS_STR, attr.getValue())) {
             filterAttributes=true;
           } else {
             newAttrs.add(attr);
@@ -150,7 +150,7 @@ public class PETransformer {
         }
         final List<Namespace> newNamespaces = new ArrayList<>();
         for(final Namespace ns : element.getNamespaceDecls()) {
-          if (Constants.INSTANCE.getMODIFY_NS_STR().equals(ns.getNamespaceURI())) {
+          if (Constants.MODIFY_NS_STR.equals(ns.getNamespaceURI())) {
             filterAttributes=true;
           } else {
             newNamespaces.add(ns);

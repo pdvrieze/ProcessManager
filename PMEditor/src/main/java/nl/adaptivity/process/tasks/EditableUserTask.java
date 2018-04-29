@@ -23,7 +23,7 @@ import android.databinding.ObservableList.OnListChangedCallback;
 import android.util.Log;
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
+import nl.adaptivity.process.ProcessConsts.Endpoints.USER_TASK_SERVICE_DESCRIPTOR;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.util.Constants;
@@ -116,8 +116,8 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   public XmlMessage asMessage() {
-    final QName        service    = UserTaskServiceDescriptor.Companion.getSERVICENAME();
-    final String       endpoint   = UserTaskServiceDescriptor.Companion.getENDPOINT();
+    final QName        service    = USER_TASK_SERVICE_DESCRIPTOR.INSTANCE.getServiceName();
+    final String       endpoint   = USER_TASK_SERVICE_DESCRIPTOR.INSTANCE.getENDPOINT();
     final String       operation  = PostTask.ELEMENTLOCALNAME;
     final StringWriter bodyWriter = new StringWriter();
     try {
@@ -202,7 +202,7 @@ public class EditableUserTask extends UserTaskBase {
 
   @Override
   public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
-    if (StringUtil.isEqual(Constants.INSTANCE.getMODIFY_NS_STR(), reader.getNamespaceUri())) {
+    if (StringUtil.isEqual(Constants.MODIFY_NS_STR, reader.getNamespaceUri())) {
       final AttributeSequence attrVar = ModifyHelper.parseAttribute(reader);
       switch (attrVar.getParamName().toString()) {
         case "summary": mSummary = attrVar; return true;

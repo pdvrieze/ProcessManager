@@ -22,8 +22,8 @@ import nl.adaptivity.xml.QName
 
 object Constants {
 
-    val PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/"
-    val PROCESS_ENGINE_NS_PREFIX: String = "pe"
+    const val PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/"
+    const val PROCESS_ENGINE_NS_PREFIX: String = "pe"
 
     val PESERVICE = QName(PROCESS_ENGINE_NS, "ProcessEngine")
 
@@ -35,19 +35,19 @@ object Constants {
 
     val WEBMETHOD_NS = createUri("http://www.w3.org/2003/05/soap/features/web-method/Method")
 
-    val PROTOCOL_HEADERS = "javax.jbi.messaging.protocol.headers"
+    const val PROTOCOL_HEADERS = "javax.jbi.messaging.protocol.headers"
 
-    val USER_MESSAGE_HANDLER_NS = "http://adaptivity.nl/userMessageHandler"
+    const val USER_MESSAGE_HANDLER_NS = "http://adaptivity.nl/userMessageHandler"
 
-    val USER_MESSAGE_HANDLER_NS_PREFIX = "umh"
+    const val USER_MESSAGE_HANDLER_NS_PREFIX = "umh"
 
-    val DARWIN_NS = "http://darwin.bournemouth.ac.uk/services"
+    const val DARWIN_NS = "http://darwin.bournemouth.ac.uk/services"
 
-    val MODIFY_NS_STR = "http://adaptivity.nl/ProcessEngine/activity"
+    const val MODIFY_NS_STR = "http://adaptivity.nl/ProcessEngine/activity"
 
     val MODIFY_NS_URI = createUri(MODIFY_NS_STR)
-    val MODIFY_NS_PREFIX = "jbi"
+    const val MODIFY_NS_PREFIX = "jbi"
 
-    val MY_JBI_NS_STR = "http://adaptivity.nl/jbi"
+    const val MY_JBI_NS_STR = "http://adaptivity.nl/jbi"
 
 }

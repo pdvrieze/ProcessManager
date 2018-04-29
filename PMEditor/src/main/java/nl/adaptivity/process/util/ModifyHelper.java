@@ -36,8 +36,8 @@ public final class ModifyHelper {
    * @param in The parser
    * @throws XmlException When a reading error occurs, including unexpected tags.
    */
-  public static ModifySequence parseAny(final XmlReader in) throws XmlException {
-    in.require(EventType.START_ELEMENT, Constants.INSTANCE.getMODIFY_NS_STR(), null);
+  public static ModifySequence parseAny(final XmlReader in) {
+    in.require(EventType.START_ELEMENT, Constants.MODIFY_NS_STR, null);
     switch (in.getLocalName().toString()) {
       case "attribute":
         return parseAttribute(in);
@@ -51,25 +51,25 @@ public final class ModifyHelper {
 
   }
 
-  public static AttributeSequence parseAttribute(final XmlReader in) throws XmlException {
+  public static AttributeSequence parseAttribute(final XmlReader in) {
     final CharSequence defineName = in.getAttributeValue(null, "value");
     final CharSequence xpath = in.getAttributeValue(null, "xpath");
     final CharSequence paramName = in.getAttributeValue(null, "name");
     in.nextTag();
-    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getMODIFY_NS_STR(), "attribute");
+    in.require(EventType.END_ELEMENT, Constants.MODIFY_NS_STR, "attribute");
     return ModifySequence.newAttributeSequence(paramName, defineName, xpath);
   }
 
-  public static FragmentSequence parseValueOrElement(final XmlReader in) throws XmlException {
+  public static FragmentSequence parseValueOrElement(final XmlReader in) {
     final CharSequence defineName = in.getAttributeValue(null, "value");
     final CharSequence xpath = in.getAttributeValue(null, "xpath");
     final CharSequence localName = in.getLocalName();
     in.nextTag();
-    in.require(EventType.END_ELEMENT, Constants.INSTANCE.getMODIFY_NS_STR(), localName);
+    in.require(EventType.END_ELEMENT, Constants.MODIFY_NS_STR, localName);
     return ModifySequence.newFragmentSequence(localName.toString(), defineName, xpath);
   }
 
-  public static void writeAttribute(final List<XmlSerializable> pending, final XmlWriter out, final String name, final CharSequence value) throws XmlException {
+  public static void writeAttribute(final List<XmlSerializable> pending, final XmlWriter out, final String name, final CharSequence value) {
     if (value==null) { return; }
     if (value instanceof XmlSerializable) {
       pending.add((XmlSerializable) value);

@@ -37,7 +37,7 @@ dependencies {
     implementation project(':darwinlib')
     implementation project(':DarwinJavaApi')
     implementation project(':JavaCommonApi:jvm')
-    implementation project(':xmlutil:core:jvm')
+    implementation project(':xmlutil:core:android')
     implementation project(':xmlutil:android')
     implementation project(':java-common:jvm')
 
