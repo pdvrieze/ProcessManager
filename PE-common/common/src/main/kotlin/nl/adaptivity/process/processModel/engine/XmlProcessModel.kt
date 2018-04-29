@@ -163,7 +163,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     }
 }
 
-val XML_BUILDER_VISITOR: ProcessNode.Visitor<XmlProcessNode.Builder> = object : Visitor<XmlProcessNode.Builder> {
+object XML_BUILDER_VISITOR: ProcessNode.Visitor<XmlProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode<*, *>) = XmlStartNode.Builder(startNode)
 
     override fun visitActivity(activity: Activity<*, *>) = XmlActivity.Builder(activity)
@@ -178,7 +178,7 @@ val XML_BUILDER_VISITOR: ProcessNode.Visitor<XmlProcessNode.Builder> = object : 
 
 object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelCommon> {
 
-    private fun visitor(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) = object : ProcessNode.BuilderVisitor<XmlProcessNode> {
+    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder<*, *>) = XmlStartNode(startNode, buildHelper)
 
         override fun visitActivity(activity: Activity.Builder<*, *>) = XmlActivity(activity, buildHelper)
@@ -194,7 +194,7 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelC
 
     override fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
                         buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): XmlProcessNode {
-        return baseNodeBuilder.visit(visitor(buildHelper))
+        return baseNodeBuilder.visit(Visitor(buildHelper))
     }
 
     override fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,

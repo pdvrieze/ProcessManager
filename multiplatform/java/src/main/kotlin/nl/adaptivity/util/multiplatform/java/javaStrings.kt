@@ -19,6 +19,6 @@ package nl.adaptivity.util.multiplatform.java
 import java.util.*
 
 object Locales {
-    inline val DEFAULT: Locale get() = Locale.getDefault()
-    inline val ENGLISH: Locale get() = Locale.ENGLISH
+    val DEFAULT: Locale get() = Locale.getDefault()
+    val ENGLISH: Locale get() = Locale.ENGLISH
 }

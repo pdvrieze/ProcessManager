@@ -21,6 +21,7 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SimplePrincipal
 import net.devrieze.util.webServer.HttpRequest
 import nl.adaptivity.util.HttpMessage.*
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
@@ -111,7 +112,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         @XmlName("user")
         get() = userPrincipal?.name
         set(name) {
-            userPrincipal = SimplePrincipal(name)
+            userPrincipal = name?.let { SimplePrincipal(it) }
         }
 
     class Factory : XmlDeserializerFactory<HttpMessage> {
@@ -472,7 +473,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
                         buffer.get(chars)
                     }
 
-                    body = ICompactFragment(emptyList(), chars)
+                    body = CompactFragment(emptyList(), chars)
                 }
 
             }
@@ -558,10 +559,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         return result ?: getPosts(name)
     }
 
-    fun getAttachment(name: String): DataSource? {
-        return if (_attachments == null) {
-            null
-        } else _attachments!![name]
+    fun getAttachment(name: String?): DataSource? {
+        return _attachments[name ?: NULL_KEY]
     }
 
     fun getHeaders(name: String): Iterable<String> {
@@ -576,6 +575,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
     }
 
     companion object {
+
+        const val NULL_KEY = "KJJMBZLZKNC<MNCJHASIUJZNCZM>NSJHLCALSNDM<>BNADSBLKH"
 
         const val NAMESPACE = "http://adaptivity.nl/HttpMessage"
 

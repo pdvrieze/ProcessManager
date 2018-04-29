@@ -18,9 +18,9 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
-import nl.adaptivity.util.xml.getXmlReader
 import nl.adaptivity.xml.*
 
 
@@ -106,12 +106,12 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
         // Property acccessors end
 
         actual fun missingData(name: String): ProcessData {
-            return ProcessData(name, ICompactFragment(""))
+            return ProcessData(name, CompactFragment(""))
         }
 
         @Throws(XmlException::class)
         actual fun deserialize(reader: XmlReader): ProcessData {
-            return ProcessData(null, ICompactFragment("")).deserializeHelper(reader)
+            return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
         }
     }
 }

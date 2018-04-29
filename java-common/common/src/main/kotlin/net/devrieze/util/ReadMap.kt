@@ -51,24 +51,24 @@ interface ReadMap<K:Any, out V> : Set<V> {
   /**
    * Checks whether the specified key is available in the map.
 
-   * @param pKey The key to check.
+   * @param key The key to check.
    *
    * @return `true` if the key is contained
    *
    * @see Map.containsKey
    */
-  fun containsKey(pKey: K): Boolean
+  fun containsKey(key: K): Boolean
 
   /**
    * Check whether the value is contained in the ReadMap.
 
-   * @param pValue The value to check
+   * @param value The value to check
    *
    * @return `true` if contained, `false` if not.
    *
    * @see Map.containsValue
    */
-  fun containsValue(pValue: @kotlin.UnsafeVariance V): Boolean
+  fun containsValue(value: @kotlin.UnsafeVariance V): Boolean
 
   /**
    * Check whether the map equals another map.
@@ -84,23 +84,21 @@ interface ReadMap<K:Any, out V> : Set<V> {
   /**
    * Get the value corresponding to the specified key.
 
-   * @param pKey The key of the value that needs to be retrieved.
+   * @param key The key of the value that needs to be retrieved.
    *
    * @return the value corresponding to the key, or null if it does not exist.
    *
    * @see Map.get
    */
-  operator fun get(pKey: K): V?
+  operator fun get(key: K): V?
 
   /**
    * Get a set of all keys that are used in this ReadMap.
 
    * @return The set of all keys
    *
-   * @see Map.keySet
+   * @see Map.keys
    */
-  @Deprecated("Use property instead of the function", ReplaceWith("keys"))
-  fun keySet(): Set<K> = keys
 
   val keys: Set<K>
 

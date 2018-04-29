@@ -21,14 +21,15 @@ import net.devrieze.util.StringUtil;
 import net.devrieze.util.Tripple;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.ProcessConsts.Soap;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.ICompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.ws.WsMethodWrapper;
 import nl.adaptivity.xml.EventType;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Body;
@@ -59,7 +60,7 @@ import java.util.logging.Logger;
 
 public class SoapMethodWrapper extends WsMethodWrapper {
 
-  public static final URI SOAP_ENCODING = URI.create(ProcessConsts.Soap.INSTANCE.getSOAP_ENCODING_NS());
+  public static final URI SOAP_ENCODING = URI.create(Soap.SOAP_ENCODING_NS);
 
   public SoapMethodWrapper(final Object owner, final Method method) {
     super(owner, method);
@@ -105,7 +106,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
 
   private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<ICompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
     final Body<? extends ICompactFragment> body   = envelope.getBody();
-    XmlReader                              reader = XMLFragmentStreamReaderKt.getXmlReader(body.getBodyContent());
+    XmlReader                              reader = body.getBodyContent().getXmlReader();
     reader.nextTag();
     assertRootNode(reader);
 
@@ -195,24 +196,25 @@ public class SoapMethodWrapper extends WsMethodWrapper {
 
   @NotNull
   public Source getResultSource() {
-    if (getResult() instanceof Source) {
-      return (Source) getResult();
+    final Object result = getResult();
+    if (result instanceof Source) {
+      return (Source) result;
     }
 
     final List<Tripple<String, ? extends Class<?>, ?>> params;
     final List<Object> headers;
-    if (getResult() == null && getMethod().getReturnType() == Void.class) {
+    if (result == null && getMethod().getReturnType() == Void.class) {
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                              Tripple.tripple("result", Void.class, null));
       headers = Collections.emptyList();
 
-    } else if (getResult() instanceof ActivityResponse) {
-      final ActivityResponse<?> activityResponse = (ActivityResponse<?>) getResult();
+    } else if (result instanceof ActivityResponse) {
+      final ActivityResponse<?> activityResponse = (ActivityResponse<?>) result;
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) );
-      headers = Collections.<Object> singletonList(getResult());
-    } else if (getResult() != null && ActivityResponse.class.getCanonicalName().equals(
-        getResult().getClass().getCanonicalName())) {
+      headers = Collections.<Object> singletonList(result);
+    } else if (result != null && ActivityResponse.class.getCanonicalName().equals(
+        result.getClass().getCanonicalName())) {
       /*
        * If the ActivityResponse was created by a different classloader like
        * when we directly invoke the endpoint through DarwinMessenger shortcut
@@ -223,8 +225,8 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       final Class<?> returnType;
       final Object returnValue;
       try {
-        returnType = (Class<?>) getResult().getClass().getMethod("getReturnType").invoke(getResult());
-        returnValue = getResult().getClass().getMethod("getReturnValue").invoke(getResult());
+        returnType = (Class<?>) result.getClass().getMethod("getReturnType").invoke(result);
+        returnValue = result.getClass().getMethod("getReturnValue").invoke(result);
       } catch (@NotNull final IllegalArgumentException e) {
         throw new MessagingException(e);
       } catch (@NotNull final SecurityException e) {
@@ -238,12 +240,12 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       }
       params = Arrays.asList( Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", returnType, returnValue) );
-      headers = Collections.<Object> singletonList(getResult());
+      headers = Collections.<Object> singletonList(result);
 
     } else {
 
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                              Tripple.tripple("result", getMethod().getReturnType(), getResult()));
+                              Tripple.tripple("result", getMethod().getReturnType(), result));
       headers = Collections.emptyList();
     }
     try {
@@ -251,10 +253,6 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     } catch (@NotNull final XmlException | JAXBException e) {
       throw new MessagingException(e);
     }
-  }
-
-  public Object getResult() {
-    return getResult();
   }
 
 }

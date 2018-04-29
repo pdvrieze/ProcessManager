@@ -17,6 +17,7 @@
 package nl.adaptivity.xml
 
 import nl.adaptivity.io.Writable
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 
 import java.io.IOException
@@ -32,7 +33,7 @@ class WritableCompactFragment private constructor(private val data: ICompactFrag
     override val isEmpty: Boolean
         get() = data.isEmpty
 
-    override val namespaces: SimpleNamespaceContext
+    override val namespaces: IterableNamespaceContext
         get() = data.namespaces
 
     override val content: CharArray
@@ -41,11 +42,11 @@ class WritableCompactFragment private constructor(private val data: ICompactFrag
     override val contentString: String
         get() = data.contentString
 
-    constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(ICompactFragment(namespaces, content), false)
+    constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(CompactFragment(namespaces, content), false)
 
-    constructor(string: String) : this(ICompactFragment(string), false) {}
+    constructor(string: String) : this(CompactFragment(string), false) {}
 
-    constructor(orig: ICompactFragment) : this(ICompactFragment(orig.namespaces, orig.contentString), false) {}
+    constructor(orig: ICompactFragment) : this(CompactFragment(orig.namespaces, orig.contentString), false) {}
 
     @Throws(IOException::class)
     override fun writeTo(destination: Writer) {

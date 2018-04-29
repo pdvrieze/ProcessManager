@@ -14,14 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.security
+package nl.adaptivity.process.util
 
-actual interface Principal {
-    /**
-     * Returns the name of this principal.
-     *
-     * @return the name of this principal.
-     */
-    actual fun getName(): String
-
-}
+/** Not needed here as no spliterators present */
+actual interface ListSet<out E> : List<E>, Set<E>

@@ -80,12 +80,10 @@ class ItemCache {
   }
 
   private fun <V> Array<V?>.ensureArrayLengthNotNull(length: Int): Array<V?> {
-    val array = this
-    val srcLen = array.size
-    if (srcLen < length) {
-        return array + arrayOfNulls(length - srcLen)
+    return when {
+      size < length -> this.copyOf(length)
+      else          -> this
     }
-    return array
   }
   //
   //  private static <V> V[][] ensureArraysLength(V[][] array, int length) {

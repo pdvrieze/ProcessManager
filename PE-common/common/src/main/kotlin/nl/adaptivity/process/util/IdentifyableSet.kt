@@ -49,7 +49,7 @@ interface MutableIdentifyableSet<T : Identifiable> : IdentifyableSet<T>, Mutable
     override fun iterator(): MutableIterator<T>
 }
 
-interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, RandomAccess, List<T> {
+interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, ReadMap<String, T>, RandomAccess {
 
     private class ReadonlyIterator<T> constructor(private val mIterator: ListIterator<T>) : ListIterator<T> {
 
@@ -562,4 +562,6 @@ interface IdentifyableSet<out T : Identifiable> : Set<T>, ReadMap<String, T>, Ra
     }
 
 }
+
+expect interface ListSet<out E>//: List<E>, Set<E>
 

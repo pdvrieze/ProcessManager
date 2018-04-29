@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.Handle
 import net.devrieze.util.StringCache
-import net.devrieze.util.lookup
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider

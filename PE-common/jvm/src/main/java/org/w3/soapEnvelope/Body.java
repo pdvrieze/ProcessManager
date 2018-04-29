@@ -75,7 +75,7 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
     mContent = content;
   }
 
-  public static <T extends XmlSerializable> Body<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyFactory) throws XmlException {
+  public static <T extends XmlSerializable> Body<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyFactory) {
     final Body<T> result = new Body<T>();
     XmlReaderUtil.skipPreamble(in);
     assert XmlReaderUtil.isElement(in, result.getElementName()) : "Expected " + result.getElementName() + " but found " + in.getLocalName();
@@ -89,7 +89,7 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
     return result;
   }
 
-  public void deserializeChildren(final XmlReader in, XmlDeserializerFactory<T> bodyFactory) throws XmlException {
+  public void deserializeChildren(final XmlReader in, XmlDeserializerFactory<T> bodyFactory) {
     if( in.next() != EventType.END_ELEMENT) { // first child
       if (in.hasNext()) { mContent = bodyFactory.deserialize(in); }
       // Be slightly flexible as CompactFragments already deserialize to the parent end element
@@ -111,7 +111,7 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
   }
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) {
     XmlWriterUtil.smartStartTag(out, getElementName());
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
       XmlWriterUtil.writeAttribute(out, attr.getKey(), attr.getValue());

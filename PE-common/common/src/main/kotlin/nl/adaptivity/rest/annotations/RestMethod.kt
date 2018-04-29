@@ -27,9 +27,9 @@ package nl.adaptivity.rest.annotations
 @Target(AnnotationTarget.FUNCTION)
 annotation class RestMethod(val method: HttpMethod,
                             val path: String,
-                            val post: Array<String> = [],
-                            val get: Array<String> = [],
-                            val query: Array<String> = [],
+                            val post: Array<String> = arrayOf(),
+                            val get: Array<String> = arrayOf(),
+                            val query: Array<String> = arrayOf(),
                             val contentType: String = "")
 
 enum class HttpMethod {

@@ -20,7 +20,7 @@ apply plugin: 'java-library'
 description = 'The DDL files for the darwin databases'
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     api project(":kotlinsql")
 
     testImplementation 'org.testng:testng:6.9.13.8'

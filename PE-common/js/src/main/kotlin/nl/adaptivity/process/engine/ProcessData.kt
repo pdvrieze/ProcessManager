@@ -17,6 +17,8 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Named
+import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.xml.*
@@ -42,7 +44,7 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
 
     override fun copy(name: String?): ProcessData = copy(name, content)
 
-    actual fun copy(name:String?, value: ICompactFragment) = ProcessData(name, value)
+    fun copy(name:String?, value: ICompactFragment) = ProcessData(name, value)
 
     override fun deserializeChildren(reader: XmlReader) {
         val expected = EventType.END_ELEMENT
@@ -95,13 +97,15 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
     }
 
     actual companion object {
+        actual val ELEMENTLOCALNAME = "value"
+        actual val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
 
         actual fun missingData(name: String): ProcessData {
-            return ProcessData(name, ICompactFragment(""))
+            return ProcessData(name, CompactFragment(""))
         }
 
         actual fun deserialize(reader: XmlReader): ProcessData {
-            return ProcessData(null, ICompactFragment("")).deserializeHelper(reader)
+            return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
         }
     }
 }

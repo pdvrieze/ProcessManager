@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
-import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.DomUtil;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.EndElementEvent;
 import nl.adaptivity.xml.XmlEvent.StartElementEvent;
@@ -68,7 +68,7 @@ public class PETransformer {
 
     @NotNull
     @Override
-    public List<XmlEvent> doPeek() throws XmlException {
+    public List<XmlEvent> doPeek() {
       final List<XmlEvent> results = new ArrayList<>(1);
 
       doPeek(results);
@@ -76,7 +76,7 @@ public class PETransformer {
     }
 
     @Nullable
-    private void doPeek(final List<XmlEvent> results) throws XmlException {
+    private void doPeek(final List<XmlEvent> results) {
       final List<XmlEvent> events = super.doPeek();
 
       for(XmlEvent event:events) {
@@ -115,7 +115,7 @@ public class PETransformer {
       }
     }
 
-    private void peekStartElement(final List<XmlEvent> results, @NotNull final StartElementEvent element) throws XmlException {
+    private void peekStartElement(final List<XmlEvent> results, @NotNull final StartElementEvent element) {
       if (Constants.INSTANCE.getMODIFY_NS_STR().equals(element.getNamespaceUri())) {
         final String localname = StringUtil.toString(element.getLocalName());
 
@@ -136,7 +136,7 @@ public class PETransformer {
             readEndTag(element);
             return;
           default:
-            throw new XmlException("Unsupported element: {" + element.getNamespaceUri() + '}' + element.getLocalName());
+              (new XmlException("Unsupported element: {" + element.getNamespaceUri() + '}' + element.getLocalName())).doThrow();
         }
       } else {
         boolean filterAttributes = false;
@@ -166,7 +166,7 @@ public class PETransformer {
       }
     }
 
-    private void readEndTag(final StartElementEvent name) throws XmlException {
+    private void readEndTag(final StartElementEvent name) {
       while(true) {
         List<XmlEvent> elems = super.doPeek();
         for(XmlEvent elem: elems) {
@@ -180,7 +180,7 @@ public class PETransformer {
               }
             default:
               if (! (elem.getEventType()== EventType.END_ELEMENT && name.isEqualNames((EndElementEvent) elem))) {
-                throw new XmlException("Unexpected tag found ("+elem+")when expecting an end tag for "+name);
+                new XmlException("Unexpected tag found ("+elem+")when expecting an end tag for "+name).doThrow();
               }
               return;
           }
@@ -188,8 +188,7 @@ public class PETransformer {
       }
     }
 
-    private void processElement(final List<XmlEvent> results, @NotNull final StartElementEvent event, @NotNull final Map<String, CharSequence> attributes, final boolean hasDefault) throws
-            XmlException {
+    private void processElement(final List<XmlEvent> results, @NotNull final StartElementEvent event, @NotNull final Map<String, CharSequence> attributes, final boolean hasDefault) {
       final CharSequence valueName = attributes.get("value");
       final CharSequence xpath = attributes.get("xpath");
       try {
@@ -197,7 +196,7 @@ public class PETransformer {
           if (hasDefault) {
             addAllRegular(results, applyXpath(event.getNamespaceContext(), mContext.resolveDefaultValue(), xpath));
           } else {
-            throw new XmlException("This context does not allow for a missing value parameter");
+            new XmlException("This context does not allow for a missing value parameter").doThrow();
           }
         } else {
           addAllRegular(results, applyXpath(event.getNamespaceContext(), mContext.resolveElementValue(valueName), xpath));
@@ -217,7 +216,7 @@ public class PETransformer {
 
     @NotNull
     private Collection<? extends XmlEvent> applyXpath(final NamespaceContext namespaceContext, @NotNull final List<XmlEvent> pendingEvents, @Nullable final CharSequence xpath) throws
-            XPathExpressionException, ParserConfigurationException, XmlException {
+            XPathExpressionException, ParserConfigurationException {
       String xpathstr = StringUtil.toString(xpath);
       if (xpathstr==null || ".".equals(xpathstr)) {
         return pendingEvents;
@@ -260,7 +259,7 @@ public class PETransformer {
       return result;
     }
 
-    private XmlEvent getAttribute(@NotNull final Map<String, CharSequence> attributes) throws XmlException {
+    private XmlEvent getAttribute(@NotNull final Map<String, CharSequence> attributes) {
       final String valueName = StringUtil.toString(attributes.get("value"));
       final CharSequence xpath = attributes.get("xpath");
       CharSequence paramName = attributes.get("name");
@@ -280,11 +279,11 @@ public class PETransformer {
 
   public interface PETransformerContext {
     @NotNull
-    List<XmlEvent> resolveElementValue(CharSequence valueName) throws XmlException;
+    List<XmlEvent> resolveElementValue(CharSequence valueName);
     @NotNull
-    List<XmlEvent> resolveDefaultValue() throws XmlException; //Just return DOM, not events (that then need to be dom-ified)
+    List<XmlEvent> resolveDefaultValue(); //Just return DOM, not events (that then need to be dom-ified)
     @NotNull
-    String resolveAttributeValue(String valueName, final String xpath) throws XmlException;
+    String resolveAttributeValue(String valueName, final String xpath);
     @NotNull
     String resolveAttributeName(String valueName);
 
@@ -297,7 +296,7 @@ public class PETransformer {
 
     @Override
     @NotNull
-    public List<XmlEvent> resolveElementValue(final CharSequence valueName) throws XmlException {
+    public List<XmlEvent> resolveElementValue(final CharSequence valueName) {
       final ProcessData data = getData(StringUtil.toString(valueName));
       if (data==null) {
         throw new IllegalArgumentException("No value with name "+valueName+" found");
@@ -307,7 +306,7 @@ public class PETransformer {
 
     @NotNull
     @Override
-    public String resolveAttributeValue(final String valueName, final String xpath) throws XmlException {
+    public String resolveAttributeValue(final String valueName, final String xpath) {
       final ProcessData data = getData(valueName);
       if (data==null) {
         throw new IllegalArgumentException("No data value with name "+valueName+" found");
@@ -341,7 +340,7 @@ public class PETransformer {
           }
         }
       } catch (XmlException e) {
-        throw new XmlException("Failure to parse data (name="+valueName+", value="+data.getContent().getContentString()+")", e);
+        new XmlException("Failure to parse data (name="+valueName+", value="+data.getContent().getContentString()+")", e).doThrow();
       }
       return result.toString();
     }
@@ -387,7 +386,7 @@ public class PETransformer {
 
     @NotNull
     @Override
-    public List<XmlEvent> resolveDefaultValue() throws XmlException {
+    public List<XmlEvent> resolveDefaultValue() {
       if (mProcessData.length==0 || mProcessData[mDefaultIdx]==null) { return Collections.emptyList(); }
       return toEvents(mProcessData[mDefaultIdx]);
     }
@@ -448,7 +447,7 @@ public class PETransformer {
   }
 
   @NotNull
-  public List<Node> transform(@NotNull final List<?> content) throws XmlException {
+  public List<Node> transform(@NotNull final List<?> content) {
     try {
       Document document = null;
       final ArrayList<Node> result = new ArrayList<>(content.size());
@@ -488,11 +487,12 @@ public class PETransformer {
       }
       return result;
     } catch (@NotNull final ParserConfigurationException e) {
-      throw new XmlException(e);
+      new XmlException(e).doThrow();
+      return null;
     }
   }
 
-  public DocumentFragment transform(final Node node) throws XmlException {
+  public DocumentFragment transform(final Node node) {
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     final Document document;
     try {
@@ -502,15 +502,16 @@ public class PETransformer {
       transform(new DOMSource(node), result);
       return fragment;
     } catch (@NotNull ParserConfigurationException e) {
-      throw new XmlException(e);
+      new XmlException(e).doThrow();
+      return null;
     }
   }
 
-  public void transform(final Source source, final Result result) throws XmlException {
+  public void transform(final Source source, final Result result) {
     transform(XmlStreaming.newReader(source), XmlStreaming.newWriter(result, true));
   }
 
-  public void transform(final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
+  public void transform(final XmlReader in, @NotNull final XmlWriter out) {
     final XmlReader filteredIn = createFilter(in);
     while (filteredIn.hasNext()) {
       filteredIn.next(); // Don't forget to move to next element as well.
@@ -523,7 +524,7 @@ public class PETransformer {
   }
 
   @NotNull
-  protected static List<XmlEvent> toEvents(@NotNull final ProcessData data) throws XmlException {
+  protected static List<XmlEvent> toEvents(@NotNull final ProcessData data) {
     final List<XmlEvent> result = new ArrayList<>();
 
     final XmlReader frag = data.getContentStream();
@@ -541,7 +542,7 @@ public class PETransformer {
     return XmlUtil.isXmlWhitespace(characters.getText());
   }
 
-  static boolean isIgnorableWhiteSpace(@NotNull final XmlReader characters) throws XmlException {
+  static boolean isIgnorableWhiteSpace(@NotNull final XmlReader characters) {
     if (characters.getEventType()== EventType.IGNORABLE_WHITESPACE) {
       return true;
     }

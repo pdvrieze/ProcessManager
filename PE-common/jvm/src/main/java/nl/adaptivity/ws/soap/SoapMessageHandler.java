@@ -22,7 +22,6 @@ import net.devrieze.util.ValueCollection;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.xml.ICompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
@@ -82,7 +81,7 @@ public abstract class SoapMessageHandler {
 
 
     private Source processMessage(final ICompactFragment source, final Map<String, DataSource> pAttachments) throws XmlException {
-      XmlReader reader = XMLFragmentStreamReaderKt.getXmlReader(source);
+      XmlReader reader = source.getXmlReader();
       return processMessage(reader, pAttachments);
     }
 
@@ -93,9 +92,9 @@ public abstract class SoapMessageHandler {
     }
 
     @NotNull
-    private Source processMessage(final XmlReader source, final Map<String, DataSource> pAttachments) throws XmlException {
-      final Envelope<ICompactFragment> envelope = Envelope.deserialize(source);
-      XmlReader                        reader   = XMLFragmentStreamReaderKt.getXmlReader(envelope.getBody().getBodyContent());
+    private Source processMessage(final XmlReader source, final Map<String, DataSource> pAttachments) {
+      final Envelope<? extends ICompactFragment> envelope = Envelope.deserialize(source);
+      XmlReader                        reader   = envelope.getBody().getBodyContent().getXmlReader();
       loop: while(reader.hasNext()) {
         switch (reader.next()) {
           case START_ELEMENT:

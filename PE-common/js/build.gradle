@@ -77,9 +77,10 @@ dependencies {
 /*
     generateXml project(':xmlutil:generator')
 */
-    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
-//    compile project(':xmlutil:core:js')
-//    compile project(':java-common:js')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    implementation project(':multiplatform:js')
+    implementation project(':java-common:js')
+    implementation project(':xmlutil:core:js')
 //    testRuntime project(':xmlutil:js')
 //    compileOnly project(':DarwinJavaApi')
 //    generateXml project(':DarwinJavaApi')

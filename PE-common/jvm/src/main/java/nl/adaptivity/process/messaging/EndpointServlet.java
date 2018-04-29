@@ -20,7 +20,7 @@ import net.devrieze.util.security.AuthenticationNeededException;
 import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;

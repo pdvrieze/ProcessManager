@@ -22,7 +22,7 @@ import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
-import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.HttpMethod;
 
 import javax.servlet.ServletConfig;
 import javax.xml.bind.annotation.XmlAttribute;

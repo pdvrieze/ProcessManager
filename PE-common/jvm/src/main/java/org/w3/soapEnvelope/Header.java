@@ -27,7 +27,7 @@ package org.w3.soapEnvelope;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.DomUtil;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.AnyType;
@@ -93,12 +93,12 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   private SimplePrincipal mPrincipal = null;
 
-  public static Header deserialize(final XmlReader in) throws XmlException {
+  public static Header deserialize(final XmlReader in) {
     return nl.adaptivity.xml.XmlUtil.<org.w3.soapEnvelope.Header>deserializeHelper(new Header(), in);
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NotNull final XmlReader reader) {
     if (XmlReaderUtil.isElement(reader, PRINCIPALQNAME)) {
       // XXX make sure this is secure
       mPrincipal = new SimplePrincipal(XmlReaderUtil.readSimpleElement(reader).toString());
@@ -139,7 +139,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) {
     XmlWriterUtil.smartStartTag(out, getElementName());
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
       XmlWriterUtil.writeAttribute(out, attr.getKey(), attr.getValue());

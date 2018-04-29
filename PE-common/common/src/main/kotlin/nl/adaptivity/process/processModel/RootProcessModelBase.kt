@@ -278,7 +278,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     }
   }
 
-  fun hasUnpositioned() = modelNodes.any { !it.hasPos }
+  fun hasUnpositioned() = modelNodes.any { !it.hasPos() }
 
   override fun getChildModel(childId: Identifiable) = _childModels[childId]
 
@@ -356,9 +356,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
   open fun notifyNodeChanged(node: NodeT) {
     // no implementation here
   }
-
-  @Deprecated("Use the value", ReplaceWith("this.asM"))
-  fun asM() = this.asM
 
   companion object {
 

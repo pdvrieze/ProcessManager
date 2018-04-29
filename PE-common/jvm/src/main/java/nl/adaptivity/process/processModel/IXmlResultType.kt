@@ -19,7 +19,7 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xml.Namespace
 import nl.adaptivity.xml.XmlSerializable
-import javax.xml.soap.Node
+import org.w3c.dom.Node
 
 actual interface IXmlResultType : XmlSerializable {
 

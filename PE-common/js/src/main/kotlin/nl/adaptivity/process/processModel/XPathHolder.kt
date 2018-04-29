@@ -16,26 +16,17 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.StringUtil
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
+import nl.adaptivity.util.multiplatform.JvmStatic
+import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.xml.CombiningNamespaceContext
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
+import org.w3c.dom.Document
+import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
-import org.w3c.dom.NodeList
-import java.util.*
-import java.util.logging.Level
-import java.util.logging.Logger
-import javax.xml.XMLConstants
-import javax.xml.bind.annotation.XmlAttribute
-import javax.xml.namespace.NamespaceContext
-import javax.xml.namespace.QName
-import javax.xml.xpath.XPathConstants
-import javax.xml.xpath.XPathExpression
-import javax.xml.xpath.XPathExpressionException
-import javax.xml.xpath.XPathFactory
-import kotlin.jvm.Volatile
-
+import kotlin.browser.document
 
 actual abstract class XPathHolder : XMLContainer {
     /**
@@ -46,6 +37,7 @@ actual abstract class XPathHolder : XMLContainer {
     //  @Volatile private var path: XPathExpression? = null // This is merely a cache.
     private var pathString: String? = null
 
+/*
     // TODO support a functionresolver
     @Volatile
     private var path: XPathExpression? = null
@@ -63,6 +55,7 @@ actual abstract class XPathHolder : XMLContainer {
         }
 
     val xPath: XPathExpression? get() = path
+*/
 
     actual constructor() : super()
 
@@ -80,7 +73,6 @@ actual abstract class XPathHolder : XMLContainer {
         _name = value
     }
 
-    @XmlAttribute(name = "xpath")
     actual fun getPath(): String? {
         return pathString
     }
@@ -89,17 +81,14 @@ actual abstract class XPathHolder : XMLContainer {
         if (pathString != null && pathString == value) {
             return
         }
-        path = null
         pathString = value
         updateNamespaceContext(baseNsContext)
-        assert(value == null || xPath != null)
+        assert(value == null)
     }
 
     @Deprecated("")
     fun setNamespaceContext(namespaceContext: Iterable<out Namespace>) {
         setContent(namespaceContext, content)
-
-        path = null // invalidate the cached path expression
     }
 
     actual override fun deserializeAttribute(attributeNamespace: CharSequence,
@@ -107,11 +96,11 @@ actual abstract class XPathHolder : XMLContainer {
                                              attributeValue: CharSequence): Boolean {
         when (attributeLocalName.toString()) {
             "name"                       -> {
-                _name = StringUtil.toString(attributeValue)
+                _name = attributeValue.toString()
                 return true
             }
             "path", "xpath"              -> {
-                pathString = StringUtil.toString(attributeValue)
+                pathString = attributeValue.toString()
                 return true
             }
             XMLConstants.XMLNS_ATTRIBUTE -> return true
@@ -119,12 +108,11 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
-    @Throws(XmlException::class)
     actual
     override fun deserializeChildren(reader: XmlReader) {
         val origContext = reader.namespaceContext
         super.deserializeChildren(reader)
-        val namespaces = TreeMap<String, String>()
+        val namespaces = mutableMapOf<String, String>()
         val gatheringNamespaceContext = CombiningNamespaceContext(SimpleNamespaceContext.from(originalNSContext),
                                                                   GatheringNamespaceContext(
                                                                       reader.namespaceContext, namespaces))
@@ -134,11 +122,10 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
-    @Throws(XmlException::class)
     actual override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)
         if (pathString != null) {
-            val namepaces = TreeMap<String, String>()
+            val namepaces = mutableMapOf<String, String>()
             // Have a namespace that gathers those namespaces that are not known already in the outer context
             val referenceContext = out.namespaceContext
             // TODO streamline this, the right context should not require the filtering on the output context later.
@@ -157,9 +144,7 @@ actual abstract class XPathHolder : XMLContainer {
         out.writeAttribute("name", _name)
     }
 
-    @Throws(XmlException::class)
     protected actual override fun visitNamespaces(baseContext: NamespaceContext) {
-        path = null
         if (pathString != null) {
             visitXpathUsedPrefixes(pathString, baseContext)
         }
@@ -167,37 +152,37 @@ actual abstract class XPathHolder : XMLContainer {
     }
 
     protected actual override fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                                         owner: QName,
-                                                         attributeName: QName,
-                                                         attributeValue: CharSequence) {
+                                                             owner: QName,
+                                                             attributeName: QName,
+                                                             attributeValue: CharSequence) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }
     }
 
-    fun applyData(payload: Node?): ProcessData = path.let { p ->
+    val namespaceResolver: NamespaceResolver = {prefix -> namespaces.getNamespaceURI(prefix) }
+
+    fun applyData(payload: Node?): ProcessData = pathString.let { p ->
         when (p) {
-            null -> ProcessData(_name!!, payload)
-            else -> ProcessData(_name!!, p.evaluate(payload, XPathConstants.NODESET) as NodeList)
+            null -> ProcessData(_name!!, payload?.let { CompactFragment(it) }?:CompactFragment(""))
+            else -> {
+                val realPayload = when (payload) {
+                    null -> {
+                        document.implementation.createDocument(null, "dummy").createDocumentFragment()
+                    }
+                    else -> payload
+                }
+                val result = realPayload.ownerDocument!!.evaluate(p, realPayload, namespaceResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE)
+                ProcessData(_name!!, CompactFragment(result.toDocumentFragment()))
+            }
         }
     }
 
 
     actual companion object {
 
-        private val SELF_PATH: XPathExpression
-
-        init {
-            try {
-                SELF_PATH = XPathFactory.newInstance().newXPath().compile(".")
-            } catch (e: XPathExpressionException) {
-                throw RuntimeException(e)
-            }
-
-        }
 
         @JvmStatic
-        @Throws(XmlException::class)
         actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
             return result.deserializeHelper(reader)
         }
@@ -205,17 +190,94 @@ actual abstract class XPathHolder : XMLContainer {
         protected actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
             if (path != null && path.isNotEmpty()) {
                 try {
-                    val xpf = XPathFactory.newInstance()
-                    val xpath = xpf.newXPath()
-                    xpath.namespaceContext = namespaceContext
-                    xpath.compile(path.toString())
-                } catch (e: XPathExpressionException) {
-                    Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING,
-                                                                             "The path used is not valid (" + path + ") - " + e.message,
-                                                                             e)
+                    val d = document.implementation.createDocument(null, "bar")
+//                    d.createExpression(path.toString(), { prefix -> namespaceContext.getNamespaceURI(prefix) } )
+                    d.evaluate(path.toString(), d, { prefix -> namespaceContext.getNamespaceURI(prefix) }, XPathResult.ANY_TYPE)
+                } catch (e: Exception) {
+                    console.warn("The path used is not valid ($path) - ${e.message}", e)
                 }
 
             }
         }
     }
+}
+
+typealias NamespaceResolver = (String)->String?
+
+inline fun Document.createExpression(xpathText: String, noinline namespaceUrlMapper: NamespaceResolver? = null): XPathExpression = asDynamic().createExpression(xpathText, namespaceUrlMapper)
+
+inline fun Document.evaluate(xpathExpression: String, contextNode: Node, noinline namespaceResolver: NamespaceResolver?, resultType: Short): XPathResult =
+    asDynamic().evaluate(xpathExpression, contextNode, namespaceResolver, resultType, null)
+
+inline fun Document.evaluate(xpathExpression: String, contextNode: Node, noinline namespaceResolver: NamespaceResolver?, resultType: Short, result: XPathResult): Unit =
+    asDynamic().evaluate(xpathExpression, contextNode, namespaceResolver, resultType, result)
+
+external interface XPathExpression {
+    fun evaluate(contextNode: Node, type: Short, result: Nothing?): XPathResult
+    fun evaluate(contextNode: Node, type: Short, result: XPathResult): Unit
+}
+
+external class XPathResult {
+
+    val booleanValue: Boolean
+    val invalidIteratorState: Boolean
+    val numberValue: Float
+    val resultType: Short
+    val singleNodeValue: Node?
+    val snapshotLength: Int
+    val stringValue: String
+
+    fun iterateNext(): Node?
+
+    fun snapshotItem(index: Int): Node
+
+    companion object {
+        val ANY_TYPE:Short = definedExternally// = 0
+        val NUMBER_TYPE:Short = definedExternally// = 1
+        val STRING_TYPE:Short = definedExternally// = 2
+        val BOOLEAN_TYPE:Short = definedExternally// = 3
+        val UNORDERED_NODE_ITERATOR_TYPE:Short = definedExternally// = 4
+        val ORDERED_NODE_ITERATOR_TYPE:Short = definedExternally// = 5
+        val UNORDERED_NODE_SNAPSHOT_TYPE:Short = definedExternally// = 6
+        val ORDERED_NODE_SNAPSHOT_TYPE:Short = definedExternally// = 7
+        val ANY_UNORDERED_NODE_TYPE:Short = definedExternally// = 8
+        val FIRST_ORDERED_NODE_TYPE:Short = definedExternally// = 9
+    }
+}
+
+fun XPathResult.toDocumentFragment(): DocumentFragment {
+    when (resultType) {
+        XPathResult.BOOLEAN_TYPE -> return document.implementation.createDocument(null, "foo").let { d ->
+            d.createDocumentFragment().apply { append(d.createTextNode(booleanValue.toString())) }
+        }
+        XPathResult.STRING_TYPE -> return document.implementation.createDocument(null, "foo").let { d ->
+            d.createDocumentFragment().apply { textContent?.let { t-> append(d.createTextNode(t)) } }
+        }
+        XPathResult.NUMBER_TYPE -> return document.implementation.createDocument(null, "foo").let { d ->
+            d.createDocumentFragment().apply { append(d.createTextNode(numberValue.toString())) }
+        }
+        XPathResult.UNORDERED_NODE_ITERATOR_TYPE,
+        XPathResult.ORDERED_NODE_ITERATOR_TYPE -> iterateNext()?.let { first ->
+            val df = first.ownerDocument!!.createDocumentFragment()
+            var node: Node? = first
+            while (node!=null) {
+                df.append(node)
+                node = iterateNext()
+            }
+            return df
+        }
+        XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE -> if (snapshotLength>0) {
+            val df = snapshotItem(0).ownerDocument!!.createDocumentFragment()
+            for(i in 0 until snapshotLength) {
+                df.append(snapshotItem(i))
+            }
+            return df
+        }
+        XPathResult.ANY_UNORDERED_NODE_TYPE,
+        XPathResult.FIRST_ORDERED_NODE_TYPE -> singleNodeValue?.let { n ->
+            return snapshotItem(0).ownerDocument!!.createDocumentFragment().apply { append(n) }
+        }
+    }
+    return document.implementation.createDocument(null, "foo").createDocumentFragment()
 }

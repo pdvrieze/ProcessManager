@@ -30,15 +30,15 @@ buildscript {
 //    id "net.devrieze.gradlecodegen" version "0.5.6"
 //}
 
+//apply plugin: 'kotlin'
 apply plugin: 'kotlin-platform-common'
 apply plugin: 'idea'
-apply plugin: 'net.devrieze.gradlecodegen'
 
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
 
 configurations {
-    generateXml
+//    generateXml
     testJarConfig {
         extendsFrom testRuntime
     }
@@ -63,13 +63,14 @@ dependencies {
     compile project(':java-common:common')
 
     compileOnly project(':DarwinJavaApi')
-    generateXml project(':DarwinJavaApi')
+//    generateXml project(':DarwinJavaApi')
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
 targetCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
 
 sourceSets {
+/*
     xml {
         generate {
             info {
@@ -79,6 +80,7 @@ sourceSets {
             }
         }
     }
+*/
 }
 
 /*
@@ -92,6 +94,7 @@ generateXml {
 }
 */
 
+/*
 compileXmlJava {
     classpath+=sourceSets.main.runtimeClasspath
     doFirst {
@@ -101,3 +104,4 @@ compileXmlJava {
         }
     }
 }
+*/

@@ -17,6 +17,7 @@
 package nl.adaptivity.util
 
 import net.devrieze.util.StringUtil
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.IOException
@@ -46,6 +47,7 @@ object DomUtil {
      * @param document  The owning document.
      * @param qName The name of the element.
      */
+    @JvmStatic
     fun createElement(document: Document, qName: QName): Element {
         val root: Element
         if (XMLConstants.NULL_NS_URI == qName.namespaceURI || null == qName.namespaceURI) {
@@ -65,6 +67,7 @@ object DomUtil {
      * @param node The node to attach if needed.
      * @return A document or documentfragment representing the given node (it may be a clone though)
      */
+    @JvmStatic
     fun ensureAttached(node: Node?): Node? {
         if (node == null) {
             return null
@@ -80,6 +83,7 @@ object DomUtil {
         return frag
     }
 
+    @JvmStatic
     fun isAttached(node: Node): Boolean {
         if (node is Document || node is DocumentFragment) {
             return true
@@ -98,21 +102,25 @@ object DomUtil {
     }
 
     @Throws(IOException::class)
+    @JvmStatic
     fun tryParseXml(inputStream: InputStream): Document? {
         return tryParseXml(InputSource(inputStream))
     }
 
     @Throws(IOException::class)
+    @JvmStatic
     fun tryParseXml(reader: Reader): Document? {
         return tryParseXml(InputSource(reader))
     }
 
     @Throws(IOException::class)
+    @JvmStatic
     fun tryParseXml(xmlString: String): Document? {
         return tryParseXml(StringReader(xmlString))
     }
 
     @Throws(IOException::class)
+    @JvmStatic
     fun tryParseXml(xmlSource: InputSource): Document? {
         try {
             val dbf = DocumentBuilderFactory.newInstance()
@@ -130,6 +138,7 @@ object DomUtil {
     }
 
     @Throws(IOException::class)
+    @JvmStatic
     fun tryParseXmlFragment(reader: Reader): DocumentFragment {
         try {
             val dbf = DocumentBuilderFactory.newInstance()
@@ -153,10 +162,12 @@ object DomUtil {
 
     }
 
+    @JvmStatic
     fun toString(value: Node): String {
         return toString(value, DEFAULT_FLAGS)
     }
 
+    @JvmStatic
     fun toString(value: Node, flags: Int): String {
         val out = StringWriter()
         try {
@@ -172,10 +183,12 @@ object DomUtil {
         return out.toString()
     }
 
+    @JvmStatic
     fun toString(nodeList: NodeList): String {
         return toString(nodeList, DEFAULT_FLAGS)
     }
 
+    @JvmStatic
     fun toString(nodeList: NodeList, flags: Int): String {
         val out = StringWriter()
         try {
@@ -212,7 +225,6 @@ object DomUtil {
     }
 
     @JvmStatic
-    @Throws(XmlException::class)
     fun childrenToDocumentFragment(input: XmlReader): DocumentFragment {
         val dbf = DocumentBuilderFactory.newInstance()
         dbf.isNamespaceAware = true
@@ -234,7 +246,7 @@ object DomUtil {
         return documentFragment
     }
 
-    @Throws(XmlException::class)
+    @JvmStatic
     fun childToNode(`in`: XmlReader): Node {
         val dbf = DocumentBuilderFactory.newInstance()
         dbf.isNamespaceAware = true
@@ -254,10 +266,10 @@ object DomUtil {
         return documentFragment.firstChild
     }
 
-    @Throws(XmlException::class)
+    @JvmStatic
     fun nodeListToFragment(nodeList: NodeList): ICompactFragment {
         when (nodeList.length) {
-            0    -> return ICompactFragment("")
+            0    -> return CompactFragment("")
             1    -> {
                 val node = nodeList.item(0)
                 return nodeToFragment(node)
@@ -266,12 +278,12 @@ object DomUtil {
         }
     }
 
-    @Throws(XmlException::class)
+    @JvmStatic
     fun nodeToFragment(node: Node?): ICompactFragment {
         if (node == null) {
-            return ICompactFragment("")
+            return CompactFragment("")
         } else if (node is Text) {
-            return ICompactFragment(node.data)
+            return CompactFragment(node.data)
         }
         return XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
     }
@@ -299,6 +311,7 @@ object DomUtil {
      * @param name This is the full name of the element. That includes the prefix (or if no colon present) the default prefix.
      * @return The QName.
      */
+    @JvmStatic
     fun asQName(reference: Node, name: String): QName {
         val colPos = name.indexOf(':')
         if (colPos >= 0) {
@@ -310,10 +323,12 @@ object DomUtil {
 
     }
 
+    @JvmStatic
     fun getChild(parent: Element, name: QName): Element? {
         return getFirstChild(parent, name.namespaceURI, name.localPart)
     }
 
+    @JvmStatic
     fun getFirstChild(parent: Element, namespaceURI: String?, localName: String): Element? {
         var child = getFirstChildElement(parent)
         while (child != null) {
@@ -333,10 +348,12 @@ object DomUtil {
         return null
     }
 
+    @JvmStatic
     fun getNextSibling(sibling: Element, name: QName): Element? {
         return getNextSibling(sibling, name.namespaceURI, name.localPart)
     }
 
+    @JvmStatic
     fun getNextSibling(sibling: Element, namespaceURI: String, localName: String): Element? {
         var child = getNextSiblingElement(sibling)
         while (child != null) {
@@ -355,6 +372,7 @@ object DomUtil {
      * @param parent The parent element.
      * @return The first element child, or `null` if there is none.
      */
+    @JvmStatic
     fun getFirstChildElement(parent: Element): Element? {
         var child: Node? = parent.firstChild
         while (child != null) {
@@ -372,6 +390,7 @@ object DomUtil {
      * @param sibling The reference element.
      * @return The next element sibling, or `null` if there is none.
      */
+    @JvmStatic
     fun getNextSiblingElement(sibling: Element): Element? {
         var child: Node? = sibling.nextSibling
         while (child != null) {
@@ -383,6 +402,7 @@ object DomUtil {
         return null
     }
 
+    @JvmStatic
     fun setAttribute(element: Element, name: QName, value: String) {
         if (name.namespaceURI == null || XMLConstants.NULL_NS_URI == name.namespaceURI) {
             element.setAttribute(name.localPart, value)
@@ -393,6 +413,7 @@ object DomUtil {
         }
     }
 
+    @JvmStatic
     fun getPrefix(node: Node?, namespaceURI: String?): String? {
         if (node == null) {
             return null

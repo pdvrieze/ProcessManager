@@ -14,6 +14,14 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.security
+package nl.adaptivity.process.util
 
-actual typealias Principal = java.security.Principal
+import java.util.*
+
+actual interface ListSet<out E> : List<E>, Set<E> {
+    @JvmDefault
+    override fun spliterator(): Spliterator<@UnsafeVariance E> {
+        return super<List>.spliterator()
+    }
+
+}

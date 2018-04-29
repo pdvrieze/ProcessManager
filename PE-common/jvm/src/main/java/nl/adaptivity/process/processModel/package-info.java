@@ -22,12 +22,13 @@
 //
 
 @javax.xml.bind.annotation.XmlSchema(
-    namespace = nl.adaptivity.process.ProcessConsts.Engine.INSTANCE.getNAMESPACE(),
+    namespace = Engine.NAMESPACE,
     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
     xmlns={
-           @javax.xml.bind.annotation.XmlNs(prefix= nl.adaptivity.process.ProcessConsts.Soap.INSTANCE.getSOAP_ENCODING_PREFIX(), namespaceURI= nl.adaptivity.process.ProcessConsts.Soap.INSTANCE
-                                                                                                                                                   .getSOAP_ENCODING_NS()),
-           @javax.xml.bind.annotation.XmlNs(prefix=javax.xml.XMLConstants.DEFAULT_NS_PREFIX, namespaceURI= nl.adaptivity.process.ProcessConsts.Engine.INSTANCE
-                                                                                                               .getNAMESPACE())})
+           @javax.xml.bind.annotation.XmlNs(prefix= Soap.SOAP_ENCODING_PREFIX, namespaceURI= Soap.SOAP_ENCODING_NS),
+           @javax.xml.bind.annotation.XmlNs(prefix=javax.xml.XMLConstants.DEFAULT_NS_PREFIX, namespaceURI= Engine.NAMESPACE)})
 
 package nl.adaptivity.process.processModel;
+
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.process.ProcessConsts.Soap;

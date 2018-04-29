@@ -25,8 +25,8 @@
 package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.ICompactFragment;
-import nl.adaptivity.util.xml.JavaCompactFragmentKt;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.schema.annotations.Attribute;
 import nl.adaptivity.xml.schema.annotations.Child;
@@ -74,7 +74,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
   public static class Factory implements XmlDeserializerFactory<Envelope> {
 
     @Override
-    public Envelope<?> deserialize(final XmlReader reader) throws XmlException {
+    public Envelope<?> deserialize(final XmlReader reader) {
       return Envelope.deserialize(reader);
     }
   }
@@ -109,11 +109,11 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
     this(new Body<>(content));
   }
 
-  public static Envelope<ICompactFragment> deserialize(final XmlReader in) throws XmlException {
-    return deserialize(in, JavaCompactFragmentKt.getFACTORY());
+  public static Envelope<? extends ICompactFragment> deserialize(final XmlReader in) {
+    return deserialize(in, CompactFragment.getFACTORY());
   }
 
-  public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
+  public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) {
     final Envelope<T> result = new Envelope<T>();
     XmlReaderUtil.skipPreamble(in);
     final QName elementName = result.getElementName();
@@ -151,7 +151,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
     return true;
   }
 
-  public boolean deserializeChild(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
+  public boolean deserializeChild(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) {
     if (StringUtil.isEqual(NAMESPACE,in.getNamespaceUri())) {
       if (StringUtil.isEqual(Header.ELEMENTLOCALNAME, in.getLocalName())) {
         setHeader(Header.deserialize(in));
@@ -165,7 +165,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
   }
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) {
     XmlWriterUtil.smartStartTag(out, getElementName());
     XmlWriterUtil.writeAttribute(out, "encodingStyle", encodingStyle);
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {

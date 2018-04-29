@@ -30,7 +30,7 @@ expect class ProcessData(name: String?, value: ICompactFragment) : Named, ExtXml
 
     val contentStream: XmlReader
 
-    fun copy(name: String? = this.name, value: ICompactFragment = content): ProcessData
+//    fun copy(name: String? = this.name, value: ICompactFragment = content): ProcessData
 
     companion object {
 

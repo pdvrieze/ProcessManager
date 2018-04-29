@@ -16,7 +16,7 @@
 
 package nl.adaptivity.diagram
 
-import isBetween
+import nl.adaptivity.util.isBetween
 
 
 interface Bounded : Positioned, HasExtent {

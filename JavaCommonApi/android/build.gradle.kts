@@ -30,11 +30,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -49,12 +46,18 @@ import nl.adaptivity.xml.XmlReader
  * see <http://www.gnu.org/licenses/>.
  */
 
-fun XmlReader.isXml():Boolean {
-  try {
-    while (hasNext()) next()
-  } catch (e: XmlException) {
-    return false
-  }
-  return true;
+plugins {
+    id("com.android.library")
+//    id("kotlin-platform-android")
 }
 
+val `kotlin_version` by rootProject
+val kotlinVersion get() = `kotlin_version` as String?
+
+android {
+    compileSdkVersion(27)
+}
+
+dependencies {
+    api(project(":JavaCommonApi:jvm"))
+}

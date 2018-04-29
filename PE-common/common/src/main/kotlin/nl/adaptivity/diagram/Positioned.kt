@@ -23,8 +23,6 @@ interface Positioned {
    * Determine whether the element actually has a real position.
    * @return `true` if it has, `false` if not.
    */
-  val hasPos get() = !x.isNaN() && !y.isNaN()
-
   fun hasPos() = x.isFinite() && y.isFinite()
 
   /**
@@ -44,3 +42,7 @@ interface Positioned {
   val y: Double
 
 }
+
+@Deprecated("Use function", ReplaceWith("hasPos()"))
+val Positioned.hasPos
+    get() = hasPos()

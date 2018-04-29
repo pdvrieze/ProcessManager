@@ -25,8 +25,7 @@ import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.util.xml.ICompactFragment;
-import nl.adaptivity.util.xml.DomUtil;
-import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
+import nl.adaptivity.util.DomUtil;
 import nl.adaptivity.xml.*;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
@@ -171,7 +170,9 @@ public class SoapHelper {
         try {
           XmlWriter out = XmlStreaming.newWriter(new DOMResult(header));
           ((XmlSerializable) headerElem).serialize(out);
-        } catch (XmlException e) {
+        } catch (MessagingException e) {
+            throw e;
+        } catch (Exception e) { // XMLException
           throw new MessagingException(e);
         }
       } else {
@@ -294,14 +295,14 @@ public class SoapHelper {
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Source source) throws XmlException {
     XmlReader                  in  = XmlStreaming.newReader(source);
-    Envelope<ICompactFragment> env = Envelope.deserialize(in);
+    Envelope<? extends ICompactFragment> env = Envelope.deserialize(in);
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 
-  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Annotation[] useSiteAnnotations, final Envelope<ICompactFragment> env) {
+  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Annotation[] useSiteAnnotations, final Envelope<? extends ICompactFragment> env) {
     final ICompactFragment bodyContent = env.getBody().getBodyContent();
     try {
-      XmlReader reader = XMLFragmentStreamReaderKt.getXmlReader(bodyContent);
+      XmlReader reader = bodyContent.getXmlReader();
       while (reader.hasNext()) {
         switch(reader.next()) {
           case TEXT:
@@ -316,7 +317,7 @@ public class SoapHelper {
             return unMarshalNode(null, resultType, context, useSiteAnnotations, params.get(RESULT));
           }
           default:
-            XmlReaderUtil.unhandledEvent(reader);
+            XmlReaderUtil.unhandledEvent(reader, null);
         }
       }
       return null; // no nodes
@@ -326,7 +327,7 @@ public class SoapHelper {
   }
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Writable pContent) throws XmlException {
-    final Envelope<ICompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
+    final Envelope<? extends ICompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 

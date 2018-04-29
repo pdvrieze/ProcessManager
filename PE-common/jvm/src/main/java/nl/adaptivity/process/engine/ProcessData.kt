@@ -17,10 +17,11 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Named
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.util.DomUtil
-import nl.adaptivity.util.xml.ICompactFragment
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
-import nl.adaptivity.util.xml.getXmlReader
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
@@ -40,11 +41,9 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
 
     // Property accessors start
     val contentFragment: DocumentFragment
-        @Throws(XmlException::class)
         get() = DomUtil.childrenToDocumentFragment(contentStream)
 
     actual val contentStream: XmlReader
-        @Throws(XmlException::class)
         get() = content.getXmlReader()
 
     init {
@@ -52,32 +51,28 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
     }
 
     @Deprecated("")
-    @Throws(XmlException::class)
     constructor(name: String, value: NodeList?) : this(name, if (value == null || value.length <= 1) toNode(
         value) else DomUtil.toDocFragment(value)) {
     }
 
     override fun copy(name: String?): ProcessData = copy(name, content)
 
-    actual fun copy(name:String?, value: ICompactFragment) = ProcessData(name, value)
+    fun copy(name:String?, value: ICompactFragment): ProcessData = ProcessData(name, value)
 
     /**
      * @see .ProcessData
      */
     @Deprecated("Initialise with compact fragment instead.")
-    @Throws(XmlException::class)
     constructor(name: String, value: Node?) : this(name,
                                                    toCompactFragment(
                                                        value)) {
     }
 
     @Deprecated("")
-    @Throws(XmlException::class)
     constructor(name: String, value: List<Node>) : this(name, DomUtil.toDocFragment(value)) {
     }
 
 
-    @Throws(XmlException::class)
     override fun deserializeChildren(reader: XmlReader) {
         val expected = EventType.END_ELEMENT
         if (reader.next() !== expected) {
@@ -130,10 +125,9 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
 
     actual companion object {
 
-//        val ELEMENTLOCALNAME = "value"
-//        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+        actual val ELEMENTLOCALNAME = "value"
+        actual val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
 
-        @Throws(XmlException::class)
         private fun toCompactFragment(value: Node?): ICompactFragment {
             return DomUtil.nodeToFragment(value)
         }
@@ -148,12 +142,11 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
         // Property acccessors end
 
         actual fun missingData(name: String): ProcessData {
-            return ProcessData(name, ICompactFragment(""))
+            return ProcessData(name, CompactFragment(""))
         }
 
-        @Throws(XmlException::class)
         actual fun deserialize(reader: XmlReader): ProcessData {
-            return ProcessData(null, ICompactFragment("")).deserializeHelper(reader)
+            return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
         }
     }
 }

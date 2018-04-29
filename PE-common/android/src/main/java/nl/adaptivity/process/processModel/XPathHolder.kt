@@ -17,25 +17,19 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.StringUtil
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CombiningNamespaceContext
 import nl.adaptivity.xml.*
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.xml.XMLConstants
-import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
-import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
 import kotlin.jvm.Volatile
-
 
 actual abstract class XPathHolder : XMLContainer {
     /**
@@ -66,21 +60,15 @@ actual abstract class XPathHolder : XMLContainer {
 
     actual constructor() : super()
 
-    actual constructor(content: CharArray?,
-                       originalNSContext: Iterable<Namespace>,
-                       path: String?,
-                       name: String?) : super(originalNSContext, content ?: CharArray(0)) {
+    actual constructor(content: CharArray?, originalNSContext: Iterable<Namespace>, path: String?, name: String?) : super(originalNSContext, content ?: CharArray(0)) {
         _name = name
         setPath(originalNSContext, path)
     }
 
     actual fun getName() = _name
 
-    actual fun setName(value: String?) {
-        _name = value
-    }
+    actual fun setName(value:String?) { _name = value }
 
-    @XmlAttribute(name = "xpath")
     actual fun getPath(): String? {
         return pathString
     }
@@ -102,9 +90,7 @@ actual abstract class XPathHolder : XMLContainer {
         path = null // invalidate the cached path expression
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                             attributeLocalName: CharSequence,
-                                             attributeValue: CharSequence): Boolean {
+    actual override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
         when (attributeLocalName.toString()) {
             "name"                       -> {
                 _name = StringUtil.toString(attributeValue)
@@ -158,7 +144,7 @@ actual abstract class XPathHolder : XMLContainer {
     }
 
     @Throws(XmlException::class)
-    protected actual override fun visitNamespaces(baseContext: NamespaceContext) {
+    protected actual override open fun visitNamespaces(baseContext: NamespaceContext) {
         path = null
         if (pathString != null) {
             visitXpathUsedPrefixes(pathString, baseContext)
@@ -166,22 +152,11 @@ actual abstract class XPathHolder : XMLContainer {
         super.visitNamespaces(baseContext)
     }
 
-    protected actual override fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                                         owner: QName,
-                                                         attributeName: QName,
-                                                         attributeValue: CharSequence) {
+    protected actual override open fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }
     }
-
-    fun applyData(payload: Node?): ProcessData = path.let { p ->
-        when (p) {
-            null -> ProcessData(_name!!, payload)
-            else -> ProcessData(_name!!, p.evaluate(payload, XPathConstants.NODESET) as NodeList)
-        }
-    }
-
 
     actual companion object {
 
@@ -210,9 +185,7 @@ actual abstract class XPathHolder : XMLContainer {
                     xpath.namespaceContext = namespaceContext
                     xpath.compile(path.toString())
                 } catch (e: XPathExpressionException) {
-                    Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING,
-                                                                             "The path used is not valid (" + path + ") - " + e.message,
-                                                                             e)
+                    Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING, "The path used is not valid (" + path + ") - " + e.message, e)
                 }
 
             }

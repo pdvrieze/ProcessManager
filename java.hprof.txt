@@ -1444,7 +1444,7 @@ TRACE 300605:
 	java.lang.ClassLoader.checkCerts(ClassLoader.java:895)
 	java.lang.ClassLoader.preDefineClass(ClassLoader.java:668)
 TRACE 300606:
-	nl.adaptivity.process.processModel.ProcessModelBase$Builder.ensureId(ProcessModelBase.kt:43)
+	ProcessModelBase$Builder.ensureId(ProcessModelBase.kt:43)
 	nl.adaptivity.process.engine.ConfigurableModel.provideDelegate(Model.kt:90)
 	nl.adaptivity.process.engine.patterns.WCP8$1$model$1.<init>(WCP8.kt:86)
 	nl.adaptivity.process.engine.patterns.WCP8.<init>(WCP8.kt:27)
@@ -1461,7 +1461,7 @@ TRACE 300608:
 TRACE 300609:
 	nl.adaptivity.process.processModel.RootProcessModel$Builder$DefaultImpls.normalize(RootProcessModel.kt:50)
 	nl.adaptivity.process.processModel.RootProcessModelBase$Builder.normalize(RootProcessModelBase.kt:44)
-	nl.adaptivity.process.processModel.ProcessModelBase.<init>(ProcessModelBase.kt:140)
+	ProcessModelBase.<init>(ProcessModelBase.kt:140)
 	nl.adaptivity.process.processModel.RootProcessModelBase.<init>(RootProcessModelBase.kt:240)
 TRACE 300610:
 	java.io.FileInputStream.close0(FileInputStream.java:Unknown line)
@@ -1486,7 +1486,7 @@ TRACE 300613:
 TRACE 300614:
 	kotlin.jvm.internal.Intrinsics.areEqual(Intrinsics.java:163)
 	nl.adaptivity.process.processModel.ProcessModel$Builder$DefaultImpls.activity(ProcessModel.kt:94)
-	nl.adaptivity.process.processModel.ProcessModelBase$Builder.activity(ProcessModelBase.kt:43)
+	ProcessModelBase$Builder.activity(ProcessModelBase.kt:43)
 	nl.adaptivity.process.engine.patterns.WCP8$2$2$modifiedModel$1.invoke(WCP8.kt:65)
 TRACE 300615:
 	java.lang.ClassLoader.loadClass(ClassLoader.java:415)
@@ -1947,7 +1947,7 @@ TRACE 300755:
 	nl.adaptivity.process.util.IdentifyableSet$DefaultImpls.get(IdentifyableSet.kt:433)
 	nl.adaptivity.process.util.MutableIdentifyableSet$DefaultImpls.get(IdentifyableSet.kt:Unknown line)
 	nl.adaptivity.process.util.IdentifyableSet$BaseIdentifyableSet.get(IdentifyableSet.kt:104)
-	nl.adaptivity.process.processModel.ProcessModelBase.getNode(ProcessModelBase.kt:160)
+	ProcessModelBase.getNode(ProcessModelBase.kt:160)
 TRACE 300757:
 	net.devrieze.util.HandleMapForwarder.get(TransactionedHandleMap.kt:98)
 	nl.adaptivity.process.engine.ProcessEngineDataAccess$DefaultImpls.instance(IProcessEngineData.kt:85)
@@ -2680,7 +2680,7 @@ TRACE 300946:
 	nl.adaptivity.process.engine.ModelSpekKt$startProcess$1.invoke(ModelSpek.kt:199)
 TRACE 300947:
 	nl.adaptivity.process.processModel.RootProcessModelBase.get_processNodes(RootProcessModelBase.kt:41)
-	nl.adaptivity.process.processModel.ProcessModelBase.getNode(ProcessModelBase.kt:160)
+	ProcessModelBase.getNode(ProcessModelBase.kt:160)
 	nl.adaptivity.process.engine.ProcessInstance.startSuccessors(ProcessInstance.kt:578)
 	nl.adaptivity.process.engine.ProcessInstance.handleFinishedState(ProcessInstance.kt:548)
 TRACE 300948:
@@ -3470,7 +3470,7 @@ rank   self  accum   count trace method
  268  0.01% 95.47%       1 300596 java.security.Provider$Service.addAttribute
  269  0.01% 95.48%       1 300603 sun.security.provider.SHA.implDigest
  270  0.01% 95.50%       1 300605 java.util.concurrent.ConcurrentHashMap.putVal
- 271  0.01% 95.51%       1 300606 nl.adaptivity.process.processModel.ProcessModelBase$Builder.ensureId
+ 271  0.01% 95.51%       1 300606 ProcessModelBase$Builder.ensureId
  272  0.01% 95.52%       1 300607 nl.adaptivity.process.processModel.engine.ExecutableProcessModel$Builder.build
  273  0.01% 95.54%       1 300608 java.util.Arrays.copyOf
  274  0.01% 95.55%       1 300609 nl.adaptivity.process.processModel.RootProcessModel$Builder$DefaultImpls.normalize

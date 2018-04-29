@@ -16,26 +16,29 @@
 
 package nl.adaptivity.ws
 
+import nl.adaptivity.messaging.MessagingException
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
+
 /**
  * Created by pdvrieze on 28/11/15.
  */
 abstract class WsMethodWrapper(protected val owner: Any, protected val method: Method) {
-    protected var params: Array<Any>? = null
-    protected var result: Any?
+    protected var params: Array<Any?>? = null
+    protected open var result: Any? = null
 
-    fun exec() {
-        if (params == null) {
-            throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
-        }
+    open fun exec() {
+        val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+
         try {
             result = method.invoke(owner, *params)
-        } catch (e: IllegalArgumentException) {
-            throw MessagingException(e)
-        } catch (e: IllegalAccessException) {
-            throw MessagingException(e)
         } catch (e: InvocationTargetException) {
             val cause = e.cause
             throw MessagingException(cause ?: e)
+        } catch (e: MessagingException) {
+            throw e
+        } catch (e: Exception) {
+            throw MessagingException(e)
         }
 
     }

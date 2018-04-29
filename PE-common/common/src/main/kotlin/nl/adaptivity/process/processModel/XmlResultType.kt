@@ -84,49 +84,6 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
   override val elementName: QName
     get() = ELEMENTNAME
 
-/*
-  */
-/**
-   * Transform the given payload as specified by tag.
-   * @param payload
-   *
-   * @return
-   *//*
-
-  override fun applyData(payload: Node?): ProcessData {
-    // TODO add support for variable and function resolvers.
-    try {
-      // shortcircuit missing path
-      if (payload==null) { return ProcessData(getName(), CompactFragment(""))
-      }
-      val processData = if (getPath() == null || "" == getPath()) {
-          ProcessData(getName(), DomUtil.nodeToFragment(payload))
-      } else {
-          ProcessData(getName(), DomUtil.nodeListToFragment(
-              xPath!!.evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET) as NodeList))
-      }
-      val content = content
-      if (content?.isNotEmpty() ?: false) {
-        val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
-        val reader = transformer.createFilter(bodyStreamReader)
-
-        if (reader.hasNext()) reader.next() // Initialise the reader
-
-        val transformed = reader.siblingsToFragment()
-        return ProcessData(getName(), transformed)
-      } else {
-        return processData
-      }
-
-
-    } catch (e: XPathExpressionException) {
-      throw RuntimeException(e)
-    } catch (e: XmlException) {
-      throw RuntimeException(e)
-    }
-
-  }
-*/
 
   companion object {
 

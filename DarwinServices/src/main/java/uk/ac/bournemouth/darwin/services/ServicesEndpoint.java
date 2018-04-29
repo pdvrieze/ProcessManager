@@ -18,7 +18,7 @@ package uk.ac.bournemouth.darwin.services;
 
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
-import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParamType;
 

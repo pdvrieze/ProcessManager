@@ -781,7 +781,7 @@
     <TableColumn><![CDATA[692]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.process.processModel.ProcessModelBase.getNode(nl.adaptivity.process.util.Identifiable)]]></TableColumn>
+    <TableColumn><![CDATA[ProcessModelBase.getNode(nl.adaptivity.process.util.Identifiable)]]></TableColumn>
     <TableColumn><![CDATA[0.17%]]></TableColumn>
     <TableColumn><![CDATA[5.438 ms]]></TableColumn>
     <TableColumn><![CDATA[24.923 ms]]></TableColumn>
@@ -3266,7 +3266,7 @@
     <TableColumn><![CDATA[4150]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.process.processModel.ProcessModelBase.getModelNodes()]]></TableColumn>
+    <TableColumn><![CDATA[ProcessModelBase.getModelNodes()]]></TableColumn>
     <TableColumn><![CDATA[0.02%]]></TableColumn>
     <TableColumn><![CDATA[0.604 ms]]></TableColumn>
     <TableColumn><![CDATA[0.792 ms]]></TableColumn>
@@ -4736,7 +4736,7 @@
     <TableColumn><![CDATA[1019]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[nl.adaptivity.process.processModel.ProcessModelBase.getImports()]]></TableColumn>
+    <TableColumn><![CDATA[ProcessModelBase.getImports()]]></TableColumn>
     <TableColumn><![CDATA[0.00%]]></TableColumn>
     <TableColumn><![CDATA[0.089 ms]]></TableColumn>
     <TableColumn><![CDATA[0.089 ms]]></TableColumn>

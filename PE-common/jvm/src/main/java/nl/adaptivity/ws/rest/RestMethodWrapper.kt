@@ -24,13 +24,14 @@ import nl.adaptivity.messaging.HttpResponseException
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.rest.annotations.RestParam
-import nl.adaptivity.rest.annotations.RestParam.ParamType
+import nl.adaptivity.rest.annotations.RestParamType
+import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.HttpMessage
-import nl.adaptivity.util.KotlinEnumHelper
 import nl.adaptivity.util.activation.Sources
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.util.xml.DomUtil
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.IOException
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.*
@@ -59,7 +60,7 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
-
+import kotlin.jvm.Volatile
 
 abstract class RestMethodWrapper protected constructor(owner: Any, method: Method) : nl.adaptivity.ws.WsMethodWrapper(
     owner, method) {
@@ -90,11 +91,10 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       get() = method.declaringClass
 
     override fun exec() {
-      if (params == null) {
-        throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
-      }
+      val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+
       try {
-        result = method(mOwner, *params)
+        result = method(owner, *params)
       } catch (e: IllegalArgumentException) {
         throw MessagingException(e)
       } catch (e: IllegalAccessException) {
@@ -108,10 +108,9 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
   }
 
-  private class Java8RestMethodWrapper(pOwner: Any, pMethod: Method) : RestMethodWrapper(pOwner, pMethod) {
+  private class Java8RestMethodWrapper(owner: Any, method: Method) : RestMethodWrapper(owner, method) {
 
-    private val methodHandle: Method = pMethod
-    private val owner: Any = pOwner
+    private val methodHandle: Method = method
     override val parameterAnnotations: Array<Array<Annotation>>
     override val elementWrapper: XmlElementWrapper?
     override val genericReturnType: Type
@@ -121,12 +120,12 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
     init {
       try {
-        parameterAnnotations = pMethod.parameterAnnotations
-        elementWrapper = pMethod.getAnnotation(XmlElementWrapper::class.java)
-        genericReturnType = pMethod.genericReturnType
-        returnType = pMethod.returnType
-        restMethod = pMethod.getAnnotation(RestMethod::class.java)
-        declaringClass = pMethod.declaringClass
+        parameterAnnotations = method.parameterAnnotations
+        elementWrapper = method.getAnnotation(XmlElementWrapper::class.java)
+        genericReturnType = method.genericReturnType
+        returnType = method.returnType
+        restMethod = method.getAnnotation(RestMethod::class.java)
+        declaringClass = method.declaringClass
       } catch (e: IllegalAccessException) {
         throw RuntimeException(e)
       }
@@ -137,9 +136,8 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       get() = methodHandle.parameterTypes
 
     override fun exec() {
-      if (params == null) {
-        throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
-      }
+      val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+
       try {
         result = methodHandle.invoke(owner, *params)
       } catch (e: InvocationTargetException) {
@@ -198,16 +196,17 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
     val parameterTypes = parameterTypes
     val parameterAnnotations = parameterAnnotations
     val argCnt = 0
-    params = arrayOfNulls<Any>(parameterTypes.size)
+    val params = arrayOfNulls<Any?>(parameterTypes.size)
+
 
     for (i in parameterTypes.indices) {
       val annotation = Annotations.getAnnotation(parameterAnnotations[i], RestParam::class.java)
       val name: String
-      val type: ParamType
+      val type: RestParamType
       val xpath: String?
       if (annotation == null) {
         name = "arg" + Integer.toString(argCnt)
-        type = ParamType.QUERY
+        type = RestParamType.QUERY
         xpath = null
       } else {
         name = annotation.name
@@ -216,16 +215,17 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       }
 
       when (type) {
-        RestParam.ParamType.ATTACHMENT -> {
+        RestParamType.ATTACHMENT -> {
           if (httpMessage.attachments.isEmpty()) {
             // No attachments, are we the only one, then take the body
             val attachmentCount = parameterAnnotations.asSequence()
               .mapNotNull { Annotations.getAnnotation(it, RestParam::class.java) }
-              .count { it.type == ParamType.ATTACHMENT }
+              .count { it.type == RestParamType.ATTACHMENT }
 
             if (attachmentCount == 1) {
-              if (httpMessage.body != null) {
-                params[i] = coerceBody(parameterTypes[i], name, httpMessage.body)
+              val messageBody = httpMessage.body
+              if (messageBody != null) {
+                params[i] = coerceBody(parameterTypes[i], name, messageBody)
               } else if (httpMessage.byteContent.size == 1) {
                 params[i] = coerceSource(parameterTypes[i], httpMessage.byteContent[0])
               }
@@ -239,24 +239,27 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
 
     }
+
+    this.params = params
+
   }
 
   @Throws(XmlException::class)
   private fun getParam(parameterJavaClass: Class<*>,
                        paramName: String,
-                       restParamType: ParamType,
+                       restParamType: RestParamType,
                        xpath: String?,
                        httpMessage: HttpMessage): Any? {
     var result = when (restParamType) {
-      RestParam.ParamType.GET        -> getParamGet(paramName, httpMessage)
-      RestParam.ParamType.POST       -> getParamPost(paramName, httpMessage)
-      RestParam.ParamType.QUERY      -> getParamGet(paramName, httpMessage) ?: getParamPost(paramName, httpMessage)
-      RestParam.ParamType.VAR        -> pathParams[paramName]
-      RestParam.ParamType.XPATH      -> getParamXPath(parameterJavaClass, xpath ?: ".", httpMessage.body)
-      RestParam.ParamType.BODY       -> getBody(parameterJavaClass, httpMessage)
-      RestParam.ParamType.ATTACHMENT -> getAttachment(parameterJavaClass, paramName, httpMessage)
-      RestParam.ParamType.PRINCIPAL  -> if (parameterJavaClass.isAssignableFrom(String::class.java)) {
-        httpMessage.userPrincipal.name
+      RestParamType.GET        -> getParamGet(paramName, httpMessage)
+      RestParamType.POST       -> getParamPost(paramName, httpMessage)
+      RestParamType.QUERY      -> getParamGet(paramName, httpMessage) ?: getParamPost(paramName, httpMessage)
+      RestParamType.VAR        -> pathParams[paramName]
+      RestParamType.XPATH      -> getParamXPath(parameterJavaClass, xpath ?: ".", httpMessage.body ?: CompactFragment(""))
+      RestParamType.BODY       -> getBody(parameterJavaClass, httpMessage)
+      RestParamType.ATTACHMENT -> getAttachment(parameterJavaClass, paramName, httpMessage)
+      RestParamType.PRINCIPAL  -> if (parameterJavaClass.isAssignableFrom(String::class.java)) {
+        httpMessage.userPrincipal?.name
       } else {
         httpMessage.userPrincipal
       }
@@ -431,7 +434,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         for (item in collection) {
           when (item) {
             is XmlSerializable -> item.serialize(xmlWriter)
-            is Node                              -> xmlWriter.serialize(item)
+            is Node                              -> xmlWriter.serialize(item as Node)
             null                                 -> Unit
             else                                 -> {
               val m = marshaller ?: run {
@@ -468,7 +471,8 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
   companion object {
 
-    @Volatile private var _getDelegate: Method? = null
+    @Volatile
+    private var _getDelegate: Method? = null
 
     operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
       // Make it work with private methods and
@@ -490,8 +494,8 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       }
     }
 
-    private fun getAttachment(pClass: Class<*>, pName: String?, pMessage: HttpMessage)
-      = coerceSource(pClass, pMessage.getAttachment(pName))
+    private fun getAttachment(pClass: Class<*>, name: String?, pMessage: HttpMessage)
+      = coerceSource(pClass, pMessage.getAttachment(name))
 
     private fun coerceBody(pTargetType: Class<*>, name: String, pBody: ICompactFragment): Any? {
       val dataSource = object : DataSource {
@@ -598,6 +602,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
 }
 
-private inline fun Class<Enum<*>>.valueOf(name:String): Enum<*> {
-  return KotlinEnumHelper.enumValueOf(this, name)
+private fun Class<Enum<*>>.valueOf(name:String): Enum<*> {
+  return this.enumConstants.first { it.name == name }
 }

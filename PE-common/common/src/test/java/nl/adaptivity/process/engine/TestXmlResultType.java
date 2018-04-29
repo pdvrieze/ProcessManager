@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.DomUtil;
+import nl.adaptivity.util.DomUtil;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.testng.annotations.Test;

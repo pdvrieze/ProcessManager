@@ -75,7 +75,7 @@ test {
 dependencies {
     expectedBy project(':PE-common:common')
 //    generateXml project(':xmlutil:generator')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation project(':xmlutil:core:jvm')
     implementation project(':multiplatform:jvm')
     implementation project(':java-common:jvm')
@@ -119,6 +119,9 @@ generateXml {
     }
 }
 */
+compileKotlin {
+    kotlinOptions.freeCompilerArgs=['-Xenable-jvm-default']
+}
 
 compileXmlJava {
     classpath+=sourceSets.main.runtimeClasspath

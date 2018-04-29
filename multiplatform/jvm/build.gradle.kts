@@ -31,12 +31,13 @@
  */
 
 plugins {
+    `java-library`
     id("kotlin-platform-jvm")
 }
 
 dependencies {
     expectedBy(project(":multiplatform:common"))
     expectedBy(project(":multiplatform:common-java"))
-    implementation(project(":multiplatform:java"))
-    implementation(kotlin("stdlib-jdk8"))
+    api(project(":multiplatform:java"))
+    implementation(kotlin("stdlib-jdk7"))
 }

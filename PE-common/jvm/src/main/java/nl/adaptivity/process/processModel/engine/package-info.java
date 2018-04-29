@@ -21,15 +21,22 @@
 // Generated on: 2009.08.27 at 08:15:55 PM CEST
 //
 
-@javax.xml.bind.annotation.XmlSchema(
-    namespace = nl.adaptivity.process.ProcessConsts.Engine.INSTANCE.getNAMESPACE(),
-    elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+@XmlSchema(
+    namespace = Engine.NAMESPACE,
+    elementFormDefault = XmlNsForm.QUALIFIED,
     xmlns={
-           @javax.xml.bind.annotation.XmlNs(prefix= nl.adaptivity.process.ProcessConsts.Soap.INSTANCE.getSOAP_ENCODING_PREFIX(), namespaceURI= nl.adaptivity.process.ProcessConsts.Soap.INSTANCE
-                                                                                                                                                   .getSOAP_ENCODING_NS()),
-           @javax.xml.bind.annotation.XmlNs(prefix=javax.xml.XMLConstants.DEFAULT_NS_PREFIX, namespaceURI= nl.adaptivity.process.ProcessConsts.Engine.INSTANCE
-                                                                                                               .getNAMESPACE())})
+           @XmlNs(prefix= Soap.SOAP_ENCODING_PREFIX, namespaceURI= Soap.SOAP_ENCODING_NS),
+           @XmlNs(prefix=XMLConstants.DEFAULT_NS_PREFIX, namespaceURI= Engine.NAMESPACE)})
 
-@javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter(
+@XmlJavaTypeAdapter(
     type=java.util.UUID.class, value=nl.adaptivity.xml.UUIDAdapter.class)
 package nl.adaptivity.process.processModel.engine;
+
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.process.ProcessConsts.Soap;
+
+import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.XmlNs;
+import javax.xml.bind.annotation.XmlNsForm;
+import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
