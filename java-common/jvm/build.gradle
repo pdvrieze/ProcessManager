@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (c) 2018. 
  *
@@ -31,10 +33,14 @@ test {
     useTestNG()
 }
 
+tasks.withType(KotlinCompile) {
+    kotlinOptions.freeCompilerArgs=["-Xenable-jvm-default"]
+}
+
 dependencies {
     api project(':JavaCommonApi:jvm')
     api project(':multiplatform:jvm')
-//    implementation project(":kotlinsql")
+    api project(":kotlinsql")
     implementation "org.jetbrains:annotations:13.0"
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     expectedBy project(":java-common:common")

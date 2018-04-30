@@ -14,23 +14,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util
+package net.devrieze.util.security
 
-import nl.adaptivity.util.multiplatform.JvmDefault
+import net.devrieze.util.security.SecurityProvider.Permission
+import nl.adaptivity.util.security.Principal
 
-interface Handle<out T : Any?> {
 
-    val handleValue: Long
-    @Deprecated("Use isValid", ReplaceWith("isValid"))
-    val valid: Boolean
+interface SecureObject<out T> :SecuredObject<T> {
+
+  enum class Permissions : Permission {
+    READ,
+    RENAME,
+    UPDATE,
+    DELETE
+  }
+
+  /**
+   * The owner of the object. Null values are not allowed. All unowned objects can have [SYSTEMPRINCIPAL] as owner.
+   */
+  val owner: Principal
+
 }
-
-interface ComparableHandle<out T: Any?> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
-    @JvmDefault
-    override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>):Int {
-        return handleValue.compareTo(other.handleValue)
-    }
-}
-
-
-val Handle<*>.isValid get() = handleValue >= 0

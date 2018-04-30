@@ -25,7 +25,7 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
-import nl.adaptivity.xml.CompactFragment
+import nl.adaptivity.util.xml.CompactFragment
 import uk.ac.bournemouth.kotlinsql.Column
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.Table
@@ -48,7 +48,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     get() = listOf(pi.owner, pi.pmhandle, pi.name, pi.pihandle, pi.state, pi.uuid, pi.parentActivity)
 
   override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ProcessInstance.BaseBuilder {
-    val owner = SimplePrincipal(pi.owner.nullableValue(columns, values))
+    val owner = pi.owner.nullableValue(columns, values)?.let(::SimplePrincipal) ?: SYSTEMPRINCIPAL
     val hProcessModel = pi.pmhandle.value(columns, values)
     val parentActivity = pi.parentActivity.value(columns, values)
     val processModel = mProcessEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SYSTEMPRINCIPAL).mustExist(hProcessModel)

@@ -32,9 +32,9 @@ expect abstract class XPathHolder : XMLContainer {
 
   constructor(content: CharArray?, originalNSContext: Iterable<Namespace>, path: String?, name: String?)
 
-  fun getName():String?
+  fun getName():String
 
-  fun setName(value:String?)
+  fun setName(value:String)
 
   fun getPath(): String?
 

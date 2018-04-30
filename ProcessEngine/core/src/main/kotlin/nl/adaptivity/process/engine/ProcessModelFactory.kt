@@ -21,7 +21,6 @@ import net.devrieze.util.StringCache
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel

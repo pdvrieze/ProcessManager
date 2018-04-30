@@ -19,7 +19,10 @@ package nl.adaptivity.process.engine.servlet;
 import net.devrieze.util.ComparableHandle;
 import net.devrieze.util.Handle;
 import net.devrieze.util.Handles;
-import net.devrieze.util.security.*;
+import net.devrieze.util.security.AuthenticationNeededException;
+import net.devrieze.util.security.SYSTEMPRINCIPAL;
+import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecuredObject;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
@@ -37,12 +40,11 @@ import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.RootProcessModelBase;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.HttpMethod;
+import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParamType;
 import nl.adaptivity.util.DomUtil;
-import nl.adaptivity.util.xml.XMLFragmentStreamReaderKt;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -223,7 +225,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     }
 
     public XmlReader getSource() throws XmlException {
-      return XMLFragmentStreamReaderKt.getXmlReader(mMessage.getMessageBody());
+      return mMessage.getMessageBody().getXmlReader();
     }
 
     @Override
@@ -331,9 +333,9 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         if ("handle".equals(valueName)) {
           out.add(xef.createCharacters(Long.toString(nodeInstance.getHandleValue())));
         } else if ("endpoint".equals(valueName)) {
-          final QName qname1 = new QName(Constants.INSTANCE.getMY_JBI_NS_STR(), "endpointDescriptor", "");
+          final QName qname1 = new QName(Constants.MY_JBI_NS_STR, "endpointDescriptor", "");
           final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("",
-                                                                                           Constants.INSTANCE.getMY_JBI_NS_STR()));
+                                                                                           Constants.MY_JBI_NS_STR));
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {
@@ -542,7 +544,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         final IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> ref = pm.withPermission().getRef();
         list.add(ProcessModelRef.get(ref));
       }
-      return transaction.commit(new SerializableList<ProcessModelRef<?,?,?>>(REFS_TAG, list));
+      return transaction.commit(new SerializableList<>(REFS_TAG, list));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error getting process model references", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -577,10 +579,9 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
    * @param user The user performing the update. This will be verified against ownership and permissions
    * @return A reference to the model. This may include a newly generated uuid if not was provided.
    * @throws IOException
-   * @throws XmlException
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
-  public ProcessModelRef<?,?,?> updateProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
+  public ProcessModelRef<?,?,?> updateProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) throws IOException {
     ExecutableProcessModel processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ExecutableProcessModel.class);
     return updateProcessModel(handle, processModel, user);
   }
@@ -599,7 +600,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
       processModel.setHandleValue(handle);
 
       try (TRXXX transaction = mProcessEngine.startTransaction()){
-        return transaction.commit(ProcessModelRef.get(mProcessEngine.updateProcessModel(transaction, Handles.INSTANCE.<ExecutableProcessModel>handle(handle), processModel, user)));
+        return transaction.commit(ProcessModelRef.get(mProcessEngine.updateProcessModel(transaction, Handles.handle(handle), processModel, user)));
       } catch (SQLException e) {
         getLogger().log(Level.WARNING, "Error updating process model", e);
         throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -615,7 +616,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
    * @return A reference to the model with handle and a new uuid if none was provided.
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
-  public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = RestParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
+  public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = RestParamType.PRINCIPAL) final Principal owner) throws IOException {
     ExecutableProcessModel processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ExecutableProcessModel.class);
     return postProcessModel(processModel, owner);
   }
@@ -899,10 +900,10 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
             final Document domResult = DomUtil.tryParseXml(result.getInputStream());
             Element rootNode = domResult.getDocumentElement();
             // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
-            if (Envelope.Companion.getNAMESPACE().equals(rootNode.getNamespaceURI()) && Envelope.Companion.getELEMENTLOCALNAME()
+            if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME
                                                                                             .equals(rootNode.getLocalName())) {
-              final Element header = DomUtil.getFirstChild(rootNode, Envelope.Companion.getNAMESPACE(),
-                                                           org.w3.soapEnvelope.Header.Companion.getELEMENTLOCALNAME());
+              final Element header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE,
+                                                           org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
               if (header != null) {
                 rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS,
                                                  ActivityResponse.Companion.getELEMENTLOCALNAME());

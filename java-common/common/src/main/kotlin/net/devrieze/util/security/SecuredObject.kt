@@ -17,7 +17,7 @@
 package net.devrieze.util.security
 
 import net.devrieze.util.security.SecurityProvider.Permission
-import java.security.Principal
+import nl.adaptivity.util.security.Principal
 
 /**
  * Interface for objects that will provide interface access with a permission.
@@ -27,7 +27,7 @@ interface SecuredObject<out T> {
   fun withPermission():T
 }
 
-private val defaultAlternate = fun  (securityProvider: SecurityProvider, permission: Permission, subject: Principal, o: SecureObject<*>) {securityProvider.ensurePermission(permission, subject, o); throw IllegalStateException() }
+private val defaultAlternate = fun(securityProvider: SecurityProvider, permission: Permission, subject: Principal, o: SecureObject<*>) {securityProvider.ensurePermission(permission, subject, o); throw IllegalStateException() }
 
 inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: Permission, subject:Principal, body: (T)->R):R {
   securityProvider.ensurePermission(permission, subject, this)

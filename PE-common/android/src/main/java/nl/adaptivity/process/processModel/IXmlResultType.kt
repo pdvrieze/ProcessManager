@@ -28,9 +28,9 @@ actual interface IXmlResultType : XmlSerializable {
     /**
      * The value of the name property.
      */
-    actual fun getName(): String?
+    actual fun getName(): String
 
-    actual fun setName(value: String?)
+    actual fun setName(value: String)
 
     /**
      * Gets the value of the path property.

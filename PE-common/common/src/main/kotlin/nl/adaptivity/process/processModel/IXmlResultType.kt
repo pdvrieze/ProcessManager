@@ -27,9 +27,9 @@ expect interface IXmlResultType : XmlSerializable {
   /**
    * The value of the name property.
    */
-  fun getName(): String?
+  fun getName(): String
 
-  fun setName(value:String?)
+  fun setName(value:String)
 
   /**
    * Gets the value of the path property.
@@ -59,8 +59,8 @@ expect interface IXmlResultType : XmlSerializable {
 val IXmlResultType.path:String?
   inline get() = getPath()
 
-var IXmlResultType.name:String?
-  inline get() = getName()
+var IXmlResultType.name:String
+  inline get(): String = getName()
   inline set(value) { setName(value) }
 
-fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext ?: emptyList()
+fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext

@@ -22,10 +22,8 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
 import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xml.*
 import java.util.*
-import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.*
 
@@ -37,18 +35,11 @@ import javax.xml.xpath.*
  */
 class ExecutableCondition(condition: String) : XmlSerializable, Condition {
   val isAlternate: Boolean = condition.trim().toLowerCase(Locale.ENGLISH)=="otherwise"
-  private val condition: String = if(isAlternate) "" else condition
+  override val condition: String = if(isAlternate) "" else condition
 
   @Throws(XmlException::class)
   override fun serialize(out: XmlWriter) {
     out.writeSimpleElement(QName(Engine.NAMESPACE, Condition.ELEMENTLOCALNAME, Engine.NSPREFIX), condition)
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.engine.Condition#getCondition()
-   */
-  override fun getCondition(): String {
-    return condition
   }
 
   /**

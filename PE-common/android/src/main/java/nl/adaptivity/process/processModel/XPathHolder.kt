@@ -65,9 +65,9 @@ actual abstract class XPathHolder : XMLContainer {
         setPath(originalNSContext, path)
     }
 
-    actual fun getName() = _name
+    actual fun getName() = _name ?: throw NullPointerException("Name not set")
 
-    actual fun setName(value:String?) { _name = value }
+    actual fun setName(value:String) { _name = value }
 
     actual fun getPath(): String? {
         return pathString
@@ -84,7 +84,7 @@ actual abstract class XPathHolder : XMLContainer {
     }
 
     @Deprecated("")
-    fun setNamespaceContext(namespaceContext: Iterable<out Namespace>) {
+    fun setNamespaceContext(namespaceContext: Iterable<Namespace>) {
         setContent(namespaceContext, content)
 
         path = null // invalidate the cached path expression

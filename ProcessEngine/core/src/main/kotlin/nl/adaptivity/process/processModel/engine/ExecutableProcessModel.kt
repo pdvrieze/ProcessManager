@@ -122,7 +122,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: Builder,
 
       }
     }
-    setName(stringCache.lookup(name))
+    getName()?.let { setName(stringCache.lookup(it)) }
     val oldRoles = roles
     if (oldRoles.isNotEmpty()) {
       val newRoles = oldRoles.map { stringCache.lookup(it) }

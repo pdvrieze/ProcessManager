@@ -16,6 +16,7 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.URI
 
 object Handles {
@@ -52,6 +53,7 @@ object Handles {
 
     }
 
+    @JvmStatic
     fun <T> getInvalid(): ComparableHandle<T> {
         @Suppress("UNCHECKED_CAST")
         return INVALID as ComparableHandle<T>
@@ -63,11 +65,13 @@ object Handles {
      * @param handle The handle
      * @return a Handle<T> object corresponding to the handle.
      */
+    @JvmStatic
     fun <T> handle(handle: Long): ComparableHandle<T> {
         return if (handle < 0) getInvalid() else SimpleHandle(
             handle)
     }
 
+    @JvmStatic
     fun <T> handle(handle: Handle<T>): ComparableHandle<T> {
         return if (handle is ComparableHandle<*>) {
             handle as ComparableHandle<T>
@@ -80,10 +84,12 @@ object Handles {
      * @param T
      * @return
      */
+    @JvmStatic
     fun <T> handle(handle: String): ComparableHandle<T> {
         return handle(handle.toLong())
     }
 
+    @JvmStatic
     fun <T> handle(handle: URI): ComparableHandle<T> {
         val path = handle.getPath()
         val slashPos = path.lastIndexOf('/')

@@ -57,14 +57,14 @@ interface IXmlDefineType : XmlSerializable {
    *
    * @return possible object is [String]
    */
-  fun getName(): String?
+  fun getName(): String
 
   /**
    * Sets the value of the paramName property.
    *
    * @param value allowed object is [String]
    */
-  fun setName(value:String?)
+  fun setName(value:String)
 
   /**
    * Gets the value of the path property.
@@ -98,7 +98,7 @@ var IXmlDefineType.refName:String?
   inline get() = getRefName()
   inline set(value) {setRefName(value)}
 
-var IXmlDefineType.name:String?
+var IXmlDefineType.name:String
   inline get() = getName()
   inline set(value) { setName(value) }
 

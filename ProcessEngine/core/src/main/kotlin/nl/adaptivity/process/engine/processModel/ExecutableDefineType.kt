@@ -31,10 +31,11 @@ import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.processModel.refName
 import nl.adaptivity.process.processModel.refNode
-import nl.adaptivity.util.xml.DomUtil
-import nl.adaptivity.xml.CompactFragment
+import nl.adaptivity.util.DomUtil
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.siblingsToFragment
 import org.w3c.dom.NodeList
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
@@ -42,51 +43,51 @@ import javax.xml.xpath.XPathExpressionException
 
 @Throws(SQLException::class)
 fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData {
-  val processData: ProcessData
-  val refNode = refNode
-  val refName = refName
-  if (refNode != null && refName!=null) {
-    val predecessor = node.resolvePredecessor(engineData, refNode)
-    val origpair = predecessor!!.getResult(engineData, refName)
-    if (origpair == null) {
-      // TODO on missing data do something else than an empty value
-      processData = ProcessData.missingData(name)
-    } else {
-      try {
-        val xPath = this.xPath
-        if (xPath == null) {
-          processData = ProcessData(name, origpair.content)
+    val processData: ProcessData
+    val refNode = refNode
+    val refName = refName
+    if (refNode != null && refName != null) {
+        val predecessor = node.resolvePredecessor(engineData, refNode)
+        val origpair = predecessor!!.getResult(engineData, refName)
+        if (origpair == null) {
+            // TODO on missing data do something else than an empty value
+            processData = ProcessData.missingData(name)
         } else {
-          processData = ProcessData(name,
-                                                                 DomUtil.nodeListToFragment(
-                                                                     xPath.evaluate(origpair.contentFragment,
-                                                                                    XPathConstants.NODESET) as NodeList))
+            try {
+                val xPath = this.xPath
+                if (xPath == null) {
+                    processData = ProcessData(name, origpair.content)
+                } else {
+                    processData = ProcessData(name,
+                                              DomUtil.nodeListToFragment(
+                                                  xPath.evaluate(origpair.contentFragment,
+                                                                 XPathConstants.NODESET) as NodeList))
+                }
+            } catch (e: XPathExpressionException) {
+                throw RuntimeException(e)
+            } catch (e: XmlException) {
+                throw RuntimeException(e)
+            }
+
         }
-      } catch (e: XPathExpressionException) {
-        throw RuntimeException(e)
-      } catch (e: XmlException) {
-        throw RuntimeException(e)
-      }
-
+    } else {
+        processData = ProcessData(name, CompactFragment(""))
     }
-  } else {
-    processData = ProcessData(name, CompactFragment(""))
-  }
-  val content = content
-  if (content!=null && content.isNotEmpty()) {
-    try {
-      val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
+    val content = content
+    if (content != null && content.isNotEmpty()) {
+        try {
+            val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
 
-      val reader = transformer.createFilter(bodyStreamReader)
-      if (reader.hasNext()) reader.next() // Initialise the reader
-      val transformed = reader.siblingsToFragment()
-      return ProcessData(name, transformed)
+            val reader = transformer.createFilter(bodyStreamReader)
+            if (reader.hasNext()) reader.next() // Initialise the reader
+            val transformed = reader.siblingsToFragment()
+            return ProcessData(name, transformed)
 
-    } catch (e: XmlException) {
-      throw RuntimeException(e)
+        } catch (e: XmlException) {
+            throw RuntimeException(e)
+        }
+
+    } else {
+        return processData
     }
-
-  } else {
-    return processData
-  }
 }

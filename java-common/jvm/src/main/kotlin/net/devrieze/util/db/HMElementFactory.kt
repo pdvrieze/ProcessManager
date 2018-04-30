@@ -14,25 +14,21 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package net.devrieze.util.db
 
-import net.devrieze.util.security.SecurityProvider.Permission
+import net.devrieze.util.Handle
+import uk.ac.bournemouth.kotlinsql.Database
+import java.sql.SQLException
 
-import java.security.Principal
-
-
-interface SecureObject<out T> :SecuredObject<T> {
-
-  enum class Permissions : Permission {
-    READ,
-    RENAME,
-    UPDATE,
-    DELETE
-  }
+interface HMElementFactory<BUILDER, T:Any, TR:DBTransaction> : ElementFactory<BUILDER, T, TR> {
+  fun getHandleCondition(where: Database._Where,
+                         handle: Handle<T>): Database.WhereClause?
 
   /**
-   * The owner of the object. Null values are not allowed. All unowned objects can have [SYSTEMPRINCIPAL] as owner.
+   * Called before removing an element with the given handle
+   * @throws SQLException When something goes wrong.
    */
-  val owner: Principal
+  @Throws(SQLException::class)
+  fun preRemove(transaction: TR, handle: Handle<T>)
 
 }

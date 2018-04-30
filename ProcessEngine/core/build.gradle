@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (c) 2018.
  *
@@ -23,6 +25,7 @@ buildscript {
     }
 }
 
+apply plugin: 'java-library'
 apply plugin: 'kotlin'
 apply plugin: 'idea'
 apply plugin: 'org.junit.platform.gradle.plugin'
@@ -60,29 +63,37 @@ artifacts {
 }
 
 dependencies {
-    compile project(':java-common:jvm')
-    compile project(':PE-common:jvm')
+    api project(':java-common:jvm')
+    api project(':PE-common:jvm')
     compileOnly project(':DarwinJavaApi')
 
-    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
+    runtimeOnly 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
-    testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    testCompile "org.jetbrains.spek:spek-api:${spekVersion}"
-    testCompile "org.jetbrains.spek:spek-subject-extension:${spekVersion}"
-    testCompile "org.junit.jupiter:junit-jupiter-api:${jupiterVersion}"
-    testCompile 'org.testng:testng:6.9.13.8'
-    testCompile 'xmlunit:xmlunit:1.6'
-    testCompile 'junit:junit:4.12'
-    testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    testCompile project(':DarwinJavaApi')
-    testCompile project(':TestSupport')
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testImplementation "org.jetbrains.spek:spek-api:${spekVersion}"
+    testImplementation "org.jetbrains.spek:spek-subject-extension:${spekVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${jupiterVersion}"
+    testImplementation 'org.testng:testng:6.9.13.8'
+    testImplementation 'xmlunit:xmlunit:1.6'
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    testImplementation project(':DarwinJavaApi')
+    testImplementation project(':TestSupport')
 //    testRuntime project(':xmlutil:core:jvm')
-    testCompile "org.junit.platform:junit-platform-engine:${junit5_version}"
+    testImplementation "org.junit.platform:junit-platform-engine:${junit5_version}"
+    testRuntime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testRuntime "org.jetbrains.spek:spek-junit-platform-engine:${spekVersion}"
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
+
+tasks.withType(KotlinCompile) {
+    kotlinOptions {
+        jvmTarget = '1.8'
+        freeCompilerArgs=["-Xenable-jvm-default"]
+    }
+}
 
 compileKotlin {
     kotlinOptions.jvmTarget = '1.8'

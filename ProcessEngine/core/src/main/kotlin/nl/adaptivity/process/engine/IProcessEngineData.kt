@@ -69,8 +69,8 @@ abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> 
   }
 
   inline fun <R> inWriteTransaction(principal: Principal,
-                                      permissionResult: SecurityProvider.PermissionResult,
-                                      body: MutableProcessEngineDataAccess.() -> R): R {
+                                    permissionResult: SecurityProvider.PermissionResult,
+                                    body: MutableProcessEngineDataAccess.() -> R): R {
     startTransaction().use { tr ->
       return body(createWriteDelegate(tr)).apply { tr.commit() }
     }

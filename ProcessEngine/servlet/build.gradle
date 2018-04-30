@@ -47,7 +47,8 @@ dependencies {
     testCompile project(path: ':PE-common:jvm', configuration:"testRuntime")
     testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
-    compile project(':ProcessEngine:core')
+    implementation "org.jetbrains:annotations:13.0"
+    implementation project(':ProcessEngine:core')
 //    runtime project(':xmlutil:core:jvm')
 
     compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")

@@ -74,9 +74,9 @@ actual abstract class XPathHolder : XMLContainer {
         setPath(originalNSContext, path)
     }
 
-    actual fun getName() = _name
+    actual fun getName() = _name ?: throw NullPointerException("Name not set")
 
-    actual fun setName(value: String?) {
+    actual fun setName(value: String) {
         _name = value
     }
 
