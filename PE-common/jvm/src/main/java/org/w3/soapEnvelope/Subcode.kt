@@ -22,48 +22,42 @@
 //
 
 
-package org.w3.soapEnvelope;
+package org.w3.soapEnvelope
 
-import javax.xml.namespace.QName;
+import nl.adaptivity.xml.schema.annotations.Child
+import nl.adaptivity.xml.schema.annotations.Element
+
+import javax.xml.namespace.QName
 
 
 /**
- * <p>
- * Java class for SupportedEnvType complex type.
- * <p>
+ *
+ *
+ * Java class for subcode complex type.
+ *
+ *
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="SupportedEnvType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="qname" use="required" type="{http://www.w3.org/2001/XMLSchema}QName" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
+ * &lt;complexType name="subcode">
+ * &lt;complexContent>
+ * &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ * &lt;sequence>
+ * &lt;element name="Value" type="{http://www.w3.org/2001/XMLSchema}QName"/>
+ * &lt;element name="Subcode" type="{http://www.w3.org/2003/05/soap-envelope}subcode" minOccurs="0"/>
+ * &lt;/sequence>
+ * &lt;/restriction>
+ * &lt;/complexContent>
  * &lt;/complexType>
- * </pre>
+</pre> *
  */
-public class SupportedEnvType {
+@Element(name = "Subcode", nsUri = Envelope.NAMESPACE, nsPrefix = Envelope.PREFIX,
+         children = arrayOf(Child(name = "Value", type = QName::class), Child(name = "Subcode", type = Subcode::class)))
+class Subcode {
 
-  protected QName qname;
+    var value: QName? = null
 
-  /**
-   * Gets the value of the qname property.
-   * 
-   * @return possible object is {@link QName }
-   */
-  public QName getQname() {
-    return qname;
-  }
-
-  /**
-   * Sets the value of the qname property.
-   * 
-   * @param value allowed object is {@link QName }
-   */
-  public void setQname(final QName value) {
-    this.qname = value;
-  }
+    var subcode: Subcode? = null
 
 }

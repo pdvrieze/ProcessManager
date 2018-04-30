@@ -20,7 +20,6 @@ import net.devrieze.util.Annotations;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Tripple;
 import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Soap;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
@@ -92,7 +91,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
   }
 
   private void ensureNoUnunderstoodHeaders(@NotNull @SuppressWarnings("unused") final Envelope envelope) {
-    if (envelope.getHeader()!=null && envelope.getHeader().getAny().size()>0) {
+    if (envelope.getHeader()!=null && envelope.getHeader().getAny().size() > 0) {
       throw new MessagingFormatException("Soap header not understood");
     }
   }

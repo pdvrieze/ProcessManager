@@ -295,7 +295,7 @@ public class SoapHelper {
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Source source) throws XmlException {
     XmlReader                  in  = XmlStreaming.newReader(source);
-    Envelope<? extends ICompactFragment> env = Envelope.deserialize(in);
+    Envelope<? extends ICompactFragment> env = Envelope.Companion.deserialize(in);
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 
@@ -327,7 +327,7 @@ public class SoapHelper {
   }
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Writable pContent) throws XmlException {
-    final Envelope<? extends ICompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
+    final Envelope<? extends ICompactFragment> env = Envelope.Companion.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 

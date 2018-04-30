@@ -22,48 +22,32 @@
 //
 
 
-package org.w3.soapEnvelope;
+package org.w3.soapEnvelope
 
-import javax.xml.namespace.QName;
+import javax.xml.namespace.QName
 
 
 /**
- * <p>
- * Java class for NotUnderstoodType complex type.
- * <p>
+ *
+ *
+ * Java class for SupportedEnvType complex type.
+ *
+ *
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="NotUnderstoodType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="qname" use="required" type="{http://www.w3.org/2001/XMLSchema}QName" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
+ * &lt;complexType name="SupportedEnvType">
+ * &lt;complexContent>
+ * &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ * &lt;attribute name="qname" use="required" type="{http://www.w3.org/2001/XMLSchema}QName" />
+ * &lt;/restriction>
+ * &lt;/complexContent>
  * &lt;/complexType>
- * </pre>
+</pre> *
  */
-public class NotUnderstoodType {
+class SupportedEnvType {
 
-  protected QName qname;
-
-  /**
-   * Gets the value of the qname property.
-   * 
-   * @return possible object is {@link QName }
-   */
-  public QName getQname() {
-    return qname;
-  }
-
-  /**
-   * Sets the value of the qname property.
-   * 
-   * @param value allowed object is {@link QName }
-   */
-  public void setQname(final QName value) {
-    this.qname = value;
-  }
+    var qname: QName? = null
 
 }

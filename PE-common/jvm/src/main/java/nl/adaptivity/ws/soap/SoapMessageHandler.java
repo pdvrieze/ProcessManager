@@ -93,7 +93,7 @@ public abstract class SoapMessageHandler {
 
     @NotNull
     private Source processMessage(final XmlReader source, final Map<String, DataSource> pAttachments) {
-      final Envelope<? extends ICompactFragment> envelope = Envelope.deserialize(source);
+      final Envelope<? extends ICompactFragment> envelope = Envelope.Companion.deserialize(source);
       XmlReader                        reader   = envelope.getBody().getBodyContent().getXmlReader();
       loop: while(reader.hasNext()) {
         switch (reader.next()) {
