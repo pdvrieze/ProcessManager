@@ -18,7 +18,7 @@ package nl.adaptivity.process.userMessageHandler.server
 
 import nl.adaptivity.messaging.Descriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
-import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.messaging.GenericEndpoint
 import java.sql.SQLException
@@ -28,7 +28,7 @@ import javax.jws.WebParam.Mode
 
 
 /*@XmlSeeAlso(XmlTask.class)*/
-@Descriptor(UserTaskServiceDescriptor::class)
+@Descriptor(ProcessConsts.Endpoints.USER_TASK_SERVICE_DESCRIPTOR::class)
 interface InternalEndpoint : GenericEndpoint {
 
   @WebMethod

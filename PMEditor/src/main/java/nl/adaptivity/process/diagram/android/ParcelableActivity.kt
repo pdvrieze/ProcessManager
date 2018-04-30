@@ -48,7 +48,7 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
         if (message != null && USER_TASK_SERVICE_DESCRIPTOR.SERVICENAME.equals(message.service) &&
             USER_TASK_SERVICE_DESCRIPTOR.ENDPOINT.equals(message.endpoint)) {
             val envelope: Envelope<PostTask> = Envelope.deserialize(message.bodyStreamReader, PostTask.FACTORY);
-            return envelope.getBody().getBodyContent().getTask();
+            return envelope.body?.bodyContent?.task;
 
         }
         return null;
@@ -174,7 +174,7 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
 
         private fun toIdStrings(set: Set<Identifiable>): Array<String> {
             val iter = set.iterator()
-            return Array(set.size) { idx-> iter.next().id!! }
+            return Array(set.size) { _ -> iter.next().id!! }
         }
 
 

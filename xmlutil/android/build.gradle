@@ -24,8 +24,8 @@ description = 'Implementation of the JVM based providers that uses the Android X
 archivesBaseName = "${project.parent.name}-${project.name}"
 
 dependencies {
-    implementation project(':xmlutil:core:android')
-    implementation "com.android.support:appcompat-v7:${androidCompatVersion}"
+    api project(':xmlutil:core:android')
+//    implementation "com.android.support:appcompat-v7:${androidCompatVersion}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 

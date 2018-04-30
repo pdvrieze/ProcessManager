@@ -1256,7 +1256,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
      * The following code can be used to dump the deque into a newly
      * allocated array of `String`:
      *
-     * <pre> `String[] y = x.toArray(new String[0]);`</pre>
+     * `String[] y = x.toArray(new String[0]);`
      *
      * Note that `toArray(new Object[0])` is identical in function to
      * `toArray()`.

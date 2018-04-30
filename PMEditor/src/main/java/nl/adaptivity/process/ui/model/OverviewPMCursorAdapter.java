@@ -75,7 +75,7 @@ public final class OverviewPMCursorAdapter extends BasePMCursorAdapter<OverviewP
   protected void addPendingBindings(final OverviewPMViewHolder viewHolder, final Cursor cursor) {
     viewHolder.binding.setName(mNameColumn >= 0 ? cursor.getString(mNameColumn) : null);
     viewHolder.binding.setInstanceCount(mCountColumn>=0 ? cursor.getInt(mCountColumn): 0);
-    if (mModelColumn>=0) try {
+    if (mModelColumn>=0) {
       RootDrawableProcessModel model = RootDrawableProcessModel.deserialize(XmlStreaming.newReader(new StringReader(cursor.getString(mModelColumn))));
       if (model.hasUnpositioned()) {
         final Builder b = model.builder();
@@ -84,8 +84,6 @@ public final class OverviewPMCursorAdapter extends BasePMCursorAdapter<OverviewP
       }
       final Drawable d = new DrawableDrawable(model, new AndroidTheme(AndroidStrategy.INSTANCE), true);
       viewHolder.binding.setThumbnail(d);
-    } catch (XmlException e) {
-      Log.w(TAG, "addPendingBindings: ", e);
     }
   }
 

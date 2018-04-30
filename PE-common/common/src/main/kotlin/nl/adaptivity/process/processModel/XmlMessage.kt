@@ -43,7 +43,6 @@ import nl.adaptivity.xml.*
  * this class.
  *
  * ```
- * <pre>
  * <complexType name="Message">
  * <complexContent>
  * <restriction base="{http://www.w3.org/2001/XMLSchema}anyType">

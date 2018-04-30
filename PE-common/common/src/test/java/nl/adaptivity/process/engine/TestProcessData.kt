@@ -832,7 +832,7 @@ class TestProcessData {
       val streamReader: XmlReader
       val xif = XMLInputFactory.newFactory()
       if (reader.markSupported()) {
-        reader.mark(Integer.MAX_VALUE)
+        reader.mark(Int.MAX_VALUE)
         expected = toString(reader, Charset.defaultCharset())
         reader.reset()
         streamReader = XmlStreaming.newReader(reader, Charset.defaultCharset().toString())

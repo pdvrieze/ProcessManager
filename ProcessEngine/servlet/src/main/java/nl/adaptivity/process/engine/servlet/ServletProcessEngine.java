@@ -899,8 +899,10 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
             final Document domResult = DomUtil.tryParseXml(result.getInputStream());
             Element rootNode = domResult.getDocumentElement();
             // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
-            if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
-              final Element header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
+            if (Envelope.Companion.getNAMESPACE().equals(rootNode.getNamespaceURI()) && Envelope.Companion.getELEMENTLOCALNAME()
+                                                                                            .equals(rootNode.getLocalName())) {
+              final Element header = DomUtil.getFirstChild(rootNode, Envelope.Companion.getNAMESPACE(),
+                                                           org.w3.soapEnvelope.Header.Companion.getELEMENTLOCALNAME());
               if (header != null) {
                 rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS,
                                                  ActivityResponse.Companion.getELEMENTLOCALNAME());

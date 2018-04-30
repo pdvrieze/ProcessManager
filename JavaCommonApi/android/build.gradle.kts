@@ -48,7 +48,7 @@
 
 plugins {
     id("com.android.library")
-//    id("kotlin-platform-android")
+    id("kotlin-platform-android")
 }
 
 val `kotlin_version`: String by rootProject
@@ -59,5 +59,7 @@ android {
 }
 
 dependencies {
-    api(project(":JavaCommonApi:jvm"))
+    expectedBy(project(":JavaCommonApi:common"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    implementation(project(":multiplatform:android"))
 }

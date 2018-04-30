@@ -24,6 +24,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.DomUtil;
 import nl.adaptivity.xml.*;
@@ -423,13 +424,15 @@ public class SoapHelper {
       return Collections.emptyMap();
     }
     final LinkedHashMap<String, Node> result = new LinkedHashMap<>();
-    for (final Node node : pHeader.getAny()) {
+    for (final CompactFragment frag : pHeader.getAny()) {
+
+        Node node = DomUtil.childToNode(frag.getXmlReader());
         result.put(node.getLocalName(), node);
     }
     return result;
   }
 
-  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] jaxbContext, final Annotation[] useSiteAnnotations, final Node pAttrWrapper) throws XmlException {
+  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] jaxbContext, final Annotation[] useSiteAnnotations, final Node pAttrWrapper) {
     Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
     while (value !=null && value instanceof Text && XmlUtil.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
     Object result;
@@ -479,8 +482,9 @@ public class SoapHelper {
           } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException(e);
           } catch (InvocationTargetException e) {
-            if (e.getCause()instanceof XmlException) {
-              throw (XmlException) e.getCause();
+            if (e.getCause() instanceof XmlException) {
+                ((XmlException) e.getCause()).doThrow();
+              throw new UnsupportedOperationException("Unreachable");
             } else if (e.getCause() instanceof RuntimeException) {
               throw (RuntimeException) e.getCause();
             } else {

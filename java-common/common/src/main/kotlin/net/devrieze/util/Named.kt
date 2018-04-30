@@ -54,9 +54,10 @@ interface Named {
          *
          * @param o1 The first Item that should be compared
          * @param o2 The item that pObj1 needs to be compared to
-         * @return &lt;0 iff pObj1 < pObj2 <br></br>
-         * ==0 iff pObj1 == pObj2 <br></br>
-         * &gt;0 iff pObj1 > pObj2
+         * @return
+         * - <0 iff pObj1 < pObj2
+         * - ==0 iff pObj1 == pObj2
+         * - &gt;0 iff pObj1 > pObj2
          */
         override fun compare(o1: T, o2: T): Int {
             val n1 = o1.name

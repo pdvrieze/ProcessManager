@@ -47,10 +47,16 @@ import kotlin.collections.Map.Entry
 
 
 // TODO change this to handle regular request bodies.
-@Element(name = HttpMessage.ELEMENTLOCALNAME, nsUri = HttpMessage.NAMESPACE, attributes = arrayOf(Attribute("user")),
-         children = arrayOf(Child(property = "queries", type = Query::class),
-                            Child(property = "posts", type = Post::class),
-                            Child(name = HttpMessage.BODYELEMENTLOCALNAME, property = "body", type = AnyType::class)))
+@Element(name = HttpMessage.ELEMENTLOCALNAME, nsUri = HttpMessage.NAMESPACE, attributes = arrayOf(
+    Attribute("user")),
+                                              children = arrayOf(
+                                                  Child(property = "queries",
+                                                                                             type = Query::class),
+                                                  Child(property = "posts",
+                                                                                             type = Post::class),
+                                                  Child(
+                                                      name = HttpMessage.BODYELEMENTLOCALNAME, property = "body",
+                                                      type = AnyType::class)))
 @XmlDeserializer(HttpMessage.Factory::class)
 class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
@@ -208,7 +214,9 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
    */
 
     @Element(name = "query", nsUri = NAMESPACE, nsPrefix = "http",
-             attributes = arrayOf(Attribute(value = "name", optional = false)), content = "value")
+                                                  attributes = arrayOf(
+                                                      Attribute(value = "name",
+                                                                                                     optional = false)), content = "value")
     class Query : PairBase {
 
         override val elementName: QName
@@ -230,7 +238,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
     }
 
     @Element(name = "post", nsUri = NAMESPACE, nsPrefix = "http",
-             attributes = [(Attribute(value = "name", optional = false))], content = "value")
+                                                  attributes = [(Attribute(
+                value = "name", optional = false))], content = "value")
     class Post : PairBase {
 
         override val elementName: QName

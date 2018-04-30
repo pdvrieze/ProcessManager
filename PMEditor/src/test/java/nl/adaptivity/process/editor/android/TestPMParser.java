@@ -107,7 +107,7 @@ public class TestPMParser {
 
     String bodySource = msg.getMessageBody().getContentString();
     XmlReader bodyParser = msg.getBodyStreamReader();
-    Envelope<PostTask> pt = Envelope.deserialize(bodyParser, PostTask.FACTORY);
+    Envelope<PostTask> pt = Envelope.Companion.deserialize(bodyParser, PostTask.FACTORY);
     String bodyOut = XmlSerializableExt.toString(pt);
     XMLUnit.setIgnoreWhitespace(true);
     XMLUnit.setIgnoreComments(true);

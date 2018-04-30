@@ -16,6 +16,6 @@
   -->
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="nl.adaptivity.multiplatform">
+    package="nl.adaptivity.lib.javacommonapi">
 
 </manifest>

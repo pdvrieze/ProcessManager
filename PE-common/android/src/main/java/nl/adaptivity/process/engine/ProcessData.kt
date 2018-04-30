@@ -18,10 +18,14 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
+import org.w3c.dom.DocumentFragment
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 
 
 /** Class to represent data attached to process instances.  */
@@ -35,19 +39,40 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
     override val elementName: QName
         get() = ELEMENTNAME
 
+    // Property accessors start
+    val contentFragment: DocumentFragment
+        get() = DomUtil.childrenToDocumentFragment(contentStream)
+
     actual val contentStream: XmlReader
-        @Throws(XmlException::class)
         get() = content.getXmlReader()
 
     init {
         this.content = value
     }
 
+    @Deprecated("")
+    constructor(name: String, value: NodeList?) : this(name, if (value == null || value.length <= 1) toNode(
+        value) else DomUtil.toDocFragment(value)) {
+    }
+
     override fun copy(name: String?): ProcessData = copy(name, content)
 
-    actual fun copy(name:String?, value: ICompactFragment) = ProcessData(name, value)
+    fun copy(name:String?, value: ICompactFragment): ProcessData = ProcessData(name, value)
 
-    @Throws(XmlException::class)
+    /**
+     * @see .ProcessData
+     */
+    @Deprecated("Initialise with compact fragment instead.")
+    constructor(name: String, value: Node?) : this(name,
+                                                   toCompactFragment(
+                                                       value)) {
+    }
+
+    @Deprecated("")
+    constructor(name: String, value: List<Node>) : this(name, DomUtil.toDocFragment(value)) {
+    }
+
+
     override fun deserializeChildren(reader: XmlReader) {
         val expected = EventType.END_ELEMENT
         if (reader.next() !== expected) {
@@ -103,13 +128,23 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
         actual val ELEMENTLOCALNAME = "value"
         actual val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
 
+        private fun toCompactFragment(value: Node?): ICompactFragment {
+            return DomUtil.nodeToFragment(value)
+        }
+
+        private fun toNode(value: NodeList?): Node? {
+            if (value == null || value.length == 0) {
+                return null
+            }
+            assert(value.length == 1)
+            return value.item(0)
+        }
         // Property acccessors end
 
         actual fun missingData(name: String): ProcessData {
             return ProcessData(name, CompactFragment(""))
         }
 
-        @Throws(XmlException::class)
         actual fun deserialize(reader: XmlReader): ProcessData {
             return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
         }

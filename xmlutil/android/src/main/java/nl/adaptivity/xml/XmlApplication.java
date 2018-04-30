@@ -18,6 +18,7 @@ package nl.adaptivity.xml;
 
 import android.app.Application;
 import android.os.StrictMode;
+import nl.adaptivity.lib.xmlutil.android.BuildConfig;
 
 
 /**
@@ -31,7 +32,7 @@ public class XmlApplication extends Application {
     // Don't use standard stax as it is not available on android.
     XmlStreaming.setFactory(new AndroidStreamingFactory());
 
-    if (nl.adaptivity.xml.BuildConfig.DEBUG) {
+    if (BuildConfig.DEBUG) {
       StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyDeath().build());
     }
   }

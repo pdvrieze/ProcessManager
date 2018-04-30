@@ -48,7 +48,7 @@ actual interface IXmlResultType : XmlSerializable {
      */
     actual fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-    fun applyData(payload: Node?): ProcessData
+    fun applyData(payload: Node?): ProcessData = TODO("Android XPath processing is not like Java. Not supported yet")
 
     /**
      * Get the namespace context for evaluating the xpath expression.

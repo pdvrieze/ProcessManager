@@ -26,7 +26,7 @@ import nl.adaptivity.xml.toCharArray
  */
 actual class CompactFragment : ICompactFragment {
 
-    class Factory : XmlDeserializerFactory<CompactFragment> {
+    actual class Factory : XmlDeserializerFactory<CompactFragment> {
 
         @Throws(XmlException::class)
         override fun deserialize(reader: XmlReader): CompactFragment {
@@ -98,10 +98,10 @@ actual class CompactFragment : ICompactFragment {
     override val contentString: String
         get() = content.contentToString()
 
-    companion object {
+    actual companion object {
 
         @Throws(XmlException::class)
-        fun deserialize(reader: XmlReader): CompactFragment {
+        actual fun deserialize(reader: XmlReader): CompactFragment {
             return reader.siblingsToFragment()
         }
     }
