@@ -23,14 +23,20 @@ import nl.adaptivity.xml.*
 import nl.adaptivity.xml.XmlWriter
 
 
-abstract class BaseMessage : XMLContainer, IXmlMessage {
+abstract class BaseMessage(override var service: QName? = null,
+                           override var endpoint: String? = null,
+                           override var operation: String? = null,
+                           override var url: String? = null,
+                           override var method: String? = null,
+                           contentType: String? = null,
+                           messageBody: ICompactFragment? = null) : XMLContainer(
+    messageBody ?: CompactFragment("")), IXmlMessage {
 
-    override var service: QName? = null
-    override lateinit var endpoint: String
-    override lateinit var operation: String
-    override lateinit var url: String
-    override lateinit var method: String
-    private var type: String? = null
+    private var type: String? = contentType
+
+    override val contentType: String
+        get() = type ?: "application/soap+xml"
+
 
     override val elementName: QName
         get() = ELEMENTNAME
@@ -55,25 +61,7 @@ abstract class BaseMessage : XMLContainer, IXmlMessage {
     override val messageBody: ICompactFragment
         get() = CompactFragment(originalNSContext, content)
 
-    override val contentType: String
-        get() = type ?: "application/soap+xml"
-
-    protected constructor() : super() {}
-
-    constructor(service: QName?,
-                endpoint: String,
-                operation: String,
-                url: String,
-                method: String,
-                contentType: String,
-                messageBody: ICompactFragment) : super(messageBody) {
-        this.service = service
-        this.endpoint = endpoint
-        this.operation = operation
-        this.url = url
-        this.method = method
-        type = contentType
-    }
+    protected constructor() : this(service=null)
 
     constructor(message: IXmlMessage) : this(message.service,
                                              message.endpoint,
@@ -153,7 +141,9 @@ abstract class BaseMessage : XMLContainer, IXmlMessage {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is BaseMessage) return false
+        if (other == null || this::class != other::class) return false
+
+        other as BaseMessage
 
         if (service != other.service) return false
         if (endpoint != other.endpoint) return false
@@ -167,10 +157,10 @@ abstract class BaseMessage : XMLContainer, IXmlMessage {
 
     override fun hashCode(): Int {
         var result = service?.hashCode() ?: 0
-        result = 31 * result + endpoint.hashCode()
-        result = 31 * result + operation.hashCode()
-        result = 31 * result + url.hashCode()
-        result = 31 * result + method.hashCode()
+        result = 31 * result + (endpoint?.hashCode() ?: 0)
+        result = 31 * result + (operation?.hashCode() ?: 0)
+        result = 31 * result + (url?.hashCode() ?: 0)
+        result = 31 * result + (method?.hashCode() ?: 0)
         result = 31 * result + (type?.hashCode() ?: 0)
         return result
     }

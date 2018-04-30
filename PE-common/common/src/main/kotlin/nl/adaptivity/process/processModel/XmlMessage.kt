@@ -27,9 +27,9 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.util.multiplatform.createUri
-import nl.adaptivity.util.xml.ICompactFragment
+import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.util.xml.ExtXmlDeserializable
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 
 
@@ -66,7 +66,7 @@ class XmlMessage : BaseMessage, IXmlMessage, ExtXmlDeserializable {
     override val endpointDescriptor: EndpointDescriptor?
         get() {
             val url = url
-            return EndpointDescriptorImpl(service!!, endpoint, createUri(url))
+            return EndpointDescriptorImpl(service, endpoint, url?.toUri())
         }
 
     class Factory : XmlDeserializerFactory<XmlMessage> {
@@ -81,10 +81,10 @@ class XmlMessage : BaseMessage, IXmlMessage, ExtXmlDeserializable {
 
 
     constructor(service: QName?,
-                endpoint: String,
-                operation: String,
-                url: String,
-                method: String,
+                endpoint: String?,
+                operation: String?,
+                url: String?,
+                method: String?,
                 contentType: String,
                 messageBody: ICompactFragment) : super(service, endpoint, operation, url, method, contentType,
                                                        messageBody) {

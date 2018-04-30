@@ -31,13 +31,13 @@ interface EndpointDescriptor {
      * The QName of the service
      * @return The qname.
      */
-    val serviceName: QName
+    val serviceName: QName?
 
     /**
      * The actual endpoint in the service provided.
      * @return The name of the endpoint
      */
-    val endpointName: String
+    val endpointName: String?
 
     /**
      * Get the URI for this endpoint. If this returns null, that means messages

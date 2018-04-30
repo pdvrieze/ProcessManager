@@ -67,8 +67,10 @@ class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeIns
 
     content.append(" endpointLocation=\"").append(localEndpoint.endpointLocation.toString()).append('"')
     content.append(" endpointName=\"").append(localEndpoint.endpointName).append('"')
-    content.append(" serviceLocalName=\"").append(localEndpoint.serviceName.localPart).append('"')
-    content.append(" serviceNS=\"").append(localEndpoint.serviceName.namespaceURI).append('"')
+    localEndpoint.serviceName?.let { serviceName ->
+      content.append(" serviceLocalName=\"").append(serviceName.localPart).append('"')
+      content.append(" serviceNS=\"").append(serviceName.namespaceURI).append('"')
+    }
     content.append(" />")
     return CompactFragment(namespaces, content.toString().toCharArray())
   }

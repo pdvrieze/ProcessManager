@@ -23,73 +23,23 @@ import nl.adaptivity.xml.QName
 
 interface IXmlMessage {
 
-    /**
-     * Gets the value of the service property.
-     *
-     * @return possible object is [QName]
-     */
     var serviceName: String?
 
     var serviceNS: String?
 
-    /**
-     * Sets the value of the service property.
-     *
-     * @param value allowed object is [QName]
-     */
     var service: QName?
 
-    /**
-     * Gets the value of the endpoint property.
-     *
-     * @return possible object is [String]
-     */
-    /**
-     * Sets the value of the endpoint property.
-     *
-     * @param value allowed object is [String]
-     */
-    var endpoint: String
+    var endpoint: String?
 
     val endpointDescriptor: EndpointDescriptor?
 
-    /**
-     * Gets the value of the operation property.
-     *
-     * @return possible object is [String]
-     */
-    /**
-     * Sets the value of the operation property.
-     *
-     * @param value allowed object is [String]
-     */
-    var operation: String
+    var operation: String?
 
     val messageBody: ICompactFragment
 
-    /**
-     * Gets the value of the url property.
-     *
-     * @return possible object is [String]
-     */
-    /**
-     * Sets the value of the url property.
-     *
-     * @param value allowed object is [String]
-     */
-    var url: String
+    var url: String?
 
-    /**
-     * Gets the value of the method property.
-     *
-     * @return possible object is [String]
-     */
-    /**
-     * Sets the value of the method property.
-     *
-     * @param value allowed object is [String]
-     */
-    var method: String
+    var method: String?
 
     val contentType: String
 
