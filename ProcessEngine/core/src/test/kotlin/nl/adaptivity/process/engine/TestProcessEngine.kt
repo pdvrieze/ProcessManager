@@ -477,8 +477,15 @@ class TestProcessEngine {
     assertEquals(result1.name, "name")
     assertEquals(result1.content.contentString, "Paul")
     assertEquals(result2.name, "user")
-    assertXMLEqual("<user><fullname>Paul</fullname></user>", result2.content.contentString)
 
+      result2.content.contentString.let { actual ->
+          val expected = "<user xmlns='http://adaptivity.nl/userMessageHandler'><fullname>Paul</fullname></user>"
+          try {
+              assertXMLEqual(expected, actual)
+          } catch (e: AssertionError) {
+              assertEquals(actual, expected)
+          }
+      }
     assertEquals(mStubMessageService._messages.size, 1)
     assertEquals(mStubMessageService.getMessageNode(0).handleValue, 2L) //We should have a new message with the new task (with the data)
     val ac2 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal)

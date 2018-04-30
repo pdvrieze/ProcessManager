@@ -160,6 +160,7 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
         if (content.isNotEmpty()) {
             val contentReader = bodyStreamReader.asSubstream()
             while (contentReader.hasNext()) {
+                contentReader.next()
                 contentReader.writeCurrent(out)
             }
         }
@@ -187,9 +188,5 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
                 `in`.namespaceContext.getNamespaceURI(prefix.toString())
             }
         }
-    }
-
-    override fun getXmlReader(): XmlReader {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
