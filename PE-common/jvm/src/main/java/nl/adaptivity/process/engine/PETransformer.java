@@ -227,7 +227,8 @@ public class PETransformer {
       if (mNamespaceContext ==null) {
         rawPath.setNamespaceContext(namespaceContext);
       } else {
-        rawPath.setNamespaceContext(new CombiningNamespaceContext(namespaceContext, mNamespaceContext));
+        rawPath.setNamespaceContext(
+            new CombiningNamespaceContext(namespaceContext, mNamespaceContext));
       }
       final XPathExpression xpathexpr = rawPath.compile(xpathstr);
       final ArrayList<XmlEvent> result = new ArrayList<>();

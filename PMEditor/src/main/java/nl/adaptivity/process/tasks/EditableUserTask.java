@@ -195,7 +195,7 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   public static EditableUserTask deserialize(final XmlReader in) {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.EditableUserTask>deserializeHelper(new EditableUserTask(), in);
+    return XmlUtilDeserializable.deserializeHelper(new EditableUserTask(), in);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -14,22 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin'
-apply plugin: 'idea'
+/**
+ * Created by pdvrieze on 13/04/16.
+ */
+@file:JvmName("XmlUtilJava")
+@file:JvmMultifileClass
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+package nl.adaptivity.xml
 
-version = '1.1.0'
-description = 'A tomcat realm to work with the darwin authentication system'
 
-//group = 'serverclasspath'
-
-dependencies {
-    compileOnly "org.apache.tomcat:tomcat-catalina:${tomcatVersion}"
-    runtime dbcpSpec
-
-    compile project(':DarwinJavaApi')
-    compile project(':JavaCommonApi:jvm')
-    compile project(':accountcommon')
+fun CharSequence?.xmlEncode(): String? {
+    return this?.xmlEncode()
 }

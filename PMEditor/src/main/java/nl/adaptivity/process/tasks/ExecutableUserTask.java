@@ -333,7 +333,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   }
 
   public static ExecutableUserTask deserialize(final XmlReader in) {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.ExecutableUserTask>deserializeHelper(new ExecutableUserTask(), in);
+    return XmlUtilDeserializable.deserializeHelper(new ExecutableUserTask(), in);
   }
 
   @Override

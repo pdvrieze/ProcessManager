@@ -108,7 +108,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   private static PostTask deserialize(final XmlReader in) {
-    return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.PostTask>deserializeHelper(new PostTask(), in);
+    return XmlUtilDeserializable.deserializeHelper(new PostTask(), in);
   }
 
   @Override
