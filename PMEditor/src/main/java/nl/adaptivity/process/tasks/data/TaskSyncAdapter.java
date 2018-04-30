@@ -321,14 +321,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     final List<GenericItem> items = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {
       in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ExecutableUserTask.TAG_ITEM);
-      try {
-        items.add(TaskItem.parseTaskGenericItem(in));
-      } catch (XmlException e) {
-        if (e.getCause() instanceof XmlException) {
-          throw (XmlException) e.getCause();
-        }
-        throw new XmlException(e.getMessage(), in, e);
-      }
+      items.add(TaskItem.parseTaskGenericItem(in));
       in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ExecutableUserTask.TAG_ITEM);
       hasItems = true;
     }

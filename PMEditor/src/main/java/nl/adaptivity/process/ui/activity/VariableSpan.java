@@ -132,7 +132,7 @@ public class VariableSpan extends ReplacementSpan {
   }
 
   @NonNull
-  static Spanned getSpanned(final Context context, final XmlReader bodyStreamReader, final XmlDefineType define, @DrawableRes final int varspanBorderId) throws XmlException {
+  static Spanned getSpanned(final Context context, final XmlReader bodyStreamReader, final XmlDefineType define, @DrawableRes final int varspanBorderId) {
     final SpannableStringBuilder builder = new SpannableStringBuilder();
     while (bodyStreamReader.hasNext()) {
       switch (bodyStreamReader.next()) {

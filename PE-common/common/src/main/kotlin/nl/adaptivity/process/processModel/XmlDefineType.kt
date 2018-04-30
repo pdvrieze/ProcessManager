@@ -34,7 +34,6 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
   class Factory : XmlDeserializerFactory<XmlDefineType> {
 
-    @Throws(XmlException::class)
     override fun deserialize(reader: XmlReader): XmlDefineType {
       return XmlDefineType.deserialize(reader)
     }
@@ -110,17 +109,14 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     }
   }
 
-  @Throws(XmlException::class)
   override fun serializeStartElement(out: XmlWriter) {
     out.smartStartTag(QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX))
   }
 
-  @Throws(XmlException::class)
   override fun serializeEndElement(out: XmlWriter) {
     out.endTag(QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX))
   }
 
-  @Throws(XmlException::class)
   override fun serializeAttributes(out: XmlWriter) {
     super.serializeAttributes(out)
     out.writeAttribute("refnode", getRefNode())
@@ -161,7 +157,6 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     val ELEMENTLOCALNAME = "define"
     val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
-    @Throws(XmlException::class)
     fun deserialize(reader: XmlReader): XmlDefineType {
       return XPathHolder.deserialize(reader, XmlDefineType())
     }

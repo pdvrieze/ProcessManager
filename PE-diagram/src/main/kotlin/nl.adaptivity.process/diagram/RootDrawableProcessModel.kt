@@ -349,7 +349,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
   }
 }
 
-internal object STUB_DRAWABLE_BUILD_HELPER: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> {
+object STUB_DRAWABLE_BUILD_HELPER: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> {
   override val newOwner: DrawableProcessModel?
     get() = null
 

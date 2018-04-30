@@ -81,18 +81,14 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   @Override
   public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    try {
-      mItemNo = getArguments().getInt(UIConstants.KEY_ITEMNO);
-      if (savedInstanceState != null && savedInstanceState.containsKey(UIConstants.KEY_ITEM)) {
-        mItem = XmlStreaming.deSerialize(savedInstanceState.getString(UIConstants.KEY_ITEM), TaskItem.class);
-      } else {
-        mItem = XmlStreaming.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
-      }
-
-      mDefines = XmlStreamingAndroidKt.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
-    } catch (XmlException e) {
-      throw new RuntimeException(e);
+    mItemNo = getArguments().getInt(UIConstants.KEY_ITEMNO);
+    if (savedInstanceState != null && savedInstanceState.containsKey(UIConstants.KEY_ITEM)) {
+      mItem = XmlStreaming.deSerialize(savedInstanceState.getString(UIConstants.KEY_ITEM), TaskItem.class);
+    } else {
+      mItem = XmlStreaming.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
     }
+
+    mDefines = XmlStreaming.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
     mAvailableVariables = getArguments().getParcelableArrayList(UIConstants.KEY_VARIABLES);
   }
 
@@ -202,43 +198,39 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   @NonNull
   private XmlDefineType updateDefine(final XmlDefineType define, final Spanned annotatedSequence) {
     final CharArrayWriter caw = new CharArrayWriter();
+    final XmlWriter writer = XmlStreaming.newWriter(caw);
     try {
-      final XmlWriter writer = XmlStreaming.newWriter(caw);
-      try {
-        int       prev           = 0;
-        final int sequenceLength = annotatedSequence.length();
-        int       next           = annotatedSequence.nextSpanTransition(0, sequenceLength, VariableSpan.class);
-        while (next>=0 && next < sequenceLength) {
-          writer.text(annotatedSequence.subSequence(prev, next));
-          prev = next;
+      int       prev           = 0;
+      final int sequenceLength = annotatedSequence.length();
+      int       next           = annotatedSequence.nextSpanTransition(0, sequenceLength, VariableSpan.class);
+      while (next>=0 && next < sequenceLength) {
+        writer.text(annotatedSequence.subSequence(prev, next));
+        prev = next;
 
-          next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
-          Log.d(TAG, "updateDefine getSpans(" + prev + ", " + next + ")");
-          final VariableSpan[] spans     = annotatedSequence.getSpans(prev, next, VariableSpan.class);
-          final VariableSpan   span      = spans[0]; // no nesting
-          VariableReference    reference = span.getReference();
-          if (define.getRefNode() == null) { // trick to treat the first result reference different, by using the define's params
-            if (reference instanceof ResultReference) {
-              final ResultReference resultReference = (ResultReference) reference;
-              define.setRefNode(resultReference.getNodeId());
-              define.setRefName(resultReference.getVariableName());
-              define.setPath(Collections.<Namespace>emptyList(), ".");
-              reference = VariableReference.newDefineReference(null, null); // Make this a default reference
-            }
+        next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
+        Log.d(TAG, "updateDefine getSpans(" + prev + ", " + next + ")");
+        final VariableSpan[] spans     = annotatedSequence.getSpans(prev, next, VariableSpan.class);
+        final VariableSpan   span      = spans[0]; // no nesting
+        VariableReference    reference = span.getReference();
+        if (define.getRefNode() == null) { // trick to treat the first result reference different, by using the define's params
+          if (reference instanceof ResultReference) {
+            final ResultReference resultReference = (ResultReference) reference;
+            define.setRefNode(resultReference.getNodeId());
+            define.setRefName(resultReference.getVariableName());
+            define.setPath(Collections.<Namespace>emptyList(), ".");
+            reference = VariableReference.newDefineReference(null, null); // Make this a default reference
           }
-          reference.toModifySequence().serialize(writer);
-          prev = next;
+        }
+        reference.toModifySequence().serialize(writer);
+        prev = next;
 
-          next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
-        }
-        if (prev < sequenceLength) {
-          writer.text(annotatedSequence.subSequence(prev, sequenceLength));
-        }
-      } finally {
-        writer.close();
+        next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
       }
-    } catch (XmlException e) {
-      throw new RuntimeException(e);
+      if (prev < sequenceLength) {
+        writer.text(annotatedSequence.subSequence(prev, sequenceLength));
+      }
+    } finally {
+      writer.close();
     }
     final char[] content = caw.toCharArray();
     define.setContent(Collections.<Namespace>emptyList(), content);
@@ -262,18 +254,15 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
       if (define==null) {
         throw new IllegalArgumentException("Invalid state");
       }
-      try {
-        return toSpanned(define.getBodyStreamReader(), define);
-      } catch (XmlException e) {
-        throw new RuntimeException(e);
-      }
+
+      return toSpanned(define.getBodyStreamReader(), define);
 
     } else {
       return in;
     }
   }
 
-  private Spanned toSpanned(final XmlReader bodyStreamReader, final XmlDefineType define) throws XmlException {
+  private Spanned toSpanned(final XmlReader bodyStreamReader, final XmlDefineType define) {
     return VariableSpan.getSpanned(getActivity(), bodyStreamReader, define, VARSPAN_BORDER_ID);
   }
 

@@ -46,9 +46,9 @@ public final class ModifyHelper {
       case "element":
         return parseValueOrElement(in);
       default:
-        throw new XmlException("Expected a valid modification element");
+        new XmlException("Expected a valid modification element").doThrow();
+        return null;
     }
-
   }
 
   public static AttributeSequence parseAttribute(final XmlReader in) {

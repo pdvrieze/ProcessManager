@@ -19,6 +19,7 @@ package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.util.Constants
+import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.xml.QName
 
@@ -60,6 +61,7 @@ class ProcessConsts {
             }
 
             val ENDPOINT = "internal"
+            @JvmStatic
             val SERVICENAME = QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler")
         }
 

@@ -69,6 +69,7 @@ class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_p
         return listFragment
     }
 
+    @Suppress("DEPRECATION")
     override fun onAttach(activity: Activity?) {
         super.onAttach(activity)
         if (activity is ProcessModelListCallbacks) {

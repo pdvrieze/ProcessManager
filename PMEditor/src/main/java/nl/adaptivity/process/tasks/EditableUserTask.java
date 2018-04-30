@@ -31,6 +31,7 @@ import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.util.Util;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
 import android.support.annotation.NonNull;
 import org.w3.soapEnvelope.Envelope;
@@ -50,7 +51,7 @@ public class EditableUserTask extends UserTaskBase {
   public static class Factory implements XmlDeserializerFactory<EditableUserTask> {
 
     @Override
-    public EditableUserTask deserialize(final XmlReader reader) throws XmlException {
+    public EditableUserTask deserialize(final XmlReader reader) {
       return EditableUserTask.deserialize(reader);
     }
   }
@@ -119,18 +120,15 @@ public class EditableUserTask extends UserTaskBase {
     final QName        service    = USER_TASK_SERVICE_DESCRIPTOR.INSTANCE.getServiceName();
     final String       endpoint   = USER_TASK_SERVICE_DESCRIPTOR.INSTANCE.getENDPOINT();
     final String       operation  = PostTask.ELEMENTLOCALNAME;
+
     final StringWriter bodyWriter = new StringWriter();
-    try {
-      final XmlWriter          writer   = XmlStreaming.newWriter(bodyWriter, true);
-      final Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
+    final XmlWriter          writer   = XmlStreaming.newWriter(bodyWriter, true);
+    final Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
 
-      envelope.serialize(writer);
-      writer.close();
-    } catch (XmlException e) {
-      throw new RuntimeException(e);
-    }
+    envelope.serialize(writer);
+    writer.close();
 
-    final XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, XmlStreamingKt.CompactFragment(bodyWriter.toString()));
+    final XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, new CompactFragment(bodyWriter.toString()));
     return result;
   }
 
@@ -196,12 +194,12 @@ public class EditableUserTask extends UserTaskBase {
     }
   }
 
-  public static EditableUserTask deserialize(final XmlReader in) throws XmlException {
+  public static EditableUserTask deserialize(final XmlReader in) {
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.EditableUserTask>deserializeHelper(new EditableUserTask(), in);
   }
 
   @Override
-  public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NonNull final XmlReader reader) {
     if (StringUtil.isEqual(Constants.MODIFY_NS_STR, reader.getNamespaceUri())) {
       final AttributeSequence attrVar = ModifyHelper.parseAttribute(reader);
       switch (attrVar.getParamName().toString()) {
@@ -216,7 +214,7 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   @Override
-  protected void parseTaskItem(final XmlReader in) throws XmlException {
+  protected void parseTaskItem(final XmlReader in) {
     mItems.add(TaskItem.parseTaskItem(in));
   }
 

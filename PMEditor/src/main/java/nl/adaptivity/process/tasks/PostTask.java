@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
@@ -40,16 +41,14 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   public static class Factory implements XmlDeserializerFactory<PostTask> {
 
     @Override
-    public PostTask deserialize(final XmlReader reader) throws XmlException {
+    public PostTask deserialize(final XmlReader reader) {
       return PostTask.deserialize(reader);
     }
   }
 
-  public static final ICompactFragment
-                             DEFAULT_REPLIES_PARAM  = XmlStreamingKt.CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi",
-                                                                                                                                  Constants.INSTANCE
-                                                                                                                                              .getMODIFY_NS_STR()), "<jbi:element value=\"endpoint\"/>"
-          .toCharArray());
+  public static final CompactFragment DEFAULT_REPLIES_PARAM  =
+      new CompactFragment(new SimpleNamespaceContext("jbi", Constants.MODIFY_NS_STR),
+                                     "<jbi:element value=\"endpoint\"/>");
   public static final String REPLIESPARAM_LOCALNAME = "repliesParam";
   public static final QName  REPLIESPARAM_NAME      = new QName(Constants.USER_MESSAGE_HANDLER_NS, REPLIESPARAM_LOCALNAME,
                                                           Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
@@ -95,7 +94,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) {
     XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
     if (mTask!=null || mReplies!=null) {
       XmlWriterUtil.smartStartTag(out, REPLIESPARAM_NAME);
@@ -108,12 +107,12 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     XmlWriterUtil.endTag(out, ELEMENTNAME);
   }
 
-  private static PostTask deserialize(final XmlReader in) throws XmlException {
+  private static PostTask deserialize(final XmlReader in) {
     return nl.adaptivity.xml.XmlUtil.<nl.adaptivity.process.tasks.PostTask>deserializeHelper(new PostTask(), in);
   }
 
   @Override
-  public boolean deserializeChild(@NonNull final XmlReader reader) throws XmlException {
+  public boolean deserializeChild(@NonNull final XmlReader reader) {
     if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceUri())) {
       switch (reader.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:

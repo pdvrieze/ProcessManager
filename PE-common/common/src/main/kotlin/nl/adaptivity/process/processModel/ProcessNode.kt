@@ -107,9 +107,9 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
   val label: String?
 
-  val results: List<IXmlResultType>
+  val results: List<out IXmlResultType>
 
-  val defines: List<IXmlDefineType>
+  val defines: List<out IXmlDefineType>
 
   val idBase: String
 
