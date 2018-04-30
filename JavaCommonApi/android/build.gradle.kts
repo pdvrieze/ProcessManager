@@ -51,8 +51,8 @@ plugins {
 //    id("kotlin-platform-android")
 }
 
-val `kotlin_version` by rootProject
-val kotlinVersion get() = `kotlin_version` as String?
+val `kotlin_version`: String by rootProject
+val kotlinVersion get() = `kotlin_version`
 
 android {
     compileSdkVersion(27)
