@@ -215,7 +215,7 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         override fun lastIndexOf(element: Identifiable) = -1
 
-        override fun iterator() = emptyList<Identifiable>().iterator() as MutableIterator<Identifiable>
+        override fun iterator() = emptyList<Identifiable>().iterator()
 
         override fun listIterator(): ListIterator<Identifiable> = emptyList<Identifiable>().listIterator()
 

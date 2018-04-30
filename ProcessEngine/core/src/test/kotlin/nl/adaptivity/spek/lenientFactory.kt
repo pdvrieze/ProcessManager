@@ -19,7 +19,6 @@ package nl.adaptivity.spek
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.lifecycle.InstanceFactory
 import kotlin.reflect.KClass
-import kotlin.reflect.primaryConstructor
 
 /**
  * Created by pdvrieze on 26/01/17.

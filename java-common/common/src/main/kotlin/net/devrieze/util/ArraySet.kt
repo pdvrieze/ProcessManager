@@ -170,11 +170,12 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
     }
 
     private fun reserve(reservation: Int) {
-        if (reservation <= 1) throw IllegalArgumentException(
-            "The reservation was ${reservation} but should be larger than 1")
+        if (reservation < 0) throw IllegalArgumentException(
+            "The reservation was ${reservation} but should be larger than or equal to 0")
         if (reservation + 1 < size) {
             reserve(size + 1); return
         }
+        val reservation = reservation.coerceAtLeast(8)
         @Suppress("UNCHECKED_CAST")
         val newBuffer = arrayOfNulls<Any?>(reservation) as Array<T?>
 
