@@ -88,10 +88,12 @@ dependencies {
     testImplementation 'junit:junit:4.12' // needed for xmlunit
     testImplementation 'xmlunit:xmlunit:1.6'
     testImplementation 'org.mockito:mockito-core:1.9.5'
+    testImplementation project(':JavaCommonApi:jvm')
     testImplementation project(':DarwinJavaApi')
     testImplementation project(':TestSupport')
 //    testRuntime project(':xmlutil:core:jvm')
     compileOnly project(':DarwinJavaApi')
+    compileOnly project(':JavaCommonApi:jvm')
 //    generateXml project(':DarwinJavaApi')
 //    generateXml "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"

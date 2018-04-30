@@ -20,14 +20,13 @@ import net.devrieze.util.Transaction
 import nl.adaptivity.messaging.CompletionListener
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingRegistry
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.messaging.ActivityResponse
-import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.userMessageHandler.server.XmlTask.Companion.get
+import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.ws.soap.SoapSeeAlso
-import java.net.URI
+import nl.adaptivity.xml.QName
 import java.net.URISyntaxException
 import java.sql.SQLException
 import java.util.concurrent.ExecutionException
@@ -38,10 +37,9 @@ import javax.jws.WebMethod
 import javax.jws.WebParam
 import javax.jws.WebParam.Mode
 import javax.servlet.ServletConfig
-import javax.xml.namespace.QName
 
 
-class InternalEndpointImpl @JvmOverloads constructor(private val mService: UserMessageService<out Transaction> = UserMessageService.instance) : UserTaskServiceDescriptor(), GenericEndpoint, InternalEndpoint {
+class InternalEndpointImpl @JvmOverloads constructor(private val mService: UserMessageService<out Transaction> = UserMessageService.instance) : UserTaskServiceDescriptor(), InternalEndpoint {
 
   inner class TaskUpdateCompletionListener(internal var mTask: XmlTask) : CompletionListener<NodeInstanceState> {
 
@@ -62,15 +60,14 @@ class InternalEndpointImpl @JvmOverloads constructor(private val mService: UserM
 
   private var endpointUri: URI? = null
 
-  override fun getServiceName(): QName {
-    return ProcessConsts.Endpoints.UserTaskServiceDescriptor.SERVICENAME
-  }
+    override val serviceName: QName
+        get() = SERVICENAME
 
-
-  override fun getEndpointLocation(): URI? {
-    // TODO Do this better
-    return endpointUri
-  }
+  override val endpointLocation: URI?
+      get() {
+          // TODO Do this better
+          return endpointUri
+      }
 
   override fun initEndpoint(config: ServletConfig) {
     val path = StringBuilder(config.servletContext.contextPath)

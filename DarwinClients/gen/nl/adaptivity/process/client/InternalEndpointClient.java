@@ -30,9 +30,9 @@ import nl.adaptivity.xml.XmlException;
 @SuppressWarnings("all")
 public class InternalEndpointClient {
 
-  private static QName SERVICE = null;
-  private static String ENDPOINT = null;
-  private static URI LOCATION = null;
+  private static final QName SERVICE = new QName("http://adaptivity.nl/userMessageHandler", "userMessageHandler", "");
+  private static final String ENDPOINT = "internal";
+  private static final URI LOCATION = null;
 
   private InternalEndpointClient() { }
 
@@ -45,12 +45,6 @@ public class InternalEndpointClient {
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ActivityResponse.class, jaxbcontext);
-  }
-
-  private static void init(QName service, String endpoint, URI location) {
-    SERVICE=service;
-    ENDPOINT=endpoint;
-    LOCATION=location;
   }
 
 }

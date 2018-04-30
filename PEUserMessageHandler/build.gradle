@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 /*
  * Copyright (c) 2018.
  *
@@ -126,6 +128,10 @@ jar {
     from sourceSets.main.output
 }
 
+tasks.withType(KotlinCompile) {
+    kotlinOptions.freeCompilerArgs=["-Xenable-jvm-default"]
+}
+
 task apiJar(type: Jar) {
     from sourceSets.api.output
     appendix 'api'
@@ -153,23 +159,26 @@ tomcat {
 
 dependencies {
 //    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    apiCompileOnly project(':JavaCommonApi:jvm')
     apiCompileOnly project(':DarwinJavaApi')
     apiCompileOnly project(path: ':PE-common:jvm', configuration:'compileOnly')
 
-    apiCompile project(':PE-common:jvm')
+    apiImplementation project(':PE-common:jvm')
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    runtime project(':xmlutil:core:jvm')
+    implementation project(':xmlutil:core:jvm')
+    implementation project(':PE-common:jvm')
 
-    compile project(':DarwinClients')
-    compile project(':darwin-sql')
+    implementation project(':DarwinClients')
+    implementation project(':darwin-sql')
     compileOnly project(':DarwinJavaApi')
 
-    testCompile 'org.testng:testng:6.9.13.8'
-    testCompile 'junit:junit:4.12'
-    testCompile 'xmlunit:xmlunit:1.6'
-    testCompile project(path: ':PE-common:jvm', configuration:'compileOnly')
+
+    testImplementation 'org.testng:testng:6.9.13.8'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'xmlunit:xmlunit:1.6'
+    testImplementation project(path: ':PE-common:jvm', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
 /*

@@ -19,6 +19,7 @@ package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.util.Constants
+import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.xml.QName
@@ -47,9 +48,7 @@ class ProcessConsts {
 
     object Endpoints {
 
-//        val USER_TASK_SERVICE_DESCRIPTOR: EndpointDescriptor = UserTaskServiceDescriptor()
-
-        object USER_TASK_SERVICE_DESCRIPTOR : EndpointDescriptor {
+        open class UserTaskServiceDescriptor: EndpointDescriptor {
             override val serviceName: QName get() = SERVICENAME
 
             override val endpointName: String get() = ENDPOINT
@@ -57,13 +56,21 @@ class ProcessConsts {
             override val endpointLocation: URI? get() = null
 
             override fun isSameService(other: EndpointDescriptor?): Boolean {
-                return other!=null && SERVICENAME.equals(other.serviceName) && ENDPOINT.equals(other.endpointName)
+                return other != null &&
+                       SERVICENAME == other.serviceName &&
+                       ENDPOINT.equals(other.endpointName)
             }
 
-            val ENDPOINT = "internal"
-            @JvmStatic
-            val SERVICENAME = QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler")
+            companion object {
+                @JvmStatic
+                val SERVICENAME = QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler")
+
+                const val ENDPOINT = "internal"
+            }
+
         }
+
+        val USER_TASK_SERVICE_DESCRIPTOR: EndpointDescriptor = UserTaskServiceDescriptor()
 
     }
 }

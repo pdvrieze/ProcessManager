@@ -19,21 +19,21 @@ package nl.adaptivity.process.diagram.android
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor
 import nl.adaptivity.process.diagram.DrawableActivity
 import nl.adaptivity.process.diagram.DrawableProcessModel
 import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.diagram.STUB_DRAWABLE_BUILD_HELPER
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.tasks.EditableUserTask
+import nl.adaptivity.process.tasks.PostTask
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.XmlStreaming
-import java.io.StringReader
-import nl.adaptivity.process.ProcessConsts.Endpoints.USER_TASK_SERVICE_DESCRIPTOR
-import nl.adaptivity.process.tasks.PostTask
 import nl.adaptivity.xml.toString
 import org.w3.soapEnvelope.Envelope
+import java.io.StringReader
 
 public class ParcelableActivity(builder: Activity.Builder<*, *>,
                                 buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) : DrawableActivity(
@@ -45,11 +45,10 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
 
     public fun getUserTask(): EditableUserTask? {
         val message = XmlMessage.get(message);
-        if (message != null && USER_TASK_SERVICE_DESCRIPTOR.SERVICENAME.equals(message.service) &&
-            USER_TASK_SERVICE_DESCRIPTOR.ENDPOINT.equals(message.endpoint)) {
+        if (message != null && UserTaskServiceDescriptor.SERVICENAME.equals(message.service) &&
+            UserTaskServiceDescriptor.ENDPOINT.equals(message.endpoint)) {
             val envelope: Envelope<PostTask> = Envelope.deserialize(message.bodyStreamReader, PostTask.FACTORY);
             return envelope.body?.bodyContent?.task;
-
         }
         return null;
     }

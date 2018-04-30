@@ -65,6 +65,7 @@ artifacts {
 dependencies {
     api project(':java-common:jvm')
     api project(':PE-common:jvm')
+    compileOnly project(':JavaCommonApi:jvm')
     compileOnly project(':DarwinJavaApi')
 
     runtimeOnly 'com.fasterxml.woodstox:woodstox-core:5.0.3'

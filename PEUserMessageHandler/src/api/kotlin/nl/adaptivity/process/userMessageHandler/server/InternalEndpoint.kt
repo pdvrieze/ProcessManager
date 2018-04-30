@@ -28,7 +28,7 @@ import javax.jws.WebParam.Mode
 
 
 /*@XmlSeeAlso(XmlTask.class)*/
-@Descriptor(ProcessConsts.Endpoints.USER_TASK_SERVICE_DESCRIPTOR::class)
+@Descriptor(ProcessConsts.Endpoints.UserTaskServiceDescriptor::class)
 interface InternalEndpoint : GenericEndpoint {
 
   @WebMethod

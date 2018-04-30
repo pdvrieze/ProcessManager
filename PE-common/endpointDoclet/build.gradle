@@ -20,10 +20,11 @@ apply plugin: 'kotlin'
 
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains:annotations:13.0"
     compile files(org.gradle.internal.jvm.Jvm.current().toolsJar)
     compile project(":PE-common:jvm")
+    compileOnly project(':JavaCommonApi:jvm')
     compile project(":DarwinJavaApi")
 
     testCompile 'org.testng:testng:6.9.13.8'

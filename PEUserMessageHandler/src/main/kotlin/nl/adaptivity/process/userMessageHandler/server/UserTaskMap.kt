@@ -120,25 +120,23 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
           f = f.cause!!
         }
-        if (f.cause is FileNotFoundException) {
-          throw f.cause as FileNotFoundException
-        } else if (f.cause is RuntimeException) {
-          throw f.cause as RuntimeException
-        } else if (f is ExecutionException) {
-          throw f
-        } else if (f is MessagingException) {
-          throw f
+        when {
+            f.cause is FileNotFoundException -> throw f.cause as FileNotFoundException
+            f.cause is RuntimeException      -> throw f.cause as RuntimeException
+            f is ExecutionException          -> throw f
+            f is MessagingException          -> throw f
+            else                             -> throw e
         }
-        throw e
       }
 
       instance?.body?.let { body ->
         val reader = body.getXmlReader()
         val env = Envelope.deserialize(reader, PostTaskFactory())
-        val task = env.body.bodyContent
-        task.setHandleValue(handle.handleValue)
-        task.remoteHandle = remoteHandle
-        task.state = instance.state
+        val task = env.body?.bodyContent?.apply {
+            setHandleValue(handle.handleValue)
+            this.remoteHandle = remoteHandle
+            state = instance.state
+        } ?: throw IllegalStateException("Could not properly deserialize the task")
         return task
       }
 

@@ -25,11 +25,13 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.rest.annotations.RestMethod
-import nl.adaptivity.rest.annotations.RestMethod.HttpMethod
+import nl.adaptivity.rest.annotations.HttpMethod
 import nl.adaptivity.rest.annotations.RestParam
-import nl.adaptivity.rest.annotations.RestParam.ParamType
+import nl.adaptivity.rest.annotations.RestParamType
+import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.xml.localPart
+import nl.adaptivity.xml.namespaceURI
 import java.io.FileNotFoundException
-import java.net.URI
 import java.net.URISyntaxException
 import java.security.Principal
 import java.sql.SQLException
@@ -55,20 +57,19 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
 
   private var endpointUri: URI? = null
 
-  override fun getServiceName(): QName {
-    return SERVICENAME
-  }
+  override val serviceName: QName
+    get() = SERVICENAME
 
-  override fun getEndpointName(): String {
-    return ENDPOINT
-  }
+  override val endpointName: String
+    get() = ENDPOINT
 
-  override fun getEndpointLocation(): URI? {
-    return endpointUri
-  }
+  override val endpointLocation: URI?
+        get() {
+            return endpointUri
+        }
 
-  override fun isSameService(other: EndpointDescriptor): Boolean {
-    return Constants.USER_MESSAGE_HANDLER_NS == other.serviceName.namespaceURI &&
+  override fun isSameService(other: EndpointDescriptor?): Boolean {
+    return other!=null && Constants.USER_MESSAGE_HANDLER_NS == other.serviceName.namespaceURI &&
           SERVICE_LOCALNAME == other.serviceName.localPart &&
           endpointName == other.endpointName
   }
@@ -108,7 +109,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
   @Throws(SQLException::class)
-  fun getPendingTasks(@RestParam(type = ParamType.PRINCIPAL) user: Principal): Collection<XmlTask> {
+  fun getPendingTasks(@RestParam(type = RestParamType.PRINCIPAL) user: Principal): Collection<XmlTask> {
     return getPendingTasks(mService, user)
   }
 
@@ -133,9 +134,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}")
   @Throws(SQLException::class, FileNotFoundException::class)
   fun updateTask(
-        @RestParam(name = "handle", type = ParamType.VAR) handle: String,
-        @RestParam(type = ParamType.BODY) partialNewTask: XmlTask,
-        @RestParam(type = ParamType.PRINCIPAL) user: Principal): XmlTask {
+        @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
+        @RestParam(type = RestParamType.BODY) partialNewTask: XmlTask,
+        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask {
     return updateTask(mService, handle, partialNewTask, user)
   }
 
@@ -149,8 +150,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    */
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/\${handle}")
   @Throws(SQLException::class)
-  fun getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
-                     @RestParam(type = ParamType.PRINCIPAL) user: Principal): XmlTask {
+  fun getPendingTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
+                     @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask {
     mService.inTransaction {
       return commit { getPendingTask(Handles.handle<XmlTask>(
             java.lang.Long.parseLong(handle)),
@@ -168,8 +169,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Started"))
   @Throws(SQLException::class)
-  fun startTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
-                @RestParam(type = ParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+  fun startTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
+                @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
       return startTask(Handles.handle<XmlTask>(handle), user)
     }
@@ -185,8 +186,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Taken"))
   @Throws(SQLException::class)
-  fun takeTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
-               @RestParam(type = ParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+  fun takeTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
+               @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
       return commit { takeTask(Handles.handle<XmlTask>(handle), user) }
     }
@@ -204,8 +205,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Finished"))
   @Throws(SQLException::class)
-  fun finishTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
-                 @RestParam(type = ParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+  fun finishTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
+                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
       return commit { finishTask(Handles.handle<XmlTask>(java.lang.Long.parseLong(handle)),
                                  user)}
@@ -213,8 +214,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post= arrayOf("state=Cancelled"))
-  fun cancelTask(@RestParam(name = "handle", type = ParamType.VAR) handle: String,
-                 @RestParam(type = ParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+  fun cancelTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
+                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
       return commit {
         cancelTask(
