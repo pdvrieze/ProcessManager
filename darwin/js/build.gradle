@@ -31,6 +31,8 @@ configurations {
     }
 }
 
+archivesBaseName="darwinjs"
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"

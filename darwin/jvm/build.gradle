@@ -24,6 +24,8 @@ configurations {
   warConfig
 }
 
+archivesBaseName="darwinjvm"
+
 /*
 sourceSets {
     main {

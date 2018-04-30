@@ -61,6 +61,8 @@ configurations {
 version = '1.0.0'
 description = 'A library with process engine support classes'
 
+archivesBaseName = "PE-common"
+
 android {
     compileSdkVersion 27
     defaultConfig {
@@ -98,7 +100,8 @@ dependencies {
 */
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(':xmlutil:core:android')
-    implementation project(':java-common:jvm')
+    implementation project(":multiplatform:android")
+    implementation project(':java-common:android')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtimeOnly 'com.fasterxml.woodstox:woodstox-core:5.0.3'
     testImplementation 'org.testng:testng:6.9.13.8'

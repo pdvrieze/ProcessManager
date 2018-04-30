@@ -23,6 +23,8 @@ dependencies {
     compile "org.jetbrains.kotlinx:kotlinx-html-common:$kotlinx_html_version"
 }
 
+archivesBaseName = "darwin-shared"
+
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
 

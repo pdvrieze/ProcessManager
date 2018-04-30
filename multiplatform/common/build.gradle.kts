@@ -37,3 +37,7 @@ plugins {
 dependencies {
     implementation(kotlin("stdlib-common"))
 }
+
+base {
+    archivesBaseName = "multiplatform-common"
+}

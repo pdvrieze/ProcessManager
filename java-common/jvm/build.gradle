@@ -25,6 +25,7 @@ description = 'A library with generic support classes'
 
 //group = 'util'
 
+archivesBaseName="java-common"
 
 test {
     useTestNG()

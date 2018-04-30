@@ -44,7 +44,7 @@ dependencies {
     testImplementation "org.testng:testng:$testngVersion"
     testImplementation 'junit:junit:4.12'
     testImplementation 'xmlunit:xmlunit:1.6'
-    testImplementation project(path: ':PE-common:jvm', configuration: 'testJarConfig')
+//    testImplementation project(path: ':PE-common:android', configuration: 'testJarConfig')
 //    testImplementation 'org.robolectric:robolectric:3.0'
     testImplementation 'net.sf.kxml:kxml2:2.3.0'
 //    testLocalCompile project(':PE-diagram')
@@ -115,6 +115,10 @@ android {
 
     testOptions {
 //        unitTests.returnDefaultValues = true
+    }
+
+    packagingOptions {
+        exclude 'META-INF/*.kotlin_module'
     }
 }
 

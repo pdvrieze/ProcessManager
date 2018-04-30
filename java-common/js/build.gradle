@@ -23,6 +23,7 @@ version = '1.1.0'
 description = 'A library with generic support classes'
 
 //group = 'util'
+archivesBaseName="java-common"
 
 dependencies {
 //    api project(':JavaCommonApi:jvm')

@@ -34,6 +34,10 @@ plugins {
     id("kotlin-platform-common")
 }
 
+base {
+    archivesBaseName = "multiplatform-common-java"
+}
+
 dependencies {
     implementation(kotlin("stdlib-common"))
     implementation(project(":multiplatform:common"))

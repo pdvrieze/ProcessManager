@@ -37,6 +37,8 @@ apply plugin: 'idea'
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
 
+archivesBaseName = "PE-common-common"
+
 configurations {
 //    generateXml
     testJarConfig {

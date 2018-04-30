@@ -15,9 +15,14 @@
  */
 
 plugins {
+    base
     id("com.android.library")
     id("kotlin-platform-android")
     id("kotlin-kapt")
+}
+
+base {
+    archivesBaseName="PE-diagram"
 }
 
 val `kotlin_version`: String by project

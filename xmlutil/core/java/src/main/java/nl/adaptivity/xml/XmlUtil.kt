@@ -17,7 +17,7 @@
 /**
  * Created by pdvrieze on 13/04/16.
  */
-@file:JvmName("XmlUtil")
+@file:JvmName("XmlUtilJava")
 @file:JvmMultifileClass
 package nl.adaptivity.xml
 

@@ -21,7 +21,8 @@ apply plugin: 'idea'
 version = '0.5.0'
 description = 'Implementation of the JVM based providers that uses the Android XmlPullParser'
 
-archivesBaseName = "${project.parent.name}-${project.name}"
+archivesBaseName = "xmlutil"
+
 
 dependencies {
     api project(':xmlutil:core:android')

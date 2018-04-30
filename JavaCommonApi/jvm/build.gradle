@@ -21,6 +21,7 @@ apply plugin: 'idea'
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
 
+archivesBaseName = "JavaCommonApi"
 
 version = '1.1.0'
 description = 'Api project for the java-common project'

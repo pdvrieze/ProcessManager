@@ -41,6 +41,8 @@ apply plugin: 'net.devrieze.gradlecodegen'
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
 
+archivesBaseName = "PE-common"
+
 configurations {
     generateXml
     testJarConfig {
