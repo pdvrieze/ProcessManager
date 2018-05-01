@@ -16,11 +16,12 @@
 
 package nl.adaptivity.ws.soap;
 
+import nl.adaptivity.process.engine.TestProcessDataKt;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.EventType;
-import org.custommonkey.xmlunit.XMLUnit;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -33,9 +34,8 @@ import java.io.CharArrayWriter;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
 
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 /**
@@ -115,16 +115,16 @@ public class TestSoapHelper {
                    "  </taskParam>\n" +
                    "</umh:postTask>";
     LinkedHashMap<String, Node> result = SoapHelper.unmarshalWrapper(XmlStreaming.newReader(new StringReader(input)));
-    assertEquals(result.size(), 2);
-    assertNotNull(result.get("repliesParam"));
+      Assertions.assertEquals(2, result.size());
+      assertNotNull(result.get("repliesParam"));
     assertNotNull(result.get("taskParam"));
   }
 
   @Test
   public void testUnmarshalSoapResponse() throws Exception {
-    Envelope env = Envelope.deserialize(XmlStreaming.newReader(new StringReader(SOAP_RESPONSE1)));
-    CompactFragment bodyContent = (CompactFragment) env.getBody().getBodyContent();
-    assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
+    Envelope          env = Envelope.deserialize(XmlStreaming.newReader(new StringReader(SOAP_RESPONSE1)));
+    CompactFragment   bodyContent = (CompactFragment) env.getBody().getBodyContent();
+    TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
   }
 
   @Test
@@ -134,9 +134,7 @@ public class TestSoapHelper {
     XmlWriter out = new DebugWriter(XmlStreaming.newWriter(caw));
     env.serialize(out);
     out.close();
-    XMLUnit.setIgnoreWhitespace(true);
-    XMLUnit.setIgnoreAttributeOrder(true);
-    assertXMLEqual(SOAP_RESPONSE1, caw.toString());
+    TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE1, caw.toString());
   }
 
   @Test
@@ -146,13 +144,7 @@ public class TestSoapHelper {
     XmlWriter out = new DebugWriter(XmlStreaming.newWriter(caw));
     env.serialize(out);
     out.close();
-    try {
-      XMLUnit.setIgnoreWhitespace(true);
-      XMLUnit.setIgnoreAttributeOrder(true);
-      assertXMLEqual(SOAP_RESPONSE2, caw.toString());
-    } catch (AssertionError e) {
-      assertEquals(SOAP_RESPONSE2, caw.toString());
-    }
+    TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE2, caw.toString());
   }
 
   @Test
@@ -162,9 +154,7 @@ public class TestSoapHelper {
     Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader(SOAP_RESPONSE1)));
     Envelope env = Envelope.deserialize(XmlStreaming.newReader(new DOMSource(doc)));
     CompactFragment bodyContent = (CompactFragment) env.getBody().getBodyContent();
-    XMLUnit.setIgnoreWhitespace(true);
-    XMLUnit.setIgnoreAttributeOrder(true);
-    assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
+    TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
   }
 
   @Test
@@ -180,7 +170,7 @@ public class TestSoapHelper {
     reader.next();
     reader.require(EventType.START_ELEMENT, "http://www.w3.org/2003/05/soap-rpc", "result");
     CompactFragment parseResult = XmlReaderExt.siblingsToFragment(reader);
-    assertEquals(0, parseResult.getNamespaces().size());
+    assertFalse(parseResult.getNamespaces().iterator().hasNext());
   }
 
 }

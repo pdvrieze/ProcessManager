@@ -72,7 +72,7 @@ artifacts {
 }
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 dependencies {
@@ -84,9 +84,10 @@ dependencies {
     api project(':java-common:jvm')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    testImplementation 'org.testng:testng:6.9.13.8'
-    testImplementation 'junit:junit:4.12' // needed for xmlunit
-    testImplementation 'xmlunit:xmlunit:1.6'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
+
+    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
     testImplementation 'org.mockito:mockito-core:1.9.5'
     testImplementation project(':JavaCommonApi:jvm')
     testImplementation project(':DarwinJavaApi')
@@ -143,5 +144,5 @@ artifacts {
 }
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }

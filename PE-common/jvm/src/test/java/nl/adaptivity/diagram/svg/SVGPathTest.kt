@@ -17,11 +17,10 @@
 package nl.adaptivity.diagram.svg
 
 import nl.adaptivity.diagram.Rectangle
+import nl.adaptivity.process.engine.assertXMLEqual
 import nl.adaptivity.xml.XmlStreaming
-import org.testng.Assert
-import org.testng.Assert.fail
-import org.testng.annotations.Test
-import org.testng.internal.EclipseInterface.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.io.CharArrayWriter
 
 
@@ -116,7 +115,7 @@ class SVGPathTest {
                   "<path style=\"stroke: #ff0000; stroke-width: 0.5; fill:none; \" d=\"M10.0 5.0 L10.0 15.0 C10.0 45.0 50.0 -10.0 60.0 0.0 C70.0 10.0 60.0 70.0 20.0 70.0 \"/>" +
                   "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke: #0000ff; stroke-width: 2.0; fill: #00ff00; fill-opacity: 0.188235; \"/>" +
                 "</g></svg>"
-    Assert.assertEquals(writer.toString(), RealSVG)
+      assertXMLEqual(RealSVG, writer.toString())
   }
 
 }
@@ -135,11 +134,7 @@ fun assertEquals(actual: Rectangle, expected: Rectangle, delta: Double = 0.0005,
         isEqual(actual.top, expected.top) &&
         isEqual(actual.width, expected.width) &&
         isEqual(actual.height, expected.height)) ) {
-    val msg = if (message==null) {
-      ASSERT_LEFT + expected + ASSERT_MIDDLE + actual + ASSERT_RIGHT
-    } else {
-      message+" "+ASSERT_LEFT + expected + ASSERT_MIDDLE + actual + ASSERT_RIGHT
-    }
-    fail(msg)
+
+    Assertions.assertEquals(actual, expected, message)
   }
 }

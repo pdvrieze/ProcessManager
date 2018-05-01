@@ -40,7 +40,7 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void endTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) throws XmlException {
+  public void endTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) {
     System.out.println(TAG + "endTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
     super.endTag(namespace, localName, prefix);
   }
@@ -52,7 +52,7 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void namespaceAttr(final CharSequence namespacePrefix, final CharSequence namespaceUri) throws XmlException {
+  public void namespaceAttr(final CharSequence namespacePrefix, final CharSequence namespaceUri) {
     System.out.println(TAG + "  namespaceAttr(namespacePrefix='"+namespacePrefix+"', namespaceUri='"+namespaceUri+"')");
     super.namespaceAttr(namespacePrefix, namespaceUri);
   }
@@ -64,43 +64,43 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void ignorableWhitespace(final CharSequence text) throws XmlException {
+  public void ignorableWhitespace(final CharSequence text) {
     System.out.println(TAG + "  ignorableWhitespace()");
     super.ignorableWhitespace(text);
   }
 
   @Override
-  public void startDocument(@Nullable final CharSequence version, @Nullable final CharSequence encoding, @Nullable final Boolean standalone) throws XmlException {
+  public void startDocument(@Nullable final CharSequence version, @Nullable final CharSequence encoding, @Nullable final Boolean standalone) {
     System.out.println(TAG + "startDocument()");
     super.startDocument(version, encoding, standalone);
   }
 
   @Override
-  public void comment(final CharSequence text) throws XmlException {
+  public void comment(final CharSequence text) {
     System.out.println(TAG + "comment('"+text+"')");
     super.comment(text);
   }
 
   @Override
-  public void processingInstruction(final CharSequence text) throws XmlException {
+  public void processingInstruction(final CharSequence text) {
     System.out.println(TAG + "processingInstruction('"+text+"')");
     super.processingInstruction(text);
   }
 
   @Override
-  public void close() throws XmlException {
+  public void close() {
     System.out.println(TAG + "close()");
     super.close();
   }
 
   @Override
-  public void flush() throws XmlException {
+  public void flush() {
     System.out.println(TAG + "flush()");
     super.flush();
   }
 
   @Override
-  public void endDocument() throws XmlException {
+  public void endDocument() {
     System.out.println(TAG + "endDocument()");
     super.endDocument();
   }
