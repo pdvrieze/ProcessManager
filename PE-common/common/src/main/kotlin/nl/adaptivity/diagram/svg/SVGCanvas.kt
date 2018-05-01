@@ -552,11 +552,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
         private fun colorToSVGOpacity(color: Int): String {
             val alpha = color.ushr(24).toDouble()
-            return (alpha / 255.0).toString()
+            return (alpha / 255.0).toString().substring(0,8)
         }
 
         private fun colorToSVGpaint(color: Int): String {
-            return "#${(color and 0xffffff).toHex()}" // Ignore alpha here
+            return "#${(color and 0xffffff).toHex().padStart(6,'0')}" // Ignore alpha here
         }
 
         private fun pointsToPath(points: DoubleArray): SVGPath {
