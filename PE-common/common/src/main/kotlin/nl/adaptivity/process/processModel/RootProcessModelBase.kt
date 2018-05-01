@@ -23,7 +23,6 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.util.*
@@ -268,12 +267,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         if (uuid != null) {
           writeAttribute("uuid", uuid!!.toString())
         }
-        out.ignorableWhitespace("\n  ")
-        out.writeChildren(imports)
-        out.writeChildren(exports)
-        out.writeChildren(_childModels)
-        out.writeChildren(getModelNodes())
-
+        ignorableWhitespace("\n  ")
+        writeChildren(imports)
+        writeChildren(exports)
+        writeChildren(_childModels)
+        writeChildren(getModelNodes())
+        ignorableWhitespace("\n")
       }
     }
   }

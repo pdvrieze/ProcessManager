@@ -36,6 +36,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
     class Builder : RootProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
         override val rootBuilder: Builder get() = this
+        override val defaultPedantic: Boolean get() = true
 
         constructor(
             nodes: Collection<ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon>> = emptySet(),
@@ -53,7 +54,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         constructor(base: XmlProcessModel) : super(base) {}
 
         override fun build(pedantic: Boolean): XmlProcessModel {
-            return XmlProcessModel(this)
+            return XmlProcessModel(this, pedantic)
         }
 
         override fun childModelBuilder(): XmlChildModel.Builder {
@@ -133,8 +134,8 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
     companion object {
 
-        fun deserialize(reader: XmlReader): XmlProcessModel {
-            return Builder.deserialize(reader).build()
+        fun deserialize(reader: XmlReader, pedantic: Boolean = true): XmlProcessModel {
+            return Builder.deserialize(reader).build(pedantic)
         }
 
         /**
@@ -163,7 +164,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     }
 }
 
-object XML_BUILDER_VISITOR: ProcessNode.Visitor<XmlProcessNode.Builder> {
+val XML_BUILDER_VISITOR = object: ProcessNode.Visitor<XmlProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode<*, *>) = XmlStartNode.Builder(startNode)
 
     override fun visitActivity(activity: Activity<*, *>) = XmlActivity.Builder(activity)
