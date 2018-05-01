@@ -159,7 +159,7 @@ class TestAccountControllerDirect {
         val users = WebAuthDB.connect(MyDataSource()) {
             WebAuthDB.SELECT(WebAuthDB.users.user).getList(this)
         }
-        assertEquals(users, listOf(testUser))
+        assertEquals(listOf(testUser), users)
     }
 
     private fun AccountDb.doCreateUser() {
@@ -205,7 +205,7 @@ class TestAccountControllerDirect {
     fun testChangePassword() {
         accountDb {
             doCreateUser()
-            assertNotEquals(testPassword1, testPassword2)
+            assertNotEquals(testPassword2, testPassword1)
             assertFalse(verifyCredentials(testUser, testPassword2), "The new password should not work yet")
 
             updateCredentials(testUser, testPassword2)
@@ -232,8 +232,8 @@ class TestAccountControllerDirect {
 
             val hashUpper = hash.toUpperCase()
             val hashLower = hash.toLowerCase()
-            assertNotEquals(hash, hashUpper)
-            assertNotEquals(hash, hashLower)
+            assertNotEquals(hashUpper, hash)
+            assertNotEquals(hashLower, hash)
 
             assertNotNull(
                 WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hash) }.getSingleOrNull(this))
@@ -258,8 +258,8 @@ class TestAccountControllerDirect {
             WebAuthDB.SELECT(WebAuthDB.tokens.token, WebAuthDB.tokens.ip)
                 .WHERE { WebAuthDB.users.user eq testUser }
                 .getSingle(this) { token, ip ->
-                    assertEquals(token, genToken)
-                    assertEquals(ip, "127.0.0.1")
+                    assertEquals(genToken, token)
+                    assertEquals("127.0.0.1", ip)
                 } ?: AssertionError("Result expected")
         }
     }
@@ -269,7 +269,7 @@ class TestAccountControllerDirect {
         accountDb {
             val token = doNewAuthToken()
             val user = userFromToken(token, "127.0.0.1")
-            assertEquals(user, testUser)
+            assertEquals(testUser, user)
         }
     }
 
@@ -307,10 +307,10 @@ class TestAccountControllerDirect {
         val decrypter = Cipher.getInstance("RSA").apply { init(Cipher.DECRYPT_MODE, testPubKey) }
 
         val encryptedData = encrypter.doFinal(testData.toByteArray())
-        assertNotEquals(encryptedData, testData)
+        assertNotEquals(testData, encryptedData)
 
         val decryptedData = decrypter.doFinal(encryptedData)
-        assertEquals(String(decryptedData), testData)
+        assertEquals(testData, String(decryptedData))
     }
 
     @Test//(dependsOnMethods = arrayOf("testKeyPairs"))
@@ -325,16 +325,16 @@ class TestAccountControllerDirect {
             WebAuthDB.SELECT(p.pubkey, p.user)
                 .WHERE { (p.keyid eq keyId) }
                 .getSingle(this) { pubkey, user ->
-                    assertEquals(user, testUser)
-                    assertEquals(pubkey, "$testModulusEnc:$testPubExpEnc")
+                    assertEquals(testUser, user)
+                    assertEquals("$testModulusEnc:$testPubExpEnc", pubkey)
                 } ?: AssertionError("Result expected")
         }
 
         val keyInfo = accountDb { keyInfo(testUser) }
-        assertEquals(keyInfo.size, 1)
+        assertEquals(1, keyInfo.size)
         val key = keyInfo.get(0)
-        assertEquals(key.appname, "Test system")
-        assertEquals(key.keyId, keyId)
+        assertEquals("Test system", key.appname)
+        assertEquals(keyId, key.keyId)
         assertTrue((key.lastUse?.time ?: Long.MIN_VALUE) >= nowMillis,
                    "Last use should be set to a value after the initial value (${key.lastUse}>=${Date(nowMillis)})")
     }
@@ -350,15 +350,15 @@ class TestAccountControllerDirect {
         Thread.sleep(1000)
         accountDb {
             val origUse = keyInfo(testUser).single { it.keyId == keyid }.lastUse
-            assertNotEquals(origUse, 0)
-            assertNotEquals(origUse, nowMillis)
+            assertNotEquals(0, origUse)
+            assertNotEquals(nowMillis, origUse)
             assertNull(userFromToken(token, "127.0.0.2"))
             val useAfterInvalid = keyInfo(testUser).single { it.keyId == keyid }.lastUse
-            assertEquals(useAfterInvalid, origUse)
-            assertEquals(userFromToken(token, "127.0.0.1"), testUser)
+            assertEquals(origUse, useAfterInvalid)
+            assertEquals(testUser, userFromToken(token, "127.0.0.1"))
             val useAfterTokenUse = keyInfo(testUser).single { it.keyId == keyid }.lastUse
-            assertNotEquals(useAfterTokenUse, origUse)
-            assertEquals(useAfterTokenUse, Date((nowMillis / 1000) * 1000))
+            assertNotEquals(origUse, useAfterTokenUse)
+            assertEquals(Date((nowMillis / 1000) * 1000), useAfterTokenUse)
         }
     }
 
@@ -407,7 +407,7 @@ class TestAccountControllerDirect {
             val rsaEnc = Cipher.getInstance("RSA").apply { init(Cipher.ENCRYPT_MODE, testPrivateKey) }
             val response = rsaEnc.doFinal(challenge)
 
-            assertEquals(userFromChallengeResponse(keyid, "127.0.0.1", response), testUser)
+            assertEquals(testUser, userFromChallengeResponse(keyid, "127.0.0.1", response))
             val newKeyInfo = keyInfo(testUser).single { it.keyId == keyid }
             assertTrue(newKeyInfo.lastUse?.time ?: Long.MIN_VALUE > nowMillis,
                        "LastUse should be later than now (${newKeyInfo.lastUse}>$nowMillis)")
@@ -450,7 +450,7 @@ class TestAccountControllerDirect {
             doNewAuthToken()
         }
         accountDb {
-            assertEquals(userFromToken(token, "127.0.0.1"), testUser)
+            assertEquals(testUser, userFromToken(token, "127.0.0.1"))
             logout(token)
             assertNull(userFromToken(token, "127.0.0.1"), "After logout the token should be invalid.")
         }
@@ -496,12 +496,12 @@ class TestAccountControllerDirect {
         cipher.init(Cipher.ENCRYPT_MODE, privkey)
         val sentResponse = Base64.getUrlDecoder().decode(sentResponseEnc)
         val calculatedResponse = cipher.doFinal(challenge)
-        assertEquals(calculatedResponse, sentResponse)
+        assertEquals(sentResponse, calculatedResponse)
 
         cipher.init(Cipher.DECRYPT_MODE, pubkey)
         val receivedResponse = Base64.getUrlDecoder().decode(sentResponseEnc)
         val decodedResponse = cipher.doFinal(receivedResponse)
-        assertEquals(challenge, decodedResponse)
+        assertEquals(decodedResponse, challenge)
 
 
     }
@@ -510,7 +510,7 @@ class TestAccountControllerDirect {
     fun testBase64dec() {
         val enc = "Y2hhbGxlbmdl"
         val dec = String(Base64.getUrlDecoder().decode(enc))
-        assertEquals(dec, "challenge")
+        assertEquals("challenge", dec)
     }
 
 
@@ -547,37 +547,31 @@ class TestAccountControllerDirect {
 
         val challenge = Base64.getUrlDecoder().decode(challengeEnc)
         val challengeStr = String(challenge)
-        assertEquals(challengeStr, "challenge")
+        assertEquals("challenge", challengeStr)
 
         val cipher = Cipher.getInstance(CIPHERSUITE)
         cipher.init(Cipher.ENCRYPT_MODE, privkey)
         val calculatedResponse = cipher.doFinal(challenge)
-        assertEquals(calculatedResponse.size, 256)
+        assertEquals(256, calculatedResponse.size)
         cipher.init(Cipher.DECRYPT_MODE, pubkey)
         val decryptedChallenge = String(cipher.doFinal(calculatedResponse))
 
-        assertEquals(decryptedChallenge, "challenge")
+        assertEquals("challenge", decryptedChallenge)
 
         val calculatedResponseEnc = Base64.getUrlEncoder().encodeToString(calculatedResponse)
         val webSafeCalculated = calculatedResponseEnc.replace('+', '-').replace('/', '_')
-        assertEquals(calculatedResponseEnc.length, 344)
-        assertEquals(sentResponseEnc.length, 344)
-        assertEquals(sentResponseEnc, webSafeCalculated)
+        assertEquals(344, calculatedResponseEnc.length)
+        assertEquals(344, sentResponseEnc.length)
+        assertEquals(webSafeCalculated, sentResponseEnc)
 
         val sentResponse = Base64.getUrlDecoder().decode(sentResponseEnc)
-        assertEquals(calculatedResponse, sentResponse)
+        assertEquals(sentResponse, calculatedResponse)
 
         cipher.init(Cipher.DECRYPT_MODE, pubkey)
         val decodedResponse = cipher.doFinal(sentResponse)
-        assertEquals(challenge, decodedResponse)
+        assertEquals(decodedResponse, challenge)
 
 
     }
 }
-
-fun assertEquals(actual: Any?, expected: Any?) = Assertions.assertEquals(expected, actual)
-fun assertEquals(actual: Any?, expected: Any?, message: String?) = Assertions.assertEquals(expected, actual, message)
-fun assertEquals(actual: Int, expected: Int) = Assertions.assertEquals(expected, actual)
-fun assertEquals(actual: Int, expected: Int, message: String?) = Assertions.assertEquals(expected, actual, message)
-fun assertNotEquals(actual: Any?, expected: Any?) = Assertions.assertNotEquals(expected, actual)
 
