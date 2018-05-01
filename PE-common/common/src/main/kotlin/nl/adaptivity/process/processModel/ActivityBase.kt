@@ -185,10 +185,10 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   }
 
   override fun serialize(out: XmlWriter) {
-    out.smartStartTag(Activity.ELEMENTNAME)
-    serializeAttributes(out)
-    serializeChildren(out)
-    out.endTag(Activity.ELEMENTNAME)
+    out.smartStartTag(Activity.ELEMENTNAME) {
+        serializeAttributes(this)
+        serializeChildren(this)
+    }
   }
 
   override fun serializeAttributes(out: XmlWriter) {

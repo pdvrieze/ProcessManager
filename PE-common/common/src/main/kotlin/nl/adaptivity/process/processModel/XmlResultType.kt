@@ -26,6 +26,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xml.*
 
 
@@ -70,8 +71,8 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
   @Deprecated("Use one of the parameterized constructors")
   constructor(): super()
 
-  constructor(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>)
-      : super(content, originalNSContext, path, name)
+  constructor(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>?)
+      : super(content, originalNSContext?: emptyList(), path, name)
 
   override fun serializeStartElement(out: XmlWriter) {
     out.smartStartTag(ELEMENTNAME)
@@ -86,7 +87,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
 
   companion object {
-
+    @JvmStatic
     fun deserialize(reader: XmlReader): XmlResultType {
       return deserialize(reader, XmlResultType())
     }

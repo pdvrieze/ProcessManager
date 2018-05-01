@@ -25,6 +25,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
 
@@ -157,6 +158,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     val ELEMENTLOCALNAME = "define"
     val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
+    @JvmStatic
     fun deserialize(reader: XmlReader): XmlDefineType {
       return XPathHolder.deserialize(reader, XmlDefineType())
     }

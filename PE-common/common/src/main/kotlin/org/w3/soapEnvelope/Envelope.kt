@@ -24,6 +24,7 @@
 
 package org.w3.soapEnvelope
 
+import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.util.xml.CompactFragment
@@ -151,10 +152,12 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
 
         const val MIMETYPE = "application/soap+xml"
 
+        @JvmStatic
         fun deserialize(`in`: XmlReader): Envelope<out ICompactFragment> {
             return deserialize(`in`, CompactFragment.Factory())
         }
 
+        @JvmStatic
         fun <T : XmlSerializable> deserialize(reader: XmlReader,
                                               bodyDeserializer: XmlDeserializerFactory<T>): Envelope<T> {
             val result = Envelope<T>()
