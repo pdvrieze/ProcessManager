@@ -70,12 +70,13 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
                                                                                                              fill) {
         internal val bounds: Rectangle = bounds.copy()
 
-        internal fun serializeRect(out: XmlWriter) {
+        internal inline fun serializeRect(out: XmlWriter, body: XmlWriter.()-> Unit) {
             out.smartStartTag(SVG_NAMESPACE, "rect", null) {
                 writeAttribute("x", bounds.left)
                 writeAttribute("y", bounds.top)
                 writeAttribute("width", bounds.width)
                 writeAttribute("height", bounds.height)
+                body()
             }
         }
 
@@ -90,9 +91,10 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
     private class Rect<M : MeasureInfo>(bounds: Rectangle, stroke: SVGPen<M>) : BaseRect<M>(bounds, stroke, null) {
 
         override fun serialize(out: XmlWriter) {
-            serializeRect(out)
-            serializeStroke(out)
-            out.endTag(SVG_NAMESPACE, "rect", null)
+            serializeRect(out) {
+
+                serializeStroke(this)
+            }
         }
 
     }
@@ -104,9 +106,9 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         internal constructor(bounds: Rectangle, stroke: SVGPen<M>, fill: SVGPen<M>) : super(bounds, stroke, fill) {}
 
         override fun serialize(out: XmlWriter) {
-            serializeRect(out)
-            serializeStrokeFill(out)
-            out.endTag(SVG_NAMESPACE, "rect", null)
+            serializeRect(out) {
+                serializeStrokeFill(out)
+            }
         }
 
     }
@@ -119,10 +121,12 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
                                                                                                                stroke,
                                                                                                                fill) {
 
-        internal fun serializeRoundRect(out: XmlWriter) {
-            serializeRect(out)
-            out.writeAttribute("rx", rx)
-            out.writeAttribute("ry", ry)
+        inline internal fun serializeRoundRect(out: XmlWriter, body: XmlWriter.() -> Unit) {
+            serializeRect(out) {
+                writeAttribute("rx", rx)
+                writeAttribute("ry", ry)
+                body()
+            }
         }
     }
 
@@ -133,9 +137,9 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
                                                                                                         stroke, null) {
 
         override fun serialize(out: XmlWriter) {
-            serializeRoundRect(out)
-            serializeStroke(out)
-            out.endTag(SVG_NAMESPACE, "rect", null)
+            serializeRoundRect(out) {
+                serializeStroke(out)
+            }
         }
 
     }
@@ -149,9 +153,9 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
             super(bounds, rx, ry, null, fill)
 
         override fun serialize(out: XmlWriter) {
-            serializeRoundRect(out)
-            serializeFill(out)
-            out.endTag(SVG_NAMESPACE, "rect", null)
+            serializeRoundRect(out) {
+                serializeFill(out)
+            }
         }
 
     }
@@ -452,8 +456,7 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     open fun serialize(out: XmlWriter) {
         ensureBounds()
-        out.smartStartTag(SVG_NAMESPACE, "svg", null) {
-            namespaceAttr(DEFAULT_NS_PREFIX, SVG_NAMESPACE)
+        out.smartStartTag(SVG_NAMESPACE, "svg", DEFAULT_NS_PREFIX) {
             writeAttribute("version", "1.1")
             writeAttribute("width", _bounds.width)
             writeAttribute("height", _bounds.height)
