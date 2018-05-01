@@ -42,90 +42,19 @@ targetCompatibility = myJavaVersion
 
 archivesBaseName = "PE-common"
 
-configurations {
-    generateXml
-    testJarConfig {
-        extendsFrom testRuntime
-    }
-    compileXmlJava {
-        extendsFrom runtime
-    }
-    compileXmlOnly {
-        extendsFrom compileOnly
-    }
-}
-
 version = '1.0.0'
 description = 'A library with process engine support classes'
 
 //group = ['util', 'process' ]
 
-
-task testJar(type: Jar) {
-    from sourceSets.test.output
-    classifier = 'test'
-}
-
-artifacts {
-    testRuntime testJar
-}
-
-test {
-    useTestNG()
-}
-
 dependencies {
     expectedBy project(':PE-common:common')
-/*
-    generateXml project(':xmlutil:generator')
-*/
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     implementation project(':multiplatform:js')
     implementation project(':java-common:js')
     implementation project(':xmlutil:core:js')
-//    testRuntime project(':xmlutil:js')
-//    compileOnly project(':DarwinJavaApi')
-//    generateXml project(':DarwinJavaApi')
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
 targetCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
-
-sourceSets {
-    xml {
-        generate {
-            info {
-                input = { main.runtimeClasspath }
-                generator = 'nl.adaptivity.xml.generators.Info'
-                output = new File(buildDir, "/xmlinfo/xmlinfo.txt")
-            }
-        }
-    }
-}
-
-generateXml {
-//    dependsOn classes
-    outputs.file("${buildDir}/xmlinfo/xmlinfo.txt")
-    dirGenerator {
-        input = { sourceSets.main.runtimeClasspath }
-        generator = "nl.adaptivity.xml.generators.Factory"
-    }
-}
-
-compileXmlJava {
-    classpath+=sourceSets.main.runtimeClasspath
-    doFirst {
-        System.err.println("compileXml classpath")
-        classpath.forEach { e ->
-            System.err.println("  $e")
-        }
-    }
-}
-
-artifacts {
-    testRuntime testJar
-}
-
-test {
-    useTestNG()
-}

@@ -175,9 +175,9 @@ dependencies {
     compileOnly project(':DarwinJavaApi')
 
 
-    testImplementation 'org.testng:testng:6.9.13.8'
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'xmlunit:xmlunit:1.6'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
+    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
     testImplementation project(path: ':PE-common:jvm', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
@@ -188,7 +188,7 @@ dependencies {
 }
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 /*

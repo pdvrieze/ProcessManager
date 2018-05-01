@@ -74,15 +74,14 @@ dependencies {
     testImplementation "org.jetbrains.spek:spek-api:${spekVersion}"
     testImplementation "org.jetbrains.spek:spek-subject-extension:${spekVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jupiterVersion}"
-    testImplementation 'org.testng:testng:6.9.13.8'
-    testImplementation 'xmlunit:xmlunit:1.6'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
     testImplementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     testImplementation project(':DarwinJavaApi')
     testImplementation project(':TestSupport')
+
 //    testRuntime project(':xmlutil:core:jvm')
-    testImplementation "org.junit.platform:junit-platform-engine:${junit5_version}"
     testRuntime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testRuntime "org.junit.platform:junit-platform-engine:${junit5_version}"
     testRuntime "org.jetbrains.spek:spek-junit-platform-engine:${spekVersion}"
 }
 
@@ -104,7 +103,7 @@ compileTestKotlin {
 }
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 idea {

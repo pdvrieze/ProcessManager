@@ -16,10 +16,8 @@
 
 package uk.ac.bournemouth.util.kotlin
 
-import org.testng.Assert.*
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import uk.ac.bournemouth.util.kotlin.sql.use
@@ -43,23 +41,25 @@ class DBConnectionTest {
 
   var conn: Connection? = null
 
-  @BeforeMethod
+  @BeforeEach
   fun makeConnectionAndTable() {
-    val c = makeConnection()
-    conn = c
-    System.err.println("Creating temporary table")
-    c.prepareStatement("DROP TABLE IF EXISTS ${TABLENAME}").use { it.execute() }
-    conn!!.prepareStatement("CREATE TABLE ${TABLENAME} ( col1 INT AUTO_INCREMENT PRIMARY KEY, col2 VARCHAR(10), col3 VARCHAR(10), col4 BOOLEAN ) ENGINE = InnoDB").use {
-      it.execute()
+    makeConnection().apply {
+        conn = this
+
+        System.err.println("Creating temporary table")
+        prepareStatement("DROP TABLE IF EXISTS $TABLENAME").use { it.execute() }
+        prepareStatement("CREATE TABLE $TABLENAME ( col1 INT AUTO_INCREMENT PRIMARY KEY, col2 VARCHAR(10), col3 VARCHAR(10), col4 BOOLEAN ) ENGINE = InnoDB").use {
+            it.execute()
+        }
     }
   }
 
   private fun makeConnection() = DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
 
-  @AfterMethod
+  @AfterEach
   fun removeTempTable() {
     val c = conn
-    if (c!=null && ! c!!.isClosed) {
+    if (c!=null && ! c.isClosed) {
       System.err.println("Removing temporary table")
       if (!c.autoCommit) c.rollback()
       c.prepareStatement("DROP TABLE ${TABLENAME}").use {
@@ -69,7 +69,7 @@ class DBConnectionTest {
         c.commit()
       }
       c.close()
-      conn == null
+      conn = null
     }
   }
 
@@ -90,7 +90,7 @@ class DBConnectionTest {
         throw UnsupportedOperationException("test")
       }
     } catch(e:UnsupportedOperationException) {
-      assertEquals(e.message,"test")
+        assertEquals("test", e.message)
     }
     verifyNoRows(DBConnection(conn!!, db))
     assertFalse(conn!!.isClosed)
@@ -134,11 +134,9 @@ class DBConnectionTest {
       DBConnection(c, db).use { it ->
         simpleInsert(it)
         throw UnsupportedOperationException("Test")
-        fail("unreachable")
-
       }
     } catch (e:UnsupportedOperationException) {
-      assertEquals(e.message,"Test")
+        assertEquals("Test", e.message)
     }
     DBConnection(makeConnection(), db).use {
       verifyNoRows(it)
@@ -154,10 +152,9 @@ class DBConnectionTest {
         it.transaction {
           simpleInsert(it)
           throw UnsupportedOperationException("Test")
-          fail("unreachable")
         }
       } catch (e:UnsupportedOperationException) {
-        assertEquals(e.message,"Test")
+          assertEquals("Test", e.message)
       }
       verifyNoRows(it)
 
@@ -177,16 +174,16 @@ class DBConnectionTest {
     connectionHelper.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
       execute {
         assertTrue(it.next())
-        assertEquals(it.getInt(1), 1)
-        assertEquals(it.getString(2), "r1c2")
-        assertEquals(it.getString(3), "r1c3")
-        assertEquals(it.getBoolean(4), true)
+          assertEquals(1, it.getInt(1))
+          assertEquals("r1c2", it.getString(2))
+          assertEquals("r1c3", it.getString(3))
+          assertEquals(true, it.getBoolean(4))
 
         assertTrue(it.next())
-        assertEquals(it.getInt(1), 2)
-        assertEquals(it.getString(2), "r2c2")
-        assertEquals(it.getString(3), "r2c3")
-        assertEquals(it.getBoolean(4), false)
+          assertEquals(2, it.getInt(1))
+          assertEquals("r2c2", it.getString(2))
+          assertEquals("r2c3", it.getString(3))
+          assertEquals(false, it.getBoolean(4))
 
         assertFalse(it.next())
       }
@@ -195,8 +192,8 @@ class DBConnectionTest {
 
   private fun simpleInsert(connectionHelper: DBConnection) {
     connectionHelper.prepareStatement("INSERT INTO $TABLENAME (col1, col2, col3, col4) VALUES ( ?, ?, ?, ? ), (?, ?, ? ,?)") {
-      params(1 as Int) + "r1c2" + "r1c3" + true + 2 as Int + "r2c2" + "r2c3" + false
-      assertEquals(executeUpdate(), 2)
+        params(intValue = 1) + "r1c2" + "r1c3" + true + 2 as Int + "r2c2" + "r2c3" + false
+        assertEquals(2, executeUpdate())
     }
   }
   /*

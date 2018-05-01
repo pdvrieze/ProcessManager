@@ -24,22 +24,24 @@ configurations {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version"
-    compile 'com.sun.mail:javax.mail:1.5.5'
-    compile project(':accountcommon')
-    compile project(':darwin:jvm')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version"
+    implementation 'com.sun.mail:javax.mail:1.5.5'
+    implementation project(':accountcommon')
+    implementation project(':darwin:jvm')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(':JavaCommonApi:jvm')
     compileOnly project(":DarwinJavaApi")
-    testCompile 'org.testng:testng:6.9.13.8'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    implementation project(":darwin-sql")
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
     testRuntime 'mysql:mysql-connector-java:5.1.36'
 
     javascript project(':accountmgr:js')
 }
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 war {

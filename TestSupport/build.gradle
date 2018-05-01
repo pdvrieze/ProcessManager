@@ -41,19 +41,6 @@ artifacts {
     testRuntime testJar
 }
 
-test {
-    useTestNG()
-}
-
 dependencies {
-//    compile project(':xmlutil:core')
     compile project(':java-common:jvm')
-//    compile 'org.codehaus.woodstox:stax2-api:3.1.4'
-//    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
-//    testCompile 'org.testng:testng:6.9.13.8'
-//    testCompile 'xmlunit:xmlunit:1.6'
-//    testCompile 'org.mockito:mockito-core:1.9.5'
-//    testCompile project(':DarwinJavaApi')
-//    compileOnly project(':DarwinJavaApi')
-//    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }

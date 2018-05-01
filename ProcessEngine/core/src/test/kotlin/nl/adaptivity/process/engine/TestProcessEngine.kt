@@ -34,14 +34,13 @@ import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.XmlSerializable
 import nl.adaptivity.xml.XmlStreaming
-import org.custommonkey.xmlunit.DetailedDiff
-import org.custommonkey.xmlunit.XMLAssert.assertXMLEqual
-import org.custommonkey.xmlunit.XMLUnit
-import org.testng.Assert.*
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Node
+import org.xmlunit.builder.DiffBuilder
+import org.xmlunit.diff.DefaultComparisonFormatter
 import java.io.*
 import java.net.URI
 import java.nio.charset.Charset.defaultCharset
@@ -161,55 +160,55 @@ class TestProcessEngine {
   private val ProcessInstance.sortedCompleted
     get() = completedEndnodes.sortedBy { it.handleValue }
 
-  private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
-    assertEquals(ArrayList(sortedFinished), handles.sorted())
+    private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
+        assertEquals(handles.sorted(), ArrayList(sortedFinished))
   }
 
   private fun ProcessInstance.assertFinished(vararg handles: IProcessNodeInstance) = apply {
     val actual = ArrayList(sortedFinished)
     val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
     try {
-      assertEquals(actual, expected)
+        assertEquals(expected, actual)
     } catch (e: AssertionError) {
       throw AssertionError("Expected finished list $expected, but found $actual").initCause(e)
     }
   }
 
   private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
-    assertEquals(ArrayList(sortedActive), handles.sorted())
+      assertEquals(handles.sorted(), ArrayList(sortedActive))
   }
 
   private fun ProcessInstance.assertActive(vararg handles: IProcessNodeInstance) = apply {
     val actual = ArrayList(sortedActive)
     val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
     try {
-      assertEquals(actual, expected)
+        assertEquals(expected, actual)
     } catch (e:AssertionError) {
       throw AssertionError("Expected active list $expected, but found $actual").initCause(e)
     }
   }
 
   private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
-    assertEquals(ArrayList(sortedCompleted), handles.sorted())
+      assertEquals(handles.sorted(), ArrayList(sortedCompleted))
   }
 
   private fun ProcessInstance.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance {
     val actual = ArrayList(sortedCompleted)
     val expected = nodes.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
-    assertEquals(actual, expected)
+      assertEquals(expected, actual)
     return this
   }
 
   private fun IProcessNodeInstance.assertStarted() = apply {
-    assertEquals(this.state, NodeInstanceState.Started)
+      assertEquals(NodeInstanceState.Started, this.state)
   }
 
   private fun ProcessInstance.assertIsStarted() = apply {
-    assertEquals(this.state, State.STARTED)
+      assertEquals(State.STARTED, this.state)
   }
 
   private fun ProcessInstance.assertIsFinished() = apply {
-    assertEquals(this.state, State.FINISHED)
+      assertEquals(State.FINISHED, this.state)
   }
 
   private fun IProcessNodeInstance.assertSent() = apply {
@@ -230,13 +229,14 @@ class TestProcessEngine {
 
   private fun IProcessNodeInstance.assertState(state: NodeInstanceState) {
     try {
-      assertEquals(this.state, state, "Node ${this.node.id}(${this.handle()}) should be in the ${state.name} state")
+        assertEquals(state, this.state,
+                                "Node ${this.node.id}(${this.handle()}) should be in the ${state.name} state")
     } catch (e: AssertionError) {
       throw dropStack(e, 2)
     }
   }
 
-  @BeforeMethod
+  @BeforeEach
   fun beforeTest() {
     mStubMessageService.clear()
     //    DelegateProcessEngineData<StubProcessTransaction> engineData =
@@ -253,6 +253,33 @@ class TestProcessEngine {
       cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
   }
 
+  fun assertEqualsXml(expected: InputStream?, actual: CharArray) {
+      val diff = DiffBuilder.compare(expected)
+          .withTest(actual)
+          .ignoreWhitespace()
+          .ignoreComments()
+          .checkForSimilar()
+          .build()
+
+      if (diff.hasDifferences()) {
+          assertEquals(expected?.readString(defaultCharset()), String(actual),
+                                  diff.toString(DefaultComparisonFormatter()))
+      }
+  }
+
+  fun assertEqualsXml(expected: String?, actual: String?) {
+      val diff = DiffBuilder.compare(expected)
+          .withTest(actual)
+          .ignoreWhitespace()
+          .ignoreComments()
+          .checkForSimilar()
+          .build()
+
+      if (diff.hasDifferences()) {
+          assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
+      }
+  }
+
   @Test
   @Throws(Exception::class)
   fun testExecuteSingleActivity() {
@@ -263,31 +290,19 @@ class TestProcessEngine {
 
     val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
 
-    assertEquals(mStubMessageService._messages.size, 1)
-    assertEquals(mStubMessageService.getMessageNode(0).handleValue, 1L)
+      assertEquals(1, mStubMessageService._messages.size)
+      assertEquals(1L, mStubMessageService.getMessageNode(0).handleValue)
 
     val expected = getXml("testModel1_task1.xml")
 
     val receivedChars = serializeToXmlCharArray(mStubMessageService._messages[0].base)
 
-    XMLUnit.setIgnoreWhitespace(true)
-    try {
-      assertXMLEqual(InputStreamReader(expected!!), CharArrayReader(receivedChars))
-    } catch (e: AssertionError) {
-      e.printStackTrace()
-      try {
-        assertEquals(String(receivedChars), getXml("testModel1_task1.xml")?.readString(defaultCharset()))
-      } catch (f: Exception) {
-        f.initCause(e)
-        throw f
-      }
-
-    }
+    assertEqualsXml(expected, receivedChars)
 
     run {
       val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
 
-      assertEquals(processInstance.active.size, 1)
+        assertEquals(1, processInstance.active.size)
 
       processInstance.child(transaction, "start").assertComplete().let { start ->
         processInstance.assertFinished(start)
@@ -333,7 +348,7 @@ class TestProcessEngine {
         val ac = instance.child(transaction, "ac").apply { assertState(NodeInstanceState.Skipped) }
         val end = instance.child(transaction, "end").apply { assertState(NodeInstanceState.Skipped) }
         instance.assertFinished(start, ac)
-        assertEquals(instance.state, State.SKIPPED)
+          assertEquals(State.SKIPPED, instance.state)
       }
     }
   }
@@ -352,7 +367,7 @@ class TestProcessEngine {
         val ac = instance.child(transaction, "ac").assertAcknowledged()
 //        val end = instance.child(transaction, "end").apply { assertState(NodeInstanceState.Skipped) }
         instance.assertFinished(start)
-        assertEquals(instance.state, State.STARTED)
+          assertEquals(State.STARTED, instance.state)
       }
     }
   }
@@ -376,7 +391,7 @@ class TestProcessEngine {
             val messageSources = mStubMessageService._messages
                 .map { transaction.readableEngineData.nodeInstance(it.source).withPermission() }
                 .sortedBy { it.node.id }
-            assertEquals(messageSources, listOf(ac1, ac2))
+              assertEquals(listOf(ac1, ac2), messageSources)
             mStubMessageService._messages.forEach { msg ->
               msg.source
             }
@@ -434,7 +449,7 @@ class TestProcessEngine {
           val join = instance.child(transaction, "join1").assertComplete()
           val end = instance.child(transaction, "end").assertComplete()
 
-          assertEquals(instance.active.size, 0)
+            assertEquals(0, instance.active.size)
           instance.assertFinished(start, split, ac1, ac2, join)
           instance.assertCompleted(end)
         }
@@ -442,7 +457,7 @@ class TestProcessEngine {
       }
       run {
         val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
-        assertEquals(instance.state, State.FINISHED)
+          assertEquals(State.FINISHED, instance.state)
       }
     }
 
@@ -458,45 +473,41 @@ class TestProcessEngine {
 
     val instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
 
-    assertEquals(mStubMessageService._messages.size, 1)
+      assertEquals(1, mStubMessageService._messages.size)
 
-    XMLUnit.setIgnoreWhitespace(true)
-    assertXMLEqual(InputStreamReader(getXml("testModel2_task1.xml")!!), CharArrayReader(serializeToXmlCharArray(mStubMessageService
-        ._messages[0].base)))
+    assertEqualsXml(getXml("testModel2_task1.xml"), serializeToXmlCharArray(mStubMessageService
+                                                                                  ._messages[0].base))
+
     var ac1: ProcessNodeInstance<*> = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
 
     mStubMessageService.clear() // (Process the message)
-    assertEquals(ac1.results.size, 0)
+      assertEquals(0, ac1.results.size)
     ac1 = mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml"), mPrincipal)
-    assertEquals(ac1.state, NodeInstanceState.Complete)
+      assertEquals(NodeInstanceState.Complete, ac1.state)
     ac1 = mProcessEngine.getNodeInstance(transaction, ac1.getHandle(), mPrincipal) ?: throw AssertionError("Node ${ac1.getHandle()} not found")
-    assertEquals(ac1.results.size, 2)
+      assertEquals(2, ac1.results.size)
     val result1 = ac1.results[0]
     val result2 = ac1.results[1]
-    assertEquals(result1.name, "name")
-    assertEquals(result1.content.contentString, "Paul")
-    assertEquals(result2.name, "user")
+      assertEquals("name", result1.name)
+      assertEquals("Paul", result1.content.contentString)
+      assertEquals("user", result2.name)
 
       result2.content.contentString.let { actual ->
           val expected = "<user xmlns='http://adaptivity.nl/userMessageHandler'><fullname>Paul</fullname></user>"
-          try {
-              assertXMLEqual(expected, actual)
-          } catch (e: AssertionError) {
-              assertEquals(actual, expected)
-          }
+          assertEqualsXml(expected, actual)
       }
-    assertEquals(mStubMessageService._messages.size, 1)
-    assertEquals(mStubMessageService.getMessageNode(0).handleValue, 2L) //We should have a new message with the new task (with the data)
+      assertEquals(1, mStubMessageService._messages.size)
+      assertEquals(2L, mStubMessageService.getMessageNode(0).handleValue) //We should have a new message with the new task (with the data)
     val ac2 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal)
 
     val ac2Defines = ac2!!.getDefines(engineData)
-    assertEquals(ac2Defines.size, 1)
+      assertEquals(1, ac2Defines.size)
 
 
     val define = ac2Defines[0]
-    assertEquals(define.name, "mylabel")
-    assertEquals(define.content.contentString, "Hi Paul. Welcome!")
+      assertEquals("mylabel", define.name)
+      assertEquals("Hi Paul. Welcome!", define.content.contentString)
 
   }
 
@@ -574,15 +585,7 @@ class TestProcessEngine {
       }.newDocumentBuilder()
     }
 
-    private fun assertXMLSimilar(expected: Document, actual: Document) {
-      val diff = XMLUnit.compareXML(expected, actual)
-      val detailedDiff = DetailedDiff(diff)
-      if (!detailedDiff.similar()) {
-        fail(detailedDiff.toString())
-      }
-    }
-
-    @Throws(TransformerException::class)
+      @Throws(TransformerException::class)
     private fun toDocument(node: Node): Document {
       val result = documentBuilder.newDocument()
       Sources.writeToResult(DOMSource(node), DOMResult(result))

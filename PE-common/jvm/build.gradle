@@ -140,11 +140,3 @@ compileXmlJava {
         }
     }
 }
-
-artifacts {
-    testRuntime testJar
-}
-
-test {
-    useJUnitPlatform()
-}
