@@ -16,10 +16,20 @@
 
 package nl.adaptivity.process.processModel
 
+import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.util.DomUtil
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.Namespace
+import nl.adaptivity.xml.SimpleNamespaceContext
+import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.XmlSerializable
 import org.w3c.dom.Node
+import org.w3c.dom.NodeList
+import javax.xml.xpath.XPathConstants
+import nl.adaptivity.xml.siblingsToFragment
+
+import javax.xml.xpath.XPathExpression
 
 actual interface IXmlResultType : XmlSerializable {
 
@@ -39,6 +49,8 @@ actual interface IXmlResultType : XmlSerializable {
      */
     actual fun getPath(): String?
 
+    val xPath: XPathExpression?
+
     /**
      * Sets the value of the path property.
      *
@@ -48,7 +60,30 @@ actual interface IXmlResultType : XmlSerializable {
      */
     actual fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-    fun applyData(payload: Node?): ProcessData
+    actual val bodyStreamReader: XmlReader
+
+    fun applyData(payload: Node?): ProcessData {
+        // shortcircuit missing path
+        if (payload==null) { return ProcessData(getName(), CompactFragment("")) }
+        val processData = if (getPath() == null || "." == getPath()) {
+            ProcessData(getName(), DomUtil.nodeToFragment(payload))
+        } else {
+            ProcessData(getName(), DomUtil.nodeListToFragment(xPath!!.evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET) as NodeList))
+        }
+        val content = content
+        if (content?.isNotEmpty() ?: false) {
+            val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
+            val reader = transformer.createFilter(bodyStreamReader)
+
+            if (reader.hasNext()) reader.next() // Initialise the reader
+
+            val transformed = reader.siblingsToFragment()
+            return ProcessData(getName(), transformed)
+        } else {
+            return processData
+        }
+
+    }
 
     /**
      * Get the namespace context for evaluating the xpath expression.

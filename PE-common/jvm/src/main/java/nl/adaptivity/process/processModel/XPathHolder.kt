@@ -175,12 +175,14 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
+/*
     fun applyData(payload: Node?): ProcessData = path.let { p ->
         when (p) {
             null -> ProcessData(_name!!, payload)
             else -> ProcessData(_name!!, p.evaluate(payload, XPathConstants.NODESET) as NodeList)
         }
     }
+*/
 
 
     actual companion object {

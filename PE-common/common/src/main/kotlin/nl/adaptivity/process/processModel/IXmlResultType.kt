@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.xml.Namespace
+import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.XmlSerializable
 
 
@@ -46,6 +47,11 @@ expect interface IXmlResultType : XmlSerializable {
    * @param value allowed object is [String]
    */
   fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
+
+    /**
+     * A reader for the underlying body stream.
+     */
+  val bodyStreamReader: XmlReader
 
 //  fun applyData(payload: Node?): ProcessData
 

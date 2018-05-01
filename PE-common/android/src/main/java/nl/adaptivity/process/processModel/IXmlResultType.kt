@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xml.Namespace
+import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.XmlSerializable
 import org.w3c.dom.Node
 
@@ -47,6 +48,8 @@ actual interface IXmlResultType : XmlSerializable {
      * @param value allowed object is [String]
      */
     actual fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
+
+    actual val bodyStreamReader: XmlReader
 
     fun applyData(payload: Node?): ProcessData = TODO("Android XPath processing is not like Java. Not supported yet")
 
