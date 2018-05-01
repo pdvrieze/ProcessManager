@@ -16,6 +16,10 @@
 
 package nl.adaptivity.process.engine
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
 import net.devrieze.util.toString
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlMessage
@@ -27,12 +31,11 @@ import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.IOException
 import nl.adaptivity.xml.SimpleNamespaceContext
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.mockito.Matchers.any
-import org.mockito.Matchers.anyBoolean
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when` as mockWhen
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.w3c.dom.Text
@@ -439,7 +442,7 @@ class TestProcessData {
         assertArrayEquals(toArray(Identifier(ac3.id!!)), ac5.predecessors.toTypedArray())
         assertArrayEquals(toArray(Identifier(j1.id!!)), ac5.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(start.id!!)), ac6.predecessors.toTypedArray())
+        assertArrayEquals(toArray(Identifier(split2.id!!)), ac6.predecessors.toTypedArray())
         assertArrayEquals(toArray(Identifier(ac7.id!!)), ac6.successors.toTypedArray())
 
         assertArrayEquals(toArray(Identifier(ac6.id!!)), ac7.predecessors.toTypedArray())
@@ -547,14 +550,18 @@ class TestProcessData {
         assertEquals(TEXT, reader.next())
 
         run {
-            val factory = mock(XmlStreamingFactory::class.java)
-            val mockedWriter = mock(XmlWriter::class.java)
-            val nsContext = mock(NamespaceContext::class.java)
-            `when`(factory.newWriter(any(Writer::class.java), anyBoolean())).thenReturn(mockedWriter)
-            `when`(mockedWriter.namespaceContext).thenReturn(nsContext)
-            `when`(nsContext.getNamespaceURI("")).thenReturn("")
-            `when`(nsContext.getPrefix("")).thenReturn("")
-            XmlStreaming.setFactory(factory)
+            val nsContext = mock<NamespaceContext> {
+                on { getNamespaceURI("") } doReturn ""
+                on { getPrefix("") } doReturn ""
+            }
+            val mockedWriter = mock<XmlWriter> {
+                on { namespaceContext } doReturn nsContext
+            }
+            val mockedFactory = mock<XmlStreamingFactory> {
+                on { newWriter(com.nhaarman.mockito_kotlin.any<Writer>(), any()) } doReturn mockedWriter
+            }
+
+            XmlStreaming.setFactory(mockedFactory)
             reader.siblingsToFragment()
 
             val inOrder = inOrder(mockedWriter)
@@ -699,7 +706,7 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testRoundTripActivity() {
         val xml = "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
-                  "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+                  "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" id=\"ac1\">\n" +
                   "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
                   "    <pe:result name=\"user\">\n" +
                   "      <user xmlns=\"\"\n" +
@@ -732,7 +739,47 @@ class TestProcessData {
                   "  </pe:activity>\n" +
                   "</pe:processModel>\n"
 
+
         testRoundTrip(xml, XmlProcessModel::class.java, true)
+    }
+
+    @Test()
+    @Throws(Exception::class)
+    fun testMissingPredecessor() {
+        val xml = "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
+                  "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+                  "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                  "    <pe:result name=\"user\">\n" +
+                  "      <user xmlns=\"\"\n" +
+                  "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                  "        <fullname>\n" +
+                  "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                  "        </fullname>\n" +
+                  "      </user>\n" +
+                  "    </pe:result>\n" +
+                  "    <pe:message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+                  "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+                  "        <Body>\n" +
+                  "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                  "            <repliesParam>\n" +
+                  "              <jbi:element value=\"endpoint\"/>\n" +
+                  "            </repliesParam>\n" +
+                  "            <taskParam>\n" +
+                  "              <task summary=\"Task Foo\">\n" +
+                  "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
+                  "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
+                  "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
+                  "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
+                  "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
+                  "              </task>\n" +
+                  "            </taskParam>\n" +
+                  "          </umh:postTask>\n" +
+                  "        </Body>\n" +
+                  "      </Envelope>\n" +
+                  "    </pe:message>\n" +
+                  "  </pe:activity>\n" +
+                  "</pe:processModel>\n"
+        assertThrows<ProcessException> { testRoundTrip(xml, XmlProcessModel::class.java, true) }
     }
 
     companion object {
