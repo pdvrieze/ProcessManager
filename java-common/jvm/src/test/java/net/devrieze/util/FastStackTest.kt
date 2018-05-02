@@ -20,8 +20,7 @@
 
 package net.devrieze.util
 
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.io.BufferedOutputStream
 import java.io.FileOutputStream
@@ -29,10 +28,6 @@ import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintStream
 import java.util.ArrayList
-
-import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.BeforeAll
 
 
 /**
@@ -110,6 +105,23 @@ class FastStackTest {
         assertEquals(s1.size, 1)
         val s2 = s1.append(b).append(c)
         assertEquals(s2.size, 3)
+    }
+
+    @Test
+    fun testIterator() {
+        val s = FastStack<String>("a").append("b").append("c").append("d")
+        val it = s.reverseIterator()
+        assertTrue(it.hasNext())
+        assertEquals("d", it.next())
+        assertTrue(it.hasNext())
+        assertEquals("c", it.next())
+        assertTrue(it.hasNext())
+        assertEquals("b", it.next())
+        assertTrue(it.hasNext())
+        assertEquals("a", it.next())
+        assertFalse(it.hasNext())
+
+        assertThrows<NoSuchElementException> { System.err.println(it.next()) }
     }
 
     /**
