@@ -41,7 +41,7 @@ class JAXBCollectionWrapperTest {
     @XmlRootElement(name = "xItem", namespace = "http://example.org/test")
     internal class XItem {
 
-        @XmlValue
+        @get:XmlValue
         var value: String? = null
 
         constructor() {
@@ -56,7 +56,7 @@ class JAXBCollectionWrapperTest {
     @XmlRootElement(name = "yItem", namespace = "http://example.org/test")
     internal class YItem {
 
-        @XmlValue
+        @get:XmlValue
         var value: String? = null
 
         constructor(string: String) {
@@ -91,7 +91,7 @@ class JAXBCollectionWrapperTest {
     companion object {
 
 
-        private val NS = "http://example.org/test"
+        private const val NS = "http://example.org/test"
     }
 
 }

@@ -16,8 +16,7 @@
 
 package net.devrieze.util
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Node
 import java.lang.reflect.ParameterizedType
@@ -44,7 +43,7 @@ class ReflectionUtilTest {
     fun testIterableParam1() {
         val `in` = TestTarget::class.java.getMethod("function1").genericReturnType
         val iterableType = ReflectionUtil.concreteTypeParams(`in`, Iterable::class.java)
-        assertEquals(arrayOf<Class<*>>(String::class.java), iterableType)
+        assertArrayEquals(arrayOf<Class<*>>(String::class.java), iterableType)
     }
 
     @Test
@@ -52,7 +51,7 @@ class ReflectionUtilTest {
     fun testIterableParam2() {
         val `in` = TestTarget::class.java.getMethod("function2").genericReturnType
         val iterableType = ReflectionUtil.concreteTypeParams(`in`, Iterable::class.java)
-        assertEquals(arrayOf<Class<*>>(Collection::class.java), iterableType)
+        assertArrayEquals(arrayOf<Class<*>>(Collection::class.java), iterableType)
     }
 
     @Test
@@ -65,7 +64,7 @@ class ReflectionUtilTest {
         val t = iterableType[0] as ParameterizedType
 
         assertEquals(Collection::class.java, t.rawType)
-        assertEquals(arrayOf<Type>(Node::class.java), t.actualTypeArguments)
+        assertArrayEquals(arrayOf<Type>(Node::class.java), t.actualTypeArguments)
     }
 }
 

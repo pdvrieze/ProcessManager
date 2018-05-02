@@ -59,21 +59,21 @@ class TypesTest {
             assertEquals(3, paramTypesA.size)
             assertEquals(String::class.java, paramTypesA[0])
             assertEquals(Void::class.java, paramTypesA[1])
-            assertEquals(Int::class.java, paramTypesA[2])
+            assertEquals(Int::class.javaObjectType, paramTypesA[2])
         }
 
         run {
             val paramTypesB = Types.getTypeParametersFor(B::class.java, returnType)
             assertEquals(3, paramTypesB.size)
             assertEquals(String::class.java, paramTypesB[0])
-            assertEquals(Int::class.java, paramTypesB[1])
-            assertEquals(Boolean::class.java, paramTypesB[2])
+            assertEquals(Int::class.javaObjectType, paramTypesB[1])
+            assertEquals(Boolean::class.javaObjectType, paramTypesB[2])
         }
 
         run {
             val paramTypesCol = Types.getTypeParametersFor(Collection::class.java, returnType)
             assertEquals(1, paramTypesCol.size)
-            assertEquals(Int::class.java, paramTypesCol[0])
+            assertEquals(Int::class.javaObjectType, paramTypesCol[0])
         }
     }
 

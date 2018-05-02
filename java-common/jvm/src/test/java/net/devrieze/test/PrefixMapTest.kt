@@ -18,7 +18,6 @@ package net.devrieze.test
 
 import net.devrieze.util.PrefixMap
 import net.devrieze.util.PrefixMap.Entry
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -70,13 +69,13 @@ class PrefixMapTest {
     @Test
     fun testToList() {
         map.addAll(entryList)
-        assertEquals(expected, map.toList().toTypedArray())
+        assertArrayEquals(expected, map.toList().toTypedArray())
     }
 
     @Test
     fun testIterator() {
         map.addAll(entryList)
-        assertEquals(expected, ArrayList(map).toTypedArray())
+        assertArrayEquals(expected, ArrayList(map).toTypedArray())
     }
 
     @Test
@@ -86,7 +85,7 @@ class PrefixMapTest {
 
         val expected = arrayOf<Entry<*>>(Entry("ba", "ba"), Entry("bb", "bb"), Entry("bba", "bba"))
 
-        assertEquals(expected, result.toTypedArray())
+        assertArrayEquals(expected, result.toTypedArray())
 
     }
 
@@ -97,7 +96,7 @@ class PrefixMapTest {
 
         val expected = arrayOf<Entry<*>>(Entry("ccc", "ccc"))
 
-        assertEquals(expected, result.toTypedArray())
+        assertArrayEquals(expected, result.toTypedArray())
 
     }
 
@@ -108,7 +107,7 @@ class PrefixMapTest {
 
         val expected = arrayOf<Entry<*>>()
 
-        assertEquals(expected, result.toTypedArray())
+        assertArrayEquals(expected, result.toTypedArray())
 
     }
 
@@ -119,7 +118,7 @@ class PrefixMapTest {
 
         val expected = arrayOf<Entry<*>>(Entry("bb", "bb"), Entry("bba", "bba"))
 
-        assertEquals(expected, result.toTypedArray())
+        assertArrayEquals(expected, result.toTypedArray())
 
     }
 
@@ -184,7 +183,7 @@ class PrefixMapTest {
             assertFalse(map.contains(entryList[index]))
             entryList.removeAt(index)
             Collections.sort(entryList, entryComparator)
-            assertEquals(entryList.toTypedArray(), map.toTypedArray())
+            assertArrayEquals(entryList.toTypedArray(), map.toTypedArray())
         }
     }
 
@@ -205,7 +204,7 @@ class PrefixMapTest {
                 assertFalse(map.contains(entryList[index]))
                 entryList.removeAt(index)
                 Collections.sort(entryList, entryComparator)
-                assertEquals(entryList.toTypedArray(), map.toTypedArray())
+                assertArrayEquals(entryList.toTypedArray(), map.toTypedArray())
             }
             assertTrue(map.isEmpty())
         }
@@ -303,3 +302,4 @@ class PrefixMapTest {
     }
 
 }
+
