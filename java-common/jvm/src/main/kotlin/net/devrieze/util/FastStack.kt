@@ -45,6 +45,12 @@ interface FastStack<E> : List<E> {
 
   fun reverseSequence(): Sequence<E>
 
+  fun reverseIterator(): Iterator<E>
+
+  val lastElem: E
+
+  @JvmDefault
+  fun last(): E = lastElem
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -92,14 +98,18 @@ private object EMPTY: FastStack<Any> {
   override fun isEmpty() = true
 
   override fun iterator(): Iterator<Any> = Collections.emptyIterator<Any>()
+  override fun reverseIterator(): Iterator<Any> = Collections.emptyIterator<Any>()
   override fun lastIndexOf(element: Any) = -1
   override fun listIterator(): ListIterator<Any> = Collections.emptyListIterator<Any>()
   override fun listIterator(index: Int) = if (index==0) listIterator() else  throw IndexOutOfBoundsException()
   override fun subList(fromIndex: Int, toIndex: Int) = if(fromIndex==0 && toIndex==0) this else throw IndexOutOfBoundsException()
 
-  override val previous: FastStack<Any>? get() = null
+  override val previous: Nothing? get() = null
 
-  override fun append(elem: Any) = FastStack(elem)
+  override val lastElem: Nothing get() = throw NoSuchElementException("The stack is empty, no last element")
+  override fun last() = lastElem
+
+  override fun append(elem: Any) = FastStackImpl(elem, this)
 
   override fun reverseSequence(): Sequence<Any> { return sequenceOf() }
 }
@@ -117,9 +127,9 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
   /**
    * The last item in the stack.
    */
-  val lastElem: E = elem
+  override val lastElem: E = elem
 
-  fun last(): E = lastElem
+  override fun last(): E = lastElem
 
   @Transient private var containsCache: SoftReference<HashSet<E>>? = null
 
@@ -134,7 +144,7 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
   }
 
   @Suppress("UNCHECKED_CAST")
-  fun toList(): List<E> = Arrays.asList<E>(*toArray() as Array<E>)
+  fun toList(): List<E> = Arrays.asList(*toArray()) as List<E>
 
   override fun reverseSequence(): Sequence<E> {
     return object: Sequence<E> {
@@ -142,15 +152,16 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
     }
   }
 
-  fun reverseIterator(): Iterator<E> {
+  override fun reverseIterator(): Iterator<E> {
     return object : Iterator<E> {
       var current: FastStack<E> = this@FastStackImpl
 
-      override fun hasNext() = !previous.isEmpty()
+      override fun hasNext() = !current.isEmpty()
 
       override fun next(): E {
-        current = current.previous ?: throw NoSuchElementException()
-        return current.last()
+          return current.lastElem.also {
+              current = current.previous ?: throw NoSuchElementException()
+          }
       }
     }
   }
