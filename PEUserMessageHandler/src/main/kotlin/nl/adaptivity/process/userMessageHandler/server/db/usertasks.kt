@@ -27,50 +27,53 @@ import uk.ac.bournemouth.kotlinsql.customType
  * Created by pdvrieze on 31/03/16.
  */
 
-const val EXTRACONF="ENGINE=InnoDB CHARSET=utf8"
+const val EXTRACONF = "ENGINE=InnoDB CHARSET=utf8"
 
-private val X_TASKHANDLE = customType({BIGINT}, Handle<XmlTask>::handleValue, { Handle<XmlTask>(it) })
+val X_TASKHANDLE = customType({ BIGINT }, Handle<XmlTask>::handleValue, { Handle<XmlTask>(it) })
 @Suppress("USELESS_CAST") // The cast is not useless as it changes the result type
-private val X_REMOTEHANDLE = customType({BIGINT}, Handle<*>::handleValue, { Handle<Any>(it) as Handle<*> })
+val X_REMOTEHANDLE = customType({ BIGINT }, Handle<*>::handleValue, { Handle<Any>(it) as Handle<*> })
 
-object UserTaskDB1: Database(1) {
+object UserTaskDB1 : Database(1) {
 
 
-  object usertasks : MutableTable("usertasks", EXTRACONF) {
-    val taskhandle by X_TASKHANDLE { NOT_NULL; AUTO_INCREMENT }
-    val remotehandle by X_REMOTEHANDLE { NOT_NULL }
+    object usertasks : MutableTable("usertasks", EXTRACONF) {
+        val taskhandle by X_TASKHANDLE { NOT_NULL; AUTO_INCREMENT }
+        val remotehandle by X_REMOTEHANDLE { NOT_NULL }
 
-    override fun init() {
-      PRIMARY_KEY(taskhandle)
+        override fun init() {
+            PRIMARY_KEY(taskhandle)
+            UserTaskDB.usertasks.isSealed = true
+        }
     }
-  }
 
 
-  object nodedata : MutableTable("nodedata", EXTRACONF) {
-    val name by VARCHAR(30) { NOT_NULL }
-    val taskhandle by reference(usertasks.taskhandle) { NOT_NULL }
-    val data by TEXT("data")
+    object nodedata : MutableTable("nodedata", EXTRACONF) {
+        val name by VARCHAR(30) { NOT_NULL }
+        val taskhandle by reference(usertasks.taskhandle) { NOT_NULL }
+        val data by TEXT("data")
 
-    override fun init() {
-      PRIMARY_KEY( name, taskhandle )
-      FOREIGN_KEY ( taskhandle ).REFERENCES(usertasks.taskhandle)
+        override fun init() {
+            PRIMARY_KEY(name, taskhandle)
+            FOREIGN_KEY(taskhandle).REFERENCES(usertasks.taskhandle)
+            UserTaskDB.usertasks.isSealed = true
+        }
     }
-  }
 
 }
 
-object UserTaskDB: Database(2) {
+object UserTaskDB : Database(2) {
 
-  object usertasks : MutableTable("usertasks", EXTRACONF) {
-    val taskhandle by X_TASKHANDLE { NOT_NULL; AUTO_INCREMENT }
-    val remotehandle by X_REMOTEHANDLE { NOT_NULL }
-    val version by INT { NOT_NULL }
+    object usertasks : MutableTable("usertasks", EXTRACONF) {
+        val taskhandle by X_TASKHANDLE { NOT_NULL; AUTO_INCREMENT }
+        val remotehandle by X_REMOTEHANDLE { NOT_NULL }
+        val version by INT { NOT_NULL }
 
-    override fun init() {
-      usertasks.PRIMARY_KEY(taskhandle)
+        override fun init() {
+            PRIMARY_KEY(taskhandle)
+            isSealed = true
+        }
     }
-  }
 
 
-  val nodedata = UserTaskDB1.nodedata
+    val nodedata = UserTaskDB1.nodedata
 }

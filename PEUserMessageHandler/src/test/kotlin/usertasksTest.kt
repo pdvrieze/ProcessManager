@@ -126,7 +126,7 @@ class UserTasksTest {
     val actual: TableRef = taskHandle.table
     val expected = UserTaskDB["usertasks"]
       assertEquals(expected, actual)
-      assertEquals(BIGINT_T, taskHandle.type)
+      assertEquals(X_TASKHANDLE, taskHandle.type)
   }
 
   @Test//(dependsOnMethods = arrayOf("verifyUserTaskRows"))
