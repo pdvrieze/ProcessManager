@@ -383,6 +383,8 @@ class FastStackImpl<E> @JvmOverloads constructor(elem: E, override var previous:
         return false
       }
       return previous == f.previous
+    } else if (other is List<*>) {
+        return other.equals(this)
     }
     return  false
   }
