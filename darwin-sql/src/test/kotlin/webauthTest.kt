@@ -20,19 +20,19 @@
 
 package uk.ac.bournemouth.ac.db.darwin.webauth
 
-import org.testng.Assert.assertEquals
-import org.testng.Assert.assertTrue
-import org.testng.annotations.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import uk.ac.bournemouth.kotlinsql.Table
 
 class WebauthTest {
 
   @Test
   fun verifyTableCount() {
-    assertEquals(WebAuthDB._tables.size, 7)
+      assertEquals(7, WebAuthDB._tables.size)
   }
 
-  @Test(dependsOnMethods = arrayOf("verifyTableCount"))
+  @Test//(dependsOnMethods = arrayOf("verifyTableCount"))
   fun verifyTablesRecorded() {
     assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.roles))
     assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.users))
@@ -43,20 +43,20 @@ class WebauthTest {
     assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.challenges))
   }
 
-  @Test(dependsOnMethods = arrayOf("verifyTableCount"))
+  @Test//(dependsOnMethods = arrayOf("verifyTableCount"))
   fun verifyTableNames() {
-    assertEquals(WebAuthDB["roles"], WebAuthDB.roles)
-    assertEquals(WebAuthDB["users"], WebAuthDB.users)
-    assertEquals(WebAuthDB["user_roles"], WebAuthDB.user_roles)
-    assertEquals(WebAuthDB["tokens"], WebAuthDB.tokens)
-    assertEquals(WebAuthDB["pubkeys"], WebAuthDB.pubkeys)
-    assertEquals(WebAuthDB["app_perms"], WebAuthDB.app_perms)
-    assertEquals(WebAuthDB["challenges"], WebAuthDB.challenges)
+      assertEquals(WebAuthDB.roles, WebAuthDB["roles"])
+      assertEquals(WebAuthDB.users, WebAuthDB["users"])
+      assertEquals(WebAuthDB.user_roles, WebAuthDB["user_roles"])
+      assertEquals(WebAuthDB.tokens, WebAuthDB["tokens"])
+      assertEquals(WebAuthDB.pubkeys, WebAuthDB["pubkeys"])
+      assertEquals(WebAuthDB.app_perms, WebAuthDB["app_perms"])
+      assertEquals(WebAuthDB.challenges, WebAuthDB["challenges"])
   }
 
-  @Test(dependsOnMethods = arrayOf("verifyTablesRecorded"))
+  @Test//(dependsOnMethods = arrayOf("verifyTablesRecorded"))
   fun verifyUserRolesRows() {
-    assertEquals(WebAuthDB.user_roles._cols.map { it.name }, listOf("user", "role"))
+      assertEquals(listOf("user", "role"), WebAuthDB.user_roles._cols.map { it.name })
   }
 
 

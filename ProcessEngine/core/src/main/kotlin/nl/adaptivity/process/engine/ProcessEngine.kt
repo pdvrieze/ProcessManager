@@ -766,6 +766,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     @JvmStatic
     @JvmName("newTestInstance")
+    @PublishedApi
     internal fun <T : ProcessTransaction> newTestInstance(messageService: IMessageService<*>,
                                                           transactionFactory: ProcessTransactionFactory<T>,
                                                           processModels: IMutableProcessModelMap<T>,

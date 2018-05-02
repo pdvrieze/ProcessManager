@@ -14,27 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.test;
+package net.devrieze.test
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.Pattern
 
 
-public class RegExpMatcher {
+class RegExpMatcher(pattern: String) {
 
-  final Pattern mPattern;
+    internal val pattern: Pattern = Pattern.compile(pattern)
 
-  public RegExpMatcher(final String pattern) {
-    mPattern = Pattern.compile(pattern);
-  }
-
-  public boolean matches(final Object item) {
-    if ((item == null) || (!(item instanceof String))) {
-      return false;
+    fun matches(other: Any?): Boolean {
+        if (other !is String) {
+            return false
+        }
+        return pattern.matcher(other).matches()
     }
-    final String other = (String) item;
-    final Matcher m = mPattern.matcher(other);
-    return m.matches();
-  }
 
 }

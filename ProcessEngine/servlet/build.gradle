@@ -43,11 +43,16 @@ dependencies {
     testCompile project(path: ':ProcessEngine:core', configuration:"testRuntime")
     compileOnly project(':JavaCommonApi:jvm')
     testCompile project(':DarwinJavaApi')
-    testCompile 'org.testng:testng:6.9.13.8'
-    testCompile 'xmlunit:xmlunit:1.6'
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
+    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
+
+    testCompile project(":TestSupport")
     testCompile project(path: ':PE-common:jvm', configuration:"testRuntime")
     testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
+    implementation project(":multiplatform:jvm")
     implementation "org.jetbrains:annotations:13.0"
     implementation project(':ProcessEngine:core')
 //    runtime project(':xmlutil:core:jvm')
@@ -62,7 +67,7 @@ dependencies {
 }
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 war {

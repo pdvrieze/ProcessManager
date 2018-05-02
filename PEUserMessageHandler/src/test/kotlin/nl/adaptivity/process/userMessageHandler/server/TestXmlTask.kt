@@ -24,12 +24,13 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
 import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlStreaming
 import nl.adaptivity.xml.serialize
-import org.custommonkey.xmlunit.XMLAssert.assertXMLEqual
-import org.testng.Assert.assertEquals
-import org.testng.AssertJUnit.assertNotNull
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.xml.sax.SAXException
+import org.xmlunit.builder.DiffBuilder
+import org.xmlunit.diff.DefaultComparisonFormatter
 import java.io.IOException
 import java.io.StringReader
 import java.io.StringWriter
@@ -43,12 +44,12 @@ class TestXmlTask {
 
   private lateinit var mSampleTask: XmlTask
 
-  @BeforeMethod
+  @BeforeEach
   fun before() {
     mSampleTask = XmlTask()
     mSampleTask.state = NodeInstanceState.Failed
     mSampleTask.owner = SimplePrincipal("pdvrieze")
-    mSampleTask.remoteHandle = -1L
+    mSampleTask.remoteHandle = Handles.handle<Any>(-1L)
   }
 
   @Test
@@ -66,8 +67,8 @@ class TestXmlTask {
   fun testSerialization2() {
     val out = StringWriter()
     val sampleTask2 = XmlTask(mSampleTask)
-    sampleTask2.remoteHandle = 1L
-    sampleTask2.instanceHandle = 2L
+    sampleTask2.remoteHandle = Handles.handle<Any>(1L)
+    sampleTask2.instanceHandle = Handles.handle<Any>(2L)
     sampleTask2.setHandleValue(3L)
     sampleTask2.summary = "testing"
     sampleTask2.state = NodeInstanceState.FailRetry
@@ -81,13 +82,13 @@ class TestXmlTask {
   fun testDeserialize() {
     val reader = StringReader("<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />")
     val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
-    assertEquals(result.state, Complete)
-    assertEquals(result.handleValue, -1L)
-    assertEquals(result.getHandle(), Handles.getInvalid<Any>())
-    assertEquals(result.instanceHandle, -1L)
-    assertEquals(result.items.size, 0)
-    assertEquals(result.owner, null)
-    assertEquals(result.summary, null)
+      Assertions.assertEquals(Complete, result.state)
+      Assertions.assertEquals(-1L, result.handleValue)
+      Assertions.assertEquals(Handles.getInvalid<Any>(), result.getHandle())
+      Assertions.assertEquals(Handles.getInvalid<Any>(), result.instanceHandle)
+      Assertions.assertEquals(0, result.items.size)
+      Assertions.assertEquals(null, result.owner)
+      Assertions.assertEquals(null, result.summary)
   }
 
   @Test
@@ -95,22 +96,22 @@ class TestXmlTask {
   fun testDeserialize2() {
     val reader = StringReader("<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>")
     val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
-    assertEquals(result.state, Complete)
-    assertEquals(result.handleValue, 1L)
-    assertEquals(result.getHandle(), Handles.handle<Any>(1L))
-    assertEquals(result.instanceHandle, 3L)
-    assertEquals(result.items.size, 1)
-    assertEquals(result.owner, null)
-    assertEquals(result.summary, "bar")
+      Assertions.assertEquals(Complete, result.state)
+      Assertions.assertEquals(1L, result.handleValue)
+      Assertions.assertEquals(Handles.handle<Any>(1L), result.getHandle())
+      Assertions.assertEquals(Handles.handle<Any>(3L), result.instanceHandle)
+      Assertions.assertEquals(1, result.items.size)
+      Assertions.assertEquals(null, result.owner)
+      Assertions.assertEquals("bar", result.summary)
     assertNotNull(result.items)
     val item = result.getItem("one")
     assertNotNull(item)
-    assertEquals(item!!.type, "label")
-    assertEquals(item.value, "two")
-    assertEquals(item.name, "one")
-    assertEquals(item.options.size, 2)
-    assertEquals(item.options[0], "three")
-    assertEquals(item.options[1], "four")
+      Assertions.assertEquals("label", item!!.type)
+      Assertions.assertEquals("two", item.value)
+      Assertions.assertEquals("one", item.name)
+      Assertions.assertEquals(2, item.options.size)
+      Assertions.assertEquals("three", item.options[0])
+      Assertions.assertEquals("four", item.options[1])
   }
 
   @Test
@@ -122,15 +123,28 @@ class TestXmlTask {
     val db = dbf.newDocumentBuilder()
     val doc = db.parse(ReaderInputStream(Charset.forName("UTF8"), StringReader(TEXT)))
     val root = doc.documentElement
-    assertEquals(root.tagName, "task")
+      Assertions.assertEquals("task", root.tagName)
 
     val result = XmlStreaming.deSerialize(DOMSource(root), XmlTask::class.java)
-    assertEquals(result.state, Complete)
-    assertEquals(result.handleValue, -1L)
-    assertEquals(result.getHandle(), Handles.getInvalid<Any>())
-    assertEquals(result.instanceHandle, -1L)
-    assertEquals(result.items.size, 0)
-    assertEquals(result.owner, null)
-    assertEquals(result.summary, null)
+      Assertions.assertEquals(Complete, result.state)
+      Assertions.assertEquals(-1L, result.handleValue)
+      Assertions.assertEquals(Handles.getInvalid<Any>(), result.getHandle())
+      Assertions.assertEquals(Handles.getInvalid<Any>(), result.instanceHandle)
+      Assertions.assertEquals(0, result.items.size)
+      Assertions.assertEquals(null, result.owner)
+      Assertions.assertEquals(null, result.summary)
   }
+}
+
+fun assertXMLEqual(expected: String?, actual: String?) {
+    val diff = DiffBuilder.compare(expected)
+        .withTest(actual)
+        .ignoreWhitespace()
+        .ignoreComments()
+        .checkForSimilar()
+        .build()
+
+    if (diff.hasDifferences()) {
+        Assertions.assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
+    }
 }

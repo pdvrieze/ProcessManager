@@ -224,7 +224,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
       return mMessage.getContentType();
     }
 
-    public XmlReader getSource() throws XmlException {
+    public XmlReader getSource() {
       return mMessage.getMessageBody().getXmlReader();
     }
 
@@ -491,7 +491,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     super.init(config);
     String hostname = config.getInitParameter("hostname");
     String port = config.getInitParameter("port");
-    URI localURL ;
+    URI    localURL ;
     {
 
       if (hostname == null) {

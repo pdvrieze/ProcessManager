@@ -23,13 +23,14 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     api project(":kotlinsql")
 
-    testImplementation 'org.testng:testng:6.9.13.8'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
     testRuntimeOnly 'mysql:mysql-connector-java:5.1.36'
 }
 
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 sourceCompatibility = myJavaVersion

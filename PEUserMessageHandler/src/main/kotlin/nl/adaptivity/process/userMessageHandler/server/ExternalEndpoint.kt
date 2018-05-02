@@ -69,8 +69,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         }
 
   override fun isSameService(other: EndpointDescriptor?): Boolean {
-    return other!=null && Constants.USER_MESSAGE_HANDLER_NS == other.serviceName.namespaceURI &&
-          SERVICE_LOCALNAME == other.serviceName.localPart &&
+    return other!=null && Constants.USER_MESSAGE_HANDLER_NS == other.serviceName?.namespaceURI &&
+          SERVICE_LOCALNAME == other.serviceName?.localPart &&
           endpointName == other.endpointName
   }
 

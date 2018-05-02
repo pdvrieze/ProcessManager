@@ -27,6 +27,7 @@ import java.sql.SQLException
 open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(private val assigner: Assigner<T, TR>)
   : MemHandleMap<T>(handleAssigner={ t: T, h: Handle<T> -> assigner(t,h) }), net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
 
+  @JvmOverloads
   constructor(handleAssigner: (TR, T, Handle<T>)->T? = { transaction, value, handle ->
     HANDLE_AWARE_ASSIGNER(transaction, value, handle)
   }): this(Assigner(handleAssigner))

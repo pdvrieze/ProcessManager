@@ -30,7 +30,7 @@ description = 'A library with generic support classes'
 archivesBaseName="java-common"
 
 test {
-    useTestNG()
+    useJUnitPlatform()
 }
 
 tasks.withType(KotlinCompile) {
@@ -44,5 +44,6 @@ dependencies {
     implementation "org.jetbrains:annotations:13.0"
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     expectedBy project(":java-common:common")
-    testImplementation 'org.testng:testng:6.9.13.8'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 }

@@ -161,6 +161,7 @@ dependencies {
 //    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     apiCompileOnly project(':JavaCommonApi:jvm')
+    compileOnly project(':JavaCommonApi:jvm')
     apiCompileOnly project(':DarwinJavaApi')
     apiCompileOnly project(path: ':PE-common:jvm', configuration:'compileOnly')
 
@@ -180,6 +181,7 @@ dependencies {
     testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
     testImplementation project(path: ':PE-common:jvm', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
+    testRuntime 'mysql:mysql-connector-java:5.1.36'
 
 /*
     wsDoc project(":PE-common:endpointDoclet")

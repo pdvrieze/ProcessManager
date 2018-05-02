@@ -1,11 +1,11 @@
 import nl.adaptivity.diagram.svg.JVMTextMeasurer
 import nl.adaptivity.diagram.svg.SVGCanvas
-import nl.adaptivity.process.diagram.*
 import nl.adaptivity.xml.XmlStreaming
-import org.testng.Assert.assertEquals
-import org.testng.annotations.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import java.io.StringWriter
-
+import nl.adaptivity.process.diagram.*
 /*
  * Copyright (c) 2017.
  *
@@ -29,7 +29,7 @@ class NodeTest {
     val EXPECTED_SVG= ("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"21.0\" height=\"21.0\">" +
                        "<circle cx=\"10.5\" cy=\"10.5\" r=\"10.5\" style=\"stroke:none; fill: #000000; \"/>" +
                        "</svg>").trimIndent()
-    assertEquals(testDrawNode(DrawableStartNode.Builder()), EXPECTED_SVG)
+      assertEquals(EXPECTED_SVG, testDrawNode(DrawableStartNode.Builder()))
   }
 
   @Test
@@ -38,7 +38,7 @@ class NodeTest {
                       "<rect x=\"0.5\" y=\"0.5\" width=\"32.0\" height=\"32.0\" rx=\"8.0\" ry=\"8.0\" style=\"stroke:none; fill: #ffffff; \"/>" +
                       "<rect x=\"0.5\" y=\"0.5\" width=\"32.0\" height=\"32.0\" rx=\"8.0\" ry=\"8.0\" style=\"stroke: #000000; stroke-width: 1.0; fill:none; \"/>" +
                       "</svg>"
-    assertEquals(EXPECTED_SVG, testDrawNode(DrawableActivity.Builder()))
+      assertEquals(testDrawNode(DrawableActivity.Builder()), EXPECTED_SVG)
   }
 
   @Test
@@ -49,7 +49,7 @@ class NodeTest {
                       "<path style=\"stroke: #000020; stroke-opacity: 0.690196; stroke-width: 0.85; fill:none; \" d=\"M3.1071067811865465 12.707106781186548 L5.918881681795691 12.707106781186548 C11.688873016277919 12.707106781186548 12.810705255275732 12.603508307097364 16.890705255275734 8.523508307097364 L17.50710678118655 7.907106781186547 M5.918881681795691 12.707106781186548 C11.688873016277919 12.707106781186548 12.810705255275732 12.810705255275732 16.890705255275734 16.890705255275734 L17.50710678118655 17.50710678118655 M13.961798870342601 8.532240220787497 L17.50710678118655 7.907106781186547 L16.881973341585603 11.452414692030496 M16.881973341585603 13.961798870342601 L17.50710678118655 17.50710678118655 L13.961798870342601 16.881973341585603 \"/>" +
                       "</g>" +
                       "</svg>"
-    assertEquals(testDrawNode(DrawableSplit.Builder().apply { min=-1; max=-1 }), EXPECTED_SVG)
+      assertEquals(EXPECTED_SVG, testDrawNode(DrawableSplit.Builder().apply { min=-1; max=-1 }))
   }
 
   @Test
@@ -60,7 +60,7 @@ class NodeTest {
                       "<path style=\"stroke: #000020; stroke-opacity: 0.690196; stroke-width: 0.85; fill:none; \" d=\"M19.495331880577403 12.707106781186548 L20.835383383375998 12.707106781186548 M18.758159421746175 10.642231610322781 L21.707106781186546 12.707106781186548 L18.758159421746175 14.771981952050314 M7.907106781186547 7.907106781186547 C11.987106781186547 11.987106781186547 13.725340546095177 12.707106781186548 19.495331880577403 12.707106781186548 C13.725340546095177 12.707106781186548 11.987106781186547 13.427106781186549 7.907106781186547 17.50710678118655 M19.495331880577403 12.707106781186548 L21.707106781186546 12.707106781186548 \"/>" +
                       "</g>" +
                       "</svg>"
-    assertEquals(testDrawNode(DrawableJoin.Builder().apply { min=-1; max=-1 }),EXPECTED_SVG)
+      assertEquals(EXPECTED_SVG, testDrawNode(DrawableJoin.Builder().apply { min=-1; max=-1 }))
   }
 
   @Test
@@ -69,7 +69,7 @@ class NodeTest {
                       "<circle cx=\"12.85\" cy=\"12.85\" r=\"12.0\" style=\"stroke: #000000; stroke-width: 1.7; fill:none; \"/>" +
                       "<circle cx=\"12.85\" cy=\"12.85\" r=\"7.0\" style=\"stroke:none; fill: #000000; \"/>" +
                       "</svg>"
-    assertEquals(testDrawNode(DrawableEndNode.Builder()), EXPECTED_SVG)
+      assertEquals(EXPECTED_SVG, testDrawNode(DrawableEndNode.Builder()))
   }
 
   fun testDrawNode(node: DrawableProcessNode.Builder): String {
