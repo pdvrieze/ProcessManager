@@ -20,6 +20,8 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.multiplatform.JvmOverloads
+import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.XmlDeserializer
@@ -134,6 +136,8 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
     companion object {
 
+        @JvmOverloads
+        @JvmStatic
         fun deserialize(reader: XmlReader, pedantic: Boolean = true): XmlProcessModel {
             return Builder.deserialize(reader).build(pedantic)
         }

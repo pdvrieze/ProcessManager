@@ -20,6 +20,7 @@ import net.devrieze.util.Streams;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.engine.TestProcessData;
+import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.XmlProcessModel;
@@ -59,9 +60,11 @@ public class TestPMParser {
 
   @Test
   public void testParseNew() throws XmlPullParserException, XmlException {
-    InputStream              inputStream = getClass().getResourceAsStream("/processmodel.xml");
-    XmlReader                parser      = new AndroidXmlReader(inputStream, "UTF-8");
-    DrawableProcessModel model       = new RootDrawableProcessModel(XmlProcessModel.deserialize(parser).getRootModel());
+    InputStream                         inputStream = getClass().getResourceAsStream("/processmodel.xml");
+    XmlReader                           parser      = new AndroidXmlReader(inputStream, "UTF-8");
+      final XmlProcessModel deserializedModel = XmlProcessModel.deserialize(parser);
+      DrawableProcessModel              model       = new RootDrawableProcessModel(
+          deserializedModel.getRootModel());
     checkModel1(model);
   }
 
@@ -77,7 +80,7 @@ public class TestPMParser {
   @Test
   public void testNsIsue()  throws XmlPullParserException, XmlException, IOException, SAXException {
     InputStream inputStream = getClass().getResourceAsStream("/namespaceIssueModel.xml");
-    String expected = Streams.toString(getClass().getResourceAsStream("/namespaceIssueModel_expected.xml"), Charset.defaultCharset());
+    String expected = Streams.readString(getClass().getResourceAsStream("/namespaceIssueModel_expected.xml"), Charset.defaultCharset());
     XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
     CharArrayWriter out = new CharArrayWriter();
     XmlWriter writer = new AndroidXmlWriter(out);
