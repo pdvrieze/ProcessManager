@@ -39,6 +39,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Node
+import org.xml.sax.InputSource
+import org.xmlunit.XMLUnitException
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.DefaultComparisonFormatter
 import java.io.*
@@ -49,6 +51,7 @@ import javax.xml.bind.JAXB
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.Source
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
@@ -72,30 +75,21 @@ class TestProcessEngine {
   }
   private val mPrincipal = SimplePrincipal("pdvrieze")
 
-  private fun getXml(name: String): InputStream? {
-    try {
+  private fun getXml(name: String): ByteArray? {
       javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name).use { reader ->
-        val out = ByteArrayOutputStream()
-        if (!InputStreamOutputStream.getInputStreamOutputStream(reader, out).get()) {
-          return null
-        }
-        val byteArray = out.toByteArray()
-        assertTrue(byteArray.size > 0, "Some bytes in the xml files are expected")
-        val bais = ByteArrayInputStream(byteArray)
-        return bais
+          val out = ByteArrayOutputStream()
+          if (!InputStreamOutputStream.getInputStreamOutputStream(reader, out).get()) {
+              return null
+          }
+          val byteArray = out.toByteArray()
+          assertTrue(byteArray.isNotEmpty(), "Some bytes in the xml files are expected")
+          return byteArray
       }
-    } catch (e: Exception) {
-      if (e is RuntimeException) {
-        throw e
-      }
-      throw RuntimeException(e)
-    }
-
   }
 
   @Throws(XmlException::class)
   private fun getStream(name: String): XmlReader {
-    return XmlStreaming.newReader(getXml(name)!!, "UTF-8")
+    return XmlStreaming.newReader(ByteArrayInputStream(getXml(name)!!), "UTF-8")
   }
 
   @Throws(XmlException::class)
@@ -253,16 +247,30 @@ class TestProcessEngine {
       cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
   }
 
-  fun assertEqualsXml(expected: InputStream?, actual: CharArray) {
-      val diff = DiffBuilder.compare(expected)
-          .withTest(actual)
-          .ignoreWhitespace()
-          .ignoreComments()
-          .checkForSimilar()
-          .build()
+  fun assertEqualsXml(expected: ByteArray, actual: CharArray?) {
+      if (actual==null) org.junit.jupiter.api.fail("No actual result")
+      val expected = String(expected)
+      val actual = String(actual)
+
+      val expectedDoc = DocumentBuilderFactory
+          .newInstance().apply { isNamespaceAware=true }
+          .newDocumentBuilder()
+          .parse(InputSource(StringReader(expected)))
+      assertNotNull(expectedDoc)
+      val diff = try {
+          DiffBuilder.compare(expectedDoc)
+              .withTest(actual)
+              .ignoreWhitespace()
+              .ignoreComments()
+              .checkForSimilar()
+              .build()
+      } catch (e: XMLUnitException) {
+          assertEquals(expected, actual, "Error comparing: ${e.message}")
+          throw e
+      }
 
       if (diff.hasDifferences()) {
-          assertEquals(expected?.readString(defaultCharset()), String(actual),
+          assertEquals(expected, String(actual),
                                   diff.toString(DefaultComparisonFormatter()))
       }
   }
@@ -293,7 +301,7 @@ class TestProcessEngine {
       assertEquals(1, mStubMessageService._messages.size)
       assertEquals(1L, mStubMessageService.getMessageNode(0).handleValue)
 
-    val expected = getXml("testModel1_task1.xml")
+    val expected = getXml("testModel1_task1.xml")!!
 
     val receivedChars = serializeToXmlCharArray(mStubMessageService._messages[0].base)
 
@@ -475,7 +483,7 @@ class TestProcessEngine {
 
       assertEquals(1, mStubMessageService._messages.size)
 
-    assertEqualsXml(getXml("testModel2_task1.xml"), serializeToXmlCharArray(mStubMessageService
+    assertEqualsXml(getXml("testModel2_task1.xml")!!, serializeToXmlCharArray(mStubMessageService
                                                                                   ._messages[0].base))
 
     var ac1: ProcessNodeInstance<*> = mProcessEngine.getNodeInstance(transaction, mStubMessageService.getMessageNode(0), mPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity

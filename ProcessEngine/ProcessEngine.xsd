@@ -208,7 +208,7 @@
     <xsd:simpleType name="uuid">
         <xsd:restriction base="xsd:string">
             <xsd:length value="36" fixed="true" />
-            <xsd:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[8-9a-bA-B][0-9a-fA-F]{3}-[0-9a-fA-F]{12}" fixed="true" />
+            <xsd:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[8-9a-bA-B][0-9a-fA-F]{3}-[0-9a-fA-F]{12}" />
         </xsd:restriction>
     </xsd:simpleType>
 </xsd:schema>

@@ -24,7 +24,7 @@ import org.jetbrains.spek.api.Spek
  * Created by pdvrieze on 02/01/17.
  */
 
-class TestEngineAspects: Spek({
+object TestEngineAspects: Spek({
   givenEngine {
     describe("Subprocess") {
       val model = ExecutableProcessModel.build {

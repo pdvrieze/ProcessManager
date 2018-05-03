@@ -25,7 +25,7 @@ import org.jetbrains.spek.api.lifecycle.LifecycleListener
 /**
  * Created by pdvrieze on 15/01/17.
  */
-class TestWorkflowPatterns2 : Spek(
+object TestWorkflowPatterns2 : Spek(
   {
     fun SpecBody.includeLocal(spec: Spek) {
       val thisAsSpec: Spec = object : Spec, SpecBody by this {
