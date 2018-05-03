@@ -146,7 +146,7 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
 
         const val ELEMENTLOCALNAME = "Envelope"
 
-        const val PREFIX = "env"
+        const val PREFIX = "soap"
 
         val ELEMENTNAME = QName(NAMESPACE, ELEMENTLOCALNAME, PREFIX)
 
