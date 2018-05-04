@@ -20,12 +20,12 @@ plugins {
 }
 
 base {
-    archivesBaseName = "multiplatform"
+    archivesBaseName = "multiplatform-jvm"
 }
 
 dependencies {
-    expectedBy(project(":multiplatform:common"))
-    expectedBy(project(":multiplatform:common-java"))
+//    expectedBy(project(":multiplatform:common"))
+    expectedBy(project(":multiplatform:common-nonshared"))
     api(project(":multiplatform:java"))
     implementation(kotlin("stdlib-jdk7"))
 }

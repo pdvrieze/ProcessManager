@@ -15,8 +15,9 @@
  */
 
 plugins {
-    id("com.android.library")
-    id("kotlin-platform-android")
+    `java-library`
+//    id("com.android.library")
+    id("kotlin-platform-jvm")
 }
 
 val `kotlin_version`: String by rootProject
@@ -26,12 +27,14 @@ base {
     archivesBaseName = "JavaCommonApi"
 }
 
+/*
 android {
     compileSdkVersion(27)
 }
+*/
 
 dependencies {
     expectedBy(project(":JavaCommonApi:common"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
-    implementation(project(":multiplatform:android"))
+    implementation(project(":multiplatform:java"))
 }

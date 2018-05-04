@@ -16,4 +16,16 @@
 
 package nl.adaptivity.util.multiplatform
 
-actual typealias SimpleQueue<E> = java.util.ArrayDeque<E>
+actual typealias Locale = java.util.Locale
+
+actual object Locales {
+    actual val DEFAULT: java.util.Locale get() = java.util.Locale.getDefault()
+    actual val ENGLISH: java.util.Locale get() = java.util.Locale.ENGLISH
+}
+
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun CharSequence.toLowercase(locale: Locale):String =
+    toString().toLowerCase(locale)
+
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun Int.toHex(): String = toString(16)

@@ -747,6 +747,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
     override fun pollFirst(): E {
         val elements = this.elements
         val h = head
+        @Suppress("UNCHECKED_CAST")
         val result = elements[h] as E
         // Element is null if deque empty
         if (result != null) {
@@ -759,6 +760,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
     override fun pollLast(): E {
         val elements = this.elements
         val t = tail - 1 and elements.size - 1
+        @Suppress("UNCHECKED_CAST")
         val result = elements[t] as E
         if (result != null) {
             elements[t] = null
@@ -771,6 +773,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
      * @throws NoSuchElementException {@inheritDoc}
      */
     override fun getFirst(): E {
+        @Suppress("UNCHECKED_CAST")
         val result = elements[head] as E ?: throw NoSuchElementException()
         return result
     }
@@ -779,16 +782,19 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
      * @throws NoSuchElementException {@inheritDoc}
      */
     override fun getLast(): E {
+        @Suppress("UNCHECKED_CAST")
         val result = elements[tail - 1 and elements.size - 1] as E ?: throw NoSuchElementException()
         return result
     }
 
     override fun peekFirst(): E {
         // elements[head] is null if deque empty
+        @Suppress("UNCHECKED_CAST")
         return elements[head] as E
     }
 
     override fun peekLast(): E {
+        @Suppress("UNCHECKED_CAST")
         return elements[tail - 1 and elements.size - 1] as E
     }
 
@@ -1089,6 +1095,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
         override fun next(): E {
             if (cursor == fence)
                 throw NoSuchElementException()
+            @Suppress("UNCHECKED_CAST")
             val result = elements[cursor] as E
             // This check doesn't catch all possible comodifications,
             // but does catch the ones that corrupt traversal
@@ -1128,6 +1135,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
             if (cursor == fence)
                 throw NoSuchElementException()
             cursor = cursor - 1 and elements.size - 1
+            @Suppress("UNCHECKED_CAST")
             val result = elements[cursor] as E
             if (head != fence || result == null)
                 throw ConcurrentModificationException()
@@ -1261,7 +1269,7 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
      * Note that `toArray(new Object[0])` is identical in function to
      * `toArray()`.
      *
-     * @param a the array into which the elements of the deque are to
+     * @param array the array into which the elements of the deque are to
      * be stored, if it is big enough; otherwise, a new array of the
      * same runtime type is allocated for this purpose
      * @return an array containing all of the elements in this deque
@@ -1271,8 +1279,9 @@ actual class ArrayDeque<E> : AbstractCollection<E>, Deque<E> {
      * @throws NullPointerException if the specified array is null
      */
     @Suppress("UNCHECKED_CAST")
-    public override fun <T> toArray(a: Array<T>): Array<T> {
-        var a: Array<Any?> = a.asDynamic()
+    public override fun <T> toArray(array: Array<T>): Array<T> {
+        @Suppress("UnsafeCastFromDynamic")
+        var a: Array<Any?> = array.asDynamic()
         val head = this.head
         val tail = this.tail
         val wrap = tail < head

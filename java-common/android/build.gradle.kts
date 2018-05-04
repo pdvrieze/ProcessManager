@@ -32,7 +32,7 @@ base {
 dependencies {
     implementation(kotlin("stdlib", kotlinVersion))
     api(project(":multiplatform:android"))
-    api(project(":JavaCommonApi:android"))
+    api(project(":JavaCommonApi:java"))
     expectedBy(project(":java-common:common"))
 }
 

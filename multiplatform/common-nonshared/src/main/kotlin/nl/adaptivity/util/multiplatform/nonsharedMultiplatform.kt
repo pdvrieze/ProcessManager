@@ -14,31 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package nl.adaptivity.util.multiplatform
 
-import java.security.SecureRandom
 
-/**
- * Created by pdvrieze on 22/06/17.
- */
-actual object SYSTEMPRINCIPAL : RolePrincipal {
-
-    @JvmField
-    actual val NS = "urn:SYSTEMPRINCIPAL"
-    @JvmField
-    actual val TAG = "systemPrincipal"
-
-    val KEY by lazy { SecureRandom.getInstance("NativePRNGNonBlocking").nextLong() }
-
-    override fun hasRole(role: String): Boolean {
-        return true
-    }
-
-    override fun getName(): String {
-        return "<SYSTEM PRINCIPAL>"
-    }
-
-    override fun toString(): String {
-        return getName()
-    }
-}
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
+expect annotation class JvmDefault()

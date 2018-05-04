@@ -28,8 +28,8 @@ description = 'Api project for the java-common project'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation(project(":multiplatform:jvm"))
-    expectedBy project(":JavaCommonApi:common")
+    implementation(project(":multiplatform:java"))
+    api project(":JavaCommonApi:java")
 }
 
 //group = 'util'
