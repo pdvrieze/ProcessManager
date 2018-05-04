@@ -61,6 +61,7 @@ dependencies {
 */
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
     compile project(':xmlutil:core:common')
+    compile project(':xmlutil:core:common-nonshared')
     compile project(':multiplatform:common')
     compile project(':multiplatform:common-nonshared')
     compileOnly project(':JavaCommonApi:common')

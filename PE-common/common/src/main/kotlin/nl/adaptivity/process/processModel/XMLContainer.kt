@@ -21,6 +21,7 @@ import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.util.xml.NamespaceAddingStreamReader
+import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
 
 
@@ -177,6 +178,8 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
 
     @Throws(XmlException::class)
     protected abstract fun serializeEndElement(out: XmlWriter)
+
+    override fun getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)
 
     companion object {
 

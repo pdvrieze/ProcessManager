@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -13,27 +13,27 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+@file:JvmMultifileClass
+@file:JvmName("XmlReaderUtil")
+package nl.adaptivity.xml
 
-package nl.adaptivity.xml;
-
-import android.app.Application;
-import android.os.StrictMode;
-import nl.adaptivity.lib.xmlutil.android.BuildConfig;
-
+import java.io.CharArrayWriter
 
 /**
- * Simple application that takes care to register the correct streaming factory.
+ * Extension functions for XmlReader that only work on Java
  */
-public class XmlApplication extends Application {
 
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    // Don't use standard stax as it is not available on android.
-    XmlStreaming.setFactory(new AndroidStreamingFactory());
 
-    if (BuildConfig.DEBUG) {
-      StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().penaltyDeath().build());
-    }
-  }
+inline fun <reified T : Any> XmlReader.deSerialize(): T {
+    return deSerialize(T::class.java)
 }
+
+
+fun <T> XmlReader.deSerialize(type: Class<T>): T {
+    val deserializer = type.getAnnotation(XmlDeserializer::class.java) ?: throw IllegalArgumentException("Types must be annotated with " + XmlDeserializer::class.java.name + " to be deserialized automatically")
+
+    return type.cast(deserializer.value.java.newInstance().deserialize(this))
+}
+
+
+

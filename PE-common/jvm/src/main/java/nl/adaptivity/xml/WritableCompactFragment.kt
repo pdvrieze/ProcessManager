@@ -19,6 +19,7 @@ package nl.adaptivity.xml
 import nl.adaptivity.io.Writable
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
+import nl.adaptivity.util.xml.XMLFragmentStreamReader
 
 import java.io.IOException
 import java.io.Writer
@@ -47,6 +48,8 @@ class WritableCompactFragment private constructor(private val data: ICompactFrag
     constructor(string: String) : this(CompactFragment(string), false) {}
 
     constructor(orig: ICompactFragment) : this(CompactFragment(orig.namespaces, orig.contentString), false) {}
+
+    override fun getXmlReader() = XMLFragmentStreamReader.from(this)
 
     @Throws(IOException::class)
     override fun writeTo(destination: Writer) {
