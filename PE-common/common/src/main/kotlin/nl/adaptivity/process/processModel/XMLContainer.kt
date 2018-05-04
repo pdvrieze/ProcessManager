@@ -39,7 +39,7 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
     override val isEmpty: Boolean get() = content.isEmpty()
 
     override val contentString: String
-        get() = content.contentToString()
+        get() = buildString(content.size) { content.forEach { append(it) } }
 
     val originalNSContext: Iterable<Namespace>
         get() = namespaces
