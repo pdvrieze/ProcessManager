@@ -629,7 +629,10 @@ class TestProcessData {
                   "    </fullname>\n" +
                   "  </user>\n" +
                   "</result>"
-        testRoundTrip(xml, XmlResultType::class.java)
+        testRoundTrip(xml, XmlResultType::class.java) {result ->
+            assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
+                                XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler" )), result.namespaces.sortedBy { it.prefix })
+        }
     }
 
     @Test
@@ -846,7 +849,8 @@ class TestProcessData {
 
         @Throws(IOException::class, IllegalAccessException::class, InstantiationException::class, XmlException::class)
         fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: Class<T>,
-                                                factoryOpt: XmlDeserializerFactory<T>? = null): String {
+                                                factoryOpt: XmlDeserializerFactory<T>? = null,
+                                                testObject: (T)->Unit = {}): String {
             val expected: String
             val streamReader: XmlReader
             val xif = XMLInputFactory.newFactory()
@@ -860,21 +864,23 @@ class TestProcessData {
                 streamReader = XmlStreaming.newReader(StringReader(expected))
             }
 
-            return testRoundTrip(expected, streamReader, target, false, factoryOpt)
+            return testRoundTrip(expected, streamReader, target, false, factoryOpt, testObject)
         }
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
         fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>,
-                                                factoryOpt: XmlDeserializerFactory<T>? = null): String {
-            return testRoundTrip(xml, target, false, factoryOpt)
+                                                factoryOpt: XmlDeserializerFactory<T>? = null,
+                                                testObject: (T)->Unit = {}): String {
+            return testRoundTrip(xml, target, false, factoryOpt, testObject)
         }
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
         fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>, ignoreNs: Boolean,
-                                                factoryOpt: XmlDeserializerFactory<T>? = null): String {
-            return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, ignoreNs, factoryOpt)
+                                                factoryOpt: XmlDeserializerFactory<T>? = null,
+                                                testObject: (T)->Unit = {}): String {
+            return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, ignoreNs, factoryOpt, testObject)
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
@@ -882,11 +888,14 @@ class TestProcessData {
                                                         actual: XmlReader,
                                                         target: Class<T>,
                                                         ignoreNs: Boolean,
-                                                        factoryOpt: XmlDeserializerFactory<T>? = null): String {
+                                                        factoryOpt: XmlDeserializerFactory<T>? = null,
+                                                        testObject: (T)->Unit = {}): String {
             assertNotNull(actual)
             val factory = target.getAnnotation(
                 XmlDeserializer::class.java).value.java.newInstance() as XmlDeserializerFactory<*>
-            val obj = factory.deserialize(actual) as XmlSerializable
+            val obj = target.cast(factory.deserialize(actual))
+            testObject(obj)
+
             val caw = CharArrayWriter()
             val xsw = XmlStreaming.newWriter(caw)
             obj.serialize(xsw)
