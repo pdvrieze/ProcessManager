@@ -52,18 +52,18 @@ public final class ModifyHelper {
   }
 
   public static AttributeSequence parseAttribute(final XmlReader in) {
-    final CharSequence defineName = in.getAttributeValue(null, "value");
-    final CharSequence xpath = in.getAttributeValue(null, "xpath");
-    final CharSequence paramName = in.getAttributeValue(null, "name");
+    final String defineName = in.getAttributeValue(null, "value");
+    final String xpath = in.getAttributeValue(null, "xpath");
+    final String paramName = in.getAttributeValue(null, "name");
     in.nextTag();
     in.require(EventType.END_ELEMENT, Constants.MODIFY_NS_STR, "attribute");
     return ModifySequence.newAttributeSequence(paramName, defineName, xpath);
   }
 
   public static FragmentSequence parseValueOrElement(final XmlReader in) {
-    final CharSequence defineName = in.getAttributeValue(null, "value");
-    final CharSequence xpath = in.getAttributeValue(null, "xpath");
-    final CharSequence localName = in.getLocalName();
+    final String defineName = in.getAttributeValue(null, "value");
+    final String xpath = in.getAttributeValue(null, "xpath");
+    final String localName = in.getLocalName();
     in.nextTag();
     in.require(EventType.END_ELEMENT, Constants.MODIFY_NS_STR, localName);
     return ModifySequence.newFragmentSequence(localName.toString(), defineName, xpath);
@@ -74,7 +74,7 @@ public final class ModifyHelper {
     if (value instanceof XmlSerializable) {
       pending.add((XmlSerializable) value);
     } else {
-      out.attribute(null, name, null, value);
+      out.attribute(null, name, null, value.toString());
     }
   }
 }

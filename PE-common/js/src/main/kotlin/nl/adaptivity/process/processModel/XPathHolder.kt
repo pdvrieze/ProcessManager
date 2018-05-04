@@ -91,9 +91,9 @@ actual abstract class XPathHolder : XMLContainer {
         setContent(namespaceContext, content)
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                             attributeLocalName: CharSequence,
-                                             attributeValue: CharSequence): Boolean {
+    actual override fun deserializeAttribute(attributeNamespace: String?,
+                                             attributeLocalName: String,
+                                             attributeValue: String): Boolean {
         when (attributeLocalName.toString()) {
             "name"                       -> {
                 _name = attributeValue.toString()

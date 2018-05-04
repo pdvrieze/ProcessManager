@@ -13,30 +13,21 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
-@file:JvmName("CharSequenceUtil")
-package net.devrieze.util.kotlin
 
-/**
- * Utility functions on CharSequences.
- */
+package nl.adaptivity.util
 
-@Suppress("NOTHING_TO_INLINE")
-@Deprecated("Use equals", ReplaceWith("this == other"))
-inline infix fun CharSequence.matches(other:CharSequence):Boolean =
-  this.equals(other)
-
-fun equals(first: CharSequence, other: CharSequence):Boolean {
-  if (first ===other) return true
-  if (first.length!=other.length) return false
-  for(i in first.indices) {
-    if (first[i] != other[i]) return false
+@Deprecated("Don't use, just use string comparison")
+fun CharSequence?.contentEquals(other:CharSequence?):Boolean {
+  if (this==null) return other==null
+  if (other==null) return false
+  if (length!=other.length) return false
+  for (i in 0 until length) {
+    if (this[i]!=other[i]) return false
   }
   return true
 }
 
-
-fun CharSequence?.equals(other:Any) =
-      if (other is CharSequence) (this?.equals(other) ?: false) else this==null
-
-
-fun CharSequence?.asString() = this?.toString()
+@Deprecated("Use string equals", ReplaceWith("this == other"))
+fun String?.contentEquals(other: String?): Boolean {
+    return this == other
+}

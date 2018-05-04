@@ -18,7 +18,6 @@ package nl.adaptivity.process.util
 
 import net.devrieze.util.Handle
 import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeAttribute
 
 /*
  * Some additional utilities for process model xml

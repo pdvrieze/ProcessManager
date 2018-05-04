@@ -73,9 +73,9 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
       }
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
       return when(attributeLocalName) {
         ATTR_ID -> { childId = attributeValue.toString(); true }
         else -> super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)

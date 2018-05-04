@@ -40,7 +40,7 @@ expect abstract class XPathHolder : XMLContainer {
 
   fun setPath(baseNsContext: Iterable<out Namespace>, value: String?)
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean
+  override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean
 
   override fun deserializeChildren(reader: XmlReader)
 

@@ -69,7 +69,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
   private                int             mRowIdColumn;
   @NonNull private final DataSetObserver mDataSetObserver;
 
-// Object Initialization
+
   public CursorRecyclerViewAdapter(final Context context, @Nullable final Cursor cursor) {
     mContext = context;
     mCursor = cursor;
@@ -80,7 +80,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
       mCursor.registerDataSetObserver(mDataSetObserver);
     }
   }
-// Object Initialization end
+
 
   @Override
   public final void onBindViewHolder(final VH viewHolder, final int position) {
@@ -178,10 +178,10 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
     return oldCursor;
   }
 
-// Property accessors start
+
   @Nullable
   public Cursor getCursor() {
     return mCursor;
   }
-// Property acccessors end
+
 }

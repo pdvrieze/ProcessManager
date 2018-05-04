@@ -44,9 +44,9 @@ abstract class XmlHandle<T>(handleValue: Long) : Handle<T>, XmlSerializable, Sim
         return true
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         return false
     }
 

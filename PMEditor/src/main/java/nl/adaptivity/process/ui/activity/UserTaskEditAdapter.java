@@ -50,7 +50,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
 
     private final ViewDataBinding mBinding;
 
-// Object Initialization
+
     public ItemViewHolder(final ViewDataBinding binding) {
       super(UserTaskEditAdapter.this, binding.getRoot());
       mBinding = binding;
@@ -58,7 +58,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
       dragHandle.setOnTouchListener(this);
       mBinding.getRoot().setOnClickListener(this);
     }
-// Object Initialization end
+
 
     @Override
     public boolean onTouch(final View v, final MotionEvent event) {
@@ -79,7 +79,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
   private final CharSequenceDecorator mDecorator;
   private LayoutInflater mInflater;
 
-// Object Initialization
+
   public UserTaskEditAdapter(final CharSequenceDecorator decorator) {
     this(decorator, Collections.<TaskItem>emptyList());
   }
@@ -112,7 +112,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
       }
     });
   }
-// Object Initialization end
+
 
   @Override
   public ItemViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {

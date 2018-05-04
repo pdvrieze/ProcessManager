@@ -115,9 +115,9 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     return false
   }
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                    attributeLocalName: CharSequence,
-                                    attributeValue: CharSequence): Boolean {
+  override fun deserializeAttribute(attributeNamespace: String?,
+                                    attributeLocalName: String,
+                                    attributeValue: String): Boolean {
     val attrString = attributeValue.toString()
     when (attributeLocalName.toString()) {
       "state"          -> {

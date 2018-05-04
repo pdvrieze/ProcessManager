@@ -113,9 +113,9 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
     return false
   }
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                    attributeLocalName: CharSequence,
-                                    attributeValue: CharSequence): Boolean {
+  override fun deserializeAttribute(attributeNamespace: String?,
+                                    attributeLocalName: String,
+                                    attributeValue: String): Boolean {
     when (attributeLocalName.toString()) {
       "state"           -> state = NodeInstanceState.valueOf(attributeValue.toString())
       "processinstance" -> processInstance = attributeValue.toString().toLong()

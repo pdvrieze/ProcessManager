@@ -34,11 +34,11 @@ open class JvmXmlBufferedReader constructor(delegate: XmlReader) : XmlBufferedRe
 
     override val hasPeekItems get() = peekBuffer.isNotEmpty()
 
-    override protected fun peekFirst(): XmlEvent? {
+    override fun peekFirst(): XmlEvent? {
         return peekBuffer.peekFirst()
     }
 
-    override protected fun peekLast(): XmlEvent? {
+    override fun peekLast(): XmlEvent? {
         return peekBuffer.peekLast()
     }
 
@@ -46,11 +46,11 @@ open class JvmXmlBufferedReader constructor(delegate: XmlReader) : XmlBufferedRe
 
     override fun bufferRemoveFirst() = peekBuffer.removeFirst()
 
-    override protected fun add(event: XmlEvent) {
+    override fun add(event: XmlEvent) {
         peekBuffer.addLast(event)
     }
 
-    override protected fun addAll(events: Collection<XmlEvent>) {
+    override fun addAll(events: Collection<XmlEvent>) {
         peekBuffer.addAll(events)
     }
 

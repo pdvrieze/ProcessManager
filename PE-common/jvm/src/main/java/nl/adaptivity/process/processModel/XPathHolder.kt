@@ -17,12 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.StringUtil
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CombiningNamespaceContext
 import nl.adaptivity.xml.*
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -30,7 +27,6 @@ import javax.xml.XMLConstants
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
-import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
@@ -102,9 +98,9 @@ actual abstract class XPathHolder : XMLContainer {
         path = null // invalidate the cached path expression
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                             attributeLocalName: CharSequence,
-                                             attributeValue: CharSequence): Boolean {
+    actual override fun deserializeAttribute(attributeNamespace: String?,
+                                             attributeLocalName: String,
+                                             attributeValue: String): Boolean {
         when (attributeLocalName.toString()) {
             "name"                       -> {
                 _name = StringUtil.toString(attributeValue)

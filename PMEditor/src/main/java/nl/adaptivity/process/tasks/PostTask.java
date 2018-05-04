@@ -35,8 +35,8 @@ import javax.xml.namespace.QName;
 public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "postTask";
-  public static final QName ELEMENTNAME=new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME,
-                                                  Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+  public static final QName  ELEMENTNAME      =new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME,
+                                                         Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
 
   public static class Factory implements XmlDeserializerFactory<PostTask> {
 
@@ -95,16 +95,16 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public void serialize(final XmlWriter out) {
-    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtilCore.smartStartTag(out, ELEMENTNAME);
     if (mTask!=null || mReplies!=null) {
-      XmlWriterUtil.smartStartTag(out, REPLIESPARAM_NAME);
+      XmlWriterUtilCore.smartStartTag(out, REPLIESPARAM_NAME);
       getReplies().serialize(out);
-      XmlWriterUtil.endTag(out, REPLIESPARAM_NAME);
-      XmlWriterUtil.smartStartTag(out, TASKPARAM_NAME);
+      XmlWriterUtilCore.endTag(out, REPLIESPARAM_NAME);
+      XmlWriterUtilCore.smartStartTag(out, TASKPARAM_NAME);
       mTask.serialize(out);
-      XmlWriterUtil.endTag(out, TASKPARAM_NAME);
+      XmlWriterUtilCore.endTag(out, TASKPARAM_NAME);
     }
-    XmlWriterUtil.endTag(out, ELEMENTNAME);
+    XmlWriterUtilCore.endTag(out, ELEMENTNAME);
   }
 
   private static PostTask deserialize(final XmlReader in) {
@@ -116,7 +116,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceUri())) {
       switch (reader.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
-          mReplies = XmlReaderUtil.elementContentToFragment(reader);
+          mReplies = XmlReaderNS.elementContentToFragment(reader);
           return true;
         case TASKPARAM_LOCALNAME:
           reader.next();//The param tag has been handled.
@@ -135,7 +135,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   }
 
   @Override
-  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
     return false;
   }
 

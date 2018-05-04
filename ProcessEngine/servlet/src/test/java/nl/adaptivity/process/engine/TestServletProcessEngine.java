@@ -37,7 +37,7 @@ public class TestServletProcessEngine extends ServletProcessEngine {
                                                                                                    mProcessNodeInstances;
     private       ProcessTransactionFactory<StubProcessTransaction>                                mTransactionFactory;
 
-    // Object Initialization
+
     public TestServletProcessEngine(final EndpointDescriptorImpl localURL) {
         mTransactionFactory = new ProcessTransactionFactory<StubProcessTransaction>() {
             @NotNull
@@ -56,7 +56,7 @@ public class TestServletProcessEngine extends ServletProcessEngine {
                                           mProcessNodeInstances, false);
         init(engine);
     }
-// Object Initialization end
+
 
     public void reset() {
         mProcessInstances.reset();
@@ -65,7 +65,7 @@ public class TestServletProcessEngine extends ServletProcessEngine {
         mProcessNodeInstances.reset();
     }
 
-    // Property accessors start
+
     public ProcessTransactionFactory<StubProcessTransaction> getTransactionFactory() {
         return mTransactionFactory;
     }
@@ -74,5 +74,5 @@ public class TestServletProcessEngine extends ServletProcessEngine {
     public void setLocalEndpoint(final URI localURL) {
         super.setLocalEndpoint(localURL);
     }
-// Property acccessors end
+
 }

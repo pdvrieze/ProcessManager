@@ -36,10 +36,10 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
 
 
   private final CharSequence                 mType;
-  private       ObservableList<CharSequence> mOptions;
+  private       ObservableList<String> mOptions;
 
 
-  public GenericItem(final CharSequence name, final CharSequence label, final CharSequence type, final CharSequence value, final List<? extends CharSequence> options) {
+  public GenericItem(final String name, final String label, final String type, final String value, final List<? extends String> options) {
     super(name, label, value);
     mType = type;
     mOptions = new ObservableArrayList<>();
@@ -60,7 +60,7 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
   @Bindable
-  public ObservableList<CharSequence> getOptions() {
+  public ObservableList<String> getOptions() {
     return mOptions;
   }
 

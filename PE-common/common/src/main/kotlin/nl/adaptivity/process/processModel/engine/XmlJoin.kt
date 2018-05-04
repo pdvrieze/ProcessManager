@@ -37,7 +37,7 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
     constructor(node: Join<*, *>) : super(node)
 
-    // Object Initialization
+
     constructor(predecessors: Collection<Identified> = emptyList(),
                 successor: Identified? = null,
                 id: String? = null,
@@ -51,7 +51,7 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
                 isMultiMerge: Boolean = false,
                 multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, isMultiMerge = isMultiMerge, isMultiInstance = multiInstance) {
     }
-    // Object Initialization end
+
 
     override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlJoin {
       return XmlJoin(this, buildHelper)

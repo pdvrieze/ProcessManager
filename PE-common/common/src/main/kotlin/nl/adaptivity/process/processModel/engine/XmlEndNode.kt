@@ -37,7 +37,7 @@ class XmlEndNode(builder: EndNode.Builder<*, *>,
 
     constructor() : this(id=null)
 
-    // Object Initialization
+
     constructor(predecessor: Identified? = null,
                 id: String? = null,
                 label: String? = null,
@@ -47,7 +47,7 @@ class XmlEndNode(builder: EndNode.Builder<*, *>,
                 results: Collection<IXmlResultType> = emptyList(),
                 multiInstance: Boolean = false)
       : super(id, predecessor, label, defines, results, x, y, multiInstance)
-    // Object Initialization end
+
 
     constructor(node: EndNode<*, *>) : super(node) {}
 

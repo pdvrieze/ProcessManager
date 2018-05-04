@@ -73,7 +73,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
   /** The list of possible variables to use in here. */
   private List<ResultReference>         mVariables;
 
-  // Object Initialization
+
   public UserTaskEditorFragment() {
   }
 
@@ -85,7 +85,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     fragment.setArguments(args);
     return fragment;
   }
-// Object Initialization end
+
 
   @Override
   public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {

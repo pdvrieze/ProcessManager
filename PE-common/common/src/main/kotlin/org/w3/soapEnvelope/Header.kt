@@ -99,9 +99,9 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
         return true
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         val qname = QName(attributeNamespace.toString(), attributeLocalName.toString())
         otherAttributes[qname] = attributeValue.toString()
         return true

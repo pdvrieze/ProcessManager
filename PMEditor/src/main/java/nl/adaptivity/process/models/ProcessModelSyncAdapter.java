@@ -60,11 +60,11 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
   private static final String TAG_PROCESSMODEL = "processModel";
   private static final String TAG = ProcessModelSyncAdapter.class.getSimpleName();
 
-// Object Initialization
+
   public ProcessModelSyncAdapter() {
     super(ProcessModels.CONTENT_ID_URI_BASE);
   }
-// Object Initialization end
+
 
   @Override
   public Collection<ContentProviderOperation> doUpdateItemDetails(final DelegatingResources delegator, final ContentProviderClient provider, final long id, final CVPair pair) throws

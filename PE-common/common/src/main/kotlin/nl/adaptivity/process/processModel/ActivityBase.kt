@@ -88,7 +88,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
       return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
       when (attributeLocalName.toString()) {
         ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue.toString()))
         "name" -> name = attributeValue.toString()
@@ -133,7 +133,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
     override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence)=false
+    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String)=false
 
   }
 
@@ -176,7 +176,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     this._name = null
     this.childModel = buildHelper.childModel(builder.childId!!)
   }
-  // Object Initialization end
+
 
   override abstract fun builder(): Builder<NodeT, ModelT>
 
@@ -233,7 +233,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         return result
     }
 
-    // Property acccessors end
+
 
   companion object {
     const val ATTR_CHILDID = "childId"

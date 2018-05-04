@@ -88,7 +88,7 @@ class SVGPath : DiagramPath<SVGPath> {
                 .append(x).append(' ').append(y).append(' ')
         }
 
-        // Property accessors start
+
         override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>) {
             val hsw = stroke.strokeWidth / 2
             val previousX = previous.x
@@ -145,7 +145,7 @@ class SVGPath : DiagramPath<SVGPath> {
             storage[left - hsw, top - hsw, right - left + stroke.strokeWidth] = bottom - top + stroke.strokeWidth
 
         }
-        // Property acccessors end
+
 
     }
 

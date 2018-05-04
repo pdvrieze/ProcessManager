@@ -86,7 +86,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
     abstract fun childModelBuilder(base:ChildProcessModel<*,*>): ChildProcessModelBase.Builder<NodeT, ModelT>
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
       val value = attributeValue.toString()
       when (attributeLocalName.toString()) {
         "name"                      -> name=value

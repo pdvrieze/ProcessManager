@@ -94,9 +94,9 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
   override val elementName: QName
     get() = ELEMENTNAME
 
-  override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                    attributeLocalName: CharSequence,
-                                    attributeValue: CharSequence): Boolean {
+  override fun deserializeAttribute(attributeNamespace: String?,
+                                    attributeLocalName: String,
+                                    attributeValue: String): Boolean {
     when (attributeLocalName.toString()) {
       "refnode" -> {
         setRefNode(attributeValue.toString())

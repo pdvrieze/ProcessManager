@@ -16,4 +16,4 @@
 
 package nl.adaptivity.xml
 
-expect class PlatformXmlWriter//: XmlWriter
+expect class PlatformXmlWriter: XmlWriter

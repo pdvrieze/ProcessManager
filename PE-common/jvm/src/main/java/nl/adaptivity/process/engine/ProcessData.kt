@@ -39,7 +39,7 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
     override val elementName: QName
         get() = ELEMENTNAME
 
-    // Property accessors start
+
     val contentFragment: DocumentFragment
         get() = DomUtil.childrenToDocumentFragment(contentStream)
 
@@ -80,9 +80,9 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
         }
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         if (attributeLocalName.toString() == "name") {
             name = attributeValue.toString()
             return true
@@ -139,7 +139,7 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
             assert(value.length == 1)
             return value.item(0)
         }
-        // Property acccessors end
+
 
         actual fun missingData(name: String): ProcessData {
             return ProcessData(name, CompactFragment(""))

@@ -84,9 +84,9 @@ abstract class BaseMessage(override var service: QName? = null,
     }
 
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         if (XMLConstants.NULL_NS_URI == attributeNamespace) {
             val value = attributeValue.toString()
             when (attributeLocalName.toString()) {

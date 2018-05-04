@@ -283,9 +283,9 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
             return true
         }
 
-        override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                          attributeLocalName: CharSequence,
-                                          attributeValue: CharSequence): Boolean {
+        override fun deserializeAttribute(attributeNamespace: String?,
+                                          attributeLocalName: String,
+                                          attributeValue: String): Boolean {
             if ("name" == attributeLocalName) {
                 key = attributeValue.toString()
                 return true
@@ -504,9 +504,9 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         return false
     }
 

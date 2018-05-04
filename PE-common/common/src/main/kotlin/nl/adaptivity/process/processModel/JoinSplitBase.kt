@@ -70,9 +70,9 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
             return "${super.toString().dropLast(1)}, min=$min, max=$max)"
         }
 
-        override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                          attributeLocalName: CharSequence,
-                                          attributeValue: CharSequence): Boolean {
+        override fun deserializeAttribute(attributeNamespace: String?,
+                                          attributeLocalName: String,
+                                          attributeValue: String): Boolean {
             when (attributeLocalName.toString()) {
                 "min" -> min = attributeValue.toString().toInt()
                 "max" -> max = attributeValue.toString().toInt()

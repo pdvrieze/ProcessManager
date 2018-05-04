@@ -90,7 +90,7 @@ actual abstract class XPathHolder : XMLContainer {
         path = null // invalidate the cached path expression
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+    actual override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
         when (attributeLocalName.toString()) {
             "name"                       -> {
                 _name = StringUtil.toString(attributeValue)

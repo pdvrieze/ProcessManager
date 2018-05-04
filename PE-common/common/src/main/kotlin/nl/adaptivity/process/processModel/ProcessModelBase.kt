@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import net.devrieze.util.collection.ArrayAccess
-import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
@@ -28,8 +27,6 @@ import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
-import kotlin.reflect.KProperty1
-import kotlin.reflect.KProperty2
 
 /**
  * Created by pdvrieze on 02/01/17.

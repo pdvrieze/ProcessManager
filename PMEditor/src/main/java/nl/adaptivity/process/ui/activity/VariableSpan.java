@@ -141,8 +141,8 @@ public class VariableSpan extends ReplacementSpan {
           builder.append(bodyStreamReader.getText());
           break;
         case START_ELEMENT: {
-          final CharSequence elemNS = bodyStreamReader.getNamespaceUri();
-          final CharSequence elemLN = bodyStreamReader.getLocalName();
+          final String elemNS = bodyStreamReader.getNamespaceUri();
+          final String elemLN = bodyStreamReader.getLocalName();
           final ModifySequence var = ModifyHelper.parseAny(bodyStreamReader);
           bodyStreamReader.require(EventType.END_ELEMENT, elemNS, elemLN);
           final VariableReference ref = getVariableReference(define, var);

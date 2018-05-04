@@ -47,7 +47,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
 
   @Override
   public void serialize(final XmlWriter out) {
-    XmlWriterUtil.smartStartTag(out, ELEMENTNAME);
+    XmlWriterUtilCore.smartStartTag(out, ELEMENTNAME);
     final List<XmlSerializable> pending = new ArrayList<>();
     ModifyHelper.writeAttribute(pending, out, "summary", getSummary());
     ModifyHelper.writeAttribute(pending, out, "instancehandle", getInstanceHandle());
@@ -60,7 +60,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
     for(final TaskItem item: getItems()) {
       item.serialize(out);
     }
-    XmlWriterUtil.endTag(out, ELEMENTNAME);
+    XmlWriterUtilCore.endTag(out, ELEMENTNAME);
   }
 
   @CallSuper
@@ -87,7 +87,7 @@ public abstract class UserTaskBase extends BaseObservable implements XmlSerializ
   }
 
   @Override
-  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
     switch(attributeLocalName.toString()) {
       case "summary": setSummary(attributeValue.toString()); return true;
       case "instancehandle": setInstanceHandle(attributeValue.toString()); return true;

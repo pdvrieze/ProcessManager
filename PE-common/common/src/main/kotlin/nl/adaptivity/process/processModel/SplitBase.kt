@@ -63,10 +63,10 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
     override val elementName: QName
       get() = Split.ELEMENTNAME
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
-      if (attributeNamespace.isEmpty() && attributeLocalName.toString() == "predecessor") {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
+      if (attributeNamespace.isNullOrEmpty() && attributeLocalName == "predecessor") {
         predecessor = Identifier(attributeValue)
         return true
       } else

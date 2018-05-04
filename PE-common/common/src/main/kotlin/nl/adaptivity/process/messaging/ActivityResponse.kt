@@ -150,7 +150,7 @@ class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
         return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
         when (attributeLocalName.toString()) {
             "taskState" -> {
                 taskStateString = attributeValue.toString()

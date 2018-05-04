@@ -21,6 +21,7 @@ import kotlin.reflect.KClass
 /**
  * Created by pdvrieze on 14/04/16.
  */
+@Suppress("ReplaceArrayOfWithLiteral")
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
 annotation class Element(val name:String, val nsUri:String, val nsPrefix:String="", val attributes:Array<Attribute> = arrayOf(), val children:Array<Child> = arrayOf(), val content:String="", val typeName: String = "")
@@ -37,4 +38,4 @@ annotation class Attribute(val value:String, val default: String="", val optiona
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.FIELD)
 annotation class XmlName(val value:String, val nsUri:String = "")
 
-class AnyType() // Class with the only purpose to annotate an any type
+class AnyType // Class with the only purpose to annotate an any type

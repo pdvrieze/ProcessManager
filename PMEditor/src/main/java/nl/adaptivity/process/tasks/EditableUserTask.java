@@ -117,7 +117,7 @@ public class EditableUserTask extends UserTaskBase {
   }
 
   public XmlMessage asMessage() {
-    final QName        service    = UserTaskServiceDescriptor.Companion.getSERVICENAME();
+    final QName        service    = UserTaskServiceDescriptor.SERVICENAME;
     final String       endpoint   = UserTaskServiceDescriptor.ENDPOINT;
     final String       operation  = PostTask.ELEMENTLOCALNAME;
 

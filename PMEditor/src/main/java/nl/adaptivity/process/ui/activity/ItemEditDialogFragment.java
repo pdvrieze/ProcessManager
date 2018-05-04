@@ -204,7 +204,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
       final int sequenceLength = annotatedSequence.length();
       int       next           = annotatedSequence.nextSpanTransition(0, sequenceLength, VariableSpan.class);
       while (next>=0 && next < sequenceLength) {
-        writer.text(annotatedSequence.subSequence(prev, next));
+        writer.text(annotatedSequence.subSequence(prev, next).toString());
         prev = next;
 
         next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
@@ -227,7 +227,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
         next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
       }
       if (prev < sequenceLength) {
-        writer.text(annotatedSequence.subSequence(prev, sequenceLength));
+        writer.text(annotatedSequence.subSequence(prev, sequenceLength).toString());
       }
     } finally {
       writer.close();
@@ -255,7 +255,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
         throw new IllegalArgumentException("Invalid state");
       }
 
-      return toSpanned(define.getBodyStreamReader(), define);
+      return toSpanned(define.getXmlReader(), define);
 
     } else {
       return in;

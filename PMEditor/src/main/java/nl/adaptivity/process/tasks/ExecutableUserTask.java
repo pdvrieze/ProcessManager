@@ -342,8 +342,9 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   }
 
   @Override
-  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
     if (StringUtil.isEqual("handle", attributeLocalName)) {
+        setHandle(Long.parseLong(attributeValue));
     }
     return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
   }

@@ -98,11 +98,11 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   private TaskLoaderCallbacks mTaskLoaderCallbacks;
   private ProcessModelLoaderCallbacks mPMLoaderCallbacks;
 
-  // Object Initialization
+
   public OverviewFragment() {
     // Required empty public constructor
   }
-// Object Initialization end
+
 
   @Override
   public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {

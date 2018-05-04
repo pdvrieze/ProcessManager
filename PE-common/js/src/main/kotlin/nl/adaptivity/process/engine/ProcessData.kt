@@ -53,9 +53,9 @@ actual class ProcessData actual constructor(name: String?, value: ICompactFragme
         }
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence,
-                                      attributeLocalName: CharSequence,
-                                      attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         if (attributeLocalName.toString() == "name") {
             name = attributeValue.toString()
             return true

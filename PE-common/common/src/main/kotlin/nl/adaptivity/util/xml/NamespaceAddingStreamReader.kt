@@ -31,7 +31,7 @@ import nl.adaptivity.xml.XmlReader
 class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, source: XmlReader) : XmlDelegatingReader(
         source) {
 
-    override val namespaceUri: CharSequence
+    override val namespaceUri: String
         get() {
             val namespaceURI = delegate.namespaceUri
             return namespaceURI ?: lookupSource.getNamespaceURI(delegate.prefix?.toString()) ?: ""
@@ -40,7 +40,7 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
     override val namespaceContext: NamespaceContext
         get() = CombiningNamespaceContext(delegate.namespaceContext, lookupSource)
 
-    override fun require(type: EventType, namespaceURI: CharSequence?, localName: CharSequence?) {
+    override fun require(type: EventType, namespaceURI: String?, localName: String?) {
         if (type !== eventType ||
             namespaceURI != null && namespaceURI != namespaceUri ||
             localName != null && localName != localName) {
@@ -49,12 +49,12 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
         run { throw XmlException("Require failed") }
     }
 
-    override fun getNamespaceUri(prefix: CharSequence): String? {
+    override fun getNamespaceUri(prefix: String): String? {
         val namespaceURI = delegate.getNamespaceUri(prefix)
         return namespaceURI ?: lookupSource.getNamespaceURI(prefix.toString())
     }
 
-    override fun getAttributeValue(namespaceURI: CharSequence?, localName: CharSequence): CharSequence? {
+    override fun getAttributeValue(namespaceURI: String?, localName: String): String? {
 
         for (i in attributeCount - 1 downTo 0) {
             if ((namespaceURI == null || namespaceURI == getAttributeNamespace(
@@ -65,7 +65,7 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
         return null
     }
 
-    override fun getAttributeNamespace(index: Int): CharSequence {
+    override fun getAttributeNamespace(index: Int): String {
         val attributeNamespace = delegate.getAttributeNamespace(index)
         return attributeNamespace ?: lookupSource.getNamespaceURI(delegate.getAttributePrefix(index)?.toString()) ?: ""
     }

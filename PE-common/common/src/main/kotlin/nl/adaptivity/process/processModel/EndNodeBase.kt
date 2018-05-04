@@ -60,7 +60,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(build
       return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: CharSequence, attributeLocalName: CharSequence, attributeValue: CharSequence): Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
       if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
         predecessor = Identifier(attributeValue.toString())
         return true

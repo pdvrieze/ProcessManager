@@ -19,10 +19,7 @@ package nl.adaptivity.process.util;
 import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.xml.XmlWriter;
-import nl.adaptivity.xml.XmlWriterUtil;
+import nl.adaptivity.xml.*;
 
 import javax.xml.namespace.QName;
 
@@ -52,7 +49,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     private final CharSequence mDefineName;
     private final CharSequence mXpath;
 
-    // Object Initialization
+
 
     public AttributeSequence(final Parcel source) {
       mParamName = readCharSequence(source);
@@ -65,7 +62,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
       mDefineName = defineName;
       mXpath = xpath;
     }
-// Object Initialization end
+
 
 
     @Override
@@ -83,11 +80,11 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     @Override
     public void serialize(final XmlWriter out) {
       final QName elementName = ELEMENTNAME;
-      XmlWriterUtil.smartStartTag(out, elementName);
-      XmlWriterUtil.writeAttribute(out, "value", mDefineName);
-      XmlWriterUtil.writeAttribute(out, "name", mParamName);
-      XmlWriterUtil.writeAttribute(out, "xpath", mXpath);
-      XmlWriterUtil.endTag(out, elementName);
+      XmlWriterUtilCore.smartStartTag(out, elementName);
+      XmlWriterUtilCore.writeAttribute(out, "value", mDefineName);
+      XmlWriterUtilCore.writeAttribute(out, "name", mParamName);
+      XmlWriterUtilCore.writeAttribute(out, "xpath", mXpath);
+      XmlWriterUtilCore.endTag(out, elementName);
     }
 
     @Override
@@ -130,7 +127,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
 
 
 
-    // Property accessors start
+
     public CharSequence getParamName() {
       return mParamName;
     }
@@ -141,7 +138,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     public CharSequence getXpath() {
       return mXpath;
     }
-    // Property acccessors end
+
 
   }
 
@@ -164,7 +161,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     private final CharSequence mXpath;
     private final String mRefNodeId;
 
-    // Object Initialization
+
 
     public FragmentSequence(final Parcel source) {
       mRefNodeId = source.readString();
@@ -184,17 +181,17 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
       mVariableName = variableName;
       mXpath = xpath;
     }
-    // Object Initialization end
+
 
     @Override
     public void serialize(final XmlWriter out) {
       final QName elementName = new QName(Constants.MODIFY_NS_STR, mElementName,
                                           Constants.MODIFY_NS_PREFIX);
-      XmlWriterUtil.smartStartTag(out, elementName);
-      XmlWriterUtil.writeAttribute(out, "refNode", mRefNodeId);
-      XmlWriterUtil.writeAttribute(out, "value", mVariableName);
-      XmlWriterUtil.writeAttribute(out, "xpath", mXpath);
-      XmlWriterUtil.endTag(out, elementName);
+      XmlWriterUtilCore.smartStartTag(out, elementName);
+      XmlWriterUtilCore.writeAttribute(out, "refNode", mRefNodeId);
+      XmlWriterUtilCore.writeAttribute(out, "value", mVariableName);
+      XmlWriterUtilCore.writeAttribute(out, "xpath", mXpath);
+      XmlWriterUtilCore.endTag(out, elementName);
     }
 
     @Override
@@ -248,7 +245,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
       writeCharSequence(dest, mXpath);
     }
 
-    // Property accessors start
+
     public CharSequence getVariableName() {
       return mVariableName;
     }
@@ -257,7 +254,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     public CharSequence getXpath() {
       return mXpath;
     }
-    // Property acccessors end
+
 
   }
 
@@ -309,7 +306,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable, P
     }
   }
 
-  // Property accessors start
+
   public abstract CharSequence getVariableName();
 
   public abstract CharSequence getXpath();
