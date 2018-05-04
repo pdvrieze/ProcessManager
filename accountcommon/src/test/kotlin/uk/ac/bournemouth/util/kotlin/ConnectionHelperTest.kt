@@ -192,7 +192,8 @@ class DBConnectionTest {
 
   private fun simpleInsert(connectionHelper: DBConnection) {
     connectionHelper.prepareStatement("INSERT INTO $TABLENAME (col1, col2, col3, col4) VALUES ( ?, ?, ?, ? ), (?, ?, ? ,?)") {
-        params(intValue = 1) + "r1c2" + "r1c3" + true + 2 as Int + "r2c2" + "r2c3" + false
+        @Suppress("USELESS_CAST")
+        params(intValue = 1) + "r1c2" + "r1c3" + true + 2.i + "r2c2" + "r2c3" + false
         assertEquals(2, executeUpdate())
     }
   }
