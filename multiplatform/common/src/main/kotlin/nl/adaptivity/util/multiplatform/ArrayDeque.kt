@@ -24,7 +24,7 @@ expect interface Queue<E> : MutableCollection<E> {
      * if no space is currently available.
      *
      * @param element the element to add
-     * @return `true` (as specified by [Collection.add])
+     * @return `true` (as specified by [MutableCollection.add])
      * @throws IllegalStateException if the element cannot be added at this
      * time due to capacity restrictions
      * @throws ClassCastException if the class of the specified element
@@ -296,7 +296,7 @@ expect interface Deque<E>: Queue<E> {
      * This method is equivalent to [.addLast].
      *
      * @param element the element to add
-     * @return `true` (as specified by [Collection.add])
+     * @return `true` (as specified by [MutableCollection.add])
      * @throws IllegalStateException if the element cannot be added at this
      * time due to capacity restrictions
      * @throws ClassCastException if the class of the specified element
