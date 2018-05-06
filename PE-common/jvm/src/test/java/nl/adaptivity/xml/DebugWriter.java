@@ -27,81 +27,81 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DebugWriter extends XmlDelegatingWriter {
 
-  private static final String TAG = "DEBUGWRITER: ";
+    private static final String TAG = "DEBUGWRITER: ";
 
-  public DebugWriter(final XmlWriter delegate) {
-    super(delegate);
-  }
+    public DebugWriter(final XmlWriter delegate) {
+        super(delegate);
+    }
 
-  @Override
-  public void startTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) {
-    System.out.println(TAG + "startTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
-    super.startTag(namespace, localName, prefix);
-  }
+    @Override
+    public void startTag(@Nullable final String namespace, @NotNull final String localName, @Nullable final String prefix) {
+        System.out.println(TAG + "startTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
+        super.startTag(namespace, localName, prefix);
+    }
 
-  @Override
-  public void endTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) {
-    System.out.println(TAG + "endTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
-    super.endTag(namespace, localName, prefix);
-  }
+    @Override
+    public void endTag(@Nullable final String namespace, @NotNull final String localName, @Nullable final String prefix) {
+        System.out.println(TAG + "endTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
+        super.endTag(namespace, localName, prefix);
+    }
 
-  @Override
-  public void attribute(@Nullable final CharSequence namespace, @NotNull final CharSequence name, @Nullable final CharSequence prefix, @NotNull final CharSequence value) {
-    System.out.println(TAG + "  attribute(namespace='"+namespace+"', name='"+name+"', prefix='"+prefix+"', value='"+value+"')");
-    super.attribute(namespace, name, prefix, value);
-  }
+    @Override
+    public void attribute(@Nullable final String namespace, @NotNull final String name, @Nullable final String prefix, @NotNull final String value) {
+        System.out.println(TAG + "  attribute(namespace='"+namespace+"', name='"+name+"', prefix='"+prefix+"', value='"+value+"')");
+        super.attribute(namespace, name, prefix, value);
+    }
 
-  @Override
-  public void namespaceAttr(final CharSequence namespacePrefix, final CharSequence namespaceUri) {
-    System.out.println(TAG + "  namespaceAttr(namespacePrefix='"+namespacePrefix+"', namespaceUri='"+namespaceUri+"')");
-    super.namespaceAttr(namespacePrefix, namespaceUri);
-  }
+    @Override
+    public void namespaceAttr(final String namespacePrefix, final String namespaceUri) {
+        System.out.println(TAG + "  namespaceAttr(namespacePrefix='"+namespacePrefix+"', namespaceUri='"+namespaceUri+"')");
+        super.namespaceAttr(namespacePrefix, namespaceUri);
+    }
 
-  @Override
-  public void text(final CharSequence text) {
-    System.out.println(TAG + "--text('"+text+"')");
-    super.text(text);
-  }
+    @Override
+    public void text(final String text) {
+        System.out.println(TAG + "--text('"+text+"')");
+        super.text(text);
+    }
 
-  @Override
-  public void ignorableWhitespace(final CharSequence text) {
-    System.out.println(TAG + "  ignorableWhitespace()");
-    super.ignorableWhitespace(text);
-  }
+    @Override
+    public void ignorableWhitespace(final String text) {
+        System.out.println(TAG + "  ignorableWhitespace()");
+        super.ignorableWhitespace(text);
+    }
 
-  @Override
-  public void startDocument(@Nullable final CharSequence version, @Nullable final CharSequence encoding, @Nullable final Boolean standalone) {
-    System.out.println(TAG + "startDocument()");
-    super.startDocument(version, encoding, standalone);
-  }
+    @Override
+    public void startDocument(@Nullable final String version, @Nullable final String encoding, @Nullable final Boolean standalone) {
+        System.out.println(TAG + "startDocument()");
+        super.startDocument(version, encoding, standalone);
+    }
 
-  @Override
-  public void comment(final CharSequence text) {
-    System.out.println(TAG + "comment('"+text+"')");
-    super.comment(text);
-  }
+    @Override
+    public void comment(final String text) {
+        System.out.println(TAG + "comment('"+text+"')");
+        super.comment(text);
+    }
 
-  @Override
-  public void processingInstruction(final CharSequence text) {
-    System.out.println(TAG + "processingInstruction('"+text+"')");
-    super.processingInstruction(text);
-  }
+    @Override
+    public void processingInstruction(final String text) {
+        System.out.println(TAG + "processingInstruction('"+text+"')");
+        super.processingInstruction(text);
+    }
 
-  @Override
-  public void close() {
-    System.out.println(TAG + "close()");
-    super.close();
-  }
+    @Override
+    public void close() {
+        System.out.println(TAG + "close()");
+        super.close();
+    }
 
-  @Override
-  public void flush() {
-    System.out.println(TAG + "flush()");
-    super.flush();
-  }
+    @Override
+    public void flush() {
+        System.out.println(TAG + "flush()");
+        super.flush();
+    }
 
-  @Override
-  public void endDocument() {
-    System.out.println(TAG + "endDocument()");
-    super.endDocument();
-  }
+    @Override
+    public void endDocument() {
+        System.out.println(TAG + "endDocument()");
+        super.endDocument();
+    }
 }
