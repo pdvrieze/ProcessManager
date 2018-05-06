@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.*
 import net.devrieze.util.toString
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlMessage
@@ -549,35 +546,34 @@ class TestProcessData {
         assertEquals("wrap", reader.localName)
         assertEquals(TEXT, reader.next())
 
-        run {
-            val nsContext = mock<NamespaceContext> {
-                on { getNamespaceURI("") } doReturn ""
-                on { getPrefix("") } doReturn ""
-            }
-            val mockedWriter = mock<XmlWriter> {
-                on { namespaceContext } doReturn nsContext
-            }
-            val mockedFactory = mock<XmlStreamingFactory> {
-                on { newWriter(com.nhaarman.mockito_kotlin.any<Writer>(), any()) } doReturn mockedWriter
-            }
-
-            XmlStreaming.setFactory(mockedFactory)
-            reader.siblingsToFragment()
-
-            val inOrder = inOrder(mockedWriter)
-            // The Hello text will not be written with a writer, but directly escaped
-            // as otherwise the serializer will complain about multiple roots.
-            // inOrder.verify(mockedWriter).text("Hello");
-            inOrder.verify(mockedWriter).startTag("", "a", "")
-            inOrder.verify(mockedWriter).text("who")
-            inOrder.verify(mockedWriter).startTag("", "b", "")
-            inOrder.verify(mockedWriter).text("are")
-            inOrder.verify(mockedWriter).endTag("", "b", "")
-            inOrder.verify(mockedWriter).text("you")
-            inOrder.verify(mockedWriter).endTag("", "a", "")
-            inOrder.verify(mockedWriter).close()
-            inOrder.verifyNoMoreInteractions()
+        val nsContext = mock<NamespaceContext> {
+            on { getNamespaceURI("") } doReturn ""
+            on { getPrefix("") } doReturn ""
         }
+        val mockedWriter = mock<XmlWriter> {
+            on { namespaceContext } doReturn nsContext
+        }
+        val mockedFactory = mock<XmlStreamingFactory> {
+            on { newWriter(com.nhaarman.mockito_kotlin.any<Writer>(), any(), any()) } doReturn mockedWriter
+        }
+
+        XmlStreaming.setFactory(mockedFactory)
+        reader.siblingsToFragment()
+
+        val inOrder = inOrder(mockedWriter)
+        // The Hello text will not be written with a writer, but directly escaped
+        // as otherwise the serializer will complain about multiple roots.
+        // inOrder.verify(mockedWriter).text("Hello");
+        inOrder.verify(mockedWriter).startTag("", "a", "")
+        inOrder.verify(mockedWriter).text("who")
+        inOrder.verify(mockedWriter).startTag("", "b", "")
+        inOrder.verify(mockedWriter).text("are")
+        inOrder.verify(mockedWriter).endTag("", "b", "")
+        inOrder.verify(mockedWriter).text("you")
+        inOrder.verify(mockedWriter).endTag("", "a", "")
+        inOrder.verify(mockedWriter).close()
+        inOrder.verifyNoMoreInteractions()
+
         assertEquals(END_ELEMENT, reader.eventType)
         assertEquals("wrap", reader.localName)
         assertEquals(END_DOCUMENT, reader.next())
