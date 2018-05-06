@@ -52,7 +52,7 @@ import java.util.*;
 public class PETransformer {
 
 
-  public static class MyFilter extends JvmXmlBufferedReader {
+  public static class MyFilter extends XmlBufferedReader {
 
     @NotNull private PETransformerContext mContext;
     @Nullable private final NamespaceContext mNamespaceContext;

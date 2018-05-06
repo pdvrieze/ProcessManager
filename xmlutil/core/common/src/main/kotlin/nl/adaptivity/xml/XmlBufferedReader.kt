@@ -20,12 +20,10 @@ import nl.adaptivity.util.multiplatform.SimpleQueue
 import nl.adaptivity.util.multiplatform.addAll
 import nl.adaptivity.util.multiplatform.isNotEmpty
 
-typealias XmlBufferedReader = JvmXmlBufferedReader
-
 /**
  * Created by pdvrieze on 03/04/17.
  */
-open class JvmXmlBufferedReader constructor(delegate: XmlReader) : XmlBufferedReaderBase(delegate) {
+open class XmlBufferedReader constructor(delegate: XmlReader) : XmlBufferedReaderBase(delegate) {
 
     override val namespaceContext: NamespaceContext
         get() = super.namespaceContext
