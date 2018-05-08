@@ -30,7 +30,7 @@ inline fun <T> T?.valIfNullOr(alternate:T, condition:T.()->Boolean):T =
     if (this==null || condition()) alternate else this
 
 inline fun <T> T?. nullIfNot(condition:T.()->Boolean):T? =
-    if (this?.condition()?:false) this else null
+    if (this?.condition() == true) this else null
 
 interface __Override__<T> {
   infix fun by(alternative:T):T

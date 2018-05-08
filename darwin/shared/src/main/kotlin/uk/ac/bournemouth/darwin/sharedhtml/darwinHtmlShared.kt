@@ -37,22 +37,7 @@ const val FIELD_NEWPASSWORD2 = "newpassword2"
 
 class XMLBody(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) : HTMLTag("body", consumer, initialAttributes, null, false, false), HtmlBlockTag
 
-/**
- * A helper class to allow the context to be passed along within contexts.
- */
-//class ContextHtmlBlockTag(val context:ServiceContext, private val delegate:HtmlBlockTag): HtmlBlockTag by delegate
-//class ContextHtmlInlineTag(val context:ServiceContext, private val delegate:HtmlInlineTag): HtmlInlineTag by delegate
-//class ContextCommonAttributeGroupFacade(val context:ServiceContext, private val delegate:CommonAttributeGroupFacade): CommonAttributeGroupFacade by delegate
-
-//@Suppress("NOTHING_TO_INLINE")
-//inline fun CommonAttributeGroupFacade.withContext(context:ServiceContext) = ContextCommonAttributeGroupFacade(context, this)
-//@Suppress("NOTHING_TO_INLINE")
-//inline fun ContextHtmlBlockTag.withContext(context:ServiceContext) = ContextHtmlBlockTag(context, this)
-//@Suppress("NOTHING_TO_INLINE")
-//inline fun ContextHtmlInlineTag.withContext(context:ServiceContext) = ContextHtmlInlineTag(context, this)
-
-
-open class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate: TagConsumer<out T>): TagConsumer<T> {
+open class ContextTagConsumer<out T>(val context:ServiceContext, private val myDelegate: TagConsumer<T>): TagConsumer<T> {
   @Suppress("NOTHING_TO_INLINE")
   inline operator fun CharSequence.unaryPlus() = onTagContent(this)
 
@@ -76,10 +61,10 @@ open class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate:
 open class SharedButton(val label:String, val id:String)
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T,C:TagConsumer<out T>> C.withContext(context:ServiceContext) = ContextTagConsumer(context, this)
+inline fun <T,C:TagConsumer<T>> C.withContext(context:ServiceContext) = ContextTagConsumer(context, this)
 
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
-inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsumer<out T>).withContext(context)
+inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsumer<T>).withContext(context)
 
 
 /** Just inline for now, as this is just a forwarder. */
@@ -95,7 +80,7 @@ class PartialHTML(initialAttributes: Map<String, String>, override val consumer:
 }
 
 
-fun <T, C : TagConsumer<out T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T = PartialHTML(emptyMap, this).visitAndFinalize(this, block)
+fun <T, C : TagConsumer<T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T = PartialHTML(emptyMap, this).visitAndFinalize(this, block)
 
 fun <T, C : ContextTagConsumer<T>> C.darwinBaseDialog(title: String, id: String? = null,
                                                       bodyContent: ContextTagConsumer<DIV>.() -> Unit = {}):T {
@@ -155,7 +140,7 @@ fun DIV.loginPanelContent(context: ServiceContext, username: String?) {
   consumer.loginPanelContent(context, username)
 }
 
-fun <T, C: TagConsumer<out T>> C.loginPanelContent(context: ServiceContext, username: String?) {
+fun <T, C: TagConsumer<T>> C.loginPanelContent(context: ServiceContext, username: String?) {
   if (username == null) {
     a(href = context.accountMgrPath + "login") {
       id = "logout"
@@ -181,7 +166,7 @@ interface ServiceContext {
 }
 
 
-fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, errorMsg: String? = null, username: String? = null, password: String? = null, redirect: String? = null, cancelEnabled: Boolean = true): T {
+fun <T, C : ContextTagConsumer<T>> C.loginDialog(context: ServiceContext, errorMsg: String? = null, username: String? = null, password: String? = null, redirect: String? = null, cancelEnabled: Boolean = true): T {
   return darwinBaseDialog(title="Log in") {
     div("errorMsg") {
       if (errorMsg==null) style="display:none" else +errorMsg
@@ -197,7 +182,7 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
         style = "border:none"
         tr {
           td {
-            label { for_='#'+FIELD_USERNAME
+            label { htmlFor = "#$FIELD_USERNAME"
               +"User name:"
             }
           }
@@ -209,7 +194,7 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
         }
         tr {
           td {
-            label { for_='#'+FIELD_PASSWORD
+            label { htmlFor = "#$FIELD_PASSWORD"
               +"Password:"
             }
           }
@@ -233,7 +218,7 @@ fun <T, C:ContextTagConsumer<T>> C.setAliasDialog(oldAlias:String?):T =
       darwinDialog("Set alias", negativeButton = SharedButton("Cancel", "btn_alias_cancel")) {
         form(action="${context.accountMgrPath}setAlias") {
           div {
-            label { for_= "#alias"; +"Alias" }
+            label { htmlFor = "#alias"; +"Alias" }
             input(type= InputType.text, name="alias") {
               placeholder="Alias"
               oldAlias?.let { value=oldAlias }

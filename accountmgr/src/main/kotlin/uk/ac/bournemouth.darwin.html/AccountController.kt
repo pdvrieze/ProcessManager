@@ -203,7 +203,7 @@ class AccountController : HttpServlet() {
 
             if (req.htmlAccepted) {
                 val displayName = if (info.alias.isNullOrBlank()) (info.fullname ?: user) else info.alias!!
-                resp.darwinResponse(req, "My Account", "My Account - ${displayName}") {
+                resp.darwinResponse(req, "My Account", "My Account - $displayName") {
                     section {
                         h1 { +"Account" }
                         p {
@@ -401,7 +401,7 @@ class AccountController : HttpServlet() {
             if (req.htmlAccepted) {
                 loginScreen(req, resp)
             } else {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
+                resp.status = HttpServletResponse.SC_UNAUTHORIZED
                 resp.writer.use { it.appendln("error:Login is required\n") }
             }
         }
@@ -417,7 +417,7 @@ class AccountController : HttpServlet() {
             if (req.htmlAccepted) {
                 loginScreen(req, resp)
             } else {
-                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
+                resp.status = HttpServletResponse.SC_UNAUTHORIZED
                 resp.writer.use { it.appendln("error:Login is required\n") }
             }
         }
@@ -521,7 +521,7 @@ class AccountController : HttpServlet() {
                                  message: String? = null,
                                  resetToken: String? = null,
                                  changedUser: String? = null) {
-        resp.darwinResponse(request = req, windowTitle = "Change password", checkuser = false) {
+        resp.darwinResponse(request = req, windowTitle = "Change password") {
             darwinDialog("Change password") {
                 if (message != null) div("warning") { +message }
                 form(method = FormMethod.post) {
@@ -531,7 +531,7 @@ class AccountController : HttpServlet() {
                         style = "border:none"
                         if (resetToken != null || req.isUserInRole("admin")) {
                             tr {
-                                td { label { for_ = "#$FIELD_USERNAME"; +"Username:" } };
+                                td { label { htmlFor = "#$FIELD_USERNAME"; +"Username:" } }
                                 td {
                                     input(name = FIELD_USERNAME, type = InputType.text) {
                                         if (resetToken != null) {
@@ -545,18 +545,18 @@ class AccountController : HttpServlet() {
                             }
                         } else {
                             tr {
-                                td { label { for_ = "#$FIELD_PASSWORD"; +"Current password:" } };
+                                td { label { htmlFor = "#$FIELD_PASSWORD"; +"Current password:" } }
                                 td {
                                     input(name = FIELD_PASSWORD, type = InputType.password)
                                 }
                             }
                         }
                         tr {
-                            td { label { for_ = "#$FIELD_NEWPASSWORD1"; +"New password:" } }
+                            td { label { htmlFor = "#$FIELD_NEWPASSWORD1"; +"New password:" } }
                             td { input(name = FIELD_NEWPASSWORD1, type = InputType.password) }
                         }
                         tr {
-                            td { label { for_ = "#$FIELD_NEWPASSWORD2"; +"Repeat new password:" } }
+                            td { label { htmlFor = "#$FIELD_NEWPASSWORD2"; +"Repeat new password:" } }
                             td { input(name = FIELD_NEWPASSWORD2, type = InputType.password) }
                         }
                     }
@@ -590,7 +590,7 @@ class AccountController : HttpServlet() {
         if (resetToken == null) req.login(changedUser,
                                           origPasswd) // check the username/password again, if there is no reset token
         if (newPasswd1 != newPasswd2) {
-            val message = if (changedUser != null) {
+            val message = if (origPasswd == null) {
                 "Please provide two identical copies of the new password"
             } else {
                 "Please provide all of the current password and two copies of the new one"
@@ -649,7 +649,7 @@ class AccountController : HttpServlet() {
     }
 
     private fun invalidCredentials(req: HttpServletRequest, resp: HttpServletResponse) {
-        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
+        resp.status = HttpServletResponse.SC_UNAUTHORIZED
         if (req.htmlAccepted) {
             loginScreen(req, resp, "Username or password not correct")
         } else {
@@ -732,9 +732,9 @@ class AccountController : HttpServlet() {
                 val resetUrl = URI(req.scheme, null, req.serverName, req.serverPort, req.requestURI,
                                    "?$FIELD_USERNAME=${URLEncoder.encode(user,
                                                                          "UTF8")}&$FIELD_RESETTOKEN=${URLEncoder.encode(
-                                       resetToken)}", null).toString()
+                                       resetToken, "UTF8")}", null).toString()
                 message.addRecipient(Message.RecipientType.TO, InternetAddress("$user@bournemouth.ac.uk", user))
-                message.setSubject("Darwin account password reset")
+                message.subject = "Darwin account password reset"
                 message.setContent("""
                     <html><head><title>Darwin account password reset</title></head><body>
                       <p>Please visit <a href="$resetUrl">$resetUrl</a> to reset your password.</p>
@@ -766,7 +766,7 @@ class AccountController : HttpServlet() {
                     table {
                         tr {
                             th {
-                                label { for_ = FIELD_USERNAME; +"User name:" }
+                                label { htmlFor = FIELD_USERNAME; +"User name:" }
                             }
                             td {
                                 input(name = FIELD_USERNAME, type = InputType.text)
