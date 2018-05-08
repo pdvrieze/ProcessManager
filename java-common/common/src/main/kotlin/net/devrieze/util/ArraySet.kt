@@ -111,8 +111,8 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
 
     private fun isInRange(offset: Int): Boolean {
         if (firstElemIdx <= nextElemIdx) {
-            if (offset < firstElemIdx || offset >= nextElemIdx) return false
-        } else if (offset < firstElemIdx && offset >= nextElemIdx) {
+            if (offset !in firstElemIdx..(nextElemIdx - 1)) return false
+        } else if (offset in nextElemIdx..(firstElemIdx - 1)) {
             return false
         }
         return true
@@ -171,13 +171,13 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
 
     private fun reserve(reservation: Int) {
         if (reservation < 0) throw IllegalArgumentException(
-            "The reservation was ${reservation} but should be larger than or equal to 0")
+            "The reservation was $reservation but should be larger than or equal to 0")
         if (reservation + 1 < size) {
             reserve(size + 1); return
         }
-        val reservation = reservation.coerceAtLeast(8)
+
         @Suppress("UNCHECKED_CAST")
-        val newBuffer = arrayOfNulls<Any?>(reservation) as Array<T?>
+        val newBuffer = arrayOfNulls<Any?>(reservation.coerceAtLeast(8)) as Array<T?>
 
         if (firstElemIdx <= nextElemIdx) {
             arraycopy(buffer, firstElemIdx, newBuffer, 0, nextElemIdx - firstElemIdx)
@@ -232,6 +232,7 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
     fun removeAt(index: OuterPos) = removeAtOffset(index.toBufferPos())
 
     private fun removeAtOffset(offset: BufferPos): T {
+        @Suppress("UNCHECKED_CAST")
         val result = buffer[offset] as T
 
         val bufferSize = buffer.size
@@ -302,7 +303,7 @@ fun <T> Sequence<T>.toMutableArraySet(): MutableSet<T> {
 inline fun <T> Sequence<T>.toArraySet(): Set<T> = toMutableArraySet()
 
 
-fun <T> Iterable<T>.toMutableArraySet(): MutableSet<T> = ArraySet<T>(this)
+fun <T> Iterable<T>.toMutableArraySet(): MutableSet<T> = ArraySet(this)
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun <T> Iterable<T>.toArraySet(): Set<T> = toMutableArraySet()

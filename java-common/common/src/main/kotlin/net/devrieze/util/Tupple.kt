@@ -48,11 +48,12 @@ data class Tupple<S, T>(var first: S, var second: T) {
         set(value) { second = value }
     
     override fun toString(): String {
-        return "($elem1, $elem2)"
+        return "($first, $second)"
     }
 
     companion object {
 
+        @Suppress("DEPRECATION")
         @JvmStatic
         fun <S, T> tupple(pElem1: S, pElem2: T): Tupple<S, T> {
             return Tupple(pElem1, pElem2)
@@ -64,6 +65,7 @@ data class Tupple<S, T>(var first: S, var second: T) {
          * @param elem1
          * @param elem2
          */
+        @Suppress("DEPRECATION")
         @JvmStatic
         fun <S, T> pack1st(elem1: S, elem2: Array<T>): Array<Tupple<S, T>> {
             return Array(elem2.size) { idx -> Tupple(elem1, elem2[idx]) }

@@ -52,16 +52,16 @@ interface Named {
         /**
          * This comparator compares the name according to simple string comparison.
          *
-         * @param o1 The first Item that should be compared
-         * @param o2 The item that pObj1 needs to be compared to
+         * @param a The first Item that should be compared
+         * @param b The item that pObj1 needs to be compared to
          * @return
          * - <0 iff pObj1 < pObj2
          * - ==0 iff pObj1 == pObj2
          * - &gt;0 iff pObj1 > pObj2
          */
-        override fun compare(o1: T, o2: T): Int {
-            val n1 = o1.name
-            val n2 = o2.name
+        override fun compare(a: T, b: T): Int {
+            val n1 = a.name
+            val n2 = b.name
             return when {
                 n1 == null && n2 == null -> 0
                 n1 == null -> -1
