@@ -356,7 +356,7 @@ open class MemHandleMap<V:Any>
    * @see net.devrieze.util.HandleMap#put(V)
    */
   override fun <W : V> put(value: W): ComparableHandle<W> {
-    assert(if (value is ReadableHandleAware<*>) !value.getHandle().valid else true) { "Storing a value that already has a handle is invalid" }
+    assert(if (value is ReadableHandleAware<*>) !value.getHandle().isValid else true) { "Storing a value that already has a handle is invalid" }
 
     var index: Int // The space in the mValues array where to store the value
     var generation: Int // To allow reuse of spaces without reuse of handles
@@ -444,7 +444,7 @@ open class MemHandleMap<V:Any>
 
       // If the generation doesn't map we have a wrong handle.
       if (generations[index] != generation) {
-        throw ArrayIndexOutOfBoundsException("Generation mismatch" + generation)
+        throw ArrayIndexOutOfBoundsException("Generation mismatch ($generation)")
       }
 
       val updatedValue = handleAssigner(value, Handles.handle(handle)) ?: value
