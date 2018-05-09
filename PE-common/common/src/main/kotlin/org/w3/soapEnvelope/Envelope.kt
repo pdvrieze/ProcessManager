@@ -86,7 +86,7 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
         this.body = body
     }
 
-    constructor(content: T) : this(Body<T>(content)) {}
+    constructor(content: T) : this(Body<T>(content))
 
     fun deserializeAttribute(attributeNamespace: CharSequence,
                              attributeLocalName: CharSequence,
@@ -101,11 +101,11 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
     }
 
     fun deserializeChild(reader: XmlReader, bodyDeserializer: XmlDeserializerFactory<T>): Boolean {
-        if (NAMESPACE == reader.namespaceUri.toString()) {
-            if (Header.ELEMENTLOCALNAME == reader.localName.toString()) {
+        if (NAMESPACE == reader.namespaceURI) {
+            if (Header.ELEMENTLOCALNAME == reader.localName) {
                 header = Header.deserialize(reader)
                 return true
-            } else if (Body.ELEMENTLOCALNAME == reader.localName.toString()) {
+            } else if (Body.ELEMENTLOCALNAME == reader.localName) {
                 body = Body.deserialize(reader, bodyDeserializer)
                 return true
             }

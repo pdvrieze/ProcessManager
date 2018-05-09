@@ -51,8 +51,8 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
     constructor(node: StartNode<*, *>) : super(node)
 
     override fun deserializeChild(reader: XmlReader): Boolean {
-      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-        when (reader.localName.toString()) {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
+        when (reader.localName) {
           "import" -> {
             (results as MutableList).add(XmlResultType.deserialize(reader))
             return true

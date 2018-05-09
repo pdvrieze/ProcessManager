@@ -200,7 +200,7 @@ public class EditableUserTask extends UserTaskBase {
 
   @Override
   public boolean deserializeChild(@NonNull final XmlReader reader) {
-    if (StringUtil.isEqual(Constants.MODIFY_NS_STR, reader.getNamespaceUri())) {
+    if (StringUtil.isEqual(Constants.MODIFY_NS_STR, reader.getNamespaceURI())) {
       final AttributeSequence attrVar = ModifyHelper.parseAttribute(reader);
       switch (attrVar.getParamName().toString()) {
         case "summary": mSummary = attrVar; return true;

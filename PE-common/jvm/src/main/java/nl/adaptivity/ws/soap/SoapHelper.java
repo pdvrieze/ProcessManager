@@ -351,9 +351,9 @@ public class SoapHelper {
             String s = StringUtil.toString(XmlReaderUtil.readSimpleElement(reader));
             final int i = s.indexOf(':');
             if (i >= 0) {
-              returnName = new QName(reader.getNamespaceUri(s.substring(0,i)),s.substring(i + 1));
+              returnName = new QName(reader.getNamespaceURI(s.substring(0, i)), s.substring(i + 1));
             } else {
-              String ns = reader.getNamespaceUri(XMLConstants.DEFAULT_NS_PREFIX);
+              String ns = reader.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX);
               if (ns==null || ns.isEmpty()) {
                 returnName = new QName(s);
               } else {

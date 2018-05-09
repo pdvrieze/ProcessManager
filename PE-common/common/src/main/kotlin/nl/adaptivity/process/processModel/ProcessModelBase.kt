@@ -70,8 +70,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
     @Throws(XmlException::class)
     override fun deserializeChild(reader: XmlReader): Boolean {
-      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
-        val newNode = when (reader.localName.toString()) {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
+        val newNode = when (reader.localName) {
           EndNode.ELEMENTLOCALNAME -> endNodeBuilder().deserializeHelper(reader)
           Activity.ELEMENTLOCALNAME -> activityBuilder().deserializeHelper(reader)
           StartNode.ELEMENTLOCALNAME -> startNodeBuilder().deserializeHelper(reader)

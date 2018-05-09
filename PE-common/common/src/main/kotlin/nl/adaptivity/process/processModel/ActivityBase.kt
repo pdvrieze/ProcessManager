@@ -71,8 +71,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     override val elementName: QName get() = Activity.ELEMENTNAME
 
     override fun deserializeChild(reader: XmlReader): Boolean {
-      if (Engine.NAMESPACE == reader.namespaceUri) {
-        when (reader.localName.toString()) {
+      if (Engine.NAMESPACE == reader.namespaceURI) {
+        when (reader.localName) {
           XmlDefineType.ELEMENTLOCALNAME -> (defines as MutableList).add(XmlDefineType.deserialize(reader))
 
           XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
@@ -89,13 +89,14 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     }
 
     override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
-      when (attributeLocalName.toString()) {
-        ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue.toString()))
-        "name" -> name = attributeValue.toString()
-        ATTR_CHILDID -> childId = attributeValue.toString()
-        else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-      }
-      return true
+        @Suppress("DEPRECATION")
+        when (attributeLocalName) {
+          ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue))
+          "name" -> name = attributeValue
+          ATTR_CHILDID -> childId = attributeValue
+          else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+        }
+        return true
     }
 
     override fun deserializeChildText(elementText: CharSequence): Boolean {
@@ -103,7 +104,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     }
 
     override fun toString(): String {
-      return "${super.toString().dropLast(1)}, message=$message, name=$name, condition=$condition)"
+        @Suppress("DEPRECATION")
+        return "${super.toString().dropLast(1)}, message=$message, name=$name, condition=$condition)"
     }
 
 
@@ -144,10 +146,12 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
   override val childModel: ChildProcessModel<NodeT, ModelT>?
 
+  @Suppress("OverridingDeprecatedMember")
   override var name:String?
     get() = _name
     set(value) { _name = value}
 
+  @Suppress("DEPRECATION")
   override var predecessor: Identifiable?
     get() = if (predecessors.isEmpty()) null else predecessors.single()
     set(value) {
@@ -167,13 +171,16 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
   constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
     if(builder.message!=null && builder.childId!=null) throw IllegalProcessModelException("Activities can not have child models as well as messages")
     this._message = XmlMessage.get(builder.message)
-    this._name = builder.name
-    this.childModel = builder.childId?.let{ buildHelper.childModel(it) }
+      @Suppress("DEPRECATION")
+      _name = builder.name
+      @Suppress("LeakingThis")
+      childModel = builder.childId?.let{ buildHelper.childModel(it) }
   }
 
   constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
     this._message = null
     this._name = null
+      @Suppress("LeakingThis")
     this.childModel = buildHelper.childModel(builder.childId!!)
   }
 

@@ -113,7 +113,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
 
   @Override
   public boolean deserializeChild(@NonNull final XmlReader reader) {
-    if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceUri())) {
+    if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS, reader.getNamespaceURI())) {
       switch (reader.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
           mReplies = XmlReaderNS.elementContentToFragment(reader);

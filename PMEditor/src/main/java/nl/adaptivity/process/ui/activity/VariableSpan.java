@@ -35,7 +35,6 @@ import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.xml.EventType;
-import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlReaderUtil;
 import android.support.annotation.NonNull;
@@ -141,7 +140,7 @@ public class VariableSpan extends ReplacementSpan {
           builder.append(bodyStreamReader.getText());
           break;
         case START_ELEMENT: {
-          final String elemNS = bodyStreamReader.getNamespaceUri();
+          final String elemNS = bodyStreamReader.getNamespaceURI();
           final String elemLN = bodyStreamReader.getLocalName();
           final ModifySequence var = ModifyHelper.parseAny(bodyStreamReader);
           bodyStreamReader.require(EventType.END_ELEMENT, elemNS, elemLN);

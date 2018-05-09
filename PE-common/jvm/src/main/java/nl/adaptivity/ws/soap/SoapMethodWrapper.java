@@ -178,7 +178,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     }
     final WebService ws = getMethod().getDeclaringClass().getAnnotation(WebService.class);
     if (!((ws == null) || ws.targetNamespace().equals(""))) {
-      if (!StringUtil.isEqual(ws.targetNamespace(), reader.getNamespaceUri())) {
+      if (!StringUtil.isEqual(ws.targetNamespace(), reader.getNamespaceURI())) {
         throw new MessagingFormatException("Root node does not correspond to operation namespace");
       }
     }

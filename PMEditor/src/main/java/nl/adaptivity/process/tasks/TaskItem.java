@@ -262,7 +262,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     String value = StringUtil.toString(in.getAttributeValue(null, "value"));
     final List<String> options = new ArrayList<>();
     while ((in.nextTag())==EventType.START_ELEMENT) {
-      if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceUri())) {
+      if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceURI())) {
         if (StringUtil.isEqual("attribute", in.getLocalName())) {
           final AttributeSequence attr = ModifyHelper.parseAttribute(in);
           switch (attr.getParamName().toString()) {
@@ -284,7 +284,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
         in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTaskBase.TAG_OPTION);
         XmlReaderUtil.skipPreamble(in);
         if (in.getEventType()==EventType.START_ELEMENT) {
-          if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceUri())) {
+          if (StringUtil.isEqual(Constants.MODIFY_NS_STR, in.getNamespaceURI())) {
             options.add(ModifyHelper.parseAny(in).toString());
           } else {
             in.require(EventType.TEXT, null, null);

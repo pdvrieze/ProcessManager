@@ -49,7 +49,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(build
     constructor(node: EndNode<*, *>) : super(node)
 
     override fun deserializeChild(reader: XmlReader): Boolean {
-      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceUri) {
+      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
         when (reader.localName.toString()) {
           "export", XmlDefineType.ELEMENTLOCALNAME -> {
             defines.add(XmlDefineType.deserialize(reader))

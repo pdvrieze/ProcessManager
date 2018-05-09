@@ -31,33 +31,33 @@ import nl.adaptivity.xml.XmlReader
 class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, source: XmlReader) : XmlDelegatingReader(
         source) {
 
-    override val namespaceUri: String
+    override val namespaceURI: String
         get() {
-            val namespaceURI = delegate.namespaceUri
-            return namespaceURI ?: lookupSource.getNamespaceURI(delegate.prefix?.toString()) ?: ""
+            val namespaceURI = delegate.namespaceURI
+            return if(namespaceURI.isNotEmpty()) namespaceURI else lookupSource.getNamespaceURI(delegate.prefix) ?: ""
         }
 
     override val namespaceContext: NamespaceContext
         get() = CombiningNamespaceContext(delegate.namespaceContext, lookupSource)
 
-    override fun require(type: EventType, namespaceURI: String?, localName: String?) {
+    override fun require(type: EventType, namespace: String?, name: String?) {
         if (type !== eventType ||
-            namespaceURI != null && namespaceURI != namespaceUri ||
-            localName != null && localName != localName) {
-            delegate.require(type, namespaceURI, localName)
+            namespace != null && namespace != this.namespaceURI ||
+            name != null && name != name) {
+            delegate.require(type, namespace, name)
         }
         run { throw XmlException("Require failed") }
     }
 
-    override fun getNamespaceUri(prefix: String): String? {
-        val namespaceURI = delegate.getNamespaceUri(prefix)
-        return namespaceURI ?: lookupSource.getNamespaceURI(prefix.toString())
+    override fun getNamespaceURI(prefix: String): String? {
+        val namespaceURI = delegate.getNamespaceURI(prefix)
+        return namespaceURI ?: lookupSource.getNamespaceURI(prefix)
     }
 
-    override fun getAttributeValue(namespaceURI: String?, localName: String): String? {
+    override fun getAttributeValue(nsUri: String?, localName: String): String? {
 
         for (i in attributeCount - 1 downTo 0) {
-            if ((namespaceURI == null || namespaceURI == getAttributeNamespace(
+            if ((nsUri == null || nsUri == getAttributeNamespace(
                             i)) && localName == getAttributeLocalName(i)) {
                 return getAttributeValue(i)
             }
@@ -67,6 +67,7 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
 
     override fun getAttributeNamespace(index: Int): String {
         val attributeNamespace = delegate.getAttributeNamespace(index)
-        return attributeNamespace ?: lookupSource.getNamespaceURI(delegate.getAttributePrefix(index)?.toString()) ?: ""
+        return if(attributeNamespace.isNotEmpty()) attributeNamespace else lookupSource.getNamespaceURI(
+            delegate.getAttributePrefix(index)) ?: ""
     }
 }
