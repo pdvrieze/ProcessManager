@@ -29,13 +29,12 @@ buildscript {
     }
 }
 
-//plugins {
-//    id "net.devrieze.gradlecodegen" version "0.5.6"
-//}
-
-apply plugin: 'kotlin-platform-js'
-apply plugin: 'idea'
-apply plugin: 'net.devrieze.gradlecodegen'
+plugins {
+    id("kotlin-platform-js")
+    id("idea")
+    id("net.devrieze.gradlecodegen")
+    id(("kotlinx-serialization"))
+}
 
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion
@@ -49,6 +48,7 @@ description = 'A library with process engine support classes'
 
 dependencies {
     expectedBy project(':PE-common:common')
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serializationVersion")
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     implementation project(':multiplatform:js')

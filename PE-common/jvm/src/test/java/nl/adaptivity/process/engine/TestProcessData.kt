@@ -28,6 +28,8 @@ import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.IOException
 import nl.adaptivity.xml.SimpleNamespaceContext
+import nl.adaptivity.xml.serialization.XML
+import nl.adaptivity.xml.serialization.writeAsXML
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -46,6 +48,7 @@ import org.xmlunit.diff.ComparisonType
 import org.xmlunit.diff.DefaultComparisonFormatter
 import org.xmlunit.diff.DifferenceEvaluators
 import org.xmlunit.input.ElementContentWhitespaceStrippedSource
+import uk.ac.bournemouth.util.kotlin.sql.useHelper
 import java.io.*
 import java.nio.charset.Charset
 import java.util.*
@@ -88,13 +91,28 @@ class TestProcessData {
     @Throws(XmlException::class)
     fun testSerializeTextNode() {
         val caw = CharArrayWriter()
-        val xsw = XmlStreaming.newWriter(caw)
+        XmlStreaming.newWriter(caw).useHelper({it.close()}) { xsw ->
 
-        val data = ProcessData("foo", CompactFragment("Hello"))
-        data.serialize(xsw)
-        xsw.flush()
-        assertEquals(
-            "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>", caw.toString())
+            val data = ProcessData("foo", CompactFragment("Hello"))
+            data.serialize(xsw)
+        }
+        val expected = "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>"
+        assertEquals(expected, caw.toString())
+    }
+
+    @Test
+    @Throws(XmlException::class)
+    fun testSerializeTextNodeKTXSerial() {
+        val caw = CharArrayWriter()
+        XmlStreaming.newWriter(caw).useHelper({it.close()}) { xsw ->
+
+            val data = ProcessData("foo", CompactFragment("Hello"))
+            data.writeAsXML(xsw)
+
+//            data.serialize(xsw)
+        }
+        val expected = "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>"
+        assertEquals(expected, caw.toString())
     }
 
     @Test

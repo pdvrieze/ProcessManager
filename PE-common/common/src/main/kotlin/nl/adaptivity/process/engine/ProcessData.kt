@@ -16,29 +16,109 @@
 
 package nl.adaptivity.process.engine
 
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.StringSerializer
 import net.devrieze.util.Named
-import nl.adaptivity.util.xml.*
+import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.QName
-
+import nl.adaptivity.xml.serialization.ICompactFragmentSerializer
+import nl.adaptivity.xml.serialization.XML
+import nl.adaptivity.xml.serialization.XmlElement
+import nl.adaptivity.xml.serialization.XmlSerialName
 
 /** Class to represent data attached to process instances.  */
-expect class ProcessData(name: String?, value: ICompactFragment) : Named, ExtXmlDeserializable, XmlSerializable {
+@Serializable
+@XmlSerialName(ProcessData.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+class ProcessData constructor(override @XmlElement(false) val name: String?,
+                              @Serializable(with = ICompactFragmentSerializer::class)
+                              val content: ICompactFragment) : Named, XmlSerializable {
 
-    var content: ICompactFragment
-        private set
-
+    @Transient
     val contentStream: XmlReader
+        get() = content.getXmlReader()
 
-//    fun copy(name: String? = this.name, value: ICompactFragment = content): ProcessData
+    override fun copy(name: String?): ProcessData = copy(name, content)
 
+    fun copy(name: String?, value: ICompactFragment): ProcessData = ProcessData(name, value)
+
+    override fun serialize(out: XmlWriter) {
+        out.smartStartTag(ELEMENTNAME) {
+            writeAttribute("name", name)
+            content.serialize(this)
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ProcessData
+
+        if (name != other.name) return false
+        if (content != other.content) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name?.hashCode() ?: 0
+        result = 31 * result + content.hashCode()
+        return result
+    }
+
+    @Serializer(forClass = ProcessData::class)
     companion object {
 
-        val ELEMENTLOCALNAME: String
-        val ELEMENTNAME: QName
+        const val ELEMENTLOCALNAME = "value"
+        val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
 
-        fun missingData(name: String): ProcessData
+        fun missingData(name: String): ProcessData {
+            return ProcessData(name, CompactFragment(""))
+        }
 
-        fun deserialize(reader: XmlReader): ProcessData
+        fun deserialize(reader: XmlReader): ProcessData {
+            return XML.parse(reader)
+//            return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
+        }
+
+        override fun load(input: KInput): ProcessData {
+            var name: String? = null
+            lateinit var content: ICompactFragment
+            input.readBegin(serialClassDesc).let { input ->
+                val i = input.readElement(serialClassDesc)
+                while (i != KInput.READ_DONE) {
+                    @Suppress("UNCHECKED_CAST")
+                    when (i) {
+                        KInput.READ_ALL -> throw UnsupportedOperationException()
+                        0               -> name = input.readNullableSerializableElementValue(serialClassDesc, 0,
+                                                                                             StringSerializer as KSerialLoader<String?>)
+                        1               -> if (input is XML.XmlInput) {
+                            content = input.input.siblingsToFragment()
+                        } else {
+                            input.readSerializableElementValue(serialClassDesc, 0, ICompactFragmentSerializer)
+                        }
+                    }
+                }
+                input.readEnd(serialClassDesc)
+            }
+            return ProcessData(name, content)
+        }
+
+        override fun save(output: KOutput, obj: ProcessData) {
+            val newOutput = output.writeBegin(serialClassDesc)
+            if (newOutput.writeElement(serialClassDesc, 0))
+                newOutput.writeNullableSerializableValue(StringSerializer, obj.name)
+            if (newOutput is XML.XmlOutput) {
+                obj.content.serialize(newOutput.target)
+            } else {
+                if (newOutput.writeElement(serialClassDesc, 1))
+                    newOutput.writeSerializableValue(ICompactFragmentSerializer, obj.content)
+            }
+            newOutput.writeEnd(serialClassDesc)
+        }
+
+
     }
 }
