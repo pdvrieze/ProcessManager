@@ -79,7 +79,7 @@ interface Named {
      * @return The new object
      */
     @Deprecated("Use copy", ReplaceWith("copy(name)"))
-    fun newWithName(name: String): Named
+    fun newWithName(name: String): Named = copy(name=name)
 
     fun copy(name: String? = this.name): Named
 }
