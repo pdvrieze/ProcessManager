@@ -47,6 +47,7 @@ import kotlin.collections.Map.Entry
 
 
 // TODO change this to handle regular request bodies.
+/*
 @Element(name = HttpMessage.ELEMENTLOCALNAME, nsUri = HttpMessage.NAMESPACE, attributes = arrayOf(
     Attribute("user")),
                                               children = arrayOf(
@@ -58,6 +59,7 @@ import kotlin.collections.Map.Entry
                                                       name = HttpMessage.BODYELEMENTLOCALNAME, property = "body",
                                                       type = AnyType::class)))
 @XmlDeserializer(HttpMessage.Factory::class)
+*/
 class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
     private val _queries: MutableMap<String, String>// by lazy { HashMap<String, String>() }
