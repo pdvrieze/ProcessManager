@@ -20,7 +20,6 @@ import net.devrieze.util.Streams;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.engine.TestProcessData;
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.XmlProcessModel;
