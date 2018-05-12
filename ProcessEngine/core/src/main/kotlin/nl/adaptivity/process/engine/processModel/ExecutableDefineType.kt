@@ -27,6 +27,7 @@ package nl.adaptivity.process.engine.processModel
 import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.contentFragment
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.processModel.refName
