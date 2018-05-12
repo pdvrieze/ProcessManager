@@ -32,7 +32,7 @@ buildscript {
 plugins {
     id("kotlin-platform-js")
     id("idea")
-    id("net.devrieze.gradlecodegen")
+//    id("net.devrieze.gradlecodegen")
     id(("kotlinx-serialization"))
 }
 
@@ -54,6 +54,8 @@ dependencies {
     implementation project(':multiplatform:js')
     implementation project(':java-common:js')
     implementation project(':xmlutil:core:js')
+    implementation project(':xmlutil:serialization:js')
+    implementation(project(":multiplatform:js"))
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
