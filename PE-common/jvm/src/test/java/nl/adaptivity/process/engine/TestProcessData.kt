@@ -17,19 +17,19 @@
 package nl.adaptivity.process.engine
 
 import com.nhaarman.mockito_kotlin.*
+import net.devrieze.util.readString
 import net.devrieze.util.toString
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.EventType.*
 import nl.adaptivity.xml.IOException
 import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.serialization.XML
-import nl.adaptivity.xml.serialization.writeAsXML
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -42,12 +42,7 @@ import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import org.xml.sax.SAXParseException
 import org.xmlunit.builder.DiffBuilder
-import org.xmlunit.builder.Input
-import org.xmlunit.diff.ComparisonResult
-import org.xmlunit.diff.ComparisonType
-import org.xmlunit.diff.DefaultComparisonFormatter
-import org.xmlunit.diff.DifferenceEvaluators
-import org.xmlunit.input.ElementContentWhitespaceStrippedSource
+import org.xmlunit.diff.*
 import uk.ac.bournemouth.util.kotlin.sql.useHelper
 import java.io.*
 import java.nio.charset.Charset
@@ -67,6 +62,7 @@ import javax.xml.parsers.ParserConfigurationException
 import javax.xml.stream.XMLInputFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
+import kotlin.reflect.KClass
 
 
 /**
@@ -89,9 +85,9 @@ class TestProcessData {
 
     @Test
     @Throws(XmlException::class)
-    fun testSerializeTextNode() {
+    fun testSerializeTextNodeCompat() {
         val caw = CharArrayWriter()
-        XmlStreaming.newWriter(caw).useHelper({it.close()}) { xsw ->
+        XmlStreaming.newWriter(caw).useHelper({ it.close() }) { xsw ->
 
             val data = ProcessData("foo", CompactFragment("Hello"))
             data.serialize(xsw)
@@ -102,30 +98,18 @@ class TestProcessData {
 
     @Test
     @Throws(XmlException::class)
-    fun testSerializeTextNodeKTXSerial() {
-        val caw = CharArrayWriter()
-        XmlStreaming.newWriter(caw).useHelper({it.close()}) { xsw ->
-
-            val data = ProcessData("foo", CompactFragment("Hello"))
-            data.writeAsXML(xsw)
-
-//            data.serialize(xsw)
-        }
+    fun testSerializeTextNode() {
+        val data = ProcessData("foo", CompactFragment("Hello"))
         val expected = "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>"
-        assertEquals(expected, caw.toString())
+        assertEquals(expected, XML().stringify(data))
     }
 
     @Test
     @Throws(XmlException::class)
     fun testSerializeSingleNode() {
-        val caw = CharArrayWriter()
-        val xsw = XmlStreaming.newWriter(caw)
-
         val data = ProcessData("foo", CompactFragment("<bar/>"))
-        data.serialize(xsw)
-        xsw.flush()
-        assertEquals(
-            "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>", caw.toString())
+        assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>",
+                     XML().stringify(data))
     }
 
     @Test
@@ -145,10 +129,10 @@ class TestProcessData {
     fun testDeserializeProcessModel() {
         Logger.getAnonymousLogger().level = Level.ALL
         val pm = getProcessModel("testModel2.xml")
-        var ac1: XmlActivity? = null
-        var ac2: XmlActivity? = null
-        var start: XmlStartNode? = null
-        var end: XmlEndNode? = null
+        lateinit var ac1: XmlActivity
+        lateinit var ac2: XmlActivity
+        lateinit var start: XmlStartNode
+        lateinit var end: XmlEndNode
         for (node in pm.getModelNodes()) {
             if (node.id != null) {
                 when (node.id) {
@@ -164,22 +148,22 @@ class TestProcessData {
         assertNotNull(ac2)
         assertNotNull(end)
 
-        assertEquals("ac1", start!!.successors.iterator().next().id)
+        assertEquals("ac1", start.successors.iterator().next().id)
 
-        assertEquals("start", ac1!!.predecessor!!.id)
+        assertEquals("start", ac1.predecessor?.id)
         assertEquals("ac2", ac1.successors.iterator().next().id)
 
-        assertEquals("ac1", ac2!!.predecessor!!.id)
+        assertEquals("ac1", ac2.predecessor?.id)
         assertEquals("end", ac2.successors.iterator().next().id)
 
-        assertEquals("ac2", end!!.predecessor!!.id)
+        assertEquals("ac2", end.predecessor?.id)
 
         assertEquals(2, ac1.results.size)
         val result1 = ac1.results[0]
         assertEquals("name", result1.getName())
         assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath())
         val snc1 = SimpleNamespaceContext.from(result1.originalNSContext)
-        assertEquals(1, snc1!!.size)
+        assertEquals(1, snc1.size)
         assertEquals("umh", snc1.getPrefix(0))
 
         val result2 = ac1.results[1]
@@ -355,43 +339,43 @@ class TestProcessData {
         assertEquals(9,
                      model.getModelNodes().size,
                      "There should be 9 effective elements in the process model (including an introduced split)")
-        val start = model.getNode("start") as XmlStartNode?
-        val ac1 = model.getNode("ac1") as XmlActivity?
-        val ac2 = model.getNode("ac2") as XmlActivity?
-        val ac3 = model.getNode("ac3") as XmlActivity?
-        val ac4 = model.getNode("ac4") as XmlActivity?
-        val ac5 = model.getNode("ac5") as XmlActivity?
-        val split = model.getNode("split1") as XmlSplit?
-        val j1 = model.getNode("j1") as XmlJoin?
-        val end = model.getNode("end") as XmlEndNode?
+        val start = model.getNode("start") as XmlStartNode
+        val ac1 = model.getNode("ac1") as XmlActivity
+        val ac2 = model.getNode("ac2") as XmlActivity
+        val ac3 = model.getNode("ac3") as XmlActivity
+        val ac4 = model.getNode("ac4") as XmlActivity
+        val ac5 = model.getNode("ac5") as XmlActivity
+        val split = model.getNode("split1") as XmlSplit
+        val j1 = model.getNode("j1") as XmlJoin
+        val end = model.getNode("end") as XmlEndNode
         val actualNodes = model.getModelNodes()
         val expectedNodes = Arrays.asList<XmlProcessNode>(start, ac1, ac2, split, ac3, ac5, j1, ac4, end)
         assertEquals(actualNodes.size, expectedNodes.size)
         assertTrue(actualNodes.containsAll(expectedNodes))
 
-        assertArrayEquals(toArray(), start!!.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac1!!.id!!)), start.successors.toTypedArray())
+        assertArrayEquals(emptyArray(), start.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac1.identifier), start.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(start.id!!)), ac1.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(split!!.id!!)), ac1.successors.toTypedArray())
+        assertArrayEquals(arrayOf(start.identifier), ac1.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(split.identifier), ac1.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac1.id!!)), split.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac2!!.id!!), Identifier(ac3!!.id!!)), split.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac1.identifier), split.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac2.identifier, ac3.identifier), split.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(split.id!!)), ac2.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(j1!!.id!!)), ac2.successors.toTypedArray())
+        assertArrayEquals(arrayOf(split.identifier), ac2.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(j1.identifier), ac2.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(split.id!!)), ac3.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac5!!.id!!)), ac3.successors.toTypedArray())
+        assertArrayEquals(arrayOf(split.identifier), ac3.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac5.identifier), ac3.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(j1.id!!)), ac4!!.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(end!!.id!!)), ac4.successors.toTypedArray())
+        assertArrayEquals(arrayOf(j1.identifier), ac4.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(end.identifier), ac4.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac3.id!!)), ac5.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(j1.id!!)), ac5.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac3.identifier), ac5.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(j1.identifier), ac5.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac4.id!!)), end.predecessors.toTypedArray())
-        assertArrayEquals(toArray(), end.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac4.identifier), end.predecessors.toTypedArray())
+        assertArrayEquals(emptyArray(), end.successors.toTypedArray())
     }
 
     @Test
@@ -424,55 +408,54 @@ class TestProcessData {
         val end = model.getNode("end") as XmlEndNode
         val split2 = model.getNode("split2") as XmlSplit
         val actualNodes = model.getModelNodes()
-        val expectedNodes = Arrays.asList<XmlProcessNode>(start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2,
+        val expectedNodes = listOf<XmlProcessNode>(start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2,
                                                           end, split2)
 
         assertEquals(actualNodes.size, expectedNodes.size)
         assertTrue(actualNodes.containsAll(expectedNodes))
 
-        assertArrayEquals(toArray(), start.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(split2.id!!)), start.successors.toTypedArray())
+        assertArrayEquals(emptyArray(), start.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(split2.identifier), start.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(start.id!!)), split2.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac1.id!!), Identifier(ac6.id!!)), split2.successors.toTypedArray())
+        assertArrayEquals(arrayOf(start.identifier), split2.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac1.identifier, ac6.identifier), split2.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(split2.id!!)), ac1.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(split1.id!!)), ac1.successors.toTypedArray())
+        assertArrayEquals(arrayOf(split2.identifier), ac1.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(split1.identifier), ac1.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac1.id!!)), split1.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac2.id!!), Identifier(ac3.id!!)), split1.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac1.identifier), split1.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac2.identifier, ac3.identifier), split1.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(split1.id!!)), ac2.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(j1.id!!)), ac2.successors.toTypedArray())
+        assertArrayEquals(arrayOf(split1.identifier), ac2.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(j1.identifier), ac2.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(split1.id!!)), ac3.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac5.id!!)), ac3.successors.toTypedArray())
+        assertArrayEquals(arrayOf(split1.identifier), ac3.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac5.identifier), ac3.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac2.id!!), Identifier(ac5.id!!)), j1.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac4.id!!)), j1.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac2.identifier, ac5.identifier), j1.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac4.identifier), j1.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(j1.id!!)), ac4.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(j2.id!!)), ac4.successors.toTypedArray())
+        assertArrayEquals(arrayOf(j1.identifier), ac4.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(j2.identifier), ac4.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac3.id!!)), ac5.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(j1.id!!)), ac5.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac3.identifier), ac5.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(j1.identifier), ac5.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(split2.id!!)), ac6.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac7.id!!)), ac6.successors.toTypedArray())
+        assertArrayEquals(arrayOf(split2.identifier), ac6.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac7.identifier), ac6.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac6.id!!)), ac7.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(ac8.id!!)), ac7.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac6.identifier), ac7.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(ac8.identifier), ac7.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac7.id!!)), ac8.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(j2.id!!)), ac8.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac7.identifier), ac8.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(j2.identifier), ac8.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(ac4.id!!), Identifier(ac8.id!!)), j2.predecessors.toTypedArray())
-        assertArrayEquals(toArray(Identifier(end.id!!)), j2.successors.toTypedArray())
+        assertArrayEquals(arrayOf(ac4.identifier, ac8.identifier), j2.predecessors.toTypedArray())
+        assertArrayEquals(arrayOf(end.identifier), j2.successors.toTypedArray())
 
-        assertArrayEquals(toArray(Identifier(j2.id!!)), end.predecessors.toTypedArray())
-        assertArrayEquals(toArray(), end.successors.toTypedArray())
+        assertArrayEquals(arrayOf(j2.identifier), end.predecessors.toTypedArray())
+        assertArrayEquals(emptyArray(), end.successors.toTypedArray())
     }
-
 
     @Test
     @Throws(IOException::class, SAXException::class, XmlException::class)
@@ -560,9 +543,9 @@ class TestProcessData {
     fun testSiblingsToFragmentMock() {
         val testData = "Hello<a>who<b>are</b>you</a>"
         val reader = XmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
-        assertEquals(START_ELEMENT, reader.next())
+        assertEquals(EventType.START_ELEMENT, reader.next())
         assertEquals("wrap", reader.localName)
-        assertEquals(TEXT, reader.next())
+        assertEquals(EventType.TEXT, reader.next())
 
         val nsContext = mock<NamespaceContext> {
             on { getNamespaceURI("") } doReturn ""
@@ -592,9 +575,9 @@ class TestProcessData {
         inOrder.verify(mockedWriter).close()
         inOrder.verifyNoMoreInteractions()
 
-        assertEquals(END_ELEMENT, reader.eventType)
+        assertEquals(EventType.END_ELEMENT, reader.eventType)
         assertEquals("wrap", reader.localName)
-        assertEquals(END_DOCUMENT, reader.next())
+        assertEquals(EventType.END_DOCUMENT, reader.next())
     }
 
     @Test
@@ -603,18 +586,18 @@ class TestProcessData {
         val testData = "Hello<a>who<b>are<c>you</c>.<d>I</d></b>don't</a>know"
         val reader = XmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
 
-        assertEquals(START_ELEMENT, reader.next())
+        assertEquals(EventType.START_ELEMENT, reader.next())
         assertEquals("wrap", reader.localName)
-        assertEquals(TEXT, reader.next())
+        assertEquals(EventType.TEXT, reader.next())
 
         XmlStreaming.setFactory(null) // reset to the default one
         val fragment = reader.siblingsToFragment()
 
         assertEquals(null, fragment.namespaces.firstOrNull())
         assertEquals(testData, fragment.contentString)
-        assertEquals(END_ELEMENT, reader.eventType)
+        assertEquals(EventType.END_ELEMENT, reader.eventType)
         assertEquals("wrap", reader.localName)
-        assertEquals(END_DOCUMENT, reader.next())
+        assertEquals(EventType.END_DOCUMENT, reader.next())
     }
 
     @Test
@@ -643,9 +626,10 @@ class TestProcessData {
                   "    </fullname>\n" +
                   "  </user>\n" +
                   "</result>"
-        testRoundTrip(xml, XmlResultType::class.java) {result ->
+        testRoundTrip(xml, XmlResultType::class.java) { result ->
             assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
-                                XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler" )), result.namespaces.sortedBy { it.prefix })
+                                XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
+                         result.namespaces.sortedBy { it.prefix })
         }
     }
 
@@ -864,104 +848,135 @@ class TestProcessData {
         @Throws(IOException::class, IllegalAccessException::class, InstantiationException::class, XmlException::class)
         fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: Class<T>,
                                                 factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                testObject: (T)->Unit = {}): String {
+                                                testObject: (T) -> Unit = {}): String {
             val expected: String
             val streamReader: XmlReader
             val xif = XMLInputFactory.newFactory()
             if (reader.markSupported()) {
                 reader.mark(Int.MAX_VALUE)
-                expected = toString(reader, Charset.defaultCharset())
+                expected = reader.readString(Charset.defaultCharset())
                 reader.reset()
                 streamReader = XmlStreaming.newReader(reader, Charset.defaultCharset().toString())
             } else {
-                expected = toString(reader, Charset.defaultCharset())
+                expected = reader.readString(Charset.defaultCharset())
                 streamReader = XmlStreaming.newReader(StringReader(expected))
             }
 
-            return testRoundTrip(expected, streamReader, target, false, factoryOpt, testObject)
+            return testRoundTrip(expected, streamReader, target, factoryOpt, testObject)
         }
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
         fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>,
                                                 factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                testObject: (T)->Unit = {}): String {
+                                                testObject: (T) -> Unit = {}): String {
             return testRoundTrip(xml, target, false, factoryOpt, testObject)
+        }
+
+        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+                SAXException::class)
+        fun <T : Any> testRoundTripSer(xml: String, target: KClass<T>,
+                                       repairNamespaces: Boolean = false,
+                                       omitXmlDecl: Boolean = true,
+                                       testObject: (T) -> Unit = {}): String {
+            return testRoundTripSer<T>(xml, target, false, repairNamespaces, omitXmlDecl, testObject)
         }
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
         fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>, ignoreNs: Boolean,
                                                 factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                testObject: (T)->Unit = {}): String {
-            return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, ignoreNs, factoryOpt, testObject)
+                                                testObject: (T) -> Unit = {}): String {
+            return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, factoryOpt,
+                                 testObject)
+        }
+
+        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+                SAXException::class)
+        fun <T : Any> testRoundTripSer(xml: String, target: KClass<T>, ignoreNs: Boolean,
+                                       repairNamespaces: Boolean = false,
+                                       omitXmlDecl: Boolean = true,
+                                       testObject: (T) -> Unit = {}): String {
+            return testRoundTripSer(xml, XmlStreaming.newReader(StringReader(xml)), target, repairNamespaces, omitXmlDecl,
+                                 testObject)
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
         private fun <T : XmlSerializable> testRoundTrip(expected: String,
-                                                        actual: XmlReader,
+                                                        reader: XmlReader,
                                                         target: Class<T>,
-                                                        ignoreNs: Boolean,
                                                         factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                        testObject: (T)->Unit = {}): String {
-            assertNotNull(actual)
-            val factory = target.getAnnotation(
+                                                        testObject: (T) -> Unit = {}): String {
+            assertNotNull(reader)
+            val factory = factoryOpt ?: target.getAnnotation(
                 XmlDeserializer::class.java).value.java.newInstance() as XmlDeserializerFactory<*>
-            val obj = target.cast(factory.deserialize(actual))
+            val obj = target.cast(factory.deserialize(reader))
             testObject(obj)
 
-            val caw = CharArrayWriter()
-            val xsw = XmlStreaming.newWriter(caw)
-            obj.serialize(xsw)
-            xsw.close()
-            assertXMLEqual(expected, caw.toString())
-            try {
-
-                val expectedSource = ElementContentWhitespaceStrippedSource(Input.fromString(expected).build())
-                val actualSource = ElementContentWhitespaceStrippedSource(Input.fromString(caw.toString()).build())
-
-                val diff = DiffBuilder.compare(expected).withTest(actualSource)
-
-/*
-        XMLUnit.setIgnoreWhitespace(true)
-        val diff = Diff(expected, caw.toString())
-        val detailedDiff = DetailedDiff(diff)
-        if (ignoreNs) {
-          detailedDiff.overrideDifferenceListener(NamespaceDeclIgnoringListener())
-        }
-        assertXMLEqual(detailedDiff, true)
-*/
-
-            } catch (e: AssertionError) {
-                e.printStackTrace()
-                assertEquals(expected, caw.toString())
-            } catch (e: Exception) {
-                e.printStackTrace()
-                assertEquals(expected, caw.toString())
+            val actual = CharArrayWriter().use { caw ->
+                XmlStreaming.newWriter(caw).use { xsw ->
+                    obj.serialize(xsw)
+                }
+                caw.toString()
             }
 
-            return caw.toString()
+            assertXMLEqual(expected, actual)
+
+            return actual
         }
 
-        private fun toArray(vararg value: Any): Array<out Any> {
-            return value
+        @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
+        private fun <T : Any> testRoundTripSer(expected: String,
+                                               reader: XmlReader,
+                                               target: KClass<T>,
+                                               repairNamespaces: Boolean = false,
+                                               omitXmlDecl: Boolean = true,
+                                               testObject: (T) -> Unit = {}): String {
+            assertNotNull(reader)
+            val xml = XML(repairNamespaces = repairNamespaces, omitXmlDecl = omitXmlDecl)
+            val obj = xml.parse(target, reader)
+            testObject(obj)
+
+            val actual = xml.stringify(target, obj)
+
+            assertXMLEqual(expected, actual)
+
+            return actual
         }
+
+
+        @Deprecated("Use arrayOf", ReplaceWith("arrayOf(value1, value2)"))
+        private fun toArray(value1: Any, value2: Any) = arrayOf(value1, value2)
+
+        @Deprecated("Use arrayOf", ReplaceWith("arrayOf(value1)"))
+        private fun toArray(value1: Any) = arrayOf(value1)
+
+        @Deprecated("Use arrayOf", ReplaceWith("arrayOf(*value)"))
+        private fun toArray(vararg value: Any)= arrayOf(value)
     }
 
 }
 
-fun assertXMLEqual(expected: String, actual: String) {
-    val diff = DiffBuilder.compare(expected)
-        .withTest(actual)
-        .ignoreWhitespace()
-        .withDifferenceEvaluator {comparison, outcome ->  when {
-            outcome ==ComparisonResult.DIFFERENT &&
-            comparison.type == ComparisonType.NAMESPACE_PREFIX -> ComparisonResult.SIMILAR
+val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison, outcome ->
+    when {
+        outcome == ComparisonResult.DIFFERENT &&
+        comparison.type == ComparisonType.NAMESPACE_PREFIX -> ComparisonResult.SIMILAR
 
-            else -> DifferenceEvaluators.Default.evaluate(comparison, outcome)
-        }}
+        else                                               -> DifferenceEvaluators.Default.evaluate(comparison,
+                                                                                                    outcome)
+    }
+}
+
+
+fun assertXMLEqual(expected: String, actual: String) {
+    val diff = DiffBuilder
+        .compare(expected)
+        .withTest(actual)
         .checkForSimilar()
-        .ignoreComments().build()
+        .ignoreWhitespace()
+        .ignoreComments()
+        .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
+        .build()
 
     if (diff.hasDifferences()) {
         assertEquals(expected, actual/*, diff.toString(DefaultComparisonFormatter())*/)
@@ -972,10 +987,7 @@ fun assertXMLEqual(expected: Any, actual: Any) {
     val diff = DiffBuilder.compare(expected)
         .withTest(actual)
         .ignoreWhitespace()
-        .withDifferenceEvaluator {comparison, outcome ->  when(comparison.type) {
-            ComparisonType.NAMESPACE_PREFIX -> ComparisonResult.SIMILAR
-            else -> outcome
-        }}
+        .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
         .checkForSimilar()
         .ignoreComments().build()
 

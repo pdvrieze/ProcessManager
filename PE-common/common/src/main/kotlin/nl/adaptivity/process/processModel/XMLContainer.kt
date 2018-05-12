@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.xml.ICompactFragment
@@ -23,40 +24,41 @@ import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.util.xml.NamespaceAddingStreamReader
 import nl.adaptivity.util.xml.XMLFragmentStreamReader
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.CharArrayAsStringSerializer
 
 
 /**
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFragment {
+@Serializable
+abstract class XMLContainer private constructor(final override var namespaces: SimpleNamespaceContext,
+                                                final override @Serializable(
+                                                    with = CharArrayAsStringSerializer::class)
+                                                var content: CharArray) : ExtXmlDeserializable, XmlSerializable, ICompactFragment {
 
-    override var content: CharArray = CharArray(0)
-        protected set
+    constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(SimpleNamespaceContext.from(namespaces),
+                                                                            content)
 
-    override var namespaces: SimpleNamespaceContext = SimpleNamespaceContext()
-        protected set
+    @Transient
+    override val isEmpty: Boolean
+        get() = content.isEmpty()
 
-    override val isEmpty: Boolean get() = content.isEmpty()
-
+    @Transient
     override val contentString: String
         get() = buildString(content.size) { content.forEach { append(it) } }
 
+    @Transient
     val originalNSContext: Iterable<Namespace>
         get() = namespaces
 
+    @Transient
     val bodyStreamReader: XmlReader
         get() = this.getXmlReader()
 
-    constructor() {}
+    constructor() : this(emptyList(), CharArray(0))
 
-    constructor(originalNSContext: Iterable<Namespace>, content: CharArray) {
-        setContent(originalNSContext, content)
-    }
-
-    constructor(fragment: ICompactFragment) {
-        setContent(fragment)
-    }
+    constructor(fragment: ICompactFragment) : this(fragment.namespaces, fragment.content)
 
     override fun deserializeChildren(reader: XmlReader) {
         if (reader.hasNext()) {
@@ -83,11 +85,12 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
         setContent(content.namespaces, content.content)
     }
 
+    @Deprecated("XMLContainer should be immutable")
     protected fun updateNamespaceContext(additionalContext: Iterable<Namespace>) {
         val nsmap = mutableMapOf<String, String>()
-        val context = when(namespaces.size) {
-            0 -> SimpleNamespaceContext.from(additionalContext)
-            else               -> namespaces.combine(additionalContext)
+        val context = when (namespaces.size) {
+            0    -> SimpleNamespaceContext.from(additionalContext)
+            else -> namespaces.combine(additionalContext)
         }
         val gatheringNamespaceContext = GatheringNamespaceContext(context, nsmap)
         visitNamespaces(gatheringNamespaceContext)
@@ -182,7 +185,6 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
     override fun getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)
 
     companion object {
-
         private val BASE_NS_CONTEXT = SimpleNamespaceContext(arrayOf(""), arrayOf(""))
 
         @Throws(XmlException::class)
@@ -191,5 +193,6 @@ abstract class XMLContainer : ExtXmlDeserializable, XmlSerializable, ICompactFra
                 `in`.namespaceContext.getNamespaceURI(prefix.toString())
             }
         }
+
     }
 }

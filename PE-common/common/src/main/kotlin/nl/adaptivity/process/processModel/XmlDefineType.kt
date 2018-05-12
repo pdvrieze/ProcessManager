@@ -26,7 +26,6 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
 
 
@@ -85,8 +84,8 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
               refName: String?,
               path: String?,
               content: CharArray?,
-              originalNSContext: Iterable<Namespace>) : super(content, originalNSContext, path,
-                                                                     name) {
+              originalNSContext: Iterable<Namespace>) : super(name, path, content,
+                                                              originalNSContext) {
     this._refNode = refNode
     this._refName = refName
   }

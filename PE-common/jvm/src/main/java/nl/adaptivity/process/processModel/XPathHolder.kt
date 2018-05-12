@@ -62,10 +62,10 @@ actual abstract class XPathHolder : XMLContainer {
 
     actual constructor() : super()
 
-    actual constructor(content: CharArray?,
-                       originalNSContext: Iterable<Namespace>,
+    actual constructor(name: String?,
                        path: String?,
-                       name: String?) : super(originalNSContext, content ?: CharArray(0)) {
+                       content: CharArray?,
+                       originalNSContext: Iterable<Namespace>) : super(originalNSContext, content ?: CharArray(0)) {
         _name = name
         setPath(originalNSContext, path)
     }
@@ -81,21 +81,14 @@ actual abstract class XPathHolder : XMLContainer {
         return pathString
     }
 
-    actual fun setPath(baseNsContext: Iterable<out Namespace>, value: String?) {
+    actual fun setPath(namespaceContext: Iterable<Namespace>, value: String?) {
         if (pathString != null && pathString == value) {
             return
         }
         path = null
         pathString = value
-        updateNamespaceContext(baseNsContext)
+        updateNamespaceContext(namespaceContext)
         assert(value == null || xPath != null)
-    }
-
-    @Deprecated("")
-    fun setNamespaceContext(namespaceContext: Iterable<out Namespace>) {
-        setContent(namespaceContext, content)
-
-        path = null // invalidate the cached path expression
     }
 
     actual override fun deserializeAttribute(attributeNamespace: String?,

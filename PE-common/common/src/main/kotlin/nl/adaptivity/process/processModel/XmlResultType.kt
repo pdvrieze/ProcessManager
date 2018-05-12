@@ -24,89 +24,102 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xml.*
-
+import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 
 @XmlDeserializer(XmlResultType.Factory::class)
-class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
+class XmlResultType(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>?) :
+    XPathHolder(name, path, content, originalNSContext ?: emptyList()), IXmlResultType, XmlSerializable {
 
-  class Factory : XmlDeserializerFactory<XmlResultType> {
+    class Factory : XmlDeserializerFactory<XmlResultType> {
 
-    override fun deserialize(reader: XmlReader): XmlResultType {
-      return Companion.deserialize(reader)
+        override fun deserialize(reader: XmlReader): XmlResultType {
+            return Companion.deserialize(reader)
+        }
+
     }
 
-  }
+    @ProcessModelDSL
+    class Builder {
 
-  @ProcessModelDSL
-  class Builder {
+        var name: String?
+        var path: String?
+        var content: CharArray?
+        val nsContext: MutableList<Namespace>
 
-    var name: String?
-    var path: String?
-    var content: CharArray?
-    val nsContext: MutableList<Namespace>
+        constructor() {
+            name = null
+            path = null
+            content = CharArray(0)
+            nsContext = mutableListOf<Namespace>()
+        }
 
-    constructor() {
-      name = null
-      path = null
-      content = CharArray(0)
-      nsContext = mutableListOf<Namespace>()
+        constructor(orig: IXmlResultType) {
+            name = orig.getName()
+            path = orig.getPath()
+            content = orig.content?.copyOf()
+            nsContext = orig.originalNSContext.toMutableList()
+        }
+
+        fun build(): XmlResultType {
+            return XmlResultType(name, path, content, nsContext)
+        }
     }
 
-    constructor(orig: IXmlResultType) {
-      name = orig.getName()
-      path = orig.getPath()
-      content = orig.content?.copyOf()
-      nsContext = orig.originalNSContext.toMutableList()
+    @Deprecated("Use one of the parameterized constructors")
+    constructor() : this(null, null, null, null)
+
+    override fun serializeStartElement(out: XmlWriter) {
+        out.smartStartTag(ELEMENTNAME)
     }
 
-    fun build(): XmlResultType {
-      return XmlResultType(name, path, content, nsContext)
-    }
-  }
-
-  @Deprecated("Use one of the parameterized constructors")
-  constructor(): super()
-
-  constructor(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>?)
-      : super(content, originalNSContext?: emptyList(), path, name)
-
-  override fun serializeStartElement(out: XmlWriter) {
-    out.smartStartTag(ELEMENTNAME)
-  }
-
-  override fun serializeEndElement(out: XmlWriter) {
-    out.endTag(ELEMENTNAME)
-  }
-
-  override val elementName: QName
-    get() = ELEMENTNAME
-
-
-  companion object {
-    @JvmStatic
-    fun deserialize(reader: XmlReader): XmlResultType {
-      return deserialize(reader, XmlResultType())
+    override fun serializeEndElement(out: XmlWriter) {
+        out.endTag(ELEMENTNAME)
     }
 
-    val ELEMENTLOCALNAME = "result"
-    private val ELEMENTNAME = QName(Engine.NAMESPACE,
-                                    ELEMENTLOCALNAME, Engine.NSPREFIX)
+    override val elementName: QName
+        get() = ELEMENTNAME
 
-    @Deprecated("Use normal factory method", ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType"))
-    operator fun get(import: IXmlResultType) = XmlResultType(import)
-  }
+
+//    @Serializer(forClass = XmlResultType::class)
+    companion object: KSerializer<XmlResultType> {
+        override val serialClassDesc = simpleSerialClassDesc<XmlResultType>("name",
+                                                                                                            "xpath",
+                                                                                                            "namespaces",
+                                                                                                            "content")
+
+        @JvmStatic
+        fun deserialize(reader: XmlReader): XmlResultType {
+            return deserialize(reader, XmlResultType())
+        }
+
+        val ELEMENTLOCALNAME = "result"
+        private val ELEMENTNAME = QName(Engine.NAMESPACE,
+                                        ELEMENTLOCALNAME, Engine.NSPREFIX)
+
+        @Deprecated("Use normal factory method",
+                    ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType"))
+        operator fun get(import: IXmlResultType) = XmlResultType(import)
+
+        override fun load(input: KInput): XmlResultType {
+            return XPathHolder.load(serialClassDesc, input) { name, path, content, originalNSContext -> XmlResultType(name, path, content, originalNSContext) }
+        }
+
+        override fun save(output: KOutput, obj: XmlResultType) {
+            XPathHolder.save(serialClassDesc, output, obj)
+        }
+    }
 
 }
 
 fun XmlResultType(import: IXmlResultType): XmlResultType {
-  if (import is XmlResultType) {
-    return import
-  }
-  val originalNSContext: Iterable<Namespace> = import.originalNSContext
-  return XmlResultType(import.getName(), import.getPath(), content = null,
-                                                          originalNSContext = originalNSContext)
+    if (import is XmlResultType) {
+        return import
+    }
+    val originalNSContext: Iterable<Namespace> = import.originalNSContext
+    return XmlResultType(import.getName(), import.getPath(), content = null,
+                         originalNSContext = originalNSContext)
 }
