@@ -73,7 +73,6 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
                                     protoMessage.contentType,
                                     instantiatedContent)
 
-    processedMessage.setContent(instantiatedContent.namespaces, instantiatedContent.content)
     _messages.add(ExtMessage(processedMessage, instanceBuilder.handle))
     instanceBuilder.state = NodeInstanceState.Acknowledged
     instanceBuilder.store(engineData)
