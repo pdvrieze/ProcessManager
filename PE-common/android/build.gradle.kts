@@ -55,7 +55,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
     implementation(project(":xmlutil:core:android"))
     implementation(project(":xmlutil:serialization:java"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
 
     implementation(project(":multiplatform:android"))
     implementation(project(":java-common:android"))

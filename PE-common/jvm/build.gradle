@@ -85,7 +85,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation project(":multiplatform:jvm")
     implementation project(":xmlutil:serialization:java")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
     api project(':xmlutil:core:jvm')
     api project(':java-common:jvm')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
