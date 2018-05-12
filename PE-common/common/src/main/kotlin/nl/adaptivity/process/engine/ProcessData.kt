@@ -97,7 +97,7 @@ class ProcessData constructor(override @XmlElement(false) val name: String?,
                         1               -> if (input is XML.XmlInput) {
                             content = input.input.siblingsToFragment()
                         } else {
-                            input.readSerializableElementValue(serialClassDesc, 0, ICompactFragmentSerializer)
+                            content = input.readSerializableElementValue(serialClassDesc, 1, ICompactFragmentSerializer)
                         }
                     }
                 }
