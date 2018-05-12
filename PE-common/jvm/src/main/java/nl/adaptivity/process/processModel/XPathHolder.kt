@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.StringUtil
+import net.devrieze.util.toString
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CombiningNamespaceContext
 import nl.adaptivity.xml.*
@@ -94,13 +94,13 @@ actual abstract class XPathHolder : XMLContainer {
     actual override fun deserializeAttribute(attributeNamespace: String?,
                                              attributeLocalName: String,
                                              attributeValue: String): Boolean {
-        when (attributeLocalName.toString()) {
+        when (attributeLocalName) {
             "name"                       -> {
-                _name = StringUtil.toString(attributeValue)
+                _name = attributeValue
                 return true
             }
             "path", "xpath"              -> {
-                pathString = StringUtil.toString(attributeValue)
+                pathString = attributeValue
                 return true
             }
             XMLConstants.XMLNS_ATTRIBUTE -> return true

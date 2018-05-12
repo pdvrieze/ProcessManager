@@ -41,7 +41,7 @@ class MultiException(error: Throwable) : RuntimeException() {
         val result = StringBuilder()
         result.append("MultiException:\n")
         for (e in _exceptions) {
-            StringUtil.indentTo(result, 4, e.localizedMessage)
+            result.appendIndented(e.localizedMessage, 4)
         }
         result.trimToSize()
         return result.toString()
@@ -52,7 +52,7 @@ class MultiException(error: Throwable) : RuntimeException() {
             val result = StringBuilder()
             result.append("MultiException:\n")
             for (e in _exceptions) {
-                e.message?.let { StringUtil.indentTo(result, 4, it) }
+                e.message?.let { result.appendIndented(it, 4) }
             }
             result.trimToSize()
             return result.toString()
@@ -74,11 +74,11 @@ class MultiException(error: Throwable) : RuntimeException() {
         }
     }
 
-    override fun printStackTrace(pS: PrintWriter) {
-        super.printStackTrace(pS)
-        pS.println("Contained exceptions:")
+    override fun printStackTrace(writer: PrintWriter) {
+        super.printStackTrace(writer)
+        writer.println("Contained exceptions:")
         for (e in _exceptions) {
-            e.printStackTrace(PrintWriter(StringUtil.indent(4, pS)))
+            e.printStackTrace(PrintWriter(writer.indent(4)))
         }
     }
 
