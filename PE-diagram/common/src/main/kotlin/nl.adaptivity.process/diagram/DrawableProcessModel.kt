@@ -30,21 +30,21 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
 
     override val nodes: MutableList<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>>
 
-    override val childElements: List<DrawableProcessNode.Builder>
+    override val childElements: List<DrawableProcessNode.Builder<*>>
 
     override fun compositeActivityBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
       TODO("DrawableChildModels still need to be implemented")
     }
 
-    override fun getNode(nodeId: String): DrawableProcessNode.Builder? {
-      return super.getNode(nodeId) as DrawableProcessNode.Builder?
+    override fun getNode(nodeId: String): DrawableProcessNode.Builder<*>? {
+      return super.getNode(nodeId) as DrawableProcessNode.Builder<*>?
     }
 
     fun hasUnpositioned() = nodes.any { !(it as Positioned).hasPos() }
 
     fun build(): DrawableProcessModel
 
-    fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder> = AbstractLayoutStepper())
+    fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder<*>> = AbstractLayoutStepper())
   }
 
   fun builder(): Builder

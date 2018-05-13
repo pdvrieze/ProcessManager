@@ -68,7 +68,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
               predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
               processInstance: ProcessInstance,
               entryNo: Int)
-    : this(node, if (predecessor.valid) listOf(predecessor) else emptyList(), processInstance.builder(), processInstance.getHandle(),
+    : this(node, if (predecessor.isValid) listOf(predecessor) else emptyList(), processInstance.builder(), processInstance.getHandle(),
            processInstance.owner, entryNo = entryNo)
 
   constructor(builder: Builder) : super(builder)
@@ -113,8 +113,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
     override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
 
-      if (! handle.valid) store(engineData)
-      assert(handle.valid)
+      if (!handle.isValid) store(engineData)
+      assert(handle.isValid)
 
       val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
 

@@ -59,10 +59,11 @@ private class RepeatingChars(private val char: Char, override val length: Int) :
     }
 
     override fun toString(): String {
-        return buildString(length) {
-            for(i in 0 until this@RepeatingChars.length)
-                append(char)
-        }
+        return StringBuilder(this as CharSequence).toString()
+//        return buildString(length) {
+//            for(i in 0 until this@RepeatingChars.length)
+//                append(char)
+//        }
     }
 }
 

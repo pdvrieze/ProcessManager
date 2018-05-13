@@ -93,14 +93,11 @@ open class  HandleMapForwarder<V: Any, T:Transaction>(val transaction: T, open v
 
   override fun iterator() = delegate.iterator(transaction, true)
 
-  override fun isEmpty():Boolean { throw UnsupportedOperationException("Not available") }
-
   override fun contains(handle: Handle<V>) = delegate.contains(transaction, handle)
-
-  override fun contains(handle: Long) = delegate.contains(transaction, Handles.handle(handle))
 
   override fun get(handle: Handle<V>) = delegate.get(transaction, handle)
 
+  @Suppress("OverridingDeprecatedMember")
   override fun getSize(): Int { throw UnsupportedOperationException("Not available") }
 
   override fun invalidateCache(handle: Handle<V>) = delegate.invalidateCache(handle)
@@ -111,8 +108,6 @@ open class MutableHandleMapForwarder<V: Any, T:Transaction>(transaction: T, over
   override fun iterator() = delegate.iterator(transaction, false)
 
   override fun <W : V> put(value: W) = delegate.put(transaction, value)
-
-  override fun set(handle: Long, value: V) = delegate.set(transaction, Handles.handle(handle), value)
 
   override fun set(handle: Handle<V>, value: V) = delegate.set(transaction, handle, value)
 

@@ -17,9 +17,11 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
-import net.devrieze.util.isValid
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.writeSimpleElement
 
 
 /**
@@ -29,9 +31,6 @@ abstract class XmlHandle<T>(handleValue: Long) : Handle<T>, XmlSerializable, Sim
 
     override final var handleValue = handleValue
         private set
-
-    override val valid: Boolean
-        get() = isValid
 
     constructor(handle: Handle<T>): this(handle.handleValue)
 

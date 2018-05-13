@@ -18,6 +18,7 @@
 
 package net.devrieze.util
 
+import net.devrieze.lang.Const
 import nl.adaptivity.util.CharArraySequence
 import java.io.IOException
 import java.io.Writer
@@ -47,10 +48,10 @@ private class IndentingWriter(level: Int, private val target: Writer) : Writer()
         var i = off
         while (i < end) {
             val c = cbuf[i]
-            if (c == _CR || c == _LF) {
+            if (c == Const._CR || c == Const._LF) {
                 val lastChar = i - 1
                 val d: Char = if (i + 1 >= end) 0.toChar() else cbuf[i + 1]
-                if (c != d && (d == _CR || d == _LF)) {
+                if (c != d && (d == Const._CR || d == Const._LF)) {
                     ++i
                 }
                 if (lastChar != nextToWrite) {
@@ -90,7 +91,7 @@ fun Writer.indent(level: Int): Writer {
  * @param buffer The buffer that needs to be quoted
  * @return The result of the quoting
  */
-@Suppress("DeprecatedCallableAddReplaceWith")
+@Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
 @Deprecated("Just use quotation directly")
 fun quote(buffer: CharSequence): StringRep {
     return StringRep.createRep(buffer.quoted())
@@ -102,9 +103,9 @@ fun quote(buffer: CharSequence): StringRep {
  * @param buffer The buffer that needs to be quoted
  * @return The result of the quoting
  */
+@Suppress("DEPRECATION")
 @Deprecated("Just use quotation directly")
 fun quote(buffer: CharArray): StringRep {
-    @Suppress("DEPRECATION")
     return quote(CharArraySequence(buffer))
 }
 
@@ -116,9 +117,9 @@ fun quote(buffer: CharArray): StringRep {
  * @param buffer The buffer that needs to be quoted
  * @return The result of the quoting
  */
+@Suppress("DEPRECATION")
 @Deprecated("Just use quotation directly")
 fun quote(start: Int, end: Int, buffer: CharArray): StringRep {
-    @Suppress("DEPRECATION")
     return quote(CharArraySequence(buffer, start, end))
 }
 

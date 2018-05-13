@@ -32,6 +32,7 @@ package net.devrieze.util;
  * @author Paul de Vrieze
  * @version 1.0 $Revision$
  */
+@SuppressWarnings("deprecation")
 public final class Tripple<S, T, U> {
 
   private S mElem1;

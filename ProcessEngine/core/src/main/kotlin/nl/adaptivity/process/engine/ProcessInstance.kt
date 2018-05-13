@@ -161,7 +161,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             else        -> state = State.CANCELLED
           }
           store(engineData)
-          if (parentActivity.valid) {
+          if (parentActivity.isValid) {
             val parentNodeInstance = engineData.nodeInstance(parentActivity).withPermission() as CompositeInstance
             engineData.instance(parentNodeInstance.hProcessInstance).withPermission().update(engineData) {
               updateChild(parentNodeInstance) {
@@ -325,7 +325,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             endNodes.any { it.state == NodeInstanceState.Cancelled || it.state == NodeInstanceState.SkippedCancel } -> State.CANCELLED
             else -> State.FINISHED
           }
-          if (parentActivity.valid) {
+          if (parentActivity.isValid) {
             val parentNode = engineData.nodeInstance(parentActivity).withPermission()
             val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
             parentInstance.update(engineData) {
@@ -397,8 +397,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override fun <T : ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T> {
       return InstanceFuture<T, ExecutableProcessNode>(child).apply {
-        if (!handle.valid) throw IllegalArgumentException("Storing a non-existing child")
-        _pendingChildren.firstOrNull { child.handle.valid && it.origBuilder.handle == child.handle && it.origBuilder!=child }?.let { oldChild ->
+        if (!handle.isValid) throw IllegalArgumentException("Storing a non-existing child")
+        _pendingChildren.firstOrNull { child.handle.isValid && it.origBuilder.handle == child.handle && it.origBuilder != child }?.let { oldChild ->
           throw ProcessException("Attempting to store a new child with an already existing handle")
         }
         if (! _pendingChildren.any { it.origBuilder == child }) _pendingChildren.add(this)
@@ -421,7 +421,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override fun store(data: MutableProcessEngineDataAccess) {
       val newInstance = build(data)
-      if (handle.valid) data.instances[handle] = newInstance else handle = data.instances.put(newInstance)
+      if (handle.isValid) data.instances[handle] = newInstance else handle = data.instances.put(newInstance)
       generation = newInstance.generation+1
       rememberedChildren.replaceBy(newInstance.childNodes.map{ it.withPermission() })
       _pendingChildren.clear()
@@ -472,11 +472,11 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     override fun <T : ProcessNodeInstance<*>> storeChild(child: ProcessNodeInstance.Builder<out ExecutableProcessNode, T>): Future<T> {
       return InstanceFuture<T, ExecutableProcessNode>(child).apply {
-        val existingIdx = _pendingChildren.indexOfFirst { it.origBuilder == child || (child.handle.valid && it.origBuilder.handle == child.handle) || (it.origBuilder.node==child.node && it.origBuilder.entryNo == child.entryNo) }
+        val existingIdx = _pendingChildren.indexOfFirst { it.origBuilder == child || (child.handle.isValid && it.origBuilder.handle == child.handle) || (it.origBuilder.node == child.node && it.origBuilder.entryNo == child.entryNo) }
         if (existingIdx>=0) {
           _pendingChildren[existingIdx] = this
         } else {
-          _pendingChildren.firstOrNull { child.handle.valid && it.origBuilder.handle == child.handle && it.origBuilder!=child }?.let { oldChild ->
+          _pendingChildren.firstOrNull { child.handle.isValid && it.origBuilder.handle == child.handle && it.origBuilder != child }?.let { oldChild ->
             throw ProcessException("Attempting to store a new child with an already existing handle")
           }
           _pendingChildren.add(this)
@@ -590,9 +590,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         writeAttribute("state", state)
       }
     }
-
-    override val valid: Boolean
-      get() = isValid
   }
 
   val generation: Int
@@ -676,7 +673,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     val createdNodes = mutableListOf<ProcessNodeInstance<*>>()
     val updatedNodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, ProcessNodeInstance<*>>()
     for (future in pending) {
-      if (! future.origBuilder.handle.valid) {
+      if (!future.origBuilder.handle.isValid) {
         // Set the handle on the builder so that lookups in the future will be more correct.
         createdNodes+=data.putNodeInstance(future).also { future.origBuilder.handle = it.handle() }
       } else {
@@ -729,10 +726,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       assert(newInstance.uuid == base.uuid) { "Uuid mismatch this: $uuid, new: ${newInstance.uuid}" }
       assert(base.generation == stored.generation) { "Generation mismatch this: ${base.generation} stored: ${stored.generation}" }
       assert(base.generation +1 == newInstance.generation) { "Generation mismatch this+1: ${base.generation + 1} new: ${newInstance.generation}" }
-      return newInstance.handle.valid && handle.valid
+      return newInstance.handle.isValid && handle.isValid
     }
 
-    if (getHandle().valid && handle.valid) {
+    if (getHandle().isValid && handle.isValid) {
       assert(dataValid()) { "Instance generations lost in the waves" }
       writableEngineData.instances[handle] = newInstance
       return newInstance
@@ -761,7 +758,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         return newInstance.update(engineData) {
           state = State.FINISHED
         }.apply {
-          if (parentActivity.valid) {
+          if (parentActivity.isValid) {
             val parentNode = engineData.nodeInstance(parentActivity).withPermission()
             val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
             parentInstance.update(engineData) {
@@ -795,7 +792,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
   @Synchronized override fun setHandleValue(handleValue: Long) {
     if (handle.handleValue!=handleValue) {
       if (handleValue==-1L) { throw IllegalArgumentException("Setting the handle to invalid is not allowed") }
-      if (handle.valid) throw IllegalStateException("Handles are not allowed to change")
+      if (handle.isValid) throw IllegalStateException("Handles are not allowed to change")
       handle = Handles.handle(handleValue)
     }
   }

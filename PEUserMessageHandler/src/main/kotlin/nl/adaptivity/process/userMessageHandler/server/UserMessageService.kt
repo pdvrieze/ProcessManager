@@ -16,12 +16,9 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.Handle
-import net.devrieze.util.Transaction
-import net.devrieze.util.TransactionFactory
+import net.devrieze.util.*
 import net.devrieze.util.db.DBTransaction
 import net.devrieze.util.db.DbSet
-import net.devrieze.util.inWriteTransaction
 import net.devrieze.util.security.AuthenticationNeededException
 import nl.adaptivity.messaging.CompletionListener
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -98,7 +95,7 @@ class UserMessageService<T : Transaction> private constructor(private val transa
       mutableListOf<XmlTask>().also { result ->
         for (task in this) {
           val taskState = task.state
-          if (taskState == null || !task.remoteHandle.valid || taskState.isFinal) {
+          if (taskState == null || !task.remoteHandle.isValid || taskState.isFinal) {
             remove(task.getHandle())
           } else {
             result.add(task)

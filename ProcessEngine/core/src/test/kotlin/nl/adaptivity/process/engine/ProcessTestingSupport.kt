@@ -195,7 +195,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
     }
     if (node is Activity<*,*> && node.childModel!=null) {
       test("A child instance should have been created for $traceElement") {
-        assertTrue((nodeInstance as CompositeInstance).hChildInstance.valid) {"No child instance was recorded"}
+        assertTrue((nodeInstance as CompositeInstance).hChildInstance.isValid) {"No child instance was recorded"}
       }
       test("The child instance was finished for $traceElement") {
         val childInstance = transaction.readableEngineData.instance((nodeInstance as CompositeInstance).hChildInstance).withPermission()

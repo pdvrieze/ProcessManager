@@ -21,8 +21,13 @@ import nl.adaptivity.util.multiplatform.JvmDefault
 interface Handle<out T : Any?> {
 
     val handleValue: Long
+
     @Deprecated("Use isValid", ReplaceWith("isValid"))
-    val valid: Boolean
+    @JvmDefault
+    val valid: Boolean get() = isValid
+
+    @JvmDefault
+    val isValid get() = handleValue >= 0
 }
 
 interface ComparableHandle<out T: Any?> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
@@ -32,5 +37,3 @@ interface ComparableHandle<out T: Any?> : Handle<T>, Comparable<ComparableHandle
     }
 }
 
-
-val Handle<*>.isValid get() = handleValue >= 0

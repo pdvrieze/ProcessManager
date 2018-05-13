@@ -293,7 +293,7 @@ open class LayoutAlgorithm {
           updateXPosLR(newX, node, nodes, minXs)
         }
       }
-      val mostRightNodePos = maxPos(minXs)
+      val mostRightNodePos = minXs.maxIndex()
       val mostRightNode = nodes[mostRightNodePos]
       maxXs[mostRightNodePos] = minXs[mostRightNodePos]
       val changed: Boolean
@@ -828,7 +828,7 @@ open class LayoutAlgorithm {
         }
     }
 
-    @Deprecated("Use directly", ReplaceWith("array.maxIndex", "net.devrieze.util.collection.maxIndex"))
+    @Deprecated("Use directly", ReplaceWith("array.maxIndex()", "net.devrieze.util.collection.maxIndex"))
     private fun maxPos(array: DoubleArray) = array.maxIndex()
 
     protected fun <T : Positioned> partition(nodes: List<DiagramNode<T>>): List<List<DiagramNode<T>>> {

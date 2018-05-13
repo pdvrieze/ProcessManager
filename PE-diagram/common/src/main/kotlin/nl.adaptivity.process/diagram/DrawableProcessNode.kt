@@ -28,12 +28,12 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
 
   open class Delegate(builder: ProcessNode.IBuilder<*, *>) {
 
-    var state: Int = (builder as? DrawableProcessNode.Builder)?.state ?: Drawable.STATE_DEFAULT
-    var isCompat: Boolean = (builder as? DrawableProcessNode.Builder)?.isCompat ?: false
+    var state: Int = (builder as? DrawableProcessNode.Builder<*>)?.state ?: Drawable.STATE_DEFAULT
+    var isCompat: Boolean = (builder as? DrawableProcessNode.Builder<*>)?.isCompat ?: false
 
   }
 
-  interface Builder : ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
+  interface Builder<out R: DrawableProcessNode> : ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
 
     class Delegate(var state: Int, var isCompat: Boolean) {
       constructor(node: ProcessNode<*, *>) :
@@ -57,7 +57,7 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
       y += dY
     }
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableProcessNode
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): R
   }
 
   //  void setLabel(@Nullable String label);
@@ -89,7 +89,7 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
 
   override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 
-  override fun builder(): Builder
+  override fun builder(): Builder<out DrawableProcessNode>
 
   /**
    * Set the X coordinate of the reference point of the element. This is

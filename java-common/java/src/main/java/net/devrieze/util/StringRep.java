@@ -35,6 +35,7 @@ package net.devrieze.util;
  * @author Paul de Vrieze
  * @version 1.0 $Revision$
  */
+@SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
 @kotlin.Deprecated(message = "Just a bad class")
 public abstract class StringRep implements CharSequence {

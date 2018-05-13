@@ -49,7 +49,7 @@ actual abstract class XPathHolder : XMLContainer {
                 return SELF_PATH
             } else {
                 XPathFactory.newInstance().newXPath().apply {
-                    if (originalNSContext != null) {
+                    if (originalNSContext.iterator().hasNext()) {
                         namespaceContext = SimpleNamespaceContext.from(originalNSContext)
                     }
                 }.compile(pathString)

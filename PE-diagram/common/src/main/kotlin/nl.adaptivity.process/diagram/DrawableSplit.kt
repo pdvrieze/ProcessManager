@@ -90,7 +90,7 @@ interface IDrawableSplit: IDrawableJoinSplit {
 
 class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Split<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit, IDrawableSplit {
 
-  class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder, IDrawableSplit {
+  class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder<DrawableSplit>, IDrawableSplit {
 
     override val _delegate: DrawableProcessNode.Builder.Delegate
 
@@ -139,7 +139,7 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
     return Builder(this)
   }
 
-  override fun copy(): DrawableSplit { return builder().build(STUB_DRAWABLE_BUILD_HELPER) }
+  override fun copy(): DrawableSplit { return builder().build() }
 
   override val idBase: String
     get() = IDBASE
@@ -182,7 +182,7 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
     }
 
     fun from(elem: Split<*, *>): DrawableSplit {
-      return DrawableSplit.Builder(elem).build(STUB_DRAWABLE_BUILD_HELPER)
+      return DrawableSplit.Builder(elem).build()
     }
   }
 

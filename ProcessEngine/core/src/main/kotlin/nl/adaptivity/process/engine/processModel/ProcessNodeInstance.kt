@@ -61,7 +61,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
                                                               results: Iterable<ProcessData> = emptyList(),
                                                               val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance<T>>, ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, IProcessNodeInstance {
   val results: List<ProcessData> = results.toList()
-  override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> = predecessors.asSequence().filter { it.valid }.toArraySet()
+  override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> = predecessors.asSequence().filter { it.isValid }.toArraySet()
 
   init {
     @Suppress("LeakingThis")
@@ -209,7 +209,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
       writeAttribute("state", state.name)
       writeAttribute("processinstance", hProcessInstance.handleValue)
 
-      if (handle.valid) writeAttribute("handle", handle.handleValue)
+      if (handle.isValid) writeAttribute("handle", handle.handleValue)
 
       writeAttribute("nodeid", node.id)
 
@@ -269,7 +269,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
      */
     fun store(engineData: MutableProcessEngineDataAccess) {
       val mutableNodeInstances = engineData.nodeInstances as MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
-      if (handle.valid) mutableNodeInstances[handle] = build() else { processInstanceBuilder.storeChild(this) }
+      if (handle.isValid) mutableNodeInstances[handle] = build() else { processInstanceBuilder.storeChild(this) }
       // Must be updated as well as the process node instance may mean the process instance is changed.
       processInstanceBuilder.store(engineData)
       engineData.commit()

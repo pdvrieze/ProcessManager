@@ -91,7 +91,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
                                                           buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) :
   ActivityBase<DrawableProcessNode, DrawableProcessModel?>(builder, buildHelper), DrawableProcessNode, IDrawableActivity {
 
-  final class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, IDrawableActivity {
+  final class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableActivity>, IDrawableActivity {
 
     constructor() : this(id=null)
 
@@ -131,7 +131,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
 
   override fun copy(): IDrawableProcessNode {
     if (isTypeOf<DrawableActivity>(this)) throw UnsupportedOperationException("Copy must be overridden at the leaf")
-    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
+    return builder().build()
   }
 
   override val _delegate: DrawableProcessNode.Delegate = DrawableProcessNode.Delegate(builder)
@@ -202,7 +202,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
     @Deprecated("Use the builder")
     @JvmStatic
     fun from(elem: Activity<*, *>, compat: Boolean): DrawableActivity {
-      return Builder(elem).apply { isCompat = compat }.build(STUB_DRAWABLE_BUILD_HELPER)
+      return Builder(elem).apply { isCompat = compat }.build()
     }
   }
 

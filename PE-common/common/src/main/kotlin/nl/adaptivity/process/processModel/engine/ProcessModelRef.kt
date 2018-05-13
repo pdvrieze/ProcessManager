@@ -30,10 +30,6 @@ import nl.adaptivity.xml.*
 
 @XmlDeserializer(ProcessModelRef.Factory::class) class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?, out ObjectT: RootProcessModel<NodeT, ModelT>>constructor(override var name:String?, var handle: Long, override var uuid: UUID?) : IProcessModelRef<NodeT, ModelT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
 
-  override val valid: Boolean
-    get() =  handleValue >=0L;
-
-
   var xmlUuid: String?
     get() = uuid?.toString()
     set(value) {value?.let { uuid = it.toUUID() }}

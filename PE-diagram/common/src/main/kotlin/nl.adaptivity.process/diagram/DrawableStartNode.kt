@@ -62,7 +62,7 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
                         buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(
   builder, buildHelper), DrawableProcessNode, IDrawableStartNode {
 
-  class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder, IDrawableStartNode {
+  class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableStartNode>, IDrawableStartNode {
 
     override val _delegate: DrawableProcessNode.Builder.Delegate
 
@@ -108,7 +108,7 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
   }
 
   override fun copy(): DrawableStartNode {
-    return builder().build(STUB_DRAWABLE_BUILD_HELPER)
+    return builder().build()
   }
 
   override fun isWithinBounds(x: Double, y: Double): Boolean {
@@ -150,7 +150,7 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
 
     @JvmStatic
     fun from(n: StartNode<*, *>, compat: Boolean = false)
-      = Builder(n).apply { this.isCompat = compat }.build(STUB_DRAWABLE_BUILD_HELPER)
+      = Builder(n).apply { this.isCompat = compat }.build()
   }
 
 }

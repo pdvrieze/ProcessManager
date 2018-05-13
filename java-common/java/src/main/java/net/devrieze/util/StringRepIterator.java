@@ -27,6 +27,7 @@ package net.devrieze.util;
  * @author Paul de Vrieze
  * @version 0.1 $Revision$
  */
+@SuppressWarnings("deprecation")
 public interface StringRepIterator {
 
   /**

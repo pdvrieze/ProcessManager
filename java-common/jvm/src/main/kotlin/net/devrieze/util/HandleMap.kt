@@ -32,7 +32,8 @@ interface HandleMap<V:Any> : Iterable<V> {
   override operator fun iterator(): Iterator<V>
 
   @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
-  fun isEmpty(): Boolean
+  @JvmDefault
+  fun isEmpty(): Boolean = ! iterator().hasNext()
 
   operator fun contains(handle: Handle<V>): Boolean
 
@@ -43,8 +44,9 @@ interface HandleMap<V:Any> : Iterable<V> {
    *
    * @return `true` if it does.
    */
-  @Deprecated("Don't use untyped handles", ReplaceWith("contains(Handles.handle(handle))", "net.devrieze.util.Handles"))
-  operator fun contains(handle: Long): Boolean
+  @Deprecated("Don't use untyped handles", ReplaceWith("contains(Handle(handle))", "net.devrieze.util.Handle"))
+  @JvmDefault
+  operator fun contains(handle: Long): Boolean = contains(Handle(handle))
 
   operator fun get(handle: Handle<V>): V?
 
@@ -75,7 +77,8 @@ interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
   fun <W : V> put(value: W): ComparableHandle<W>
 
   @Deprecated("Don't use untyped handles", ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles"))
-  operator fun set(handle: Long, value: V): V?
+  @JvmDefault
+  operator fun set(handle: Long, value: V): V? = set(Handle(handle), value)
 
   operator fun set(handle: Handle<V>, value: V): V?
 

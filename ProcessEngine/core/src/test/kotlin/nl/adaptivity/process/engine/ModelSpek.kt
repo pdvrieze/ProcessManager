@@ -216,7 +216,7 @@ private fun SubjectDsl<EngineTestData>.startProcess(transactionGetter: Getter<St
                                                             payload: Node? = null): Lazy<HProcessInstance> {
   return lazy {
     val transaction = transactionGetter()
-    val hmodel = if (model.getHandle().valid &&
+    val hmodel = if (model.getHandle().isValid &&
                      model.getHandle() in transaction.readableEngineData.processModels &&
                      transaction.readableEngineData.processModels[model.getHandle()]?.withPermission()?.uuid == model.uuid) {
       model.getHandle()
@@ -297,7 +297,7 @@ private fun SpecBody.testComposite(transaction: Getter<StubProcessTransaction>,
                                    nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                    traceElement: TraceElement) {
   test("A child instance should have been created for $traceElement") {
-    Assertions.assertTrue((nodeInstanceF() as CompositeInstance).hChildInstance.valid) { "No child instance was recorded" }
+    Assertions.assertTrue((nodeInstanceF() as CompositeInstance).hChildInstance.isValid) { "No child instance was recorded" }
   }
   test("The child instance was finished for $traceElement") {
     val childInstance = transaction().readableEngineData.instance(

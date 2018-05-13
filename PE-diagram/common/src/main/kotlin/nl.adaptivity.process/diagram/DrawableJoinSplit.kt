@@ -130,12 +130,12 @@ interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessMode
 
   }
 
-  interface Builder : DrawableProcessNode.Builder, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableJoinSplit {
+  interface Builder<R: DrawableJoinSplit> : DrawableProcessNode.Builder<R>, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableJoinSplit {
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableJoinSplit
+    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): R
   }
 
-  override fun builder(): Builder
+  override fun builder(): Builder<out DrawableJoinSplit>
 
   override val _delegate: Delegate
 

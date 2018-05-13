@@ -32,19 +32,19 @@ abstract class IProcessEngineData<T:ProcessTransaction> : TransactionFactory<T> 
 
   fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
     (processModels as? CachingProcessModelMap<T>)?.apply {
-      if (handle.valid) invalidateCache(handle) else invalidateCache()
+      if (handle.isValid) invalidateCache(handle) else invalidateCache()
     }
   }
 
   fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>) {
     (processInstances as? CachingHandleMap)?.apply {
-      if (handle.valid) invalidateCache(handle) else invalidateCache()
+      if (handle.isValid) invalidateCache(handle) else invalidateCache()
     }
   }
 
   fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
     (processNodeInstances as? CachingHandleMap)?.apply {
-      if (handle.valid) invalidateCache(handle) else invalidateCache()
+      if (handle.isValid) invalidateCache(handle) else invalidateCache()
     }
   }
 

@@ -253,6 +253,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         }
     }
 
+    @Suppress("OverridingDeprecatedMember")
     @Throws(IOException::class)
     override fun authenticate(request: Request, response: HttpServletResponse, config: LoginConfig): Boolean {
         return authenticate(request, response)

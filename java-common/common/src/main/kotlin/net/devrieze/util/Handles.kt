@@ -25,12 +25,7 @@ object Handles {
 
     private class SimpleHandle<T> constructor(override val handleValue: Long) : ComparableHandle<T> {
 
-        override val valid: Boolean
-            get() = handleValue >= 0L
-
-        override fun toString(): String {
-            return "H:$handleValue"
-        }
+        override fun toString(): String = "H:$handleValue"
 
         override fun compareTo(other: ComparableHandle<T>): Int {
             return handleValue.compareTo(other.handleValue)

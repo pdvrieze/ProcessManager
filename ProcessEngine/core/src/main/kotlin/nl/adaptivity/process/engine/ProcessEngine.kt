@@ -730,7 +730,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   @Throws(SQLException::class)
   fun updateStorage(transaction: TRXXX, processInstance: ProcessInstance) {
     val handle = processInstance.getHandle()
-    if (!handle.valid) {
+    if (!handle.isValid) {
       throw IllegalArgumentException("You can't update storage state of an unregistered node")
     }
     engineData.inWriteTransaction(transaction) {

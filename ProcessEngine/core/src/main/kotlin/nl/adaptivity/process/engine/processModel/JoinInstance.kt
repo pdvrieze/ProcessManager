@@ -142,7 +142,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
-    assert(predecessors.none { !it.valid }, {"When creating joins all handles should be valid $predecessors"})
+    assert(predecessors.none { !it.isValid }, {"When creating joins all handles should be valid $predecessors"})
   }
 
   constructor(builder:Builder): this(builder.node, builder.predecessors, builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)

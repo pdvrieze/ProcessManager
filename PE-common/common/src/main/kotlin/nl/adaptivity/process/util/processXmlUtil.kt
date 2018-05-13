@@ -24,5 +24,5 @@ import nl.adaptivity.xml.XmlWriter
  */
 
 fun XmlWriter.writeHandleAttr(name: String, handle: Handle<*>) {
-  if (handle.valid) attribute(null, name, null, handle.handleValue.toString())
+  if (handle.isValid) attribute(null, name, null, handle.handleValue.toString())
 }
