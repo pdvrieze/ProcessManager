@@ -40,10 +40,11 @@ tasks.withType(KotlinCompile) {
 dependencies {
     api project(':JavaCommonApi:jvm')
     api project(':multiplatform:jvm')
+    api(project(":java-common:java"))
     api project(":kotlinsql")
+
     implementation "org.jetbrains:annotations:13.0"
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    expectedBy project(":java-common:common")
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 }

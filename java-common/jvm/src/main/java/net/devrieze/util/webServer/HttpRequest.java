@@ -337,9 +337,9 @@ public class HttpRequest {
     try (final BufferedInputStream in = new BufferedInputStream(pIn)) {
 
       int b = in.read();
-      if (b==Const._CR) {
+      if (b == Const.INSTANCE.get_CR()) {
         b = in.read();
-        if (b==Const._LF) {
+        if (b == Const.INSTANCE.get_LF()) {
           b = in.read();
         }
       }
@@ -355,9 +355,9 @@ public class HttpRequest {
       while (b >= 0) {
 
 
-        if ((stage == 0) && (b == Const._CR)) {
+        if ((stage == 0) && (b == Const.INSTANCE.get_CR())) {
           stage = 1;
-        } else if ((stage == 1) && (b == Const._LF)) {
+        } else if ((stage == 1) && (b == Const.INSTANCE.get_LF())) {
           stage = 2;
         } else if (((stage == 2) || (stage == 3)) && (b == '-')) { // Reading two hyphens
           ++stage;
@@ -389,9 +389,9 @@ public class HttpRequest {
             }
           }
           break; // Go out of the loop.
-        } else if ((stage == 5) && (b == Const._CR)) {
+        } else if ((stage == 5) && (b == Const.INSTANCE.get_CR())) {
           stage = 6;
-        } else if ((stage == 6) && (b == Const._LF)) {
+        } else if ((stage == 6) && (b == Const.INSTANCE.get_LF())) {
           stage = 7; // We completed, next step is to finish previous block, and then read headers
           wsBuffer = null;
           if (content != null) { // First time don't do this
@@ -405,9 +405,9 @@ public class HttpRequest {
           contentDisposition = null;
           headerLine = new StringBuilder();
         } else if (stage == 7) {
-          if (b == Const._CR) {
+          if (b == Const.INSTANCE.get_CR()) {
             b = in.read();
-            if (b != Const._LF) {
+            if (b != Const.INSTANCE.get_LF()) {
               if (content!=null) { content.close(); }
               throw new IllegalArgumentException("Header lines should be separated by CRLF, not CR only");
             }
@@ -454,9 +454,9 @@ public class HttpRequest {
           if (content != null) { // Ignore any preamble (it's legal that there is stuff so ignore it
             // Reset
             if (stage > 0) {
-              content.write(Const._CR);
+              content.write(Const.INSTANCE.get_CR());
               if (stage > 1) {
-                content.write(Const._LF);
+                content.write(Const.INSTANCE.get_LF());
                 if (stage > 2) {
                   content.write('-');
                   if (stage > 3) {
@@ -470,7 +470,7 @@ public class HttpRequest {
                         content.write(ws);
                       }
                       if (stage > 5) {
-                        content.write(Const._CR);
+                        content.write(Const.INSTANCE.get_CR());
                       }
                     }
                   }

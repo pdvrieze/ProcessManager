@@ -56,80 +56,81 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
     }
 
     private inner class ResultSetIterator @Throws(SQLException::class)
-    constructor(private val mTransaction: TR,
-                private val mStatement: PreparedStatement,
-                private val mColumns: List<Column<*, *, *>>,
-                private val mResultSet: ResultSet) : MutableAutoCloseableIterator<T> {
-        private var mNextElem: T? = null
-        private var mFinished = false
-        private val mCloseOnFinish: Boolean
+    constructor(private val transaction: TR,
+                private val statement: PreparedStatement,
+                private val columns: List<Column<*, *, *>>,
+                private val resultSet: ResultSet,
+                private val readOnly: Boolean=false) : MutableAutoCloseableIterator<T> {
+        private var nextElem: T? = null
+        private var isFinished = false
+        private val doCloseOnFinish: Boolean= false
 
         init {
-            mResultSet.metaData
-            mCloseOnFinish = false
+            resultSet.metaData
         }
 
         @Throws(SQLException::class)
         fun size(): Int {
-            val pos = mResultSet.row
+            val pos = resultSet.row
             try {
-                mResultSet.last()
-                return mResultSet.row
+                resultSet.last()
+                return resultSet.row
             } finally {
-                mResultSet.absolute(pos)
+                resultSet.absolute(pos)
             }
         }
 
         override fun hasNext(): Boolean {
-            if (mFinished) {
+            if (isFinished) {
                 return false
             }
-            if (mNextElem != null) {
+            if (nextElem != null) {
                 return true
             }
 
             try {
 
-                val nextTmp = if (mResultSet.next()) {
-                    val values = mColumns.mapIndexed { i, column -> column.type.fromResultSet(mResultSet, i + 1) }
-                    elementFactory.create(mTransaction, mColumns, values)
+                val nextTmp = if (resultSet.next()) {
+                    val values = columns.mapIndexed { i, column -> column.type.fromResultSet(resultSet, i + 1) }
+                    elementFactory.create(transaction, columns, values)
                 } else {
-                    mFinished = true
-                    mTransaction.commit()
-                    if (mCloseOnFinish) {
-                        closeResultSet(mTransaction, mStatement, mResultSet)
+                    isFinished = true
+                    transaction.commit()
+                    if (doCloseOnFinish) {
+                        closeResultSet(transaction, statement, resultSet)
                     } else {
-                        closeResultSet(null, mStatement, mResultSet)
+                        closeResultSet(null, statement, resultSet)
                     }
                     return false
                 }
-                mNextElem = elementFactory.postCreate(mTransaction, nextTmp)
+                nextElem = elementFactory.postCreate(transaction, nextTmp)
                 return true
             } catch (ex: SQLException) {
-                closeResultSet(mTransaction, mStatement, mResultSet)
+                closeResultSet(transaction, statement, resultSet)
                 throw RuntimeException(ex)
             }
 
         }
 
         override fun next(): T {
-            val nextElem = mNextElem
-            mNextElem = null
-            if (nextElem != null) {
-                return nextElem
-            }
+            val currentElem = nextElem
+            nextElem = null
+
+            if (currentElem != null) return currentElem
+
             if (!hasNext()) { // hasNext will actually update mNextElem;
                 throw IllegalStateException("Reading beyond iterator")
             }
-            return mNextElem!!
+            return nextElem!!
         }
 
         override fun remove() {
+            if (readOnly) throw UnsupportedOperationException("The iterator is read only")
             try {
-                mResultSet.deleteRow()
+                resultSet.deleteRow()
             } catch (ex: SQLException) {
-                closeResultSet(mTransaction, mStatement, mResultSet)
-                throw RuntimeException(ex)
+                closeResultSet(transaction, statement, resultSet)
+                throw ex
             }
 
         }
@@ -137,26 +138,22 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
         override fun close() {
             try {
                 try {
-                    try {
-                        mResultSet.close()
-                    } finally {
-                        mStatement.close()
-                    }
+                    resultSet.close()
                 } finally {
-                    mIterators.remove(this)
-                    if (mIterators.isEmpty()) {
-                        this@DbSet.close()
-                    }
+                    statement.close()
                 }
-            } catch (e: SQLException) {
-                throw RuntimeException(e)
+            } finally {
+                iterators.remove(this)
+                if (iterators.isEmpty()) {
+                    this@DbSet.close()
+                }
             }
 
         }
     }
 
 
-    private val mIterators = ArrayList<ResultSetIterator>()
+    private val iterators = ArrayList<ResultSetIterator>()
 
     fun closingIterable(): ClosingIterable {
         return ClosingIterable()
@@ -182,8 +179,8 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
             query.setParams(statement)
 
             val rs = statement.statement.executeQuery()
-            val it = ResultSetIterator(transaction, statement.statement, columns, rs)
-            mIterators.add(it)
+            val it = ResultSetIterator(transaction, statement.statement, columns, rs, readOnly)
+            iterators.add(it)
             return it
         } catch (e: Exception) {
             try {
@@ -223,7 +220,7 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
 
             val rs = statement.statement.executeQuery()
             val it = ResultSetIterator(transaction, statement.statement, columns, rs)
-            mIterators.add(it)
+            iterators.add(it)
             return it
         } catch (e: RuntimeException) {
             rollbackConnection(transaction, e)
@@ -307,7 +304,7 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
 
     override fun close() {
         var errors: MutableList<RuntimeException>? = null
-        for (iterator in mIterators) {
+        for (iterator in iterators) {
             try {
                 iterator.close()
             } catch (e: RuntimeException) {

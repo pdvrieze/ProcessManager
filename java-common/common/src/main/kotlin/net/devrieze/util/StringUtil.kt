@@ -23,13 +23,9 @@
 package net.devrieze.util
 
 import net.devrieze.lang.Const
-import nl.adaptivity.util.CharArraySequence
+import nl.adaptivity.util.multiplatform.JvmName
+import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.toLowercase
-import org.jetbrains.annotations.Contract
-
-import java.io.IOException
-import java.io.Writer
-import java.util.*
 
 
 /**
@@ -53,58 +49,6 @@ private val EXTWHITESPACE = charArrayOf('\u0020', '\u000a', '\u000d', '\u0009', 
 private val AVG_WORD_SIZE = 8
 
 
-private class IndentingWriter(level: Int, private val target: Writer) : Writer() {
-
-    private val currentLineBuffer: CharArray = CharArray(level) { ' ' }
-
-    private var lastSeenWasNewline: Boolean = true
-
-    @Throws(IOException::class)
-    override fun close() {
-        target.close()
-    }
-
-    @Throws(IOException::class)
-    override fun flush() {
-        target.flush()
-    }
-
-    @Throws(IOException::class)
-    override fun write(cbuf: CharArray, off: Int, len: Int) {
-        val end = off + len
-        var nextToWrite = off
-        var i = off
-        while (i < end) {
-            val c = cbuf[i]
-            if (c == Const._CR || c == Const._LF) {
-                val lastChar = i - 1
-                val d: Char = if (i + 1 >= end) 0.toChar() else cbuf[i + 1]
-                if (c != d && (d == Const._CR || d == Const._LF)) {
-                    ++i
-                }
-                if (lastChar != nextToWrite) {
-                    // Skip indent in case newline follows directly
-                    if (lastSeenWasNewline) {
-                        target.write(currentLineBuffer)
-                    }
-                }
-                target.write(cbuf, nextToWrite, i - nextToWrite + 1)
-                nextToWrite = i + 1
-                lastSeenWasNewline = true
-            }
-            ++i
-        }
-        if (nextToWrite < end) {
-            if (lastSeenWasNewline) {
-                target.write(currentLineBuffer)
-            }
-            target.write(cbuf, nextToWrite, end - nextToWrite)
-            lastSeenWasNewline = false
-        }
-    }
-
-}
-
 private class RepeatingChars(private val char: Char, override val length: Int) : CharSequence {
 
     override operator fun get(index: Int): Char = char
@@ -125,7 +69,6 @@ private class RepeatingChars(private val char: Char, override val length: Int) :
  * @return `true` if it is empty, `false` if not
  */
 @Deprecated("Use kotlin version", ReplaceWith("value.isNullOrEmpty()"))
-@Contract(value = "null -> true", pure = true)
 fun isNullOrEmpty(value: CharSequence?) = value.isNullOrEmpty()
 
 @Deprecated("No longer needed", ReplaceWith("string.toLowercase()", "nl.adaptivity.util.multiplatform.toLowercase"))
@@ -139,7 +82,7 @@ fun indexOf(text: CharSequence, c: Char): Int = text.indexOf(c)
  * @param obj The object to convert
  * @return The result of calling @{link #toString()} on the object.
  */
-@Contract(value = "null -> null; !null -> !null", pure = true)
+@Suppress("KDocUnresolvedReference")
 @Deprecated("Use kotlin", ReplaceWith("obj?.toString()"))
 fun toString(obj: CharSequence?): String? = obj?.toString()
 
@@ -180,115 +123,6 @@ fun Appendable.appendQuoted(charSequence: CharSequence) {
 
 
 /**
- * Create a quoted version of the buffer.
- *
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Suppress("DeprecatedCallableAddReplaceWith")
-@Deprecated("Just use quotation directly")
-fun quote(buffer: CharSequence): StringRep {
-    return StringRep.createRep(buffer.quoted())
-}
-
-/**
- * Create a quoted version of the buffer for use in the script.
- *
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Deprecated("Just use quotation directly")
-fun quote(buffer: CharArray): StringRep {
-    @Suppress("DEPRECATION")
-    return quote(CharArraySequence(buffer))
-}
-
-/**
- * Create a quoted version of the buffer for use in the script.
- *
- * @param start The start index in the buffer that needs to be quoted
- * @param end The end index in the buffer to be quoted (exclusive)
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Deprecated("Just use quotation directly")
-fun quote(start: Int, end: Int, buffer: CharArray): StringRep {
-    @Suppress("DEPRECATION")
-    return quote(CharArraySequence(buffer, start, end))
-}
-
-/**
- * Create a quoted version of the buffer for use in the script.
- *
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Deprecated("Just use quotation directly")
-fun quoteBuf(buffer: String): StringBuffer {
-    @Suppress("DEPRECATION")
-    return quoteBuf(buffer.toCharArray())
-}
-
-/**
- * Create a quoted version of the buffer for use in the script.
- *
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Deprecated("Just use quotation directly")
-fun quoteBuf(buffer: StringBuffer): StringBuffer {
-    val charArray = CharArray(buffer.length)
-    buffer.getChars(0, charArray.size, charArray, 0)
-
-    @Suppress("DEPRECATION")
-    return quoteBuf(charArray)
-}
-
-/**
- * Create a quoted version of the buffer for use in the script.
- *
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Deprecated("Just bad. Don't use, StringBuffers are deprecated")
-fun quoteBuf(buffer: CharArray): StringBuffer {
-    @Suppress("DEPRECATION")
-    return quoteBuf(0, buffer.size, buffer)
-}
-
-/**
- * Create a quoted version of the buffer for use in the script.
- *
- * @param start The start index in the buffer that needs to be quoted
- * @param end The end index in the buffer to be quoted (exclusive)
- * @param buffer The buffer that needs to be quoted
- * @return The result of the quoting
- */
-@Deprecated("Just bad. Don't use, StringBuffers are deprecated")
-fun quoteBuf(start: Int, end: Int, buffer: CharArray): StringBuffer {
-    val result = StringBuffer(buffer.size + FORMAT_SLACK)
-    result.append('"')
-
-    for (i in start until end) {
-        when (buffer[i]) {
-            '"'  -> {
-                result.append("\\\"")
-            }
-
-            '\\' -> {
-                result.append("\\\\")
-            }
-
-            else -> result.append(buffer[i])
-        }
-    }
-
-    result.append('"')
-
-    return result
-}
-
-/**
  * @return `true` if eq`false` if not.
  */
 @Deprecated("In favour of {@link #isEqual(CharSequence, CharSequence)}.", ReplaceWith("seq1.isEqual(seq2)"))
@@ -317,10 +151,6 @@ fun CharSequence?.isEqual(sequence2: CharSequence?): Boolean = when {
 @Deprecated("Use kotlin standard library", ReplaceWith("this == seq2"))
 fun String?.isEqual(seq2: String?) = this == seq2
 
-fun Class<*>.simpleClassName(): String {
-    return name.substringAfterLast('.')
-}
-
 fun Char.repeat(count: Int): CharSequence = RepeatingChars(this, count)
 
 @Deprecated("Use the extension version", ReplaceWith("char.repeat(count)"))
@@ -348,23 +178,12 @@ fun indent(level: Int, charSequence: CharSequence) = buildString(charSequence.le
 }
 
 
-@Deprecated("Use extension version", ReplaceWith("source.indent(level)"))
-fun indent(level: Int, source: Writer): Writer = source.indent(level)
-
-fun Writer.indent(level: Int): Writer {
-    return IndentingWriter(level, this)
-}
-
 @Deprecated("Use extension version", ReplaceWith("target.appendIndented(string, level)"))
 fun indentTo(target: StringBuilder, level: Int, string: CharSequence): StringBuilder {
     return target.appendIndented(string, level)
 }
 
 fun <T : Appendable> T.appendIndented(charSequence: CharSequence, level: Int): T {
-    (this as? StringBuilder)?.run {
-        ensureCapacity(length + 2 * level + charSequence.length)
-    }
-
     appendRepeated(' ', level)
 
     var i = 0
@@ -471,7 +290,7 @@ fun splitLines(str: String): Array<String> {
  * @param string The string to prefix.
  * @return The string resulting of prefixing the code.
  */
-fun prefixA(string: String) = when (Character.toLowerCase(string[0])) {
+fun prefixA(string: String) = when (string[0].toLowerCase()) {
     'a', 'e', 'i', 'o', 'u' -> "an $string"
     else                    -> "a $string"
 }
@@ -557,4 +376,5 @@ object StringUtil {
         return s1 == s2
     }
 
-}*/
+}
+*/

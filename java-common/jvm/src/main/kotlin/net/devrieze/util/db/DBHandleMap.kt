@@ -152,7 +152,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
           .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
 
     try {
-      return query.getSingleList(transaction.connection) { cols, data ->
+      return query.getSingleList(transaction.connection) { _, data ->
         data[0] as Int > 0
       }
     } catch (e:RuntimeException) {

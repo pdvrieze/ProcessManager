@@ -30,10 +30,13 @@ package net.devrieze.util;
  * Note that the respective functions can return the original data that was
  * entered in the wrapper. They do not copy it when not necessary.
  * </p>
- * 
+ *
+ * @deprecated Stale class that shouldn't be used
  * @author Paul de Vrieze
  * @version 1.0 $Revision$
  */
+@Deprecated
+@kotlin.Deprecated(message = "Just a bad class")
 public abstract class StringRep implements CharSequence {
 
   /** The default quotes that are used. */
@@ -848,7 +851,7 @@ public abstract class StringRep implements CharSequence {
    * @return the new quoted rep
    */
   public StringRep quote() {
-    return StringUtil.quote(this);
+    return StringUtilJava.quote(this);
   }
 
   /**

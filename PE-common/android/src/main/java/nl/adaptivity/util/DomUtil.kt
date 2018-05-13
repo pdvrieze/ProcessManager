@@ -16,15 +16,16 @@
 
 package nl.adaptivity.util
 
-import net.devrieze.util.StringUtil
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.IOException
 import org.w3c.dom.*
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
-import java.io.*
+import java.io.InputStream
+import java.io.Reader
+import java.io.StringReader
+import java.io.StringWriter
 import javax.xml.XMLConstants
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
@@ -333,13 +334,11 @@ object DomUtil {
         var child = getFirstChildElement(parent)
         while (child != null) {
             if (namespaceURI == null || namespaceURI.length == 0) {
-                if ((child.namespaceURI == null || child.namespaceURI.length == 0) && StringUtil.isEqual(localName,
-                                                                                                         child.localName)) {
+                if ((child.namespaceURI == null || child.namespaceURI.length == 0) && localName == child.localName) {
                     return child
                 }
             } else {
-                if (StringUtil.isEqual(namespaceURI, child.namespaceURI) && StringUtil.isEqual(localName,
-                                                                                               child.localName)) {
+                if (namespaceURI == child.namespaceURI && localName == child.localName) {
                     return child
                 }
             }
@@ -357,8 +356,7 @@ object DomUtil {
     fun getNextSibling(sibling: Element, namespaceURI: String, localName: String): Element? {
         var child = getNextSiblingElement(sibling)
         while (child != null) {
-            if (StringUtil.isEqual(namespaceURI, child.namespaceURI) && StringUtil.isEqual(localName,
-                                                                                           child.localName)) {
+            if (namespaceURI == child.namespaceURI && localName == child.localName) {
                 return child
             }
             child = getNextSiblingElement(child)
