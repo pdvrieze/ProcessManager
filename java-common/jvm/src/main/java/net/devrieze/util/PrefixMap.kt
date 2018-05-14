@@ -205,6 +205,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         XLEFT(LEFTIDX) {
             override fun <T : Any> getChild(parent: Node<T>) = parent.left
 
+            @Suppress("DEPRECATION")
+            @Deprecated("Don't use")
             override fun <T : Any> setChild(parent: Node<T>, child: Node<T>?) = parent.setLeft(child)
 
             override fun <T : Any> copyWithChild(parent: Node<T>, newChild: Node<T>?): Node<T> {
@@ -215,6 +217,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
             override fun <T : Any> getChild(parent: Node<T>) =
                 throw UnsupportedOperationException("Getting parents is impossible")
 
+            @Suppress("DEPRECATION")
+            @Deprecated("Don't use")
             override fun <T : Any> setChild(parent: Node<T>, child: Node<T>?) =
                 throw UnsupportedOperationException("Setting parents is impossible")
 
@@ -225,6 +229,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         XEQUAL(BELOWIDX) {
             override fun <T : Any> getChild(parent: Node<T>) = parent.below
 
+            @Suppress("DEPRECATION")
+            @Deprecated("Don't use")
             override fun <T : Any> setChild(parent: Node<T>, child: Node<T>?) = parent.setBelow(child)
 
             override fun <T : Any> copyWithChild(parent: Node<T>, newChild: Node<T>?): Node<T> {
@@ -234,6 +240,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         XBELOW(BELOWIDX) {
             override fun <T : Any> getChild(parent: Node<T>) = parent.below
 
+            @Suppress("DEPRECATION")
+            @Deprecated("Don't use")
             override fun <T : Any> setChild(parent: Node<T>, child: Node<T>?) = parent.setBelow(child)
 
             override fun <T : Any> copyWithChild(parent: Node<T>, newChild: Node<T>?): Node<T> {
@@ -243,6 +251,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         XRIGHT(RIGHTIDX) {
             override fun <T : Any> getChild(parent: Node<T>) = parent.right
 
+            @Suppress("DEPRECATION")
+            @Deprecated("Don't use")
             override fun <T : Any> setChild(parent: Node<T>, child: Node<T>?) = parent.setRight(child)
 
             override fun <T : Any> copyWithChild(parent: Node<T>, newChild: Node<T>?): Node<T> {
@@ -298,6 +308,9 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         }
 
         abstract fun <T : Any> getChild(parent: Node<T>): Node<T>?
+
+        @Suppress("DEPRECATION")
+        @Deprecated("Don't use")
         abstract fun <T : Any> setChild(parent: Node<T>, child: Node<T>?): Node<T>?
         abstract fun <T : Any> copyWithChild(parent: Node<T>, newChild: Node<T>?): Node<T>
     }
@@ -353,17 +366,22 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
                 }
             }
 
+        @Deprecated("Don't use")
         fun setLeft(left: Node<T>?): Node<T>? {
             return this.left.also { this.left = left }
         }
 
+        @Deprecated("Don't use")
         fun setRight(right: Node<T>?): Node<T>? {
             return this.right.also { this.right = right }
         }
 
+        @Deprecated("Don't use")
         fun setBelow(below: Node<T>?): Node<T>? {
             return this.below.also { this.below = below }
         }
+
+//        fun copy() = this
 
         fun copy(prefix: String = this.prefix,
                  value: T? = this.value,
@@ -372,6 +390,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
                  right: Node<T>? = this.right): Node<T> =
             Node(prefix, value, left?.copy(), below?.copy(), right?.copy())
 
+        @Suppress("DEPRECATION")
+        @Deprecated("Don't use")
         fun add(compareResult: CompareResult, child: Node<T>): Int {
             val expectedCount = count + child.count
             assert(expectedCount != Integer.MIN_VALUE)
@@ -398,6 +418,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
             }
         }
 
+        @Suppress("DEPRECATION")
+        @Deprecated("Don't use")
         private fun addChild(posResult: XCompareResult, child: Node<T>): Int {
             var current: Node<T>? = posResult.getChild(this)
             if (current == null) {
@@ -431,16 +453,15 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         }
 
         private fun addChild2(posResult: XCompareResult, child: Node<T>): Node<T> {
-            var oldChild: Node<T>? = posResult.getChild(this)
+            val oldChild: Node<T>? = posResult.getChild(this)
             if (oldChild == null) {
                 return posResult.copyWithChild(this, child)
             } else {
-                var cmp = prefixCompare(0, oldChild.prefix, child.prefix)
+                val cmp = prefixCompare(0, oldChild.prefix, child.prefix)
                 if (!posResult.isEqOrBelow && cmp.isOpposite(posResult) || cmp.isAbove) {
-                    return posResult.copyWithChild(this, oldChild.interpose2(cmp.invert(), child)).rebalance2(posResult)
+                    return posResult.copyWithChild(this, oldChild.interpose2(cmp.invert(), child)).rebalance2()
                 } else {
 
-                    var self = copy()
                     val commonPrefix = cmp.commonPrefix
 
                     val newChild: Node<T>?
@@ -452,35 +473,7 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
                     }
                     val result = posResult.copyWithChild(this, newChild)
                     assert(result.count == this.count+child.count)
-                    return result.rebalance2(posResult)
-                }
-            }
-        }
-
-        private fun copyWithChild(posResult: XCompareResult, newChild: Node<T>?): Node<T> {
-            var current: Node<T>? = posResult.getChild(this)
-            if (current == null) {
-                return posResult.copyWithChild(this, newChild)
-            } else {
-                if (newChild==null) return posResult.copyWithChild(this, null).rebalance2()
-
-                var cmp = prefixCompare(0, current.prefix, newChild.prefix)
-                if (!posResult.isEqOrBelow && cmp.isOpposite(posResult) || cmp.isAbove) {
-                    return interpose2(cmp.invert(), newChild).rebalance2(posResult)
-                } else {
-                    var result = copy()
-                    val commonPrefix = cmp.commonPrefix
-                    if (posResult.isEqOrBelow && commonPrefix != null && commonPrefix.length > prefix.length && commonPrefix.length < below!!.prefix.length) {
-                        // introduce a new intermediate parent
-                        current = Node(commonPrefix)
-                        cmp = CompareResult.BELOW
-                        result = interpose2(CompareResult.BELOW, current).apply {
-                            assert(
-                                current.count == current.below!!.count + (if (current.left == null) 0 else current.left!!.count) + if (current.right == null) 0 else current.right!!.count)
-                        }
-                    }
-                    return result.add2(cmp, newChild).rebalance2(posResult)
-
+                    return result.rebalance2()
                 }
             }
         }
@@ -512,42 +505,7 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
             }
         }
 
-        private fun removeChild(posResult: XCompareResult, compare: CompareResult, entry: EntryImpl<*>): Node<T> {
-            val current = posResult.getChild(this) ?: return this
-            val cmp = prefixCompare(0, current.prefix, entry.prefix)
-            if (cmp.isEqual && entry.value == current.value) {
-                val cbelow = current.below
-                val cleft = current.left
-                val cright = current.right
-                val newCurrent = when {
-                    cbelow?.prefix == current.prefix -> cbelow.copy(left = cleft + cbelow.left,
-                                                                    right = cright + cbelow.right)
-                    cbelow != null                   -> current.copy(value = null)
-                    cleft == null && cright == null  -> null
-                    cleft == null                    -> cright
-                    cright == null                   -> cleft
-
-                    else                              -> current.copy(value = null)
-                }
-/*
-                if (value ==null && ) {
-                    return posResult.copyWithChild(this, null).plusNN(newCurrent)
-                } else {
-*/
-                    return posResult.copyWithChild(this, newCurrent)
-//                }
-            } else {
-                return posResult.copyWithChild(this, current.remove(cmp, entry))
-            }
-        }
-
-        private fun reduceCount(pDoReduce: Boolean): Boolean {
-            if (pDoReduce) {
-                --count
-            }
-            return pDoReduce
-        }
-
+        @Deprecated("Don't use")
         private fun rebalance(idx: XCompareResult) {
             var originalCount = 0
             val balanceFactor = idx.getChild(this)?.run {
@@ -565,30 +523,6 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
             }
             assert(idx.getChild(this)?.count == originalCount) { "Stable child counts" }
             assert(origParentCount == count) { "Stable parent counts" }
-        }
-
-
-
-        private fun rebalance2(idx: XCompareResult): Node<T> {
-            var originalCount = 0
-            val balanceFactor = idx.getChild(this)?.run {
-                originalCount = count
-                balanceFactor
-            } ?: return copy()
-            val origParentCount = count
-
-            return if (balanceFactor <= -2) {
-                val originalRoot = idx.getChild(this)!!
-                idx.copyWithChild(this, rotateRight(originalRoot, true))
-            } else if (balanceFactor >= 2) {
-                val originalRoot = idx.setChild(this, null)!!
-                idx.copyWithChild(this, rotateLeft(originalRoot, true))
-            } else {
-                copy()
-            }.apply {
-                assert(idx.getChild(this)?.count == originalCount) { "Stable child counts" }
-                assert(origParentCount == count) { "Stable parent counts" }
-            }
         }
 
 
@@ -649,6 +583,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
             return result.apply { assert(cnt == count) }
         }
 
+        @Suppress("DEPRECATION")
+        @Deprecated("Don't use")
         private fun interpose(posResult: XCompareResult, compareResult: CompareResult, newChild: Node<T>) {
             // Remove the old child from this node.
             val oldChild = posResult.setChild(this, null)
@@ -670,6 +606,8 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
             return newChild2
         }
 
+        @Suppress("DEPRECATION")
+        @Deprecated("Don't use")
         private fun addIndividualElements(pCompareResult: CompareResult, pSource: Node<T>) {
             val sourceLeft = pSource.setLeft(null)
             val sourceRight = pSource.setRight(null)
@@ -1038,37 +976,36 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
     fun getLonger(prefix: String): Collection<Entry<V>> {
         val root = root ?: return PrefixMap()
         val baseNode = getNodeForPrefix(root, prefix) ?: return emptyList()
-        val copy = baseNode.copy()
 
-        val left = copy.setLeft(null)
-        val right = copy.setRight(null)
+        val left = baseNode.left?.copy()
+        val right = baseNode.right?.copy()
 
-        val resultNode: Node<V>
+        val copy = baseNode.copy(left = null, right = null)
+
+        var resultNode: Node<V>?
         if (copy.prefix.length == prefix.length) {
             resultNode = copy
         } else {
-            resultNode = Node(prefix)
-            resultNode.add(CompareResult.BELOW, copy)
+            resultNode = Node<V>(prefix).add2(CompareResult.BELOW, copy)
+//            resultNode.add(CompareResult.BELOW, copy)
 
             if (left != null) {
                 val cmpLeft = prefixCompare(prefix, left.prefix)
                 if (cmpLeft.isBelow) {
-                    resultNode.add(cmpLeft, left)
+                    resultNode = resultNode.add2(cmpLeft, left)
                 }
             }
             if (right != null) {
                 val cmpRight = prefixCompare(prefix, right.prefix)
                 if (cmpRight.isBelow) {
-                    resultNode.add(cmpRight, right)
+                    resultNode = resultNode.add2(cmpRight, right)
                 }
             }
 
         }
 
         return PrefixMap<V>().apply {
-            this.root = Node<V>("").apply {
-                add(CompareResult.BELOW, resultNode)
-            }
+            this.root = Node<V>("").add2(resultNode)
         }
     }
 
@@ -1084,22 +1021,19 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
         if (baseNode == null || baseNode.prefix != prefix) {
             return emptyList()
         }
-        val resultNode = baseNode.copy()
-        resultNode.setLeft(null)
-        resultNode.setRight(null)
+        val resultNode = baseNode.copy(left = null, right = null)
 
-
-        var v: Node<V> = resultNode
-        while (v.below != null && v.below!!.prefix == prefix) {
-            v.setBelow(v.below!!.copy())
-            v.below!!.setLeft(null)
-            v.below!!.setRight(null)
-            v = v.below!!
+        var v: Node<V>? = resultNode
+        while (v?.below?.prefix == prefix) {
+//            v.setBelow(v.below!!.copy())
+//            v.below!!.setLeft(null)
+//            v.below!!.setRight(null)
+            v = v.below?.copy(left=null, right = null)
         }
-        resultNode.fixCount()
+//        resultNode.fixCount()
 
         val resultMap = PrefixMap<V>()
-        resultMap.put(resultNode)
+        v?.let { resultMap.put(it) }
         return resultMap
     }
 
