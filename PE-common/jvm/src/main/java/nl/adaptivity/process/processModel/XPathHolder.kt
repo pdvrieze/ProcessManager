@@ -51,7 +51,7 @@ actual abstract class XPathHolder : XMLContainer {
                 return SELF_PATH
             } else {
                 XPathFactory.newInstance().newXPath().apply {
-                    if (originalNSContext != null) {
+                    if (originalNSContext.iterator().hasNext()) {
                         namespaceContext = SimpleNamespaceContext.from(originalNSContext)
                     }
                 }.compile(pathString)
@@ -72,9 +72,7 @@ actual abstract class XPathHolder : XMLContainer {
 
     actual fun getName() = _name ?: throw NullPointerException("Name not set")
 
-    actual fun setName(value: String) {
-        _name = value
-    }
+    actual fun setName(value:String) { _name = value }
 
     @XmlAttribute(name = "xpath")
     actual fun getPath(): String? {
@@ -155,24 +153,11 @@ actual abstract class XPathHolder : XMLContainer {
         super.visitNamespaces(baseContext)
     }
 
-    protected actual override fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                                         owner: QName,
-                                                         attributeName: QName,
-                                                         attributeValue: CharSequence) {
+    protected actual override open fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }
     }
-
-/*
-    fun applyData(payload: Node?): ProcessData = path.let { p ->
-        when (p) {
-            null -> ProcessData(_name!!, payload)
-            else -> ProcessData(_name!!, p.evaluate(payload, XPathConstants.NODESET) as NodeList)
-        }
-    }
-*/
-
 
     actual companion object {
 
@@ -192,21 +177,22 @@ actual abstract class XPathHolder : XMLContainer {
         actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
             return result.deserializeHelper(reader)
         }
+    }
+}
 
-        protected actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
-            if (path != null && path.isNotEmpty()) {
-                try {
-                    val xpf = XPathFactory.newInstance()
-                    val xpath = xpf.newXPath()
-                    xpath.namespaceContext = namespaceContext
-                    xpath.compile(path.toString())
-                } catch (e: XPathExpressionException) {
-                    Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING,
-                                                                             "The path used is not valid (" + path + ") - " + e.message,
-                                                                             e)
-                }
 
-            }
+internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
+    if (path != null && path.isNotEmpty()) {
+        try {
+            val xpf = XPathFactory.newInstance()
+            val xpath = xpf.newXPath()
+            xpath.namespaceContext = namespaceContext
+            xpath.compile(path.toString())
+        } catch (e: XPathExpressionException) {
+            Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING,
+                                                                     "The path used is not valid (" + path + ") - " + e.message,
+                                                                     e)
         }
+
     }
 }

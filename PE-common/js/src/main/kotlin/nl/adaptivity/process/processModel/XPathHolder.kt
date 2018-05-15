@@ -183,22 +183,24 @@ actual abstract class XPathHolder : XMLContainer {
         actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
             return result.deserializeHelper(reader)
         }
-
-        protected actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
-            if (path != null && path.isNotEmpty()) {
-                try {
-                    val d = document.implementation.createDocument(null, "bar")
-//                    d.createExpression(path.toString(), { prefix -> namespaceContext.getNamespaceURI(prefix) } )
-                    d.evaluate(path.toString(), d, { prefix -> namespaceContext.getNamespaceURI(prefix) },
-                               XPathResult.ANY_TYPE)
-                } catch (e: Exception) {
-                    console.warn("The path used is not valid ($path) - ${e.message}", e)
-                }
-
-            }
-        }
     }
 }
+
+
+internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
+    if (path != null && path.isNotEmpty()) {
+        try {
+            val d = document.implementation.createDocument(null, "bar")
+//                    d.createExpression(path.toString(), { prefix -> namespaceContext.getNamespaceURI(prefix) } )
+            d.evaluate(path.toString(), d, { prefix -> namespaceContext.getNamespaceURI(prefix) },
+                       XPathResult.ANY_TYPE)
+        } catch (e: Exception) {
+            console.warn("The path used is not valid ($path) - ${e.message}", e)
+        }
+
+    }
+}
+
 
 typealias NamespaceResolver = (String) -> String?
 

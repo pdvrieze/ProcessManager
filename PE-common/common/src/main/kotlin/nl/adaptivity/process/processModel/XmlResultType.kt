@@ -28,11 +28,19 @@ import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlSerialName
 import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 
 @XmlDeserializer(XmlResultType.Factory::class)
-class XmlResultType(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>?) :
-    XPathHolder(name, path, content, originalNSContext ?: emptyList()), IXmlResultType, XmlSerializable {
+@Serializable
+@XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
+class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
+
+    constructor(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>?) : super(
+        name, path, content, originalNSContext ?: emptyList())
+
+    @Deprecated("Use one of the parameterized constructors")
+    constructor() : this(null, null, null, null)
 
     class Factory : XmlDeserializerFactory<XmlResultType> {
 
@@ -67,10 +75,8 @@ class XmlResultType(name: String?, path: String?, content: CharArray?, originalN
         fun build(): XmlResultType {
             return XmlResultType(name, path, content, nsContext)
         }
-    }
 
-    @Deprecated("Use one of the parameterized constructors")
-    constructor() : this(null, null, null, null)
+    }
 
     override fun serializeStartElement(out: XmlWriter) {
         out.smartStartTag(ELEMENTNAME)
@@ -84,19 +90,19 @@ class XmlResultType(name: String?, path: String?, content: CharArray?, originalN
         get() = ELEMENTNAME
 
 
-//    @Serializer(forClass = XmlResultType::class)
-    companion object: KSerializer<XmlResultType> {
+    @Serializer(forClass = XmlResultType::class)
+    companion object : KSerializer<XmlResultType> {
         override val serialClassDesc = simpleSerialClassDesc<XmlResultType>("name",
-                                                                                                            "xpath",
-                                                                                                            "namespaces",
-                                                                                                            "content")
+                                                                            "xpath",
+                                                                            "namespaces",
+                                                                            "content")
 
         @JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {
             return deserialize(reader, XmlResultType())
         }
 
-        val ELEMENTLOCALNAME = "result"
+        const val ELEMENTLOCALNAME = "result"
         private val ELEMENTNAME = QName(Engine.NAMESPACE,
                                         ELEMENTLOCALNAME, Engine.NSPREFIX)
 
@@ -105,7 +111,9 @@ class XmlResultType(name: String?, path: String?, content: CharArray?, originalN
         operator fun get(import: IXmlResultType) = XmlResultType(import)
 
         override fun load(input: KInput): XmlResultType {
-            return XPathHolder.load(serialClassDesc, input) { name, path, content, originalNSContext -> XmlResultType(name, path, content, originalNSContext) }
+            return XPathHolder.load(serialClassDesc, input, ::XPathholderNamespaceGatherer) { name, path, content, originalNSContext ->
+                XmlResultType(name, path, content, originalNSContext)
+            }
         }
 
         override fun save(output: KOutput, obj: XmlResultType) {

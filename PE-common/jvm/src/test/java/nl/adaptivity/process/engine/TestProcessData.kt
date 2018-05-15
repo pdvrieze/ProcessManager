@@ -19,9 +19,7 @@ package nl.adaptivity.process.engine
 import com.nhaarman.mockito_kotlin.*
 import net.devrieze.util.readString
 import net.devrieze.util.toString
-import nl.adaptivity.process.processModel.XmlDefineType
-import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
@@ -604,7 +602,13 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testRoundTripResult1() {
         val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
-        val result = testRoundTrip(xml, XmlResultType::class.java)
+        val result = testRoundTripSer(xml, XmlResultType::class) {
+            assertEquals("name", it.name)
+            assertEquals("/umh:result/umh:value[@name='user']/text()", it.path)
+            assertEquals("", it.contentString)
+            assertEquals(1, it.namespaces.size)
+            assertEquals("http://adaptivity.nl/userMessageHandler", it.namespaces.getNamespaceURI("umh"))
+        }
         assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""))
     }
 
@@ -652,14 +656,11 @@ class TestProcessData {
                               "    </fullname>\n" +
                               "  </user>\n"
 
-        val rt = XmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
-        assertEquals(expectedContent, rt.content?.let { String(it) })
+        val rt:XmlResultType = XML.parse(xml)//pXmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
+        assertEquals(expectedContent, rt.contentString)
         val namespaces = rt.originalNSContext
         val it = namespaces.iterator()
         var ns = it.next()
-        assertEquals("", ns.prefix)
-        assertEquals("http://adaptivity.nl/ProcessEngine/", ns.namespaceURI)
-        ns = it.next()
         assertEquals("umh", ns.prefix)
         assertEquals("http://adaptivity.nl/userMessageHandler", ns.namespaceURI)
 

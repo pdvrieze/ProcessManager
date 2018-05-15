@@ -179,19 +179,20 @@ actual abstract class XPathHolder : XMLContainer {
         actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
             return result.deserializeHelper(reader)
         }
+    }
+}
 
-        protected actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
-            if (path != null && path.isNotEmpty()) {
-                try {
-                    val xpf = XPathFactory.newInstance()
-                    val xpath = xpf.newXPath()
-                    xpath.namespaceContext = namespaceContext
-                    xpath.compile(path.toString())
-                } catch (e: XPathExpressionException) {
-                    Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING, "The path used is not valid (" + path + ") - " + e.message, e)
-                }
 
-            }
+internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
+    if (path != null && path.isNotEmpty()) {
+        try {
+            val xpf = XPathFactory.newInstance()
+            val xpath = xpf.newXPath()
+            xpath.namespaceContext = namespaceContext
+            xpath.compile(path.toString())
+        } catch (e: XPathExpressionException) {
+            Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING, "The path used is not valid (" + path + ") - " + e.message, e)
         }
+
     }
 }
