@@ -1003,7 +1003,7 @@ fun assertXMLEqual(expected: String, actual: String) {
         .build()
 
     if (diff.hasDifferences()) {
-        assertEquals(expected, actual/*, diff.toString(DefaultComparisonFormatter())*/)
+        assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
     }
 }
 

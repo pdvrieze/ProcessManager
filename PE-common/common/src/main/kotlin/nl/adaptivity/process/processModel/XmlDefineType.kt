@@ -28,9 +28,11 @@ import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlSerialName
 import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 
 @Serializable
+@XmlSerialName(XmlDefineType.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 @XmlDeserializer(XmlDefineType.Factory::class)
 class XmlDefineType : XPathHolder, IXmlDefineType {
 
@@ -156,14 +158,14 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     @Serializer(forClass = XmlDefineType::class)
     companion object: XPathHolderSerializer<XmlDefineType>() {
 
-        override val serialClassDesc = simpleSerialClassDesc<XmlResultType>("name",
+        override val serialClassDesc = simpleSerialClassDesc<XmlDefineType>("name",
                                                                             "refnode",
                                                                             "refname",
                                                                             "xpath",
                                                                             "namespaces",
                                                                             "content")
 
-        val ELEMENTLOCALNAME = "define"
+        const val ELEMENTLOCALNAME = "define"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
         @JvmStatic
@@ -193,7 +195,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         }
 
         override fun save(output: KOutput, obj: XmlDefineType) {
-            XPathHolder.save(XmlResultType.serialClassDesc, output, obj)
+            save(XmlResultType.serialClassDesc, output, obj)
         }
 
         private class DefineTypeData(var refNode: String? = null, var refName: String? = null) : PathHolderData<XmlDefineType>(this) {

@@ -213,24 +213,3 @@ open class XPathHolderSerializer<T : XPathHolder> {
 
 
 }
-
-fun XPathHolder.Companion.save(desc: KSerialClassDesc, output: KOutput, data: XPathHolder) {
-    val childOut = output.writeBegin(desc)
-
-    childOut.writeNullableStringElementValue(desc, 0, data._name)
-    childOut.writeNullableStringElementValue(desc, 1, data.getPath())
-    if (childOut is XML.XmlOutput) {
-        val writer = childOut.target
-        for ((prefix, nsUri) in data.namespaces) {
-            if (writer.getNamespaceUri(prefix) != nsUri) {
-                writer.namespaceAttr(prefix, nsUri)
-            }
-        }
-        writer.serialize(data.getXmlReader())
-    } else {
-        childOut.writeSerializableElementValue(desc, 2, Namespace.list, data.namespaces.toList())
-        childOut.writeStringElementValue(desc, 3, data.contentString)
-    }
-
-
-}
