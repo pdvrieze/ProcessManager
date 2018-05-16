@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.nl.adaptivity.util
+package nl.adaptivity.util
 
 import nl.adaptivity.util.multiplatform.assert
 

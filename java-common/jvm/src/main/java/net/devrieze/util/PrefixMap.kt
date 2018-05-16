@@ -16,7 +16,7 @@
 
 package net.devrieze.util
 
-import nl.adaptivity.util.nl.adaptivity.util.assert
+import nl.adaptivity.util.assert
 import org.jetbrains.annotations.Contract
 
 import java.util.*

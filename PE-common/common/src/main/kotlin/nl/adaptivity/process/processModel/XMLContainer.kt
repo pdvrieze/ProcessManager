@@ -31,7 +31,6 @@ import nl.adaptivity.xml.serialization.CharArrayAsStringSerializer
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-@Serializable
 abstract class XMLContainer private constructor(final override var namespaces: SimpleNamespaceContext,
                                                 @Serializable(with = CharArrayAsStringSerializer::class)
                                                 final override var content: CharArray) : ExtXmlDeserializable, XmlSerializable, ICompactFragment {

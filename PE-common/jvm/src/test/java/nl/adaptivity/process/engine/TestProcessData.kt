@@ -18,13 +18,11 @@ package nl.adaptivity.process.engine
 
 import com.nhaarman.mockito_kotlin.*
 import net.devrieze.util.readString
-import net.devrieze.util.toString
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.EventType.*
 import nl.adaptivity.xml.IOException
 import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.serialization.XML
@@ -317,7 +315,7 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testXmlStreamingRoundTripProcessModel1() {
 
-        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class.java)
+        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class)
 
     }
 
@@ -407,7 +405,7 @@ class TestProcessData {
         val split2 = model.getNode("split2") as XmlSplit
         val actualNodes = model.getModelNodes()
         val expectedNodes = listOf<XmlProcessNode>(start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2,
-                                                          end, split2)
+                                                   end, split2)
 
         assertEquals(actualNodes.size, expectedNodes.size)
         assertTrue(actualNodes.containsAll(expectedNodes))
@@ -602,7 +600,7 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testRoundTripResult1() {
         val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
-        val result = testRoundTripSer(xml, XmlResultType::class) {
+        val result = testRoundTrip(xml, XmlResultType::class) {
             assertEquals("name", it.name)
             assertEquals("/umh:result/umh:value[@name='user']/text()", it.path)
             assertEquals("", it.contentString)
@@ -616,7 +614,7 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testRoundTripDefine() {
         val xml = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>"
-        val result = testRoundTrip(xml, XmlDefineType::class.java)
+        val result = testRoundTrip(xml, XmlDefineType::class)
     }
 
     @Test
@@ -630,7 +628,7 @@ class TestProcessData {
                   "    </fullname>\n" +
                   "  </user>\n" +
                   "</result>"
-        testRoundTrip(xml, XmlResultType::class.java) { result ->
+        testRoundTrip(xml, XmlResultType::class) { result ->
             assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
                                 XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
                          result.namespaces.sortedBy { it.prefix })
@@ -656,7 +654,7 @@ class TestProcessData {
                               "    </fullname>\n" +
                               "  </user>\n"
 
-        val rt:XmlResultType = XML.parse(xml)//pXmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
+        val rt: XmlResultType = XML.parse(xml)//pXmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
         assertEquals(expectedContent, rt.contentString)
         val namespaces = rt.originalNSContext
         val it = namespaces.iterator()
@@ -673,7 +671,7 @@ class TestProcessData {
         val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
                   "<jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>" +
                   "</result>"
-        val result = testRoundTrip(xml, XmlResultType::class.java)
+        val result = testRoundTrip(xml, XmlResultType::class)
         assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""))
     }
 
@@ -701,7 +699,7 @@ class TestProcessData {
                   "        </Body>\n" +
                   "      </Envelope>\n" +
                   "    </pe:message>\n"
-        testRoundTrip(xml, XmlMessage::class.java, false)
+        testRoundTrip(xml, XmlMessage::class, false)
     }
 
     @Test
@@ -742,7 +740,7 @@ class TestProcessData {
                   "</pe:processModel>\n"
 
 
-        testRoundTrip(xml, XmlProcessModel::class.java, true)
+        testRoundTrip(xml, XmlProcessModel::class, true)
     }
 
     @Test()
@@ -781,7 +779,7 @@ class TestProcessData {
                   "    </pe:message>\n" +
                   "  </pe:activity>\n" +
                   "</pe:processModel>\n"
-        assertThrows<ProcessException> { testRoundTrip(xml, XmlProcessModel::class.java, true) }
+        assertThrows<ProcessException> { testRoundTrip(xml, XmlProcessModel::class, true) }
     }
 
     companion object {
@@ -847,67 +845,92 @@ class TestProcessData {
         }
 
         @Throws(IOException::class, IllegalAccessException::class, InstantiationException::class, XmlException::class)
-        fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: Class<T>,
+        fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: KClass<out T>,
                                                 factoryOpt: XmlDeserializerFactory<T>? = null,
                                                 testObject: (T) -> Unit = {}): String {
             val expected: String
-            val streamReader: XmlReader
+            val streamReaderFactory: () -> XmlReader
             val xif = XMLInputFactory.newFactory()
             if (reader.markSupported()) {
                 reader.mark(Int.MAX_VALUE)
                 expected = reader.readString(Charset.defaultCharset())
                 reader.reset()
-                streamReader = XmlStreaming.newReader(reader, Charset.defaultCharset().toString())
+                streamReaderFactory = { XmlStreaming.newReader(reader, Charset.defaultCharset().toString()) }
             } else {
                 expected = reader.readString(Charset.defaultCharset())
-                streamReader = XmlStreaming.newReader(StringReader(expected))
+                streamReaderFactory = { XmlStreaming.newReader(StringReader(expected)) }
             }
 
-            return testRoundTrip(expected, streamReader, target, factoryOpt, testObject)
+            return testRoundTripCombined(expected, streamReaderFactory, target, factoryOpt = factoryOpt,
+                                         testObject = testObject)
         }
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
-        fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>,
+        fun <T : XmlSerializable> testRoundTrip(xml: String, target: KClass<out T>,
+                                                factoryOpt: XmlDeserializerFactory<out T>? = null,
+                                                testObject: (T) -> Unit = {}): String {
+            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
+                                         factoryOpt = factoryOpt,
+                                         testObject = testObject)
+        }
+
+        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+                SAXException::class)
+        fun <T : Any> testRoundTrip(xml: String, target: KClass<out T>,
+                                    repairNamespaces: Boolean = false,
+                                    omitXmlDecl: Boolean = true,
+                                    testObject: (T) -> Unit = {}): String {
+            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target, repairNamespaces,
+                                         omitXmlDecl,
+                                         testObject = testObject)
+        }
+
+        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+                SAXException::class)
+        fun <T : XmlSerializable> testRoundTrip(xml: String, target: KClass<out T>, ignoreNs: Boolean,
                                                 factoryOpt: XmlDeserializerFactory<T>? = null,
                                                 testObject: (T) -> Unit = {}): String {
-            return testRoundTrip(xml, target, false, factoryOpt, testObject)
+            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
+                                         factoryOpt = factoryOpt,
+                                         testObject = testObject)
         }
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
-        fun <T : Any> testRoundTripSer(xml: String, target: KClass<T>,
-                                       repairNamespaces: Boolean = false,
-                                       omitXmlDecl: Boolean = true,
-                                       testObject: (T) -> Unit = {}): String {
-            return testRoundTripSer<T>(xml, target, false, repairNamespaces, omitXmlDecl, testObject)
+        fun <T : Any> testRoundTrip(xml: String, target: KClass<T>, ignoreNs: Boolean,
+                                    repairNamespaces: Boolean = false,
+                                    omitXmlDecl: Boolean = true,
+                                    testObject: (T) -> Unit = {}): String {
+            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target, repairNamespaces,
+                                         omitXmlDecl,
+                                         testObject = testObject)
         }
 
-        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
-                SAXException::class)
-        fun <T : XmlSerializable> testRoundTrip(xml: String, target: Class<T>, ignoreNs: Boolean,
-                                                factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                testObject: (T) -> Unit = {}): String {
-            return testRoundTrip(xml, XmlStreaming.newReader(StringReader(xml)), target, factoryOpt,
-                                 testObject)
-        }
-
-        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
-                SAXException::class)
-        fun <T : Any> testRoundTripSer(xml: String, target: KClass<T>, ignoreNs: Boolean,
-                                       repairNamespaces: Boolean = false,
-                                       omitXmlDecl: Boolean = true,
-                                       testObject: (T) -> Unit = {}): String {
-            return testRoundTripSer(xml, XmlStreaming.newReader(StringReader(xml)), target, repairNamespaces, omitXmlDecl,
-                                 testObject)
+        private inline fun <T : Any> testRoundTripCombined(expected: String,
+                                                           readerFactory: () -> XmlReader,
+                                                           target: KClass<out T>,
+                                                           repairNamespaces: Boolean = false,
+                                                           omitXmlDecl: Boolean = true,
+                                                           factoryOpt: XmlDeserializerFactory<out T>? = null,
+                                                           noinline testObject: (T) -> Unit = {}): String {
+            val new = testRoundTripSer(expected, readerFactory(), target, repairNamespaces, omitXmlDecl, testObject)
+            if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
+                val serializableTarget = target.java.asSubclass(XmlSerializable::class.java)
+                val old = testRoundTripOld<XmlSerializable>(expected, readerFactory(), serializableTarget,
+                                                            factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
+                                                            testObject as ((XmlSerializable) -> Unit))
+                assertXMLEqual(new, old)
+            }
+            return new
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
-        private fun <T : XmlSerializable> testRoundTrip(expected: String,
-                                                        reader: XmlReader,
-                                                        target: Class<T>,
-                                                        factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                        testObject: (T) -> Unit = {}): String {
+        private fun <T : XmlSerializable> testRoundTripOld(expected: String,
+                                                           reader: XmlReader,
+                                                           target: Class<out T>,
+                                                           factoryOpt: XmlDeserializerFactory<out T>? = null,
+                                                           testObject: (T) -> Unit = {}): String {
             assertNotNull(reader)
             val factory = factoryOpt ?: target.getAnnotation(
                 XmlDeserializer::class.java).value.java.newInstance() as XmlDeserializerFactory<*>
@@ -953,7 +976,7 @@ class TestProcessData {
         private fun toArray(value1: Any) = arrayOf(value1)
 
         @Deprecated("Use arrayOf", ReplaceWith("arrayOf(*value)"))
-        private fun toArray(vararg value: Any)= arrayOf(value)
+        private fun toArray(vararg value: Any) = arrayOf(value)
     }
 
 }

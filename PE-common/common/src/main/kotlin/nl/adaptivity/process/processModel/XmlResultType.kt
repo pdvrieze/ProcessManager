@@ -91,7 +91,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
 
     @Serializer(forClass = XmlResultType::class)
-    companion object : KSerializer<XmlResultType> {
+    companion object : XPathHolderSerializer<XmlResultType>(), KSerializer<XmlResultType> {
         override val serialClassDesc = simpleSerialClassDesc<XmlResultType>("name",
                                                                             "xpath",
                                                                             "namespaces",
@@ -111,13 +111,13 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
         operator fun get(import: IXmlResultType) = XmlResultType(import)
 
         override fun load(input: KInput): XmlResultType {
-            return XPathHolder.load(serialClassDesc, input, ::XPathholderNamespaceGatherer) { name, path, content, originalNSContext ->
-                XmlResultType(name, path, content, originalNSContext)
-            }
+            val data = PathHolderData(this)
+            data.load(serialClassDesc, input)
+            return XmlResultType(data.name, data.path, data.content, data.namespaces)
         }
 
         override fun save(output: KOutput, obj: XmlResultType) {
-            XPathHolder.save(serialClassDesc, output, obj)
+            save(serialClassDesc, output, obj)
         }
     }
 
