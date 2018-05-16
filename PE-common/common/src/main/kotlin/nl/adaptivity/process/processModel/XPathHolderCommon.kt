@@ -19,10 +19,8 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.xml.CombiningNamespaceContext
-import nl.adaptivity.util.xml.NamespaceAddingStreamReader
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.*
 
@@ -95,7 +93,8 @@ internal class PathHolderData(var name: String? = null,
                 }
             }
             val namespacesMap = mutableMapOf<String, String>()
-            val gatheringNamespaceContext = GatheringNamespaceContext(reader.namespaceContext, namespacesMap)
+            val referenceContext = SimpleNamespaceContext(reader.namespaceDecls.toList())
+            val gatheringNamespaceContext = GatheringNamespaceContext(referenceContext, namespacesMap)
 
             if (!path.isNullOrEmpty()) {
                 visitXpathUsedPrefixes(path, gatheringNamespaceContext)
@@ -165,13 +164,15 @@ fun XPathHolder.Companion.save(desc: KSerialClassDesc, output: KOutput, data: XP
 }
 
 private class FilteringReader(val delegate: XmlReader, val filter: NamespaceGatherer): XmlReader by delegate {
+    var initialNamespaceEnd = delegate.namespaceEnd
+
     private var textContent: StringBuilder? = null
     override fun next(): EventType {
         return delegate.next().also {
             when (it) {
                 EventType.START_ELEMENT          -> {
                     textContent = StringBuilder()
-                    filter.visitNamesInElement(this)
+                    filter.visitNamesInElement(this, initialNamespaceEnd)
                 }
                 EventType.TEXT,
                 EventType.IGNORABLE_WHITESPACE,
@@ -179,7 +180,7 @@ private class FilteringReader(val delegate: XmlReader, val filter: NamespaceGath
                     textContent?.append(text)
                 }
                 EventType.END_ELEMENT -> {
-                    textContent?.let { filter.visitNamesInTextContent(name, it) }
+                    textContent?.let { filter.visitNamesInTextContent(name, it, initialNamespaceEnd) }
 
                     textContent = null
                 }
@@ -190,21 +191,25 @@ private class FilteringReader(val delegate: XmlReader, val filter: NamespaceGath
 
 open internal class NamespaceGatherer(val gatheringNamespaceContext: GatheringNamespaceContext) {
 
-    open fun visitNamesInElement(source: XmlReader) {
+    open fun visitNamesInElement(source: XmlReader, initialNamespaceEnd: Int) {
         assert(source.eventType === EventType.START_ELEMENT)
 
-        gatheringNamespaceContext.getNamespaceURI(source.prefix)
+        val prefix = source.prefix
+        if((initialNamespaceEnd until source.namespaceEnd).none { source.getNamespacePrefix(it) == prefix }) {
+            gatheringNamespaceContext.getNamespaceURI(prefix)
+        }
 
         for (i in source.attributeCount - 1 downTo 0) {
             val attrName = source.getAttributeName(i)
-            visitNamesInAttributeValue(source.namespaceContext, source.name, attrName, source.getAttributeValue(i))
+            visitNamesInAttributeValue(source.namespaceContext, source.name, attrName, source.getAttributeValue(i), initialNamespaceEnd)
         }
     }
 
     open fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
                                                   owner: QName,
                                                   attributeName: QName,
-                                                  attributeValue: CharSequence) {
+                                                  attributeValue: CharSequence,
+                                         initialNamespaceEnd: Int) {
         // By default there are no special attributes
     }
 
@@ -218,7 +223,7 @@ open internal class NamespaceGatherer(val gatheringNamespaceContext: GatheringNa
 internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: GatheringNamespaceContext) :
     NamespaceGatherer(gatheringNamespaceContext) {
 
-    override fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence) {
+    override fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence, initialNamespaceEnd: Int) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, CombiningNamespaceContext(gatheringNamespaceContext, referenceContext))
         }
