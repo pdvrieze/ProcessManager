@@ -29,6 +29,7 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlSerialName
+import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 
 @Serializable
@@ -199,6 +200,16 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         }
 
         private class DefineTypeData(var refNode: String? = null, var refName: String? = null) : PathHolderData<XmlDefineType>(this) {
+
+            override fun readAdditionalChild(desc: KSerialClassDesc, input: KInput, index: Int) {
+                val name = desc.getElementName(index)
+                when (name)  {
+                    "refnode" -> refNode = input.readNullableString()
+                    "refname" -> refName = input.readNullableString()
+                    else -> super.readAdditionalChild(desc, input, index)
+                }
+            }
+
             override fun handleAttribute(attributeLocalName: String, attributeValue: String) {
                 when (attributeLocalName) {
                     "refnode" -> refNode = attributeValue
