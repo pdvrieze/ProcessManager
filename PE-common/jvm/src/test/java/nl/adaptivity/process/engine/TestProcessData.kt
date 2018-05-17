@@ -705,7 +705,10 @@ class TestProcessData {
                   "        </Body>\n" +
                   "      </Envelope>\n" +
                   "    </pe:message>\n"
-        testRoundTrip(xml, XmlMessage::class, false)
+        testRoundTrip(xml, XmlMessage::class, false) {
+            assertEquals("http://adaptivity.nl/userMessageHandler", it.serviceNS)
+            assertEquals("userMessageHandler", it.serviceName)
+        }
     }
 
     @Test
