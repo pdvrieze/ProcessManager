@@ -629,9 +629,14 @@ class TestProcessData {
                   "  </user>\n" +
                   "</result>"
         testRoundTrip(xml, XmlResultType::class) { result ->
-            assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
-                                XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                         result.namespaces.sortedBy { it.prefix })
+            if (result.namespaces.size==1) {
+                assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
+                             result.namespaces.toList())
+            } else {
+                assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
+                                    XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
+                             result.namespaces.sortedBy { it.prefix })
+            }
         }
     }
 

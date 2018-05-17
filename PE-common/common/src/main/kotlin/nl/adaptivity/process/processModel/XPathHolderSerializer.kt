@@ -170,7 +170,15 @@ open class XPathHolderSerializer<T : XPathHolder> {
                                                 attributeValue: CharSequence,
                                                 localPrefixes: List<List<String>>) {
             if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
-                visitXpathUsedPrefixes(attributeValue, CombiningNamespaceContext(gatheringNamespaceContext, elementContext))
+                val namesInPath = mutableMapOf<String, String>()
+                val newContext = GatheringNamespaceContext(elementContext, namesInPath)
+                visitXpathUsedPrefixes(attributeValue, newContext)
+                for((prefix, nsUri) in namesInPath) {
+                    if (localPrefixes.none { prefix in it }) {
+                        gatheringNamespaceContext.getNamespaceURI(prefix)
+                    }
+                }
+
             }
         }
 
