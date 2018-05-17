@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import com.nhaarman.mockito_kotlin.*
+import kotlinx.serialization.Serializable
 import net.devrieze.util.readString
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
@@ -919,15 +920,18 @@ class TestProcessData {
                                                            omitXmlDecl: Boolean = true,
                                                            factoryOpt: XmlDeserializerFactory<out T>? = null,
                                                            noinline testObject: (T) -> Unit = {}): String {
-            val new = testRoundTripSer(expected, readerFactory(), target, repairNamespaces, omitXmlDecl, testObject)
-            if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
+            val new = if (target.java.getAnnotation(Serializable::class.java)==null) null else
+                testRoundTripSer(expected, readerFactory(), target, repairNamespaces, omitXmlDecl, testObject)
+
+            val old = if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
                 val serializableTarget = target.java.asSubclass(XmlSerializable::class.java)
-                val old = testRoundTripOld<XmlSerializable>(expected, readerFactory(), serializableTarget,
+                testRoundTripOld<XmlSerializable>(expected, readerFactory(), serializableTarget,
                                                             factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
                                                             testObject as ((XmlSerializable) -> Unit))
-                assertXMLEqual(new, old)
-            }
-            return new
+            } else null
+            if (new!=null && old!=null)
+            assertXMLEqual(new, old)
+            return new ?: old ?: throw AssertionError("Either old or new needs to be initialised")
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
