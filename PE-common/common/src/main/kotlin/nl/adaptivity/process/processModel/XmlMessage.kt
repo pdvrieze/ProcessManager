@@ -28,6 +28,7 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.toUri
+import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
@@ -61,13 +62,39 @@ import nl.adaptivity.xml.*
  * ```
  */
 @XmlDeserializer(XmlMessage.Factory::class)
-class XmlMessage : BaseMessage, IXmlMessage, ExtXmlDeserializable {
+class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
+
+    override var service: QName?
+    override var endpoint: String?
+    override var operation: String?
+    override var url: String?
+    override var method: String?
 
     override val endpointDescriptor: EndpointDescriptor?
-        get() {
-            val url = url
-            return EndpointDescriptorImpl(service, endpoint, url?.toUri())
+        get() = EndpointDescriptorImpl(service, endpoint, this.url?.toUri())
+
+    private var type: String? = contentType
+
+    override val contentType: String
+        get() = type ?: "application/soap+xml"
+
+    override val elementName: QName
+        get() = ELEMENTNAME
+
+    override var serviceName: String?
+        get() = service?.localPart
+        set(name) {
+            service = name?.let { QName(service?.getNamespaceURI() ?: "", it) }
         }
+
+    override var serviceNS: String?
+        get() = service?.getNamespaceURI()
+        set(namespace) {
+            this.service = namespace?.let { QName(it, service?.getLocalPart() ?: "xx") }
+        }
+
+    override val messageBody: ICompactFragment
+        get() = CompactFragment(namespaces, content)
 
     class Factory : XmlDeserializerFactory<XmlMessage> {
 
@@ -76,23 +103,119 @@ class XmlMessage : BaseMessage, IXmlMessage, ExtXmlDeserializable {
         }
     }
 
-    constructor() : super() { /* default constructor */
+    constructor() : this(service=null) { /* default constructor */
     }
 
 
-    constructor(service: QName?,
-                endpoint: String?,
-                operation: String?,
-                url: String?,
-                method: String?,
-                contentType: String,
-                messageBody: ICompactFragment) : super(service, endpoint, operation, url, method, contentType,
-                                                       messageBody) {
+    constructor(service: QName? = null,
+                endpoint: String? = null,
+                operation: String? = null,
+                url: String? = null,
+                method: String? = null,
+                contentType: String? = null,
+                messageBody: ICompactFragment? = null)  {
+        this.service = service
+        this.endpoint = endpoint
+        this.operation = operation
+        this.url = url
+        this.method = method
+        this.type = contentType
+        messageBody?.let {
+            namespaces = SimpleNamespaceContext(it.namespaces)
+            content = it.content
+        }
     }
 
+    override fun serializeAttributes(out: XmlWriter) {
+        super.serializeAttributes(out)
+        out.writeAttribute("type", contentType)
+        out.writeAttribute("serviceNS", serviceNS)
+        out.writeAttribute("serviceName", serviceName)
+        out.writeAttribute("endpoint", endpoint)
+        out.writeAttribute("operation", operation)
+        out.writeAttribute("url", url)
+        out.writeAttribute("method", method)
+    }
 
-    fun setContentType(type: String) {
-        super.setType(type)
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
+        if (XMLConstants.NULL_NS_URI == attributeNamespace) {
+            val value = attributeValue
+            when (attributeLocalName) {
+                "endpoint"    -> {
+                    endpoint = value
+                    return true
+                }
+                "operation"   -> {
+                    operation = value
+                    return true
+                }
+                "url"         -> {
+                    url = value
+                    return true
+                }
+                "method"      -> {
+                    method = value
+                    return true
+                }
+                "type"        -> {
+                    type = value
+                    return true
+                }
+                "serviceNS"   -> {
+                    serviceNS = value
+                    return true
+                }
+                "serviceName" -> {
+                    serviceName = value
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    override fun serializeStartElement(out: XmlWriter) {
+        out.smartStartTag(elementName)
+    }
+
+    override fun serializeEndElement(out: XmlWriter) {
+        out.endTag(elementName)
+    }
+
+    override fun setType(type: String) {
+        this.type = type
+    }
+
+    override fun toString(): String {
+        return XmlStreaming.toString(this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as XmlMessage
+
+        if (service != other.service) return false
+        if (endpoint != other.endpoint) return false
+        if (operation != other.operation) return false
+        if (url != other.url) return false
+        if (method != other.method) return false
+        if (type != other.type) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = service?.hashCode() ?: 0
+        result = 31 * result + (endpoint?.hashCode() ?: 0)
+        result = 31 * result + (operation?.hashCode() ?: 0)
+        result = 31 * result + (url?.hashCode() ?: 0)
+        result = 31 * result + (method?.hashCode() ?: 0)
+        result = 31 * result + (type?.hashCode() ?: 0)
+        return result
     }
 
     companion object {
