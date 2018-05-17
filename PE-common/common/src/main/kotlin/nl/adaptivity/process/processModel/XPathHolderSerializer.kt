@@ -130,18 +130,19 @@ open class XPathHolderSerializer<T : XPathHolder> {
 
     open class NamespaceGatherer(val gatheringNamespaceContext: GatheringNamespaceContext) {
 
-        open fun visitNamesInElement(source: XmlReader, initialNamespaceEnd: Int) {
+        open fun visitNamesInElement(source: XmlReader, localPrefixes: List<List<String>>) {
             assert(source.eventType === EventType.START_ELEMENT)
 
             val prefix = source.prefix
-            if ((initialNamespaceEnd until source.namespaceEnd).none { source.getNamespacePrefix(it) == prefix }) {
+            val isLocal = localPrefixes.any { prefix in it }
+            if (! isLocal) {
                 gatheringNamespaceContext.getNamespaceURI(prefix)
             }
 
             for (i in source.attributeCount - 1 downTo 0) {
                 val attrName = source.getAttributeName(i)
                 visitNamesInAttributeValue(source.namespaceContext, source.name, attrName, source.getAttributeValue(i),
-                                           initialNamespaceEnd)
+                                           localPrefixes)
             }
         }
 
@@ -149,7 +150,7 @@ open class XPathHolderSerializer<T : XPathHolder> {
                                             owner: QName,
                                             attributeName: QName,
                                             attributeValue: CharSequence,
-                                            initialNamespaceEnd: Int) {
+                                            localPrefixes: List<List<String>>) {
             // By default there are no special attributes
         }
 
@@ -167,7 +168,7 @@ open class XPathHolderSerializer<T : XPathHolder> {
                                                 owner: QName,
                                                 attributeName: QName,
                                                 attributeValue: CharSequence,
-                                                initialNamespaceEnd: Int) {
+                                                localPrefixes: List<List<String>>) {
             if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
                 visitXpathUsedPrefixes(attributeValue, CombiningNamespaceContext(gatheringNamespaceContext, elementContext))
             }
@@ -178,7 +179,9 @@ open class XPathHolderSerializer<T : XPathHolder> {
 
     private class FilteringReader(val delegate: XmlReader,
                                   val filter: XPathHolderSerializer.NamespaceGatherer,
-                                  val initialNamespaceEnd: Int) : XmlReader by delegate {
+                                  initialNamespaceEnd: Int) : XmlReader by delegate {
+
+        private val localPrefixes = mutableListOf<List<String>>(emptyList())
 
         init {
             delegate.eventType.handle()
@@ -188,8 +191,9 @@ open class XPathHolderSerializer<T : XPathHolder> {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (this) {
                 EventType.START_ELEMENT -> {
+                    localPrefixes.add((delegate.namespaceStart until delegate.namespaceEnd).map { delegate.getNamespacePrefix(it) })
                     textContent = StringBuilder()
-                    filter.visitNamesInElement(delegate, initialNamespaceEnd)
+                    filter.visitNamesInElement(delegate, localPrefixes)
                 }
                 EventType.TEXT,
                 EventType.IGNORABLE_WHITESPACE,
@@ -200,6 +204,7 @@ open class XPathHolderSerializer<T : XPathHolder> {
                     textContent?.let { filter.visitNamesInTextContent(delegate.name, it) }
 
                     textContent = null
+                    localPrefixes.removeAt(localPrefixes.lastIndex)
                 }
             }
 
