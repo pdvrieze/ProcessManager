@@ -27,12 +27,13 @@ import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
 open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
-    open class PathHolderData<T : XPathHolder>(
-        owner: XPathHolderSerializer<T>,
-        var name: String? = null,
-        var path: String? = null) : ContainerData<XPathHolderSerializer<T>, T>(owner) {
+    open class PathHolderData<T : XPathHolder>(owner: XPathHolderSerializer<T>,
+                                               var name: String? = null,
+                                               var path: String? = null) :
+        ContainerData<XPathHolderSerializer<T>, T>(owner) {
 
-        override fun handleLastRootAttributeRead(reader: XmlReader, gatheringNamespaceContext: GatheringNamespaceContext) {
+        override fun handleLastRootAttributeReadEvent(reader: XmlReader,
+                                                      gatheringNamespaceContext: GatheringNamespaceContext) {
             if (!path.isNullOrEmpty()) {
                 visitXpathUsedPrefixes(path, gatheringNamespaceContext)
             }
@@ -42,7 +43,7 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
             when (desc.getElementName(index)) {
                 "name" -> name = input.readNullableString()
                 "path" -> path = input.readNullableString()
-                else -> super.readAdditionalChild(desc, input, index)
+                else   -> super.readAdditionalChild(desc, input, index)
             }
         }
 
@@ -59,31 +60,12 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
         return XPathholderNamespaceGatherer(gatheringNamespaceContext)
     }
 
-    fun save(desc: KSerialClassDesc, output: KOutput, data: T) {
-        val childOut = output.writeBegin(desc)
-
-        childOut.writeNullableStringElementValue(desc, desc.getElementIndex("name"), data._name)
-        childOut.writeNullableStringElementValue(desc, desc.getElementIndex("xpath"), data.getPath())
-        if (childOut is XML.XmlOutput) {
-            val writer = childOut.target
-            for ((prefix, nsUri) in data.namespaces) {
-                if (writer.getNamespaceUri(prefix) != nsUri) {
-                    writer.namespaceAttr(prefix, nsUri)
-                }
-            }
-            writeAdditionalAttributes(writer, data)
-            writer.serialize(data.getXmlReader())
-        } else {
-            childOut.writeSerializableElementValue(desc, desc.getElementIndex("namespaces"), Namespace.list,
-                                                   data.namespaces.toList())
-            childOut.writeStringElementValue(desc, desc.getElementIndex("content"), data.contentString)
-            writeAdditionalValues(childOut, desc, data)
-        }
-    }
-
     open fun writeAdditionalAttributes(writer: XmlWriter, data: T) {}
 
-    open fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: T) {}
+    override fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: T) {
+        out.writeNullableStringElementValue(desc, desc.getElementIndex("name"), data._name)
+        out.writeNullableStringElementValue(desc, desc.getElementIndex("xpath"), data.getPath())
+    }
 
     internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: GatheringNamespaceContext) :
         NamespaceGatherer(gatheringNamespaceContext) {

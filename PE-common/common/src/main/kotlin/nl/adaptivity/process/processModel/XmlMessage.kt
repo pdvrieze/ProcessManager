@@ -24,6 +24,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.*
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
@@ -32,6 +33,9 @@ import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlSerialName
+import nl.adaptivity.xml.serialization.readNullableString
+import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
 
 /**
@@ -62,9 +66,13 @@ import nl.adaptivity.xml.*
  * ```
  */
 @XmlDeserializer(XmlMessage.Factory::class)
+@Serializable
+@XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
 
+    @Transient
     override var service: QName?
+
     override var endpoint: String?
     override var operation: String?
     override var url: String?
@@ -75,9 +83,11 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
 
     private var type: String? = contentType
 
+    @Transient
     override val contentType: String
         get() = type ?: "application/soap+xml"
 
+    @Transient
     override val elementName: QName
         get() = ELEMENTNAME
 
@@ -103,7 +113,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         }
     }
 
-    constructor() : this(service=null) { /* default constructor */
+    constructor() : this(service = null) { /* default constructor */
     }
 
 
@@ -113,7 +123,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
                 url: String? = null,
                 method: String? = null,
                 contentType: String? = null,
-                messageBody: ICompactFragment? = null)  {
+                messageBody: ICompactFragment? = null) {
         this.service = service
         this.endpoint = endpoint
         this.operation = operation
@@ -141,34 +151,33 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
                                       attributeLocalName: String,
                                       attributeValue: String): Boolean {
         if (XMLConstants.NULL_NS_URI == attributeNamespace) {
-            val value = attributeValue
             when (attributeLocalName) {
                 "endpoint"    -> {
-                    endpoint = value
+                    endpoint = attributeValue
                     return true
                 }
                 "operation"   -> {
-                    operation = value
+                    operation = attributeValue
                     return true
                 }
                 "url"         -> {
-                    url = value
+                    url = attributeValue
                     return true
                 }
                 "method"      -> {
-                    method = value
+                    method = attributeValue
                     return true
                 }
                 "type"        -> {
-                    type = value
+                    type = attributeValue
                     return true
                 }
                 "serviceNS"   -> {
-                    serviceNS = value
+                    serviceNS = attributeValue
                     return true
                 }
                 "serviceName" -> {
-                    serviceName = value
+                    serviceName = attributeValue
                     return true
                 }
             }
@@ -218,9 +227,10 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         return result
     }
 
-    companion object {
+    @Serializer(forClass = XmlMessage::class)
+    companion object : XmlContainerSerializer<XmlMessage>() {
 
-        val ELEMENTLOCALNAME = "message"
+        const val ELEMENTLOCALNAME = "message"
 
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
@@ -240,7 +250,63 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         fun deserialize(reader: XmlReader): XmlMessage {
             return XmlMessage().deserializeHelper(reader)
         }
+
+        override fun load(input: KInput): XmlMessage {
+            val data = XmlMessageData(this).apply { load(serialClassDesc, input) }
+
+            return XmlMessage(data.service, data.endpoint, data.operation, data.url, data.method, data.contentType,
+                              data.fragment)
+        }
+
+        override fun save(output: KOutput, obj: XmlMessage) {
+            super.save(serialClassDesc, output, obj)
+        }
+
+        override fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: XmlMessage) {
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("type"), data.contentType)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("serviceNS"), data.serviceNS)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("serviceName"), data.serviceName)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("endpoint"), data.endpoint)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("operation"), data.operation)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("url"), data.url)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("method"), data.method)
+        }
+
+        private class XmlMessageData(owner: Companion) : XmlContainerSerializer.ContainerData<Companion, XmlMessage>(
+            owner) {
+            var serviceName: String? = null
+            var serviceNS: String? = null
+            var endpoint: String? = null
+            var operation: String? = null
+            var url: String? = null
+            var method: String? = null
+            var contentType: String? = null
+
+            val service: QName? get() = serviceName?.let { QName(serviceNS ?: "", it) }
+
+            override fun handleAttribute(attributeLocalName: String, attributeValue: String) {
+                return when (attributeLocalName) {
+                    "serviceName" -> serviceName = attributeValue
+                    "serviceNS"   -> serviceNS = attributeValue
+                    "endpoint"    -> endpoint = attributeValue
+                    "operation"   -> operation = attributeValue
+                    "url"         -> url = attributeValue
+                    "method"      -> method = attributeValue
+                    "type"        -> contentType = attributeValue
+
+                    else          -> super.handleAttribute(attributeLocalName, attributeValue)
+                }
+            }
+
+            override fun readAdditionalChild(desc: KSerialClassDesc, input: KInput, index: Int) {
+                val name = desc.getElementName(index)
+                val value = input.readNullableString()
+                if (value != null) {
+                    handleAttribute(name, value)
+                }
+            }
+        }
     }
 
-
 }
+

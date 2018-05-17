@@ -18,12 +18,36 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.CharArrayAsStringSerializer
 import nl.adaptivity.xml.serialization.XML
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 open class XmlContainerSerializer<T : XMLContainer> {
+
+    fun save(desc: KSerialClassDesc, output: KOutput, data: T) {
+        val childOut = output.writeBegin(desc)
+
+        if (childOut is XML.XmlOutput) {
+            val writer = childOut.target
+            for ((prefix, nsUri) in data.namespaces) {
+                if (writer.getNamespaceUri(prefix) != nsUri) {
+                    writer.namespaceAttr(prefix, nsUri)
+                }
+            }
+            writeAdditionalValues(childOut, desc, data)
+            writer.serialize(data.getXmlReader())
+        } else {
+            childOut.writeSerializableElementValue(desc, desc.getElementIndex("namespaces"), Namespace.list,
+                                                   data.namespaces.toList())
+            childOut.writeStringElementValue(desc, desc.getElementIndex("content"), data.contentString)
+            writeAdditionalValues(childOut, desc, data)
+        }
+    }
+
+    open fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: T) {}
 
 
     open fun getFilter(gatheringNamespaceContext: GatheringNamespaceContext): NamespaceGatherer {
@@ -35,7 +59,13 @@ open class XmlContainerSerializer<T : XMLContainer> {
         var content: CharArray? = null
         var namespaces: Iterable<Namespace>? = null
 
-        open fun handleAttribute(attributeLocalName: String, attributeValue: String) {}
+        val fragment: ICompactFragment? get() = content?.let {
+            CompactFragment(namespaces?: emptyList(), it)
+        }
+
+        open fun handleAttribute(attributeLocalName: String, attributeValue: String) {
+            throw SerializationException("Unknown attribute: $attributeLocalName")
+        }
 
         open fun load(desc: KSerialClassDesc,
                       input: KInput) {
@@ -52,7 +82,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
                 val referenceContext = SimpleNamespaceContext(reader.namespaceDecls.toList())
                 val gatheringNamespaceContext = GatheringNamespaceContext(referenceContext, namespacesMap)
 
-                handleLastRootAttributeRead(reader, gatheringNamespaceContext)
+                handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
 
                 reader.next()
                 // We have finished the start element, now only read the content
@@ -98,7 +128,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
         }
 
 
-        open fun handleLastRootAttributeRead(reader: XmlReader, gatheringNamespaceContext: GatheringNamespaceContext) {}
+        open fun handleLastRootAttributeReadEvent(reader: XmlReader, gatheringNamespaceContext: GatheringNamespaceContext) {}
 
     }
 

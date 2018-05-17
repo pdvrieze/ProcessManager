@@ -31,6 +31,7 @@ import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlSerialName
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.simpleSerialClassDesc
+import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
 @Serializable
 @XmlSerialName(XmlDefineType.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
@@ -186,17 +187,19 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         }
 
         override fun writeAdditionalAttributes(writer: XmlWriter, data: XmlDefineType) {
+            super.writeAdditionalAttributes(writer, data)
             writer.writeAttribute("refname", data.getRefName())
             writer.writeAttribute("refnode", data.getRefNode())
         }
 
         override fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: XmlDefineType) {
-            data.getRefName()?.let { out.writeStringElementValue(desc, desc.getElementIndex("refname"), it)}
-            data.getRefNode()?.let { out.writeStringElementValue(desc, desc.getElementIndex("refnode"), it)}
+            super.writeAdditionalValues(out, desc, data)
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("refname"), data.getRefName())
+            out.writeNullableStringElementValue(desc, desc.getElementIndex("refnode"), data.getRefNode())
         }
 
         override fun save(output: KOutput, obj: XmlDefineType) {
-            save(XmlResultType.serialClassDesc, output, obj)
+            save(serialClassDesc, output, obj)
         }
 
         private class DefineTypeData(var refNode: String? = null, var refName: String? = null) : PathHolderData<XmlDefineType>(this) {
