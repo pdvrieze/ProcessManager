@@ -16,11 +16,12 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.*
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.QName
 
-
+@Serializable
 interface IXmlMessage {
 
     var serviceName: String?
@@ -47,4 +48,17 @@ interface IXmlMessage {
 
     override fun toString(): String
 
+    @Serializer(forClass = IXmlMessage::class)
+    companion object: KSerializer<IXmlMessage> {
+        override val serialClassDesc: KSerialClassDesc
+            get() = XmlMessage.serialClassDesc
+
+        override fun load(input: KInput): IXmlMessage {
+            return XmlMessage.load(input)
+        }
+
+        override fun save(output: KOutput, obj: IXmlMessage) {
+            return XmlMessage.save(output, XmlMessage.get(obj)!!)
+        }
+    }
 }

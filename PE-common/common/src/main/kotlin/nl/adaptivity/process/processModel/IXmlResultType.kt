@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.*
 import nl.adaptivity.xml.Namespace
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.XmlSerializable
@@ -60,6 +61,8 @@ expect interface IXmlResultType : XmlSerializable {
    * @return the context
    */
   val originalNSContext: Iterable<Namespace>
+
+  companion object serializer: KSerializer<IXmlResultType>
 }
 
 val IXmlResultType.path:String?
@@ -70,3 +73,22 @@ var IXmlResultType.name:String
   inline set(value) { setName(value) }
 
 fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext
+
+object IXmlResultTypeListSerializer: KSerializer<List<IXmlResultType>> {
+    val delegate = XmlResultType.list
+
+    override val serialClassDesc: KSerialClassDesc = delegate.serialClassDesc
+
+    override fun load(input: KInput): List<IXmlResultType> {
+        return delegate.load(input)
+    }
+
+    override fun update(input: KInput, old: List<IXmlResultType>): List<IXmlResultType> {
+        @Suppress("UNCHECKED_CAST") // Don't check as it's not needed. Update merely appends
+        return delegate.update(input, old as List<XmlResultType>)
+    }
+
+    override fun save(output: KOutput, obj: List<IXmlResultType>) {
+        delegate.save(output, obj.map(::XmlResultType))
+    }
+}

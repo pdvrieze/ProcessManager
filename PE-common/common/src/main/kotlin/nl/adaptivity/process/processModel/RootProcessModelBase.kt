@@ -25,9 +25,7 @@ import net.devrieze.util.security.SimplePrincipal
 import net.devrieze.util.security.name
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.processModel.engine.IProcessModelRef
-import nl.adaptivity.process.processModel.engine.ProcessModelRef
-import nl.adaptivity.process.processModel.engine.XmlProcessModel
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.*
@@ -589,7 +587,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
     fun serializerBySerialDescClassname(klassName: String,
                                         context: SerialContext?): KSerializer<out ProcessNode.IBuilder<*, *>> {
         if (klassName.startsWith(NODE_PACKAGE)) {
-            serializerBySimpleName(klassName.substring(NODE_PACKAGE.length))?.let { return it }
+            serializerBySimpleName(klassName.substring(NODE_PACKAGE.length+1))?.let { return it }
         }
         throw IllegalArgumentException("No serializer found for class $klassName")
     }
@@ -598,15 +596,15 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
     fun serializerBySimpleName(simpleName: String,
                                context: SerialContext? = null): KSerializer<out ProcessNode.IBuilder<*, *>>? = when (simpleName) {
         "XmlStartNode",
-        "StartNode\$.Builder" -> context.klassSerializer(StartNode.Builder::class)
+        "XmlStartNode\$Builder" -> context.klassSerializer(XmlStartNode.Builder::class)
         "XmlActivity",
-        "Activity\$.Builder"  -> context.klassSerializer(Activity.Builder::class)
+        "XmlActivity\$Builder"  -> context.klassSerializer(XmlActivity.Builder::class)
         "XmlSplit",
-        "Split\$Builder"      -> context.klassSerializer(Split.Builder::class)
+        "XmlSplit\$Builder"      -> context.klassSerializer(XmlSplit.Builder::class)
         "XmlJoin",
-        "Join\$Builder"       -> context.klassSerializer(Join.Builder::class)
+        "XmlJoin\$Builder"       -> context.klassSerializer(XmlJoin.Builder::class)
         "XmlEndNode",
-        "EndNode\$Builder"    -> context.klassSerializer(EndNode.Builder::class)
+        "XmlEndNode\$Builder"    -> context.klassSerializer(XmlEndNode.Builder::class)
         else                  -> null
     }
 

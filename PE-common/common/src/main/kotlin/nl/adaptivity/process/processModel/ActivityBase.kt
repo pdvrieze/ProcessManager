@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlCondition
@@ -30,195 +32,198 @@ import nl.adaptivity.xml.*
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
+@Serializable
 abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, Activity<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, Activity.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
+    @Serializable
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, Activity.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
+
+        override var message: IXmlMessage?
+        override var name: String?
+        override var condition: String?
+        override val idBase:String
+            get() = "ac"
+
+        override var childId: String? = null
+
+        @Transient
+        override val elementName: QName get() = Activity.ELEMENTNAME
+
+        constructor(): this(id = null)
+
+        constructor(id: String? = null,
+                    predecessor: Identified? = null,
+                    successor: Identified? = null,
+                    label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    message: XmlMessage? = null,
+                    condition: String? = null,
+                    name: String? = null,
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    multiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), listOfNotNull(successor), label, defines, results, x, y, multiInstance) {
+            this.message = message
+            this.name = name
+            this.condition = condition
+        }
+
+        constructor(node: Activity<*, *>) : super(node) {
+            this.message = XmlMessage.get(node.message)
+            this.name = node.name
+            this.condition = node.condition
+            this.childId = node.childModel?.id
+        }
+
+        override fun deserializeChild(reader: XmlReader): Boolean {
+            if (Engine.NAMESPACE == reader.namespaceURI) {
+                when (reader.localName) {
+                    XmlDefineType.ELEMENTLOCALNAME -> (defines as MutableList).add(XmlDefineType.deserialize(reader))
+
+                    XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
+
+                    Condition.ELEMENTLOCALNAME -> condition = XmlCondition.deserialize(reader).condition
+
+                    XmlMessage.ELEMENTLOCALNAME -> message=XmlMessage.deserialize(reader)
+
+                    else -> return false
+                }
+                return true
+            }
+            return false
+        }
+
+        override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
+            @Suppress("DEPRECATION")
+            when (attributeLocalName) {
+                ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue))
+                "name" -> name = attributeValue
+                ATTR_CHILDID -> childId = attributeValue
+                else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+            }
+            return true
+        }
+
+        override fun deserializeChildText(elementText: CharSequence): Boolean {
+            return false
+        }
+
+        override fun toString(): String {
+            @Suppress("DEPRECATION")
+            return "${super.toString().dropLast(1)}, message=$message, name=$name, condition=$condition)"
+        }
+
+
+    }
+
+    abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?>(
+        id: String? = null,
+        override var childId: String? = null,
+        nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
+        predecessors: Collection<Identified> = emptyList(),
+        successors: Collection<Identified> = emptyList(),
+        label: String? = null,
+        imports: Collection<IXmlResultType> = emptyList(),
+        defines: Collection<IXmlDefineType> = emptyList(),
+        exports: Collection<IXmlDefineType> = emptyList(),
+        results: Collection<IXmlResultType> = emptyList(),
+        x: Double = Double.NaN,
+        y: Double = Double.NaN,
+        multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
+
+        override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
+        override val imports: MutableList<IXmlResultType> = imports.toMutableList()
+        override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
+        override var condition: String? = null
+
+        override val idBase:String get() = "child"
+
+        override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
+
+        override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String)=false
+
+    }
+
+
+    private var _message: XmlMessage? = null
+
+    private var _name: String? = null
+
+    override val childModel: ChildProcessModel<NodeT, ModelT>?
+
+    @Suppress("OverridingDeprecatedMember")
+    override var name:String?
+        get() = _name
+        set(value) { _name = value}
+
+    @Suppress("DEPRECATION")
+    override var predecessor: Identifiable?
+        get() = if (predecessors.isEmpty()) null else predecessors.single()
+        set(value) {
+            setPredecessors(listOfNotNull(value?.identifier))
+        }
 
     override var message: IXmlMessage?
-    override var name: String?
-    override var condition: String?
-    override val idBase:String
-        get() = "ac"
-
-    override var childId: String? = null
-
-    constructor(): this(id = null)
-
-    constructor(id: String? = null,
-                predecessor: Identified? = null,
-                successor: Identified? = null,
-                label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                message: XmlMessage? = null,
-                condition: String? = null,
-                name: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                multiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), listOfNotNull(successor), label, defines, results, x, y, multiInstance) {
-      this.message = message
-      this.name = name
-      this.condition = condition
-    }
-
-    constructor(node: Activity<*, *>) : super(node) {
-      this.message = XmlMessage.get(node.message)
-      this.name = node.name
-      this.condition = node.condition
-      this.childId = node.childModel?.id
-    }
-
-    override val elementName: QName get() = Activity.ELEMENTNAME
-
-    override fun deserializeChild(reader: XmlReader): Boolean {
-      if (Engine.NAMESPACE == reader.namespaceURI) {
-        when (reader.localName) {
-          XmlDefineType.ELEMENTLOCALNAME -> (defines as MutableList).add(XmlDefineType.deserialize(reader))
-
-          XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
-
-          Condition.ELEMENTLOCALNAME -> condition = XmlCondition.deserialize(reader).condition
-
-          XmlMessage.ELEMENTLOCALNAME -> message=XmlMessage.deserialize(reader)
-
-          else -> return false
+        get() = _message
+        set(value) {
+            _message = XmlMessage.get(value)
         }
-        return true
-      }
-      return false
+
+    fun setMessage(message: XmlMessage?) {
+        _message = message
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
+    constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+        if(builder.message!=null && builder.childId!=null) throw IllegalProcessModelException("Activities can not have child models as well as messages")
+        this._message = XmlMessage.get(builder.message)
         @Suppress("DEPRECATION")
-        when (attributeLocalName) {
-          ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue))
-          "name" -> name = attributeValue
-          ATTR_CHILDID -> childId = attributeValue
-          else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+        _name = builder.name
+        @Suppress("LeakingThis")
+        childModel = builder.childId?.let{ buildHelper.childModel(it) }
+    }
+
+    constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+        this._message = null
+        this._name = null
+        @Suppress("LeakingThis")
+        this.childModel = buildHelper.childModel(builder.childId!!)
+    }
+
+
+    override abstract fun builder(): Builder<NodeT, ModelT>
+
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
+        return visitor.visitActivity(this)
+    }
+
+    override fun serialize(out: XmlWriter) {
+        out.smartStartTag(Activity.ELEMENTNAME) {
+            serializeAttributes(this)
+            serializeChildren(this)
         }
-        return true
     }
 
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-      return false
+    override fun serializeAttributes(out: XmlWriter) {
+        super.serializeAttributes(out)
+        out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, predecessor?.id)
+        out.writeAttribute("childId", childModel?.id)
+        out.writeAttribute("name", name)
     }
 
-    override fun toString(): String {
-        @Suppress("DEPRECATION")
-        return "${super.toString().dropLast(1)}, message=$message, name=$name, condition=$condition)"
+    override fun serializeChildren(out: XmlWriter) {
+        super.serializeChildren(out)
+        serializeCondition(out)
+
+        _message?.serialize(out)
     }
 
+    protected abstract fun serializeCondition(out: XmlWriter)
 
-  }
+    /* Override to make public */
+    override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
 
-  abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?>(
-      id: String? = null,
-      override var childId: String? = null,
-      nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
-      predecessors: Collection<Identified> = emptyList(),
-      successors: Collection<Identified> = emptyList(),
-      label: String? = null,
-      imports: Collection<IXmlResultType> = emptyList(),
-      defines: Collection<IXmlDefineType> = emptyList(),
-      exports: Collection<IXmlDefineType> = emptyList(),
-      results: Collection<IXmlResultType> = emptyList(),
-      x: Double = Double.NaN,
-      y: Double = Double.NaN,
-      multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
-
-    override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
-    override val imports: MutableList<IXmlResultType> = imports.toMutableList()
-    override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
-    override var condition: String? = null
-
-    override val idBase:String get() = "child"
-
-    override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
-
-    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String)=false
-
-  }
-
-
-  private var _message: XmlMessage? = null
-
-  private var _name: String? = null
-
-  override val childModel: ChildProcessModel<NodeT, ModelT>?
-
-  @Suppress("OverridingDeprecatedMember")
-  override var name:String?
-    get() = _name
-    set(value) { _name = value}
-
-  @Suppress("DEPRECATION")
-  override var predecessor: Identifiable?
-    get() = if (predecessors.isEmpty()) null else predecessors.single()
-    set(value) {
-      setPredecessors(listOfNotNull(value?.identifier))
-    }
-
-  override var message: IXmlMessage?
-    get() = _message
-    set(value) {
-      _message = XmlMessage.get(value)
-    }
-
-  fun setMessage(message: XmlMessage?) {
-    _message = message
-  }
-
-  constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
-    if(builder.message!=null && builder.childId!=null) throw IllegalProcessModelException("Activities can not have child models as well as messages")
-    this._message = XmlMessage.get(builder.message)
-      @Suppress("DEPRECATION")
-      _name = builder.name
-      @Suppress("LeakingThis")
-      childModel = builder.childId?.let{ buildHelper.childModel(it) }
-  }
-
-  constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
-    this._message = null
-    this._name = null
-      @Suppress("LeakingThis")
-    this.childModel = buildHelper.childModel(builder.childId!!)
-  }
-
-
-  override abstract fun builder(): Builder<NodeT, ModelT>
-
-  override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
-    return visitor.visitActivity(this)
-  }
-
-  override fun serialize(out: XmlWriter) {
-    out.smartStartTag(Activity.ELEMENTNAME) {
-        serializeAttributes(this)
-        serializeChildren(this)
-    }
-  }
-
-  override fun serializeAttributes(out: XmlWriter) {
-    super.serializeAttributes(out)
-    out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, predecessor?.id)
-    out.writeAttribute("childId", childModel?.id)
-    out.writeAttribute("name", name)
-  }
-
-  override fun serializeChildren(out: XmlWriter) {
-    super.serializeChildren(out)
-    serializeCondition(out)
-
-    _message?.serialize(out)
-  }
-
-  protected abstract fun serializeCondition(out: XmlWriter)
-
-  /* Override to make public */
-  override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
-
-  /* Override to make public */
-  override fun setResults(results: Collection<IXmlResultType>) = super.setResults(results)
+    /* Override to make public */
+    override fun setResults(results: Collection<IXmlResultType>) = super.setResults(results)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -242,8 +247,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
 
 
-  companion object {
-    const val ATTR_CHILDID = "childId"
-  }
+    companion object {
+        const val ATTR_CHILDID = "childId"
+    }
 
 }

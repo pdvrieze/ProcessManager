@@ -196,11 +196,11 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     }
 
     @SerialName("nodes")
-    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity=activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode=startNode",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit=split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin=join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode=endNode"))
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=startNode",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=endNode"))
     protected abstract val _processNodes: IdentifyableSet<NodeT>
 
     @SerialName("import")
