@@ -272,7 +272,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
             out.writeNullableStringElementValue(desc, desc.getElementIndex("method"), data.method)
         }
 
-        private class XmlMessageData(owner: Companion) : XmlContainerSerializer.ContainerData<Companion, XmlMessage>(
+        private class XmlMessageData(owner: Companion) : XmlContainerSerializer.ContainerData<XmlMessage>(
             owner) {
             var serviceName: String? = null
             var serviceNS: String? = null

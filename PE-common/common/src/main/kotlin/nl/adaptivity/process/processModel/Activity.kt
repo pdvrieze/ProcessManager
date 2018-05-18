@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.*
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
@@ -32,6 +33,7 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
       get() = predecessors.firstOrNull()
       set(value) { predecessors.replaceByNotNull(value?.identifier) }
 
+      @Transient
     var successor: Identified?
       get() = successors.firstOrNull()
       set(value) { successors.replaceByNotNull(value?.identifier) }

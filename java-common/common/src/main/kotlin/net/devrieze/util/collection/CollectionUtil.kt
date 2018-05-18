@@ -21,321 +21,322 @@ package net.devrieze.util.collection
  * Helper function to reset and set values in a set.
  */
 fun <T, C: MutableCollection<in T>> C.replaceBy(vararg elements: T) {
-  clear()
-  addAll(elements)
+    clear()
+    addAll(elements)
 }
 
 /**
  * Helper function to reset and set values in a set.
  */
 fun <T, C: MutableCollection<in T>> C.replaceByNotNull(element: T?) {
-  clear()
-  element?.let { add(it) }
+    clear()
+    element?.let { add(it) }
 }
 
 /**
  * Helper function to reset and set values in a set.
  */
 fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Sequence<T>) {
-  clear()
-  addAll(elements)
+    clear()
+    addAll(elements)
 }
 
 /**
  * Helper function to reset and set values in a set.
  */
 fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Iterable<T>) {
-  clear()
-  addAll(elements)
+    if (this == elements) return
+    clear()
+    addAll(elements)
 }
 
 /**
  * Helper function to reset and set values in a set.
  */
 fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Iterator<T>) {
-  replaceBy(elements.asSequence())
+    replaceBy(elements.asSequence())
 }
 
 fun <T, R:Comparable<R>> List<T>.maxIndexBy(compare : (T)->R):Int {
-  var maxIdx = -1
-  var maxValue: R? = null
+    var maxIdx = -1
+    var maxValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (maxValue==null || maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (maxValue==null || maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun <T, R:Comparable<R>> Array<T>.maxIndexBy(compare : (T)->R):Int {
-  var maxIdx = -1
-  var maxValue: R? = null
+    var maxIdx = -1
+    var maxValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (maxValue==null || maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (maxValue==null || maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun <R:Comparable<R>> IntArray.maxIndexBy(compare : (Int)->R):Int {
-  var maxIdx = -1
-  var maxValue: R? = null
+    var maxIdx = -1
+    var maxValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (maxValue==null || maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (maxValue==null || maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun <R:Comparable<R>> LongArray.maxIndexBy(compare : (Long)->R):Int {
-  var maxIdx = -1
-  var maxValue: R? = null
+    var maxIdx = -1
+    var maxValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (maxValue==null || maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (maxValue==null || maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun <R:Comparable<R>> DoubleArray.maxIndexBy(compare : (Double)->R):Int {
-  var maxIdx = -1
-  var maxValue: R? = null
+    var maxIdx = -1
+    var maxValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (maxValue==null || maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (maxValue==null || maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun <R:Comparable<R>> FloatArray.maxIndexBy(compare : (Float)->R):Int {
-  var maxIdx = -1
-  var maxValue: R? = null
+    var maxIdx = -1
+    var maxValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (maxValue==null || maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (maxValue==null || maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun <T, R:Comparable<R>> List<T>.minIndexBy(compare : (T)->R):Int {
-  var minIdx = -1
-  var minValue: R? = null
+    var minIdx = -1
+    var minValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (minValue==null || minValue>value) {
-      minIdx = i
-      minValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (minValue==null || minValue>value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun <T, R:Comparable<R>> Array<T>.minIndexBy(compare : (T)->R):Int {
-  var minIdx = -1
-  var minValue: R? = null
+    var minIdx = -1
+    var minValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (minValue==null || minValue>value) {
-      minIdx = i
-      minValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (minValue==null || minValue>value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun <R:Comparable<R>> IntArray.minIndexBy(compare : (Int)->R):Int {
-  var minIdx = -1
-  var minValue: R? = null
+    var minIdx = -1
+    var minValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (minValue==null || minValue>value) {
-      minIdx = i
-      minValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (minValue==null || minValue>value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun <R:Comparable<R>> LongArray.minIndexBy(compare : (Long)->R):Int {
-  var minIdx = -1
-  var minValue: R? = null
+    var minIdx = -1
+    var minValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (minValue==null || minValue>value) {
-      minIdx = i
-      minValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (minValue==null || minValue>value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun <R:Comparable<R>> DoubleArray.minIndexBy(compare : (Double)->R):Int {
-  var minIdx = -1
-  var minValue: R? = null
+    var minIdx = -1
+    var minValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (minValue==null || minValue>value) {
-      minIdx = i
-      minValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (minValue==null || minValue>value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun <R:Comparable<R>> FloatArray.minIndexBy(compare : (Float)->R):Int {
-  var minIdx = -1
-  var minValue: R? = null
+    var minIdx = -1
+    var minValue: R? = null
 
-  for (i in indices) {
-    val value = compare(get(i))
-    if (minValue==null || minValue>value) {
-      minIdx = i
-      minValue = value
+    for (i in indices) {
+        val value = compare(get(i))
+        if (minValue==null || minValue>value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun IntArray.maxIndex():Int {
-  var maxIdx = -1
-  var maxValue = Int.MIN_VALUE
-  
-  for (i in indices) {
-    val value = get(i)
-    if (maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    var maxIdx = -1
+    var maxValue = Int.MIN_VALUE
+
+    for (i in indices) {
+        val value = get(i)
+        if (maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun LongArray.maxIndex():Int {
-  var maxIdx = -1
-  var maxValue = Long.MIN_VALUE
-  
-  for (i in indices) {
-    val value = get(i)
-    if (maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    var maxIdx = -1
+    var maxValue = Long.MIN_VALUE
+
+    for (i in indices) {
+        val value = get(i)
+        if (maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun DoubleArray.maxIndex():Int {
-  var maxIdx = -1
-  var maxValue = Double.NEGATIVE_INFINITY
+    var maxIdx = -1
+    var maxValue = Double.NEGATIVE_INFINITY
 
-  for (i in indices) {
-    val value = get(i)
-    if (maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = get(i)
+        if (maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun FloatArray.maxIndex():Int {
-  var maxIdx = -1
-  var maxValue = Float.NEGATIVE_INFINITY
+    var maxIdx = -1
+    var maxValue = Float.NEGATIVE_INFINITY
 
-  for (i in indices) {
-    val value = get(i)
-    if (maxValue<=value) {
-      maxIdx = i
-      maxValue = value
+    for (i in indices) {
+        val value = get(i)
+        if (maxValue<=value) {
+            maxIdx = i
+            maxValue = value
+        }
     }
-  }
-  return maxIdx
+    return maxIdx
 }
 
 fun IntArray.minIndex():Int {
-  var minIdx = -1
-  var minValue = Int.MAX_VALUE
-  
-  for (i in indices.reversed()) {
-    val value = get(i)
-    if (minValue>=value) {
-      minIdx = i
-      minValue = value
+    var minIdx = -1
+    var minValue = Int.MAX_VALUE
+
+    for (i in indices.reversed()) {
+        val value = get(i)
+        if (minValue>=value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun LongArray.minIndex():Int {
-  var minIdx = -1
-  var minValue = Long.MAX_VALUE
+    var minIdx = -1
+    var minValue = Long.MAX_VALUE
 
-  for (i in indices.reversed()) {
-    val value = get(i)
-    if (minValue>=value) {
-      minIdx = i
-      minValue = value
+    for (i in indices.reversed()) {
+        val value = get(i)
+        if (minValue>=value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun DoubleArray.minIndex():Int {
-  var minIdx = -1
-  var minValue = Double.POSITIVE_INFINITY
+    var minIdx = -1
+    var minValue = Double.POSITIVE_INFINITY
 
-  for (i in indices.reversed()) {
-    val value = get(i)
-    if (minValue>=value) {
-      minIdx = i
-      minValue = value
+    for (i in indices.reversed()) {
+        val value = get(i)
+        if (minValue>=value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 fun FloatArray.minIndex():Int {
-  var minIdx = -1
-  var minValue = Float.POSITIVE_INFINITY
+    var minIdx = -1
+    var minValue = Float.POSITIVE_INFINITY
 
-  for (i in indices.reversed()) {
-    val value = get(i)
-    if (minValue>=value) {
-      minIdx = i
-      minValue = value
+    for (i in indices.reversed()) {
+        val value = get(i)
+        if (minValue>=value) {
+            minIdx = i
+            minValue = value
+        }
     }
-  }
-  return minIdx
+    return minIdx
 }
 
 interface ArrayAccess<K,V> {
-  operator fun get(key:K):V?
+    operator fun get(key:K):V?
 }

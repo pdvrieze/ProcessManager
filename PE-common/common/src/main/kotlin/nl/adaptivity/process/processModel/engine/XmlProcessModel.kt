@@ -16,28 +16,38 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.SerialClassDescImpl
 import net.devrieze.util.security.SYSTEMPRINCIPAL
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.XmlDeserializer
 import nl.adaptivity.xml.XmlDeserializerFactory
 import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xml.serialization.XmlSerialName
 
 /**
  * A class representing a process model.
 
  * @author Paul de Vrieze
  */
+@Serializable
 @XmlDeserializer(XmlProcessModel.Factory::class)
+@XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
+    @Serializable
+    @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class Builder : RootProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+        @Transient
         override val rootBuilder: Builder get() = this
+        @Transient
         override val defaultPedantic: Boolean get() = true
 
         constructor(
@@ -67,7 +77,19 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return XmlChildModel.Builder(rootBuilder, base)
         }
 
-        companion object {
+        @Serializer(forClass = Builder::class)
+        companion object: RootProcessModelBase.Builder.BaseSerializer<Builder>() {
+            override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(XmlProcessModel::class.name)
+
+            override fun builder() = Builder()
+
+            override fun load(input: KInput): Builder {
+                return super.load(input)
+            }
+
+            override fun save(output: KOutput, obj: Builder) {
+                output.context.klassSerializer(XmlProcessModel::class).save(output, obj.build())
+            }
 
             fun deserialize(reader: XmlReader): XmlProcessModel.Builder {
                 return RootProcessModelBase.Builder.deserialize(XmlProcessModel.Builder(), reader)
@@ -82,6 +104,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         }
     }
 
+    @Transient
     override val rootModel: XmlProcessModel get() = this
 
     /**
@@ -89,16 +112,19 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
      * @return The start nodes.
      */
+    @Transient
     val startNodes: Collection<XmlStartNode>
         get() = getModelNodes().filterIsInstance<XmlStartNode>()
 
 
+    @Transient
     @Volatile
     private var _endNodeCount = -1
 
     /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
      */
+    @Transient
     val endNodeCount: Int
         get() {
             if (_endNodeCount < 0) {
@@ -114,7 +140,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return _endNodeCount
         }
 
-    constructor(builder: Builder, pedantic: Boolean = false) : super(builder, XML_NODE_FACTORY, pedantic) {}
+    constructor(builder: RootProcessModel.Builder<*,*>, pedantic: Boolean = false) : super(builder, XML_NODE_FACTORY, pedantic) {}
 
     override fun builder(): Builder {
         return Builder(this)
@@ -134,7 +160,21 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         return super.getChildModel(childId)?.let { it as XmlChildModel }
     }
 
-    companion object {
+    @Serializer(forClass = XmlProcessModel::class)
+    companion object: RootProcessModelBase.BaseSerializer<XmlProcessModel>() {
+        override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(XmlProcessModel::class.name)
+
+        override fun load(input: KInput): XmlProcessModel {
+            return input.context.klassSerializer(Builder::class).load(input).build()
+        }
+
+        /*
+        init {
+            serialClassDesc = SerialClassDescImpl(XmlProcessModel::class.name).apply {
+                with(ProcessModelBaseSerializer.Companion) { addBaseElements() }
+            }
+        }
+*/
 
         @JvmOverloads
         @JvmStatic

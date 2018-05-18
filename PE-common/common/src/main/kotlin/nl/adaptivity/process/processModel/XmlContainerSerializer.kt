@@ -55,7 +55,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
     }
 
 
-    open class ContainerData<O : XmlContainerSerializer<T>, T : XMLContainer>(val owner: O) {
+    open class ContainerData<T : XMLContainer>(val owner: XmlContainerSerializer<in T>) {
         var content: CharArray? = null
         var namespaces: Iterable<Namespace>? = null
 

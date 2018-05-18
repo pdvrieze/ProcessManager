@@ -165,8 +165,8 @@ class TestProcessData {
 
         val result2 = ac1.results[1]
         val snc2 = SimpleNamespaceContext.from(result2.originalNSContext)
-        assertEquals(1, snc1.size)
-        assertEquals("umh", snc1.getPrefix(0))
+        assertEquals(1, snc2.size)
+        assertEquals("umh", snc2.getPrefix(0))
 
         val testData = documentBuilder.parse(InputSource(StringReader(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))

@@ -17,12 +17,14 @@
 package nl.adaptivity.process.processModel
 
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xml.QName
 
-
+@Serializable
 interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
   interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
