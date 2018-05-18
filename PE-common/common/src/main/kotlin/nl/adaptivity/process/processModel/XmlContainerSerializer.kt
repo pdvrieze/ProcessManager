@@ -79,8 +79,8 @@ open class XmlContainerSerializer<T : XMLContainer> {
                 }
 
                 val namespacesMap = mutableMapOf<String, String>()
-                val referenceContext = SimpleNamespaceContext(reader.namespaceDecls.toList())
-                val gatheringNamespaceContext = GatheringNamespaceContext(referenceContext, namespacesMap)
+
+                val gatheringNamespaceContext = GatheringNamespaceContext(reader.namespaceContext, namespacesMap)
 
                 handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
 
