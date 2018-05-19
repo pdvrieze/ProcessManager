@@ -29,3 +29,9 @@ fun SerialClassDescImpl(original: KSerialClassDesc, name: String): SerialClassDe
         }
     }
 }
+
+fun KSerialClassDesc.describe(): String {
+    return (0 until associatedFieldsCount).joinToString(",\n", prefix="$name[$kind] (", postfix = ")") {
+        getAnnotationsForIndex(it).joinToString(postfix = " : ${getElementName(it)}")
+    }
+}

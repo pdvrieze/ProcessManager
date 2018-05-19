@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.toMutableArraySet
@@ -135,40 +136,60 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         }
     }
 
-    class ChildModelBuilder(
-        rootBuilder: XmlProcessModel.Builder,
-        override var id: String? = null,
-        childId: String? = null,
-        nodes: Collection<XmlProcessNode.Builder> = emptyList(),
-        predecessors: Collection<Identified> = emptyList(),
-        override var condition: String? = null,
-        successors: Collection<Identified> = emptyList(),
-        override var label: String? = null,
-        imports: Collection<IXmlResultType> = emptyList(),
-        defines: Collection<IXmlDefineType> = emptyList(),
-        exports: Collection<IXmlDefineType> = emptyList(),
-        results: Collection<IXmlResultType> = emptyList(),
-        override var x: Double = Double.NaN,
-        override var y: Double = Double.NaN,
-        override var isMultiInstance: Boolean = false) : XmlChildModel.Builder(rootBuilder, childId, nodes, imports,
-                                                                               exports), Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+    @Serializable
+    class ChildModelBuilder : XmlChildModel.Builder, Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
 
-        override var predecessors: MutableSet<Identified> = predecessors.toMutableArraySet()
+        override var id: String?
+        override var condition: String?
+        override var label: String?
+        override var x: Double
+        override var y: Double
+        override var isMultiInstance: Boolean
+
+        constructor(rootBuilder: XmlProcessModel.Builder,
+                    id: String? = null,
+                    childId: String? = null,
+                    nodes: Collection<XmlProcessNode.Builder> = emptyList(),
+                    predecessors: Collection<Identified> = emptyList(),
+                    condition: String? = null,
+                    successors: Collection<Identified> = emptyList(),
+                    label: String? = null,
+                    imports: Collection<IXmlResultType> = emptyList(),
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    exports: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    isMultiInstance: Boolean = false) : super(rootBuilder, childId, nodes, imports,
+                                                              exports) {
+            this.id = id
+            this.condition = condition
+            this.label = label
+            this.x = x
+            this.y = y
+            this.isMultiInstance = isMultiInstance
+            this.predecessors = predecessors.toMutableArraySet()
+            this.successors = successors.toMutableArraySet()
+            this.defines = defines.toMutableList()
+            this.results = results.toMutableList()
+        }
+
+        override var predecessors: MutableSet<Identified>
             set(value) {
                 field.replaceBy(value)
             }
 
-        override var successors: MutableSet<Identified> = successors.toMutableArraySet()
+        override var successors: MutableSet<Identified>
             set(value) {
                 field.replaceBy(value)
             }
 
-        override var defines: MutableCollection<IXmlDefineType> = defines.toMutableList()
+        override var defines: MutableCollection<IXmlDefineType>
             set(value) {
                 field.replaceBy(value)
             }
 
-        override var results: MutableCollection<IXmlResultType> = results.toMutableList()
+        override var results: MutableCollection<IXmlResultType>
             set(value) {
                 field.replaceBy(value)
             }
@@ -179,6 +200,11 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
 
         override fun buildActivity(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): Activity<XmlProcessNode, XmlModelCommon> {
             return XmlActivity(this, buildHelper)
+        }
+
+        @Serializer(forClass = ChildModelBuilder::class)
+        companion object {
+
         }
     }
 

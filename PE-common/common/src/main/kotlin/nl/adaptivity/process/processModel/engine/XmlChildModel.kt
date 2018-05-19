@@ -16,29 +16,41 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.*
 
-class XmlChildModel(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) :
-    ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(builder, buildHelper), ChildProcessModel<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
+class XmlChildModel(builder: ChildProcessModel.Builder<*, *>,
+                    buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) :
+    ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(builder,
+                                                          buildHelper), ChildProcessModel<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
-  open class Builder(rootBuilder: XmlProcessModel.Builder,
-                     childId:String?=null,
-                     nodes: Collection<XmlProcessNode.Builder> = emptyList(),
-                     imports: Collection<IXmlResultType> = emptyList(),
-                     exports: Collection<IXmlDefineType> = emptyList()) : ChildProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>(rootBuilder, childId, nodes, imports, exports), XmlModelCommon.Builder {
-    constructor(rootBuilder: XmlProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.id, base.getModelNodes().map { it.visit(XML_BUILDER_VISITOR) }, base.imports, base.exports)
+    @Serializable
+    open class Builder : ChildProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+        constructor(rootBuilder: XmlProcessModel.Builder,
+                    childId: String? = null,
+                    nodes: Collection<XmlProcessNode.Builder> = emptyList(),
+                    imports: Collection<IXmlResultType> = emptyList(),
+                    exports: Collection<IXmlDefineType> = emptyList()) : super(rootBuilder, childId, nodes, imports,
+                                                                               exports)
 
-    override val rootBuilder: XmlProcessModel.Builder get() = super.rootBuilder as XmlProcessModel.Builder
+        constructor(rootBuilder: XmlProcessModel.Builder, base: ChildProcessModel<*, *>) : this(rootBuilder, base.id,
+                                                                                                base.getModelNodes().map {
+                                                                                                    it.visit(
+                                                                                                        XML_BUILDER_VISITOR)
+                                                                                                }, base.imports,
+                                                                                                base.exports)
 
-    override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
-      return XmlChildModel(this, buildHelper)
+        override val rootBuilder: XmlProcessModel.Builder get() = super.rootBuilder as XmlProcessModel.Builder
+
+        override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
+            return XmlChildModel(this, buildHelper)
+        }
     }
-  }
 
-  override val rootModel: XmlProcessModel get() = super.rootModel as XmlProcessModel
+    override val rootModel: XmlProcessModel get() = super.rootModel as XmlProcessModel
 
-  override fun builder(rootBuilder: RootProcessModel.Builder<XmlProcessNode, XmlModelCommon>): XmlChildModel.Builder {
-    return Builder(rootBuilder as XmlProcessModel.Builder, this)
-  }
+    override fun builder(rootBuilder: RootProcessModel.Builder<XmlProcessNode, XmlModelCommon>): XmlChildModel.Builder {
+        return Builder(rootBuilder as XmlProcessModel.Builder, this)
+    }
 
 }

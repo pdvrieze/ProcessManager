@@ -41,6 +41,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         override var message: IXmlMessage?
         override var name: String?
         override var condition: String?
+        @Transient
         override val idBase:String
             get() = "ac"
 

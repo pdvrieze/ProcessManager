@@ -28,9 +28,11 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.SerialClassDescImpl
+import nl.adaptivity.util.describe
 import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlDefault
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
@@ -129,10 +131,13 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
             val ownerIdx by lazy { serialClassDesc.getElementIndex("owner") }
             val rolesIdx by lazy { serialClassDesc.getElementIndex("roles") }
             val uuidIdx by lazy { serialClassDesc.getElementIndex("uuid") }
+            val handleIdx by lazy { serialClassDesc.getElementIndex("handle") }
+            val childModelsIdx by lazy { serialClassDesc.getElementIndex("childModels") }
 
             override fun readElement(result: T, input: KInput, index: Int) {
                 when (index) {
                     nameIdx  -> result.name = input.readNullableString(serialClassDesc, index)
+                    handleIdx -> result.handle = input.readLongElementValue(serialClassDesc, index)
                     ownerIdx -> input.readNullableString(serialClassDesc, index)?.let {
                         result.owner = SimplePrincipal(it)
                     }
@@ -140,6 +145,13 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
                         result.roles.replaceBy(value.split(" *, *".toRegex()).filter(String::isEmpty))
                     }
                     uuidIdx  -> result.uuid = input.readNullableString(serialClassDesc, index)?.toUUID()
+                    childModelsIdx -> {
+                        val newList = input.updateSerializableElementValue(serialClassDesc,
+                                                                                                                index,
+                                                                                                                XmlActivity.ChildModelBuilder.list,
+                                                                                                                result.childModels as List<XmlActivity.ChildModelBuilder>)
+                        (result.childModels as MutableList<ChildProcessModel.Builder<XmlProcessNode, XmlModelCommon>>).replaceBy(newList)
+                    }
                     else     -> super.readElement(result, input, index)
                 }
             }
@@ -264,6 +276,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     private var _name: String? = null
 
     @SerialName("handle")
+    @XmlDefault("-1")
     private var _handle = -1L
 
     @Transient
@@ -530,11 +543,11 @@ object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
         context?.getSerializerByClass(obj::class)?.let { return it }
         // Otherwise fall back to "known" serializers
         when (obj) {
-            is StartNode -> return StartNode::class.serializer()
-            is Activity  -> return Activity::class.serializer()
-            is Split     -> return Split::class.serializer()
-            is Join      -> return Join::class.serializer()
-            is EndNode   -> return EndNode::class.serializer()
+            is StartNode -> return XmlStartNode::class.serializer()
+            is Activity  -> return XmlActivity::class.serializer()
+            is Split     -> return XmlSplit::class.serializer()
+            is Join      -> return XmlJoin::class.serializer()
+            is EndNode   -> return XmlEndNode::class.serializer()
         }
         return context.valueSerializer(obj)
     }

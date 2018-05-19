@@ -168,7 +168,10 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return input.context.klassSerializer(Builder::class).load(input).build()
         }
 
-        /*
+        override fun save(output: KOutput, obj: XmlProcessModel) {
+            super.save(output, obj)
+        }
+/*
         init {
             serialClassDesc = SerialClassDescImpl(XmlProcessModel::class.name).apply {
                 with(ProcessModelBaseSerializer.Companion) { addBaseElements() }

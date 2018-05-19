@@ -16,13 +16,12 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import net.devrieze.util.ArraySet
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlDefault
 
 
 /**
@@ -480,9 +479,15 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
         override var id: String?
         override var label: String?
-        override var x: Double
-        override var y: Double
-        override var isMultiInstance: Boolean
+        @XmlDefault("NaN")
+        override var x: Double = Double.NaN
+        @XmlDefault("NaN")
+        override var y: Double = Double.NaN
+
+        @XmlDefault("false")
+        override var isMultiInstance: Boolean = false
+
+        constructor(): this(id=null)
 
         @Suppress("LeakingThis")
         constructor(id: String? = null,
@@ -507,7 +512,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
         override val predecessors: MutableSet<Identified>
         @Transient
-        override val successors: MutableSet<Identified>
+        final override var successors: MutableSet<Identified> = ArraySet()
+            private set
 
         @Serializable(with = IXmlDefineTypeListSerializer::class)
         @SerialName("define")
@@ -547,6 +553,10 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
             return "${this::class.simpleName}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
         }
 
+        @Serializer(forClass = Builder::class)
+        companion object {
+
+        }
     }
 
 }
