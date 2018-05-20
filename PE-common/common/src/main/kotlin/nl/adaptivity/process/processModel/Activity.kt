@@ -31,7 +31,7 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
         var condition: String?
 
         var predecessor: Identified?
-            get() = predecessors.firstOrNull()
+            get() = predecessors.singleOrNull()
             set(value) {
                 predecessors.replaceByNotNull(value?.identifier)
             }

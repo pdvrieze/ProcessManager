@@ -116,7 +116,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     @Serializable
     class Builder : ActivityBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
 
-        constructor() {}
+        constructor()
 
         constructor(predecessor: Identified? = null,
                     successor: Identified? = null,

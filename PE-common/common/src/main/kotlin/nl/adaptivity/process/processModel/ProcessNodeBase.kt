@@ -528,7 +528,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         }
 
         @Transient
-        override val predecessors: MutableSet<Identified>
+        final override var predecessors: MutableSet<Identified> = ArraySet()
+            private set
 
         @Transient
         final override var successors: MutableSet<Identified> = ArraySet()
