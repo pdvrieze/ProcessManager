@@ -26,7 +26,8 @@ fun <T, C: MutableCollection<in T>> C.replaceBy(vararg elements: T) {
 }
 
 /**
- * Helper function to reset and set values in a set.
+ * Helper function to reset and set values in a set. It will set the value passed, or empties the
+ * list if the argument is null.
  */
 fun <T, C: MutableCollection<in T>> C.replaceByNotNull(element: T?) {
     clear()
