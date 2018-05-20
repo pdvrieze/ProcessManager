@@ -534,12 +534,10 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         final override var successors: MutableSet<Identified> = ArraySet()
             private set
 
-        @Optional
         @Serializable(with = IXmlDefineTypeListSerializer::class)
         @SerialName("define")
         override val defines: MutableCollection<IXmlDefineType>
 
-        @Optional
         @Serializable(with = IXmlResultTypeListSerializer::class)
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
