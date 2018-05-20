@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.StartNodeBase
@@ -23,60 +24,60 @@ import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 
-
+@Serializable
 class XmlStartNode : StartNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
-  class Builder : StartNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
+    constructor(builder: StartNode.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) :
+        super(builder, buildHelper)
 
-    constructor() {}
+    constructor(ownerModel: XmlProcessModel) : super(ownerModel)
 
-    constructor(base: StartNode<*, *>) : super(base) {}
-
-    override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlStartNode {
-      return XmlStartNode(this, buildHelper)
+    constructor(ownerModel: XmlProcessModel, imports: List<XmlResultType>) : super(ownerModel) {
+        setResults(imports)
     }
-  }
 
-  constructor(builder: StartNode.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) : super(
-      builder, buildHelper) {
-  }
+    override fun builder(): Builder {
+        return Builder(this)
+    }
 
-  constructor(ownerModel: XmlProcessModel) : super(ownerModel) {}
+    public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
+        super.setOwnerModel(newOwnerModel)
+    }
 
-  constructor(ownerModel: XmlProcessModel, imports: List<XmlResultType>) : super(ownerModel) {
-    setResults(imports)
-  }
+    public override fun setPredecessors(predecessors: Collection<Identifiable>) {
+        super.setPredecessors(predecessors)
+    }
 
-  override fun builder(): Builder {
-    return Builder(this)
-  }
+    public override fun removePredecessor(predecessorId: Identified) {
+        super.removePredecessor(predecessorId)
+    }
 
-  public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
-    super.setOwnerModel(newOwnerModel)
-  }
+    public override fun addPredecessor(predecessorId: Identified) {
+        super.addPredecessor(predecessorId)
+    }
 
-  public override fun setPredecessors(predecessors: Collection<Identifiable>) {
-    super.setPredecessors(predecessors)
-  }
+    public override fun addSuccessor(successorId: Identified) {
+        super.addSuccessor(successorId)
+    }
 
-  public override fun removePredecessor(predecessorId: Identified) {
-    super.removePredecessor(predecessorId)
-  }
+    public override fun removeSuccessor(successorId: Identified) {
+        super.removeSuccessor(successorId)
+    }
 
-  public override fun addPredecessor(predecessorId: Identified) {
-    super.addPredecessor(predecessorId)
-  }
+    public override fun setSuccessors(successors: Collection<Identified>) {
+        super.setSuccessors(successors)
+    }
 
-  public override fun addSuccessor(successorId: Identified) {
-    super.addSuccessor(successorId)
-  }
+    @Serializable
+    class Builder : StartNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
 
-  public override fun removeSuccessor(successorId: Identified) {
-    super.removeSuccessor(successorId)
-  }
+        constructor()
 
-  public override fun setSuccessors(successors: Collection<Identified>) {
-    super.setSuccessors(successors)
-  }
+        constructor(base: StartNode<*, *>) : super(base)
+
+        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlStartNode {
+            return XmlStartNode(this, buildHelper)
+        }
+    }
 
 }

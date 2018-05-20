@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
@@ -28,76 +30,91 @@ import nl.adaptivity.xml.smartStartTag
 /**
  * Base class for start nodes. It knows about the data
  */
+@Serializable
 abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, StartNode<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT, ModelT>, StartNode.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
-    override val idBase:String
-      get() = "start"
-
-    override val elementName: QName
-      get() = StartNode.ELEMENTNAME
-
-    constructor() : this(successor = null)
-
-    constructor(id: String? = null,
+    constructor(ownerModel: ModelT,
                 successor: Identified? = null,
+                id: String? = null,
                 label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
-                multiInstance: Boolean = false) : super(id, emptyList(), listOfNotNull(successor), label, defines, results, x, y, multiInstance)
+                defines: Collection<IXmlDefineType> = emptyList(),
+                results: Collection<IXmlResultType> = emptyList())
+        : super(ownerModel,
+                emptyList(),
+                listOfNotNull(successor),
+                id, label, x, y, defines, results)
 
-    constructor(node: StartNode<*, *>) : super(node)
+    @Deprecated("Use the full constructor")
+    constructor(ownerModel: ModelT) : super(ownerModel) {
+    }
 
-    override fun deserializeChild(reader: XmlReader): Boolean {
-      if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
-        when (reader.localName) {
-          "import" -> {
-            (results as MutableList).add(XmlResultType.deserialize(reader))
-            return true
-          }
+    constructor(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
+                                                                                                                buildHelper)
+
+    override abstract fun builder(): Builder<NodeT, ModelT>
+
+    override fun serialize(out: XmlWriter) {
+        out.smartStartTag(StartNode.ELEMENTNAME) {
+            serializeAttributes(this)
+            serializeChildren(this)
         }
-      }
-      return false
     }
 
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-      return false
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
+        return visitor.visitStartNode(this)
     }
 
-  }
+    @Transient
+    override val maxPredecessorCount: Int
+        get() = 0
 
-  constructor(ownerModel: ModelT,
-              successor: Identified?=null,
-              id: String?=null,
-              label: String?=null,
-              x: Double = Double.NaN,
-              y: Double = Double.NaN,
-              defines: Collection<IXmlDefineType> = emptyList(),
-              results: Collection<IXmlResultType> = emptyList())
-      : super(ownerModel,
-              emptyList(),
-              listOfNotNull(successor),
-              id, label, x, y, defines, results)
-  
-  @Deprecated("Use the full constructor")
-  constructor(ownerModel: ModelT) : super(ownerModel) { }
 
-  constructor(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper)
+    @Serializable
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+        ProcessNodeBase.Builder<NodeT, ModelT>,
+        StartNode.Builder<NodeT, ModelT>,
+        SimpleXmlDeserializable {
 
-  override abstract fun builder(): Builder<NodeT, ModelT>
+        @Transient
+        override val idBase: String
+            get() = "start"
 
-  override fun serialize(out: XmlWriter) {
-    out.smartStartTag(StartNode.ELEMENTNAME) {
-      serializeAttributes(this)
-      serializeChildren(this)
+        @Transient
+        override val elementName: QName
+            get() = StartNode.ELEMENTNAME
+
+        constructor() : this(successor = null)
+
+        constructor(id: String? = null,
+                    successor: Identified? = null,
+                    label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    multiInstance: Boolean = false) : super(id, emptyList(), listOfNotNull(successor), label, defines,
+                                                            results, x, y, multiInstance)
+
+        constructor(node: StartNode<*, *>) : super(node)
+
+        override fun deserializeChild(reader: XmlReader): Boolean {
+            if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
+                when (reader.localName) {
+                    "import" -> {
+                        (results as MutableList).add(XmlResultType.deserialize(reader))
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
+        override fun deserializeChildText(elementText: CharSequence): Boolean {
+            return false
+        }
+
     }
-  }
 
-  override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
-    return visitor.visitStartNode(this)
-  }
-
-  override val maxPredecessorCount: Int get() = 0
 }

@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import net.devrieze.util.ArraySet
+import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
@@ -490,9 +491,11 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
         override var id: String?
         override var label: String?
+
         @Optional
         @XmlDefault("NaN")
         override var x: Double = Double.NaN
+
         @Optional
         @XmlDefault("NaN")
         override var y: Double = Double.NaN
@@ -524,15 +527,19 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
             this.results = ArrayList(results)
         }
 
+        @Transient
         override val predecessors: MutableSet<Identified>
+
         @Transient
         final override var successors: MutableSet<Identified> = ArraySet()
             private set
 
+        @Optional
         @Serializable(with = IXmlDefineTypeListSerializer::class)
         @SerialName("define")
         override val defines: MutableCollection<IXmlDefineType>
 
+        @Optional
         @Serializable(with = IXmlResultTypeListSerializer::class)
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>

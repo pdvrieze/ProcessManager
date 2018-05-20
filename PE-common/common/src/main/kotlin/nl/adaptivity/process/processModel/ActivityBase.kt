@@ -21,6 +21,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
@@ -146,7 +147,10 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT,ModelT>, Activity.Builder<NodeT,ModelT>, SimpleXmlDeserializable {
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?> :
+        ProcessNodeBase.Builder<NodeT,ModelT>,
+        Activity.Builder<NodeT,ModelT>,
+        SimpleXmlDeserializable {
 
         override var message: IXmlMessage?
         override var name: String?
@@ -159,6 +163,12 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
         @Transient
         override val elementName: QName get() = Activity.ELEMENTNAME
+
+
+        override var predecessor: Identified?
+            get() = predecessors.singleOrNull()
+            set(value) { predecessors.replaceByNotNull(value)}
+
 
         constructor(): this(id = null)
 

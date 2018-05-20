@@ -26,92 +26,98 @@ import nl.adaptivity.xml.QName
 
 interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-  interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.IBuilder<T, M> {
-    var condition: String?
+    @Serializable
+    interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.IBuilder<T, M> {
+        var condition: String?
 
-    var predecessor: Identified?
-      get() = predecessors.firstOrNull()
-      set(value) { predecessors.replaceByNotNull(value?.identifier) }
+        var predecessor: Identified?
+            get() = predecessors.firstOrNull()
+            set(value) {
+                predecessors.replaceByNotNull(value?.identifier)
+            }
 
-      @Transient
-    var successor: Identified?
-      get() = successors.firstOrNull()
-      set(value) { successors.replaceByNotNull(value?.identifier) }
+        @Transient
+        var successor: Identified?
+            get() = successors.firstOrNull()
+            set(value) {
+                successors.replaceByNotNull(value?.identifier)
+            }
 
-    var childId: String?
-  }
+        @Optional
+        var childId: String?
+    }
 
-  interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.IBuilder<T, M> {
-    var message: IXmlMessage?
-    @Deprecated("Names are not used anymore")
+    interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.IBuilder<T, M> {
+        var message: IXmlMessage?
+        @Deprecated("Names are not used anymore")
+        var name: String?
+
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
+    }
+
+    interface ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : IBuilder<NodeT, ModelT>, ChildProcessModel.Builder<NodeT, ModelT> {
+
+        override val idBase: String get() = "sub"
+
+        override fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
+
+        fun buildActivity(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): Activity<NodeT, ModelT>
+
+        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) = buildActivity(buildHelper)
+
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
+    }
+
+    override fun builder(): Builder<NodeT, ModelT>
+
+    /**
+     * The name of this activity. Note that for serialization to XML to work
+     * this needs to be unique for the process model at time of serialization, and
+     * can not be null or an empty string. While in Java mode other nodes are
+     * referred to by reference, not name.
+     */
+    @Deprecated("Not needed, use id.", ReplaceWith("id"))
     var name: String?
 
-    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
-  }
+    /**
+     * The condition that needs to be true to start this activity. A null value means that the activity can run.
+     */
+    var condition: String?
 
-  interface ChildModelBuilder<NodeT : ProcessNode<NodeT,ModelT>, ModelT:ProcessModel<NodeT,ModelT>?> : IBuilder<NodeT,ModelT>, ChildProcessModel.Builder<NodeT, ModelT> {
+    /**
+     * Get the list of imports. The imports are provided to the message for use as
+     * data parameters. Setting will create a copy of the parameter for safety.
+     */
+    override val results: List<IXmlResultType>
 
-    override val idBase: String get() = "sub"
+    fun setResults(results: Collection<IXmlResultType>)
 
-    override fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
+    /**
+     * Get the list of exports. Exports will allow storing the response of an
+     * activity. Setting will create a copy of the parameter for safety.
+     */
+    override val defines: List<IXmlDefineType>
 
-    fun buildActivity(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): Activity<NodeT, ModelT>
+    fun setDefines(defines: Collection<IXmlDefineType>)
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) = buildActivity(buildHelper)
+    /**
+     * The predecessor node for this activity.
+     */
+    var predecessor: Identifiable?
 
-    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
-  }
+    /**
+     * The message of this activity. This provides all the information to be
+     * able to actually invoke the service.
+     */
+    var message: IXmlMessage?
 
-  override fun builder(): Builder<NodeT, ModelT>
+    val childModel: ChildProcessModel<NodeT, ModelT>?
 
-  /**
-   * The name of this activity. Note that for serialization to XML to work
-   * this needs to be unique for the process model at time of serialization, and
-   * can not be null or an empty string. While in Java mode other nodes are
-   * referred to by reference, not name.
-   */
-  @Deprecated("Not needed, use id.", ReplaceWith("id"))
-  var name: String?
+    companion object {
 
-  /**
-   * The condition that needs to be true to start this activity. A null value means that the activity can run.
-   */
-  var condition: String?
-
-  /**
-   * Get the list of imports. The imports are provided to the message for use as
-   * data parameters. Setting will create a copy of the parameter for safety.
-   */
-  override val results: List<IXmlResultType>
-
-  fun setResults(results: Collection<IXmlResultType>)
-
-  /**
-   * Get the list of exports. Exports will allow storing the response of an
-   * activity. Setting will create a copy of the parameter for safety.
-   */
-  override val defines: List<IXmlDefineType>
-
-  fun setDefines(defines: Collection<IXmlDefineType>)
-
-  /**
-   * The predecessor node for this activity.
-   */
-  var predecessor: Identifiable?
-
-  /**
-   * The message of this activity. This provides all the information to be
-   * able to actually invoke the service.
-   */
-  var message: IXmlMessage?
-
-  val childModel: ChildProcessModel<NodeT, ModelT>?
-
-  companion object {
-
-    /** The name of the XML element.  */
-    const val ELEMENTLOCALNAME = "activity"
-    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
-  }
+        /** The name of the XML element.  */
+        const val ELEMENTLOCALNAME = "activity"
+        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+    }
 
 }
