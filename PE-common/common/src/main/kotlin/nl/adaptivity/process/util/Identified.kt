@@ -16,10 +16,30 @@
 
 package nl.adaptivity.process.util
 
+import kotlinx.serialization.*
+import nl.adaptivity.xml.serialization.simpleSerialClassDesc
+
 /**
  * Created by pdvrieze on 04/12/16.
  */
+@Serializable
 interface Identified : Identifiable {
-  override val id: String
-  override val identifier: Identifier get() = Identifier(id)
+    override val id: String
+
+    @Transient
+    override val identifier: Identifier get() = Identifier(id)
+
+    @Serializer(forClass = Identified::class)
+    companion object {
+        override val serialClassDesc: KSerialClassDesc
+            get() = simpleSerialClassDesc<Identified>()
+
+        override fun load(input: KInput): Identified {
+            return Identifier(input.readStringValue())
+        }
+
+        override fun save(output: KOutput, obj: Identified) {
+            output.writeStringValue(obj.id)
+        }
+    }
 }
