@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import net.devrieze.util.ArraySet
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
@@ -527,9 +528,10 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
             this.results = ArrayList(results)
         }
 
-        @Transient
+//        @Transient
+        @SerialName("predecessor")
         final override var predecessors: MutableSet<Identified> = ArraySet()
-            private set
+            private set(value) { field.replaceBy(value) }
 
         @Transient
         final override var successors: MutableSet<Identified> = ArraySet()

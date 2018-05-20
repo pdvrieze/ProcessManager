@@ -165,11 +165,6 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         override val elementName: QName get() = Activity.ELEMENTNAME
 
 
-        override var predecessor: Identified?
-            get() = predecessors.singleOrNull()
-            set(value) { predecessors.replaceByNotNull(value)}
-
-
         constructor(): this(id = null)
 
         constructor(id: String? = null,

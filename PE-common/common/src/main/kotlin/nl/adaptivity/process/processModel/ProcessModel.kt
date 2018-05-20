@@ -185,7 +185,9 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
         }
 
         fun normalize(pedantic: Boolean) {
-            val nodeMap = nodes.asSequence().filter { it.id != null }.associateBy { it.id }
+            val nodeMap = nodes.asSequence()
+                .filter { it.id != null }
+                .associateBy { it.id }
 
             // Ensure all nodes are linked up and have ids
             var lastId = 1
