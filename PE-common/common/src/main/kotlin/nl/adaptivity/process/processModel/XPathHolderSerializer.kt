@@ -42,7 +42,8 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
         override fun readAdditionalChild(desc: KSerialClassDesc, input: KInput, index: Int) {
             when (desc.getElementName(index)) {
                 "name" -> name = input.readNullableString()
-                "path" -> path = input.readNullableString()
+                "path",
+                "xpath" -> path = input.readNullableString()
                 else   -> super.readAdditionalChild(desc, input, index)
             }
         }

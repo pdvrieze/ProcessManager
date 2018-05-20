@@ -78,6 +78,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     override var url: String?
     override var method: String?
 
+    @Transient
     override val endpointDescriptor: EndpointDescriptor?
         get() = EndpointDescriptorImpl(service, endpoint, this.url?.toUri())
 
@@ -103,6 +104,15 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
             this.service = namespace?.let { QName(it, service?.getLocalPart() ?: "xx") }
         }
 
+    override var namespaces: SimpleNamespaceContext
+        get() = super.namespaces
+        set(value) { super.namespaces = value }
+
+    override var content: CharArray
+        get() = super.content
+        set(value) { super.content = value }
+
+    @Transient
     override val messageBody: ICompactFragment
         get() = CompactFragment(namespaces, content)
 
@@ -270,6 +280,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
             out.writeNullableStringElementValue(desc, desc.getElementIndex("operation"), data.operation)
             out.writeNullableStringElementValue(desc, desc.getElementIndex("url"), data.url)
             out.writeNullableStringElementValue(desc, desc.getElementIndex("method"), data.method)
+            super.writeAdditionalValues(out, desc, data)
         }
 
         private class XmlMessageData(owner: Companion) : XmlContainerSerializer.ContainerData<XmlMessage>(

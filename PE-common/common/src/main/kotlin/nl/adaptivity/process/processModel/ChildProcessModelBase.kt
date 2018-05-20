@@ -16,26 +16,38 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.JvmField
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.readNullableString
+import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
 /**
  * Base class for submodels
  */
-abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
-    M : ProcessModel<T, M>?>(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) :
-    ProcessModelBase<T, M>(builder, buildHelper.pedantic), ChildProcessModel<T, M> {
+@Serializable
+abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
+    ProcessModelBase<T, M>, ChildProcessModel<T, M> {
 
-    override val _processNodes: IdentifyableSet<T> = buildNodes(builder, buildHelper.withOwner(asM))
+    constructor(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) : super(builder,
+                                                                                                               buildHelper.pedantic) {
+        this._processNodes = buildNodes(builder, buildHelper.withOwner(asM))
+        this.rootModel = buildHelper.newOwner?.rootModel
+            ?: throw IllegalProcessModelException(
+            "Childmodels must have roots")
+        this.id = builder.childId
+    }
 
-    override val rootModel: RootProcessModel<T, M> = buildHelper.newOwner?.rootModel
-                                                     ?: throw IllegalProcessModelException(
-                                                         "Childmodels must have roots")
+    override val _processNodes: IdentifyableSet<T>
 
-    override val id: String? = builder.childId
+    override val rootModel: RootProcessModel<T, M>
+
+    @SerialName("id")
+    override val id: String?
 
     override abstract fun builder(rootBuilder: RootProcessModel.Builder<T, M>): ChildProcessModelBase.Builder<T, M>
 
@@ -49,21 +61,33 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
         }
     }
 
-    @Serializable
     abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModelBase.Builder<T, M>, ChildProcessModel.Builder<T, M> {
 
+
+        @Transient
+        private lateinit var _rootBuilder: RootProcessModel.Builder<T,M>
+
+        @Transient
         override val rootBuilder: RootProcessModel.Builder<T, M>
+            get() = _rootBuilder
+
+        @SerialName(ATTR_ID)
         override var childId: String?
+
+        protected constructor() {
+            childId = null
+        }
 
         constructor(rootBuilder: RootProcessModel.Builder<T, M>,
                     childId: String? = null,
                     nodes: Collection<ProcessNode.IBuilder<T, M>> = emptyList(),
                     imports: Collection<IXmlResultType> = emptyList(),
                     exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, imports, exports) {
-            this.rootBuilder = rootBuilder
+            this._rootBuilder = rootBuilder
             this.childId = childId
         }
 
+        @Transient
         override val elementName: QName get() = ELEMENTNAME
 
         /**
@@ -94,6 +118,26 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
                 else    -> super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
             }
         }
+
+        abstract class BaseSerializer<T: ChildProcessModelBase.Builder<*,*>>: ProcessModelBase.Builder.BaseSerializer<T>() {
+            override fun readElement(result: T, input: KInput, index: Int) {
+                when (serialClassDesc.getElementName(index)) {
+                    ATTR_ID -> result.childId = input.readNullableString(serialClassDesc, index)
+                    else -> super.readElement(result, input, index)
+                }
+            }
+        }
+
+    }
+
+    abstract class BaseSerializer<T: ChildProcessModelBase<*,*>>: ProcessModelBase.BaseSerializer<T>() {
+
+        val idIdx by lazy { serialClassDesc.getElementIndex(ATTR_ID) }
+
+        override fun writeValues(output: KOutput, obj: T) {
+            output.writeNullableStringElementValue(serialClassDesc, idIdx, obj.id)
+            super.writeValues(output, obj)
+        }
     }
 
     companion object {
@@ -102,6 +146,12 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>,
         @JvmField
         val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME,
                                 ProcessConsts.Engine.NSPREFIX)
+
+
+        fun serialClassDesc(name: String): SerialClassDescImpl {
+            return SerialClassDescImpl(RootProcessModelBase.serialClassDesc, name)
+        }
+
     }
 
 }

@@ -45,6 +45,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
             childOut.writeStringElementValue(desc, desc.getElementIndex("content"), data.contentString)
             writeAdditionalValues(childOut, desc, data)
         }
+        childOut.writeEnd(desc)
     }
 
     open fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: T) {}
@@ -100,8 +101,6 @@ open class XmlContainerSerializer<T : XMLContainer> {
 
             } else {
                 // TODO look at using the description to resolve the indices
-                val contentIdx = desc.getElementIndex("content")
-                val namespaceIdx = desc.getElementIndex("path")
                 loop@ while (true) {
                     val next = input.readElement(desc)
                     when (next) {
@@ -109,16 +108,15 @@ open class XmlContainerSerializer<T : XMLContainer> {
                         KInput.READ_ALL  -> TODO("Not yet supported")
                         else -> when (desc.getElementName(next)) {
                             "namespaces" -> namespaces =
-                                input.readSerializableElementValue(desc, next,
-                                                                   input.context.klassSerializer(Namespace::class).list)
+                                input.readSerializableElementValue(desc, next, Namespace.list)
                             "content" -> content = input.readSerializableElementValue(desc, 0, CharArrayAsStringSerializer)
                             else -> readAdditionalChild(desc, input, next)
                         }
                     }
 
                 }
-                input.readEnd(desc)
             }
+            input.readEnd(desc)
 
 
         }

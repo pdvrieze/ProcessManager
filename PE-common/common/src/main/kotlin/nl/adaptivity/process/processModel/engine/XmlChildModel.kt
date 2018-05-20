@@ -16,16 +16,30 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.util.multiplatform.name
 
-class XmlChildModel(builder: ChildProcessModel.Builder<*, *>,
-                    buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) :
-    ChildProcessModelBase<XmlProcessNode, XmlModelCommon>(builder,
-                                                          buildHelper), ChildProcessModel<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
+@Serializable
+class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
+                      ChildProcessModel<XmlProcessNode, XmlModelCommon>,
+                      XmlModelCommon {
+
+    constructor(builder: ChildProcessModel.Builder<*, *>,
+                buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder,
+                                                                                               buildHelper)
+
+    override val rootModel: XmlProcessModel get() = super.rootModel as XmlProcessModel
+
+    override fun builder(rootBuilder: RootProcessModel.Builder<XmlProcessNode, XmlModelCommon>): XmlChildModel.Builder {
+        return Builder(rootBuilder as XmlProcessModel.Builder, this)
+    }
 
     @Serializable
     open class Builder : ChildProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+
+        protected constructor() : super()
+
         constructor(rootBuilder: XmlProcessModel.Builder,
                     childId: String? = null,
                     nodes: Collection<XmlProcessNode.Builder> = emptyList(),
@@ -45,12 +59,32 @@ class XmlChildModel(builder: ChildProcessModel.Builder<*, *>,
         override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
             return XmlChildModel(this, buildHelper)
         }
+
+        companion object : ChildProcessModelBase.Builder.BaseSerializer<Builder>() {
+            override val serialClassDesc: KSerialClassDesc
+                get() = ChildProcessModelBase.serialClassDesc(Builder::class.name)
+
+            override fun builder(): Builder {
+                return Builder()
+            }
+
+            override fun save(output: KOutput, obj: Builder) {
+                throw UnsupportedOperationException("Cannot be independently saved")
+            }
+        }
     }
 
-    override val rootModel: XmlProcessModel get() = super.rootModel as XmlProcessModel
+    @Serializer(forClass = XmlChildModel::class)
+    companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>() {
+        override val serialClassDesc: KSerialClassDesc = ChildProcessModelBase.serialClassDesc(
+            XmlProcessModel::class.name)
 
-    override fun builder(rootBuilder: RootProcessModel.Builder<XmlProcessNode, XmlModelCommon>): XmlChildModel.Builder {
-        return Builder(rootBuilder as XmlProcessModel.Builder, this)
+        override fun save(output: KOutput, obj: XmlChildModel) {
+            super.save(output, obj)
+        }
+
+        override fun load(input: KInput): XmlChildModel {
+            throw UnsupportedOperationException("A Child model can not be loaded independently of the parent")
+        }
     }
-
 }

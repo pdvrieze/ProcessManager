@@ -33,6 +33,7 @@ import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlDefault
+import nl.adaptivity.xml.serialization.canary.Canary
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
@@ -601,6 +602,8 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
                                         context: SerialContext?): KSerializer<out ProcessNode.IBuilder<*, *>> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length+1))?.let { return it }
+        } else if (klassName=="nl.adaptivity.xml.serialization.canary.CanaryInput\$Dummy")  {
+            return context.klassSerializer(XmlActivity.Builder::class)
         }
         throw IllegalArgumentException("No serializer found for class $klassName")
     }

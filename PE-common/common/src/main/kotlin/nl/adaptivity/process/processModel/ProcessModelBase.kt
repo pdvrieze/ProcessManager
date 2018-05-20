@@ -132,7 +132,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                         else             -> readElement(result, input, index)
                     }
                 }
-
+                input.readEnd(serialClassDesc)
                 return result
 
             }
@@ -196,11 +196,16 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     }
 
     @SerialName("nodes")
-    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=startNode",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=endNode"))
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:startNode",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:endNode",
+                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:startNode",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:endNode"))
     protected abstract val _processNodes: IdentifyableSet<NodeT>
 
     @SerialName("import")

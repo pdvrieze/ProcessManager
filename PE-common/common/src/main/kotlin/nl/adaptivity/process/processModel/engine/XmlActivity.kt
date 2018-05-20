@@ -16,16 +16,20 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
+import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.toMutableArraySet
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlSerialName
 
 
 /**
@@ -39,6 +43,7 @@ import nl.adaptivity.xml.*
  * @author Paul de Vrieze
  */
 @Serializable
+@XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
     constructor(builder: Activity.Builder<*, *>,
@@ -146,6 +151,43 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         override var y: Double
         override var isMultiInstance: Boolean
 
+        @SerialName("predecessor")
+        override var predecessors: MutableSet<Identified>
+            set(value) {
+                field.replaceBy(value)
+            }
+
+        @Transient
+        override var successors: MutableSet<Identified>
+            set(value) {
+                field.replaceBy(value)
+            }
+
+        @SerialName("define")
+        override var defines: MutableCollection<IXmlDefineType>
+            set(value) {
+                field.replaceBy(value)
+            }
+
+        @SerialName("result")
+        override var results: MutableCollection<IXmlResultType>
+            set(value) {
+                field.replaceBy(value)
+            }
+
+        private constructor(): super() {
+            id = null
+            condition = null
+            label = null
+            x = Double.NaN
+            y = Double.NaN
+            isMultiInstance = false
+            predecessors = ArraySet()
+            successors = ArraySet()
+            defines = mutableListOf()
+            results = mutableListOf()
+        }
+
         constructor(rootBuilder: XmlProcessModel.Builder,
                     id: String? = null,
                     childId: String? = null,
@@ -174,26 +216,6 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
             this.results = results.toMutableList()
         }
 
-        override var predecessors: MutableSet<Identified>
-            set(value) {
-                field.replaceBy(value)
-            }
-
-        override var successors: MutableSet<Identified>
-            set(value) {
-                field.replaceBy(value)
-            }
-
-        override var defines: MutableCollection<IXmlDefineType>
-            set(value) {
-                field.replaceBy(value)
-            }
-
-        override var results: MutableCollection<IXmlResultType>
-            set(value) {
-                field.replaceBy(value)
-            }
-
         override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
             return XmlChildModel(this, buildHelper)
         }
@@ -203,8 +225,10 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         }
 
         @Serializer(forClass = ChildModelBuilder::class)
-        companion object {
-
+        companion object: ChildProcessModelBase.Builder.BaseSerializer<ChildModelBuilder>() {
+            override fun builder(): ChildModelBuilder {
+                return ChildModelBuilder()
+            }
         }
     }
 

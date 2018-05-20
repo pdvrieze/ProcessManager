@@ -32,9 +32,14 @@ import nl.adaptivity.xml.serialization.XmlDefault
 abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
     : ProcessNode<NodeT, ModelT> {
 
+    @Transient
     private var _ownerModel: ModelT
+
+//    @Optional
+    @XmlDefault("false")
     override val isMultiInstance: Boolean
 
+    @Transient
     private var _predecessors: MutableIdentifyableSet<Identified>
 
     @Transient
@@ -49,14 +54,20 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     override val successors: IdentifyableSet<Identified>
         get() = _successors
 
-    @Transient
+//    @Optional
+    @SerialName("x")
+    @XmlDefault("NaN")
     private var _x: Double
 
+    @Transient
     override val x: Double get() = _x
 
-    @Transient
+//    @Optional
+    @SerialName("y")
+    @XmlDefault("NaN")
     private var _y: Double
 
+    @Transient
     override val y: Double get() = _y
 
     @SerialName("define")
@@ -479,11 +490,14 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
         override var id: String?
         override var label: String?
+        @Optional
         @XmlDefault("NaN")
         override var x: Double = Double.NaN
+        @Optional
         @XmlDefault("NaN")
         override var y: Double = Double.NaN
 
+        @Optional
         @XmlDefault("false")
         override var isMultiInstance: Boolean = false
 
