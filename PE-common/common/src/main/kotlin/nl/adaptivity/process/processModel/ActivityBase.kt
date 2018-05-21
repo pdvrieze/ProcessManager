@@ -58,6 +58,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
     final override var predecessor: Identifiable? = null
 
+    @Transient
     final override val successor: Identifiable? get() = successors.singleOrNull()
 
     override var message: IXmlMessage?

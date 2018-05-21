@@ -16,21 +16,49 @@
 
 package nl.adaptivity.process.util
 
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.StringSerializer
+import nl.adaptivity.xml.serialization.simpleSerialClassDesc
+
 /**
  * Interface for objects that may have identifiers.
  */
+@Serializable
 interface Identifiable : Comparable<Identifiable> {
 
-  val id: String?
+    val id: String?
 
-  val identifier: Identifier? get() = id?.let(::Identifier)
+    @Transient
+    val identifier: Identifier?
+        get() = id?.let(::Identifier)
 
-  override fun compareTo(other: Identifiable): Int {
-    val otherId = other.id
-    return if (otherId==null) {
-      id?.let { 1 } ?: 0
-    } else {
-      id?.let { it.compareTo(otherId) } ?: -1
+    override fun compareTo(other: Identifiable): Int {
+        val otherId = other.id
+        return if (otherId == null) {
+            id?.let { 1 } ?: 0
+        } else {
+            id?.compareTo(otherId) ?: -1
+        }
     }
-  }
+
+    @Serializer(forClass = Identifiable::class)
+    companion object {
+        override val serialClassDesc: KSerialClassDesc
+            get() = simpleSerialClassDesc<Identifiable>()
+
+        override fun load(input: KInput): Identifiable {
+            return Identifier(input.readStringValue())
+        }
+
+        override fun save(output: KOutput, obj: Identifiable) {
+            val value = obj.id
+            if (value == null) {
+                output.writeNullValue()
+            } else {
+                output.writeNotNullMark()
+                output.writeStringValue(value)
+            }
+        }
+    }
+
 }
