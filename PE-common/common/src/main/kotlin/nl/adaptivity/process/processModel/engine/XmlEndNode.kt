@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
 import nl.adaptivity.process.processModel.IXmlDefineType
@@ -28,72 +29,74 @@ import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
 
+@Serializable
+class XmlEndNode : EndNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
-class XmlEndNode(builder: EndNode.Builder<*, *>,
-                 buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) : EndNodeBase<XmlProcessNode, XmlModelCommon>(
-    builder, buildHelper), XmlProcessNode {
+    constructor(builder: EndNode.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) :
+        super(builder, buildHelper)
 
-  class Builder : EndNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
-
-    constructor() : this(id=null)
-
-
-    constructor(predecessor: Identified? = null,
-                id: String? = null,
-                label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                multiInstance: Boolean = false)
-      : super(id, predecessor, label, defines, results, x, y, multiInstance)
-
-
-    constructor(node: EndNode<*, *>) : super(node) {}
-
-    override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlEndNode {
-      return XmlEndNode(this, buildHelper)
+    override fun builder(): Builder {
+        return Builder(this)
     }
-  }
 
-  override fun builder(): Builder {
-    return Builder(this)
-  }
-
-  public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
-    super.setOwnerModel(newOwnerModel)
-  }
-
-  public override fun setPredecessors(predecessors: Collection<Identifiable>) {
-    super.setPredecessors(predecessors)
-  }
-
-  public override fun removePredecessor(predecessorId: Identified) {
-    super.removePredecessor(predecessorId)
-  }
-
-  public override fun addPredecessor(predecessorId: Identified) {
-    super.addPredecessor(predecessorId)
-  }
-
-  public override fun addSuccessor(successorId: Identified) {
-    super.addSuccessor(successorId)
-  }
-
-  public override fun removeSuccessor(successorId: Identified) {
-    super.removeSuccessor(successorId)
-  }
-
-  public override fun setSuccessors(successors: Collection<Identified>) {
-    super.setSuccessors(successors)
-  }
-
-  companion object {
-
-    @Throws(XmlException::class)
-    fun deserialize(reader: XmlReader): XmlEndNode.Builder {
-      return Builder().deserializeHelper(reader)
+    public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
+        super.setOwnerModel(newOwnerModel)
     }
-  }
+
+    public override fun setPredecessors(predecessors: Collection<Identifiable>) {
+        super.setPredecessors(predecessors)
+    }
+
+    public override fun removePredecessor(predecessorId: Identified) {
+        super.removePredecessor(predecessorId)
+    }
+
+    public override fun addPredecessor(predecessorId: Identified) {
+        super.addPredecessor(predecessorId)
+    }
+
+    public override fun addSuccessor(successorId: Identified) {
+        super.addSuccessor(successorId)
+    }
+
+    public override fun removeSuccessor(successorId: Identified) {
+        super.removeSuccessor(successorId)
+    }
+
+    public override fun setSuccessors(successors: Collection<Identified>) {
+        super.setSuccessors(successors)
+    }
+
+    companion object {
+
+        @Throws(XmlException::class)
+        fun deserialize(reader: XmlReader): XmlEndNode.Builder {
+            return Builder().deserializeHelper(reader)
+        }
+    }
+
+    @Serializable
+    class Builder : EndNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
+
+        constructor() : this(id = null)
+
+
+        constructor(predecessor: Identified? = null,
+                    id: String? = null,
+                    label: String? = null,
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    multiInstance: Boolean = false)
+            : super(id, predecessor, label, defines, results, x, y, multiInstance)
+
+
+        constructor(node: EndNode<*, *>) : super(node) {}
+
+        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlEndNode {
+            return XmlEndNode(this, buildHelper)
+        }
+    }
 
 }

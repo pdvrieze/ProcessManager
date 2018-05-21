@@ -27,7 +27,16 @@ import nl.adaptivity.xml.QName
 
 interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
+    var predecessor: Identified?
+
+    override fun builder(): Builder<NodeT, ModelT>
+
+    @Deprecated("Don't modify nodes directly")
+    fun setDefines(exports: Collection<IXmlDefineType>)
+
+    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+        ProcessNode.IBuilder<NodeT, ModelT> {
+
         override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
         var predecessor: Identifiable?
@@ -36,6 +45,7 @@ interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Node
         override val predecessors: Collection<Identified>
             get() = listOfNotNull(predecessor?.identifier)
 
+        @Transient
         override val successors: Collection<Identified>
             get() = emptySet()
 
@@ -61,12 +71,6 @@ interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Node
         }
 
     }
-
-    override fun builder(): Builder<NodeT, ModelT>
-
-    fun setDefines(exports: Collection<IXmlDefineType>)
-
-    var predecessor: Identified?
 
     companion object {
 

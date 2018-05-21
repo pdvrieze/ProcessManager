@@ -38,6 +38,7 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
     override val maxPredecessorCount: Int
         get() = 0
 
+    @Transient
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 

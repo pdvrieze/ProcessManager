@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
@@ -29,16 +30,62 @@ import nl.adaptivity.xml.*
 /**
  * Created by pdvrieze on 24/11/15.
  */
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(builder: EndNode.Builder<*, *>,
-                                                                           buildHelper: ProcessModel.BuildHelper<T, M>) : ProcessNodeBase<T, M>(
-    builder, buildHelper), EndNode<T, M> {
+@Serializable
+abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNodeBase<T, M>, EndNode<T, M> {
 
-    abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNodeBase.Builder<T, M>, EndNode.Builder<T, M>, SimpleXmlDeserializable {
+    constructor(builder: EndNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) :
+        super(builder, buildHelper)
+
+    override var predecessor: Identified?
+        get() = if (predecessors.size == 0) null else predecessors.single()
+        set(value) {
+            setPredecessors(listOfNotNull(value))
+        }
+
+    @Transient
+    override val maxSuccessorCount: Int get() = 0
+
+    @Transient
+    override val successors: IdentifyableSet<Identified>
+        get() = IdentifyableSet.empty<Identified>()
+
+
+    override abstract fun builder(): Builder<T, M>
+
+    override fun serialize(out: XmlWriter) {
+        out.smartStartTag(EndNode.ELEMENTNAME) {
+            serializeAttributes(this)
+            serializeChildren(this)
+        }
+    }
+
+    override fun serializeAttributes(out: XmlWriter) {
+        super.serializeAttributes(out)
+        predecessor?.let { out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, it.id) }
+    }
+
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
+        return visitor.visitEndNode(this)
+    }
+
+    // Override to make public.
+    @Suppress("OverridingDeprecatedMember")
+    override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
+
+    @Serializable
+    abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
+        ProcessNodeBase.Builder<T, M>,
+        EndNode.Builder<T, M>,
+        SimpleXmlDeserializable {
 
         @Transient
         override val idBase: String get() = "end"
 
         final override var predecessor: Identifiable? = null
+
+        @Transient
+        override val elementName: QName
+            get() = EndNode.ELEMENTNAME
 
         constructor() : this(id = null)
 
@@ -85,41 +132,5 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?>(build
             return false
         }
 
-
-        override val elementName: QName
-            get() = EndNode.ELEMENTNAME
     }
-
-    override var predecessor: Identified?
-        get() = if (predecessors.size == 0) null else predecessors.single()
-        set(value) {
-            setPredecessors(listOfNotNull(value))
-        }
-
-    override val maxSuccessorCount: Int get() = 0
-
-    override val successors: IdentifyableSet<Identified>
-        get() = IdentifyableSet.empty<Identified>()
-
-
-    override abstract fun builder(): Builder<T, M>
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(EndNode.ELEMENTNAME) {
-            serializeAttributes(this)
-            serializeChildren(this)
-        }
-    }
-
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        predecessor?.let { out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, it.id) }
-    }
-
-    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
-        return visitor.visitEndNode(this)
-    }
-
-    // Override to make public.
-    override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
 }
