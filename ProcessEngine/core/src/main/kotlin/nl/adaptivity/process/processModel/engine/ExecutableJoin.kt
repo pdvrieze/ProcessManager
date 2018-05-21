@@ -30,7 +30,9 @@ import nl.adaptivity.process.util.Identified
 class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
   : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
+  class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableModelCommon>,
+                  ExecutableProcessNode.Builder {
+
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
                 successor: Identified? = null, label: String? = null,

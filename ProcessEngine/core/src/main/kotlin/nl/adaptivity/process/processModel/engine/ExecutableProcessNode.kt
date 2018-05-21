@@ -41,12 +41,6 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
   interface Builder : ProcessNode.IBuilder<ExecutableProcessNode, ExecutableModelCommon> {
     override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon>
 
-    override fun predecessors(vararg values: Identifiable) {
-      values.forEach {
-        predecessors.add(it.identifier ?: throw NullPointerException("Missing identifier for predecessor $it"))
-      }
-    }
-
     override fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())
     }
