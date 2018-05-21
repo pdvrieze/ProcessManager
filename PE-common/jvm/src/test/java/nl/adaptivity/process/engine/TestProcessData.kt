@@ -165,8 +165,8 @@ class TestProcessData {
 
         val result2 = ac1.results[1]
         val snc2 = SimpleNamespaceContext.from(result2.originalNSContext)
-        assertEquals(1, snc2.size)
-        assertEquals("umh", snc2.getPrefix(0))
+        assertEquals(2, snc2.size)
+        assertEquals("umh", snc2.getPrefix(1))
 
         val testData = documentBuilder.parse(InputSource(StringReader(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
@@ -331,6 +331,16 @@ class TestProcessData {
         val inputStream = getDocument("processmodel1.xml")
         val parser = XmlStreaming.newReader(inputStream, "UTF-8")
         val model = XmlProcessModel.deserialize(parser)
+        checkModel1(model)
+    }
+
+    @Test
+    @Throws(XmlException::class, FileNotFoundException::class)
+    fun testParseProcessModel1NewDeserializer() {
+        val inputStream = getDocument("processmodel1.xml")
+
+        val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+        val model = XML.parse<XmlProcessModel>(parser)
         checkModel1(model)
     }
 
