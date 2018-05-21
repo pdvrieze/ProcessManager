@@ -111,7 +111,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
         operator fun get(import: IXmlResultType) = XmlResultType(import)
 
         override fun load(input: KInput): XmlResultType {
-            val data = PathHolderData<XmlResultType>(this)
+            val data = PathHolderData(this)
             data.load(serialClassDesc, input)
             return XmlResultType(data.name, data.path, data.content, data.namespaces)
         }
