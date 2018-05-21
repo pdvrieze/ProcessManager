@@ -868,8 +868,10 @@ class TestProcessData {
             if (reader.markSupported()) {
                 reader.mark(Int.MAX_VALUE)
                 expected = reader.readString(Charset.defaultCharset())
-                reader.reset()
-                streamReaderFactory = { XmlStreaming.newReader(reader, Charset.defaultCharset().toString()) }
+                streamReaderFactory = {
+                    reader.reset()
+                    XmlStreaming.newReader(reader, Charset.defaultCharset().toString())
+                }
             } else {
                 expected = reader.readString(Charset.defaultCharset())
                 streamReaderFactory = { XmlStreaming.newReader(StringReader(expected)) }
