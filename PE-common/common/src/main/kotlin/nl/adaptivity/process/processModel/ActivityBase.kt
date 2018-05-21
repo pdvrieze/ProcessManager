@@ -56,7 +56,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         get() = _name
         set(value) { _name = value}
 
-    final override var predecessor: Identifiable? = null
+    final override val predecessor: Identifiable?
+        get() = predecessors.singleOrNull()
 
     @Transient
     final override val successor: Identifiable? get() = successors.singleOrNull()

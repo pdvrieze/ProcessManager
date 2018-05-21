@@ -65,9 +65,7 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
     /**
      * The predecessor node for this activity.
      */
-    var predecessor: Identifiable?
-        @Deprecated("Should be immutable")
-        set
+    val predecessor: Identifiable?
 
     val successor: Identifiable?
 
