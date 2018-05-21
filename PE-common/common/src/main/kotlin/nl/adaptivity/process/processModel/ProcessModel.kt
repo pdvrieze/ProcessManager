@@ -187,6 +187,8 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                 .filter { it.id != null }
                 .associateBy { it.id }
 
+            val splitsToInject = mutableMapOf<String, Split.Builder<NodeT, ModelT>>()
+
             // Ensure all nodes are linked up and have ids
             var lastId = 1
             nodes.forEach { nodeBuilder ->
@@ -222,16 +224,30 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                     nodeBuilder.removeAllSuccessors { it.id !in nodeMap }
                 }
 
-                nodeBuilder.predecessors.asSequence()
-                    .map { nodeMap[it.id]!! }
-                    .forEach { pred ->
-                        pred.addSuccessor(curIdentifier) // If existing, should ignore it
-                    }
-
                 nodeBuilder.successors.asSequence()
                     .map { nodeMap[it.id]!! }
                     .forEach { successor ->
                         successor.addPredecessor(curIdentifier) // If existing, should ignore it
+                    }
+
+                nodeBuilder.predecessors.asSequence()
+                    .map { nodeMap[it.id]!! }
+                    .forEach { pred ->
+                        if (pred !is Split.Builder && // It is not a split
+                            pred.successors.isNotEmpty() && // It has a successor set
+                            pred.successors.single().id!=curIdentifier.id) { // which is not just the current one
+
+                            splitsToInject.getOrPut(pred.id!!) {
+                                splitBuilder().apply {
+                                    addPredecessor(Identifier(pred.id!!))
+                                    addSuccessor(pred.successors.single().identifier)
+                                }
+                            }.also { split ->
+                                split.addSuccessor(curIdentifier)
+                            }
+                        } else {
+                            pred.addSuccessor(curIdentifier) // If existing, should ignore it
+                        }
                     }
             }
 
@@ -242,40 +258,33 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
              *    LEFT |- RIGHT2
              *          \ RIGHT3
              *
-             * The new split will be the "middle"
+             * The new split will be the "middle".
+             *
+             * The predecessor/successor mapping has created valid split nodes. These nodes need embedding though as
+             * their predecessors/successors will not be aware of them
              */
+            splitsToInject.mapTo(nodes) {(leftStr, middle) ->
 
-            nodes.asSequence()
-                .filter { left -> left.successors.size > 1 && left !is Split.Builder<NodeT, ModelT> }
-                .map { leftBuilder ->
-                    splitBuilder().also { middle ->
-                        // All successors of the left node will be successors of the new split.
-                        middle.successors.addAll(leftBuilder.successors)
+                val leftId = Identifier(leftStr)
+                val leftBuilder = nodeMap[leftStr]!!
 
-                        // Nodes without id can't have successors (as they have no predecessors
-                        val leftId = Identifier(leftBuilder.id!!)
+                // Create a new identifier for this split, assign it to splitId
+                val splitId = Identifier(this@Builder.newId(middle.idBase).also { middle.id = it })
 
-                        middle.predecessor = leftId
-
-                        // Create a new identifier for this split, assign it to splitId
-                        val splitId = Identifier(this@Builder.newId(middle.idBase).also { middle.id = it })
-
-                        // For all the original successors of the left node remove the left node as predecessor and add the split
-                        // as new predecessor instead
-                        leftBuilder.successors.asSequence()
-                            .map { nodeMap[it.id] }
-                            .filterNotNull()
-                            .forEach { right ->
-                                right.removePredecessor(leftId)
-                                right.addPredecessor(splitId)
-                            }
-
-                        // Replace the old successors of the left node with the new injected split
-                        leftBuilder.removeAllSuccessors { true }
-                        leftBuilder.addSuccessor(splitId)
-
+                // While the split knows the successors, they need to be updated to have the split as predecessor
+                middle.successors.asSequence()
+                    .map { nodeMap[it.id] }
+                    .filterNotNull()
+                    .forEach { right ->
+                        right.removePredecessor(leftId)
+                        right.addPredecessor(splitId)
                     }
-                }.toList().let { nodes.addAll(it) }
+
+                // Replace the old successors of the left node with the new injected split
+                leftBuilder.removeAllSuccessors { true }
+                leftBuilder.addSuccessor(splitId)
+                middle
+            }
         }
 
         companion object {
