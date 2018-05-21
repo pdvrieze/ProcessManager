@@ -514,20 +514,19 @@ class TestProcessData {
             iterator.next() as XmlResultType
         }
 
-        val control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                      "  <user xmlns=\"\"\n" +
-                      "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+        val control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"user\">\n" +
+                      "  <user xmlns=\"\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
                       "    <fullname>\n" +
                       "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
                       "    </fullname>\n" +
                       "  </user>\n" +
                       "</result>"
         val found = XmlStreaming.toString(result)
-        try {
-            assertXMLEqual(control, found)
-        } catch (e: Exception) {
-            assertEquals(control, found)
-        }
+        assertXMLEqual(control, found)
+
+        assertXMLEqual(control, XML(indent = 2).stringify(result, ""))
+
+        assertEquals(control, XML(indent = 2).stringify(result, ""))
 
     }
 
