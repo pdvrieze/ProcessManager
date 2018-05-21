@@ -16,8 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
+import net.devrieze.util.ArraySet
+import net.devrieze.util.collection.replaceBy
+import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
 
@@ -27,90 +28,111 @@ import nl.adaptivity.xml.*
  */
 abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Join<NodeT, ModelT> {
 
-  abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT,ModelT>, Join.Builder<NodeT,ModelT> {
-    override val idBase:String
-      get() = "join"
+    override val maxPredecessorCount: Int
+        get() = Int.MAX_VALUE
 
-    override var isMultiMerge: Boolean
+    override val idBase: String
+        get() = IDBASE
 
-    constructor():this(predecessors= emptyList(), isMultiMerge = false, isMultiInstance = false)
+    final override val isMultiMerge: Boolean
 
-    constructor(id: String? = null,
-                predecessors: Collection<Identified> = emptyList(),
-                successor: Identified? = null, label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                min: Int = -1,
-                max: Int = -1,
-                isMultiMerge: Boolean = false,
-                isMultiInstance: Boolean = false) : super(id, predecessors, listOfNotNull(successor), label, defines, results, x,
-                                                          y, min, max, isMultiInstance) {
-      this.isMultiMerge = isMultiMerge
+    final override val successor: Identifiable?
+        get() = successors.singleOrNull()
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Use builders")
+    constructor(ownerModel: ModelT) : super(ownerModel) {
+        isMultiMerge = false
     }
 
-    constructor(node: Join<*, *>) : super(node) {
-      this.isMultiMerge = node.isMultiMerge
+    constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
+                                                                                                           buildHelper) {
+        isMultiMerge = builder.isMultiMerge
     }
 
-    override fun deserializeChild(reader: XmlReader): Boolean {
-      if (reader.isElement(Join.PREDELEMNAME)) {
-        val id = reader.readSimpleElement().toString()
-        predecessors.add(Identifier(id))
-        return true
-      }
-      return super.deserializeChild(reader)
+    abstract override fun builder(): Builder<NodeT, ModelT>
+
+    @Throws(XmlException::class)
+    override fun serialize(out: XmlWriter) {
+        out.smartStartTag(Join.ELEMENTNAME)
+        serializeAttributes(out)
+        serializeChildren(out)
+        out.endTag(Join.ELEMENTNAME)
     }
 
-    override val elementName: QName
-      get() = Join.ELEMENTNAME
-
-  }
-
-  @Deprecated("")
-  constructor(ownerModel: ModelT) : super(ownerModel) {
-    isMultiMerge = false
-  }
-
-  constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
-    isMultiMerge = builder.isMultiMerge
-  }
-
-  override abstract fun builder(): Builder<NodeT, ModelT>
-
-  override val idBase: String
-    get() = IDBASE
-
-  override val isMultiMerge: Boolean
-
-  @Throws(XmlException::class)
-  override fun serialize(out: XmlWriter) {
-    out.smartStartTag(Join.ELEMENTNAME)
-    serializeAttributes(out)
-    serializeChildren(out)
-    out.endTag(Join.ELEMENTNAME)
-  }
-
-  @Throws(XmlException::class)
-  override fun serializeChildren(out: XmlWriter) {
-    super.serializeChildren(out)
-    for (pred in predecessors) {
-      out.smartStartTag(Join.PREDELEMNAME)
-      out.text(pred.id)
-      out.endTag(Join.PREDELEMNAME)
+    @Throws(XmlException::class)
+    override fun serializeChildren(out: XmlWriter) {
+        super.serializeChildren(out)
+        for (pred in predecessors) {
+            out.smartStartTag(Join.PREDELEMNAME)
+            out.text(pred.id)
+            out.endTag(Join.PREDELEMNAME)
+        }
     }
-  }
 
-  override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
-    return visitor.visitJoin(this)
-  }
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
+        return visitor.visitJoin(this)
+    }
 
-  override val maxPredecessorCount: Int
-    get() = Int.MAX_VALUE
 
-  companion object {
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+        JoinSplitBase.Builder<NodeT, ModelT>,
+        Join.Builder<NodeT, ModelT> {
 
-    val IDBASE = "join"
-  }
+        override val idBase: String
+            get() = "join"
+
+        final override var isMultiMerge: Boolean = false
+
+        final override var predecessors: MutableSet<Identified> = ArraySet()
+            set(value) {
+                field.replaceBy(value)
+            }
+
+        final override var successor: Identifiable? = null
+
+        constructor() : this(predecessors = emptyList(), isMultiMerge = false, isMultiInstance = false)
+
+        constructor(id: String? = null,
+                    predecessors: Collection<Identified> = emptyList(),
+                    successor: Identified? = null, label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    min: Int = -1,
+                    max: Int = -1,
+                    isMultiMerge: Boolean = false,
+                    isMultiInstance: Boolean = false) : super(id, label,
+                                                              defines, results, x,
+                                                              y, min, max, isMultiInstance) {
+            this.predecessors.addAll(predecessors)
+            this.successor = successor
+            this.isMultiMerge = isMultiMerge
+        }
+
+        constructor(node: Join<*, *>) : super(node) {
+            this.isMultiMerge = node.isMultiMerge
+            this.predecessors.addAll(node.predecessors)
+            this.successor = node.successor
+        }
+
+        override fun deserializeChild(reader: XmlReader): Boolean {
+            if (reader.isElement(Join.PREDELEMNAME)) {
+                val id = reader.readSimpleElement()
+                predecessors.add(Identifier(id))
+                return true
+            }
+            return super.deserializeChild(reader)
+        }
+
+        override val elementName: QName
+            get() = Join.ELEMENTNAME
+
+    }
+
+    companion object {
+
+        const val IDBASE = "join"
+    }
 }

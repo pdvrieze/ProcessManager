@@ -509,8 +509,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
         @Suppress("LeakingThis")
         constructor(id: String? = null,
-                    predecessors: Collection<Identified> = emptyList(),
-                    successors: Collection<Identified> = emptyList(),
                     label: String? = null,
                     defines: Collection<IXmlDefineType> = emptyList(),
                     results: Collection<IXmlResultType> = emptyList(),
@@ -522,20 +520,9 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
             this.x = x
             this.y = y
             this.isMultiInstance = isMultiInstance
-            this.predecessors = ArraySet(predecessors)
-            this.successors = ArraySet(successors)
             this.defines = ArrayList(defines)
             this.results = ArrayList(results)
         }
-
-//        @Transient
-        @SerialName("predecessor")
-        final override var predecessors: MutableSet<Identified> = ArraySet()
-            private set(value) { field.replaceBy(value) }
-
-        @Transient
-        final override var successors: MutableSet<Identified> = ArraySet()
-            private set
 
         @Serializable(with = IXmlDefineTypeListSerializer::class)
         @SerialName("define")
@@ -545,7 +532,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
 
-        constructor(node: ProcessNode<*, *>) : this(node.id, node.predecessors, node.successors, node.label,
+        constructor(node: ProcessNode<*, *>) : this(node.id, node.label,
                                                     node.defines, node.results, node.x, node.y, node.isMultiInstance)
 
         override abstract fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>

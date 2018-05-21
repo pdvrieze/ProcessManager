@@ -17,30 +17,66 @@
 package nl.adaptivity.process.processModel
 
 
+import kotlinx.serialization.Transient
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.QName
 
 
 interface Split<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
 
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplit.Builder<NodeT, ModelT> {
+    val predecessor: Identifiable?
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+    override fun builder(): Builder<NodeT, ModelT>
 
-    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitSplit(this)
+    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplit.Builder<NodeT, ModelT> {
 
-    var predecessor: Identifiable?
-      get() = predecessors.firstOrNull()
-      set(value) { predecessors.replaceByNotNull(value?.identifier) }
-  }
-  override fun builder(): Builder<NodeT, ModelT>
+        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
-  companion object {
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitSplit(this)
 
-    const val ELEMENTLOCALNAME = "split"
-    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
-  }
-  // No methods beyond JoinSplit
+        var predecessor: Identifiable?
+
+        @Transient
+        override val predecessors: Collection<Identified>
+            get() = listOfNotNull(predecessor?.identifier)
+
+        override var successors: MutableSet<Identified>
+
+        fun setSuccessors(value: Iterable<Identified>) = successors.replaceBy(value)
+
+        override fun addSuccessor(identifier: Identifier) {
+            successors.add(identifier)
+        }
+
+
+        override fun addPredecessor(identifier: Identifier) {
+            val p = predecessor
+            if (p !=null) {
+                if (p.identifier == identifier) return
+                throw IllegalStateException("Predecessor already set")
+            }
+            predecessor = identifier
+        }
+
+        override fun removeSuccessor(identifier: Identifiable) {
+            successors.remove(identifier)
+        }
+
+        override fun removePredecessor(identifier: Identifiable) {
+            if (predecessor?.id == identifier.id) predecessor = null
+        }
+
+    }
+
+    companion object {
+
+        const val ELEMENTLOCALNAME = "split"
+        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+    }
+    // No methods beyond JoinSplit
 }

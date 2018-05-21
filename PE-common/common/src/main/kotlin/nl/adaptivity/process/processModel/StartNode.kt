@@ -17,18 +17,19 @@
 package nl.adaptivity.process.processModel
 
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
-import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.QName
 
 //@Serializable
 interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-//    @Serializable
+    val successor: Identifiable?
+
+    //    @Serializable
     interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
         override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
@@ -36,10 +37,32 @@ interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
 
         @Transient
         var successor: Identifiable?
-            get() = successors.firstOrNull()
-            set(value) {
-                successors.replaceByNotNull(value?.identifier)
+
+        @Transient
+        override val successors: Collection<Identified>
+            get() = listOfNotNull(successor?.identifier)
+
+        override val predecessors: Collection<Identified>
+            get() = emptySet()
+
+        override fun addSuccessor(identifier: Identifier) {
+            val s = successor
+            if (s !=null) {
+                if (s.identifier == identifier) return
+                throw IllegalStateException("Successor already set")
             }
+            successor = identifier
+        }
+
+        override fun addPredecessor(identifier: Identifier) {
+            throw IllegalStateException("Endnodes have no predecessors")
+        }
+
+        override fun removeSuccessor(identifier: Identifiable) {
+            if (successor?.id == identifier.id) successor = null
+        }
+
+        override fun removePredecessor(identifier: Identifiable) = Unit
 
     }
 

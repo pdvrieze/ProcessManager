@@ -22,18 +22,15 @@ import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SimplePrincipal
-import net.devrieze.util.security.name
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.SerialClassDescImpl
-import nl.adaptivity.util.describe
 import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlDefault
-import nl.adaptivity.xml.serialization.canary.Canary
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
@@ -165,7 +162,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         companion object {
 
             @JvmStatic
-            fun <B : Builder<*, *>> deserialize(builder: B, reader: XmlReader): B {
+            fun <B : Builder<T, M>, T : ProcessNode<T, M>, M : ProcessModel<T, M>?> deserialize(builder: B, reader: XmlReader): B {
 
                 reader.skipPreamble()
                 val elementName = ELEMENTNAME
@@ -183,13 +180,40 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
                     }
                 }
 
+                val addedSplits = mutableListOf<ProcessNode.IBuilder<T,M>>()
                 for (node in builder.nodes) {
                     node.id?.let { nodeId ->
                         for (pred in node.predecessors) {
-                            builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(nodeId))
+                            val predNode =builder.nodes.firstOrNull { it.id == pred.id }
+                            if (predNode !=null && predNode.successors.isNotEmpty() && predNode !is Split.Builder) {
+                                // A special case for the compatibility option where splits are introduced.
+                                // non-split builders now no longer accept multiple successors
+                                val predSuccessor = predNode.successors.single()
+                                val oldSuccessor = builder.nodes.firstOrNull{ it.id == predSuccessor.id }
+                                if (oldSuccessor!=null) {
+                                    val splitName = builder.newId("split")
+                                    val split = builder.splitBuilder().apply {
+                                        id = splitName
+                                        predecessor = pred
+                                        successors.replaceBy(predSuccessor.identifier, Identifier(nodeId))
+                                    }
+                                    addedSplits.add(split)
+                                    val splitIdentifier = Identifier(splitName)
+                                    predNode.removeSuccessor(predSuccessor)
+                                    predNode.addSuccessor(splitIdentifier)
+                                    oldSuccessor.removePredecessor(pred)
+                                    oldSuccessor.addPredecessor(splitIdentifier)
+                                    node.removePredecessor(pred)
+                                    node.addPredecessor(splitIdentifier)
+                                }
+                            } else {
+                                predNode?.addSuccessor(Identifier(nodeId))
+                            }
                         }
                     }
                 }
+                builder.nodes.addAll(addedSplits)
+
                 return builder
             }
 

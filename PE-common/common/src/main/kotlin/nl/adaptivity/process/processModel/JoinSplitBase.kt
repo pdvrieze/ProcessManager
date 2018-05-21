@@ -37,8 +37,6 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
         override var max: Int
 
         constructor(id: String? = null,
-                    predecessors: Collection<Identified> = emptyList(),
-                    successors: Collection<Identified> = emptyList(),
                     label: String? = null,
                     defines: Collection<IXmlDefineType> = emptyList(),
                     results: Collection<IXmlResultType> = emptyList(),
@@ -46,7 +44,7 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
                     y: Double = Double.NaN,
                     min: Int = -1,
                     max: Int = -1,
-                    multiInstance: Boolean = false) : super(id, predecessors, successors, label, defines, results, x, y,
+                    multiInstance: Boolean = false) : super(id, label, defines, results, x, y,
                                                             multiInstance) {
             this.min = min
             this.max = max

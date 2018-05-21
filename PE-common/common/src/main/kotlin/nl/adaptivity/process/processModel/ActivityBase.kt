@@ -56,12 +56,9 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         get() = _name
         set(value) { _name = value}
 
-    @Suppress("DEPRECATION")
-    override var predecessor: Identifiable?
-        get() = if (predecessors.isEmpty()) null else predecessors.single()
-        set(value) {
-            setPredecessors(listOfNotNull(value?.identifier))
-        }
+    final override var predecessor: Identifiable? = null
+
+    final override val successor: Identifiable? get() = successors.singleOrNull()
 
     override var message: IXmlMessage?
         get() = _message
@@ -152,17 +149,22 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         Activity.Builder<NodeT,ModelT>,
         SimpleXmlDeserializable {
 
-        override var message: IXmlMessage?
-        override var name: String?
-        override var condition: String?
+        final override var message: IXmlMessage?
+        final override var name: String?
+        final override var condition: String?
         @Transient
         override val idBase:String
             get() = "ac"
 
-        override var childId: String? = null
+        final override var childId: String? = null
 
         @Transient
         override val elementName: QName get() = Activity.ELEMENTNAME
+
+        final override var predecessor: Identifiable? = null
+
+        @Transient
+        final override var successor: Identifiable? = null
 
 
         constructor(): this(id = null)
@@ -178,17 +180,21 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
                     name: String? = null,
                     x: Double = Double.NaN,
                     y: Double = Double.NaN,
-                    multiInstance: Boolean = false) : super(id, listOfNotNull(predecessor), listOfNotNull(successor), label, defines, results, x, y, multiInstance) {
+                    multiInstance: Boolean = false) : super(id, label, defines, results, x, y, multiInstance) {
+            this.predecessor = predecessor
+            this.successor = successor
             this.message = message
             this.name = name
             this.condition = condition
         }
 
         constructor(node: Activity<*, *>) : super(node) {
-            this.message = XmlMessage.get(node.message)
-            this.name = node.name
-            this.condition = node.condition
-            this.childId = node.childModel?.id
+            message = XmlMessage.get(node.message)
+            name = node.name
+            condition = node.condition
+            childId = node.childModel?.id
+            predecessor = node.predecessor
+            successor = node.successor
         }
 
         override fun deserializeChild(reader: XmlReader): Boolean {
@@ -212,7 +218,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
             @Suppress("DEPRECATION")
             when (attributeLocalName) {
-                ProcessNodeBase.ATTR_PREDECESSOR -> predecessors.replaceBy(Identifier(attributeValue))
+                ProcessNodeBase.ATTR_PREDECESSOR -> predecessor=Identifier(attributeValue)
                 "name" -> name = attributeValue
                 ATTR_CHILDID -> childId = attributeValue
                 else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
@@ -236,8 +242,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         id: String? = null,
         override var childId: String? = null,
         nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
-        predecessors: Collection<Identified> = emptyList(),
-        successors: Collection<Identified> = emptyList(),
+        override var predecessor: Identifiable? = null,
+        @Transient override var successor: Identifiable? = null,
         label: String? = null,
         imports: Collection<IXmlResultType> = emptyList(),
         defines: Collection<IXmlDefineType> = emptyList(),
@@ -245,7 +251,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         results: Collection<IXmlResultType> = emptyList(),
         x: Double = Double.NaN,
         y: Double = Double.NaN,
-        multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, predecessors, successors, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
+        multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
 
         override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
         override val imports: MutableList<IXmlResultType> = imports.toMutableList()

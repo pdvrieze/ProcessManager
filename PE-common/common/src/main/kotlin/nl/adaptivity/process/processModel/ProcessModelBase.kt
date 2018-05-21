@@ -183,7 +183,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
                 for (node in builder.nodes) {
                     for (pred in node.predecessors) {
-                        builder.nodes.firstOrNull { it.id == pred.id }?.successors?.add(Identifier(node.id!!))
+                        builder.nodes.firstOrNull { it.id == pred.id }?.addSuccessor(Identifier(node.id!!))
                     }
                 }
                 return builder

@@ -142,7 +142,9 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     }
 
     @Serializable
-    class ChildModelBuilder : XmlChildModel.Builder, Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+    class ChildModelBuilder : XmlChildModel.Builder,
+                              Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>,
+                              XmlModelCommon.Builder {
 
         override var id: String?
         override var condition: String?
@@ -150,18 +152,8 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         override var x: Double
         override var y: Double
         override var isMultiInstance: Boolean
-
-        @SerialName("predecessor")
-        override var predecessors: MutableSet<Identified>
-            set(value) {
-                field.replaceBy(value)
-            }
-
-        @Transient
-        override var successors: MutableSet<Identified>
-            set(value) {
-                field.replaceBy(value)
-            }
+        override var predecessor: Identifiable? = null
+        override var successor: Identifiable? = null
 
         @SerialName("define")
         override var defines: MutableCollection<IXmlDefineType>
@@ -182,8 +174,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
             x = Double.NaN
             y = Double.NaN
             isMultiInstance = false
-            predecessors = ArraySet()
-            successors = ArraySet()
+
             defines = mutableListOf()
             results = mutableListOf()
         }
@@ -192,9 +183,9 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
                     id: String? = null,
                     childId: String? = null,
                     nodes: Collection<XmlProcessNode.Builder> = emptyList(),
-                    predecessors: Collection<Identified> = emptyList(),
+                    predecessor: Identifiable? = null,
                     condition: String? = null,
-                    successors: Collection<Identified> = emptyList(),
+                    successor: Identifiable? = null,
                     label: String? = null,
                     imports: Collection<IXmlResultType> = emptyList(),
                     defines: Collection<IXmlDefineType> = emptyList(),
@@ -210,8 +201,8 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
             this.x = x
             this.y = y
             this.isMultiInstance = isMultiInstance
-            this.predecessors = predecessors.toMutableArraySet()
-            this.successors = successors.toMutableArraySet()
+            this.predecessor = predecessor
+            this.successor = successor
             this.defines = defines.toMutableList()
             this.results = results.toMutableList()
         }

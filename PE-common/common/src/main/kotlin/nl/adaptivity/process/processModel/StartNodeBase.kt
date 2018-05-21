@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.QName
@@ -32,6 +33,13 @@ import nl.adaptivity.xml.smartStartTag
  */
 @Serializable
 abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, StartNode<NodeT, ModelT> {
+
+    @Transient
+    override val maxPredecessorCount: Int
+        get() = 0
+
+    final override val successor: Identifiable?
+        get() = successors.singleOrNull()
 
     constructor(ownerModel: ModelT,
                 successor: Identified? = null,
@@ -66,10 +74,6 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
         return visitor.visitStartNode(this)
     }
 
-    @Transient
-    override val maxPredecessorCount: Int
-        get() = 0
-
 
     @Serializable
     abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
@@ -85,19 +89,33 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
         override val elementName: QName
             get() = StartNode.ELEMENTNAME
 
+        override var id: String?
+            get() = super.id
+            set(value) { super.id = value }
+
+        final override var successor: Identifiable? = null
+
+        @Transient
+        final override val predecessors
+            get() = emptySet<Identified>()
+
         constructor() : this(successor = null)
 
         constructor(id: String? = null,
-                    successor: Identified? = null,
+                    successor: Identifiable? = null,
                     label: String? = null,
                     defines: Collection<IXmlDefineType> = emptyList(),
                     results: Collection<IXmlResultType> = emptyList(),
                     x: Double = Double.NaN,
                     y: Double = Double.NaN,
-                    multiInstance: Boolean = false) : super(id, emptyList(), listOfNotNull(successor), label, defines,
-                                                            results, x, y, multiInstance)
+                    multiInstance: Boolean = false) : super(id, label, defines,
+                                                            results, x, y, multiInstance) {
+            this.successor = successor
+        }
 
-        constructor(node: StartNode<*, *>) : super(node)
+        constructor(node: StartNode<*, *>) : super(node) {
+            successor = node.successor
+        }
 
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {

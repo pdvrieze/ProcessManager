@@ -16,37 +16,63 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xml.QName
 
 
 interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
-    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
+        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
-    var predecessor: Identifiable?
-      get() = predecessors.firstOrNull()
-      set(value) { predecessors.replaceByNotNull(value?.identifier) }
+        var predecessor: Identifiable?
 
-    override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitEndNode(this)
+        @Transient
+        override val predecessors: Collection<Identified>
+            get() = listOfNotNull(predecessor?.identifier)
 
-  }
+        override val successors: Collection<Identified>
+            get() = emptySet()
 
-  override fun builder(): Builder<NodeT, ModelT>
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitEndNode(this)
 
-  fun setDefines(exports: Collection<IXmlDefineType>)
+        override fun addSuccessor(identifier: Identifier) {
+            throw IllegalStateException("Endnodes have no successors")
+        }
 
-  var predecessor: Identified?
+        override fun addPredecessor(identifier: Identifier) {
+            val p = predecessor
+            if (p !=null) {
+                if (p.identifier == identifier) return
+                throw IllegalStateException("Predecessor already set")
+            }
+            predecessor = identifier
+        }
 
-  companion object {
+        override fun removeSuccessor(identifier: Identifiable) = Unit // no-op
 
-    const val ELEMENTLOCALNAME = "end"
-    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+        override fun removePredecessor(identifier: Identifiable) {
+            if (predecessor?.id == identifier.id) predecessor = null
+        }
 
-  }
+    }
+
+    override fun builder(): Builder<NodeT, ModelT>
+
+    fun setDefines(exports: Collection<IXmlDefineType>)
+
+    var predecessor: Identified?
+
+    companion object {
+
+        const val ELEMENTLOCALNAME = "end"
+        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+
+    }
 
 }

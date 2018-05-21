@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Transient
-import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
@@ -112,8 +111,9 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
         fun endNode(id: String) = nodes.firstOrNull { it.id == id }?.let { it as EndNode.Builder }
 
         fun newId(base: String): String {
-            return generateSequence(1,
-                                    { it + 1 }).map { "${base}${it}" }.first { candidateId -> nodes.none { it.id == candidateId } }
+            return generateSequence(1) { it + 1 }
+                .map { "$base$it" }
+                .first { candidateId -> nodes.none { it.id == candidateId } }
         }
 
         fun <B : ChildProcessModel.Builder<*, *>> B.ensureChildId(): B = apply {
@@ -133,8 +133,6 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
 
             val nodeList = nodes.toList()
             val mark = IntArray(nodeList.size)
-            val SEEN = 0b01
-            val CURRENT = 0b10
 
             fun seen(idx: Int) = (mark[idx] and SEEN == SEEN)
             fun markSeen(idx: Int) {
@@ -220,20 +218,20 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                     }
                 } else {
                     // Remove "missing" predecessors and successors
-                    nodeBuilder.predecessors.removeAll { it.id !in nodeMap }
-                    nodeBuilder.successors.removeAll { it.id !in nodeMap }
+                    nodeBuilder.removeAllPredecessors { it.id !in nodeMap }
+                    nodeBuilder.removeAllSuccessors { it.id !in nodeMap }
                 }
 
                 nodeBuilder.predecessors.asSequence()
                     .map { nodeMap[it.id]!! }
                     .forEach { pred ->
-                        pred.successors.add(curIdentifier) // If existing, should ignore it
+                        pred.addSuccessor(curIdentifier) // If existing, should ignore it
                     }
 
                 nodeBuilder.successors.asSequence()
                     .map { nodeMap[it.id]!! }
                     .forEach { successor ->
-                        successor.predecessors.add(curIdentifier) // If existing, should ignore it
+                        successor.addPredecessor(curIdentifier) // If existing, should ignore it
                     }
             }
 
@@ -268,15 +266,21 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                             .map { nodeMap[it.id] }
                             .filterNotNull()
                             .forEach { right ->
-                                right.predecessors.remove(leftId)
-                                right.predecessors.add(splitId)
+                                right.removePredecessor(leftId)
+                                right.addPredecessor(splitId)
                             }
 
                         // Replace the old successors of the left node with the new injected split
-                        leftBuilder.successors.replaceBy(splitId)
+                        leftBuilder.removeAllSuccessors { true }
+                        leftBuilder.addSuccessor(splitId)
 
                     }
                 }.toList().let { nodes.addAll(it) }
+        }
+
+        companion object {
+            const val SEEN = 0b01
+            const val CURRENT = 0b10
         }
 
     }

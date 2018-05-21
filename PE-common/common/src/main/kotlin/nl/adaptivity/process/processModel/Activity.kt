@@ -16,35 +16,116 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
-import net.devrieze.util.collection.replaceByNotNull
+import kotlinx.serialization.Optional
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.xml.QName
 
 
 interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-    @Serializable
+    /**
+     * The name of this activity. Note that for serialization to XML to work
+     * this needs to be unique for the process model at time of serialization, and
+     * can not be null or an empty string. While in Java mode other nodes are
+     * referred to by reference, not name.
+     */
+    @Deprecated("Not needed, use id.", ReplaceWith("id"))
+    var name: String?
+
+    /**
+     * The condition that needs to be true to start this activity. A null value means that the activity can run.
+     */
+    var condition: String?
+        @Deprecated("Activities should be immutable")
+        set
+
+    /**
+     * Get the list of imports. The imports are provided to the message for use as
+     * data parameters. Setting will create a copy of the parameter for safety.
+     */
+    override val results: List<IXmlResultType>
+
+    @Deprecated("Activities should be immutable")
+    fun setResults(results: Collection<IXmlResultType>)
+
+    /**
+     * Get the list of exports. Exports will allow storing the response of an
+     * activity. Setting will create a copy of the parameter for safety.
+     */
+    override val defines: List<IXmlDefineType>
+
+    fun setDefines(defines: Collection<IXmlDefineType>)
+
+    /**
+     * The predecessor node for this activity.
+     */
+    var predecessor: Identifiable?
+        @Deprecated("Should be immutable")
+        set
+
+    val successor: Identifiable?
+
+    /**
+     * The message of this activity. This provides all the information to be
+     * able to actually invoke the service.
+     */
+    var message: IXmlMessage?
+
+    val childModel: ChildProcessModel<NodeT, ModelT>?
+
+    override fun builder(): Builder<NodeT, ModelT>
+
+//    @Serializable
     interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.IBuilder<T, M> {
         var condition: String?
 
-        var predecessor: Identified?
-            get() = predecessors.singleOrNull()
-            set(value) {
-                predecessors.replaceByNotNull(value?.identifier)
-            }
+        var predecessor: Identifiable?
 
         @Transient
-        var successor: Identified?
-            get() = successors.firstOrNull()
-            set(value) {
-                successors.replaceByNotNull(value?.identifier)
-            }
+        override val predecessors: Collection<Identified>
+            get() = listOfNotNull(predecessor?.identifier)
+
+        @Transient
+        var successor: Identifiable?
+
+        @Transient
+        override val successors: Collection<Identified>
+            get() = listOfNotNull(successor?.identifier)
 
         @Optional
         var childId: String?
+
+        override fun addSuccessor(identifier: Identifier) {
+            val s = successor
+            if (s !=null) {
+                if (s.identifier == identifier) return
+                throw IllegalStateException("Successor already set")
+            }
+            successor = identifier
+        }
+
+        override fun addPredecessor(identifier: Identifier) {
+            val p = predecessor
+            if (p !=null) {
+                if (p.identifier == identifier) return
+                throw IllegalStateException("Predecessor already set")
+            }
+            predecessor = identifier
+        }
+
+        override fun removeSuccessor(identifier: Identifiable) {
+            if (successor?.id == identifier.id) successor = null
+        }
+
+        override fun removePredecessor(identifier: Identifiable) {
+            if (predecessor?.id == identifier.id) predecessor = null
+        }
     }
 
     interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.IBuilder<T, M> {
@@ -67,51 +148,6 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
     }
-
-    override fun builder(): Builder<NodeT, ModelT>
-
-    /**
-     * The name of this activity. Note that for serialization to XML to work
-     * this needs to be unique for the process model at time of serialization, and
-     * can not be null or an empty string. While in Java mode other nodes are
-     * referred to by reference, not name.
-     */
-    @Deprecated("Not needed, use id.", ReplaceWith("id"))
-    var name: String?
-
-    /**
-     * The condition that needs to be true to start this activity. A null value means that the activity can run.
-     */
-    var condition: String?
-
-    /**
-     * Get the list of imports. The imports are provided to the message for use as
-     * data parameters. Setting will create a copy of the parameter for safety.
-     */
-    override val results: List<IXmlResultType>
-
-    fun setResults(results: Collection<IXmlResultType>)
-
-    /**
-     * Get the list of exports. Exports will allow storing the response of an
-     * activity. Setting will create a copy of the parameter for safety.
-     */
-    override val defines: List<IXmlDefineType>
-
-    fun setDefines(defines: Collection<IXmlDefineType>)
-
-    /**
-     * The predecessor node for this activity.
-     */
-    var predecessor: Identifiable?
-
-    /**
-     * The message of this activity. This provides all the information to be
-     * able to actually invoke the service.
-     */
-    var message: IXmlMessage?
-
-    val childModel: ChildProcessModel<NodeT, ModelT>?
 
     companion object {
 
