@@ -316,7 +316,12 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testXmlStreamingRoundTripProcessModel1() {
 
-        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class)
+        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class) {model ->
+            val ac1 = model.getNode("ac1") as Activity<*,*>
+            assertEquals("start", ac1.predecessor?.id)
+            assertEquals("start", ac1.predecessors.singleOrNull()?.id)
+            assertEquals("ac1", model.getNode("ac2")?.predecessors?.singleOrNull()?.id)
+        }
 
     }
 
@@ -969,7 +974,7 @@ class TestProcessData {
                                                omitXmlDecl: Boolean = true,
                                                testObject: (T) -> Unit = {}): String {
             assertNotNull(reader)
-            val xml = XML(repairNamespaces = repairNamespaces, omitXmlDecl = omitXmlDecl)
+            val xml = XML(repairNamespaces = repairNamespaces, omitXmlDecl = omitXmlDecl, indent = 4)
             val obj = xml.parse(target, reader)
             testObject(obj)
 
