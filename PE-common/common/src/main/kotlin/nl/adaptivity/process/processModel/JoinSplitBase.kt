@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
@@ -28,58 +29,9 @@ import nl.adaptivity.xml.writeAttribute
 /**
  * Created by pdvrieze on 25/11/15.
  */
+@Serializable
 abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
     ProcessNodeBase<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
-
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase.Builder<NodeT, ModelT>, JoinSplit.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
-
-        override var min: Int
-        override var max: Int
-
-        constructor(id: String? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = -1,
-                    max: Int = -1,
-                    multiInstance: Boolean = false) : super(id, label, defines, results, x, y,
-                                                            multiInstance) {
-            this.min = min
-            this.max = max
-        }
-
-        constructor(node: JoinSplit<*, *>) : super(node) {
-            min = node.min
-            max = node.max
-        }
-
-        @Throws(XmlException::class)
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            return false
-        }
-
-        override fun deserializeChildText(elementText: CharSequence): Boolean {
-            return false
-        }
-
-        override fun toString(): String {
-            return "${super.toString().dropLast(1)}, min=$min, max=$max)"
-        }
-
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
-            when (attributeLocalName.toString()) {
-                "min" -> min = attributeValue.toString().toInt()
-                "max" -> max = attributeValue.toString().toInt()
-                else  -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace,
-                                                                                    attributeLocalName, attributeValue)
-            }
-            return true
-        }
-    }
 
     constructor(ownerModel: ModelT,
                 predecessors: Collection<Identified> = emptyList(),
@@ -133,6 +85,60 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
         }
         if (max >= 0) {
             out.writeAttribute("max", max.toLong())
+        }
+    }
+
+    @Serializable
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+        ProcessNodeBase.Builder<NodeT, ModelT>,
+        JoinSplit.Builder<NodeT, ModelT>,
+        SimpleXmlDeserializable {
+
+        override var min: Int
+        override var max: Int
+
+        constructor(id: String? = null,
+                    label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    min: Int = -1,
+                    max: Int = -1,
+                    multiInstance: Boolean = false) : super(id, label, defines, results, x, y,
+                                                            multiInstance) {
+            this.min = min
+            this.max = max
+        }
+
+        constructor(node: JoinSplit<*, *>) : super(node) {
+            min = node.min
+            max = node.max
+        }
+
+        @Throws(XmlException::class)
+        override fun deserializeChild(reader: XmlReader): Boolean {
+            return false
+        }
+
+        override fun deserializeChildText(elementText: CharSequence): Boolean {
+            return false
+        }
+
+        override fun toString(): String {
+            return "${super.toString().dropLast(1)}, min=$min, max=$max)"
+        }
+
+        override fun deserializeAttribute(attributeNamespace: String?,
+                                          attributeLocalName: String,
+                                          attributeValue: String): Boolean {
+            when (attributeLocalName.toString()) {
+                "min" -> min = attributeValue.toString().toInt()
+                "max" -> max = attributeValue.toString().toInt()
+                else  -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace,
+                                                                                    attributeLocalName, attributeValue)
+            }
+            return true
         }
     }
 

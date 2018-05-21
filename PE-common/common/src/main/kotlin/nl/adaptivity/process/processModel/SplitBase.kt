@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
@@ -28,8 +29,12 @@ import nl.adaptivity.xml.*
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Split<NodeT, ModelT> {
+@Serializable
+abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+    JoinSplitBase<NodeT, ModelT>,
+    Split<NodeT, ModelT> {
 
+    @Transient
     override val maxSuccessorCount: Int
         get() = Int.MAX_VALUE
 
@@ -72,7 +77,11 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
         return visitor.visitSplit(this)
     }
 
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase.Builder<NodeT, ModelT>, Split.Builder<NodeT, ModelT> {
+    @Serializable
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+        JoinSplitBase.Builder<NodeT, ModelT>,
+        Split.Builder<NodeT, ModelT> {
+
         @Transient
         override val idBase: String get() = "split"
 

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.diagram.Positioned
 import nl.adaptivity.process.util.Identifiable
@@ -41,6 +42,7 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
         var y: Double
         val defines: MutableCollection<IXmlDefineType>
         val results: MutableCollection<IXmlResultType>
+        @Transient
         val idBase: String
         var isMultiInstance: Boolean
 

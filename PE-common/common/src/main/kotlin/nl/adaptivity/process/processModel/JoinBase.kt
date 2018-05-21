@@ -16,17 +16,27 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Optional
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.*
+import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlDefault
+import nl.adaptivity.xml.serialization.XmlElement
 
 
 /**
  * Created by pdvrieze on 26/11/15.
  */
-abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplitBase<NodeT, ModelT>, Join<NodeT, ModelT> {
+@Serializable
+abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+    JoinSplitBase<NodeT, ModelT>,
+    Join<NodeT, ModelT> {
 
     override val maxPredecessorCount: Int
         get() = Int.MAX_VALUE
@@ -38,6 +48,11 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
 
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
+
+    @SerialName("predecessor")
+    @XmlElement(true)
+    override val predecessors: IdentifyableSet<Identified>
+        get() = super.predecessors
 
     @Suppress("DEPRECATION")
     @Deprecated("Use builders")
@@ -74,22 +89,31 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         return visitor.visitJoin(this)
     }
 
-
+    @Serializable
     abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
         JoinSplitBase.Builder<NodeT, ModelT>,
         Join.Builder<NodeT, ModelT> {
 
+        @Transient
         override val idBase: String
             get() = "join"
 
+        @Optional
+        @XmlDefault("false")
         final override var isMultiMerge: Boolean = false
 
+        @SerialName("predecessor")
         final override var predecessors: MutableSet<Identified> = ArraySet()
             set(value) {
                 field.replaceBy(value)
             }
 
+        @Transient
         final override var successor: Identifiable? = null
+
+        @Transient
+        override val elementName: QName
+            get() = Join.ELEMENTNAME
 
         constructor() : this(predecessors = emptyList(), isMultiMerge = false, isMultiInstance = false)
 
@@ -125,9 +149,6 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
             }
             return super.deserializeChild(reader)
         }
-
-        override val elementName: QName
-            get() = Join.ELEMENTNAME
 
     }
 
