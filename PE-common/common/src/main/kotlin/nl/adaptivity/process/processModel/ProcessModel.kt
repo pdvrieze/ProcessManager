@@ -280,6 +280,10 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                         right.addPredecessor(splitId)
                     }
 
+                // Make it an AND node
+                middle.min = middle.successors.size
+                middle.max = middle.min
+
                 // Replace the old successors of the left node with the new injected split
                 leftBuilder.removeAllSuccessors { true }
                 leftBuilder.addSuccessor(splitId)
