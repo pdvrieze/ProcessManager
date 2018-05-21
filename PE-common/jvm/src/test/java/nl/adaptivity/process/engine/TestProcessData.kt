@@ -165,8 +165,8 @@ class TestProcessData {
 
         val result2 = ac1.results[1]
         val snc2 = SimpleNamespaceContext.from(result2.originalNSContext)
-        assertEquals(2, snc2.size)
-        assertEquals("umh", snc2.getPrefix(1))
+        assertEquals(1, snc2.size)
+        assertEquals("umh", snc2.getPrefix(0))
 
         val testData = documentBuilder.parse(InputSource(StringReader(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
@@ -396,6 +396,15 @@ class TestProcessData {
         val inputStream = getDocument("processmodel2.xml")
         val parser = XmlStreaming.newReader(inputStream, "UTF-8")
         val model = XmlProcessModel.deserialize(parser)
+        checkModel2(model)
+    }
+
+    @Test
+    @Throws(XmlException::class, FileNotFoundException::class)
+    fun testParseProcessModel2NewDeserializer() {
+        val inputStream = getDocument("processmodel2.xml")
+        val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+        val model = XML.parse<XmlProcessModel>(parser)
         checkModel2(model)
     }
 
@@ -842,16 +851,13 @@ class TestProcessData {
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
                 val input = XmlStreaming.newReader(inputStream, "UTF-8")
-                try {
-                    val factory = XmlProcessModel::class.java.getAnnotation(XmlDeserializer::class.java)
-                        .value.java
-                        .newInstance()
-                    return factory.deserialize(input) as XmlProcessModel
-                } catch (e: InstantiationException) {
-                    throw RuntimeException(e)
-                } catch (e: IllegalAccessException) {
-                    throw RuntimeException(e)
-                }
+                return XML.parse(input)
+/*
+                val factory = XmlProcessModel::class.java.getAnnotation(XmlDeserializer::class.java)
+                    .value.java
+                    .newInstance()
+                return factory.deserialize(input) as XmlProcessModel
+*/
             }
         }
 
