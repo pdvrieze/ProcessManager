@@ -37,7 +37,7 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.RootProcessModelBase;
+import nl.adaptivity.process.processModel.RootProcessModel;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.HttpMethod;
@@ -540,8 +540,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
 
             final ArrayList<ProcessModelRef<?,?,?>> list = new ArrayList<>();
             for (final SecuredObject<ExecutableProcessModel> pm : processModels) {
-                final IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> ref = pm.withPermission().getRef();
-                list.add(ProcessModelRef.get(ref));
+                list.add(pm.withPermission().getRef());
             }
             return transaction.commit(new SerializableList<>(REFS_TAG, list));
         } catch (SQLException e) {
@@ -593,7 +592,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      * @return A reference to the model. This may include a newly generated uuid if not was provided.
      */
     @WebMethod(operationName = "updateProcessModel")
-    public ProcessModelRef<?, ?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final RootProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = RestParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
+    public ProcessModelRef<?, ?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final RootProcessModel<?,?> processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = RestParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
         if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
         if (processModel != null) {
             processModel.setHandleValue(handle);
@@ -627,7 +626,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      * @return A reference to the model with handle and a new uuid if none was provided.
      */
     @WebMethod(operationName = "postProcessModel")
-    public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final RootProcessModelBase processModel, final @RestParam(type = RestParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
+    public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final RootProcessModel processModel, final @RestParam(type = RestParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
         if (owner==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
         if (processModel != null) {
             processModel.setHandleValue(-1); // The handle cannot be set
