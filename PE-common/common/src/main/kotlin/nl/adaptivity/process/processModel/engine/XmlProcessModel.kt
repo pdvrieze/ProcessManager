@@ -118,7 +118,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
 
     @Transient
-    @Volatile
     private var _endNodeCount = -1
 
     /* (non-Javadoc)
