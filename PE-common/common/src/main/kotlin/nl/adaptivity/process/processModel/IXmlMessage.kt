@@ -21,7 +21,6 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.QName
 
-@Serializable
 interface IXmlMessage {
 
     var serviceName: String?

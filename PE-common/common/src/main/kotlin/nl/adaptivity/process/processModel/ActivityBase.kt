@@ -45,24 +45,28 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     @Optional
     private var _name: String? = null
 
-    private val childId: String? get()= childModel?.id
+    private val childId: String? get() = childModel?.id
 
     @Transient
     override val childModel: ChildProcessModel<NodeT, ModelT>?
 
     @Transient
     @Suppress("OverridingDeprecatedMember")
-    override var name:String?
+    override var name: String?
         get() = _name
-        set(value) { _name = value}
+        set(value) {
+            _name = value
+        }
 
     @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable?
         get() = predecessors.singleOrNull()
 
     @Transient
-    final override val successor: Identifiable? get() = successors.singleOrNull()
+    final override val successor: Identifiable?
+        get() = successors.singleOrNull()
 
+    @Serializable(with = IXmlMessage.Companion::class)
     override var message: IXmlMessage?
         get() = _message
         set(value) {
@@ -73,16 +77,19 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         _message = message
     }
 
-    constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
-        if(builder.message!=null && builder.childId!=null) throw IllegalProcessModelException("Activities can not have child models as well as messages")
+    constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
+                                                                                                               buildHelper) {
+        if (builder.message != null && builder.childId != null) throw IllegalProcessModelException(
+            "Activities can not have child models as well as messages")
         this._message = XmlMessage.get(builder.message)
         @Suppress("DEPRECATION")
         _name = builder.name
         @Suppress("LeakingThis")
-        childModel = builder.childId?.let{ buildHelper.childModel(it) }
+        childModel = builder.childId?.let { buildHelper.childModel(it) }
     }
 
-    constructor(builder: Activity.ChildModelBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+    constructor(builder: Activity.ChildModelBuilder<*, *>,
+                buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
         this._message = null
         this._name = null
         @Suppress("LeakingThis")
@@ -147,22 +154,24 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?> :
-        ProcessNodeBase.Builder<NodeT,ModelT>,
-        Activity.Builder<NodeT,ModelT>,
+    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+        ProcessNodeBase.Builder<NodeT, ModelT>,
+        Activity.Builder<NodeT, ModelT>,
         SimpleXmlDeserializable {
 
+        @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
         final override var name: String?
         final override var condition: String?
         @Transient
-        override val idBase:String
+        override val idBase: String
             get() = "ac"
 
         final override var childId: String? = null
 
         @Transient
-        override val elementName: QName get() = Activity.ELEMENTNAME
+        override val elementName: QName
+            get() = Activity.ELEMENTNAME
 
         @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
@@ -171,7 +180,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         final override var successor: Identifiable? = null
 
 
-        constructor(): this(id = null)
+        constructor() : this(id = null)
 
         constructor(id: String? = null,
                     predecessor: Identifiable? = null,
@@ -208,24 +217,27 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
                     XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
 
-                    Condition.ELEMENTLOCALNAME -> condition = XmlCondition.deserialize(reader).condition
+                    Condition.ELEMENTLOCALNAME     -> condition = XmlCondition.deserialize(reader).condition
 
-                    XmlMessage.ELEMENTLOCALNAME -> message=XmlMessage.deserialize(reader)
+                    XmlMessage.ELEMENTLOCALNAME    -> message = XmlMessage.deserialize(reader)
 
-                    else -> return false
+                    else                           -> return false
                 }
                 return true
             }
             return false
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
+        override fun deserializeAttribute(attributeNamespace: String?,
+                                          attributeLocalName: String,
+                                          attributeValue: String): Boolean {
             @Suppress("DEPRECATION")
             when (attributeLocalName) {
-                ProcessNodeBase.ATTR_PREDECESSOR -> predecessor=Identifier(attributeValue)
-                "name" -> name = attributeValue
-                ATTR_CHILDID -> childId = attributeValue
-                else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
+                ProcessNodeBase.ATTR_PREDECESSOR -> predecessor = Identifier(attributeValue)
+                "name"                           -> name = attributeValue
+                ATTR_CHILDID                     -> childId = attributeValue
+                else                             -> return super<ProcessNodeBase.Builder>.deserializeAttribute(
+                    attributeNamespace, attributeLocalName, attributeValue)
             }
             return true
         }
@@ -242,7 +254,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
     }
 
-    abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT: ProcessModel<NodeT, ModelT>?>(
+    abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(
         id: String? = null,
         override var childId: String? = null,
         nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
@@ -256,18 +268,21 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         results: Collection<IXmlResultType> = emptyList(),
         x: Double = Double.NaN,
         y: Double = Double.NaN,
-        multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, label, defines, results, x, y, multiInstance), Activity.ChildModelBuilder<NodeT,ModelT> {
+        multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, label, defines, results, x, y,
+                                                                         multiInstance), Activity.ChildModelBuilder<NodeT, ModelT> {
 
         override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
         override val imports: MutableList<IXmlResultType> = imports.toMutableList()
         override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
         override var condition: String? = null
 
-        override val idBase:String get() = "child"
+        override val idBase: String get() = "child"
 
         override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
 
-        override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String)=false
+        override fun deserializeAttribute(attributeNamespace: String?,
+                                          attributeLocalName: String,
+                                          attributeValue: String) = false
 
     }
 
