@@ -16,6 +16,7 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 version = '0.5.1'
 description = 'Android interface with process model editor and task interface'
@@ -40,6 +41,8 @@ dependencies {
 //    implementation project(':xmlutil:core:android')
     implementation project(':xmlutil:android')
     implementation project(':java-common:android')
+
+    kapt "com.android.databinding:compiler:$androidPluginVersion"
 
     testImplementation "org.testng:testng:$testngVersion"
     testImplementation 'junit:junit:4.12'
