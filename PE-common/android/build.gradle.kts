@@ -22,7 +22,7 @@ plugins {
     id ("kotlin-platform-android")
     id ("kotlin-kapt")
     id ("idea")
-    id("kotlinx-serialization")
+    id ("kotlinx-serialization")
 }
 
 version = "1.0.0"
