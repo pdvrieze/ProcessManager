@@ -90,6 +90,7 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
         override val elementName: QName
             get() = StartNode.ELEMENTNAME
 
+        @Transient
         final override var successor: Identifiable? = null
 
         @Transient

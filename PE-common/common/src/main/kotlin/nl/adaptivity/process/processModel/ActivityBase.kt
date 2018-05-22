@@ -56,6 +56,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         get() = _name
         set(value) { _name = value}
 
+    @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable?
         get() = predecessors.singleOrNull()
 
@@ -163,6 +164,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         @Transient
         override val elementName: QName get() = Activity.ELEMENTNAME
 
+        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         @Transient
@@ -172,8 +174,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         constructor(): this(id = null)
 
         constructor(id: String? = null,
-                    predecessor: Identified? = null,
-                    successor: Identified? = null,
+                    predecessor: Identifiable? = null,
+                    successor: Identifiable? = null,
                     label: String? = null,
                     defines: Collection<IXmlDefineType> = emptyList(),
                     results: Collection<IXmlResultType> = emptyList(),
@@ -244,6 +246,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         id: String? = null,
         override var childId: String? = null,
         nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
+        @Serializable(with = Identifiable.Companion::class)
         override var predecessor: Identifiable? = null,
         @Transient override var successor: Identifiable? = null,
         label: String? = null,

@@ -36,6 +36,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
     constructor(builder: EndNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) :
         super(builder, buildHelper)
 
+    @Serializable(with = Identifiable.Companion::class)
     override var predecessor: Identified?
         get() = if (predecessors.size == 0) null else predecessors.single()
         set(value) {
@@ -81,6 +82,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
         @Transient
         override val idBase: String get() = "end"
 
+        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         @Transient

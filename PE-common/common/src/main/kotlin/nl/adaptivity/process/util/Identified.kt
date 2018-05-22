@@ -22,7 +22,6 @@ import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 /**
  * Created by pdvrieze on 04/12/16.
  */
-@Serializable
 interface Identified : Identifiable {
     override val id: String
 

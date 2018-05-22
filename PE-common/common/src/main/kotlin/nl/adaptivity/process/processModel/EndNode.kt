@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Transient
-import net.devrieze.util.collection.replaceByNotNull
+import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -42,11 +42,11 @@ interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Node
         var predecessor: Identifiable?
 
         @Transient
-        override val predecessors: Collection<Identified>
-            get() = listOfNotNull(predecessor?.identifier)
+        override val predecessors: Set<Identified>
+            get() = setOfNotNull(predecessor?.identifier)
 
         @Transient
-        override val successors: Collection<Identified>
+        override val successors: Set<Identified>
             get() = emptySet()
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitEndNode(this)

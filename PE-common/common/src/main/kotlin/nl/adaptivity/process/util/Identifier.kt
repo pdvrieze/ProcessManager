@@ -16,10 +16,14 @@
 
 package nl.adaptivity.process.util
 
+import kotlinx.serialization.*
+import nl.adaptivity.xml.serialization.simpleSerialClassDesc
+
 
 /**
  * A class representing a simple identifier. It just holds a single string.
  */
+@Serializable
 open class Identifier(override var id: String) : Identified {
 
     override val identifier: Identifier get() = this
@@ -65,7 +69,17 @@ open class Identifier(override var id: String) : Identified {
         return id.hashCode()
     }
 
+
+    @Serializer(forClass = Identifier::class)
     companion object {
+        override val serialClassDesc: KSerialClassDesc
+            get() = simpleSerialClassDesc<Identifier>()
+
+        override fun load(input: KInput) = Identifier(input.readStringValue())
+
+        override fun save(output: KOutput, obj: Identifier) {
+            output.writeStringValue(obj.id)
+        }
 
         fun findIdentifier(idBase: String, exclusions: Iterable<Identifiable>): String {
             val idFactory = ChangeableIdentifier(idBase)

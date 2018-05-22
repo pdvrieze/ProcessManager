@@ -44,6 +44,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
     override val _processNodes: IdentifyableSet<T>
 
+    @Transient
     override val rootModel: RootProcessModel<T, M>
 
     @SerialName("id")

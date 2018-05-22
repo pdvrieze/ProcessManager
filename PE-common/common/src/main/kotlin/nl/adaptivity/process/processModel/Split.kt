@@ -20,6 +20,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.collection.replaceByNotNull
+import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -42,8 +43,8 @@ interface Split<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT,
         var predecessor: Identifiable?
 
         @Transient
-        override val predecessors: Collection<Identified>
-            get() = listOfNotNull(predecessor?.identifier)
+        override val predecessors: Set<Identified>
+            get() = setOfNotNull(predecessor?.identifier)
 
         override var successors: MutableSet<Identified>
 

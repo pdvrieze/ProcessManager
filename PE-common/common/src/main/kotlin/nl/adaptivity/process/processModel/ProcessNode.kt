@@ -34,8 +34,8 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
     @ProcessModelDSL
     interface IBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable {
-        val predecessors: Collection<Identified>
-        val successors: Collection<Identified>
+        val predecessors: Set<Identified>
+        val successors: Set<Identified>
         var id: String?
         var label: String?
         var x: Double

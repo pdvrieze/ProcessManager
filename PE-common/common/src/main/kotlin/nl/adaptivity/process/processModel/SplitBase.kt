@@ -38,6 +38,7 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
     override val maxSuccessorCount: Int
         get() = Int.MAX_VALUE
 
+    @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable?
         get() = predecessors.singleOrNull()
 
@@ -89,6 +90,7 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
         final override var successors: MutableSet<Identified> = ArraySet()
             set(value) { field.replaceBy(value) }
 
+        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         @Transient

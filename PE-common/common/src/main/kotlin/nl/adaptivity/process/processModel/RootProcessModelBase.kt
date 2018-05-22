@@ -40,7 +40,11 @@ import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 typealias ProcessModelHandle<M> = ComparableHandle<M>
 
 @Serializable
-abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModelBase<NodeT, ModelT>, RootProcessModel<NodeT, ModelT>, MutableHandleAware<RootProcessModel<out NodeT, out ModelT>>, XmlSerializable {
+abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+    ProcessModelBase<NodeT, ModelT>,
+    RootProcessModel<NodeT, ModelT>,
+    MutableHandleAware<RootProcessModel<out NodeT, out ModelT>>,
+    XmlSerializable {
 
     @ProcessModelDSL
     abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>

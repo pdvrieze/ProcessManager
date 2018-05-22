@@ -46,9 +46,11 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
 
     final override val isMultiMerge: Boolean
 
+    @Transient
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
+    @Serializable(with = IdentifiableSetSerializer::class)
     @SerialName("predecessor")
     @XmlElement(true)
     override val predecessors: IdentifyableSet<Identified>
@@ -102,6 +104,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         @XmlDefault("false")
         final override var isMultiMerge: Boolean = false
 
+        @Serializable(with = IdentifiableSetSerializer::class)
         @SerialName("predecessor")
         final override var predecessors: MutableSet<Identified> = ArraySet()
             set(value) {

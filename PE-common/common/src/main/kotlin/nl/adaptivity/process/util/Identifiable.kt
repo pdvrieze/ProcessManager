@@ -17,13 +17,12 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringSerializer
+import nl.adaptivity.xml.serialization.DelegateSerializer
 import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 
 /**
  * Interface for objects that may have identifiers.
  */
-@Serializable
 interface Identifiable : Comparable<Identifiable> {
 
     val id: String?
@@ -62,3 +61,7 @@ interface Identifiable : Comparable<Identifiable> {
     }
 
 }
+
+object IdentifiableListSerializer: DelegateSerializer<List<Identifiable>>(Identifiable.list)
+
+object IdentifiableSetSerializer: DelegateSerializer<Set<Identifiable>>(Identifiable.set)
