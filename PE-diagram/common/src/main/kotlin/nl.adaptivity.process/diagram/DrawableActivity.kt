@@ -91,13 +91,15 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
                                                           buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) :
   ActivityBase<DrawableProcessNode, DrawableProcessModel?>(builder, buildHelper), DrawableProcessNode, IDrawableActivity {
 
-  final class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableActivity>, IDrawableActivity {
+  final class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
+                        DrawableProcessNode.Builder<DrawableActivity>,
+                        IDrawableActivity {
 
     constructor() : this(id=null)
 
     constructor(id: String? = null,
-                predecessor: Identified? = null,
-                successor: Identified? = null,
+                predecessor: Identifiable? = null,
+                successor: Identifiable? = null,
                 label: String? = null,
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
