@@ -82,7 +82,9 @@ internal abstract class ConfigurableModel(
         }
 
     private val _model: Lazy<ExecutableProcessModel> = lazy {
-        builder.build(false).apply { _builder = null }
+        builder.also {
+            if (it.uuid==null) { it.uuid == UUID.randomUUID() }
+        }.build(false).apply { _builder = null }
     }
 
     private val model: ExecutableProcessModel get() = _model.value
