@@ -27,6 +27,7 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.addField
+import nl.adaptivity.util.addFields
 import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.*
@@ -287,13 +288,14 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     companion object {
 
         fun serialClassDesc(name: String): SerialClassDescImpl {
-            return ProcessModelBase.serialClassDesc(name).apply {
+            return SerialClassDescImpl(name).apply {
                 addField(RootProcessModelBase<*, *>::_name)
                 addField(RootProcessModelBase<*, *>::_handle)
                 addField(RootProcessModelBase<*,*>::owner)
                 addField(RootProcessModelBase<*,*>::roles)
                 addField(RootProcessModelBase<*,*>::uuid)
                 addField(RootProcessModelBase<*,*>::childModels)
+                addFields(ProcessModelBase.serialClassDesc)
             }
         }
 
