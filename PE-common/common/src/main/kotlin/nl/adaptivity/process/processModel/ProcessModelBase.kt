@@ -269,6 +269,31 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
         return _processNodes[pos]
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as ProcessModelBase<*, *>
+
+        if (_processNodes != other._processNodes) return false
+        if (_imports != other._imports) return false
+        if (_exports != other._exports) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = _processNodes.hashCode()
+        result = 31 * result + _imports.hashCode()
+        result = 31 * result + _exports.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "ProcessModelBase(_processNodes=$_processNodes, _imports=$_imports, _exports=$_exports)"
+    }
+
+
     abstract class BaseSerializer<T : ProcessModelBase<*, *>> : KSerializer<T> {
 
         val importsIdx by lazy { serialClassDesc.getElementIndex("import") }

@@ -17,21 +17,25 @@
 package nl.adaptivity.util
 
 import kotlinx.serialization.KSerialClassDesc
-import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.reflect.KProperty
 
 fun SerialClassDescImpl(original: KSerialClassDesc, name: String): SerialClassDescImpl {
     return SerialClassDescImpl(name).apply {
-        for (i in 0 until original.associatedFieldsCount) {
-            addElement(original.getElementName(i))
-            for (a in original.getAnnotationsForIndex(i)) {
-                pushAnnotation(a)
-            }
-        }
+        addFields(original)
     }
 }
+
+fun SerialClassDescImpl.addFields(origin: KSerialClassDesc) {
+    for (i in 0 until origin.associatedFieldsCount) {
+        addElement(origin.getElementName(i))
+        for (a in origin.getAnnotationsForIndex(i)) {
+            pushAnnotation(a)
+        }
+    }
+
+}
+
 
 expect fun SerialClassDescImpl.addField(property: KProperty<*>)
 

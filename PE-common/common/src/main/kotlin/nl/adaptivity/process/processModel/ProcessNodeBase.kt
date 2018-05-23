@@ -429,12 +429,13 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         if (this === other) return true
         if (other !is ProcessNodeBase<*, *>) return false
 
-        if (_ownerModel != other._ownerModel) return false
         if (isMultiInstance != other.isMultiInstance) return false
         if (_predecessors != other._predecessors) return false
         if (_successors != other._successors) return false
-        if (_x != other._x) return false
-        if (_y != other._y) return false
+        if (_x.isNaN()) { if(!other._x.isNaN()) return false }
+        else if (_x != other._x) return false
+        if (_y.isNaN()) { if(!other._y.isNaN()) return false }
+        else if (_y != other._y) return false
         if (_defines != other._defines) return false
         if (_results != other._results) return false
         if (_hashCode != other._hashCode) return false
@@ -445,8 +446,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     }
 
     override fun hashCode(): Int {
-        var result = _ownerModel?.hashCode() ?: 0
-        result = 31 * result + isMultiInstance.hashCode()
+        var result = isMultiInstance.hashCode()
         result = 31 * result + _predecessors.hashCode()
         result = 31 * result + _successors.hashCode()
         result = 31 * result + _x.hashCode()

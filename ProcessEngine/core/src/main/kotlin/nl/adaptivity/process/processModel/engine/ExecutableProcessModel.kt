@@ -54,6 +54,10 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     @Transient
     override val rootModel get() = this
 
+    @Transient
+    override val ref: IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>
+        get() = ProcessModelRef(name, this.getHandle(), uuid)
+
     override fun copy(imports: Collection<IXmlResultType>,
                       exports: Collection<IXmlDefineType>,
                       nodes: Collection<ExecutableProcessNode>,
@@ -77,9 +81,6 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
     @Suppress("UNCHECKED_CAST")
     override fun getHandle() = super.getHandle() as Handle<ExecutableProcessModel>
-
-    override val ref: IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>
-        get() = ProcessModelRef(name, this.getHandle(), uuid)
 
     /* (non-Javadoc)
        * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
@@ -108,6 +109,18 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
             setRoles(newRoles)
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+        return true
+    }
+
+    override fun toString(): String {
+        return "ExecutableProcessModel() ${super.toString()}"
+    }
+
 
     companion object {
 

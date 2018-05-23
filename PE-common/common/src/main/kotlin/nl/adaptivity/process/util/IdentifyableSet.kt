@@ -189,6 +189,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             return data.hashCode()
         }
 
+        override fun toString(): String {
+            return data.joinToString(prefix = "BaseIdentifyableSet{", postfix = "}")
+        }
+
 
     }
 

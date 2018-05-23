@@ -216,6 +216,41 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         // no implementation here
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        if (!super.equals(other)) return false
+
+        other as RootProcessModelBase<*, *>
+
+        if (_name != other._name) return false
+        if (_handle != other._handle) return false
+        if (_owner != other._owner) return false
+        if (_roles != other._roles) return false
+        if (uuid != other.uuid) return false
+        if (_childModels != other._childModels) return false
+        if (_processNodes != other._processNodes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (_name?.hashCode() ?: 0)
+        result = 31 * result + _handle.hashCode()
+        result = 31 * result + _owner.hashCode()
+        result = 31 * result + _roles.hashCode()
+        result = 31 * result + (uuid?.hashCode() ?: 0)
+        result = 31 * result + _childModels.hashCode()
+        result = 31 * result + _processNodes.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "RootProcessModelBase(_name=$_name, _handle=$_handle, _owner=$_owner, _roles=$_roles, uuid=$uuid, _childModels=$_childModels, _processNodes=$_processNodes) ${super.toString()}"
+    }
+
+
     abstract class BaseSerializer<T : RootProcessModelBase<*, *>> : ProcessModelBase.BaseSerializer<T>() {
         val nameIdx by lazy { serialClassDesc.getElementIndex("name") }
         val ownerIdx by lazy { serialClassDesc.getElementIndex("owner") }
