@@ -20,6 +20,7 @@ import kotlinx.serialization.Transient
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.util.multiplatform.JvmName
 
 @DslMarker
 annotation class ProcessModelDSL
@@ -28,17 +29,6 @@ annotation class ProcessModelDSL
  * Created by pdvrieze on 02/01/17.
  */
 interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
-    /**
-     * Get the process node with the given id.
-     * @param nodeId The node id to look up.
-     *
-     * @return The process node with the id.
-     */
-    fun getNode(nodeId: Identifiable): NodeT?
-
-    fun getModelNodes(): Collection<NodeT>
-    fun getImports(): Collection<IXmlResultType>
-    fun getExports(): Collection<IXmlDefineType>
 
     @Transient
     val rootModel: RootProcessModel<NodeT, ModelT>
@@ -49,6 +39,18 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
             @Suppress("UNCHECKED_CAST")
             return this as ModelT
         }
+
+    val modelNodes: Collection<NodeT>
+
+    val imports: Collection<IXmlResultType>
+
+    val exports: Collection<IXmlDefineType>
+
+    /**
+     * Get the process node with the given id.
+     * @param nodeId The node id to look up.
+     */
+    fun getNode(nodeId: Identifiable): NodeT?
 
     @ProcessModelDSL
     interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {

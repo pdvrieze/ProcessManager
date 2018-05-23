@@ -536,11 +536,11 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      * XXX check security properly.
      */
     @RestMethod(method = HttpMethod.GET, path = "/processModels")
-    public SerializableList<ProcessModelRef<?,?,?>> getProcesModelRefs(@RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
+    public SerializableList<IProcessModelRef<?,?,?>> getProcesModelRefs(@RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
         try (ProcessTransaction transaction = mProcessEngine.startTransaction()){
             final Iterable<? extends SecuredObject<ExecutableProcessModel>> processModels = mProcessEngine.getProcessModels(transaction.getReadableEngineData(), user);
 
-            final ArrayList<ProcessModelRef<?,?,?>> list = new ArrayList<>();
+            final ArrayList<IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>> list = new ArrayList<>();
             for (final SecuredObject<ExecutableProcessModel> pm : processModels) {
                 list.add(pm.withPermission().getRef());
             }
@@ -589,18 +589,21 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     /**
      * Update the process model with the given handle.
      * @param handle The model handle
-     * @param processModel The actual new model
+     * @param processModelBuilder The actual new model
      * @param user The user performing the update. This will be verified against ownership and permissions
      * @return A reference to the model. This may include a newly generated uuid if not was provided.
      */
     @WebMethod(operationName = "updateProcessModel")
-    public ProcessModelRef<?, ?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final RootProcessModel<?,?> processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = RestParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
+    public ProcessModelRef<?, ?, ?> updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final RootProcessModel.Builder<?,?> processModelBuilder, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = RestParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
         if (user == null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
-        if (processModel != null) {
-            processModel.setHandleValue(handle);
+        if (processModelBuilder != null) {
+            processModelBuilder.setHandle(handle);
 
             try (TRXXX transaction = mProcessEngine.startTransaction()){
-                return transaction.commit(ProcessModelRef.get(mProcessEngine.updateProcessModel(transaction, Handles.handle(handle), processModel, user)));
+                final IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>
+                    updatedRef = mProcessEngine.updateProcessModel(transaction, handle(handle), new ExecutableProcessModel(processModelBuilder), user);
+                ProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> update2 = ProcessModelRef.get(updatedRef);
+                return transaction.commit(update2);
             } catch (SQLException e) {
                 getLogger().log(Level.WARNING, "Error updating process model", e);
                 throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -617,7 +620,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      */
     @RestMethod(method = HttpMethod.POST, path = "/processModels")
     public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = RestParamType.PRINCIPAL) final Principal owner) throws IOException {
-        ExecutableProcessModel processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ExecutableProcessModel.class);
+        XmlProcessModel.Builder processModel = XmlStreaming.INSTANCE.deSerialize(attachment.getInputStream(), XmlProcessModel.Builder.class);
         return postProcessModel(processModel, owner);
     }
 
@@ -628,12 +631,15 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      * @return A reference to the model with handle and a new uuid if none was provided.
      */
     @WebMethod(operationName = "postProcessModel")
-    public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final RootProcessModel processModel, final @RestParam(type = RestParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
+    public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final XmlProcessModel.Builder processModel, final @RestParam(type = RestParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
         if (owner==null) { throw new AuthenticationNeededException("There is no user associated with this request"); }
         if (processModel != null) {
-            processModel.setHandleValue(-1); // The handle cannot be set
+            processModel.setHandle(-1); // The handle cannot be set
             try (TRXXX transaction = mProcessEngine.startTransaction()){
-                return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));
+                final IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>
+                    newModelRef = mProcessEngine.addProcessModel(transaction, processModel, owner);
+
+                return transaction.commit(ProcessModelRef.get(newModelRef));
             } catch (SQLException e) {
                 getLogger().log(Level.WARNING, "Error adding process model", e);
                 throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -651,7 +657,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      */
     @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
     public void renameProcess(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(name = "name", type = RestParamType.QUERY) final String name, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
-        mProcessEngine.renameProcessModel(user, Handles.INSTANCE.<ExecutableProcessModel>handle(handle), name);
+        mProcessEngine.renameProcessModel(user, Handles.<ExecutableProcessModel>handle(handle), name);
     }
 
     /**
@@ -662,7 +668,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
     public void deleteProcess(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
-            if (! mProcessEngine.removeProcessModel(transaction, Handles.INSTANCE.<ExecutableProcessModel>handle(handle), user)) {
+            if (! mProcessEngine.removeProcessModel(transaction, Handles.<ExecutableProcessModel>handle(handle), user)) {
                 throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
             }
             transaction.commit();
@@ -691,7 +697,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         @WebParam(name="owner", header = true) @RestParam(type = RestParamType.PRINCIPAL) final Principal owner) throws FileNotFoundException {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
             final UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
-            return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.INSTANCE.<ExecutableProcessModel>handle(handle), name != null ? name : "<unnamed>", uuid,
+            return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ExecutableProcessModel>handle(handle), name != null ? name : "<unnamed>", uuid,
                                                                   null));
         } catch (SQLException e) {
             getLogger().log(Level.WARNING, "Error starting process", e);
@@ -732,7 +738,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
     public XmlSerializable getProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
-            return transaction.commit(mProcessEngine.getProcessInstance(transaction, Handles.INSTANCE.<ProcessInstance>handle(handle), user).serializable(transaction));
+            return transaction.commit(mProcessEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(handle), user).serializable(transaction));
         } catch (SQLException e) {
             getLogger().log(Level.WARNING, "Error getting process instance", e);
             throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -766,7 +772,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
     public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
-            return transaction.commit(mProcessEngine.cancelInstance(transaction, Handles.INSTANCE.<ProcessInstance>handle(handle), user));
+            return transaction.commit(mProcessEngine.cancelInstance(transaction, Handles.<ProcessInstance>handle(handle), user));
         } catch (SQLException e) {
             getLogger().log(Level.WARNING, "Error cancelling process intance", e);
             throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -805,7 +811,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         @RestParam(type = RestParamType.PRINCIPAL)
         final Principal user) throws FileNotFoundException, SQLException, XmlException {
         try(final TRXXX transaction = mProcessEngine.startTransaction()) {
-            final ProcessNodeInstance<?> result = mProcessEngine.getNodeInstance(transaction, Handles.INSTANCE.<ProcessNodeInstance<?>>handle(handle), user);
+            final ProcessNodeInstance<?> result = mProcessEngine.getNodeInstance(transaction, Handles.<ProcessNodeInstance<?>>handle(handle), user);
             if (result == null) { return null; }
             return transaction.commit(result.toSerializable(transaction.getWritableEngineData(), mMessageService.getLocalEndpoint()));
         }
@@ -833,7 +839,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
     public NodeInstanceState updateTaskState(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(name = "state", type = RestParamType.QUERY) final NodeInstanceState newState, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
-            return transaction.commit(mProcessEngine.updateTaskState(transaction, Handles.INSTANCE.<ProcessNodeInstance<?>>handle(handle), newState, user));
+            return transaction.commit(mProcessEngine.updateTaskState(transaction, Handles.<ProcessNodeInstance<?>>handle(handle), newState, user));
         } catch (SQLException e) {
             throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
         }
@@ -859,7 +865,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         final Principal user) {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
-            return transaction.commit(mProcessEngine.finishTask(transaction, Handles.INSTANCE.<ProcessNodeInstance<?>>handle(handle), payload, user).getState());
+            return transaction.commit(mProcessEngine.finishTask(transaction, Handles.<ProcessNodeInstance<?>>handle(handle), payload, user).getState());
         } catch (SQLException e) {
             throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
         }

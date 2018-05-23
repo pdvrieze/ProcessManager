@@ -42,7 +42,6 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     private var _message: XmlMessage? = null
 
     @SerialName("name")
-    @Optional
     private var _name: String? = null
 
     private val childId: String? get() = childModel?.id

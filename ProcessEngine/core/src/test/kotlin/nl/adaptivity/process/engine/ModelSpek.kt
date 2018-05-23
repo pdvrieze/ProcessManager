@@ -222,7 +222,7 @@ private fun SubjectDsl<EngineTestData>.startProcess(transactionGetter: Getter<St
       model.getHandle()
     } else {
       model.setHandleValue(-1)
-      subject.engine.addProcessModel(transaction, model, owner)
+      subject.engine.addProcessModel(transaction, model.builder(), owner)
     }
     engine.startProcess(transaction, owner, hmodel, name, UUID.randomUUID(), payload)
   }

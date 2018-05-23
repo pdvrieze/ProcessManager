@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.JvmField
@@ -29,7 +30,7 @@ import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 /**
  * Base class for submodels
  */
-@Serializable
+//@Serializable
 abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
     ProcessModelBase<T, M>, ChildProcessModel<T, M> {
 
@@ -41,6 +42,17 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
             "Childmodels must have roots")
         this.id = builder.childId
     }
+
+    /* Invalid constructor purely for serialization */
+    protected constructor(): super(emptyList(), emptyList()) {
+        _processNodes = IdentifyableSet.processNodeSet()
+        rootModel = XmlProcessModel.Builder().build() as RootProcessModel<T, M>
+        id = null
+        if (id==null) {// stupid if to make the compiler not complain about uninitialised values
+            throw UnsupportedOperationException("Actually nvoking this constructor is invalid")
+        }
+    }
+
 
     override val _processNodes: IdentifyableSet<T>
 
@@ -58,7 +70,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
             writeChildren(imports)
             writeChildren(exports)
-            writeChildren(getModelNodes())
+            writeChildren(modelNodes)
         }
     }
 
@@ -72,7 +84,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
         override val rootBuilder: RootProcessModel.Builder<T, M>
             get() = _rootBuilder
 
-        @SerialName(ATTR_ID)
+        @SerialName("id")
         override var childId: String?
 
         protected constructor() {
@@ -150,7 +162,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
 
         fun serialClassDesc(name: String): SerialClassDescImpl {
-            return SerialClassDescImpl(RootProcessModelBase.serialClassDesc, name)
+            return RootProcessModelBase.serialClassDesc(name)
         }
 
     }

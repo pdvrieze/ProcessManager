@@ -418,7 +418,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
                 _predecessors.joinTo(this, ", ", " pred='", "'") { it.id }
             }
 
-            (_ownerModel as? RootProcessModel<*, *>)?.getName()?.let { name ->
+            (_ownerModel as? RootProcessModel<*, *>)?.name?.let { name ->
                 if (!name.isEmpty()) append(" owner='$name'")
             }
             append(" )")
@@ -499,7 +499,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         @XmlDefault("NaN")
         override var y: Double = Double.NaN
 
-        @Optional
         @XmlDefault("false")
         override var isMultiInstance: Boolean = false
 

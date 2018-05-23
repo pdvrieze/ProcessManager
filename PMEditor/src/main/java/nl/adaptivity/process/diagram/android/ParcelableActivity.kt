@@ -139,8 +139,8 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
 
                 condition = source.readString()
 
-                setPredecessors(fromIdStrings(source.createStringArray()))
-                setSuccessors(fromIdStrings(source.createStringArray()))
+                fromIdStrings(source.createStringArray()).forEach { addPredecessor(it.identifier) }
+                fromIdStrings(source.createStringArray()).forEach { addSuccessor(it.identifier) }
 
                 val strMessage = source.readString()
                 Log.d(TAG, "deserializing message:\n$strMessage")

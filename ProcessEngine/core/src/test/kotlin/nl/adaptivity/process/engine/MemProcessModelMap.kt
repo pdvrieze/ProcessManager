@@ -32,7 +32,7 @@ class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ExecutableProc
                                 uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
     for (c in this) {
       val candidate = c.withPermission()
-      if (uuid == candidate.getUuid()) {
+      if (uuid == candidate.uuid) {
         return candidate.getHandle()
       }
     }

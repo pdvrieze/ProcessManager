@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.SerialClassDescImpl
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
@@ -42,70 +43,9 @@ import nl.adaptivity.xml.serialization.XmlSerialName
 @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
 
-    @Serializable
-    @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    class Builder : RootProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
-        @Transient
-        override val rootBuilder: Builder get() = this
-        @Transient
-        override val defaultPedantic: Boolean get() = true
-
-        constructor(
-            nodes: Collection<ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon>> = emptySet(),
-            childModels: Collection<XmlChildModel.Builder> = emptySet(),
-            name: String? = null,
-            handle: Long = -1L,
-            owner: Principal = SYSTEMPRINCIPAL,
-            roles: List<String> = emptyList(),
-            uuid: UUID? = null,
-            imports: List<IXmlResultType> = emptyList(),
-            exports: List<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner, roles, uuid,
-                                                                 imports, exports) {
-        }
-
-        constructor(base: XmlProcessModel) : super(base) {}
-
-        override fun build(pedantic: Boolean): XmlProcessModel {
-            return XmlProcessModel(this, pedantic)
-        }
-
-        override fun childModelBuilder(): XmlChildModel.Builder {
-            return XmlChildModel.Builder(rootBuilder)
-        }
-
-        override fun childModelBuilder(base: ChildProcessModel<*, *>): XmlChildModel.Builder {
-            return XmlChildModel.Builder(rootBuilder, base)
-        }
-
-        @Serializer(forClass = Builder::class)
-        companion object: RootProcessModelBase.Builder.BaseSerializer<Builder>() {
-            override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(XmlProcessModel::class.name)
-
-            override fun builder() = Builder()
-
-            override fun load(input: KInput): Builder {
-                return super.load(input)
-            }
-
-            override fun save(output: KOutput, obj: Builder) {
-                output.context.klassSerializer(XmlProcessModel::class).save(output, obj.build())
-            }
-
-            fun deserialize(reader: XmlReader): XmlProcessModel.Builder {
-                return RootProcessModelBase.Builder.deserialize(XmlProcessModel.Builder(), reader)
-            }
-        }
-    }
-
-    class Factory : XmlDeserializerFactory<XmlProcessModel> {
-
-        override fun deserialize(reader: XmlReader): XmlProcessModel {
-            return XmlProcessModel.deserialize(reader)
-        }
-    }
-
     @Transient
-    override val rootModel: XmlProcessModel get() = this
+    override val rootModel: XmlProcessModel
+        get() = this
 
     /**
      * Get the startnodes for this model.
@@ -114,7 +54,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
      */
     @Transient
     val startNodes: Collection<XmlStartNode>
-        get() = getModelNodes().filterIsInstance<XmlStartNode>()
+        get() = modelNodes.filterIsInstance<XmlStartNode>()
 
 
     @Transient
@@ -128,7 +68,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         get() {
             if (_endNodeCount < 0) {
                 var endNodeCount = 0
-                for (node in getModelNodes()) {
+                for (node in modelNodes) {
                     if (node is XmlEndNode) {
                         ++endNodeCount
                     }
@@ -139,7 +79,23 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return _endNodeCount
         }
 
-    constructor(builder: RootProcessModel.Builder<*,*>, pedantic: Boolean = false) : super(builder, XML_NODE_FACTORY, pedantic) {}
+    constructor(builder: RootProcessModel.Builder<*, *>, pedantic: Boolean = false) : super(builder, XML_NODE_FACTORY,
+                                                                                            pedantic) {
+    }
+
+    override fun copy(imports: Collection<IXmlResultType>,
+                      exports: Collection<IXmlDefineType>,
+                      nodes: Collection<XmlProcessNode>,
+                      name: String?,
+                      uuid: UUID?,
+                      roles: Set<String>,
+                      owner: Principal,
+                      childModels: Collection<ChildProcessModel<XmlProcessNode, XmlModelCommon>>): XmlProcessModel {
+        return XmlProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
+                                       uuid).also { builder ->
+            builder.childModels.replaceBy(childModels.map { it.builder(builder) })
+        }.build(false)
+    }
 
     override fun builder(): Builder {
         return Builder(this)
@@ -160,8 +116,9 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     }
 
     @Serializer(forClass = XmlProcessModel::class)
-    companion object: RootProcessModelBase.BaseSerializer<XmlProcessModel>() {
-        override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(XmlProcessModel::class.name)
+    companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>() {
+        override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(
+            XmlProcessModel::class.name)
 
         override fun load(input: KInput): XmlProcessModel {
             return input.context.klassSerializer(Builder::class).load(input).build()
@@ -208,9 +165,75 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             }
         }
     }
+
+
+    @Serializable
+    @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    class Builder : RootProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+        @Transient
+        override val rootBuilder: Builder
+            get() = this
+        @Transient
+        override val defaultPedantic: Boolean
+            get() = true
+
+        constructor(
+            nodes: Collection<ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon>> = emptySet(),
+            childModels: Collection<XmlChildModel.Builder> = emptySet(),
+            name: String? = null,
+            handle: Long = -1L,
+            owner: Principal = SYSTEMPRINCIPAL,
+            roles: Set<String> = emptySet(),
+            uuid: UUID? = null,
+            imports: List<IXmlResultType> = emptyList(),
+            exports: List<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner, roles, uuid,
+                                                                 imports, exports) {
+        }
+
+        constructor(base: XmlProcessModel) : super(base) {}
+
+        override fun build(pedantic: Boolean): XmlProcessModel {
+            return XmlProcessModel(this, pedantic)
+        }
+
+        override fun childModelBuilder(): XmlChildModel.Builder {
+            return XmlChildModel.Builder(rootBuilder)
+        }
+
+        override fun childModelBuilder(base: ChildProcessModel<*, *>): XmlChildModel.Builder {
+            return XmlChildModel.Builder(rootBuilder, base)
+        }
+
+        @Serializer(forClass = Builder::class)
+        companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
+            override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(XmlProcessModel::class.name)
+
+            override fun builder() = Builder()
+
+            override fun load(input: KInput): Builder {
+                return super.load(input)
+            }
+
+            override fun save(output: KOutput, obj: Builder) {
+                output.context.klassSerializer(XmlProcessModel::class).save(output, obj.build())
+            }
+
+            fun deserialize(reader: XmlReader): XmlProcessModel.Builder {
+                return RootProcessModelBase.Builder.deserialize(XmlProcessModel.Builder(), reader)
+            }
+        }
+    }
+
+    class Factory : XmlDeserializerFactory<XmlProcessModel> {
+
+        override fun deserialize(reader: XmlReader): XmlProcessModel {
+            return XmlProcessModel.deserialize(reader)
+        }
+    }
+
 }
 
-val XML_BUILDER_VISITOR = object: ProcessNode.Visitor<XmlProcessNode.Builder> {
+val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<XmlProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode<*, *>) = XmlStartNode.Builder(startNode)
 
     override fun visitActivity(activity: Activity<*, *>) = XmlActivity.Builder(activity)
@@ -225,7 +248,7 @@ val XML_BUILDER_VISITOR = object: ProcessNode.Visitor<XmlProcessNode.Builder> {
 
 object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelCommon> {
 
-    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ProcessNode.BuilderVisitor<XmlProcessNode> {
+    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder<*, *>) = XmlStartNode(startNode, buildHelper)
 
         override fun visitActivity(activity: Activity.Builder<*, *>) = XmlActivity(activity, buildHelper)

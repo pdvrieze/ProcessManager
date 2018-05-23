@@ -17,23 +17,33 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.util.security.Principal
 
 @Deprecated("Use builders instead")
-interface MutableRootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>: RootProcessModel<NodeT, ModelT> {
+interface MutableRootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : RootProcessModel<NodeT, ModelT> {
 
-  @Deprecated("Use builders instead of mutable process models")
-  fun setUuid(uuid: UUID)
+    override fun copy(imports: Collection<IXmlResultType>,
+                      exports: Collection<IXmlDefineType>,
+                      nodes: Collection<NodeT>,
+                      name: String?,
+                      uuid: UUID?,
+                      roles: Set<String>,
+                      owner: Principal,
+                      childModels: Collection<ChildProcessModel<NodeT, ModelT>>): MutableRootProcessModel<NodeT, ModelT>
 
-  @Deprecated("Use builders instead of mutable process models")
-  fun addNode(node: NodeT): Boolean
+    @Deprecated("Use builders instead of mutable process models")
+    fun setUuid(uuid: UUID)
 
-  @Deprecated("Use builders instead of mutable process models")
-  fun removeNode(node: NodeT): Boolean
+    @Deprecated("Use builders instead of mutable process models")
+    fun addNode(node: NodeT): Boolean
 
-  /**
-   * Initiate the notification that a node has changed. Actual implementations can override this.
-   * @param node The node that has changed.
-   */
-  @Deprecated("Use builders instead of mutable process models")
-  fun notifyNodeChanged(node: NodeT)
+    @Deprecated("Use builders instead of mutable process models")
+    fun removeNode(node: NodeT): Boolean
+
+    /**
+     * Initiate the notification that a node has changed. Actual implementations can override this.
+     * @param node The node that has changed.
+     */
+    @Deprecated("Use builders instead of mutable process models")
+    fun notifyNodeChanged(node: NodeT)
 }

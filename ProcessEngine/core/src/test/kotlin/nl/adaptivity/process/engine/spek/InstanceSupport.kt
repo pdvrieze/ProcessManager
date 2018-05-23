@@ -138,7 +138,7 @@ fun ProcessInstance.toDebugString(transaction: Getter<StubProcessTransaction>) =
 fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
   return buildString {
     append("process(")
-    append(processModel.rootModel.getName())
+    append(processModel.rootModel.name)
     name?.let {
       append(", instance: ")
       append(it)

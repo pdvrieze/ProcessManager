@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.HandlesCompat
 import net.devrieze.util.ReaderInputStream
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.handle

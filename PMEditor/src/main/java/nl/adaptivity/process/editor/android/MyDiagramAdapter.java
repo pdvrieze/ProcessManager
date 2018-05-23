@@ -252,7 +252,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     return false;
   }
 
-  public void tryAddSuccessor(final DrawableProcessNode.Builder prev, final DrawableProcessNode.Builder next) {
+  public void tryAddSuccessor(final DrawableProcessNode.Builder<?> prev, final DrawableProcessNode.Builder<?> next) {
     if (prev.getSuccessors().contains(next)) {
       prev.getSuccessors().remove(next);
     } else {

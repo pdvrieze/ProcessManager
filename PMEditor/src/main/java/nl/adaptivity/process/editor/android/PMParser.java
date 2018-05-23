@@ -61,7 +61,7 @@ public final class PMParser {
 
   private static RootDrawableProcessModel sanitizeForExport(final RootProcessModel<?,?> processModel) {
     RootDrawableProcessModel result = RootDrawableProcessModel.get(processModel);
-    if (result.getUuid()==null) { result.setUuid(UUID.randomUUID()); }
+
     result.setHandleValue(-1);
     return result;
   }
@@ -112,6 +112,7 @@ public final class PMParser {
 
   public static RootDrawableProcessModel.Builder parseProcessModel(final XmlReader in, final LayoutAlgorithm simpleLayoutAlgorithm, final LayoutAlgorithm advancedAlgorithm) throws XmlException {
     final Builder result = Builder.deserialize(in);
+    if (result.getUuid()==null) { result.setUuid(UUID.randomUUID()); }
     if (result.hasUnpositioned()) {
       result.setLayoutAlgorithm(advancedAlgorithm);
       result.layout(new AbstractLayoutStepper());

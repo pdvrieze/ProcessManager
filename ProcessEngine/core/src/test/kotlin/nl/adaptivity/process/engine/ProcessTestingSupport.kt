@@ -139,8 +139,8 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction:StubPro
 
 fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProcessNode? {
   val nodeId = nodeIdentified.id
-  return getModelNodes().firstOrNull { it.id==nodeId } ?:
-         childModels.asSequence().flatMap { it.getModelNodes().asSequence() }.firstOrNull{ it.id==nodeId }
+  return modelNodes.firstOrNull { it.id==nodeId } ?:
+         childModels.asSequence().flatMap { it.modelNodes.asSequence() }.firstOrNull{ it.id==nodeId }
 }
 
 @Suppress("NOTHING_TO_INLINE")

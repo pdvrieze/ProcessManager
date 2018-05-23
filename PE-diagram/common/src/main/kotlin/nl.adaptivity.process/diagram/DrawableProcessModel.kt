@@ -55,9 +55,9 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProce
 
   override val y: Double get() = 0.0
 
-  override fun getModelNodes(): List<DrawableProcessNode>
+  override val modelNodes: List<DrawableProcessNode>
 
-  override val childElements: List<DrawableProcessNode> get() = getModelNodes()
+  override val childElements: List<DrawableProcessNode> get() = modelNodes
 
   override val rootModel: RootDrawableProcessModel
 

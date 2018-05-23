@@ -72,7 +72,7 @@ class NodeTest {
       assertEquals(EXPECTED_SVG, testDrawNode(DrawableEndNode.Builder()))
   }
 
-  fun testDrawNode(node: DrawableProcessNode.Builder): String {
+  fun testDrawNode(node: DrawableProcessNode.Builder<*>): String {
     return StringWriter().also {
       XmlStreaming.newWriter(it).use { xmlWriter ->
         val canvas = SVGCanvas(JVMTextMeasurer())

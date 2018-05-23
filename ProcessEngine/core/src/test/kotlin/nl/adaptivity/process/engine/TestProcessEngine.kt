@@ -586,7 +586,7 @@ class TestProcessEngine {
                 return pni
             }
             val piBuilder = transaction.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()
-            return pni.withPermission().builder(piBuilder).also { it.handle = Handles.handle(handle) }.build()
+            return pni.withPermission().builder(piBuilder).also { it.handle = handle(handle) }.build()
         }
 
         internal fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {

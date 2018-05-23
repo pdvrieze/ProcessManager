@@ -135,7 +135,7 @@ public class TestXmlResultType {
   @Test
   public void testXDefineHolder() throws JAXBException, XmlException {
     final String testData = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
-    final XmlReader in = XmlStreaming.newReader(new StringReader(testData));
+    final XmlReader in = XmlStreaming.INSTANCE.newReader(new StringReader(testData));
 
     final XmlDefineType testHolder = XmlDefineType.Companion.deserialize(in);
 
@@ -149,7 +149,7 @@ public class TestXmlResultType {
   public void testXMLResultHolder() {
     final String testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
 
-    final XmlReader in = XmlStreaming.newReader(new StringReader(testData));
+    final XmlReader in = XmlStreaming.INSTANCE.newReader(new StringReader(testData));
 
 
     final XmlResultType testHolder = XmlResultType.deserialize(in);

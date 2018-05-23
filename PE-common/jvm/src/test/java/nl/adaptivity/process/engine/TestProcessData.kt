@@ -130,7 +130,7 @@ class TestProcessData {
         lateinit var ac2: XmlActivity
         lateinit var start: XmlStartNode
         lateinit var end: XmlEndNode
-        for (node in pm.getModelNodes()) {
+        for (node in pm.modelNodes) {
             if (node.id != null) {
                 when (node.id) {
                     "start" -> start = node as XmlStartNode
@@ -265,7 +265,7 @@ class TestProcessData {
             val xsw = XmlStreaming.newWriter(caw)
 
             val ac1 = run {
-                val modelNodes = xpm.getModelNodes()
+                val modelNodes = xpm.modelNodes
                 val it = modelNodes.iterator()
                 it.next()
                 it.next()
@@ -349,7 +349,7 @@ class TestProcessData {
         assertNotNull(model)
 
         assertEquals(9,
-                     model.getModelNodes().size,
+                     model.modelNodes.size,
                      "There should be 9 effective elements in the process model (including an introduced split)")
         val start = model.getNode("start") as XmlStartNode
         val ac1 = model.getNode("ac1") as XmlActivity
@@ -360,7 +360,7 @@ class TestProcessData {
         val split = model.getNode("split1") as XmlSplit
         val j1 = model.getNode("j1") as XmlJoin
         val end = model.getNode("end") as XmlEndNode
-        val actualNodes = model.getModelNodes()
+        val actualNodes = model.modelNodes
         val expectedNodes = Arrays.asList<XmlProcessNode>(start, ac1, ac2, split, ac3, ac5, j1, ac4, end)
         assertEquals(actualNodes.size, expectedNodes.size)
         assertTrue(actualNodes.containsAll(expectedNodes))
@@ -412,7 +412,7 @@ class TestProcessData {
         assertNotNull(model)
 
         assertEquals(14,
-                     model.getModelNodes().size,
+                     model.modelNodes.size,
                      "There should be 14 effective elements in the process model (including an introduced split)")
         val start = model.getNode("start") as XmlStartNode
         val ac1 = model.getNode("ac1") as XmlActivity
@@ -428,7 +428,7 @@ class TestProcessData {
         val j2 = model.getNode("j2") as XmlJoin
         val end = model.getNode("end") as XmlEndNode
         val split2 = model.getNode("split2") as XmlSplit
-        val actualNodes = model.getModelNodes()
+        val actualNodes = model.modelNodes
         val expectedNodes = listOf<XmlProcessNode>(start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2,
                                                    end, split2)
 
@@ -487,7 +487,7 @@ class TestProcessData {
         val xsw = XmlStreaming.newWriter(caw)
 
         val result: XmlResultType = run {
-            val modelNodes = pm.getModelNodes()
+            val modelNodes = pm.modelNodes
             val it = modelNodes.iterator()
             it.next()
             it.next().results.iterator().next() as XmlResultType

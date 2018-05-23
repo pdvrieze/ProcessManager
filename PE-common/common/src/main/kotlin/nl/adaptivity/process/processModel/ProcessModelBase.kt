@@ -38,7 +38,9 @@ import nl.adaptivity.xml.serialization.XmlPolyChildren
  * Created by pdvrieze on 02/01/17.
  */
 @Serializable
-abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT, ModelT>, XmlSerializable {
+abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
+    ProcessModel<NodeT, ModelT>,
+    XmlSerializable {
 
     interface NodeFactory<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
         operator fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
@@ -73,7 +75,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                  base.imports.toMutableList(),
                  base.exports.toMutableList()) {
 
-            base.getModelNodes().mapTo(nodes) {
+            base.modelNodes.mapTo(nodes) {
                 it.visit(object : ProcessNode.Visitor<ProcessNode.IBuilder<NodeT, ModelT>> {
                     override fun visitStartNode(startNode: StartNode<*, *>) = startNodeBuilder(startNode)
                     override fun visitActivity(activity: Activity<*, *>) = activityBuilder(activity)
@@ -206,7 +208,11 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                              "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
                              "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
                              "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
+
     protected abstract val _processNodes: IdentifyableSet<NodeT>
+
+    @Transient
+    override val modelNodes get(): Collection<NodeT> = _processNodes
 
     @SerialName("import")
     @XmlPolyChildren(arrayOf("import=XmlResultType"))
@@ -216,14 +222,18 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     @XmlPolyChildren(arrayOf("export=XmlDefineType"))
     private var _exports: List<IXmlDefineType>
 
-    override fun getModelNodes(): List<NodeT> = _processNodes
+    @Transient
+    final override val imports: Collection<IXmlResultType>
+        get() = _imports
 
-    final override fun getImports(): Collection<IXmlResultType> = _imports
+    @Transient
+    final override val exports: Collection<IXmlDefineType>
+        get() = _exports
+
     protected fun setImports(value: Iterable<IXmlResultType>) {
         _imports = value.toList()
     }
 
-    final override fun getExports(): Collection<IXmlDefineType> = _exports
     protected fun setExports(value: Iterable<IXmlDefineType>) {
         _exports = value.toList()
     }
@@ -235,10 +245,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
         this._exports = builder.exports.map { XmlDefineType.get(it) }
     }
 
-    constructor(processNodes: Iterable<ProcessNode<*, *>>,
-                imports: Collection<IXmlResultType>,
-                exports: Collection<IXmlDefineType>,
-                nodeFactory: NodeFactory<NodeT, ModelT>) {
+    constructor(imports: Collection<IXmlResultType>,
+                exports: Collection<IXmlDefineType>) {
         val newOwner = this
         _imports = imports.toList()
         _exports = exports.toList()
@@ -281,7 +289,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
             output.writeSerializableElementValue(serialClassDesc, exportsIdx, XmlDefineType.list,
                                                  obj.exports.map(::XmlDefineType))
             output.writeSerializableElementValue(serialClassDesc, nodesIdx, ModelNodeSerializer.list,
-                                                 obj.getModelNodes())
+                                                 obj.modelNodes.toList())
         }
     }
 

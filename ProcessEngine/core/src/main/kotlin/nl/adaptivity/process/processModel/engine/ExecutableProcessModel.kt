@@ -78,9 +78,8 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     @Suppress("UNCHECKED_CAST")
     override fun getHandle() = super.getHandle() as Handle<ExecutableProcessModel>
 
-    override fun getRef(): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
-        return ProcessModelRef(name, this.getHandle(), uuid)
-    }
+    override val ref: IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>
+        get() = ProcessModelRef(name, this.getHandle(), uuid)
 
     /* (non-Javadoc)
        * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
@@ -102,7 +101,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
             }
         }
-        getName()?.let { setName(stringCache.lookup(it)) }
+        name?.let { setName(stringCache.lookup(it)) }
         val oldRoles = roles
         if (oldRoles.isNotEmpty()) {
             val newRoles = oldRoles.map { stringCache.lookup(it) }
@@ -123,7 +122,9 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
         }
 
         @JvmStatic
-        inline fun build(body: Builder.() -> Unit) = Builder().apply(body).build()
+        inline fun build(body: Builder.() -> Unit) = Builder().apply(body).also {
+            if (it.uuid==null) { it.uuid = java.util.UUID.randomUUID() }
+        }.build()
 
         /**
          * A class handle purely used for caching and special casing the DarwinPrincipal class.

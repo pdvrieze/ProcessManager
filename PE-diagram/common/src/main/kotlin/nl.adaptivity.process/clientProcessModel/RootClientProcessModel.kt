@@ -20,71 +20,96 @@ package nl.adaptivity.process.clientProcessModel
 
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.diagram.*
-import nl.adaptivity.process.processModel.RootProcessModel
-import nl.adaptivity.process.processModel.RootProcessModelBase
-import nl.adaptivity.process.processModel.modelNodes
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.JvmOverloads
+import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.util.security.Principal
 
 abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
-                                                                    nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>,
-                                                                    pedantic: Boolean = builder.defaultPedantic)
-  : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(builder, nodeFactory, pedantic),
-    RootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+                                                                nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>,
+                                                                pedantic: Boolean = builder.defaultPedantic)
+    : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(builder, nodeFactory, pedantic),
+      RootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
 
-  abstract val layoutAlgorithm: LayoutAlgorithm
+    abstract val layoutAlgorithm: LayoutAlgorithm
 
-  val topPadding = (builder as? DrawableProcessModel.Builder)?.topPadding ?: 5.0
+    val topPadding = (builder as? DrawableProcessModel.Builder)?.topPadding ?: 5.0
 
-  val leftPadding = (builder as? DrawableProcessModel.Builder)?.leftPadding ?: 5.0
+    val leftPadding = (builder as? DrawableProcessModel.Builder)?.leftPadding ?: 5.0
 
-  var bottomPadding = (builder as? DrawableProcessModel.Builder)?.bottomPadding ?: 5.0
+    var bottomPadding = (builder as? DrawableProcessModel.Builder)?.bottomPadding ?: 5.0
 
-  var rightPadding = (builder as? DrawableProcessModel.Builder)?.rightPadding ?: 5.0
+    var rightPadding = (builder as? DrawableProcessModel.Builder)?.rightPadding ?: 5.0
 
-  abstract val isInvalid:Boolean
+    abstract val isInvalid: Boolean
 
-  override abstract fun builder(): RootDrawableProcessModel.Builder
+    val startNodes: Collection<DrawableStartNode>
+        get() = modelNodes.filterIsInstance<DrawableStartNode>()
 
 
-  abstract fun invalidate()
-
-  @Deprecated("Use the version taking an identifier", ReplaceWith("getNode(Identifier(nodeId))", "nl.adaptivity.process.util.Identifier"))
-  override fun getNode(nodeId: String) = getNode(Identifier(nodeId))
-
-  val startNodes: Collection<DrawableStartNode>
-    get() = modelNodes.filterIsInstance<DrawableStartNode>()
-
-  private fun toDiagramNodes(modelNodes: Collection<DrawableProcessNode>): List<DiagramNode<DrawableProcessNode>> {
-    val nodeMap = HashMap<Identified, DiagramNode<DrawableProcessNode>>()
-    val result = modelNodes.map { node  ->
-      DiagramNode(node).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
+    @Deprecated("Use full version", level = DeprecationLevel.HIDDEN)
+    final override fun copy(imports: Collection<IXmlResultType>,
+                            exports: Collection<IXmlDefineType>,
+                            nodes: Collection<DrawableProcessNode>,
+                            name: String?,
+                            uuid: UUID?,
+                            roles: Set<String>,
+                            owner: Principal,
+                            childModels: Collection<ChildProcessModel<DrawableProcessNode, DrawableProcessModel?>>): RootDrawableProcessModel {
+        return copy(imports, exports, nodes, name, uuid, roles, owner, childModels, this.handleValue, this.layoutAlgorithm)
     }
 
-    for (diagramNode in result) {
-      val modelNode = diagramNode.target
-      modelNode.successors.asSequence()
-          .map { nodeMap[it] }
-          .filterNotNullTo(diagramNode.rightNodes)
+    abstract fun copy(imports: Collection<IXmlResultType> = this.imports,
+                      exports: Collection<IXmlDefineType> = this.exports,
+                      nodes: Collection<DrawableProcessNode> = modelNodes,
+                      name: String? = this.name,
+                      uuid: UUID? = this.uuid,
+                      roles: Set<String> = this.roles,
+                      owner: Principal = this.owner,
+                      childModels: Collection<ChildProcessModel<DrawableProcessNode, DrawableProcessModel?>> = this.childModels,
+                      handle: Long = this.handleValue,
+                      layoutAlgorithm: LayoutAlgorithm = this.layoutAlgorithm): RootDrawableProcessModel
 
-      modelNode.predecessors.asSequence()
-          .map { nodeMap[it] }
-          .filterNotNullTo(diagramNode.leftNodes)
+
+    override abstract fun builder(): RootDrawableProcessModel.Builder
+
+    abstract fun invalidate()
+
+    @Deprecated("Use the version taking an identifier",
+                ReplaceWith("getNode(Identifier(nodeId))", "nl.adaptivity.process.util.Identifier"))
+    override fun getNode(nodeId: String) = getNode(Identifier(nodeId))
+
+    private fun toDiagramNodes(modelNodes: Collection<DrawableProcessNode>): List<DiagramNode<DrawableProcessNode>> {
+        val nodeMap = HashMap<Identified, DiagramNode<DrawableProcessNode>>()
+        val result = modelNodes.map { node ->
+            DiagramNode(node).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
+        }
+
+        for (diagramNode in result) {
+            val modelNode = diagramNode.target
+            modelNode.successors.asSequence()
+                .map { nodeMap[it] }
+                .filterNotNullTo(diagramNode.rightNodes)
+
+            modelNode.predecessors.asSequence()
+                .map { nodeMap[it] }
+                .filterNotNullTo(diagramNode.leftNodes)
+        }
+        return result
     }
-    return result
-  }
 
-  companion object {
+    companion object {
 
-    const val NS_JBI = "http://adaptivity.nl/ProcessEngine/activity"
+        const val NS_JBI = "http://adaptivity.nl/ProcessEngine/activity"
 
-    const val NS_UMH = Constants.USER_MESSAGE_HANDLER_NS
+        const val NS_UMH = Constants.USER_MESSAGE_HANDLER_NS
 
-    const val NS_PM = ProcessConsts.Engine.NAMESPACE
+        const val NS_PM = ProcessConsts.Engine.NAMESPACE
 
-    internal const val PROCESSMODEL_NS = NS_PM
-  }
+        internal const val PROCESSMODEL_NS = NS_PM
+    }
 
 }

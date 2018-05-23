@@ -114,7 +114,7 @@ public class TestSoapHelper {
                    "    </task>\n" +
                    "  </taskParam>\n" +
                    "</umh:postTask>";
-    LinkedHashMap<String, Node> result = SoapHelper.unmarshalWrapper(XmlStreaming.newReader(new StringReader(input)));
+    LinkedHashMap<String, Node> result = SoapHelper.unmarshalWrapper(XmlStreaming.INSTANCE.newReader(new StringReader(input)));
       Assertions.assertEquals(2, result.size());
       assertNotNull(result.get("repliesParam"));
     assertNotNull(result.get("taskParam"));
@@ -122,16 +122,16 @@ public class TestSoapHelper {
 
   @Test
   public void testUnmarshalSoapResponse() throws Exception {
-    Envelope          env = Envelope.deserialize(XmlStreaming.newReader(new StringReader(SOAP_RESPONSE1)));
+    Envelope          env = Envelope.deserialize(XmlStreaming.INSTANCE.newReader(new StringReader(SOAP_RESPONSE1)));
     CompactFragment   bodyContent = (CompactFragment) env.getBody().getBodyContent();
     TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
   }
 
   @Test
   public void testRoundtripSoapResponse() throws Exception {
-    Envelope env = Envelope.deserialize(XmlStreaming.newReader(new StringReader(SOAP_RESPONSE1)));
+    Envelope env = Envelope.deserialize(XmlStreaming.INSTANCE.newReader(new StringReader(SOAP_RESPONSE1)));
     CharArrayWriter caw = new CharArrayWriter();
-    XmlWriter out = new DebugWriter(XmlStreaming.newWriter(caw));
+    XmlWriter out = new DebugWriter(XmlStreaming.INSTANCE.newWriter(caw));
     env.serialize(out);
     out.close();
     TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE1, caw.toString());
@@ -139,9 +139,9 @@ public class TestSoapHelper {
 
   @Test
   public void testRoundtripSoapResponse2() throws Exception {
-    Envelope env = Envelope.deserialize(XmlStreaming.newReader(new StringReader(SOAP_RESPONSE2)));
+    Envelope env = Envelope.deserialize(XmlStreaming.INSTANCE.newReader(new StringReader(SOAP_RESPONSE2)));
     CharArrayWriter caw = new CharArrayWriter();
-    XmlWriter out = new DebugWriter(XmlStreaming.newWriter(caw));
+    XmlWriter out = new DebugWriter(XmlStreaming.INSTANCE.newWriter(caw));
     env.serialize(out);
     out.close();
     TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE2, caw.toString());
@@ -152,7 +152,7 @@ public class TestSoapHelper {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader(SOAP_RESPONSE1)));
-    Envelope env = Envelope.deserialize(XmlStreaming.newReader(new DOMSource(doc)));
+    Envelope env = Envelope.deserialize(XmlStreaming.INSTANCE.newReader(new DOMSource(doc)));
     CompactFragment bodyContent = (CompactFragment) env.getBody().getBodyContent();
     TestProcessDataKt.assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
   }
@@ -163,7 +163,7 @@ public class TestSoapHelper {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader(input)));
-    XmlReader reader = XmlStreaming.newReader(new DOMSource(doc));
+    XmlReader reader = XmlStreaming.INSTANCE.newReader(new DOMSource(doc));
     reader.require(EventType.START_DOCUMENT, null, null);
     reader.next();
     reader.require(EventType.START_ELEMENT, "urn:bar", "foo");

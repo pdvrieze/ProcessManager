@@ -54,14 +54,14 @@ public class TestPMParser {
 
   @BeforeMethod
   public void init() {
-    XmlStreaming.setFactory(new AndroidStreamingFactory());
+    XmlStreaming.INSTANCE.setFactory(new AndroidStreamingFactory());
   }
 
   @Test
-  public void testParseNew() throws XmlPullParserException, XmlException {
+  public void testParseNew() throws XmlException {
     InputStream                         inputStream = getClass().getResourceAsStream("/processmodel.xml");
     XmlReader                           parser      = new AndroidXmlReader(inputStream, "UTF-8");
-      final XmlProcessModel deserializedModel = XmlProcessModel.deserialize(parser);
+      final XmlProcessModel deserializedModel = XmlProcessModel.Companion.deserialize(parser);
       DrawableProcessModel              model       = new RootDrawableProcessModel(
           deserializedModel.getRootModel());
     checkModel1(model);
@@ -199,7 +199,7 @@ public class TestPMParser {
   @Test
   public void testWriter() throws XmlException {
     CharArrayWriter caw = new CharArrayWriter();
-    XmlWriter writer = XmlStreaming.newWriter(caw);
+    XmlWriter writer = XmlStreaming.INSTANCE.newWriter(caw);
     testWriterCommon(writer);
     assertEquals("<prefix:tag>Hello</prefix:tag>", caw.toString());
   }
@@ -207,7 +207,7 @@ public class TestPMParser {
   @Test
   public void testWriterRepairing() throws XmlException {
     CharArrayWriter caw = new CharArrayWriter();
-    XmlWriter writer = XmlStreaming.newWriter(caw, true);
+    XmlWriter writer = XmlStreaming.INSTANCE.newWriter(caw, true);
     testWriterCommon(writer);
     assertEquals("<prefix:tag xmlns:prefix=\"urn:foo\">Hello</prefix:tag>", caw.toString());
   }

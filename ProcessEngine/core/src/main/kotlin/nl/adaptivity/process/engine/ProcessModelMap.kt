@@ -39,7 +39,7 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
           .map { handle(it) }
           .firstOrNull {
       val candidate:ExecutableProcessModel? = get(transaction, it)?.withPermission()
-      uuid == candidate?.getUuid()
+      uuid == candidate?.uuid
     }
   }
 

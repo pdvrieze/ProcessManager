@@ -39,7 +39,7 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder<*, *>,
       imports: Collection<IXmlResultType> = emptyList(),
       exports: Collection<IXmlDefineType> = emptyList()) : ChildProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>(rootBuilder, childId, nodes, imports, exports), ExecutableModelCommon.Builder {
 
-    constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.id, base.getModelNodes().map { it.visit(EXEC_BUILDER_VISITOR) }, base.imports, base.exports)
+    constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*,*>): this(rootBuilder, base.id, base.modelNodes.map { it.visit(EXEC_BUILDER_VISITOR) }, base.imports, base.exports)
 
 
     override fun buildModel(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)

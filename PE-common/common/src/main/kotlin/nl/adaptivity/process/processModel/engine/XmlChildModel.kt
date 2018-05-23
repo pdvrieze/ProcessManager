@@ -48,7 +48,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
                                                                                exports)
 
         constructor(rootBuilder: XmlProcessModel.Builder, base: ChildProcessModel<*, *>) : this(rootBuilder, base.id,
-                                                                                                base.getModelNodes().map {
+                                                                                                base.modelNodes.map {
                                                                                                     it.visit(
                                                                                                         XML_BUILDER_VISITOR)
                                                                                                 }, base.imports,

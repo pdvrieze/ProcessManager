@@ -97,7 +97,6 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
         override val successors: Set<Identified>
             get() = setOfNotNull(successor?.identifier)
 
-        @Optional
         var childId: String?
 
         override fun addSuccessor(identifier: Identifier) {

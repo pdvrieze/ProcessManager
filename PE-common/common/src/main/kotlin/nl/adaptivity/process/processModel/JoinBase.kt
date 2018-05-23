@@ -100,7 +100,6 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         override val idBase: String
             get() = "join"
 
-        @Optional
         @XmlDefault("false")
         final override var isMultiMerge: Boolean = false
 

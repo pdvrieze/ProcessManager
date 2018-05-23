@@ -16,27 +16,23 @@
 
 package nl.adaptivity.util
 
-import kotlinx.serialization.KSerialClassDesc
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.reflect.KProperty
 
-fun SerialClassDescImpl(original: KSerialClassDesc, name: String): SerialClassDescImpl {
-    return SerialClassDescImpl(name).apply {
-        for (i in 0 until original.associatedFieldsCount) {
-            addElement(original.getElementName(i))
-            for (a in original.getAnnotationsForIndex(i)) {
-                pushAnnotation(a)
-            }
+actual fun SerialClassDescImpl.addField(property: KProperty<*>) {
+    var name = property.name
+
+    val annotations = property.annotations
+        .filter { annotation ->
+            if (annotation is SerialName) {
+                name = annotation.value
+                false
+            } else
+                annotation::class.annotations.any { it is SerialInfo }
         }
-    }
-}
+    addElement(name)
 
-expect fun SerialClassDescImpl.addField(property: KProperty<*>)
-
-fun KSerialClassDesc.describe(): String {
-    return (0 until associatedFieldsCount).joinToString(",\n", prefix = "$name[$kind] (", postfix = ")") {
-        getAnnotationsForIndex(it).joinToString(postfix = " : ${getElementName(it)}")
-    }
+    annotations.forEach { annotation -> pushAnnotation(annotation) }
 }
