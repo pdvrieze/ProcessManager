@@ -152,8 +152,11 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                     result.exports.replaceBy(newExports)
                 }
                 nodesIdx   -> {
-                    val newNodes = input.updateSerializableElementValue(serialClassDesc, index,
+                    val newNodes: Iterable<Any> = input.updateSerializableElementValue(serialClassDesc, index,
                                                                         ModelNodeBuilderSerializer.list, result.nodes)
+                    // Generics is utterly broken here
+                    @Suppress("UNCHECKED_CAST")
+                    (result.nodes as MutableList<Any>).replaceBy(iterable=newNodes)
                 }
                 else       -> throw UnknownFieldException(index)
             }
