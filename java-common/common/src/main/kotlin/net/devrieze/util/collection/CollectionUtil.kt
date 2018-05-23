@@ -37,18 +37,18 @@ fun <T, C: MutableCollection<in T>> C.replaceByNotNull(element: T?) {
 /**
  * Helper function to reset and set values in a set.
  */
-fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Sequence<T>) {
+fun <T, C: MutableCollection<in T>> C.replaceBy(sequence: Sequence<T>) {
     clear()
-    addAll(elements)
+    addAll(sequence)
 }
 
 /**
  * Helper function to reset and set values in a set.
  */
-fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Iterable<T>) {
-    if (this == elements) return
+fun <T, C: MutableCollection<in T>> C.replaceBy(iterable: Iterable<T>) {
+    if (this == iterable) return
     clear()
-    addAll(elements)
+    addAll(iterable)
 }
 
 /**
