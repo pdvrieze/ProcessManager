@@ -21,12 +21,16 @@ import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.xml.XmlSerializable
 
 
-interface IProcessModelRef<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?, out ObjectT: RootProcessModel<NodeT, ModelT>> : Handle<ObjectT> {
+interface IProcessModelRef<NodeT : ProcessNode<NodeT, ModelT>,
+                           ModelT : ProcessModel<NodeT, ModelT>?,
+                           out ObjectT : RootProcessModel<NodeT, ModelT>> :
+    Handle<ObjectT>, XmlSerializable  {
 
-  val name: String?
+    val name: String?
 
-  val uuid: UUID?
+    val uuid: UUID?
 
 }
