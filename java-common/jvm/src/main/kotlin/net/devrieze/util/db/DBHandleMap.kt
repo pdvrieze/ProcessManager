@@ -17,6 +17,7 @@
 package net.devrieze.util.db
 
 import net.devrieze.util.*
+import net.devrieze.util.handle
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.getSingleList
 import uk.ac.bournemouth.kotlinsql.getSingleListOrNull
@@ -61,7 +62,7 @@ open class DBHandleMap<TMP, V:Any, TR:DBTransaction>(
 
   @Throws(SQLException::class)
   override fun get(transaction: TR, handle: Handle<V>): V? {
-    val comparableHandle = Handles.handle(handle)
+    val comparableHandle = handle(handle)
     if (mPendingCreates.containsKey(comparableHandle)) {
       throw IllegalArgumentException("Pending create") // XXX This is not the best way
 //      return mPendingCreates[comparableHandle]

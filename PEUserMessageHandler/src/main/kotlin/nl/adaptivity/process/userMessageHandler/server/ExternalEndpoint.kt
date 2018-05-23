@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.Handles
 import net.devrieze.util.Transaction
+import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.MessagingRegistry
@@ -29,8 +29,6 @@ import nl.adaptivity.rest.annotations.HttpMethod
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.multiplatform.URI
-import nl.adaptivity.xml.localPart
-import nl.adaptivity.xml.namespaceURI
 import java.io.FileNotFoundException
 import java.net.URISyntaxException
 import java.security.Principal
@@ -153,8 +151,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   fun getPendingTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
                      @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask {
     mService.inTransaction {
-      return commit { getPendingTask(Handles.handle<XmlTask>(
-            java.lang.Long.parseLong(handle)),
+      return commit { getPendingTask(handle(handle= java.lang.Long.parseLong(handle)),
                                      user) } ?: throw FileNotFoundException("The task with handle ${handle} does not exist")
     }
   }
@@ -172,7 +169,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   fun startTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
-      return startTask(Handles.handle<XmlTask>(handle), user)
+      return startTask(handle(handle= handle), user)
     }
   }
 
@@ -189,7 +186,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   fun takeTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
                @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
-      return commit { takeTask(Handles.handle<XmlTask>(handle), user) }
+      return commit { takeTask(handle(handle= handle), user) }
     }
   }
 
@@ -208,7 +205,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   fun finishTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
                  @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
     mService.inTransaction {
-      return commit { finishTask(Handles.handle<XmlTask>(java.lang.Long.parseLong(handle)),
+      return commit { finishTask(handle(handle= java.lang.Long.parseLong(handle)),
                                  user)}
     }
   }
@@ -219,8 +216,8 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     mService.inTransaction {
       return commit {
         cancelTask(
-          Handles.handle<XmlTask>(java.lang.Long.parseLong(handle)),
-          user)
+            handle(handle= java.lang.Long.parseLong(handle)),
+            user)
       }
     }
   }
@@ -266,7 +263,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
       try {
         service.newTransaction().use { transaction ->
           val result = service.updateTask(transaction,
-                                          Handles.handle<XmlTask>(handle),
+                                          handle(handle= handle),
                                           partialNewTask,
                                           user) ?: throw FileNotFoundException()
           transaction.commit()

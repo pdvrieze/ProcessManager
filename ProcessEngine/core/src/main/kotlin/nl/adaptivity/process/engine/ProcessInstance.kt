@@ -361,7 +361,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   }
 
-  data class BaseBuilder(override var handle: ComparableHandle<SecureObject<ProcessInstance>> = Handles.getInvalid(),
+  data class BaseBuilder(override var handle: ComparableHandle<SecureObject<ProcessInstance>> = getInvalidHandle(),
                          override var owner: Principal = SYSTEMPRINCIPAL,
                          override var processModel: ExecutableModelCommon,
                          override var instancename: String? = null,
@@ -440,7 +440,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override var owner by overlay { base.owner }
     override var processModel by overlay { base.processModel }
     override var instancename by overlay { base.name }
-    override var uuid by overlay({ generation = 0; handle = Handles.getInvalid() }) { base.uuid }
+    override var uuid by overlay({ generation = 0; handle = getInvalidHandle() }) { base.uuid }
     override var state by overlay { base.state }
     override val children get()=base.childNodes.map { it.withPermission().getHandle() }
     override val inputs by lazy { base.inputs.toMutableList() }
@@ -665,7 +665,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     uuid = builder.uuid
     processModel = builder.processModel
     state = builder.state
-    handle = Handles.handle(builder.handle)
+    handle = handle(builder.handle)
     parentActivity = builder.parentActivity
 
     val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*,*> }
@@ -793,7 +793,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     if (handle.handleValue!=handleValue) {
       if (handleValue==-1L) { throw IllegalArgumentException("Setting the handle to invalid is not allowed") }
       if (handle.isValid) throw IllegalStateException("Handles are not allowed to change")
-      handle = Handles.handle(handleValue)
+      handle = handle(handle= handleValue)
     }
   }
 

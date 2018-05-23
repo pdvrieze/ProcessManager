@@ -14,85 +14,78 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:JvmName("Handles")
 package net.devrieze.util
 
-import nl.adaptivity.util.multiplatform.JvmStatic
+import nl.adaptivity.util.multiplatform.JvmName
 import nl.adaptivity.util.multiplatform.URI
 
-object Handles {
 
-    private val INVALID get() = SimpleHandle<Any>(-1L)
+private val INVALID get() = SimpleHandle<Any>(-1L)
 
-    private class SimpleHandle<T> constructor(override val handleValue: Long) : ComparableHandle<T> {
+private class SimpleHandle<T> constructor(override val handleValue: Long) : ComparableHandle<T> {
 
-        override fun toString(): String = "H:$handleValue"
+    override fun toString(): String = "H:$handleValue"
 
-        override fun compareTo(other: ComparableHandle<T>): Int {
-            return handleValue.compareTo(other.handleValue)
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-
-            other as SimpleHandle<*>
-
-            if (handleValue != other.handleValue) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return handleValue.hashCode()
-        }
-
+    override fun compareTo(other: ComparableHandle<T>): Int {
+        return handleValue.compareTo(other.handleValue)
     }
 
-    @JvmStatic
-    fun <T> getInvalid(): ComparableHandle<T> {
-        @Suppress("UNCHECKED_CAST")
-        return INVALID as ComparableHandle<T>
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as SimpleHandle<*>
+
+        if (handleValue != other.handleValue) return false
+
+        return true
     }
 
-    /**
-     * Get a very simple Handle implementation.
-     *
-     * @param handle The handle
-     * @return a Handle<T> object corresponding to the handle.
-     */
-    @JvmStatic
-    fun <T> handle(handle: Long): ComparableHandle<T> {
-        return if (handle < 0) getInvalid() else SimpleHandle(
-            handle)
+    override fun hashCode(): Int {
+        return handleValue.hashCode()
     }
 
-    @JvmStatic
-    fun <T> handle(handle: Handle<T>): ComparableHandle<T> {
-        return if (handle is ComparableHandle<*>) {
-            handle as ComparableHandle<T>
-        } else SimpleHandle(handle.handleValue)
-    }
+}
 
-    /**
-     * Convenience method that will parse the handle from a string
-     * @param handle The string for the handle
-     * @param T
-     * @return
-     */
-    @JvmStatic
-    fun <T> handle(handle: String): ComparableHandle<T> {
-        return handle(handle.toLong())
-    }
+fun <T> getInvalidHandle(): ComparableHandle<T> {
+    @Suppress("UNCHECKED_CAST")
+    return INVALID as ComparableHandle<T>
+}
 
-    @JvmStatic
-    fun <T> handle(handle: URI): ComparableHandle<T> {
-        val path = handle.getPath()
-        val slashPos = path.lastIndexOf('/')
-        return if (slashPos > 0) {
-            Handles.handle(path.substring(slashPos + 1))
-        } else {
-            Handles.handle(path)
-        }
-    }
+/**
+ * Get a very simple Handle implementation.
+ *
+ * @param handle The handle
+ * @return a Handle<T> object corresponding to the handle.
+ */
+fun <T> handle(handle: Long): ComparableHandle<T> {
+    return if (handle < 0) getInvalidHandle() else SimpleHandle(
+        handle)
+}
 
+fun <T> handle(handle: Handle<T>): ComparableHandle<T> {
+    return if (handle is ComparableHandle<*>) {
+        handle as ComparableHandle<T>
+    } else SimpleHandle(handle.handleValue)
+}
+
+/**
+ * Convenience method that will parse the handle from a string
+ * @param handle The string for the handle
+ * @param T
+ * @return
+ */
+fun <T> handle(handle: String): ComparableHandle<T> {
+    return handle(handle.toLong())
+}
+
+fun <T> handle(handle: URI): ComparableHandle<T> {
+    val path = handle.getPath()
+    val slashPos = path.lastIndexOf('/')
+    return if (slashPos > 0) {
+        handle(path.substring(slashPos + 1))
+    } else {
+        handle(path)
+    }
 }

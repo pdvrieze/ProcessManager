@@ -25,7 +25,7 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Handles
+import net.devrieze.util.handle
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.util.xml.ICompactFragment
@@ -88,7 +88,7 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
 
   override fun deserializeChild(reader: XmlReader): Boolean {
     if (reader.isElement(Engine.NAMESPACE, "predecessor")) {
-      _predecessors.add(Handles.handle<XmlProcessNodeInstance>(reader.readSimpleElement().toString()))
+      _predecessors.add(handle(handle= reader.readSimpleElement().toString()))
       return true
     } else if (reader.isElement(Engine.NAMESPACE, "body")) {
       body = reader.elementContentToFragment()

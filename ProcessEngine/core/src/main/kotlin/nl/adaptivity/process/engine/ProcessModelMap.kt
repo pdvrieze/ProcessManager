@@ -36,7 +36,7 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
 
     return candidates.asSequence()
           .filterNotNull()
-          .map { Handles.handle(it) }
+          .map { handle(it) }
           .firstOrNull {
       val candidate:ExecutableProcessModel? = get(transaction, it)?.withPermission()
       uuid == candidate?.getUuid()

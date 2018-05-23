@@ -17,8 +17,9 @@
 package nl.adaptivity.process.userMessageHandler.server
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.getInvalidHandle
+import net.devrieze.util.handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingException
@@ -52,7 +53,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     }
   }
 
-  private var handle = Handles.getInvalid<XmlTask>()
+  private var handle = getInvalidHandle<XmlTask>()
 
   override fun getHandle() = handle
 
@@ -60,12 +61,12 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     get() = handle.handleValue
 
   override fun setHandleValue(handleValue: Long) {
-    if (handle.handleValue!=handleValue) this.handle = Handles.handle(handleValue)
+    if (handle.handleValue!=handleValue) this.handle = handle(handleValue)
   }
 
-  override var remoteHandle: Handle<*> = Handles.getInvalid<Any>()
+  override var remoteHandle: Handle<*> = getInvalidHandle<Any>()
 
-  override var instanceHandle: Handle<*> = Handles.getInvalid<Any>()
+  override var instanceHandle: Handle<*> = getInvalidHandle<Any>()
 
   // TODO make this not-nullable
   override var state: NodeInstanceState? = NodeInstanceState.Sent
@@ -129,11 +130,11 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
         return true
       }
       "remotehandle"   -> {
-        remoteHandle = Handles.handle<Any>(attrString.toLong())
+        remoteHandle = handle<Any>(handle= attrString.toLong())
         return true
       }
       "instancehandle" -> {
-        instanceHandle = Handles.handle<Any>(attrString.toLong())
+        instanceHandle = handle<Any>(handle= attrString.toLong())
         return true
       }
       "summary"        -> {

@@ -17,11 +17,11 @@
 package nl.adaptivity.process.userMessageHandler.server
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Handles
 import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
@@ -202,7 +202,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
     override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
       val handleVal = u.taskhandle.value(columns, values)
-      preRemove(transaction, Handles.handle<XmlTask>(handleVal))
+      preRemove(transaction, handle<XmlTask>(handleVal))
     }
 
     companion object {

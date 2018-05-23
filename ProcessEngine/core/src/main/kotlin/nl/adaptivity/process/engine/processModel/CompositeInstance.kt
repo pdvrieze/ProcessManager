@@ -17,8 +17,8 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
@@ -79,7 +79,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
                     childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
                     owner: Principal,
                     entryNo: Int,
-                    handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+                    handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
                     state: NodeInstanceState = NodeInstanceState.Pending) : ProcessNodeInstance.BaseBuilder<ExecutableActivity, CompositeInstance>(
     node, listOfNotNull(predecessor), processInstanceBuilder, owner,
     entryNo, handle, state), Builder {

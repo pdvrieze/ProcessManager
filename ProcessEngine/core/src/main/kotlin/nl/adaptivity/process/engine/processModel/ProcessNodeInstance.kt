@@ -56,7 +56,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
                                                               val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
                                                               override final val owner: Principal,
                                                               override final val entryNo: Int,
-                                                              private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+                                                              private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
                                                               override final val state: NodeInstanceState = Pending,
                                                               results: Iterable<ProcessData> = emptyList(),
                                                               val failureCause: Throwable? = null) : SecureObject<ProcessNodeInstance<T>>, ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, IProcessNodeInstance {
@@ -338,9 +338,9 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
     override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
       return XmlProcessNodeInstance(nodeId= node.id,
-                                    predecessors = predecessors.map { Handles.handle<XmlProcessNodeInstance>(it.handleValue) },
+                                    predecessors = predecessors.map { handle<XmlProcessNodeInstance>(handle= it.handleValue) },
                                     processInstance = hProcessInstance.handleValue,
-                                    handle = Handles.handle(handle.handleValue),
+                                    handle = handle(handle= handle.handleValue),
                                     state = state,
                                     results = results,
                                     body = body)
@@ -459,13 +459,13 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   }
 
   abstract class BaseBuilder<N:ExecutableProcessNode, T: ProcessNodeInstance<T>>(
-    final override var node: N,
-    predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
-    final override val processInstanceBuilder: ProcessInstance.Builder,
-    final override var owner: Principal,
-    final override val entryNo: Int,
-    final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
-    state: NodeInstanceState = Pending) : AbstractBuilder<N, T>() {
+      final override var node: N,
+      predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+      final override val processInstanceBuilder: ProcessInstance.Builder,
+      final override var owner: Principal,
+      final override val entryNo: Int,
+      final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+      state: NodeInstanceState = Pending) : AbstractBuilder<N, T>() {
 
     final override var state = state
       set(value) {

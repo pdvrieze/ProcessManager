@@ -17,9 +17,9 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Handles
 import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.db.AbstractElementFactory
+import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
@@ -57,7 +57,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val state = pi.state.nullableValue(columns, values) ?: State.NEW
     val uuid = pi.uuid.nullableValue(columns, values) ?: throw IllegalStateException("Missing UUID")
 
-    return ProcessInstance.BaseBuilder(Handles.handle(piHandle), owner, processModel, instancename, uuid, state, Handles.handle(parentActivity))
+    return ProcessInstance.BaseBuilder(handle(piHandle), owner, processModel, instancename, uuid, state, handle(parentActivity))
   }
 
   override fun postCreate(transaction: ProcessDBTransaction, builder: ProcessInstance.BaseBuilder):ProcessInstance {
@@ -68,7 +68,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .mapTo(builder.rememberedChildren.apply { clear() }) { transaction.readableEngineData.nodeInstance(Handles.handle(it)).withPermission() }
+          .mapTo(builder.rememberedChildren.apply { clear() }) { transaction.readableEngineData.nodeInstance(handle(it)).withPermission() }
 
     run {
 
@@ -95,7 +95,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
-    preRemove(transaction, Handles.handle(pi.pihandle.value(columns, values)))
+    preRemove(transaction, handle(pi.pihandle.value(columns, values)))
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<SecureObject<ProcessInstance>>) {
@@ -110,7 +110,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
           .getList(transaction.connection)
           .asSequence()
           .filterNotNull()
-          .map { Handles.handle(it) }
+          .map { handle(it) }
 
     transaction.readableEngineData.nodeInstances.apply {
       nodes.forEach { nodeHandle ->

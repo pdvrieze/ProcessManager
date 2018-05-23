@@ -357,7 +357,7 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
         return stmt.execute(transaction.connection, elementFactory.keyColumn) {
             it?.let { handle ->
                 val newElem = handleAssigner(elem, handle) ?: elem
-                Handles.handle<W>(handle.handleValue).apply {
+                handle<W>(handle= handle.handleValue).apply {
                     elementFactory.postStore(transaction.connection, this, null, newElem)
                 }
             }

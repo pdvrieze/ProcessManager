@@ -16,9 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.Handles
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.toMutableArraySet
+import net.devrieze.util.getInvalidHandle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
@@ -144,7 +143,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
         else // TODO handle invalidating multiple instances
             processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.handle(),
                                                                                             processInstanceBuilder,
-                                                                                            Handles.getInvalid(),
+                                                                                            getInvalidHandle(),
                                                                                             processInstanceBuilder.owner,
                                                                                             entryNo)
     }

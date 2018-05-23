@@ -198,7 +198,7 @@ open class MemHandleMap<V : Any>
                 }
             }
             val h = (generation.toLong() shl 32) + handleFromIndex(index)
-            val updatedValue = handleAssigner(value, Handles.handle(h)) ?: value
+            val updatedValue = handleAssigner(value, handle(handle= h)) ?: value
 
             values[index] = updatedValue
             generations[index] = generation
@@ -206,7 +206,7 @@ open class MemHandleMap<V : Any>
 
             h
         }
-        return Handles.handle<W>(handle)
+        return handle(handle= handle)
     }
 
     /* (non-Javadoc)
@@ -255,7 +255,7 @@ open class MemHandleMap<V : Any>
                 throw ArrayIndexOutOfBoundsException("Generation mismatch ($generation)")
             }
 
-            val updatedValue = handleAssigner(value, Handles.handle(handle)) ?: value
+            val updatedValue = handleAssigner(value, handle(handle= handle)) ?: value
 
             // Just get the element out of the map.
             values[index] = updatedValue

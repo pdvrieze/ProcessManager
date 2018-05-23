@@ -25,55 +25,56 @@ import java.util.*
 /**
  * Shared interface for both root and child models that are executable.
  */
-interface ExecutableModelCommon: ProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
 
-  interface Builder: ProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon> {
+    override val rootModel: ExecutableProcessModel
+    /**
+     * Get the startnodes for this model.
 
-    override val rootBuilder: ExecutableProcessModel.Builder
+     * @return The start nodes.
+     */
+    val startNodes: Collection<ExecutableStartNode>
+        get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<ExecutableStartNode>(),
+                                                                                 modelNodes,
+                                                                                 ExecutableStartNode::class.java))
+    val endNodeCount: Int
 
-    override val defaultPedantic get() = true
+    fun toInputs(payload: Node?): List<ProcessData> {
+        // TODO make this work properly
 
-    override fun startNodeBuilder() = ExecutableStartNode.Builder()
+        return imports.map { XmlResultType(it).applyData(payload) }
+    }
 
-    override fun startNodeBuilder(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
+    fun getNode(nodeId: String): ExecutableProcessNode?
 
-    override fun splitBuilder() = ExecutableSplit.Builder()
+    interface Builder : ProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon> {
 
-    override fun splitBuilder(split: Split<*, *>) = ExecutableSplit.Builder(split)
+        override val rootBuilder: ExecutableProcessModel.Builder
 
-    override fun joinBuilder() = ExecutableJoin.Builder()
+        override val defaultPedantic get() = true
 
-    override fun joinBuilder(join: Join<*, *>) = ExecutableJoin.Builder(join)
+        override fun startNodeBuilder() = ExecutableStartNode.Builder()
 
-    override fun activityBuilder() = ExecutableActivity.Builder()
+        override fun startNodeBuilder(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
 
-    override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
+        override fun splitBuilder() = ExecutableSplit.Builder()
 
-    override fun compositeActivityBuilder() = ExecutableActivity.ChildModelBuilder(this.rootBuilder)
+        override fun splitBuilder(split: Split<*, *>) = ExecutableSplit.Builder(split)
 
-    override fun endNodeBuilder() = ExecutableEndNode.Builder()
+        override fun joinBuilder() = ExecutableJoin.Builder()
 
-    override fun endNodeBuilder(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
+        override fun joinBuilder(join: Join<*, *>) = ExecutableJoin.Builder(join)
 
-  }
+        override fun activityBuilder() = ExecutableActivity.Builder()
 
-  override val rootModel: ExecutableProcessModel
-  /**
-   * Get the startnodes for this model.
+        override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
 
-   * @return The start nodes.
-   */
-  val startNodes: Collection<ExecutableStartNode>
-    get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<ExecutableStartNode>(),
-                                                                             modelNodes,
-                                                                             ExecutableStartNode::class.java))
-  val endNodeCount: Int
-  fun toInputs(payload: Node?): List<ProcessData> {
-    // TODO make this work properly
+        override fun compositeActivityBuilder() = ExecutableActivity.ChildModelBuilder(this.rootBuilder)
 
-    return imports.map { XmlResultType(it).applyData(payload) }
-  }
+        override fun endNodeBuilder() = ExecutableEndNode.Builder()
 
-  fun getNode(nodeId: String) : ExecutableProcessNode?
+        override fun endNodeBuilder(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
+
+    }
 
 }

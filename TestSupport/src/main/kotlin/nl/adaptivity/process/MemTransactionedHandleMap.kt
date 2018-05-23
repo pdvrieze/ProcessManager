@@ -66,7 +66,7 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(private val a
   override fun <W : T> put(transaction: TR, value: W): ComparableHandle<W> {
     assigner.transaction = transaction
     val put = put(value)
-    return Handles.handle(put)
+    return handle(put)
   }
 
   @Throws(SQLException::class)

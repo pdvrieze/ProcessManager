@@ -83,6 +83,8 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static net.devrieze.util.Handles.handle;
+
 
 /**
  * The service representing a process engine.
@@ -559,7 +561,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
     @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
     public ExecutableProcessModel getProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
         try (ProcessTransaction transaction = mProcessEngine.startTransaction()){
-            final Handle<ExecutableProcessModel> handle1 = Handles.INSTANCE.handle(handle);
+            final Handle<ExecutableProcessModel> handle1 = handle(handle);
             mProcessEngine.invalidateModelCache(handle1);
             return transaction.commit(mProcessEngine.getProcessModel(transaction.getReadableEngineData(), handle1, user));
         } catch (final NullPointerException e) {

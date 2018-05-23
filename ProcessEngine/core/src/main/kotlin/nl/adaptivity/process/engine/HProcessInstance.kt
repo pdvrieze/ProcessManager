@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handles
+import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xml.*
@@ -34,7 +34,7 @@ class HProcessInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) 
     }
   }
 
-  constructor() : this(Handles.getInvalid())
+  constructor() : this(getInvalidHandle<SecureObject<ProcessInstance>>())
 
   override val elementName: QName
     get() = ELEMENTNAME

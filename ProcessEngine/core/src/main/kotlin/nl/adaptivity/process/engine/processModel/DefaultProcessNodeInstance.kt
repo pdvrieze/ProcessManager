@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handles
+import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.MessagingException
@@ -58,7 +58,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
               hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
-              handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = Handles.getInvalid(),
+              handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList(),
               failureCause: Throwable? = null)
@@ -150,13 +150,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
   }
 
   class BaseBuilder(
-    node: ExecutableProcessNode,
-    predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
-    processInstanceBuilder: ProcessInstance.Builder,
-    owner: Principal,
-    entryNo: Int,
-    handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
-    state: NodeInstanceState = NodeInstanceState.Pending)
+      node: ExecutableProcessNode,
+      predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+      processInstanceBuilder: ProcessInstance.Builder,
+      owner: Principal,
+      entryNo: Int,
+      handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = getInvalidHandle(),
+      state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
 
     override fun build() = DefaultProcessNodeInstance(this)
@@ -178,7 +178,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     fun build(node: ExecutableProcessNode,
               predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstanceBuilder: ProcessInstance.Builder,
-              handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
+              handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = getInvalidHandle(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               entryNo: Int,
               body: Builder.() -> Unit): DefaultProcessNodeInstance {
@@ -190,7 +190,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     fun build(node: ExecutableProcessNode,
               predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstance: ProcessInstance,
-              handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = Handles.getInvalid(),
+              handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = getInvalidHandle(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               entryNo: Int,
               body: Builder.() -> Unit): DefaultProcessNodeInstance {

@@ -18,4 +18,4 @@
 package net.devrieze.util
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = Handles.handle(handleValue)
+inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = handle(handle= handleValue)

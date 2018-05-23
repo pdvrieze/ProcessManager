@@ -30,7 +30,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
-import nl.adaptivity.process.processModel.RootProcessModelBase
+import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.processModel.uuid
@@ -81,7 +81,7 @@ private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHan
   return CachingHandleMap(base, cacheSize, { tr, pni, handle ->
     if (pni.withPermission().getHandle()==handle) { pni } else {
       val piBuilder = tr.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()
-      pni.withPermission().builder(piBuilder).also { it.handle = Handles.handle(handle) }.build()
+      pni.withPermission().builder(piBuilder).also { it.handle = handle(handle) }.build()
     }
   })
 
@@ -262,24 +262,24 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
    * @throws SQLException
    */
   @Throws(SQLException::class)
-  fun addProcessModel(transaction: TRXXX, basepm: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun addProcessModel(transaction: TRXXX, basepm: RootProcessModel.Builder<*,*>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user)
 
     return engineData.inWriteTransaction(transaction) {
-      val pastHandle = basepm.getUuid()?.let { uuid ->
+      val pastHandle = basepm.uuid?.let { uuid ->
         processModels[uuid]
       }
 
       if (pastHandle!=null && pastHandle.valid) {
-        updateProcessModel(transaction, pastHandle, basepm, user)
+        updateProcessModel(transaction, pastHandle, basepm.build(false), user)
       } else {
-        val uuid = basepm.getUuid() ?: UUID.randomUUID().apply { basepm.setUuid(this) }
+        val uuid = basepm.uuid ?: UUID.randomUUID().also { basepm.uuid = it }
 
         basepm.owner.let { baseOwner ->
           mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
         } ?: user.apply { basepm.owner=this }
 
-        val pm = ExecutableProcessModel.from(basepm)
+        val pm = ExecutableProcessModel(basepm, false)
 
         ProcessModelRef(pm.name, processModels.put(pm), uuid)
       }
@@ -288,6 +288,29 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
   }
 
+    fun addProcessModel(transaction: TRXXX, pm: ExecutableProcessModel, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+        mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user)
+
+        return engineData.inWriteTransaction(transaction) {
+            val pastHandle = pm.uuid?.let { uuid ->
+                processModels[uuid]
+            }
+
+            if (pastHandle!=null && pastHandle.valid) {
+                updateProcessModel(transaction, pastHandle, pm, user)
+            } else {
+                val uuid = pm.uuid ?: throw ProcessException("Missing UUID for process model")
+
+                pm.owner.let { baseOwner ->
+                    mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
+                }
+
+                ProcessModelRef(pm.name, processModels.put(pm), uuid)
+            }
+
+        }
+
+    }
   /**
    * Get the process model with the given handle.
    *
@@ -335,13 +358,13 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
   }
 
   @Throws(FileNotFoundException::class, SQLException::class)
-  fun updateProcessModel(transaction: TRXXX, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun updateProcessModel(transaction: TRXXX, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModel<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     engineData.inWriteTransaction(transaction) {
       return updateProcessModel(this, handle, processModel, user)
     }
   }
 
-  fun updateProcessModel(engineData: MutableProcessEngineDataAccess, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModelBase<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
+  fun updateProcessModel(engineData: MutableProcessEngineDataAccess, handle: Handle<SecureObject<ExecutableProcessModel>>, processModel: RootProcessModel<*, *>, user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel> {
     val oldModel = engineData.processModels[handle] ?: throw FileNotFoundException("The model did not exist, instead post a new model.")
 
     if (oldModel.owner == SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
@@ -350,7 +373,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
 
     if (processModel.owner == SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
-      processModel.owner = oldModel.owner
+      processModel.copy(owner = oldModel.owner)
     } else if (oldModel.owner.name != processModel.owner.name) {
       mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
     }
@@ -425,15 +448,15 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
   @Throws(SQLException::class, FileNotFoundException::class)
   fun tickleInstance(transaction: TRXXX, handle: Long, user: Principal): Boolean {
-    return tickleInstance(transaction, Handles.handle(handle), user)
+    return tickleInstance(transaction, handle(handle= handle), user)
   }
 
   @Throws(SQLException::class, FileNotFoundException::class)
   fun tickleInstance(transaction: TRXXX, handle: ComparableHandle<SecureObject<ProcessInstance>>, user: Principal): Boolean {
     transaction.writableEngineData.run {
-      invalidateCachePM(Handles.getInvalid())
-      invalidateCachePI(Handles.getInvalid())
-      invalidateCachePNI(Handles.getInvalid())
+      invalidateCachePM(getInvalidHandle())
+      invalidateCachePI(getInvalidHandle())
+      invalidateCachePNI(getInvalidHandle())
 
       (instances[handle] ?: return false).withPermission(mSecurityProvider, Permissions.TICKLE_INSTANCE, user) {
         it.update(transaction.writableEngineData) {
@@ -528,7 +551,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     engineData.inWriteTransaction(transaction) {
       processModels[handle].shouldExist(handle)
     }.let { processModel ->
-      return startProcess(transaction, user, processModel, name, uuid, Handles.getInvalid(), payload)
+      return startProcess(transaction, user, processModel, name, uuid, getInvalidHandle(), payload)
     }
   }
 

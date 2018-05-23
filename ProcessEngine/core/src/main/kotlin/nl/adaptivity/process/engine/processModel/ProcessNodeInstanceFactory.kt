@@ -17,10 +17,11 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
-import net.devrieze.util.Handles
 import net.devrieze.util.MutableHandleMapForwarder
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.db.AbstractElementFactory
+import net.devrieze.util.getInvalidHandle
+import net.devrieze.util.handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.db.ProcessEngineDB
@@ -63,9 +64,9 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
   override fun create(transaction: ProcessDBTransaction,
              columns: List<Column<*, *, *>>,
              values: List<Any?>): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-    val pnihandle = Handles.handle(tbl_pni.pnihandle.value(columns, values))
+    val pnihandle = handle(tbl_pni.pnihandle.value(columns, values))
     val nodeId = tbl_pni.nodeid.value(columns, values)
-    val pihandle = Handles.handle(tbl_pni.pihandle.value(columns, values))
+    val pihandle = handle(tbl_pni.pihandle.value(columns, values))
     val state = tbl_pni.state.value(columns, values)
     val entryNo = tbl_pni.entryno.nullableValue(columns, values) ?: 1
 
@@ -81,31 +82,32 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .SELECT(tbl_pred.predecessor)
           .WHERE { tbl_pred.pnihandle eq pnihandle }
           .getList(transaction.connection)
-          .map { it?.let { Handles.handle(it)} }
+          .map { it?.let { handle(it)} }
           .requireNoNulls()
 
     return when {
       node is ExecutableJoin                              -> {
         JoinInstance.BaseBuilder(node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
-                                 Handles.handle(pnihandle.handleValue), state)
+                                 handle<SecureObject<ProcessNodeInstance<*>>>(handle= pnihandle.handleValue), state)
       }
       node is ExecutableSplit                             -> {
         SplitInstance.BaseBuilder(node, predecessors.single(), processInstanceBuilder, processInstanceBuilder.owner,
-                                  entryNo, Handles.handle(pnihandle.handleValue), state)
+                                  entryNo, handle<SecureObject<ProcessNodeInstance<*>>>(handle= pnihandle.handleValue), state)
       }
       node is ExecutableActivity && node.childModel!=null -> {
         val childInstance = ProcessEngineDB
                               .SELECT(tbl_pi.pihandle)
                               .WHERE { tbl_pi.parentActivity eq pnihandle }
-                              .getSingleOrNull(transaction.connection)?.let { Handles.handle<SecureObject<ProcessInstance>>(it) } ?: Handles.getInvalid()
+                              .getSingleOrNull(transaction.connection)?.let { handle<SecureObject<ProcessInstance>>(it) } ?: getInvalidHandle()
 
         CompositeInstance.BaseBuilder(node, predecessors.single(), processInstanceBuilder, childInstance, processInstanceBuilder.owner,
-                                      entryNo, Handles.handle(pnihandle.handleValue), state)
+                                      entryNo,
+                                      handle<SecureObject<ProcessNodeInstance<*>>>(handle= pnihandle.handleValue), state)
       }
       else                                                -> {
         DefaultProcessNodeInstance.BaseBuilder(node, predecessors, processInstanceBuilder,
                                                processInstanceBuilder.owner, entryNo,
-                                               Handles.handle(pnihandle.handleValue), state)
+                                               handle<SecureObject<DefaultProcessNodeInstance>>(handle= pnihandle.handleValue), state)
       }
     }
   }
