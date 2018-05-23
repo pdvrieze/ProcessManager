@@ -38,9 +38,11 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
     JoinSplitBase<NodeT, ModelT>,
     Join<NodeT, ModelT> {
 
+    @Transient
     override val maxPredecessorCount: Int
         get() = Int.MAX_VALUE
 
+    @Transient
     override val idBase: String
         get() = IDBASE
 
