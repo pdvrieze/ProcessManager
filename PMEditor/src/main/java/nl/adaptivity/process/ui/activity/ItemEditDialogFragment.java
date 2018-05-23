@@ -83,12 +83,12 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     super.onCreate(savedInstanceState);
     mItemNo = getArguments().getInt(UIConstants.KEY_ITEMNO);
     if (savedInstanceState != null && savedInstanceState.containsKey(UIConstants.KEY_ITEM)) {
-      mItem = XmlStreaming.deSerialize(savedInstanceState.getString(UIConstants.KEY_ITEM), TaskItem.class);
+      mItem = XmlStreaming.INSTANCE.deSerialize(savedInstanceState.getString(UIConstants.KEY_ITEM), TaskItem.class);
     } else {
-      mItem = XmlStreaming.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
+      mItem = XmlStreaming.INSTANCE.deSerialize(getArguments().getString(UIConstants.KEY_ITEM), TaskItem.class);
     }
 
-    mDefines = XmlStreaming.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
+    mDefines = XmlStreaming.INSTANCE.deSerialize(getArguments().getStringArrayList(UIConstants.KEY_DEFINES), XmlDefineType.class);
     mAvailableVariables = getArguments().getParcelableArrayList(UIConstants.KEY_VARIABLES);
   }
 
@@ -198,7 +198,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   @NonNull
   private XmlDefineType updateDefine(final XmlDefineType define, final Spanned annotatedSequence) {
     final CharArrayWriter caw = new CharArrayWriter();
-    final XmlWriter writer = XmlStreaming.newWriter(caw);
+    final XmlWriter writer = XmlStreaming.INSTANCE.newWriter(caw);
     try {
       int       prev           = 0;
       final int sequenceLength = annotatedSequence.length();

@@ -90,7 +90,7 @@ public class SoapHelper {
     public static <T> T deserialize(Class<T> target, Class<? extends XmlDeserializerFactory<? extends T>> deserializer, Node value) throws XmlException {
       try {
         XmlDeserializerFactory<? extends T> factory = deserializer.newInstance();
-        return target.cast(factory.deserialize(XmlStreaming.newReader(new DOMSource(value))));
+        return target.cast(factory.deserialize(XmlStreaming.INSTANCE.newReader(new DOMSource(value))));
       } catch (InstantiationException | IllegalAccessException e) {
         throw new XmlException(e);
       }
@@ -169,7 +169,7 @@ public class SoapHelper {
         header.appendChild(node);
       } if (headerElem instanceof XmlSerializable) {
         try {
-          XmlWriter out = XmlStreaming.newWriter(new DOMResult(header));
+          XmlWriter out = XmlStreaming.INSTANCE.newWriter(new DOMResult(header));
           ((XmlSerializable) headerElem).serialize(out);
         } catch (MessagingException e) {
             throw e;
@@ -254,7 +254,7 @@ public class SoapHelper {
     } else if (Types.isPrimitive(paramType) || Types.isPrimitiveWrapper(paramType)) {
       wrapper.appendChild(ownerDoc.createTextNode(pParam.getElem3().toString()));
     } else if (XmlSerializable.class.isAssignableFrom(paramType)) {
-      XmlWriter xmlWriter = XmlStreaming.newWriter(new DOMResult(wrapper));
+      XmlWriter xmlWriter = XmlStreaming.INSTANCE.newWriter(new DOMResult(wrapper));
       ((XmlSerializable) pParam.getElem3()).serialize(xmlWriter);
       xmlWriter.close();
     } else if (Collection.class.isAssignableFrom(paramType)) {
@@ -295,7 +295,7 @@ public class SoapHelper {
   }
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Source source) throws XmlException {
-    XmlReader                  in  = XmlStreaming.newReader(source);
+    XmlReader                  in  = XmlStreaming.INSTANCE.newReader(source);
     Envelope<? extends ICompactFragment> env = Envelope.Companion.deserialize(in);
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
@@ -328,7 +328,7 @@ public class SoapHelper {
   }
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Annotation[] useSiteAnnotations, final Writable pContent) throws XmlException {
-    final Envelope<? extends ICompactFragment> env = Envelope.Companion.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
+    final Envelope<? extends ICompactFragment> env = Envelope.Companion.deserialize(XmlStreaming.INSTANCE.newReader(new WritableReader(pContent)));
     return processResponse(resultType, context, useSiteAnnotations, env);
   }
 

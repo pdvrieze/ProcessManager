@@ -580,8 +580,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      */
     @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
     public ProcessModelRef<?,?,?> updateProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) throws IOException {
-        ExecutableProcessModel processModel = XmlStreaming.deSerialize(attachment.getInputStream(), ExecutableProcessModel.class);
-        return updateProcessModel(handle, processModel, user);
+        XmlProcessModel.Builder builder      = XmlStreaming.INSTANCE.deSerialize(attachment.getInputStream(), XmlProcessModel.Builder.class);
+        return updateProcessModel(handle, builder, user);
     }
 
     /**

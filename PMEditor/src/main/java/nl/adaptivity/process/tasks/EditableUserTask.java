@@ -122,7 +122,7 @@ public class EditableUserTask extends UserTaskBase {
     final String       operation  = PostTask.ELEMENTLOCALNAME;
 
     final StringWriter bodyWriter = new StringWriter();
-    final XmlWriter          writer   = XmlStreaming.newWriter(bodyWriter, true);
+    final XmlWriter          writer   = XmlStreaming.INSTANCE.newWriter(bodyWriter, true);
     final Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
 
     envelope.serialize(writer);

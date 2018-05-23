@@ -238,7 +238,7 @@ public class PETransformer {
       final DocumentFragment eventFragment = db.newDocument().createDocumentFragment();
       final DOMResult domResult= new DOMResult(eventFragment);
 
-      final XmlWriter writer = XmlStreaming.newWriter(domResult);
+      final XmlWriter writer = XmlStreaming.INSTANCE.newWriter(domResult);
       for(final XmlEvent event: pendingEvents) {
         event.writeTo(writer);
       }
@@ -509,7 +509,7 @@ public class PETransformer {
   }
 
   public void transform(final Source source, final Result result) {
-    transform(XmlStreaming.newReader(source), XmlStreaming.newWriter(result, true));
+    transform(XmlStreaming.INSTANCE.newReader(source), XmlStreaming.INSTANCE.newWriter(result, true));
   }
 
   public void transform(final XmlReader in, @NotNull final XmlWriter out) {

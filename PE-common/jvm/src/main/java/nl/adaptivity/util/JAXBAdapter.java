@@ -53,7 +53,7 @@ public class JAXBAdapter extends XmlAdapter<SimpleAdapter, XmlSerializable> {
     final XMLOutputFactory xof      = XMLOutputFactory.newFactory();
     final XMLStreamWriter  out      = xof.createXMLStreamWriter(new DOMResult(content));
 
-    v.serialize(XmlStreaming.newWriter(new DOMResult(content)));
+    v.serialize(XmlStreaming.INSTANCE.newWriter(new DOMResult(content)));
     final int childCount = content.getChildNodes().getLength();
     if (childCount == 0) {
       return new SimpleAdapter();

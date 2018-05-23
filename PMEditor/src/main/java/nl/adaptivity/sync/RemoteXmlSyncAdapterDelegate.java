@@ -394,7 +394,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
   protected List<ContentValuesProvider> parseItems(final DelegatingResources delegator, @NonNull
   final InputStream content) throws XmlException, IOException {
     final String                      colSyncstate = mActualDelegate.getSyncStateColumn();
-    final XmlReader                   parser       = XmlStreaming.newReader(content, "UTF8");
+    final XmlReader                   parser       = XmlStreaming.INSTANCE.newReader(content, "UTF8");
     final List<ContentValuesProvider> items        = new ArrayList<>();
     EventType                         type;
     parser.nextTag();

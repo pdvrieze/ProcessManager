@@ -86,7 +86,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     final PostRequest postRequest;
     if (! task.getItems().isEmpty()) {
       final StringWriter writer = new StringWriter(0x100);
-      final XmlWriter serializer = XmlStreaming.newWriter(writer);
+      final XmlWriter serializer = XmlStreaming.INSTANCE.newWriter(writer);
       serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS);
       serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME,
                           Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
@@ -112,7 +112,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       if (resultCode >= 200 && resultCode < 400) {
         final InputStream inputStream     = result.getInputStream();
         final String      contentEncoding = result.getContentEncoding();
-        final XmlReader   parser          = XmlStreaming.newReader(inputStream, contentEncoding == null ? "UTF8" : contentEncoding);
+        final XmlReader   parser          = XmlStreaming.INSTANCE.newReader(inputStream, contentEncoding == null ? "UTF8" : contentEncoding);
         try {
           parser.nextTag(); // Make sure to forward the task.
           return parseItem(parser); // Always an update

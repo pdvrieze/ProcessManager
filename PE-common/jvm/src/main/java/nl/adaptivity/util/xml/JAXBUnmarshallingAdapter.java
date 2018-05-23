@@ -96,7 +96,7 @@ public class JAXBUnmarshallingAdapter<T extends XmlSerializable> extends JAXBAda
         }
       }
       final XMLInputFactory xif    = XMLInputFactory.newFactory();
-      final XmlReader       reader = XmlStreaming.newReader(new DOMSource(root));
+      final XmlReader       reader = XmlStreaming.INSTANCE.newReader(new DOMSource(root));
       reader.nextTag();
 
       return mFactory.deserialize(reader);

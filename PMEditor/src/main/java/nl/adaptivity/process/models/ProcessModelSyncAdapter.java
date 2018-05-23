@@ -227,7 +227,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
       if (status >= 200 && status < 400) {
         final InputStream content = response.getInputStream();
         try {
-          final XmlReader parser = XmlStreaming.newReader(content, "UTF-8");
+          final XmlReader parser = XmlStreaming.INSTANCE.newReader(content, "UTF-8");
 
           parser.nextTag(); // Skip document start etc.
           final ContentValuesProvider values = parseItem(parser); // We already have a local model if posting

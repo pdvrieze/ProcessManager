@@ -130,7 +130,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
       if (status >= 200 && status < 400) {
         final InputStream input = urlConnection.getInputStream();
         try {
-          final XmlReader parser = XmlStreaming.newReader(input, "UTF-8");
+          final XmlReader parser = XmlStreaming.INSTANCE.newReader(input, "UTF-8");
 
           parser.nextTag(); // Skip document start etc.
           parser.require(EventType.START_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);

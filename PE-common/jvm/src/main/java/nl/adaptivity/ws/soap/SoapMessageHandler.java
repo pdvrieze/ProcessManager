@@ -88,7 +88,7 @@ public abstract class SoapMessageHandler {
     @Override
     @NotNull
     public Source processMessage(final Reader reader, final Map<String, DataSource> pAttachments) throws XmlException {
-      return processMessage(XmlStreaming.newReader(reader), pAttachments);
+      return processMessage(XmlStreaming.INSTANCE.newReader(reader), pAttachments);
     }
 
     @NotNull

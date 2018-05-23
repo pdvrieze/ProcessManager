@@ -352,7 +352,7 @@ public class ExecutableUserTask extends UserTaskBase implements XmlSerializable 
   public static List<ExecutableUserTask> parseTasks(final InputStream in) {
     final XmlReader parser;
     try {
-      parser = XmlStreaming.newReader(in, "UTF-8");
+      parser = XmlStreaming.INSTANCE.newReader(in, "UTF-8");
     } catch (Exception e){
       Log.e(ExecutableUserTask.class.getName(), e.getMessage(), e);
       return null;
