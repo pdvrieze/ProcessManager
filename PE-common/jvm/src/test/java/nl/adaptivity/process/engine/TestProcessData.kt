@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.engine
 
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
 import kotlinx.serialization.Serializable
 import net.devrieze.util.readString
 import nl.adaptivity.process.processModel.*
@@ -25,13 +28,11 @@ import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.IOException
-import nl.adaptivity.xml.SimpleNamespaceContext
 import nl.adaptivity.xml.serialization.XML
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when` as mockWhen
+import org.junit.jupiter.api.assertThrows
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.w3c.dom.Text
@@ -46,39 +47,20 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.xml.bind.ValidationEvent
-import javax.xml.bind.ValidationEventHandler
-import javax.xml.bind.annotation.XmlAccessType
-import javax.xml.bind.annotation.XmlAccessorType
-import javax.xml.bind.annotation.XmlElement
-import javax.xml.bind.annotation.XmlRootElement
 import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
-import javax.xml.stream.XMLInputFactory
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 import kotlin.reflect.KClass
+import org.mockito.Mockito.`when` as mockWhen
 
 
 /**
  * Created by pdvrieze on 24/08/15.
  */
 class TestProcessData {
-
-    private class TestValidationEventHandler : ValidationEventHandler {
-
-        override fun handleEvent(event: ValidationEvent): Boolean {
-            Logger.getAnonymousLogger().log(Level.WARNING, "Error parsing jaxb", event)
-            return false
-        }
-    }
-
-    @XmlRootElement(name = "resultHolder")
-    @XmlAccessorType(XmlAccessType.PROPERTY)
-    private class ResultTypeHolder(private @XmlElement(name = "result",
-                                                       required = true) val xmlResultType: XmlResultType? = null)
 
     @Test
     @Throws(XmlException::class)
@@ -115,7 +97,7 @@ class TestProcessData {
         Logger.getAnonymousLogger().level = Level.ALL
         val pm = getProcessModel("testModel2.xml")
         val ac2 = pm.getNode("ac2") as XmlActivity?
-        val serialized = XmlMessage.get(ac2!!.message).toString()
+        val serialized = XmlMessage.from(ac2!!.message).toString()
         val msg2 = XmlStreaming.deSerialize(StringReader(serialized), XmlMessage::class.java)
         assertEquals(ac2.message!!.messageBody.contentString, msg2.messageBody.contentString)
         assertEquals(ac2.message, msg2)
@@ -172,11 +154,11 @@ class TestProcessData {
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
 
 
-        val result1_apply = result1.applyData(testData).content
-        assertEquals("Paul", result1_apply.contentString)
+        val result1Apply = result1.applyData(testData).content
+        assertEquals("Paul", result1Apply.contentString)
 
-        val result2_apply = result2.applyData(testData).content
-        assertXMLEqual("<user><fullname>Paul</fullname></user>", result2_apply.contentString)
+        val result2Apply = result2.applyData(testData).content
+        assertXMLEqual("<user><fullname>Paul</fullname></user>", result2Apply.contentString)
 
     }
 
@@ -185,7 +167,7 @@ class TestProcessData {
         val nsContext = SimpleNamespaceContext(arrayOf("umh"), arrayOf("http://adaptivity.nl/userMessageHandler"))
         val expression = "/umh:result/umh:value[@name='user']/text()"
         val result = XmlResultType("foo", expression, null as CharArray?, nsContext)
-        assertEquals(1, (SimpleNamespaceContext.from(result.originalNSContext) as SimpleNamespaceContext).size)
+        assertEquals(1, SimpleNamespaceContext.from(result.originalNSContext).size)
 
         val testData = documentBuilder.parse(InputSource(StringReader(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
@@ -232,13 +214,13 @@ class TestProcessData {
     @Throws(XmlException::class, IOException::class, SAXException::class)
     fun testTransform() {
         val endpoint = ProcessData("endpoint", createEndpoint())
-        val transformer = PETransformer.create(SimpleNamespaceContext.from(emptyList<nl.adaptivity.xml.Namespace>()),
+        val transformer = PETransformer.create(SimpleNamespaceContext.from(emptyList()),
                                                endpoint)
-        val INPUT = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+        val input = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
                     "  <jbi:element value=\"endpoint\"/>\n" +
                     "</umh:postTask>"
         val cf = CompactFragment(SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)),
-                                 INPUT.toCharArray())
+                                 input.toCharArray())
         val caw = CharArrayWriter()
         val out = XmlStreaming.newWriter(caw, true)
         transformer.transform(cf.getXmlReader(), out)
@@ -316,8 +298,8 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testXmlStreamingRoundTripProcessModel1() {
 
-        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class) {model ->
-            val ac1 = model.getNode("ac1") as Activity<*,*>
+        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class) { model ->
+            val ac1 = model.getNode("ac1") as Activity<*, *>
             assertEquals("start", ac1.predecessor?.id)
             assertEquals("start", ac1.predecessors.singleOrNull()?.id)
             assertEquals("ac1", model.getNode("ac2")?.predecessors?.singleOrNull()?.id)
@@ -638,7 +620,12 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testRoundTripDefine() {
         val xml = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>"
-        val result = testRoundTrip(xml, XmlDefineType::class)
+        testRoundTrip(xml, XmlDefineType::class) {
+            assertEquals("ac1", it.refNode)
+            assertEquals("name", it.refName)
+            assertEquals("mylabel", it.name)
+            assertEquals("http://adaptivity.nl/ProcessEngine/", it.namespaces.getNamespaceURI(""))
+        }
     }
 
     @Test
@@ -653,7 +640,7 @@ class TestProcessData {
                   "  </user>\n" +
                   "</result>"
         testRoundTrip(xml, XmlResultType::class) { result ->
-            if (result.namespaces.size==1) {
+            if (result.namespaces.size == 1) {
                 assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
                              result.namespaces.toList())
             } else {
@@ -687,7 +674,7 @@ class TestProcessData {
         assertEquals(expectedContent, rt.contentString)
         val namespaces = rt.originalNSContext
         val it = namespaces.iterator()
-        var ns = it.next()
+        val ns = it.next()
         assertEquals("umh", ns.prefix)
         assertEquals("http://adaptivity.nl/userMessageHandler", ns.namespaceURI)
 
@@ -837,8 +824,8 @@ class TestProcessData {
 
         @Throws(FileNotFoundException::class)
         private fun getDocument(name: String): InputStream {
-            return TestProcessData::class.java.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)
-                   ?: FileInputStream("nl/adaptivity/process/engine/test/" + name)
+            return TestProcessData::class.java.getResourceAsStream("/nl/adaptivity/process/engine/test/$name")
+                   ?: FileInputStream("nl/adaptivity/process/engine/test/$name")
         }
 
         @BeforeAll
@@ -851,12 +838,6 @@ class TestProcessData {
             getDocument(name).use { inputStream ->
                 val input = XmlStreaming.newReader(inputStream, "UTF-8")
                 return XML.parse(input)
-/*
-                val factory = XmlProcessModel::class.java.getAnnotation(XmlDeserializer::class.java)
-                    .value.java
-                    .newInstance()
-                return factory.deserialize(input) as XmlProcessModel
-*/
             }
         }
 
@@ -879,7 +860,6 @@ class TestProcessData {
                                                 testObject: (T) -> Unit = {}): String {
             val expected: String
             val streamReaderFactory: () -> XmlReader
-            val xif = XMLInputFactory.newFactory()
             if (reader.markSupported()) {
                 reader.mark(Int.MAX_VALUE)
                 expected = reader.readString(Charset.defaultCharset())
@@ -906,6 +886,7 @@ class TestProcessData {
                                          testObject = testObject)
         }
 
+        @Suppress("unused")
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
         fun <T : Any> testRoundTrip(xml: String, target: KClass<out T>,
@@ -919,7 +900,8 @@ class TestProcessData {
 
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
-        fun <T : XmlSerializable> testRoundTrip(xml: String, target: KClass<out T>, ignoreNs: Boolean,
+        fun <T : XmlSerializable> testRoundTrip(xml: String, target: KClass<out T>,
+                                                @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
                                                 factoryOpt: XmlDeserializerFactory<T>? = null,
                                                 testObject: (T) -> Unit = {}): String {
             return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
@@ -927,9 +909,11 @@ class TestProcessData {
                                          testObject = testObject)
         }
 
+        @Suppress("unused")
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
-        fun <T : Any> testRoundTrip(xml: String, target: KClass<T>, ignoreNs: Boolean,
+        fun <T : Any> testRoundTrip(xml: String, target: KClass<T>,
+                                    @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
                                     repairNamespaces: Boolean = false,
                                     omitXmlDecl: Boolean = true,
                                     testObject: (T) -> Unit = {}): String {
@@ -945,17 +929,18 @@ class TestProcessData {
                                                            omitXmlDecl: Boolean = true,
                                                            factoryOpt: XmlDeserializerFactory<out T>? = null,
                                                            noinline testObject: (T) -> Unit = {}): String {
-            val new = if (target.java.getAnnotation(Serializable::class.java)==null) null else
+            val new = if (target.java.getAnnotation(Serializable::class.java) == null) null else
                 testRoundTripSer(expected, readerFactory(), target, repairNamespaces, omitXmlDecl, testObject)
 
             val old = if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
                 val serializableTarget = target.java.asSubclass(XmlSerializable::class.java)
+                @Suppress("UNCHECKED_CAST")
                 testRoundTripOld<XmlSerializable>(expected, readerFactory(), serializableTarget,
-                                                            factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
-                                                            testObject as ((XmlSerializable) -> Unit))
+                                                  factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
+                                                  testObject as ((XmlSerializable) -> Unit))
             } else null
-            if (new!=null && old!=null)
-            assertXMLEqual(new, old)
+            if (new != null && old != null)
+                assertXMLEqual(new, old)
             return new ?: old ?: throw AssertionError("Either old or new needs to be initialised")
         }
 

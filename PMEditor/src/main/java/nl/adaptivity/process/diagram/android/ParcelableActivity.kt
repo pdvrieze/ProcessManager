@@ -35,7 +35,7 @@ import nl.adaptivity.xml.toString
 import org.w3.soapEnvelope.Envelope
 import java.io.StringReader
 
-public class ParcelableActivity(builder: Activity.Builder<*, *>,
+class ParcelableActivity(builder: Activity.Builder<*, *>,
                                 buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) : DrawableActivity(
     builder, buildHelper), Parcelable {
     constructor(orig: Activity<*, *>, compat: Boolean) : this(builder(orig, compat))
@@ -43,14 +43,15 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
     private constructor(source: Parcel) : this(fromParcel(source))
 
 
-    public fun getUserTask(): EditableUserTask? {
-        val message = XmlMessage.get(message);
-        if (message != null && UserTaskServiceDescriptor.SERVICENAME.equals(message.service) &&
-            UserTaskServiceDescriptor.ENDPOINT.equals(message.endpoint)) {
-            val envelope: Envelope<PostTask> = Envelope.deserialize(message.bodyStreamReader, PostTask.FACTORY);
-            return envelope.body?.bodyContent?.task;
+    fun getUserTask(): EditableUserTask? {
+        val message = XmlMessage.from(message)
+        if (message != null && UserTaskServiceDescriptor.SERVICENAME == message.service &&
+            UserTaskServiceDescriptor.ENDPOINT == message.endpoint) {
+
+            val envelope: Envelope<PostTask> = Envelope.deserialize(message.bodyStreamReader, PostTask.FACTORY)
+            return envelope.body?.bodyContent?.task
         }
-        return null;
+        return null
     }
 
 
@@ -70,11 +71,7 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
         dest.writeStringArray(toIdStrings(predecessors))
         dest.writeStringArray(toIdStrings(successors))
 
-        if (message == null) {
-            dest.writeString("")
-        } else {
-            dest.writeString(toString(XmlMessage[message]!!))
-        }
+        dest.writeString(message?.let { toString(XmlMessage.from(it)) } ?: "")
 
         writeDefines(dest)
         writeResults(dest)
@@ -101,6 +98,7 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
 
         private const val TAG = "ParcelableActivity"
 
+        @Suppress("unused")
         @JvmStatic
         val CREATOR: Parcelable.Creator<ParcelableActivity> = object : Parcelable.Creator<ParcelableActivity> {
             override fun createFromParcel(parcel: Parcel): ParcelableActivity {
@@ -126,7 +124,7 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
 
         @JvmStatic
         private fun fromParcel(source: Parcel): DrawableActivity.Builder {
-            val builder = DrawableActivity.Builder().apply {
+            return Builder().apply {
                 isCompat = source.readByte().toInt() != 0
                 id = source.readString()
                 label = source.readString()
@@ -152,7 +150,6 @@ public class ParcelableActivity(builder: Activity.Builder<*, *>,
                 setResults(readResults(source))
                 isMultiInstance = source.readByte().toInt() != 0
             }
-            return builder
         }
 
         @JvmStatic

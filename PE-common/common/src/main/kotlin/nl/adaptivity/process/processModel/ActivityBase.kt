@@ -16,16 +16,12 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Optional
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.collection.replaceByNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
@@ -69,7 +65,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     override var message: IXmlMessage?
         get() = _message
         set(value) {
-            _message = XmlMessage.get(value)
+            _message = XmlMessage.from(value)
         }
 
     fun setMessage(message: XmlMessage?) {
@@ -80,7 +76,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
                                                                                                                buildHelper) {
         if (builder.message != null && builder.childId != null) throw IllegalProcessModelException(
             "Activities can not have child models as well as messages")
-        this._message = XmlMessage.get(builder.message)
+        this._message = XmlMessage.from(builder.message)
         @Suppress("DEPRECATION")
         _name = builder.name
         @Suppress("LeakingThis")
@@ -96,7 +92,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     }
 
 
-    override abstract fun builder(): Builder<NodeT, ModelT>
+    abstract override fun builder(): Builder<NodeT, ModelT>
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitActivity(this)
@@ -113,6 +109,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         super.serializeAttributes(out)
         out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, predecessor?.id)
         out.writeAttribute("childId", childModel?.id)
+        @Suppress("DEPRECATION")
         out.writeAttribute("name", name)
     }
 
@@ -126,9 +123,13 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     protected abstract fun serializeCondition(out: XmlWriter)
 
     /* Override to make public */
+    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
+    @Deprecated("Don't have mutable process models")
     override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
 
     /* Override to make public */
+    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
+    @Deprecated("Don't have mutable process models")
     override fun setResults(results: Collection<IXmlResultType>) = super.setResults(results)
 
     override fun equals(other: Any?): Boolean {
@@ -160,8 +161,12 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
         @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
+
+        @Suppress("OverridingDeprecatedMember")
         final override var name: String?
+
         final override var condition: String?
+
         @Transient
         override val idBase: String
             get() = "ac"
@@ -196,12 +201,16 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
             this.predecessor = predecessor
             this.successor = successor
             this.message = message
+
+            @Suppress("DEPRECATION")
             this.name = name
             this.condition = condition
         }
 
         constructor(node: Activity<*, *>) : super(node) {
-            message = XmlMessage.get(node.message)
+            message = XmlMessage.from(node.message)
+
+            @Suppress("DEPRECATION")
             name = node.name
             condition = node.condition
             childId = node.childModel?.id

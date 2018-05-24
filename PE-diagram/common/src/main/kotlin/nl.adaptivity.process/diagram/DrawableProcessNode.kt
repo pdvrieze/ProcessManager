@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.diagram
 
-import nl.adaptivity.diagram.*
+import nl.adaptivity.diagram.Drawable
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 
@@ -89,7 +89,7 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
 
   override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
 
-  override fun builder(): Builder<out DrawableProcessNode>
+  override fun builder(): Builder<DrawableProcessNode>
 
   /**
    * Set the X coordinate of the reference point of the element. This is

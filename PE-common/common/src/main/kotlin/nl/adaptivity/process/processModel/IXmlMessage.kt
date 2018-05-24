@@ -57,7 +57,7 @@ interface IXmlMessage {
         }
 
         override fun save(output: KOutput, obj: IXmlMessage) {
-            return XmlMessage.save(output, XmlMessage.get(obj)!!)
+            return XmlMessage.save(output, XmlMessage.from(obj))
         }
     }
 }

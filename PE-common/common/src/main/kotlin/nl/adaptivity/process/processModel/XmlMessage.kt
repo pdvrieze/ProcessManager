@@ -28,6 +28,7 @@ import kotlinx.serialization.*
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.util.multiplatform.JvmName
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ExtXmlDeserializable
@@ -245,10 +246,14 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
 
-        operator fun get(message: IXmlMessage?): XmlMessage? {
-            return if (message == null) {
-                null
-            } else message as? XmlMessage ?: XmlMessage(message.service,
+        @JvmName("fromNullable")
+        fun from(message: IXmlMessage?) = when (message) {
+            null -> null
+            else -> from(message)
+        }
+
+        fun from(message: IXmlMessage): XmlMessage {
+            return message as? XmlMessage ?: XmlMessage(message.service,
                                                         message.endpoint,
                                                         message.operation,
                                                         message.url,
