@@ -16,19 +16,18 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.Transient
-import net.devrieze.util.ArraySet
+import kotlinx.serialization.*
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.toMutableArraySet
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.util.SerialClassDescImpl
+import nl.adaptivity.util.addField
 import nl.adaptivity.util.multiplatform.Throws
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlDefault
 import nl.adaptivity.xml.serialization.XmlSerialName
 
 
@@ -149,10 +148,13 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         override var id: String?
         override var condition: String?
         override var label: String?
+        @XmlDefault("NaN")
         override var x: Double
+        @XmlDefault("NaN")
         override var y: Double
         override var isMultiInstance: Boolean
         override var predecessor: Identifiable? = null
+        @Transient
         override var successor: Identifiable? = null
 
         @SerialName("define")
@@ -217,6 +219,10 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
 
         @Serializer(forClass = ChildModelBuilder::class)
         companion object: ChildProcessModelBase.Builder.BaseSerializer<ChildModelBuilder>() {
+            override val serialClassDesc: KSerialClassDesc = SerialClassDescImpl(Builder.serializer().serialClassDesc, ChildProcessModelBase.Builder::class.name).apply {
+                addField(ChildModelBuilder::childId)
+            }
+
             override fun builder(): ChildModelBuilder {
                 return ChildModelBuilder()
             }

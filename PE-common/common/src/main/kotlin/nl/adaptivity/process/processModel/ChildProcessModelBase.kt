@@ -16,12 +16,16 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KInput
+import kotlinx.serialization.KOutput
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Transient
 import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.util.SerialClassDescImpl
+import nl.adaptivity.util.addField
+import nl.adaptivity.util.addFields
 import nl.adaptivity.util.multiplatform.JvmField
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.readNullableString
@@ -145,7 +149,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
     abstract class BaseSerializer<T: ChildProcessModelBase<*,*>>: ProcessModelBase.BaseSerializer<T>() {
 
-        val idIdx by lazy { serialClassDesc.getElementIndex(ATTR_ID) }
+        val idIdx by lazy { serialClassDesc.getElementIndexOrThrow(ATTR_ID) }
 
         override fun writeValues(output: KOutput, obj: T) {
             output.writeNullableStringElementValue(serialClassDesc, idIdx, obj.id)
@@ -162,7 +166,15 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
 
         fun serialClassDesc(name: String): SerialClassDescImpl {
-            return RootProcessModelBase.serialClassDesc(name)
+            return SerialClassDescImpl(name).apply {
+                addField(ChildProcessModelBase<*,*>::id)
+                addFields(ProcessModelBase.serialClassDesc)
+            }
+
+
+            return RootProcessModelBase.serialClassDesc(name).apply {
+                addField(ChildProcessModel<*,*>::id)
+            }
         }
 
     }

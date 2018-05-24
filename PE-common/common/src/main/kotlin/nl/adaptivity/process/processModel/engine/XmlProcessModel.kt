@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.SerialClassDescImpl
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
@@ -119,6 +118,10 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>() {
         override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(
             XmlProcessModel::class.name)
+
+        @Suppress("UNCHECKED_CAST")
+        override val childModelSerializer: KSerializer<ChildProcessModel<*, *>>
+            get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*, *>>
 
         override fun load(input: KInput): XmlProcessModel {
             return input.context.klassSerializer(Builder::class).load(input).build()

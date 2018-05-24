@@ -25,12 +25,6 @@ import nl.adaptivity.xml.QName
  */
 interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT>, Identifiable {
 
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
-    val childIdBase: String get() = "child"
-    var childId: String?
-    fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
-  }
-
   @Deprecated("Not needed as childmodels are not nested")
   val ownerModel: RootProcessModel<NodeT, ModelT>? get() = rootModel
 
@@ -42,5 +36,11 @@ interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     const val ELEMENTLOCALNAME="childModel"
     val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
   }
+
+    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
+        val childIdBase: String get() = "child"
+        var childId: String?
+        fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
+    }
 
 }

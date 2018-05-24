@@ -80,8 +80,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
     final override val uuid: UUID?
 
-
+    @SerialName("childModel")
     override val childModels: Collection<ChildProcessModelBase<NodeT, ModelT>> get() = _childModels
+
     @Transient
     private val _childModels: IdentifyableSet<out ChildProcessModelBase<NodeT, ModelT>>
 
@@ -253,12 +254,14 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
 
     abstract class BaseSerializer<T : RootProcessModelBase<*, *>> : ProcessModelBase.BaseSerializer<T>() {
-        val nameIdx by lazy { serialClassDesc.getElementIndex("name") }
-        val ownerIdx by lazy { serialClassDesc.getElementIndex("owner") }
-        val rolesIdx by lazy { serialClassDesc.getElementIndex("roles") }
-        val uuidIdx by lazy { serialClassDesc.getElementIndex("uuid") }
-        val handleIdx  by lazy { serialClassDesc.getElementIndex("handle") }
-        val childModelIdx  by lazy { serialClassDesc.getElementIndex("childModel") }
+        val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
+        val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
+        val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
+        val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
+        val handleIdx  by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
+        val childModelIdx  by lazy { serialClassDesc.getElementIndexOrThrow("childModel") }
+
+        abstract protected val childModelSerializer: KSerializer<ChildProcessModel<*,*>>
 
         override fun save(output: KOutput, obj: T) {
             if (obj.modelNodes.any { it.id == null }) {
@@ -278,8 +281,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
             val rolesString = if (obj.roles.isEmpty()) null else obj.roles.joinToString(",")
             output.writeNullableStringElementValue(serialClassDesc, rolesIdx, rolesString)
             output.writeNullableStringElementValue(serialClassDesc, uuidIdx, obj.uuid?.toString())
-
-
+            output.writeSerializableElementValue(serialClassDesc, childModelIdx, childModelSerializer.list, obj._childModels)
 
             super.writeValues(output, obj)
         }
@@ -333,7 +335,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         override val roles: MutableSet<String> = roles.toMutableSet()
 
-        @SerialName("childModel")
+        @SerialName(ChildProcessModel.ELEMENTLOCALNAME)
         override val childModels: MutableList<ChildProcessModel.Builder<NodeT, ModelT>> = childModels.toMutableList()
 
         constructor() : this(nodes = emptyList())
@@ -401,12 +403,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         abstract class BaseSerializer<T : RootProcessModelBase.Builder<*, *>> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            val nameIdx by lazy { serialClassDesc.getElementIndex("name") }
-            val ownerIdx by lazy { serialClassDesc.getElementIndex("owner") }
-            val rolesIdx by lazy { serialClassDesc.getElementIndex("roles") }
-            val uuidIdx by lazy { serialClassDesc.getElementIndex("uuid") }
-            val handleIdx by lazy { serialClassDesc.getElementIndex("handle") }
-            val childModelsIdx by lazy { serialClassDesc.getElementIndex("childModels") }
+            val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
+            val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
+            val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
+            val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
+            val handleIdx by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
+            val childModelsIdx by lazy { serialClassDesc.getElementIndexOrThrow(ChildProcessModel.ELEMENTLOCALNAME) }
 
             override fun readElement(result: T, input: KInput, index: Int) {
                 when (index) {
@@ -422,10 +424,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
                     childModelsIdx -> {
                         val newList = input.updateSerializableElementValue(serialClassDesc,
                                                                            index,
-                                                                           XmlActivity.ChildModelBuilder.list,
+                                                                           XmlChildModel.Builder.serializer().list,
                                                                            result.childModels as List<XmlActivity.ChildModelBuilder>)
-                        (result.childModels as MutableList<ChildProcessModel.Builder<XmlProcessNode, XmlModelCommon>>).replaceBy(
-                            newList)
+                        (result.childModels as MutableList<ChildProcessModel.Builder<XmlProcessNode, XmlModelCommon>>).replaceBy(newList)
                     }
                     else           -> super.readElement(result, input, index)
                 }
@@ -582,130 +583,3 @@ fun <B : RootProcessModelBase.Builder<*, *>> B.deserialize(reader: XmlReader): B
     return this.deserializeHelper(reader)
 }
 
-private object ModelNodeClassDesc : KSerialClassDesc {
-    override val kind: KSerialClassKind get() = KSerialClassKind.POLYMORPHIC
-    override val name: String get() = "nodes"
-
-    override fun getElementIndex(name: String) = when (name) {
-        "klass" -> 0
-        "value" -> 1
-        else    -> KInput.UNKNOWN_NAME
-    }
-
-    override fun getElementName(index: Int): String {
-        return when (index) {
-            0    -> "klass"
-            1    -> "value"
-            else -> throw IndexOutOfBoundsException("$index")
-        }
-    }
-
-    override val associatedFieldsCount: Int get() = 2
-}
-
-object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
-    override val serialClassDesc: KSerialClassDesc get() = ModelNodeClassDesc
-
-    override fun load(input: KInput): ProcessNode<*, *> {
-        throw UnsupportedOperationException("No valid model loading outside of process model context")
-    }
-
-
-    override fun save(output: KOutput, obj: ProcessNode<*, *>) {
-        val saver = serializerByValue(obj, output.context)
-        @Suppress("NAME_SHADOWING")
-        val output = output.writeBegin(serialClassDesc)
-        output.writeStringElementValue(serialClassDesc, 0, saver.serialClassDesc.name)
-        @Suppress("UNCHECKED_CAST")
-        output.writeSerializableElementValue(serialClassDesc, 1, saver as KSerialSaver<ProcessNode<*, *>>, obj)
-        output.writeEnd(serialClassDesc)
-    }
-
-
-    @JvmStatic
-    fun serializerByValue(obj: ProcessNode<*, *>, context: SerialContext?): KSerializer<out ProcessNode<*, *>> {
-        // If the context has a serializer use that
-        context?.getSerializerByClass(obj::class)?.let { return it }
-        // Otherwise fall back to "known" serializers
-        when (obj) {
-            is StartNode -> return XmlStartNode::class.serializer()
-            is Activity  -> return XmlActivity::class.serializer()
-            is Split     -> return XmlSplit::class.serializer()
-            is Join      -> return XmlJoin::class.serializer()
-            is EndNode   -> return XmlEndNode::class.serializer()
-        }
-        return context.valueSerializer(obj)
-    }
-
-}
-
-object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
-    override val serialClassDesc: KSerialClassDesc get() = ModelNodeClassDesc
-
-    override fun load(input: KInput): ProcessNode.IBuilder<*, *> {
-        @Suppress("NAME_SHADOWING")
-        val input = input.readBegin(serialClassDesc)
-        var klassName: String? = null
-        var value: ProcessNode.IBuilder<*, *>? = null
-        mainLoop@ while (true) {
-            when (input.readElement(serialClassDesc)) {
-                KInput.READ_ALL  -> {
-                    klassName = input.readStringElementValue(serialClassDesc, 0)
-                    val loader = serializerBySerialDescClassname(klassName, input.context)
-                    value = input.readSerializableElementValue(serialClassDesc, 1, loader)
-                    break@mainLoop
-                }
-                KInput.READ_DONE -> {
-                    break@mainLoop
-                }
-                0                -> {
-                    klassName = input.readStringElementValue(serialClassDesc, 0)
-                }
-                1                -> {
-                    klassName = requireNotNull(klassName) { "Cannot read polymorphic value before its type token" }
-                    val loader = serializerBySerialDescClassname(klassName, input.context)
-                    value = input.readSerializableElementValue(serialClassDesc, 1, loader)
-                }
-                else             -> throw SerializationException("Invalid index")
-            }
-        }
-
-        input.readEnd(serialClassDesc)
-        return requireNotNull(value) { "Polymorphic value have not been read" }
-
-    }
-
-    override fun save(output: KOutput, obj: ProcessNode.IBuilder<*, *>) {
-        throw UnsupportedOperationException("Only final process nodes can be serialized for now")
-    }
-
-    private const val NODE_PACKAGE = "nl.adaptivity.process.processModel.engine"
-
-    @JvmStatic
-    fun serializerBySerialDescClassname(klassName: String,
-                                        context: SerialContext?): KSerializer<out ProcessNode.IBuilder<*, *>> {
-        if (klassName.startsWith(NODE_PACKAGE)) {
-            serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
-        } else if (klassName == "nl.adaptivity.xml.serialization.canary.CanaryInput\$Dummy") {
-            return context.klassSerializer(XmlActivity.Builder::class)
-        }
-        throw IllegalArgumentException("No serializer found for class $klassName")
-    }
-
-    @JvmStatic
-    fun serializerBySimpleName(simpleName: String,
-                               context: SerialContext? = null): KSerializer<out ProcessNode.IBuilder<*, *>>? = when (simpleName) {
-        "XmlStartNode",
-        "XmlStartNode\$Builder" -> context.klassSerializer(XmlStartNode.Builder::class)
-        "XmlActivity",
-        "XmlActivity\$Builder"  -> context.klassSerializer(XmlActivity.Builder::class)
-        "XmlSplit",
-        "XmlSplit\$Builder"     -> context.klassSerializer(XmlSplit.Builder::class)
-        "XmlJoin",
-        "XmlJoin\$Builder"      -> context.klassSerializer(XmlJoin.Builder::class)
-        "XmlEndNode",
-        "XmlEndNode\$Builder"   -> context.klassSerializer(XmlEndNode.Builder::class)
-        else                    -> null
-    }
-
-}

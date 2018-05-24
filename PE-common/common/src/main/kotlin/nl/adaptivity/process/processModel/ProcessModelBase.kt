@@ -20,9 +20,8 @@ import kotlinx.serialization.*
 import kotlinx.serialization.internal.SerialClassDescImpl
 import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.engine.XmlProcessModel
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
@@ -30,6 +29,7 @@ import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.Throws
+import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlPolyChildren
@@ -158,7 +158,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                     @Suppress("UNCHECKED_CAST")
                     (result.nodes as MutableList<Any>).replaceBy(iterable=newNodes)
                 }
-                else       -> throw UnknownFieldException(index)
+                else       -> throw SerializationException("Could not resolve field ${serialClassDesc.getElementName(index)} with index $index")
             }
 
         }
@@ -338,3 +338,130 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     }
 }
 
+private object ModelNodeClassDesc : KSerialClassDesc {
+    override val kind: KSerialClassKind get() = KSerialClassKind.POLYMORPHIC
+    override val name: String get() = "nodes"
+
+    override fun getElementIndex(name: String) = when (name) {
+        "klass" -> 0
+        "value" -> 1
+        else    -> KInput.UNKNOWN_NAME
+    }
+
+    override fun getElementName(index: Int): String {
+        return when (index) {
+            0    -> "klass"
+            1    -> "value"
+            else -> throw IndexOutOfBoundsException("$index")
+        }
+    }
+
+    override val associatedFieldsCount: Int get() = 2
+}
+
+object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
+    override val serialClassDesc: KSerialClassDesc get() = ModelNodeClassDesc
+
+    override fun load(input: KInput): ProcessNode<*, *> {
+        throw UnsupportedOperationException("No valid model loading outside of process model context")
+    }
+
+
+    override fun save(output: KOutput, obj: ProcessNode<*, *>) {
+        val saver = serializerByValue(obj, output.context)
+        @Suppress("NAME_SHADOWING")
+        val output = output.writeBegin(serialClassDesc)
+        output.writeStringElementValue(serialClassDesc, 0, saver.serialClassDesc.name)
+        @Suppress("UNCHECKED_CAST")
+        output.writeSerializableElementValue(serialClassDesc, 1, saver as KSerialSaver<ProcessNode<*, *>>, obj)
+        output.writeEnd(serialClassDesc)
+    }
+
+
+    @JvmStatic
+    fun serializerByValue(obj: ProcessNode<*, *>, context: SerialContext?): KSerializer<out ProcessNode<*, *>> {
+        // If the context has a serializer use that
+        context?.getSerializerByClass(obj::class)?.let { return it }
+        // Otherwise fall back to "known" serializers
+        when (obj) {
+            is StartNode -> return XmlStartNode::class.serializer()
+            is Activity  -> return XmlActivity::class.serializer()
+            is Split     -> return XmlSplit::class.serializer()
+            is Join      -> return XmlJoin::class.serializer()
+            is EndNode   -> return XmlEndNode::class.serializer()
+        }
+        return context.valueSerializer(obj)
+    }
+
+}
+
+object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
+    override val serialClassDesc: KSerialClassDesc get() = ModelNodeClassDesc
+
+    override fun load(input: KInput): ProcessNode.IBuilder<*, *> {
+        @Suppress("NAME_SHADOWING")
+        val input = input.readBegin(serialClassDesc)
+        var klassName: String? = null
+        var value: ProcessNode.IBuilder<*, *>? = null
+        mainLoop@ while (true) {
+            when (input.readElement(serialClassDesc)) {
+                KInput.READ_ALL  -> {
+                    klassName = input.readStringElementValue(serialClassDesc, 0)
+                    val loader = serializerBySerialDescClassname(klassName, input.context)
+                    value = input.readSerializableElementValue(serialClassDesc, 1, loader)
+                    break@mainLoop
+                }
+                KInput.READ_DONE -> {
+                    break@mainLoop
+                }
+                0                -> {
+                    klassName = input.readStringElementValue(serialClassDesc, 0)
+                }
+                1                -> {
+                    klassName = requireNotNull(klassName) { "Cannot read polymorphic value before its type token" }
+                    val loader = serializerBySerialDescClassname(klassName, input.context)
+                    value = input.readSerializableElementValue(serialClassDesc, 1, loader)
+                }
+                else             -> throw SerializationException("Invalid index")
+            }
+        }
+
+        input.readEnd(serialClassDesc)
+        return requireNotNull(value) { "Polymorphic value have not been read" }
+
+    }
+
+    override fun save(output: KOutput, obj: ProcessNode.IBuilder<*, *>) {
+        throw UnsupportedOperationException("Only final process nodes can be serialized for now")
+    }
+
+    private const val NODE_PACKAGE = "nl.adaptivity.process.processModel.engine"
+
+    @JvmStatic
+    fun serializerBySerialDescClassname(klassName: String,
+                                        context: SerialContext?): KSerializer<out ProcessNode.IBuilder<*, *>> {
+        if (klassName.startsWith(NODE_PACKAGE)) {
+            serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
+        } else if (klassName == "nl.adaptivity.xml.serialization.canary.CanaryInput\$Dummy") {
+            return context.klassSerializer(XmlActivity.Builder::class)
+        }
+        throw IllegalArgumentException("No serializer found for class $klassName")
+    }
+
+    @JvmStatic
+    fun serializerBySimpleName(simpleName: String,
+                               context: SerialContext? = null): KSerializer<out ProcessNode.IBuilder<*, *>>? = when (simpleName) {
+        "XmlStartNode",
+        "XmlStartNode\$Builder" -> context.klassSerializer(XmlStartNode.Builder::class)
+        "XmlActivity",
+        "XmlActivity\$Builder"  -> context.klassSerializer(XmlActivity.Builder::class)
+        "XmlSplit",
+        "XmlSplit\$Builder"     -> context.klassSerializer(XmlSplit.Builder::class)
+        "XmlJoin",
+        "XmlJoin\$Builder"      -> context.klassSerializer(XmlJoin.Builder::class)
+        "XmlEndNode",
+        "XmlEndNode\$Builder"   -> context.klassSerializer(XmlEndNode.Builder::class)
+        else                    -> null
+    }
+
+}
