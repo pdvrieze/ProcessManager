@@ -43,6 +43,7 @@ import org.jetbrains.spek.subject.dsl.SubjectProviderDsl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.fail
 import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
@@ -104,15 +105,19 @@ abstract class ModelSpek(modelData: ModelData,
                 lateinit var xmlSerialization: String
                 it("Should be able to be serialized to XML") {
                     Assertions.assertDoesNotThrow {
-                        xmlSerialization = XML.stringify(XmlProcessModel(model.builder()))
+                        xmlSerialization = XML(indent = 4).stringify(XmlProcessModel(model.builder()))
                     }
                 }
                 it("Should also be able to be deserialized") {
                     lateinit var deserializedModel: XmlProcessModel.Builder
-                    Assertions.assertDoesNotThrow {
-                        deserializedModel = XML.parse(xmlSerialization)
+                    try {
+                        Assertions.assertDoesNotThrow {
+                            deserializedModel = XML.parse(xmlSerialization)
+                        }
+                        assertEquals(model, ExecutableProcessModel(deserializedModel))
+                    } catch (e: Throwable) {
+                        fail("Failure to deserialize the model:\n$xmlSerialization", e)
                     }
-                    assertEquals(model, ExecutableProcessModel(deserializedModel))
                 }
 
             }
