@@ -89,7 +89,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
             get() = _rootBuilder
 
         @SerialName("id")
-        override var childId: String?
+        final override var childId: String?
 
         protected constructor() {
             childId = null
@@ -113,7 +113,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
          */
         open fun nestedBuilder(): ChildProcessModelBase.Builder<T, M>? = null
 
-        override abstract fun buildModel(buildHelper: ProcessModel.BuildHelper<T, M>): ChildProcessModel<T, M>
+        abstract override fun buildModel(buildHelper: ProcessModel.BuildHelper<T, M>): ChildProcessModel<T, M>
 
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
@@ -169,11 +169,6 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
             return SerialClassDescImpl(name).apply {
                 addField(ChildProcessModelBase<*,*>::id)
                 addFields(ProcessModelBase.serialClassDesc)
-            }
-
-
-            return RootProcessModelBase.serialClassDesc(name).apply {
-                addField(ChildProcessModel<*,*>::id)
             }
         }
 

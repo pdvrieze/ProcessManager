@@ -63,40 +63,13 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         out.writeChild(xmlCondition)
     }
 
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override var condition: String?
         get() = xmlCondition?.toString()
         set(condition) {
             xmlCondition = condition?.let { XmlCondition(it) }
             notifyChange()
         }
-
-    public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
-        super.setOwnerModel(newOwnerModel)
-    }
-
-    public override fun setPredecessors(predecessors: Collection<Identifiable>) {
-        super.setPredecessors(predecessors)
-    }
-
-    public override fun removePredecessor(predecessorId: Identified) {
-        super.removePredecessor(predecessorId)
-    }
-
-    public override fun addPredecessor(predecessorId: Identified) {
-        super.addPredecessor(predecessorId)
-    }
-
-    public override fun addSuccessor(successorId: Identified) {
-        super.addSuccessor(successorId)
-    }
-
-    public override fun removeSuccessor(successorId: Identified) {
-        super.removeSuccessor(successorId)
-    }
-
-    public override fun setSuccessors(successors: Collection<Identified>) {
-        super.setSuccessors(successors)
-    }
 
     companion object {
 
@@ -129,11 +102,9 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
                     condition: String? = null,
                     name: String? = null,
                     multiInstance: Boolean = false)
-            : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y,
-                    multiInstance) {
-        }
+            : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, multiInstance)
 
-        constructor(node: Activity<*, *>) : super(node) {}
+        constructor(node: Activity<*, *>) : super(node)
 
         override fun build(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): XmlActivity {
             return XmlActivity(this, buildHelper)

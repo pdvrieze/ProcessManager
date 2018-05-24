@@ -46,41 +46,12 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     override val rootModel: XmlProcessModel
         get() = this
 
-    /**
-     * Get the startnodes for this model.
+    @Suppress("UNCHECKED_CAST")
+    override val childModels: Collection<XmlChildModel> get() = super.childModels as Collection<XmlChildModel>
 
-     * @return The start nodes.
-     */
-    @Transient
-    val startNodes: Collection<XmlStartNode>
-        get() = modelNodes.filterIsInstance<XmlStartNode>()
-
-
-    @Transient
-    private var _endNodeCount = -1
-
-    /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
-     */
-    @Transient
-    val endNodeCount: Int
-        get() {
-            if (_endNodeCount < 0) {
-                var endNodeCount = 0
-                for (node in modelNodes) {
-                    if (node is XmlEndNode) {
-                        ++endNodeCount
-                    }
-                }
-                _endNodeCount = endNodeCount
-            }
-
-            return _endNodeCount
-        }
-
-    constructor(builder: RootProcessModel.Builder<*, *>, pedantic: Boolean = false) : super(builder, XML_NODE_FACTORY,
-                                                                                            pedantic) {
-    }
+    @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
+    constructor(builder: RootProcessModel.Builder<*, *>, pedantic: Boolean = false) :
+        super(builder, XML_NODE_FACTORY, pedantic)
 
     override fun copy(imports: Collection<IXmlResultType>,
                       exports: Collection<IXmlDefineType>,
@@ -100,16 +71,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         return Builder(this)
     }
 
-    /**
-     * Normalize the process model. By default this may do nothing.
-     * @return The model (this).
-     */
-    fun normalized(pedantic: Boolean): XmlProcessModel {
-        val builder = builder()
-        builder.normalize(pedantic)
-        return builder.build()
-    }
-
     override fun getChildModel(childId: Identifiable): XmlChildModel? {
         return super.getChildModel(childId)?.let { it as XmlChildModel }
     }
@@ -127,16 +88,10 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return input.context.klassSerializer(Builder::class).load(input).build()
         }
 
+        @Suppress("RedundantOverride")
         override fun save(output: KOutput, obj: XmlProcessModel) {
             super.save(output, obj)
         }
-/*
-        init {
-            serialClassDesc = SerialClassDescImpl(XmlProcessModel::class.name).apply {
-                with(ProcessModelBaseSerializer.Companion) { addBaseElements() }
-            }
-        }
-*/
 
         @JvmOverloads
         @JvmStatic
@@ -144,29 +99,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return Builder.deserialize(reader).build(pedantic)
         }
 
-        /**
-         * Helper method that helps enumerating all elements in the model
-
-         * @param to The collection that will contain the result.
-         *
-         * @param seen A set of process names that have already been seen (and should
-         * *          not be added again.
-         *
-         * @param node The node to start extraction from. This will go on to the
-         * *          successors.
-         */
-        private fun extractElements(to: MutableCollection<in XmlProcessNode>,
-                                    seen: HashSet<String>,
-                                    node: XmlProcessNode) {
-            if (seen.contains(node.id)) {
-                return
-            }
-            to.add(node)
-            node.id?.let { seen.add(it) }
-            for (successor in node.successors) {
-                extractElements(to, seen, successor as XmlProcessNode)
-            }
-        }
     }
 
 
@@ -190,10 +122,9 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             uuid: UUID? = null,
             imports: List<IXmlResultType> = emptyList(),
             exports: List<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner, roles, uuid,
-                                                                 imports, exports) {
-        }
+                                                                 imports, exports)
 
-        constructor(base: XmlProcessModel) : super(base) {}
+        constructor(base: XmlProcessModel) : super(base)
 
         override fun build(pedantic: Boolean): XmlProcessModel {
             return XmlProcessModel(this, pedantic)
@@ -213,6 +144,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
             override fun builder() = Builder()
 
+            @Suppress("RedundantOverride")
             override fun load(input: KInput): Builder {
                 return super.load(input)
             }
@@ -249,6 +181,7 @@ val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<XmlProcessNode.Builder> {
 }
 
 
+@Suppress("ClassName")
 object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelCommon> {
 
     private class Visitor(private val buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : ProcessNode.BuilderVisitor<XmlProcessNode> {

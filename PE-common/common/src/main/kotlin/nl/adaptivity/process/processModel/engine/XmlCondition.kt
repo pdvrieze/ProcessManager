@@ -37,7 +37,7 @@ class XmlCondition(override val condition: String) : XmlSerializable, Condition 
 
         fun deserialize(reader: XmlReader): XmlCondition {
             val condition = reader.readSimpleElement()
-            return XmlCondition(condition.toString())
+            return XmlCondition(condition)
         }
     }
 

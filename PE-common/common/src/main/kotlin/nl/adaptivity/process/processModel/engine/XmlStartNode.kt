@@ -20,53 +20,15 @@ import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.StartNodeBase
-import nl.adaptivity.process.processModel.XmlResultType
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
 
 @Serializable
 class XmlStartNode : StartNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
+    @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: StartNode.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) :
         super(builder, buildHelper)
 
-    constructor(ownerModel: XmlProcessModel) : super(ownerModel)
-
-    constructor(ownerModel: XmlProcessModel, imports: List<XmlResultType>) : super(ownerModel) {
-        setResults(imports)
-    }
-
-    override fun builder(): Builder {
-        return Builder(this)
-    }
-
-    public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
-        super.setOwnerModel(newOwnerModel)
-    }
-
-    public override fun setPredecessors(predecessors: Collection<Identifiable>) {
-        super.setPredecessors(predecessors)
-    }
-
-    public override fun removePredecessor(predecessorId: Identified) {
-        super.removePredecessor(predecessorId)
-    }
-
-    public override fun addPredecessor(predecessorId: Identified) {
-        super.addPredecessor(predecessorId)
-    }
-
-    public override fun addSuccessor(successorId: Identified) {
-        super.addSuccessor(successorId)
-    }
-
-    public override fun removeSuccessor(successorId: Identified) {
-        super.removeSuccessor(successorId)
-    }
-
-    public override fun setSuccessors(successors: Collection<Identified>) {
-        super.setSuccessors(successors)
-    }
+    override fun builder() = Builder(this)
 
     @Serializable
     class Builder : StartNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {

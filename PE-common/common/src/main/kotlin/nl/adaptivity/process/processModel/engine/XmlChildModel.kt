@@ -28,6 +28,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
     @Transient
     override val rootModel: XmlProcessModel get() = super.rootModel as XmlProcessModel
 
+    @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: ChildProcessModel.Builder<*, *>,
                 buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder,
                                                                                                buildHelper)
@@ -70,11 +71,14 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
                 return Builder()
             }
 
+            @Suppress("RedundantOverride") // Without this serialization will generate the code
             override fun load(input: KInput): Builder {
                 return super.load(input)
             }
 
             override fun save(output: KOutput, obj: Builder) {
+                val rootModel = XmlProcessModel.Builder().apply { childModels.add(obj) }.build()
+                XmlChildModel.save(output, rootModel.childModels.single())
                 throw UnsupportedOperationException("Cannot be independently saved")
             }
         }
@@ -84,6 +88,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
     companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>() {
         override val serialClassDesc: KSerialClassDesc = ChildProcessModelBase.serialClassDesc(XmlChildModel::class.name)
 
+        @Suppress("RedundantOverride")
         override fun save(output: KOutput, obj: XmlChildModel) {
             super.save(output, obj)
         }

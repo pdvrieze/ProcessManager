@@ -17,13 +17,11 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.JoinBase
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.XmlException
@@ -33,53 +31,11 @@ import nl.adaptivity.xml.deserializeHelper
 @Serializable
 class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
-    @Transient
-    internal val xmlPrececessors: Set<Identifiable>?
-        @Deprecated("")
-        get() = predecessors
-
-    constructor(ownerModel: XmlProcessModel) : super(ownerModel) {}
-
+    @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: Join.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder,
-                                                                                                               buildHelper) {
-    }
+                                                                                                               buildHelper)
 
-    override fun builder(): Builder {
-        return Builder(this)
-    }
-
-    @Deprecated("")
-    internal fun setXmlPrececessors(pred: List<XmlProcessNode>) {
-        swapPredecessors(pred)
-    }
-
-    public override fun setOwnerModel(newOwnerModel: XmlModelCommon) {
-        super.setOwnerModel(newOwnerModel)
-    }
-
-    public override fun setPredecessors(predecessors: Collection<Identifiable>) {
-        super.setPredecessors(predecessors)
-    }
-
-    public override fun removePredecessor(predecessorId: Identified) {
-        super.removePredecessor(predecessorId)
-    }
-
-    public override fun addPredecessor(predecessorId: Identified) {
-        super.addPredecessor(predecessorId)
-    }
-
-    public override fun addSuccessor(successorId: Identified) {
-        super.addSuccessor(successorId)
-    }
-
-    public override fun removeSuccessor(successorId: Identified) {
-        super.removeSuccessor(successorId)
-    }
-
-    public override fun setSuccessors(successors: Collection<Identified>) {
-        super.setSuccessors(successors)
-    }
+    override fun builder() = Builder(this)
 
     companion object {
 
@@ -116,8 +72,7 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
                     isMultiMerge: Boolean = false,
                     multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y,
                                                             min, max, isMultiMerge = isMultiMerge,
-                                                            isMultiInstance = multiInstance) {
-        }
+                                                            isMultiInstance = multiInstance)
 
 
         override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlJoin {
