@@ -32,7 +32,7 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     internal var path: MutableList<IPaintedElem> = ArrayList()
 
-    private val _bounds: Rectangle
+    private val _bounds: Rectangle = Rectangle(Double.NaN, Double.NaN, 0.0, 0.0)
 
     var bounds: Rectangle
         get() = getBounds(Rectangle(0.0, 0.0, 0.0, 0.0))
@@ -70,7 +70,7 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
                                                                                                              fill) {
         internal val bounds: Rectangle = bounds.copy()
 
-        internal inline fun serializeRect(out: XmlWriter, body: XmlWriter.()-> Unit) {
+        internal inline fun serializeRect(out: XmlWriter, body: XmlWriter.() -> Unit) {
             out.smartStartTag(SVG_NAMESPACE, "rect", null) {
                 writeAttribute("x", bounds.left)
                 writeAttribute("y", bounds.top)
@@ -101,9 +101,9 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     private class FilledRect<M : MeasureInfo> : BaseRect<M> {
 
-        internal constructor(bounds: Rectangle, fill: SVGPen<M>) : super(bounds, null, fill) {}
+        internal constructor(bounds: Rectangle, fill: SVGPen<M>) : super(bounds, null, fill)
 
-        internal constructor(bounds: Rectangle, stroke: SVGPen<M>, fill: SVGPen<M>) : super(bounds, stroke, fill) {}
+        internal constructor(bounds: Rectangle, stroke: SVGPen<M>, fill: SVGPen<M>) : super(bounds, stroke, fill)
 
         override fun serialize(out: XmlWriter) {
             serializeRect(out) {
@@ -121,7 +121,7 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
                                                                                                                stroke,
                                                                                                                fill) {
 
-        inline internal fun serializeRoundRect(out: XmlWriter, body: XmlWriter.() -> Unit) {
+        internal inline fun serializeRoundRect(out: XmlWriter, body: XmlWriter.() -> Unit) {
             serializeRect(out) {
                 writeAttribute("rx", rx)
                 writeAttribute("ry", ry)
@@ -195,11 +195,10 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     private class FilledCircle<M : MeasureInfo> : BaseCircle<M> {
 
-        constructor(x: Double, y: Double, radius: Double, fill: SVGPen<M>) : super(x, y, radius, null, fill) {}
+        constructor(x: Double, y: Double, radius: Double, fill: SVGPen<M>) : super(x, y, radius, null, fill)
 
         constructor(x: Double, y: Double, radius: Double, stroke: SVGPen<M>, fill: SVGPen<M>) : super(x, y, radius,
-                                                                                                      stroke, fill) {
-        }
+                                                                                                      stroke, fill)
 
         override fun serialize(out: XmlWriter) {
             serializeCircle(out)
@@ -285,10 +284,9 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
     //  private SVGPen<M> mRedPen;
     //  private SVGPen<M> mGreenPen;
 
-    constructor(textMeasurer: TextMeasurer<M>) : this(SVGStrategy<M>(textMeasurer)) {}
+    constructor(textMeasurer: TextMeasurer<M>) : this(SVGStrategy<M>(textMeasurer))
 
     init {
-        _bounds = Rectangle(Double.NaN, Double.NaN, 0.0, 0.0)
         // Only for debug purposes
         //    mRedPen = mStrategy.newPen();
         //    mRedPen.setColor(0xff, 0, 0);
@@ -331,7 +329,7 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     override fun drawFilledCircle(x: Double, y: Double, radius: Double, fill: SVGPen<M>) {
         _bounds.top = Double.NaN
-        path.add(FilledCircle<M>(x, y, radius, fill.copy()))
+        path.add(FilledCircle(x, y, radius, fill.copy()))
     }
 
     override fun drawRect(rect: Rectangle, stroke: SVGPen<M>) {
@@ -407,19 +405,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         path.add(r)
     }
 
-    override fun drawPoly(points: DoubleArray, stroke: SVGPen<M>) {
-        drawPoly(points, stroke, null)
-    }
-
-    fun drawPoly(points: DoubleArray, stroke: SVGPen<M>?, fill: SVGPen<M>?) {
+    override fun drawPoly(points: DoubleArray, stroke: SVGPen<M>?, fill: SVGPen<M>?) {
         if (points.size > 1) {
             val path = pointsToPath(points)
             drawPath(path, stroke!!, fill)
         }
-    }
-
-    override fun drawFilledPoly(points: DoubleArray, fill: SVGPen<M>) {
-        drawPoly(points, null, fill)
     }
 
     override fun drawPath(path: SVGPath, stroke: SVGPen<M>, fill: SVGPen<M>?) {
@@ -427,31 +417,42 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         this.path.add(PaintedPath(path, stroke, fill))
     }
 
-    override fun drawText(textPos: Canvas.TextPos, x: Double, y: Double, text: String, foldWidth: Double,
+    override fun drawText(textPos: Canvas.TextPos, left: Double, baselineY: Double, text: String, foldWidth: Double,
                           pen: SVGPen<M>) {
-        val adjustedY: Double
-        if (sUseBaselineAlign) {
-            adjustedY = y
-        } else {
-            adjustedY = adjustToBaseline(textPos, y, pen)
+        val adjustedY = when {
+            sUseBaselineAlign -> baselineY
+            else              -> adjustToBaseline(textPos, baselineY, pen)
         }
+
         _bounds.top = Double.NaN
-        path.add(DrawText<M>(textPos, x, adjustedY, text, foldWidth, pen.copy()))
-        // Only for debug purposes
-        //    mPath.add(new FilledCircle<>(pX, pY, 1d, mGreenPen));
-        //    mPath.add(new FilledCircle<>(pX, y, 1d, mRedPen));
+        path.add(DrawText(textPos, left, adjustedY, text, foldWidth, pen.copy()))
     }
 
     private fun adjustToBaseline(textPos: nl.adaptivity.diagram.Canvas.TextPos, y: Double, pen: SVGPen<M>): Double {
-        when (textPos) {
-            Canvas.TextPos.BASELINELEFT, Canvas.TextPos.BASELINEMIDDLE, Canvas.TextPos.BASELINERIGHT -> return y
-            Canvas.TextPos.BOTTOM, Canvas.TextPos.BOTTOMLEFT, Canvas.TextPos.BOTTOMRIGHT             -> return y - pen.textMaxDescent
-            Canvas.TextPos.DESCENT, Canvas.TextPos.DESCENTLEFT, Canvas.TextPos.DESCENTRIGHT          -> return y - pen.textDescent
-            Canvas.TextPos.LEFT, Canvas.TextPos.MIDDLE, Canvas.TextPos.RIGHT                         -> return y + 0.5 * (pen.textAscent - pen.textDescent)
-            Canvas.TextPos.ASCENT, Canvas.TextPos.ASCENTLEFT, Canvas.TextPos.ASCENTRIGHT             -> return y + pen.textAscent
-            Canvas.TextPos.MAXTOP, Canvas.TextPos.MAXTOPLEFT, Canvas.TextPos.MAXTOPRIGHT             -> return y + pen.textMaxAscent
+        return when (textPos) {
+            Canvas.TextPos.BASELINELEFT,
+            Canvas.TextPos.BASELINEMIDDLE,
+            Canvas.TextPos.BASELINERIGHT -> y
+
+            Canvas.TextPos.BOTTOM,
+            Canvas.TextPos.BOTTOMLEFT,
+            Canvas.TextPos.BOTTOMRIGHT   -> y - pen.textMaxDescent
+
+            Canvas.TextPos.DESCENT,
+            Canvas.TextPos.DESCENTLEFT,
+            Canvas.TextPos.DESCENTRIGHT  -> y - pen.textDescent
+            Canvas.TextPos.LEFT,
+            Canvas.TextPos.MIDDLE,
+            Canvas.TextPos.RIGHT         -> y + 0.5 * (pen.textAscent - pen.textDescent)
+
+            Canvas.TextPos.ASCENT,
+            Canvas.TextPos.ASCENTLEFT,
+            Canvas.TextPos.ASCENTRIGHT   -> y + pen.textAscent
+
+            Canvas.TextPos.MAXTOP,
+            Canvas.TextPos.MAXTOPLEFT,
+            Canvas.TextPos.MAXTOPRIGHT   -> y + pen.textMaxAscent
         }
-        throw IllegalArgumentException()
     }
 
     open fun serialize(out: XmlWriter) {
@@ -486,11 +487,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     companion object {
 
-        val SERIALIZATION_MIN_OFFSET = 0.000001
+        const val SERIALIZATION_MIN_OFFSET = 0.000001
 
-        private val SVG_NAMESPACE = "http://www.w3.org/2000/svg"
+        private const val SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 
-        private val sUseBaselineAlign = false
+        private var sUseBaselineAlign = false
 
         fun serializeStyle(out: XmlWriter, stroke: SVGPen<*>?, fill: SVGPen<*>?, textPos: Canvas.TextPos?) {
             val style = StringBuilder()
@@ -530,23 +531,51 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
             out.attribute(null, "style", null, style.toString())
         }
 
-        private fun toBaseline(textPos: Canvas.TextPos): String {
-            when (textPos) {
-                Canvas.TextPos.BASELINELEFT, Canvas.TextPos.BASELINEMIDDLE, Canvas.TextPos.BASELINERIGHT                                                                      -> return "auto"
-                Canvas.TextPos.DESCENTLEFT, Canvas.TextPos.DESCENT, Canvas.TextPos.DESCENTRIGHT, Canvas.TextPos.BOTTOM, Canvas.TextPos.BOTTOMLEFT, Canvas.TextPos.BOTTOMRIGHT -> return "after-edge"
-                Canvas.TextPos.LEFT, Canvas.TextPos.MIDDLE, Canvas.TextPos.RIGHT                                                                                              -> return "central"
-                Canvas.TextPos.ASCENT, Canvas.TextPos.ASCENTLEFT, Canvas.TextPos.ASCENTRIGHT, Canvas.TextPos.MAXTOP, Canvas.TextPos.MAXTOPLEFT, Canvas.TextPos.MAXTOPRIGHT    -> return "before-edge"
-            }
-            throw IllegalArgumentException()
+        private fun toBaseline(textPos: Canvas.TextPos) = when (textPos) {
+            Canvas.TextPos.BASELINELEFT,
+            Canvas.TextPos.BASELINEMIDDLE,
+            Canvas.TextPos.BASELINERIGHT -> "auto"
+
+            Canvas.TextPos.DESCENTLEFT,
+            Canvas.TextPos.DESCENT,
+            Canvas.TextPos.DESCENTRIGHT,
+            Canvas.TextPos.BOTTOM,
+            Canvas.TextPos.BOTTOMLEFT,
+            Canvas.TextPos.BOTTOMRIGHT   -> "after-edge"
+
+            Canvas.TextPos.LEFT,
+            Canvas.TextPos.MIDDLE,
+            Canvas.TextPos.RIGHT         -> "central"
+
+            Canvas.TextPos.ASCENT,
+            Canvas.TextPos.ASCENTLEFT,
+            Canvas.TextPos.ASCENTRIGHT,
+            Canvas.TextPos.MAXTOP,
+            Canvas.TextPos.MAXTOPLEFT,
+            Canvas.TextPos.MAXTOPRIGHT   -> "before-edge"
         }
 
-        private fun toAnchor(textPos: Canvas.TextPos): String {
-            when (textPos) {
-                Canvas.TextPos.MAXTOPLEFT, Canvas.TextPos.ASCENTLEFT, Canvas.TextPos.DESCENTLEFT, Canvas.TextPos.LEFT, Canvas.TextPos.BASELINELEFT, Canvas.TextPos.BOTTOMLEFT       -> return "start"
-                Canvas.TextPos.MAXTOP, Canvas.TextPos.ASCENT, Canvas.TextPos.DESCENT, Canvas.TextPos.MIDDLE, Canvas.TextPos.BASELINEMIDDLE, Canvas.TextPos.BOTTOM                   -> return "middle"
-                Canvas.TextPos.MAXTOPRIGHT, Canvas.TextPos.ASCENTRIGHT, Canvas.TextPos.DESCENTRIGHT, Canvas.TextPos.RIGHT, Canvas.TextPos.BASELINERIGHT, Canvas.TextPos.BOTTOMRIGHT -> return "end"
-            }
-            throw IllegalArgumentException()
+        private fun toAnchor(textPos: Canvas.TextPos): String = when (textPos) {
+            Canvas.TextPos.MAXTOPLEFT,
+            Canvas.TextPos.ASCENTLEFT,
+            Canvas.TextPos.DESCENTLEFT,
+            Canvas.TextPos.LEFT,
+            Canvas.TextPos.BASELINELEFT,
+            Canvas.TextPos.BOTTOMLEFT  -> "start"
+
+            Canvas.TextPos.MAXTOP,
+            Canvas.TextPos.ASCENT,
+            Canvas.TextPos.DESCENT,
+            Canvas.TextPos.MIDDLE,
+            Canvas.TextPos.BASELINEMIDDLE,
+            Canvas.TextPos.BOTTOM      -> "middle"
+
+            Canvas.TextPos.MAXTOPRIGHT,
+            Canvas.TextPos.ASCENTRIGHT,
+            Canvas.TextPos.DESCENTRIGHT,
+            Canvas.TextPos.RIGHT,
+            Canvas.TextPos.BASELINERIGHT,
+            Canvas.TextPos.BOTTOMRIGHT -> "end"
         }
 
         private fun hasAlpha(color: Int): Boolean {
@@ -555,11 +584,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
         private fun colorToSVGOpacity(color: Int): String {
             val alpha = color.ushr(24).toDouble()
-            return (alpha / 255.0).toString().substring(0,8)
+            return (alpha / 255.0).toString().substring(0, 8)
         }
 
         private fun colorToSVGpaint(color: Int): String {
-            return "#${(color and 0xffffff).toHex().padStart(6,'0')}" // Ignore alpha here
+            return "#${(color and 0xffffff).toHex().padStart(6, '0')}" // Ignore alpha here
         }
 
         private fun pointsToPath(points: DoubleArray): SVGPath {
