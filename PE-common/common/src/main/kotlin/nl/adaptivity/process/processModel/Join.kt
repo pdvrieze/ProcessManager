@@ -30,6 +30,8 @@ interface Join<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, 
 
     val successor: Identifiable?
 
+    val conditions: Map<Identifier, Condition?>
+
     /**
      * Does this join support multi-merge (in other words, is it allowed to fire of new threads after an initial instance
      * has finalised.
@@ -43,6 +45,8 @@ interface Join<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, 
         override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
 
         override var predecessors: MutableSet<Identified>
+
+        var conditions: MutableMap<Identifier, String?>
 
         var successor: Identifiable?
 

@@ -23,15 +23,12 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.ICompactFragmentSerializer
-import nl.adaptivity.xml.serialization.XML
-import nl.adaptivity.xml.serialization.XmlElement
-import nl.adaptivity.xml.serialization.XmlSerialName
+import nl.adaptivity.xml.serialization.*
 
 /** Class to represent data attached to process instances.  */
 @Serializable
 @XmlSerialName(ProcessData.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class ProcessData constructor(override @XmlElement(false) val name: String?,
+class ProcessData constructor(@XmlElement(false) override val name: String?,
                               @Serializable(with = ICompactFragmentSerializer::class)
                               val content: ICompactFragment) : Named, XmlSerializable {
 
@@ -86,22 +83,21 @@ class ProcessData constructor(override @XmlElement(false) val name: String?,
         override fun load(input: KInput): ProcessData {
             var name: String? = null
             lateinit var content: ICompactFragment
-            input.readBegin(serialClassDesc).let { input ->
-                val i = input.readElement(serialClassDesc)
-                while (i != KInput.READ_DONE) {
+            input.readBegin(serialClassDesc) {
+                val i = readElement(serialClassDesc)
+                loop@ while (i != KInput.READ_DONE) {
                     @Suppress("UNCHECKED_CAST")
                     when (i) {
                         KInput.READ_ALL -> throw UnsupportedOperationException()
-                        0               -> name = input.readNullableSerializableElementValue(serialClassDesc, 0,
-                                                                                             StringSerializer as KSerialLoader<String?>)
-                        1               -> if (input is XML.XmlInput) {
-                            content = input.input.siblingsToFragment()
-                        } else {
-                            content = input.readSerializableElementValue(serialClassDesc, 1, ICompactFragmentSerializer)
+                        0               -> name = readNullableSerializableElementValue(serialClassDesc, 0,
+                                                                                       StringSerializer as KSerialLoader<String?>)
+                        1               -> content = when (this) {
+                            is XML.XmlInput -> this.input.siblingsToFragment()
+                            else            -> readSerializableElementValue(serialClassDesc, 1,
+                                                                            ICompactFragmentSerializer)
                         }
                     }
                 }
-                input.readEnd(serialClassDesc)
             }
             return ProcessData(name, content)
         }

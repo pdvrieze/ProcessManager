@@ -16,13 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
-import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.xml.CombiningNamespaceContext
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.*
 
 
 expect abstract class XPathHolder : XMLContainer {
@@ -44,7 +39,8 @@ expect abstract class XPathHolder : XMLContainer {
 
     fun getPath(): String?
 
-    fun setPath(namespaceContext: Iterable<out Namespace>, value: String?)
+    @Deprecated("This should be immutable")
+    fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
     override fun deserializeAttribute(attributeNamespace: String?,
                                       attributeLocalName: String,

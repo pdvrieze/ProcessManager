@@ -48,6 +48,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
         operator fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
                             buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModelBase<NodeT, ModelT>
+
+        fun condition(text: String): Condition
     }
 
     @ProcessModelDSL

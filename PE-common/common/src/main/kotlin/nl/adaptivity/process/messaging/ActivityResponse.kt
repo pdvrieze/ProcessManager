@@ -24,12 +24,16 @@
 
 package nl.adaptivity.process.messaging
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.util.multiplatform.Class
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlSerialName
 
 
 @XmlDeserializer(ActivityResponse.Factory::class)
@@ -38,7 +42,7 @@ import nl.adaptivity.xml.*
  *
  * The ActivityResponse type is a class that helps with process aware methods.
  * When returning this class from a method this signifies to the
- * [SoapHelper] that the method is ProcessAware, and wraps an actual
+ * SoapHelper that the method is ProcessAware, and wraps an actual
  * return value. The activityResponse is communicated through the header.
  *
  *
@@ -73,48 +77,64 @@ import nl.adaptivity.xml.*
  * </complexType>
  * ```
  *
+ * @property nodeInstanceState The state of the task requested.
+ * @property returnType The actual return type of the method.
+ * @property returnValue The value to return.
  *
  * @param T The type of the actual return value returned in the result of the
  * SOAP message.
  */
-class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
+@Serializable
+@XmlSerialName(ActivityResponse.ELEMENTLOCALNAME, ActivityResponse.NAMESPACE, Engine.NSPREFIX)
+class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
 
-    var _returnValue: T? = null
+    private constructor(nodeInstanceState: NodeInstanceState,
+                        returnType: Class<T>,
+                        returnValue: T) {
+        this.nodeInstanceState = nodeInstanceState
+        this.returnType = returnType
+        this._returnValue = returnValue
+    }
+
+    private constructor() {
+        _returnValue = null
+    }
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    @SerialName("taskState")
+    lateinit var nodeInstanceState: NodeInstanceState
+        private set
+
+    @Transient
+    private var _returnValue: T?
+
     /**
-     * Get the actual return value.
-     *
-     * @return The actual return value.
+     * The actual return value.
      */
-    val returnValue: T get() = _returnValue as T
+    @Suppress("UNCHECKED_CAST")
+    @Transient
+    val returnValue
+        get() = _returnValue as T
 
-    var _returnType: Class<T>? = null
     /**
      * Get the embedded return type.
      *
      * @return The embedded return type.
      */
-    val returnType: Class<T> get() = _returnType!!
+    @Transient
+    lateinit var returnType: Class<T>
+        private set
 
-    /**
-     * The value of the underlying process node state taskState property.
-     */
-    var nodeInstanceState: NodeInstanceState? = null
 
     override val elementName: QName
         get() = ELEMENTNAME
 
     /**
-     * Gets the value of the taskState property.
-     *
-     * @return the name of the [NodeInstanceState]
+     * The value of the taskState property as string.
      */
-    /**
-     * Sets the value of the taskState property.
-     *
-     * @param value the new task state.
-     */
-    var taskStateString: String
-        get() = nodeInstanceState!!.name
+    @Transient
+    private var taskStateString: String
+        get() = nodeInstanceState.name
         set(value) {
             nodeInstanceState = NodeInstanceState.valueOf(value)
         }
@@ -126,22 +146,6 @@ class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
         }
     }
 
-    /** Default constructor for jaxb use  */
-    protected constructor() {}
-
-    /**
-     * Create a new ActivityResponse.
-     *
-     * @param nodeInstanceState The state of the task requested.
-     * @param returnType The actual return type of the method.
-     * @param returnValue The value to return.
-     */
-    protected constructor(nodeInstanceState: NodeInstanceState, returnType: Class<T>, returnValue: T) {
-        this.nodeInstanceState = nodeInstanceState
-        _returnType = returnType
-        _returnValue = returnValue
-    }
-
     override fun deserializeChild(reader: XmlReader): Boolean {
         return false
     }
@@ -150,10 +154,12 @@ class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
         return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
-        when (attributeLocalName.toString()) {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
+        when (attributeLocalName) {
             "taskState" -> {
-                taskStateString = attributeValue.toString()
+                taskStateString = attributeValue
                 return true
             }
         }
@@ -166,7 +172,7 @@ class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(ELEMENTNAME) {
-            writeAttribute("taskState", nodeInstanceState?.name)
+            writeAttribute(ATTRTASKSTATE, nodeInstanceState.name)
         }
     }
 
@@ -174,10 +180,10 @@ class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
 
         const val NAMESPACE = ProcessConsts.Engine.NAMESPACE
 
-        val ELEMENTLOCALNAME = "ActivityResponse"
+        const val ELEMENTLOCALNAME = "ActivityResponse"
         val ELEMENTNAME = QName(NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
-        val ATTRTASKSTATE = "taskState"
+        const val ATTRTASKSTATE = "taskState"
 
         /**
          * Static helper factory for creating a new ActivityResponse.
@@ -187,9 +193,9 @@ class ActivityResponse<T: Any?> : XmlSerializable, SimpleXmlDeserializable {
          * @param returnValue The value to return.
          * @return
          */
-        fun <V:Any> create(nodeInstanceState: NodeInstanceState,
-                       returnType: Class<V>,
-                       returnValue: V): ActivityResponse<V> {
+        fun <V : Any> create(nodeInstanceState: NodeInstanceState,
+                             returnType: Class<V>,
+                             returnValue: V): ActivityResponse<V> {
             return ActivityResponse(nodeInstanceState, returnType, returnValue)
         }
 

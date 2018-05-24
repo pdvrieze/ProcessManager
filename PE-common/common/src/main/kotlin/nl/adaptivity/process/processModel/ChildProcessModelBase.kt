@@ -38,6 +38,7 @@ import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
     ProcessModelBase<T, M>, ChildProcessModel<T, M> {
 
+    @Suppress("LeakingThis")
     constructor(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) : super(builder,
                                                                                                                buildHelper.pedantic) {
         this._processNodes = buildNodes(builder, buildHelper.withOwner(asM))
@@ -48,6 +49,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
     }
 
     /* Invalid constructor purely for serialization */
+    @Suppress("UNCHECKED_CAST", "LeakingThis")
     protected constructor(): super(emptyList(), emptyList()) {
         _processNodes = IdentifyableSet.processNodeSet()
         rootModel = XmlProcessModel.Builder().build() as RootProcessModel<T, M>
@@ -130,7 +132,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
                                           attributeValue: String): Boolean {
             return when (attributeLocalName) {
                 ATTR_ID -> {
-                    childId = attributeValue.toString(); true
+                    childId = attributeValue; true
                 }
                 else    -> super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
             }
@@ -149,7 +151,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
     abstract class BaseSerializer<T: ChildProcessModelBase<*,*>>: ProcessModelBase.BaseSerializer<T>() {
 
-        val idIdx by lazy { serialClassDesc.getElementIndexOrThrow(ATTR_ID) }
+        private val idIdx by lazy { serialClassDesc.getElementIndexOrThrow(ATTR_ID) }
 
         override fun writeValues(output: KOutput, obj: T) {
             output.writeNullableStringElementValue(serialClassDesc, idIdx, obj.id)

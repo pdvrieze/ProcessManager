@@ -124,6 +124,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         @XmlDefault("NaN")
         override var y: Double
         override var isMultiInstance: Boolean
+        @Serializable(with = Identifiable.Companion::class)
         override var predecessor: Identifiable? = null
         @Transient
         override var successor: Identifiable? = null

@@ -335,7 +335,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         override val roles: MutableSet<String> = roles.toMutableSet()
 
-        @SerialName(ChildProcessModel.ELEMENTLOCALNAME)
+        @SerialName("childModel")
         override val childModels: MutableList<ChildProcessModel.Builder<NodeT, ModelT>> = childModels.toMutableList()
 
         constructor() : this(nodes = emptyList())
@@ -550,6 +550,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         override fun node(builder: ProcessNode.IBuilder<*, *>): NodeT = nodeFactory.invoke(builder, this)
+
+        override fun condition(text: String): Condition = nodeFactory.condition(text)
 
         override fun iterator() = data.values.asSequence().map { it.invoke() }.iterator()
 

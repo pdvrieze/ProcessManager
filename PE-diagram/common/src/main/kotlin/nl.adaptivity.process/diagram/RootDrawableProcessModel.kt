@@ -28,6 +28,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessNode.Visitor
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.JvmStatic
@@ -398,6 +399,8 @@ object STUB_DRAWABLE_BUILD_HELPER : ProcessModel.BuildHelper<DrawableProcessNode
     }
 
     override fun withOwner(newOwner: DrawableProcessModel?) = this
+
+    override fun condition(text: String) = XmlCondition(text)
 }
 
 object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode, DrawableProcessModel?> {
@@ -430,6 +433,7 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 //    return DrawableChildModel(baseChildBuilder, ownerModel, pedantic)
     }
 
+    override fun condition(text: String) = XmlCondition(text)
 }
 
 

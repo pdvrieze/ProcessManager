@@ -33,12 +33,15 @@ import nl.adaptivity.xml.*
 @Serializable
 abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNodeBase<T, M>, EndNode<T, M> {
 
+    @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: EndNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) :
         super(builder, buildHelper)
 
+    @Suppress("DEPRECATION")
     @Serializable(with = Identifiable.Companion::class)
     override var predecessor: Identified?
         get() = if (predecessors.size == 0) null else predecessors.single()
+        @Deprecated("Use builder")
         set(value) {
             setPredecessors(listOfNotNull(value))
         }
@@ -109,7 +112,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
 
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
-                when (reader.localName.toString()) {
+                when (reader.localName) {
                     "export", XmlDefineType.ELEMENTLOCALNAME -> {
                         defines.add(XmlDefineType.deserialize(reader))
                         return true
@@ -123,7 +126,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
                                           attributeLocalName: String,
                                           attributeValue: String): Boolean {
             if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
-                predecessor = Identifier(attributeValue.toString())
+                predecessor = Identifier(attributeValue)
                 return true
             }
             return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName,

@@ -32,7 +32,7 @@ interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Node
     override fun builder(): Builder<NodeT, ModelT>
 
     @Deprecated("Don't modify nodes directly")
-    fun setDefines(exports: Collection<IXmlDefineType>)
+    fun setDefines(defines: Collection<IXmlDefineType>)
 
     interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
         ProcessNode.IBuilder<NodeT, ModelT> {

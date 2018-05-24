@@ -624,7 +624,6 @@ class TestProcessData {
             assertEquals("ac1", it.refNode)
             assertEquals("name", it.refName)
             assertEquals("mylabel", it.name)
-            assertEquals("http://adaptivity.nl/ProcessEngine/", it.namespaces.getNamespaceURI(""))
         }
     }
 

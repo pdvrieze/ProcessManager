@@ -20,7 +20,6 @@ import kotlinx.serialization.Transient
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.util.multiplatform.JvmName
 
 @DslMarker
 annotation class ProcessModelDSL
@@ -307,6 +306,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
         fun childModel(childId: String): ChildProcessModel<NodeT, ModelT>
         fun node(builder: ProcessNode.IBuilder<*, *>): NodeT
         fun withOwner(newOwner: ModelT): BuildHelper<NodeT, ModelT>
+        fun condition(text: String): Condition
     }
 
     companion object {

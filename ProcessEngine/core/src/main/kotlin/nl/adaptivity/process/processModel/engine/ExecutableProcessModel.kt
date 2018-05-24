@@ -266,4 +266,5 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
         return ExecutableChildModel(baseChildBuilder, buildHelper)
     }
 
+    override fun condition(text: String) = ExecutableCondition(text)
 }

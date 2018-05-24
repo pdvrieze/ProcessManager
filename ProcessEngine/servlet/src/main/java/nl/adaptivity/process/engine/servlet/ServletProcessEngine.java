@@ -906,21 +906,21 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
                         final Document domResult = DomUtil.tryParseXml(result.getInputStream());
                         Element rootNode = domResult.getDocumentElement();
                         // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
-                        if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME
-                                                                                         .equals(rootNode.getLocalName())) {
+                        if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) &&
+                            Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
+
                             final Element header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE,
                                                                          org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
                             if (header != null) {
                                 rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS,
-                                                                 ActivityResponse.Companion.getELEMENTLOCALNAME());
+                                                                 ActivityResponse.ELEMENTLOCALNAME);
                             }
                         }
                         if (rootNode != null) {
                             // If we receive an ActivityResponse, treat that specially.
-                            if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.Companion
-                                                                                                      .getELEMENTLOCALNAME()
-                                                                                                      .equals(rootNode.getLocalName())) {
-                                final String taskStateAttr = rootNode.getAttribute(ActivityResponse.Companion.getATTRTASKSTATE());
+                            if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) &&
+                                ActivityResponse.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
+                                final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
                                 try (TRXXX transaction = mProcessEngine.startTransaction()) {
                                     final NodeInstanceState nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr);
                                     mProcessEngine.updateTaskState(transaction, handle, nodeInstanceState, owner);

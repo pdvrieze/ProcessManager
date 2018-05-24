@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.toString
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.xml.CombiningNamespaceContext
 import nl.adaptivity.xml.*
@@ -29,7 +28,6 @@ import javax.xml.namespace.QName
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
-import kotlin.jvm.Volatile
 
 actual abstract class XPathHolder : XMLContainer {
     /**
@@ -42,6 +40,7 @@ actual abstract class XPathHolder : XMLContainer {
 
     // TODO support a functionresolver
     @Volatile
+    @Transient
     private var path: XPathExpression? = null
         get() {
             field?.let { return it }
@@ -65,7 +64,7 @@ actual abstract class XPathHolder : XMLContainer {
                        content: CharArray?,
                        originalNSContext: Iterable<Namespace>) : super(originalNSContext, content ?: CharArray(0)) {
         _name = name
-        setPath(originalNSContext, path)
+        pathString = path
     }
 
     actual fun getName() = _name ?: throw NullPointerException("Name not set")
@@ -76,12 +75,14 @@ actual abstract class XPathHolder : XMLContainer {
         return pathString
     }
 
-    actual fun setPath(namespaceContext: Iterable<out Namespace>, value: String?) {
+    @Deprecated("This should be immutable")
+    actual fun setPath(namespaceContext: Iterable<Namespace>, value: String?) {
         if (pathString != null && pathString == value) {
             return
         }
         path = null
         pathString = value
+        @Suppress("DEPRECATION")
         updateNamespaceContext(namespaceContext)
         assert(value == null || xPath != null)
     }
@@ -109,9 +110,8 @@ actual abstract class XPathHolder : XMLContainer {
     }
 
     @Throws(XmlException::class)
-    actual
-    override fun deserializeChildren(reader: XmlReader) {
-        val origContext = reader.namespaceContext
+    actual override fun deserializeChildren(reader: XmlReader) {
+
         super.deserializeChildren(reader)
         val namespaces = TreeMap<String, String>()
         val gatheringNamespaceContext = CombiningNamespaceContext(SimpleNamespaceContext.from(originalNSContext),
@@ -147,7 +147,7 @@ actual abstract class XPathHolder : XMLContainer {
     }
 
     @Throws(XmlException::class)
-    protected actual override open fun visitNamespaces(baseContext: NamespaceContext) {
+    actual override fun visitNamespaces(baseContext: NamespaceContext) {
         path = null
         if (pathString != null) {
             visitXpathUsedPrefixes(pathString, baseContext)
@@ -155,7 +155,7 @@ actual abstract class XPathHolder : XMLContainer {
         super.visitNamespaces(baseContext)
     }
 
-    protected actual override open fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence) {
+    actual override fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }

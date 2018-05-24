@@ -167,6 +167,19 @@ public class AndroidCanvas implements IAndroidCanvas {
             }
         }
 
+        @SuppressWarnings("deprecation")
+        @Override
+        public void drawPoly(@NotNull final double[] points, @NotNull final AndroidPen stroke) {
+            drawPoly(points, stroke, null);
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public void drawFilledPoly(@NotNull final double[] points, @NotNull final AndroidPen fill) {
+            drawPoly(points, null, fill);
+        }
+
+
         @Override
         public void drawPoly(@NotNull final double[] points,
                              @org.jetbrains.annotations.Nullable final AndroidPen stroke,
@@ -352,6 +365,18 @@ public class AndroidCanvas implements IAndroidCanvas {
                          @Nullable final AndroidPen fill) {
         if (fill != null) { drawFilledRect(rect, fill); }
         if (stroke != null) { drawRect(rect, stroke); }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void drawPoly(@NotNull final double[] points, @NotNull final AndroidPen stroke) {
+        drawPoly(points, stroke, null);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void drawFilledPoly(@NotNull final double[] points, @NotNull final AndroidPen fill) {
+        drawPoly(points, null, fill);
     }
 
     @Override
