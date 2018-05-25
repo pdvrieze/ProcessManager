@@ -48,7 +48,7 @@ class DarwinRealm : RealmBase(), Lifecycle {
     }
 
     override fun authenticate(username: String, credentials: String): Principal? {
-        log.fine("Authentication requested for username ${username}")
+        log.fine("Authentication requested for username $username")
         accountDb(dataSource) {
             if (verifyCredentials(username, credentials)) {
                 return getDarwinPrincipal(this, username)

@@ -291,7 +291,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
     fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState)
     fun doSkipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
       if (state.isFinal && state!=newState) {
-        throw ProcessException("Attempting to skip a finalised node ${node.id}(${handle}-$entryNo)")
+        throw ProcessException("Attempting to skip a finalised node ${node.id}($handle-$entryNo)")
       }
       state = newState
     }

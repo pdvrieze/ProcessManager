@@ -94,7 +94,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
             context.lookup(resourceName) as DataSource
         } catch (e:NamingException) {
-            System.err.println("Failure to look up name $resourceName in context ${loader}")
+            System.err.println("Failure to look up name $resourceName in context $loader")
             System.err.println("  the context is:")
             loader.print(System.err, "comp", 6)
             throw NamingException("Failure to look up $resourceName").initCause(e)
@@ -195,7 +195,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         val loginPage = this.loginPage
         val decodedRequestURI: String? = request.decodedRequestURI
         if (loginPage != null && decodedRequestURI!=null) {
-            response.sendRedirect("${loginPage}?redirect=${URLEncoder.encode(decodedRequestURI, "utf-8")}")
+            response.sendRedirect("$loginPage?redirect=${URLEncoder.encode(decodedRequestURI, "utf-8")}")
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You need to log in for this page, but no login page is configured")
         }
@@ -225,7 +225,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         }
 
         if (log.isLoggable(Level.FINER)) {
-          log.finer("Authenticated '${principal.name}' with type '${AUTHTYPE}'")
+          log.finer("Authenticated '${principal.name}' with type '$AUTHTYPE'")
         }
 
         // Set the user into the request

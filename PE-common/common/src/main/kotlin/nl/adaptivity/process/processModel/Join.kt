@@ -59,7 +59,7 @@ interface Join<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, 
         fun predecessors(vararg values: Identifiable) {
             values.forEach {
                 predecessors.add(
-                    it.identifier ?: throw NullPointerException("Missing identifier for predecessor ${it}"))
+                    it.identifier ?: throw NullPointerException("Missing identifier for predecessor $it"))
             }
         }
 

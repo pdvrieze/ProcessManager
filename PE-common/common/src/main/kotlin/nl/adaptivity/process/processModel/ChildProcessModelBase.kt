@@ -41,8 +41,8 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
     @Suppress("LeakingThis")
     constructor(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) : super(builder,
                                                                                                                buildHelper.pedantic) {
-        this._processNodes = buildNodes(builder, buildHelper.withOwner(asM))
-        this.rootModel = buildHelper.newOwner?.rootModel
+        modelNodes = buildNodes(builder, buildHelper.withOwner(asM))
+        rootModel = buildHelper.newOwner?.rootModel
             ?: throw IllegalProcessModelException(
             "Childmodels must have roots")
         this.id = builder.childId
@@ -50,17 +50,16 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
     /* Invalid constructor purely for serialization */
     @Suppress("UNCHECKED_CAST", "LeakingThis")
-    protected constructor(): super(emptyList(), emptyList()) {
-        _processNodes = IdentifyableSet.processNodeSet()
+    protected constructor() : super(emptyList(), emptyList()) {
+        modelNodes = IdentifyableSet.processNodeSet()
         rootModel = XmlProcessModel.Builder().build() as RootProcessModel<T, M>
         id = null
-        if (id==null) {// stupid if to make the compiler not complain about uninitialised values
+        if (id == null) {// stupid if to make the compiler not complain about uninitialised values
             throw UnsupportedOperationException("Actually nvoking this constructor is invalid")
         }
     }
 
-
-    override val _processNodes: IdentifyableSet<T>
+    override val modelNodes: IdentifyableSet<T>
 
     @Transient
     override val rootModel: RootProcessModel<T, M>
@@ -84,7 +83,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
 
         @Transient
-        private lateinit var _rootBuilder: RootProcessModel.Builder<T,M>
+        private lateinit var _rootBuilder: RootProcessModel.Builder<T, M>
 
         @Transient
         override val rootBuilder: RootProcessModel.Builder<T, M>
@@ -107,7 +106,8 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
         }
 
         @Transient
-        override val elementName: QName get() = ELEMENTNAME
+        override val elementName: QName
+            get() = ELEMENTNAME
 
         /**
          * When this is overridden and it returns a non-`null` value, it will allow childmodels to be nested in eachother.
@@ -138,18 +138,18 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
             }
         }
 
-        abstract class BaseSerializer<T: ChildProcessModelBase.Builder<*,*>>: ProcessModelBase.Builder.BaseSerializer<T>() {
+        abstract class BaseSerializer<T : ChildProcessModelBase.Builder<*, *>> : ProcessModelBase.Builder.BaseSerializer<T>() {
             override fun readElement(result: T, input: KInput, index: Int) {
                 when (serialClassDesc.getElementName(index)) {
                     ATTR_ID -> result.childId = input.readNullableString(serialClassDesc, index)
-                    else -> super.readElement(result, input, index)
+                    else    -> super.readElement(result, input, index)
                 }
             }
         }
 
     }
 
-    abstract class BaseSerializer<T: ChildProcessModelBase<*,*>>: ProcessModelBase.BaseSerializer<T>() {
+    abstract class BaseSerializer<T : ChildProcessModelBase<*, *>> : ProcessModelBase.BaseSerializer<T>() {
 
         private val idIdx by lazy { serialClassDesc.getElementIndexOrThrow(ATTR_ID) }
 
@@ -169,7 +169,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
         fun serialClassDesc(name: String): SerialClassDescImpl {
             return SerialClassDescImpl(name).apply {
-                addField(ChildProcessModelBase<*,*>::id)
+                addField(ChildProcessModelBase<*, *>::id)
                 addFields(ProcessModelBase.serialClassDesc)
             }
         }

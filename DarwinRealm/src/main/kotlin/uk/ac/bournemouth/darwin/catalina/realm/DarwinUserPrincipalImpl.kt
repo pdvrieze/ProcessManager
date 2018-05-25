@@ -75,7 +75,7 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
         return result.toString()
     }
 
-    override fun getEmail() = "${name}@${DOMAIN}"
+    override fun getEmail() = "$name@$DOMAIN"
 
     override fun isAdmin()= hasRole("admin")
 

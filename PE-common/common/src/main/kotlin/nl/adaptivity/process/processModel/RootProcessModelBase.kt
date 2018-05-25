@@ -25,7 +25,10 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.*
-import nl.adaptivity.process.util.*
+import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.addField
 import nl.adaptivity.util.addFields
 import nl.adaptivity.util.multiplatform.*
@@ -34,11 +37,6 @@ import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlDefault
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
-
-/**
- * Created by pdvrieze on 21/11/15.
- */
-typealias ProcessModelHandle<M> = ComparableHandle<M>
 
 abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
     ProcessModelBase<NodeT, ModelT>,
@@ -58,17 +56,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         get() = _handle
 
     /**
-     * Set the owner of a model
-     * @param owner
+     * The owner of a model
      */
-    @Transient
-    private var _owner: Principal = SYSTEMPRINCIPAL
-
-    override var owner: Principal
-        get() = _owner
-        set(value) {
-            _owner = value
-        }
+    final override var owner: Principal = SYSTEMPRINCIPAL
 
     @SerialName("roles")
     private var _roles: MutableSet<String> = ArraySet()
@@ -84,18 +74,18 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     override val childModels: Collection<ChildProcessModelBase<NodeT, ModelT>> get() = _childModels
 
     @Transient
-    private val _childModels: IdentifyableSet<out ChildProcessModelBase<NodeT, ModelT>>
+    private val _childModels: IdentifyableSet<ChildProcessModelBase<NodeT, ModelT>>
 
     @Transient
-    override final val _processNodes: MutableIdentifyableSet<NodeT>
+    private val _processNodes: MutableIdentifyableSet<NodeT>
 
     /**
      * Get an array of all process nodes in the model. Used by XmlProcessModel
      *
      * @return An array of all nodes.
      */
-    override val modelNodes: List<NodeT>
-        get() = _processNodes.toUnmodifyableList()
+    override val modelNodes: IdentifyableSet<NodeT>
+        get() = _processNodes.readOnly()
 
     constructor(builder: RootProcessModel.Builder<*, *>,
                 nodeFactory: NodeFactory<NodeT, ModelT>,
@@ -107,7 +97,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         this._name = builder.name
         this._handle = builder.handle
-        this._owner = builder.owner
+        this.owner = builder.owner
         this._roles = builder.roles.toMutableArraySet()
         this.uuid = builder.uuid
     }
@@ -115,12 +105,13 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     /**
      * Constructor only provided to allow for serialization
      */
+    @Suppress("unused")
     protected constructor() : super(emptyList(), emptyList()) {
         this._childModels = IdentifyableSet.processNodeSet()
         this._processNodes = IdentifyableSet.processNodeSet()
         this._name = null
         this._handle = -1L
-        this._owner = SYSTEMPRINCIPAL
+        this.owner = SYSTEMPRINCIPAL
         this._roles = ArraySet()
         this.uuid = null
     }
@@ -148,13 +139,13 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         } else {
             out.smartStartTag(ELEMENTNAME) {
                 writeAttribute("name", name)
-                writeAttribute("owner", _owner.getName())
+                writeAttribute("owner", owner.getName())
 
                 if (_roles.isNotEmpty()) {
                     writeAttribute(ATTR_ROLES, roles.joinToString(","))
                 }
                 if (uuid != null) {
-                    writeAttribute("uuid", uuid!!.toString())
+                    writeAttribute("uuid", uuid.toString())
                 }
                 ignorableWhitespace("\n  ")
                 writeChildren(imports)
@@ -187,7 +178,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     /**
      * Get the handle recorded for this model.
      */
-    override fun getHandle(): Handle<out RootProcessModelBase<NodeT, ModelT>> {
+    override fun getHandle(): Handle<RootProcessModelBase<NodeT, ModelT>> {
         return handle(handle = _handle)
     }
 
@@ -227,7 +218,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         if (_name != other._name) return false
         if (_handle != other._handle) return false
-        if (_owner != other._owner) return false
+        if (owner != other.owner) return false
         if (_roles != other._roles) return false
         if (uuid != other.uuid) return false
         if (_childModels != other._childModels) return false
@@ -240,7 +231,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         var result = super.hashCode()
         result = 31 * result + (_name?.hashCode() ?: 0)
         result = 31 * result + _handle.hashCode()
-        result = 31 * result + _owner.hashCode()
+        result = 31 * result + owner.hashCode()
         result = 31 * result + _roles.hashCode()
         result = 31 * result + (uuid?.hashCode() ?: 0)
         result = 31 * result + _childModels.hashCode()
@@ -249,24 +240,25 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     }
 
     override fun toString(): String {
-        return "RootProcessModelBase(_name=$_name, _handle=$_handle, _owner=$_owner, _roles=$_roles, uuid=$uuid, _childModels=$_childModels, _processNodes=$_processNodes) ${super.toString()}"
+        return "RootProcessModelBase(name=$_name, handle=$_handle, owner=$owner, roles=$_roles, uuid=$uuid, childModels=$_childModels, processNodes=$_processNodes) ${super.toString()}"
     }
 
 
     abstract class BaseSerializer<T : RootProcessModelBase<*, *>> : ProcessModelBase.BaseSerializer<T>() {
-        val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
-        val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
-        val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
-        val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
-        val handleIdx  by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
-        val childModelIdx  by lazy { serialClassDesc.getElementIndexOrThrow("childModel") }
+        private val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
+        private val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
+        private val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
+        private val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
+        private val handleIdx  by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
+        private val childModelIdx  by lazy { serialClassDesc.getElementIndexOrThrow("childModel") }
 
-        abstract protected val childModelSerializer: KSerializer<ChildProcessModel<*,*>>
+        protected abstract val childModelSerializer: KSerializer<ChildProcessModel<*,*>>
 
         override fun save(output: KOutput, obj: T) {
             if (obj.modelNodes.any { it.id == null }) {
                 val builder = obj.builder()
-                val rebuilt = builder.build().asM
+                val rebuilt = builder.build()
+                @Suppress("UNCHECKED_CAST")
                 super.save(output, rebuilt as T)
             } else {
                 super.save(output, obj)
@@ -274,14 +266,15 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         override fun writeValues(output: KOutput, obj: T) {
-            output.writeNullableStringElementValue(serialClassDesc, nameIdx, obj.name)
-            output.writeStringElementValue(serialClassDesc, ownerIdx, obj.owner.getName())
-            if (obj.handleValue>=0) output.writeLongElementValue(serialClassDesc, handleIdx, obj.handleValue)
+            val desc = serialClassDesc
+            output.writeNullableStringElementValue(desc, nameIdx, obj.name)
+            output.writeStringElementValue(desc, ownerIdx, obj.owner.getName())
+            if (obj.handleValue>=0) output.writeLongElementValue(desc, handleIdx, obj.handleValue)
 
             val rolesString = if (obj.roles.isEmpty()) null else obj.roles.joinToString(",")
-            output.writeNullableStringElementValue(serialClassDesc, rolesIdx, rolesString)
-            output.writeNullableStringElementValue(serialClassDesc, uuidIdx, obj.uuid?.toString())
-            output.writeSerializableElementValue(serialClassDesc, childModelIdx, childModelSerializer.list, obj._childModels)
+            output.writeNullableStringElementValue(desc, rolesIdx, rolesString)
+            output.writeNullableStringElementValue(desc, uuidIdx, obj.uuid?.toString())
+            output.writeSerializableElementValue(desc, childModelIdx, childModelSerializer.list, obj._childModels)
 
             super.writeValues(output, obj)
         }
@@ -304,11 +297,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         const val ELEMENTLOCALNAME = "processModel"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
         const val ATTR_ROLES = "roles"
-        const val ATTR_NAME = "name"
-
-        private fun getOrDefault(map: Map<String, Int>, key: String, defaultValue: Int): Int {
-            return map[key] ?: defaultValue
-        }
 
         @Throws(XmlException::class)
         @JvmStatic
@@ -364,7 +352,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
             }
         }
 
-        override abstract fun build(pedantic: Boolean): RootProcessModelBase<NodeT, ModelT>
+        abstract override fun build(pedantic: Boolean): RootProcessModelBase<NodeT, ModelT>
 
         @Transient
         override val elementName: QName
@@ -377,13 +365,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         override fun deserializeAttribute(attributeNamespace: String?,
                                           attributeLocalName: String,
                                           attributeValue: String): Boolean {
-            val value = attributeValue
             when (attributeLocalName) {
-                "name"                      -> name = value
-                "owner"                     -> owner = SimplePrincipal(value)
-                RootProcessModel.ATTR_ROLES -> roles.replaceBy(value.split(" *, *".toRegex()).filter(String::isEmpty))
-                "uuid"                      -> uuid = value.toUUID()
-                else                        -> return false
+                "name"  -> name = attributeValue
+                "owner" -> owner = SimplePrincipal(attributeValue)
+                "roles" -> roles.replaceBy(attributeValue.split(" *, *".toRegex()).filter(String::isEmpty))
+                "uuid"  -> uuid = attributeValue.toUUID()
+                else    -> return false
             }
             return true
         }
@@ -403,12 +390,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         abstract class BaseSerializer<T : RootProcessModelBase.Builder<*, *>> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
-            val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
-            val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
-            val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
-            val handleIdx by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
-            val childModelsIdx by lazy { serialClassDesc.getElementIndexOrThrow(ChildProcessModel.ELEMENTLOCALNAME) }
+            private val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
+            private val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
+            private val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
+            private val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
+            private val handleIdx by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
+            private val childModelsIdx by lazy { serialClassDesc.getElementIndexOrThrow(ChildProcessModel.ELEMENTLOCALNAME) }
 
             override fun readElement(result: T, input: KInput, index: Int) {
                 when (index) {
@@ -422,10 +409,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
                     }
                     uuidIdx        -> result.uuid = input.readNullableString(serialClassDesc, index)?.toUUID()
                     childModelsIdx -> {
+                        @Suppress("UNCHECKED_CAST")
                         val newList = input.updateSerializableElementValue(serialClassDesc,
                                                                            index,
                                                                            XmlChildModel.Builder.serializer().list,
                                                                            result.childModels as List<XmlActivity.ChildModelBuilder>)
+                        @Suppress("UNCHECKED_CAST")
                         (result.childModels as MutableList<ChildProcessModel.Builder<XmlProcessNode, XmlModelCommon>>).replaceBy(newList)
                     }
                     else           -> super.readElement(result, input, index)
@@ -509,16 +498,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         private val data: LinkedHashMap<String?, Node>
 
-        private constructor(nodeFactory: NodeFactory<NodeT, ModelT>,
-                            pedantic: Boolean,
-                            newOwner: ModelT,
-                            data: LinkedHashMap<String?, ChildModelProvider<NodeT, ModelT>.Node>) {
-            this.nodeFactory = nodeFactory
-            this.pedantic = pedantic
-            this.newOwner = newOwner
-            this.data = data
-        }
-
         constructor(childModelBuilders: List<ChildProcessModel.Builder<*, *>>,
                     nodeFactory: NodeFactory<NodeT, ModelT>,
                     pedantic: Boolean,
@@ -538,7 +517,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         override fun withOwner(newOwner: ModelT): ProcessModel.BuildHelper<NodeT, ModelT> {
-            return ChildModelProvider<NodeT, ModelT>(this, newOwner)
+            return ChildModelProvider(this, newOwner)
         }
 
         @Deprecated("Use the childModel method", ReplaceWith("childModel(id)"))
@@ -546,7 +525,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         override fun childModel(childId: String): ChildProcessModel<NodeT, ModelT> {
             return data[childId]?.invoke() ?: throw IllegalProcessModelException(
-                "No child model with id ${childId} exists")
+                "No child model with id $childId exists")
         }
 
         override fun node(builder: ProcessNode.IBuilder<*, *>): NodeT = nodeFactory.invoke(builder, this)
@@ -555,17 +534,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         override fun iterator() = data.values.asSequence().map { it.invoke() }.iterator()
 
-        private inner class Node {
-            constructor(builder: ChildProcessModel.Builder<*, *>) {
-                this.builder = builder
-            }
+        private inner class Node(builder: ChildProcessModel.Builder<*, *>) {
 
-            constructor(model: ChildProcessModelBase<NodeT, ModelT>) {
-                builder = null
-                this.model = model
-            }
-
-            var builder: ChildProcessModel.Builder<*, *>?
+            var builder: ChildProcessModel.Builder<*, *>? = builder
             var model: ChildProcessModelBase<NodeT, ModelT>? = null
 
             operator fun invoke(): ChildProcessModelBase<NodeT, ModelT> {

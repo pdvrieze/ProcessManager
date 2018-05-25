@@ -67,11 +67,11 @@ fun forgetClicked(event: Event) {
 
 fun forget(event: MouseEvent, keyId: Int) {
   val request = XMLHttpRequest().apply {
-    open("GET", "${accountsLoc}/forget?keyid=${encodeURI(keyId.toString())}")
+    open("GET", "$accountsLoc/forget?keyid=${encodeURI(keyId.toString())}")
     onload = {
       (event.target as Element).parentElement?.parentElement?.remove()
     }
-    onerror = { error("Could forget authorization: ${statusText} ($status)") }
+    onerror = { error("Could forget authorization: $statusText ($status)") }
   }
   try {
     request.send()

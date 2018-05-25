@@ -112,7 +112,7 @@ data class RestMethodInfo(val method:MethodDoc, val annotation:AnnotationDesc) {
         query?.let{addAll(it)}
         get?.let{addAll(it)}
       }.toList().sorted()
-      return allParams.joinToString("&","${path}?") { "$it" }
+      return allParams.joinToString("&","$path?") { "$it" }
     }
 }
 

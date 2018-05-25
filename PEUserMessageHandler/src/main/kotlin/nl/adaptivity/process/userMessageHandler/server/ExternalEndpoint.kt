@@ -24,8 +24,8 @@ import nl.adaptivity.messaging.MessagingRegistry
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.rest.annotations.HttpMethod
+import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.multiplatform.URI
@@ -152,7 +152,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
                      @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask {
     mService.inTransaction {
       return commit { getPendingTask(handle(handle= java.lang.Long.parseLong(handle)),
-                                     user) } ?: throw FileNotFoundException("The task with handle ${handle} does not exist")
+                                     user) } ?: throw FileNotFoundException("The task with handle $handle does not exist")
     }
   }
 
