@@ -40,7 +40,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     @SerialName("name")
     private var _name: String? = null
 
-    private val childId: String? get() = childModel?.id
+    val childId: String? get() = childModel?.id
 
     @Transient
     override val childModel: ChildProcessModel<NodeT, ModelT>?

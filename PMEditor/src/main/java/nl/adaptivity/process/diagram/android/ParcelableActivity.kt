@@ -42,6 +42,9 @@ class ParcelableActivity(builder: Activity.Builder<*, *>,
 
     private constructor(source: Parcel) : this(fromParcel(source))
 
+    final override fun copy(): ParcelableActivity {
+        return ParcelableActivity(builder())
+    }
 
     fun getUserTask(): EditableUserTask? {
         val message = XmlMessage.from(message)

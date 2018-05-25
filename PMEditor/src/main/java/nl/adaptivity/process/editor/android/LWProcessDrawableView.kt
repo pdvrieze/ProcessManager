@@ -14,33 +14,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.process.editor.android
 
-import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.diagram.android.IAndroidCanvas;
-import nl.adaptivity.diagram.android.LWDrawableView;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.IDrawableProcessNode;
+import nl.adaptivity.diagram.Rectangle
+import nl.adaptivity.diagram.android.IAndroidCanvas
+import nl.adaptivity.diagram.android.LWDrawableView
+import nl.adaptivity.process.diagram.DrawableProcessNode
 
 
 /**
  * A lightweight drawable view that adds label drawing for process nodes.
  * Created by pdvrieze on 10/01/16.
  */
-public class LWProcessDrawableView extends LWDrawableView {
+class LWProcessDrawableView(item: DrawableProcessNode.Builder<*>) : LWDrawableView(item) {
+    override val item get() = super.item as DrawableProcessNode.Builder<*>
 
-  public LWProcessDrawableView(final DrawableProcessNode.Builder item) {
-    super(item);
-  }
+    override fun onDraw(androidCanvas: IAndroidCanvas, clipBounds: Rectangle?) {
+        super.onDraw(androidCanvas, clipBounds)
+        item.drawLabel(androidCanvas, clipBounds, 0.0, 0.0)
+    }
 
-  @Override
-  public DrawableProcessNode.Builder getItem() {
-    return (DrawableProcessNode.Builder) super.getItem();
-  }
-
-  @Override
-  protected void onDraw(final IAndroidCanvas androidCanvas, final Rectangle clipBounds) {
-    super.onDraw(androidCanvas, clipBounds);
-    getItem().drawLabel(androidCanvas, clipBounds, 0, 0);
-  }
 }

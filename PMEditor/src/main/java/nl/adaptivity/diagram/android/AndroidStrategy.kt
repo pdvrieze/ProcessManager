@@ -14,33 +14,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.diagram.android;
+package nl.adaptivity.diagram.android
 
-import android.graphics.Canvas;
-import android.graphics.RectF;
-import nl.adaptivity.diagram.Theme;
+import android.graphics.Paint
+import nl.adaptivity.diagram.DrawingStrategy
 
-/** An interface for a lightweight view. */
-public interface LightView {
+enum class AndroidStrategy : DrawingStrategy<AndroidStrategy, AndroidPen, AndroidPath> {
+    INSTANCE;
 
-  void setFocussed(boolean focussed);
+    override fun newPen(): AndroidPen {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            strokeCap = Paint.Cap.SQUARE
+            isAntiAlias = true
+        }
+        return AndroidPen(paint)
+    }
 
-  boolean isFocussed();
-
-  void setSelected(boolean selected);
-
-  boolean isSelected();
-
-  void setTouched(boolean touched);
-
-  boolean isTouched();
-
-  void getBounds(RectF target);
-
-  void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale);
-
-  void setActive(boolean active);
-
-  boolean isActive();
+    override fun newPath(): AndroidPath {
+        return AndroidPath()
+    }
 
 }

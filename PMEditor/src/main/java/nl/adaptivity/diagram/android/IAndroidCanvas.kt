@@ -14,20 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.diagram.android;
+package nl.adaptivity.diagram.android
 
-import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
+import android.graphics.Bitmap
 
 
-public interface IAndroidCanvas extends nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath>{
-  @NonNull
-  IAndroidCanvas scale(double scale);
-  @NonNull
-  IAndroidCanvas translate(double dx, double dy);
-  @NonNull
-  @Override
-  IAndroidCanvas childCanvas(final double offsetX, final double offsetY, double scale);
+interface IAndroidCanvas : nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> {
+    fun scale(scale: Double): IAndroidCanvas
+    fun translate(dx: Double, dy: Double): IAndroidCanvas
+    override fun childCanvas(offsetX: Double, offsetY: Double, scale: Double): IAndroidCanvas
 
-  void drawBitmap(double left, double top, Bitmap bitmap, AndroidPen pen);
+    fun drawBitmap(left: Double, top: Double, bitmap: Bitmap, pen: AndroidPen)
 }

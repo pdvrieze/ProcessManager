@@ -209,7 +209,7 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
     }
 
     private class PaintedPath<M : MeasureInfo>(internal val path: SVGPath,
-                                               internal val stroke: SVGPen<M>,
+                                               internal val stroke: SVGPen<M>?,
                                                internal val fill: SVGPen<M>?) : IPaintedElem {
 
         override fun serialize(out: XmlWriter) {
@@ -408,11 +408,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
     override fun drawPoly(points: DoubleArray, stroke: SVGPen<M>?, fill: SVGPen<M>?) {
         if (points.size > 1) {
             val path = pointsToPath(points)
-            drawPath(path, stroke!!, fill)
+            drawPath(path, stroke, fill)
         }
     }
 
-    override fun drawPath(path: SVGPath, stroke: SVGPen<M>, fill: SVGPen<M>?) {
+    override fun drawPath(path: SVGPath, stroke: SVGPen<M>?, fill: SVGPen<M>?) {
         _bounds.top = Double.NaN
         this.path.add(PaintedPath(path, stroke, fill))
     }

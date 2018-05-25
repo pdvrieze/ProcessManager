@@ -33,7 +33,6 @@
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:supportsRtl="true"
-            android:name="nl.adaptivity.xml.XmlApplication"
             android:theme="@style/AppTheme" tools:ignore="AllowBackup">
         <activity
                 android:name=".PMEditor"

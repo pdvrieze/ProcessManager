@@ -30,7 +30,7 @@ val kotlinVersion get() = `kotlin_version`
 
 dependencies {
     implementation(kotlin("stdlib", kotlinVersion))
-    implementation(project(":PE-common:android"))
+    api(project(":PE-common:android"))
     implementation(project(":multiplatform:android"))
     api(project(":xmlutil:android"))
     api(project(":java-common:android"))

@@ -34,7 +34,7 @@ class SVGPath : DiagramPath<SVGPath> {
 
         fun appendPathSpecTo(builder: Appendable)
 
-        fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>)
+        fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>?)
     }
 
     private abstract class OperTo(override val x: Double, override val y: Double) : IPathElem
@@ -45,7 +45,7 @@ class SVGPath : DiagramPath<SVGPath> {
             builder.append("M").append(x).append(' ').append(y).append(' ')
         }
 
-        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>) {
+        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>?) {
             storage[x, y, 0.0] = 0.0
         }
     }
@@ -56,9 +56,9 @@ class SVGPath : DiagramPath<SVGPath> {
             builder.append("L").append(x).append(' ').append(y).append(' ')
         }
 
-        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>) {
+        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>?) {
             // TODO this is not valid as it does not consider miters, nor does it support link closing
-            val sw = stroke.strokeWidth
+            val sw = stroke?.strokeWidth ?: 0.0
             if (sw.isFinite() && sw > 0.0) {
                 val hsw = sw / 2
                 val height = y - previous.y
@@ -89,8 +89,8 @@ class SVGPath : DiagramPath<SVGPath> {
         }
 
 
-        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>) {
-            val hsw = stroke.strokeWidth / 2
+        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>?) {
+            val hsw = stroke?.run { strokeWidth / 2 } ?: 0.0
             val previousX = previous.x
             val previousY = previous.y
 
@@ -142,7 +142,7 @@ class SVGPath : DiagramPath<SVGPath> {
                 }
             }
 
-            storage[left - hsw, top - hsw, right - left + stroke.strokeWidth] = bottom - top + stroke.strokeWidth
+            storage[left - hsw, top - hsw, right - left + hsw*2] = bottom - top + hsw*2
 
         }
 
@@ -161,7 +161,7 @@ class SVGPath : DiagramPath<SVGPath> {
             builder.append("Z ")
         }
 
-        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>) {
+        override fun getBounds(storage: Rectangle, previous: IPathElem, stroke: Pen<*>?) {
             storage[previous.x, previous.y, 0.0] = 0.0
         }
     }
@@ -192,10 +192,11 @@ class SVGPath : DiagramPath<SVGPath> {
         }
     }
 
-    override fun getBounds(dest: Rectangle, stroke: Pen<*>): Rectangle {
+    override fun getBounds(dest: Rectangle, stroke: Pen<*>?): Rectangle {
         if (path.size == 1) {
             val elem = path.get(0)
-            dest[elem.x - stroke.strokeWidth / 2, elem.y - stroke.strokeWidth / 2, stroke.strokeWidth] = stroke.strokeWidth
+            val strokeWidth = stroke?.strokeWidth ?: 0.0
+            dest[elem.x - strokeWidth / 2, elem.y - strokeWidth / 2, strokeWidth] = strokeWidth
         } else if (path.size > 1) {
             val tmpRect = Rectangle(0.0, 0.0, 0.0, 0.0)
             path.get(1).getBounds(dest, path.get(0), stroke)

@@ -131,7 +131,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
     }
 
     override fun copy(): IDrawableProcessNode {
-        if (isTypeOf<DrawableActivity>(this)) throw UnsupportedOperationException("Copy must be overridden at the leaf")
+        if (!isTypeOf<DrawableActivity>(this)) throw UnsupportedOperationException("Copy must be overridden at the leaf")
         return builder().build()
     }
 

@@ -70,5 +70,5 @@ interface DiagramPath<PATH_T : DiagramPath<PATH_T>> {
      * @param stroke The pen that represents the stroke to use.
      * @return The bounds of the path
      */
-    fun getBounds(dest: Rectangle, stroke: Pen<*>): Rectangle
+    fun getBounds(dest: Rectangle, stroke: Pen<*>?): Rectangle
 }
