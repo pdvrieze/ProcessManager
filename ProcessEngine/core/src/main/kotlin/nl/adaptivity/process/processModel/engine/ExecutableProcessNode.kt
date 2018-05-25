@@ -27,7 +27,6 @@ import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import java.sql.SQLException
@@ -85,12 +84,14 @@ interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableM
    * Should this node be able to be provided?
    * @param engineData
    *
+   * @param The predecessor that is evaluating the condition
+   *
    * @param instance The instance against which the condition should be evaluated.
    *
    * @return `true` if the node can be started, `false` if
    *          not.
    */
-  fun condition(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
+  fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
 
   /**

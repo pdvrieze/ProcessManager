@@ -34,6 +34,6 @@ interface IProcessNodeInstance {
   val  state: NodeInstanceState
   fun  builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*,*>
 
-  fun condition(engineData: ProcessEngineDataAccess) = node.condition(engineData, this)
+  fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance) = node.condition(engineData, predecessor, this)
 
 }

@@ -56,7 +56,7 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
                                                   processInstanceBuilder.owner,
                                                   entryNo)
 
-  override fun condition(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance) = ConditionResult.TRUE
+  override fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance) = ConditionResult.TRUE
 
   override fun provideTask(engineData: ProcessEngineDataAccess,
                            instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true

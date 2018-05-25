@@ -166,7 +166,8 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     if (committedCount>=node.max) break // stop the loop when we are at the maximum successor count
 
     if (successorNode is Join<*, *>) {
-      throw IllegalStateException("Splits cannot be immediately followed by joins")
+        if (successorNode.conditions[node.identifier]==null)
+            throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
     }
     // Don't attempt to create an additional instance for a non-multi-instance successor
     if (! successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node==successorNode && !it.state.isSkipped && it.entryNo!=entryNo }.count()>0) continue
@@ -175,7 +176,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     processInstanceBuilder.storeChild(successorBuilder)
     if (successorBuilder.state == NodeInstanceState.Pending) {
       // temporaryly build a node to evaluate the condition against, but don't register it.
-      val conditionResult = successorBuilder.build().run { condition(engineData) }
+      val conditionResult = successorBuilder.build().run { condition(engineData, this) }
       when (conditionResult) {
         ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
           successorBuilder.provideTask(engineData)

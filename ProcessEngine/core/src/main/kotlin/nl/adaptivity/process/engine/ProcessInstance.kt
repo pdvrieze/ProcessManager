@@ -25,7 +25,6 @@ import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.*
-import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.writeHandleAttr
@@ -188,7 +187,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo )
 
         nonRegisteredNodeInstance.predecessors.add(predecessor.handle())
-        val conditionResult = nonRegisteredNodeInstance.condition(engineData)
+        val conditionResult = nonRegisteredNodeInstance.condition(engineData, predecessor)
         if (conditionResult == ConditionResult.NEVER) {
           nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
           storeChild(nonRegisteredNodeInstance)

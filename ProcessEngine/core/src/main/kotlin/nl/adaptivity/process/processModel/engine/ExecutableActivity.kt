@@ -130,7 +130,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
     /**
      * Determine whether the process can start.
      */
-    override fun condition(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult {
+    override fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance): ConditionResult {
         return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
     }
 

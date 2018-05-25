@@ -67,10 +67,17 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
     return null to candidateNo
   }
 
-  override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
-                                     processInstanceBuilder: ProcessInstance.Builder,
-                                     predecessor: IProcessNodeInstance,
-                                     entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    override fun condition(engineData: ProcessEngineDataAccess,
+                           predecessor: IProcessNodeInstance,
+                           instance: IProcessNodeInstance): ConditionResult {
+        val condition = conditions[predecessor.node.identifier] as ExecutableCondition?
+        return condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
+    }
+
+    override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
+                                       processInstanceBuilder: ProcessInstance.Builder,
+                                       predecessor: IProcessNodeInstance,
+                                       entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
     val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo)
     existingInstance?.let { return it }
 
