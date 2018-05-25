@@ -69,21 +69,21 @@ class EndpointDescriptorImpl(serviceName: QName?,
     override fun deserializeAttribute(attributeNamespace: String?,
                                       attributeLocalName: String,
                                       attributeValue: String): Boolean {
-        when (attributeLocalName.toString()) {
+        when (attributeLocalName) {
             "endpointLocation" -> {
-                endpointLocation = createUri(attributeValue.toString())
+                endpointLocation = createUri(attributeValue)
                 return true
             }
             "endpointName"     -> {
-                endpointName = attributeValue.toString()
+                endpointName = attributeValue
                 return true
             }
             "serviceLocalName" -> {
-                serviceLocalName = attributeValue.toString()
+                serviceLocalName = attributeValue
                 return true
             }
             "serviceNS"        -> {
-                serviceNamespace = attributeValue.toString()
+                serviceNamespace = attributeValue
                 return true
             }
         }

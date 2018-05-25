@@ -119,8 +119,8 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
   override fun deserializeAttribute(attributeNamespace: String?,
                                     attributeLocalName: String,
                                     attributeValue: String): Boolean {
-    val attrString = attributeValue.toString()
-    when (attributeLocalName.toString()) {
+    val attrString = attributeValue
+    when (attributeLocalName) {
       "state"          -> {
         state = NodeInstanceState.valueOf(attrString)
         return true
@@ -142,7 +142,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
         return true
       }
       "owner"          -> {
-        owner = attributeValue.let { SimplePrincipal(it.toString()) }
+        owner = attributeValue.let { SimplePrincipal(it) }
         return true
       }
     }

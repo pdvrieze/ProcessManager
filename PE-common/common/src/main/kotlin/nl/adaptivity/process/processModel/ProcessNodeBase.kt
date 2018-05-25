@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
-import net.devrieze.util.ArraySet
-import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.collection.replaceByNotNull
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xml.*
@@ -542,8 +542,8 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
                                           attributeLocalName: String,
                                           attributeValue: String): Boolean {
             if (XMLConstants.NULL_NS_URI == attributeNamespace) {
-                val value = attributeValue.toString()
-                when (attributeLocalName.toString()) {
+                val value = attributeValue
+                when (attributeLocalName) {
                     "id"    -> id = value
                     "label" -> label = value
                     "x"     -> x = value.toDouble()

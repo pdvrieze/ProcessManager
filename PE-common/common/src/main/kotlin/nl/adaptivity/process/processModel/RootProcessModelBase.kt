@@ -336,7 +336,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         override val roles: MutableSet<String> = roles.toMutableSet()
 
         @SerialName("childModel")
-        override val childModels: MutableList<ChildProcessModel.Builder<NodeT, ModelT>> = childModels.toMutableList()
+        final override val childModels: MutableList<ChildProcessModel.Builder<NodeT, ModelT>> = childModels.toMutableList()
 
         constructor() : this(nodes = emptyList())
 
@@ -377,8 +377,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         override fun deserializeAttribute(attributeNamespace: String?,
                                           attributeLocalName: String,
                                           attributeValue: String): Boolean {
-            val value = attributeValue.toString()
-            when (attributeLocalName.toString()) {
+            val value = attributeValue
+            when (attributeLocalName) {
                 "name"                      -> name = value
                 "owner"                     -> owner = SimplePrincipal(value)
                 RootProcessModel.ATTR_ROLES -> roles.replaceBy(value.split(" *, *".toRegex()).filter(String::isEmpty))

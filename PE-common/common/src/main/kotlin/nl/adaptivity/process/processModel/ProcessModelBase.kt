@@ -61,11 +61,11 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
         constructor() : this(nodes = emptyList())
 
-        override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
+        final override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
         @SerialName("import")
-        override val imports: MutableList<IXmlResultType> = imports.toMutableList()
+        final override val imports: MutableList<IXmlResultType> = imports.toMutableList()
         @SerialName("export")
-        override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
+        final override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
 
         @Transient
         val node = object : ArrayAccess<String, ProcessNode.IBuilder<NodeT, ModelT>> {

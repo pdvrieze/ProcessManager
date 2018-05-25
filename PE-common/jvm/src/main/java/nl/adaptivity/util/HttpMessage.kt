@@ -17,23 +17,17 @@
 package nl.adaptivity.util
 
 import net.devrieze.util.Iterators
-import net.devrieze.util.*
 import net.devrieze.util.security.SimplePrincipal
+import net.devrieze.util.toString
 import net.devrieze.util.webServer.HttpRequest
-import nl.adaptivity.util.HttpMessage.*
 import nl.adaptivity.util.xml.CompactFragment
 import nl.adaptivity.util.xml.ICompactFragment
 import nl.adaptivity.util.xml.SimpleXmlDeserializable
 import nl.adaptivity.xml.*
-import nl.adaptivity.xml.QName
-import nl.adaptivity.xml.schema.annotations.*
+import nl.adaptivity.xml.schema.annotations.Attribute
+import nl.adaptivity.xml.schema.annotations.Element
+import nl.adaptivity.xml.schema.annotations.XmlName
 import org.w3c.dom.Document
-
-import javax.activation.DataHandler
-import javax.activation.DataSource
-import javax.servlet.http.HttpServletRequest
-import javax.xml.bind.annotation.XmlAttribute
-
 import java.io.*
 import java.io.IOException
 import java.net.URLDecoder
@@ -41,6 +35,10 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.security.Principal
 import java.util.*
+import javax.activation.DataHandler
+import javax.activation.DataSource
+import javax.servlet.http.HttpServletRequest
+import javax.xml.bind.annotation.XmlAttribute
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.Map.Entry
@@ -289,7 +287,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
                                           attributeLocalName: String,
                                           attributeValue: String): Boolean {
             if ("name" == attributeLocalName) {
-                key = attributeValue.toString()
+                key = attributeValue
                 return true
             }
             return false

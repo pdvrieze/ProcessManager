@@ -132,9 +132,9 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
         override fun deserializeAttribute(attributeNamespace: String?,
                                           attributeLocalName: String,
                                           attributeValue: String): Boolean {
-            when (attributeLocalName.toString()) {
-                "min" -> min = attributeValue.toString().toInt()
-                "max" -> max = attributeValue.toString().toInt()
+            when (attributeLocalName) {
+                "min" -> min = attributeValue.toInt()
+                "max" -> max = attributeValue.toInt()
                 else  -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace,
                                                                                     attributeLocalName, attributeValue)
             }

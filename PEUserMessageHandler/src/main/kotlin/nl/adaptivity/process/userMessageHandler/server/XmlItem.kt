@@ -48,7 +48,7 @@ class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
   @Throws(XmlException::class)
   override fun deserializeChild(reader: XmlReader): Boolean {
     if (reader.isElement(OPTION_ELEMENTNAME)) {
-      _options.value.add(reader.readSimpleElement().toString())
+      _options.value.add(reader.readSimpleElement())
       return true
     }
     return false
@@ -61,25 +61,25 @@ class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
   override fun deserializeAttribute(attributeNamespace: String?,
                                     attributeLocalName: String,
                                     attributeValue: String): Boolean {
-    when (attributeLocalName.toString()) {
+    when (attributeLocalName) {
       "name"   -> {
-        name = attributeValue.toString()
+        name = attributeValue
         return true
       }
       "label"  -> {
-        label = attributeValue.toString()
+        label = attributeValue
         return true
       }
       "params" -> {
-        params = attributeValue.toString()
+        params = attributeValue
         return true
       }
       "type"   -> {
-        type = attributeValue.toString()
+        type = attributeValue
         return true
       }
       "value"  -> {
-        value = attributeValue.toString()
+        value = attributeValue
         return true
       }
     }

@@ -83,7 +83,7 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
     override fun deserializeChild(reader: XmlReader): Boolean {
         if (reader.isElement(PRINCIPALQNAME)) {
             // XXX make sure this is secure
-            principal = SimplePrincipal(reader.readSimpleElement().toString())
+            principal = SimplePrincipal(reader.readSimpleElement())
         } else {
             val frag = reader.siblingsToFragment()
             any.add(frag)
@@ -102,8 +102,8 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
     override fun deserializeAttribute(attributeNamespace: String?,
                                       attributeLocalName: String,
                                       attributeValue: String): Boolean {
-        val qname = QName(attributeNamespace.toString(), attributeLocalName.toString())
-        otherAttributes[qname] = attributeValue.toString()
+        val qname = QName(attributeNamespace.toString(), attributeLocalName)
+        otherAttributes[qname] = attributeValue
         return true
     }
 

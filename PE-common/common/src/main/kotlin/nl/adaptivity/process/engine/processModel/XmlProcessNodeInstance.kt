@@ -88,7 +88,7 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
 
   override fun deserializeChild(reader: XmlReader): Boolean {
     if (reader.isElement(Engine.NAMESPACE, "predecessor")) {
-      _predecessors.add(handle(handle= reader.readSimpleElement().toString()))
+      _predecessors.add(handle(handle= reader.readSimpleElement()))
       return true
     } else if (reader.isElement(Engine.NAMESPACE, "body")) {
       body = reader.elementContentToFragment()
@@ -116,12 +116,12 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
   override fun deserializeAttribute(attributeNamespace: String?,
                                     attributeLocalName: String,
                                     attributeValue: String): Boolean {
-    when (attributeLocalName.toString()) {
-      "state"           -> state = NodeInstanceState.valueOf(attributeValue.toString())
-      "processinstance" -> processInstance = attributeValue.toString().toLong()
-      "handle"          -> handle = attributeValue.toString().toLong()
-      "nodeid"          -> nodeId = attributeValue.toString()
-      "entryNo"         -> entryNo = attributeValue.toString().toInt()
+    when (attributeLocalName) {
+      "state"           -> state = NodeInstanceState.valueOf(attributeValue)
+      "processinstance" -> processInstance = attributeValue.toLong()
+      "handle"          -> handle = attributeValue.toLong()
+      "nodeid"          -> nodeId = attributeValue
+      "entryNo"         -> entryNo = attributeValue.toInt()
       else              -> return false
     }
     return true
