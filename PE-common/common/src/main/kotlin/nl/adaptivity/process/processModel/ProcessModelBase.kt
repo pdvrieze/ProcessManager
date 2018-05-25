@@ -115,7 +115,6 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
         other as ProcessModelBase<*, *>
 
-        if (modelNodes != other.modelNodes) return false
         if (_imports != other._imports) return false
         if (_exports != other._exports) return false
 
@@ -123,8 +122,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     }
 
     override fun hashCode(): Int {
-        var result = modelNodes.hashCode()
-        result = 31 * result + _imports.hashCode()
+        var result = _imports.hashCode()
         result = 31 * result + _exports.hashCode()
         return result
     }
