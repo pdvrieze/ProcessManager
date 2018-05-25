@@ -102,6 +102,11 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
         }
 
         override fun hashCode() = data.hashCode()
+
+        override fun toString(): String {
+            return data.joinToString(prefix = "ReadOnlyIdentifyableSet{", postfix = "}")
+        }
+
     }
 
     private class BaseIdentifyableSet<V : Identifiable>(private val data: ArraySet<V> = ArraySet()) : MutableIdentifyableSet<V>, MutableSet<V> by data {
