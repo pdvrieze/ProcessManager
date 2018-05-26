@@ -184,25 +184,14 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
         }
 
         fun normalize(pedantic: Boolean) {
-            val nodeMap = nodes.asSequence()
+            val nodeMap: MutableMap<String, ProcessNode.IBuilder<NodeT, ModelT>> = mutableMapOf()
+            nodes.asSequence()
                 .filter { it.id != null }
-                .associateBy { it.id }
+                .associateByTo(nodeMap) { it.id!! }
 
+            // First drop all missing predecessors and successors (before adding id's)
             val splitsToInject = mutableMapOf<String, Split.Builder<NodeT, ModelT>>()
-
-            // Ensure all nodes are linked up and have ids
-            var lastId = 1
             nodes.forEach { nodeBuilder ->
-                val curIdentifier = nodeBuilder.id?.let(::Identifier) ?: if (pedantic) {
-                    throw IllegalArgumentException("Node without id found")
-                } else {
-                    generateSequence(lastId) { lastId += 1; lastId }
-                        .map { "node$it" }
-                        .first { it !in nodeMap }
-                        .apply { nodeBuilder.id = this }
-                        .let(::Identifier)
-                }
-
                 if (pedantic) { // Pedantic will throw exceptions on missing things
                     if (nodeBuilder is StartNode.Builder<NodeT, ModelT> && !nodeBuilder.predecessors.isEmpty()) {
                         throw ProcessException("Start nodes have no predecessors")
@@ -224,6 +213,28 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                     nodeBuilder.removeAllPredecessors { it.id !in nodeMap }
                     nodeBuilder.removeAllSuccessors { it.id !in nodeMap }
                 }
+            }
+
+            // Then ensure all have ids
+
+            // Ensure all nodes are linked up and have ids
+            nodes.forEach { nodeBuilder ->
+                nodeBuilder.id?.let(::Identifier) ?: if (pedantic) {
+                    throw IllegalArgumentException("Node without id found")
+                } else {
+                    generateSequence(1) { it + 1 }
+                        .map { "${nodeBuilder.idBase}$it" }
+                        .first { it !in nodeMap }
+                        .also {
+                            nodeBuilder.id = it
+                            nodeMap[it] = nodeBuilder
+                        }
+                }
+            }
+
+            // Then ensure they are linked up
+            nodes.forEach { nodeBuilder ->
+                val curIdentifier = Identifier(nodeBuilder.id!!)
 
                 nodeBuilder.successors.asSequence()
                     .map { nodeMap[it.id]!! }
