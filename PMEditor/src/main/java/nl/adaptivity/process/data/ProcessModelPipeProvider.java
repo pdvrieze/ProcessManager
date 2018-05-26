@@ -193,7 +193,7 @@ public final class ProcessModelPipeProvider {
     final Thread th;
     if (readMode) {
       th = new ProcessModelWriteThread(dbHelper, table, column, id, pair[1]);
-      th.run();
+      th.start();
     } else {
       th = new ProcessModelReadThread(processModelProvider.getContext(), dbHelper, table, column, id, syncStateColumn, pair[0], notifyNet);
       th.start();

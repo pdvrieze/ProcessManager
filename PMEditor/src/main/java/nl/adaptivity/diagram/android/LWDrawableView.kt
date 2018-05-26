@@ -59,9 +59,9 @@ open class LWDrawableView(open val item: Drawable) : LightView {
             item.state = item.state and Drawable.STATE_ACTIVE.inv()
         }
 
-    override fun getBounds(rect: RectF) {
+    override fun getBounds(target: RectF) {
         val bounds = item.bounds
-        rect.set(bounds.leftf, bounds.topf, bounds.rightf, bounds.bottomf)
+        target.set(bounds.leftf, bounds.topf, bounds.rightf, bounds.bottomf)
     }
 
 

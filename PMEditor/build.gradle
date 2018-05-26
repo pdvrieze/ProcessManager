@@ -42,6 +42,7 @@ dependencies {
     implementation project(':JavaCommonApi:java')
 //    implementation project(':xmlutil:core:android')
     implementation project(':xmlutil:android')
+    implementation project(':xmlutil:serialization:java')
     implementation project(':java-common:android')
 
     kapt "com.android.databinding:compiler:$androidPluginVersion"
