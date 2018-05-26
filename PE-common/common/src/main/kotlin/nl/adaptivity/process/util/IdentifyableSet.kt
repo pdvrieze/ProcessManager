@@ -24,11 +24,11 @@ import net.devrieze.util.toArraySet
 
 interface MutableIdentifyableSet<T : Identifiable> : IdentifyableSet<T>, MutableSet<T>, MutableReadMap<String, T> {
 
-    fun addAll(c: Iterable<T>) = c.map { add(it) }.reduce(Boolean::or)
+    fun addAll(c: Iterable<T>) = c.fold(false) { result, elem -> add(elem) or result }
 
     operator fun set(index: Int, value: T): T
 
-    fun addAll(sequence: Sequence<T>) = sequence.map { add(it) }.reduce(Boolean::or)
+    fun addAll(sequence: Sequence<T>) = sequence.fold(false){ r, elem -> add(elem) or r }
 
     fun removeAt(index: Int): T
 
@@ -113,9 +113,13 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         constructor(initialcapacity: Int) : this(ArraySet(initialcapacity))
 
-        constructor(c: Sequence<V>) : this(ArraySet(c))
+        constructor(c: Sequence<V>) : this() {
+            addAll(c)
+        }
 
-        constructor(c: Iterable<V>) : this(ArraySet(c))
+        constructor(c: Iterable<V>) : this((c as? Collection<*>)?.let { ArraySet<V>(it.size) } ?: ArraySet<V>()) {
+            addAll(c)
+        }
 
         override fun get(index: Int) = data[index]
 
