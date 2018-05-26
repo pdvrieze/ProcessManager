@@ -53,14 +53,14 @@ class WebProcess1 : ModelSpek(run {
         }
 
         val join1 by join(split2, split3) {
-            conditions[split2] = "coverate exists"
+            conditions[split2] = "coverage_exists"
             conditions[split3] = "accepted"
             min = 2
             max = 2
         }
 
         val ac3 by activity(split2) {
-            condition = "no coverage"
+            condition = "no_coverage"
             label = "Send out offer for emergency help"
         }
 
@@ -70,6 +70,7 @@ class WebProcess1 : ModelSpek(run {
 
         val ac5 by activity(split3) {
             label = "Ask for rejection notification"
+            condition = "rejected"
         }
 
         val join2 by join(ac4, ac5) {
@@ -92,7 +93,7 @@ class WebProcess1 : ModelSpek(run {
                     )..join3..end
         }
         val invalid = trace {
-            (start.opt * (ac2 or end)) or
+            (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
                 (start..ac1..end)
         }
         ModelData(m, valid, invalid)
