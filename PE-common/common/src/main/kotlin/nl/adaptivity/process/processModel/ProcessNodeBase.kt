@@ -22,6 +22,7 @@ import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlDefault
 
@@ -556,7 +557,9 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         }
 
         override fun toString(): String {
-            return "${this::class.simpleName}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
+            val className = this::class.name
+            val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.')-1)
+            return "${className.substring(pkgPos+1)}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
         }
 
         @Serializer(forClass = Builder::class)
