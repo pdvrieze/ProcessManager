@@ -24,7 +24,7 @@ import nl.adaptivity.xml.serialization.simpleSerialClassDesc
  * A class representing a simple identifier. It just holds a single string.
  */
 @Serializable
-open class Identifier(override var id: String) : Identified {
+class Identifier(override var id: String) : Identified {
 
     override val identifier: Identifier get() = this
 
