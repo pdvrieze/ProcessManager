@@ -54,7 +54,7 @@ class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_p
 
     interface ProcessModelListCallbacks {
 
-        val syncManager: ProcessSyncManager
+        val syncManager: ProcessSyncManager?
 
         fun requestSyncProcessModelList(immediate: Boolean, minAge: Long)
 
@@ -121,9 +121,10 @@ class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_p
         }
     }
 
-    override fun getSyncManager(): ProcessSyncManager? {
-        return mCallbacks!!.syncManager
-    }
+    override val syncManager: ProcessSyncManager?
+        get() {
+            return mCallbacks!!.syncManager
+        }
 
     override fun createDetailFragment(itemId: Long): ProcessModelDetailFragment {
         val fragment = ProcessModelDetailFragment()

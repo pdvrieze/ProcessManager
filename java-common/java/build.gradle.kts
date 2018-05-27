@@ -49,8 +49,9 @@ val kotlin_version:String by project
 val jupiterVersion:String by project
 
 dependencies {
-    api(project(":JavaCommonApi:jvm"))
-    api(project(":multiplatform:jvm"))
+    api(project(":JavaCommonApi:java"))
+    api(project(":multiplatform:java"))
+    compileOnly(project(":multiplatform:jvm"))
 //    api(project(":kotlinsql"))
     implementation("org.jetbrains:annotations:13.0")
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
