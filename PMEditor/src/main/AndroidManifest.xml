@@ -29,74 +29,75 @@
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 
     <application
-            android:allowBackup="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:supportsRtl="true"
-            android:theme="@style/AppTheme" tools:ignore="AllowBackup">
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:ignore="AllowBackup">
         <activity
-                android:name=".PMEditor"
-                android:label="@string/title_editor"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                tools:ignore="UnusedAttribute">
+            android:name=".PMEditor"
+            android:label="@string/title_editor"
+            android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+            tools:ignore="UnusedAttribute">
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
         </activity>
         <activity
-                android:name="nl.adaptivity.process.ui.model.ProcessModelDetailActivity"
-                android:label="@string/title_processmodel_detail"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                tools:ignore="UnusedAttribute">
+            android:name="nl.adaptivity.process.ui.model.ProcessModelDetailActivity"
+            android:label="@string/title_processmodel_detail"
+            android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+            tools:ignore="UnusedAttribute">
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
         </activity>
 
         <provider
-                android:name="nl.adaptivity.process.models.ProcessModelProvider"
-                android:authorities="nl.adaptivity.process.models"
-                android:exported="false"
-                android:label="ProcessModels"
-                android:syncable="true" />
+            android:name="nl.adaptivity.process.models.ProcessModelProvider"
+            android:authorities="nl.adaptivity.process.models"
+            android:exported="false"
+            android:label="ProcessModels"
+            android:syncable="true" />
         <provider
-                android:name="nl.adaptivity.process.tasks.data.TaskProvider"
-                android:authorities="nl.adaptivity.process.tasks"
-                android:exported="false"
-                android:label="Tasks"
-                android:syncable="true" />
+            android:name="nl.adaptivity.process.tasks.data.TaskProvider"
+            android:authorities="nl.adaptivity.process.tasks"
+            android:exported="false"
+            android:label="Tasks"
+            android:syncable="true" />
 
         <service
-                android:name="nl.adaptivity.process.models.ProcessModelSyncService"
-                android:process=":sync"
-                android:exported="true"
-                tools:ignore="ExportedService">
+            android:name="nl.adaptivity.process.models.ProcessModelSyncService"
+            android:exported="true"
+            android:process=":sync"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
 
             <meta-data
-                    android:name="android.content.SyncAdapter"
-                    android:resource="@xml/processsyncadapter" />
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/processsyncadapter" />
         </service>
         <service
-                android:name="nl.adaptivity.process.tasks.data.TaskSyncService"
-                android:process=":sync"
-                android:exported="true"
-                tools:ignore="ExportedService">
+            android:name="nl.adaptivity.process.tasks.data.TaskSyncService"
+            android:exported="true"
+            android:process=":sync"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
 
             <meta-data
-                    android:name="android.content.SyncAdapter"
-                    android:resource="@xml/tasksyncadapter" />
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/tasksyncadapter" />
         </service>
 
         <activity
-                android:name="nl.adaptivity.process.ui.main.OverviewActivity"
-                android:label="@string/title_activity_overview"
-                android:theme="@style/AppTheme.NoActionBar">
+            android:name="nl.adaptivity.process.ui.main.OverviewActivity"
+            android:label="@string/title_activity_overview"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -109,9 +110,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data
-                        android:host="${serverHost}"
-                        android:pathPrefix="/ProcessEngine/processModels"
-                        android:scheme="${serverScheme}" />
+                    android:host="${serverHost}"
+                    android:pathPrefix="/ProcessEngine/processModels"
+                    android:scheme="${serverScheme}" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -120,33 +121,34 @@
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data
-                        android:host="${serverHost}"
-                        android:pathPrefix="/PEUserMessageHandler/UserMessageService/pendingTasks"
-                        android:scheme="${serverScheme}" />
+                    android:host="${serverHost}"
+                    android:pathPrefix="/PEUserMessageHandler/UserMessageService/pendingTasks"
+                    android:scheme="${serverScheme}" />
             </intent-filter>
         </activity>
         <activity
-                android:name="nl.adaptivity.process.ui.task.TaskDetailActivity"
-                android:label="@string/title_task_detail"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                android:theme="@style/AppTheme.NoActionBar" tools:ignore="UnusedAttribute">
+            android:name="nl.adaptivity.process.ui.task.TaskDetailActivity"
+            android:label="@string/title_task_detail"
+            android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            tools:ignore="UnusedAttribute">
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
         </activity>
         <activity
-                android:name="nl.adaptivity.process.ui.main.SettingsActivity"
-                android:label="@string/title_activity_settings"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                tools:ignore="UnusedAttribute">
+            android:name="nl.adaptivity.process.ui.main.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+            tools:ignore="UnusedAttribute">
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
         </activity>
         <activity
-                android:name="nl.adaptivity.process.ui.activity.UserTaskEditorActivity"
-                android:label="@string/title_activity_user_task_editor"
-                android:theme="@style/AppTheme.NoActionBar">
+            android:name="nl.adaptivity.process.ui.activity.UserTaskEditorActivity"
+            android:label="@string/title_activity_user_task_editor"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 

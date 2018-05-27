@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.ui.main
 
+import android.accounts.Account
 import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
@@ -55,21 +56,12 @@ import java.io.*
  */
 abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback {
     /** Process model that needs to be saved/exported.  */
-    protected var mProcessModel: DrawableProcessModel? = null
+    private var mProcessModel: DrawableProcessModel? = null
     /** Temporary file for sharing.  */
     protected var mTmpFile: File? = null
-    private var mSyncManager: ProcessSyncManager? = null
 
-    open val syncManager: ProcessSyncManager?
-        get() {
-            val account = account
-            if (account == null) {
-                mSyncManager = null
-            } else if (mSyncManager == null) {
-                mSyncManager = ProcessSyncManager(this, AuthenticatedWebClientFactory.getStoredAccount(this))
-            }
-            return mSyncManager
-        }
+    var syncManager: ProcessSyncManager? = null
+        private set
 
     private inner class FileStoreListener(private val mMimeType: String, private val mRequestCode: Int) {
 
@@ -124,8 +116,17 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
 
     }
 
+    override fun doAccountDetermined(account: Account?) {
+        if (account == null) {
+            syncManager = null
+        } else if (syncManager == null) {
+            syncManager = ProcessSyncManager(this, AuthenticatedWebClientFactory.getStoredAccount(this))
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(UIConstants.KEY_TMPFILE)) {
                 mTmpFile = File(savedInstanceState.getString(UIConstants.KEY_TMPFILE)!!)
@@ -138,6 +139,8 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
             }
 
         }
+
+
     }
 
     @CallSuper

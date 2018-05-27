@@ -50,7 +50,7 @@ class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_p
                                                                 R.id.processmodel_list_container,
                                                                 R.id.processmodel_detail_container), ListCallbacks<SyncManager>, ProcessModelDetailFragmentCallbacks {
 
-  private var mCallbacks: ProcessModelListCallbacks? = null
+    private var mCallbacks: ProcessModelListCallbacks? = null
 
     interface ProcessModelListCallbacks {
 
@@ -70,7 +70,7 @@ class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_p
     }
 
     @Suppress("DEPRECATION")
-    override fun onAttach(activity: Activity?) {
+    override fun onAttach(activity: Activity) {
         super.onAttach(activity)
         if (activity is ProcessModelListCallbacks) {
             mCallbacks = activity
@@ -99,14 +99,14 @@ class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_p
                 val fragment = ProcessModelDetailFragment()
                 fragment.arguments = arguments
                 childFragmentManager.beginTransaction()
-                        .replace(R.id.processmodel_detail_container, fragment)
-                        .commit()
+                    .replace(R.id.processmodel_detail_container, fragment)
+                    .commit()
             } else {
                 val frag = childFragmentManager.findFragmentById(R.id.processmodel_detail_container)
                 if (frag != null) {
                     fragmentManager!!.beginTransaction()
-                            .remove(frag)
-                            .commit()
+                        .remove(frag)
+                        .commit()
                 }
             }
 

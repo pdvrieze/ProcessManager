@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2018.
  *
  * This file is part of ProcessManager.
  *
@@ -14,13 +14,23 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.android.compat;
+package nl.adaptivity.process.ui.model
 
-import android.content.Context;
-import android.support.v4.app.Fragment;
+import android.accounts.Account
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
+import android.arch.lifecycle.ViewModel
+import net.devrieze.util.Handle
+import nl.adaptivity.process.diagram.DrawableProcessModel
+import nl.adaptivity.sync.SyncState
 
+class ProcessesViewModel: ViewModel() {
 
-public abstract class TitleFragment extends Fragment {
+    val processes: LiveData<List<Handle<DrawableProcessModel>>> = TODO("Implement")
 
-  public abstract CharSequence getTitle(Context context);
+    val syncState: LiveData<SyncState> = MutableLiveData<SyncState>()
+
+    fun sync(account: Account) {
+
+    }
 }

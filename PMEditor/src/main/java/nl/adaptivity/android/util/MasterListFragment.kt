@@ -64,7 +64,7 @@ open class MasterListFragment<M : SyncManager> : RecyclerFragment() {
                         mCallbacks = parent as ListCallbacks<M>
                         return mCallbacks
                     }
-                    parent = parentFragment
+                    parent = parent.parentFragment
                 }
             }
             return mCallbacks

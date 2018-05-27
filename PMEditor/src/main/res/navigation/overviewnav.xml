@@ -18,13 +18,61 @@
 <navigation xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
-            app:startDestination="@id/overviewActivity">
+            app:startDestination="@id/overviewFragment">
 
     <activity android:id="@+id/overviewActivity"
               android:name="nl.adaptivity.process.ui.main.OverviewActivity"
-              android:label="OverviewActivity" tools:layout="@layout/activity_overview" app:action="settings" />
+              android:label="OverviewActivity" tools:layout="@layout/activity_overview">
+    </activity>
+
+    <fragment android:name="nl.adaptivity.process.ui.main.OverviewFragment"
+              android:id="@+id/overviewFragment"
+              android:label="Overview fragment">
+        <action android:id="@+id/nav_models" app:destination="@id/modellistFragment"/>
+        <action android:id="@+id/nav_tasks" app:destination="@id/tasklistFragment"/>
+    </fragment>
+
+    <fragment android:name="nl.adaptivity.process.ui.task.TaskListOuterFragment"
+              android:id="@+id/tasklistFragment"
+              android:label="Tasklist fragment" >
+        <action android:id="@+id/nav_task" app:destination="@id/taskdetailFragment"/>
+        <!--<argument android:item_id="amount" android:defaultValue="0" app:type="long"/>-->
+    </fragment>
+
+    <fragment android:name="nl.adaptivity.process.ui.task.TaskDetailFragment"
+              android:id="@+id/taskdetailFragment"
+              android:label="Task details" >
+        <!--<argument android:item_id="amount" android:defaultValue="0" app:type="long"/>-->
+    </fragment>
+
+    <fragment android:name="nl.adaptivity.process.ui.model.ProcessModelListOuterFragment"
+              android:id="@+id/modellistFragment"
+              android:label="Model list">
+        <action android:id="@+id/nav_model" app:destination="@id/modeldetailFragment"/>
+        <!--<argument android:item_id="amount" android:defaultValue="0" app:type="long"/>-->
+    </fragment>
+
+    <fragment android:name="nl.adaptivity.process.ui.model.ProcessModelDetailFragment"
+              android:id="@+id/modeldetailFragment"
+              android:label="Model list">
+        <!--<argument android:item_id="amount" android:defaultValue="0" app:type="long"/>-->
+    </fragment>
 
     <activity android:id="@+id/settingsActivity"
               android:name="nl.adaptivity.process.ui.main.SettingsActivity"
               android:label="SettingsActivity" />
+
+    <action android:id="@+id/nav_home"
+            app:destination="@id/overviewFragment"/>
+
+    <action android:id="@+id/nav_tasks"
+            app:destination="@id/tasklistFragment"/>
+
+    <action android:id="@+id/nav_models"
+            app:destination="@id/modellistFragment"/>
+
+    <action android:id="@+id/nav_settings"
+            app:destination="@id/settingsActivity"/>
+
+
 </navigation>

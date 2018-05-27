@@ -117,5 +117,10 @@
     <string name="nav_share">Share</string>
     <string name="title_activity_overview_debug">Debug PMI</string>
     <string name="pref_sync_local_title">Synchronous loading</string>
+    <string name="title_activity_overview2">OverviewActivity2</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
 
 version = '0.5.1'
 description = 'Android interface with process model editor and task interface'
@@ -44,7 +45,9 @@ dependencies {
     implementation project(':xmlutil:android')
     implementation project(':xmlutil:serialization:java')
     implementation project(':java-common:android')
+    implementation 'net.devrieze:android-coroutines:0.6.3'
 
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     kapt "com.android.databinding:compiler:$androidPluginVersion"
 
     testImplementation "org.testng:testng:$testngVersion"
@@ -132,7 +135,7 @@ android {
 //            applicationIdSuffix ".debug"
 //            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
-                'proguard-project.txt'
+                    'proguard-project.txt'
             versionNameSuffix "-debug"
         }
     }
@@ -146,8 +149,17 @@ android {
     }
 }
 
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+
+}
+
+
 tasks.withType(KotlinCompile) {
-    kotlinOptions.freeCompilerArgs=['-Xenable-jvm-default']
+
+    kotlinOptions.freeCompilerArgs = ['-Xenable-jvm-default']
 }
 
 task cleanAnnotationsJar(type: Jar, dependsOn: configurations.cleanedAnnotations) {

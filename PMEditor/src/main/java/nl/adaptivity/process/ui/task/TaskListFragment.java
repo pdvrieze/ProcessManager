@@ -29,9 +29,9 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
+import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
@@ -134,7 +134,7 @@ public class TaskListFragment extends MasterListFragment<ProcessSyncManager> imp
   public void onResume() {
     super.onResume();
     mSyncObserver.onStatusChanged(0); // trigger status sync
-    mSyncObserverHandle = getCallbacks().getSyncManager().addOnStatusChangeObserver(TaskProvider.AUTHORITY,mSyncObserver);
+//    mSyncObserverHandle = getCallbacks().getSyncManager().addOnStatusChangeObserver(TaskProvider.AUTHORITY,mSyncObserver);
   }
 
   @Override
@@ -186,14 +186,16 @@ public class TaskListFragment extends MasterListFragment<ProcessSyncManager> imp
 
   private void updateSyncState() {
     final ProcessSyncManager syncManager = getCallbacks().getSyncManager();
-    if (! syncManager.isSyncable(TaskProvider.AUTHORITY)) {
-      mSwipeRefresh.setRefreshing(false);
-    } else {
-      final boolean syncActive = syncManager.isTaskSyncActive();
-      final boolean syncPending = syncManager.isTaskSyncPending();
-      if (syncActive || (!syncPending)) { mManualSync= false; }
-      final boolean sync = syncActive || mManualSync;
-      mSwipeRefresh.setRefreshing(sync);
+    if (syncManager!=null) {
+        if (!syncManager.isSyncable(TaskProvider.AUTHORITY)) {
+            mSwipeRefresh.setRefreshing(false);
+        } else {
+            final boolean syncActive  = syncManager.isTaskSyncActive();
+            final boolean syncPending = syncManager.isTaskSyncPending();
+            if (syncActive || (!syncPending)) { mManualSync = false; }
+            final boolean sync = syncActive || mManualSync;
+            mSwipeRefresh.setRefreshing(sync);
+        }
     }
   }
 }

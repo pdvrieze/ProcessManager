@@ -22,12 +22,10 @@ import android.os.RemoteException
 import android.support.v4.app.NavUtils
 import android.view.MenuItem
 import android.widget.Toast
-import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory
 import nl.adaptivity.android.util.GetNameDialogFragment
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks
 import nl.adaptivity.process.editor.android.R
 import nl.adaptivity.process.models.ProcessModelProvider
-import nl.adaptivity.process.ui.ProcessSyncManager
 import nl.adaptivity.process.ui.main.OverviewActivity
 import nl.adaptivity.process.ui.main.ProcessBaseActivity
 import nl.adaptivity.process.ui.main.SettingsActivity
@@ -46,18 +44,6 @@ import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDet
  */
 class ProcessModelDetailActivity : ProcessBaseActivity(), ProcessModelDetailFragmentCallbacks, GetNameDialogFragmentCallbacks {
     private var mModelHandleToInstantiate: Long = 0
-    private var mSyncManager: ProcessSyncManager? = null
-
-    override val syncManager: ProcessSyncManager?
-        get() {
-            val account = account
-            if (account == null) {
-                mSyncManager = null
-            } else if (mSyncManager == null) {
-                mSyncManager = ProcessSyncManager(this, AuthenticatedWebClientFactory.getStoredAccount(this))
-            }
-            return mSyncManager
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
