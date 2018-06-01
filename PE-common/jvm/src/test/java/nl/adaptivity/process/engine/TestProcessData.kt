@@ -382,6 +382,14 @@ class TestProcessData {
     }
 
     @Test
+    fun testPredecessorInfo() {
+        testRoundTrip("<PredecessorInfo condition=\"foo\">bar</PredecessorInfo>", PredecessorInfo::class) {
+            assertEquals("foo", it.condition)
+            assertEquals("bar", it.id)
+        }
+    }
+
+    @Test
     @Throws(XmlException::class, FileNotFoundException::class)
     fun testParseProcessModel2NewDeserializer() {
         val inputStream = getDocument("processmodel2.xml")
