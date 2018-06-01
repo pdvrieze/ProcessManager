@@ -272,7 +272,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                     @Suppress("UNCHECKED_CAST")
                     (result.nodes as MutableList<Any>).replaceBy(iterable=newNodes)
                 }
-                else       -> throw SerializationException("Could not resolve field ${serialClassDesc.getElementName(index)} with index $index")
+                else       -> throw SerializationException("Could not resolve field ${if(index>=0 && index<serialClassDesc.associatedFieldsCount) serialClassDesc.getElementName(index) else "<MISSING>"} with index $index")
             }
 
         }
