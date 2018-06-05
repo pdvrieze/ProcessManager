@@ -105,7 +105,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
                       handle: Long,
                       layoutAlgorithm: LayoutAlgorithm): RootDrawableProcessModel {
         return Builder(nodes.map { it.builder() }, emptyList(), name, handle, owner, roles, uuid, imports, exports,
-                       layoutAlgorithm).also { builder ->
+                       isFavourite, layoutAlgorithm).also { builder ->
             builder.childModels.replaceBy(childModels.map { child -> child.builder(builder) })
         }.build()
     }
@@ -264,6 +264,8 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
         override var layoutAlgorithm: LayoutAlgorithm
 
+        var isFavourite: Boolean
+
         constructor() : this(name = null)
 
         constructor(nodes: Collection<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
@@ -275,20 +277,23 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
                     uuid: UUID? = null,
                     imports: Collection<IXmlResultType> = emptyList(),
                     exports: Collection<IXmlDefineType> = emptyList(),
+                    isFavourite: Boolean = false,
                     layoutAlgorithm: LayoutAlgorithm = LayoutAlgorithm()) : super(nodes, childModels, name, handle,
                                                                                   owner, roles, uuid, imports,
                                                                                   exports) {
             this.layoutAlgorithm = layoutAlgorithm
+            this.isFavourite = isFavourite
         }
 
         constructor(base: RootProcessModel<*, *>) : super(base) {
-            this.layoutAlgorithm = (base as? DrawableProcessModel.Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
+            this.layoutAlgorithm = (base as? DrawableProcessModel)?.layoutAlgorithm ?: LayoutAlgorithm()
+            this.isFavourite = (base as? RootDrawableProcessModel)?.isFavourite ?: false
         }
 
         override fun copy(): Builder {
             if (this::class != Builder::class) throw UnsupportedOperationException(
                 "Copy must be overridden to be valid")
-            return Builder(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, layoutAlgorithm)
+            return Builder(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, isFavourite, layoutAlgorithm)
         }
 
         override fun getNode(nodeId: String): DrawableProcessNode.Builder<*>? {
