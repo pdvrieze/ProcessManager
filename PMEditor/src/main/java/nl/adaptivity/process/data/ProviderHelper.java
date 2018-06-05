@@ -28,7 +28,9 @@ import nl.adaptivity.android.coroutines.Maybe;
 import nl.adaptivity.android.coroutines.SerializableHandler;
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.util.AsyncCallableTask;
+import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.main.SettingsActivity;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.concurrent.Callable;
@@ -46,15 +48,19 @@ public final class ProviderHelper {
   private ProviderHelper() {
   }
 
+  @NotNull
   public static URI getSyncSource(final Context context) {
     final SharedPreferences prefs  = PreferenceManager.getDefaultSharedPreferences(context);
-    final String            source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
-    return source == null ? null : URI.create(source);
+      final String          defaultSyncLocation = context.getString(R.string.default_sync_location);
+      String                source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, defaultSyncLocation);
+    if (source.length()==0) source = defaultSyncLocation;
+    return URI.create(source);
   }
 
+  @NotNull
   public static URI getAuthBase(final Context context) {
     final URI source = getSyncSource(context);
-    return source == null ? null : AuthenticatedWebClientFactory.getAuthBase(source);
+    return AuthenticatedWebClientFactory.getAuthBase(source);
   }
 
   public static void requestSync(final Account account, final String authority, final boolean expedited) {

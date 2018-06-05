@@ -165,11 +165,11 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
 
     protected fun doSaveFile(data: Intent, processModel: RootDrawableProcessModel) {
         try {
-            val out = getOutputStreamFromSave(data)
+            val out = getOutputStreamFromSave(data)!!
             try {
                 doSaveFile(out, processModel)
             } finally {
-                out!!.close()
+                out.close()
             }
         } catch (e: RuntimeException) {
             Log.e(TAG, "Failure to save file", e)
@@ -192,7 +192,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     }
 
     @Throws(IOException::class)
-    private fun doSaveFile(out: OutputStream?, processModel: RootDrawableProcessModel) {
+    private fun doSaveFile(out: OutputStream, processModel: RootDrawableProcessModel) {
         try {
             PMParser.exportProcessModel(out, processModel)
         } catch (e: XmlException) {
@@ -263,11 +263,11 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
 
     private fun doExportSVG(data: Intent, processModel: DrawableProcessModel) {
         try {
-            val out = getOutputStreamFromSave(data)
+            val out = getOutputStreamFromSave(data)!!
             try {
                 doExportSVG(out, processModel)
             } finally {
-                out!!.close()
+                out.close()
             }
         } catch (e: RuntimeException) {
             Log.e(TAG, "Failure to save file", e)
@@ -278,7 +278,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     }
 
     @Throws(IOException::class)
-    private fun doExportSVG(out: OutputStream?, processModel: DrawableProcessModel) {
+    private fun doExportSVG(out: OutputStream, processModel: DrawableProcessModel) {
         try {
             val serializer = PMParser.getSerializer(out)
             doExportSVG(serializer, processModel)

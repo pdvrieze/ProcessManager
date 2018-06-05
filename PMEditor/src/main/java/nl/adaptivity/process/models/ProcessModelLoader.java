@@ -62,7 +62,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   @Override
   public ProcessModelHolder loadInBackground() {
     Long handle = mHandle>=0 ? Long.valueOf(mHandle) : null;
-    final RootDrawableProcessModel processModel;
+    final RootDrawableProcessModel.Builder processModel;
     final long id;
     final ProcessModelHolder modelHolder;
     if (handle!=null) {

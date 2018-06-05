@@ -41,24 +41,22 @@ import nl.adaptivity.android.recyclerview.SelectableAdapter
 import nl.adaptivity.android.util.GetNameDialogFragment
 import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks
 import nl.adaptivity.android.util.MasterListFragment
-import nl.adaptivity.process.diagram.RootDrawableProcessModel
-import nl.adaptivity.process.ui.ProcessSyncManager
 import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.diagram.LayoutAlgorithm
+import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.editor.android.PMEditor
 import nl.adaptivity.process.editor.android.PMParser
 import nl.adaptivity.process.editor.android.R
 import nl.adaptivity.process.models.ProcessModelProvider
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels
+import nl.adaptivity.process.ui.ProcessSyncManager
 import nl.adaptivity.process.ui.main.SettingsActivity
 import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder
 import nl.adaptivity.sync.RemoteXmlSyncAdapter
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns
 import nl.adaptivity.sync.SyncManager.SyncStatusObserverData
-
 import java.io.IOException
-import java.util.ArrayList
-import java.util.UUID
+import java.util.*
 
 
 /**
@@ -122,7 +120,7 @@ class ProcessModelListFragment : MasterListFragment<ProcessSyncManager>(), Loade
     }
 
     override fun getListAdapter(): PMCursorAdapter? {
-        return super.getListAdapter() as PMCursorAdapter
+        return super.getListAdapter() as PMCursorAdapter?
     }
 
     override fun onResume() {

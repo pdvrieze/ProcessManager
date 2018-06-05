@@ -24,6 +24,7 @@ import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.ICompactFragment;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -56,6 +57,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   public static final QName  TASKPARAM_NAME         = new QName(Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME,
                                                        Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
 
+  @NotNull
   public static final Factory FACTORY = new Factory();
 
   private ICompactFragment mReplies;

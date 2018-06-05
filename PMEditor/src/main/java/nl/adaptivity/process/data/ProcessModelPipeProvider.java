@@ -128,6 +128,7 @@ public final class ProcessModelPipeProvider {
         } finally {
           is.close();
         }
+          Log.d(TAG, "run: Received process model:\n" + data);
         if (data.length()>0) {
           final ContentValues values = new ContentValues(mSyncStateColumn == null ? 1 : 2);
           values.put(mColumn, data.toString());

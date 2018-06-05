@@ -114,7 +114,7 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
     internal fun updateDiagramScale() {
         val diagramBounds = RectF()
         item!!.getBounds(diagramBounds)
-        val diagramView = mBinding!!.diagramView1
+        val diagramView = mBinding.diagramView1
         var scale = Math.min(diagramView.width / diagramBounds.width(), diagramView.height / diagramBounds.height())
         diagramView.scale = scale.toDouble()
         scale = diagramView.scale.toFloat()
@@ -143,27 +143,27 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_processmodel_detail, container, false)
-        mBinding!!.data = ProcessModelHolder()
+        mBinding.data = ProcessModelHolder()
 
-        mBinding!!.diagramView1.addOnLayoutChangeListener(ModelViewLayoutChangeListener())
+        mBinding.diagramView1.addOnLayoutChangeListener(ModelViewLayoutChangeListener())
 
-        mBinding!!.btnPmEdit.setOnClickListener(this)
+        mBinding.btnPmEdit.setOnClickListener(this)
 
-        mBinding!!.btnPmExec.setOnClickListener(this)
+        mBinding.btnPmExec.setOnClickListener(this)
 
-        mBinding!!.btnPmClone.setOnClickListener(this)
+        mBinding.btnPmClone.setOnClickListener(this)
 
-        mBinding!!.btnPmPublish.setOnClickListener(this)
+        mBinding.btnPmPublish.setOnClickListener(this)
 
-        return mBinding!!.root
+        return mBinding.root
     }
 
     override fun onPause() {
         super.onPause()
         if (mModelHandle != null) {
-            val checked = mBinding!!.checkboxFavourite.isChecked
-            if (checked != mBinding!!.data!!.isFavourite()) {
-                mBinding!!.data!!.setFavourite(mBinding!!.checkboxFavourite.isChecked)
+            val checked = mBinding.checkboxFavourite.isChecked
+            if (checked != mBinding.data!!.isFavourite()) {
+                mBinding.data!!.setFavourite(mBinding.checkboxFavourite.isChecked)
                 val uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, mProcessModelId)
                 val cv = ContentValues(1)
                 cv.put(ProcessModels.COLUMN_FAVOURITE, checked)
@@ -181,27 +181,27 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
     override fun onLoadFinished(loader: Loader<ProcessModelHolder>, data: ProcessModelHolder?) {
         val pm: RootDrawableProcessModel
         Log.d(TAG, "onLoadFinished: ")
-        mBinding!!.processmodelDetailSpinner.visibility = View.GONE
-        mBinding!!.data = data
+        mBinding.processmodelDetailSpinner.visibility = View.GONE
+        mBinding.data = data
 
         if (data?.model === null) {
-            mBinding!!.diagramView1.adapter = null
+            mBinding.diagramView1.adapter = null
             item = null
             mModelHandle = null
 
         } else {
-            mBinding!!.diagramView1.parent.requestLayout() // Do a layout
-            item = BaseProcessAdapter(RootDrawableProcessModel.get(data.model)!!.builder())
+            mBinding.diagramView1.parent.requestLayout() // Do a layout
+            item = data.model?.let { BaseProcessAdapter(it) }
             mModelHandle = data.handle
-            mBinding!!.diagramView1.adapter = item
+            mBinding.diagramView1.adapter = item
             updateDiagramScale()
         }
     }
 
     override fun onLoaderReset(loader: Loader<ProcessModelHolder>) {
-        mBinding!!.processmodelName.text = null
+        mBinding.processmodelName.text = null
         item = null
-        mBinding!!.diagramView1.adapter = null
+        mBinding.diagramView1.adapter = null
     }
 
     override fun onClick(v: View) {
@@ -234,11 +234,11 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
 
     fun btnPmExecClicked() {
         val id = arguments!!.getLong(ARG_ITEM_ID)
-        callbacks!!.onInstantiateModel(id, mBinding!!.processmodelName.text.toString() + " Instance")
+        callbacks!!.onInstantiateModel(id, mBinding.processmodelName.text.toString() + " Instance")
     }
 
     fun btnPmCloneClicked() {
-        val previousName = mBinding!!.processmodelName.text
+        val previousName = mBinding.processmodelName.text
         val suggestedNewName = ProcessModelUtil.suggestNewName(activity!!, previousName)
 
         GetNameDialogFragment.show(fragmentManager!!, DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name",
@@ -260,7 +260,7 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
 
     protected fun cloneWithName(newName: String) {
         // TODO Auto-generated method stub
-        val currentModel = (mBinding!!.diagramView1.adapter as BaseProcessAdapter).diagram
+        val currentModel = (mBinding.diagramView1.adapter as BaseProcessAdapter).diagram
         if (currentModel is RootDrawableProcessModel.Builder) {
 
             val newModel = currentModel.copy()
@@ -286,7 +286,7 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
         cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))
         val contentResolver = activity!!.contentResolver
         contentResolver.update(itemUri, cv, null, null)
-        mBinding!!.btnPmPublish.isEnabled = false
+        mBinding.btnPmPublish.isEnabled = false
         // XXX verify that this is really not needed
         //    mCallbacks.getSyncManager().requestSyncProcessModelList(true, minAge);
     }

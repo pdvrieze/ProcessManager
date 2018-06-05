@@ -99,7 +99,7 @@ class OverviewActivity : ProcessBaseActivity(), OverviewCallbacks, GetNameDialog
             })
         }
 
-        requestAccount(ProviderHelper.getAuthBase(this))
+        requestAccount(ProviderHelper.getAuthBase(this)!!)
 
         if (savedInstanceState == null) {
             val intent = intent

@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.models;
 
-import android.content.ContentProvider;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 
 
@@ -26,7 +24,7 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel;
  */
 public class ProcessModelHolder {
 
-  public final RootDrawableProcessModel model;
+  public final RootDrawableProcessModel.Builder model;
   public final Long handle;
   private final boolean mLoading;
   private final boolean mPublicationPending;
@@ -40,7 +38,7 @@ public class ProcessModelHolder {
     this.id= -1L;
   }
 
-  public ProcessModelHolder(final RootDrawableProcessModel model, final long id, final Long handle, boolean publicationPending) {
+  public ProcessModelHolder(final RootDrawableProcessModel.Builder model, final long id, final Long handle, boolean publicationPending) {
     mLoading = false;
     this.model = model;
     this.handle = handle;
