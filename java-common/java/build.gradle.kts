@@ -31,7 +31,7 @@ java {
 base {
     version = "1.1.0"
     description = "A library with generic support classes"
-    archivesBaseName="java-common"
+    archivesBaseName="java-common-shared"
 }
 
 //group = 'util'
