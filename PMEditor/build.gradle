@@ -50,7 +50,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     kapt "com.android.databinding:compiler:$androidPluginVersion"
 
-    testImplementation "org.testng:testng:$testngVersion"
+//    testImplementation "org.testng:testng:$testngVersion"
     testImplementation 'junit:junit:4.12'
     testImplementation 'xmlunit:xmlunit:1.6'
     testImplementation project(':java-common:android')
