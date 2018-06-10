@@ -396,7 +396,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     }
 
     override fun toString(): String {
-        var name = this::class.simpleName!!
+        var name = this::class.name.substringAfterLast('.')
         if (name.endsWith("Impl")) {
             name = name.substring(0, name.length - 4)
         }
