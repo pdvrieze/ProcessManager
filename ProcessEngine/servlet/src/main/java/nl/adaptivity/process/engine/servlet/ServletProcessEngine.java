@@ -716,7 +716,8 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      */
     @RestMethod(method = HttpMethod.GET, path = "/processInstances")
     @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
-    public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = RestParamType.PRINCIPAL) final Principal owner) {
+    public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@Nullable @RestParam(type = RestParamType.PRINCIPAL) final Principal owner) {
+        if (owner == null) throw new AuthenticationNeededException();
         try (TRXXX transaction = mProcessEngine.startTransaction()){
             final List<ProcessInstanceRef> list = new ArrayList<>();
             for (final ProcessInstance pi : mProcessEngine.getOwnedProcessInstances(transaction, owner)) {
@@ -736,7 +737,7 @@ public class ServletProcessEngine<TRXXX extends ProcessTransaction> extends Endp
      * @return The full process instance.
      */
     @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
-    public XmlSerializable getProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
+    public XmlSerializable getProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) final long handle, @Nullable @RestParam(type = RestParamType.PRINCIPAL) final Principal user) {
         try (TRXXX transaction = mProcessEngine.startTransaction()){
             return transaction.commit(mProcessEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(handle), user).serializable(transaction));
         } catch (SQLException e) {
