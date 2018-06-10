@@ -30,8 +30,11 @@ description = "A library with process engine support classes"
 
 base {
     archivesBaseName = "PE-common"
-//    sourceCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
-//    targetCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 android {
@@ -57,16 +60,11 @@ dependencies {
     implementation(project(":xmlutil:core:android"))
     implementation(project(":xmlutil:serialization:java"))
     api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
 
     implementation(project(":multiplatform:android"))
     implementation(project(":java-common:android"))
     implementation(project(":xmlutil:serialization:java"))
 
-    compileOnly("org.codehaus.woodstox:stax2-api:3.1.4")
-    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
-
     compileOnly(project(":JavaCommonApi:jvm"))
-    compileOnly(project(":DarwinJavaApi"))
 }
 
