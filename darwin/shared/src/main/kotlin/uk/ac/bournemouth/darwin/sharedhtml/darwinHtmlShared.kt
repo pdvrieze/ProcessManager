@@ -47,6 +47,8 @@ open class ContextTagConsumer<out T>(val context:ServiceContext, private val myD
 
   override fun onTagContent(content: CharSequence) = myDelegate.onTagContent(content)
 
+  override fun onTagComment(content: CharSequence) = myDelegate.onTagComment(content)
+
   override fun onTagContentEntity(entity: Entities) = myDelegate.onTagContentEntity(entity)
 
   override fun onTagContentUnsafe(block: Unsafe.() -> Unit) = myDelegate.onTagContentUnsafe(block)
