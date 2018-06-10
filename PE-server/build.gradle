@@ -91,7 +91,7 @@ task assembleExtraBootCp(type: Copy) {
     into "${buildDir}/bootClasspath"
 }
 
-
+/*
 task war(type: War, overwrite:true, dependsOn: configurations.warContents, group:'build') {
     setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 
@@ -123,17 +123,20 @@ task war(type: War, overwrite:true, dependsOn: configurations.warContents, group
                     }
 
                 }
+/ *
             } else if (! (file.name.startsWith("gwt-user-") )){
                 into("/WEB-INF/lib") {
                     logger.info("Adding library $depPath")
                     from file
                 }
+* /
             }
         }
     }
 }
+*/
 
-artifacts { runtime war }
+//artifacts { runtime war }
 
 
 tomcatRun() {

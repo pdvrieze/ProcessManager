@@ -15,11 +15,12 @@
  */
 
 plugins {
+    base
     id("kotlin-platform-common")
 }
 
 base {
-    archivesBaseName="java-common-common"
+    setArchivesBaseName("java-common-common")
 }
 
 dependencies {

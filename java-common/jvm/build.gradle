@@ -34,7 +34,7 @@ test {
 }
 
 tasks.withType(KotlinCompile) {
-    kotlinOptions.freeCompilerArgs=["-Xenable-jvm-default"]
+    kotlinOptions.freeCompilerArgs=[argJvmDefault]
 }
 
 dependencies {

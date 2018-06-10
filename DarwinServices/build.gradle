@@ -26,18 +26,6 @@ description = 'A container for general support services for the darwin system, i
 
 //group = [ 'server', 'service' ]
 
-configurations {
-    myProvidedCompile
-}
-
-sourceSets {
-    main {
-        compileClasspath+=configurations.myProvidedCompile
-    }
-
-}
-
-
 task tomcatRun(dependsOn: ["classes"]) {
     group='web application'
     description = "Do everything needed to be able to run as embedded tomcat"
@@ -46,27 +34,8 @@ task tomcatRun(dependsOn: ["classes"]) {
 
 dependencies {
     compile project(':PE-common:jvm')
-    myProvidedCompile project(path: ':PE-common:jvm', configuration:'compileOnly')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(':JavaCommonApi:jvm')
     compileOnly project(":DarwinJavaApi")
 }
 
-/*
-afterEvaluate {
-    project.tasks['war'].classpath.each {
-        logger.lifecycle("War classpath: ${it}")
-    }
-/*
-    project.tasks['war'].dependsOn.each { Object dep ->
-        logger.lifecycle("War depends on: ${dep.class.name} = $dep")
-//        dep.properties.each { prop ->
-//            logger.lifecycle("  ${prop.key}: ${prop.value}")
-//        }
-    }
-    logger.lifecycle('')
-    sourceSets.main.compileClasspath.each { logger.lifecycle("Main compileClasspath+=${it}")}
-    logger.lifecycle('')
-    sourceSets.main.runtimeClasspath.each { logger.lifecycle("Main runtimeClasspath+=${it}")}
-}
-*/

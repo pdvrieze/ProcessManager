@@ -27,7 +27,7 @@ buildscript {
 }
 
 plugins {
-    id "net.devrieze.gradlecodegen"
+//    id "net.devrieze.gradlecodegen"
     id "kotlin-platform-common"
     id "idea"
     id("kotlinx-serialization")

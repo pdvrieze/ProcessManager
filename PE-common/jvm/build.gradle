@@ -90,7 +90,7 @@ dependencies {
     api project(':java-common:jvm')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    runtime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 
@@ -135,7 +135,7 @@ generateXml {
 }
 */
 compileKotlin {
-    kotlinOptions.freeCompilerArgs=['-Xenable-jvm-default']
+    kotlinOptions.freeCompilerArgs=[argJvmDefault]
 }
 
 compileXmlJava {

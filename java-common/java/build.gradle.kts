@@ -41,12 +41,13 @@ tasks.withType<Test> {
 }
 
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs=listOf("-Xenable-jvm-default")
-}
-
 val kotlin_version:String by project
 val jupiterVersion:String by project
+val argJvmDefault:String by project
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
+}
 
 dependencies {
     api(project(":JavaCommonApi:java"))

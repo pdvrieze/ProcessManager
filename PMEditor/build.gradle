@@ -159,7 +159,7 @@ kotlin {
 
 tasks.withType(KotlinCompile) {
 
-    kotlinOptions.freeCompilerArgs = ['-Xenable-jvm-default']
+    kotlinOptions.freeCompilerArgs = [argJvmDefault]
 }
 
 task cleanAnnotationsJar(type: Jar, dependsOn: configurations.cleanedAnnotations) {

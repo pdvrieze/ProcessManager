@@ -129,7 +129,7 @@ jar {
 }
 
 tasks.withType(KotlinCompile) {
-    kotlinOptions.freeCompilerArgs=["-Xenable-jvm-default"]
+    kotlinOptions.freeCompilerArgs=[argJvmDefault]
 }
 
 task apiJar(type: Jar) {

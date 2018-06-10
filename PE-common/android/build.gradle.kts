@@ -41,13 +41,14 @@ android {
 //    }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs=listOf("-Xenable-jvm-default")
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 val kotlin_version:String by project
 val serializationVersion: String by project
+val argJvmDefault:String by project
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
+    kotlinOptions.jvmTarget = "1.8"
+}
 
 dependencies {
     expectedBy(project(":PE-common:common"))
