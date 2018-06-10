@@ -96,6 +96,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         this._refName = refName
     }
 
+    @Transient
     override val elementName: QName
         get() = ELEMENTNAME
 

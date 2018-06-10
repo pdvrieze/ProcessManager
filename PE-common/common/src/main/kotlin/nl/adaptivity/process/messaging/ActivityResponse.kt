@@ -126,6 +126,7 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         private set
 
 
+    @Transient
     override val elementName: QName
         get() = ELEMENTNAME
 

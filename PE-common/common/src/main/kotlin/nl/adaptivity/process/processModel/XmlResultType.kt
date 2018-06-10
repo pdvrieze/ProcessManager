@@ -86,6 +86,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
         out.endTag(ELEMENTNAME)
     }
 
+    @Transient
     override val elementName: QName
         get() = ELEMENTNAME
 

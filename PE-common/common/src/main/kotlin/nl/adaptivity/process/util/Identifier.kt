@@ -26,6 +26,7 @@ import nl.adaptivity.xml.serialization.simpleSerialClassDesc
 @Serializable
 class Identifier(override var id: String) : Identified {
 
+    @Transient
     override val identifier: Identifier get() = this
 
     private class ChangeableIdentifier(private val idBase: String) : Identified {
