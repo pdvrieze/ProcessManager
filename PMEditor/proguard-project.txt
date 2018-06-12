@@ -96,3 +96,8 @@
 -dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode$Builder$Companion
 -dontwarn nl.adaptivity.process.processModel.engine.XmlProcessModel
 -dontwarn nl.adaptivity.process.util.ListSet$$CC
+
+#Further suppressions for serialization
+-dontwarn nl.adaptivity.xml.serialization.XmlElement$Impl
+-dontwarn nl.adaptivity.xml.serialization.XmlDefault$Impl
+-dontwarn nl.adaptivity.xml.serialization.canary.CanaryInput$Dummy$Companion

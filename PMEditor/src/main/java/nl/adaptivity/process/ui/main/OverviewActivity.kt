@@ -55,16 +55,12 @@ class OverviewActivity : ProcessBaseActivity(), OverviewCallbacks, GetNameDialog
     private var mModelIdToInstantiate = -1L
 
 
-    protected open fun bindLayout(): ActivityOverviewBinding {
-        return DataBindingUtil.setContentView(this, R.layout.activity_overview)
-    }
-
     private lateinit var currentDestination: LiveData<NavDestination>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        supportFragmentManager.addOnBackStackChangedListener(this)
-        binding = bindLayout()
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_overview)
 
         val titleViewModel = ViewModelProviders.of(this).get(TitleViewModel::class.java)
         titleViewModel.title.observe(this, Observer {

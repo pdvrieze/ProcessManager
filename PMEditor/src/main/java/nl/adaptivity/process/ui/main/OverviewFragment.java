@@ -94,10 +94,10 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
         void showModelsFragment();
     }
 
-    private OverviewCallbacks mCallbacks;
-    private FragmentOverviewBinding mBinding;
-    private TaskLoaderCallbacks mTaskLoaderCallbacks;
-    private ProcessModelLoaderCallbacks mPMLoaderCallbacks;
+    private OverviewCallbacks           callbacks;
+    private FragmentOverviewBinding     binding;
+    private TaskLoaderCallbacks         taskLoaderCallbacks;
+    private ProcessModelLoaderCallbacks pmLoaderCallbacks;
 
 
     public OverviewFragment() {
@@ -107,13 +107,13 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_overview, container, false);
-        mBinding.setFragment(this);
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_overview, container, false);
+        binding.setFragment(this);
         final OverviewTaskCursorAdapter taskAdapter = new OverviewTaskCursorAdapter(getActivity(), null);
         taskAdapter.setSelectionEnabled(false);
         taskAdapter.setOnItemClickListener(this);
-        mBinding.overviewTaskList.setAdapter(taskAdapter);
-        mTaskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), taskAdapter) {
+        binding.overviewTaskList.setAdapter(taskAdapter);
+        taskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), taskAdapter) {
             @Override
             public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
                 return new CursorLoader(mContext, TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY, Tasks.COLUMN_STATE, Tasks.COLUMN_INSTANCENAME}, Tasks.COLUMN_STATE + "!='Complete'", null, null);
@@ -123,12 +123,12 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
             public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
                 super.onLoadFinished(loader, data);
                 if (data==null) {
-                    mBinding.setTasklistState(LIST_STATE_ERROR);
-                    mBinding.overviewTaskAlttext.setText(R.string.lbl_overview_tasklist_error);
+                    binding.setTasklistState(LIST_STATE_ERROR);
+                    binding.overviewTaskAlttext.setText(R.string.lbl_overview_tasklist_error);
                 } else if (! data.moveToFirst()) {
-                    mBinding.setTasklistState(LIST_STATE_EMPTY);
+                    binding.setTasklistState(LIST_STATE_EMPTY);
                 } else {
-                    mBinding.setTasklistState(LIST_STATE_LOADED);
+                    binding.setTasklistState(LIST_STATE_LOADED);
                 }
             }
         };
@@ -136,8 +136,8 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
         final OverviewPMCursorAdapter pmAdapter = new OverviewPMCursorAdapter(getActivity(), null);
         pmAdapter.setSelectionEnabled(false);
         pmAdapter.setOnItemClickListener(this);
-        mBinding.overviewModelList.setAdapter(pmAdapter);
-        mPMLoaderCallbacks = new ProcessModelLoaderCallbacks(getActivity(), pmAdapter) {
+        binding.overviewModelList.setAdapter(pmAdapter);
+        pmLoaderCallbacks = new ProcessModelLoaderCallbacks(getActivity(), pmAdapter) {
 
             @Override
             public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
@@ -148,25 +148,25 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
             public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
                 super.onLoadFinished(loader, data);
                 if (data==null) {
-                    mBinding.setModellistState(LIST_STATE_ERROR);
-                    mBinding.overviewModelAlttext.setText(R.string.lbl_overview_modellist_error);
+                    binding.setModellistState(LIST_STATE_ERROR);
+                    binding.overviewModelAlttext.setText(R.string.lbl_overview_modellist_error);
                 } else if (! data.moveToFirst()) {
-                    mBinding.setModellistState(LIST_STATE_EMPTY);
+                    binding.setModellistState(LIST_STATE_EMPTY);
                 } else {
-                    mBinding.setModellistState(LIST_STATE_LOADED);
+                    binding.setModellistState(LIST_STATE_LOADED);
                 }
             }
         };
 
 
-        return mBinding.getRoot();
+        return binding.getRoot();
     }
 
     @Override
     public void onAttach(final Context context) {
         super.onAttach(context);
         if (context instanceof OverviewCallbacks) {
-            mCallbacks = (OverviewCallbacks) context;
+            callbacks = (OverviewCallbacks) context;
         } else {
             throw new RuntimeException(context.toString() + " must implement OverviewCallbacks");
         }
@@ -175,7 +175,7 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
     @Override
     public void onDetach() {
         super.onDetach();
-        mCallbacks = null;
+        callbacks = null;
     }
 
     @Override
@@ -184,21 +184,21 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
         updateLayoutManagerColumnCount();
 
         final LoaderManager loaderManager = getLoaderManager();
-        loaderManager.initLoader(LOADER_TASKS, null, mTaskLoaderCallbacks);
-        loaderManager.initLoader(LOADER_MODELS, null, mPMLoaderCallbacks);
+        loaderManager.initLoader(LOADER_TASKS, null, taskLoaderCallbacks);
+        loaderManager.initLoader(LOADER_MODELS, null, pmLoaderCallbacks);
 
     }
 
     private void updateLayoutManagerColumnCount() {
         final int minColWidth = getResources().getDimensionPixelSize(R.dimen.fragment_overview_min_col_width);
         {
-            final GridLayoutManager taskGlm   = (GridLayoutManager) mBinding.overviewTaskList.getLayoutManager();
-            final int               taskWidth = ((ViewGroup)mBinding.overviewTaskList.getParent()).getWidth();
+            final GridLayoutManager taskGlm   = (GridLayoutManager) binding.overviewTaskList.getLayoutManager();
+            final int               taskWidth = ((ViewGroup) binding.overviewTaskList.getParent()).getWidth();
             taskGlm.setSpanCount(Math.max(1,taskWidth / minColWidth));
         }
         {
-            final GridLayoutManager modelGlm   = (GridLayoutManager) mBinding.overviewModelList.getLayoutManager();
-            final int               modelWidth = ((ViewGroup)mBinding.overviewModelList.getParent()).getWidth();
+            final GridLayoutManager modelGlm   = (GridLayoutManager) binding.overviewModelList.getLayoutManager();
+            final int               modelWidth = ((ViewGroup) binding.overviewModelList.getParent()).getWidth();
             modelGlm.setSpanCount(Math.max(1,modelWidth / minColWidth));
         }
     }
@@ -219,9 +219,9 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
     @Override
     public boolean onClickItem(final ClickableAdapter adapter, final ClickableViewHolder viewHolder) {
         if (viewHolder instanceof OverviewPMCursorAdapter.OverviewPMViewHolder) {
-            mCallbacks.onInstantiateModel(viewHolder.getItemId(), ((OverviewPMViewHolder)viewHolder).getBinding().getName().toString()+" instance");
+            callbacks.onInstantiateModel(viewHolder.getItemId(), ((OverviewPMViewHolder)viewHolder).getBinding().getName().toString() + " instance");
         } else if (viewHolder instanceof OverviewTaskCursorAdapter.OverviewTaskCursorViewHolder) {
-            mCallbacks.onShowTask(viewHolder.getItemId());
+            callbacks.onShowTask(viewHolder.getItemId());
         }
         return false;
     }

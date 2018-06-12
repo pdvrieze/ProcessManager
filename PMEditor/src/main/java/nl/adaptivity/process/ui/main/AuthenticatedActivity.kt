@@ -42,7 +42,7 @@ abstract class AuthenticatedActivity : AppCompatActivity() {
         // Hook for subclasses
     }
 
-    fun requestAccount(authBase: URI) {
+    fun requestAccount(authBase: URI?) {
         ViewModelProviders.of(this).get(AccountViewModel::class.java).requestAccount(this, authBase)
     }
 

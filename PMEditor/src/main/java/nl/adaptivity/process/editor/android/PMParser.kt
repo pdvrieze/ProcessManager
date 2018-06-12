@@ -45,7 +45,7 @@ object PMParser {
         }
 
     @JvmStatic
-    @Throws(XmlPullParserException::class, IOException::class, XmlException::class)
+    @Throws(XmlPullParserException::class, IOException::class)
     fun serializeProcessModel(out: OutputStream, processModel: RootDrawableProcessModel) {
         val serializer = getSerializer(out)
         try {
@@ -64,7 +64,7 @@ object PMParser {
     }
 
     @JvmStatic
-    @Throws(XmlPullParserException::class, IOException::class, XmlException::class)
+    @Throws(XmlPullParserException::class, IOException::class)
     fun serializeProcessModel(out: Writer, processModel: RootDrawableProcessModel) {
         val serializer = getSerializer(out)
         val writer = AndroidXmlWriter(serializer)
@@ -73,14 +73,14 @@ object PMParser {
     }
 
     @JvmStatic
-    @Throws(XmlPullParserException::class, IOException::class, XmlException::class)
+    @Throws(XmlPullParserException::class, IOException::class)
     fun exportProcessModel(out: OutputStream, processModel: RootProcessModel<*, *>) {
         val sanitizedModel = sanitizeForExport(processModel)
         serializeProcessModel(out, sanitizedModel)
     }
 
     @JvmStatic
-    @Throws(XmlPullParserException::class, IOException::class, XmlException::class)
+    @Throws(XmlPullParserException::class, IOException::class)
     fun exportProcessModel(out: Writer, processModel: RootProcessModel<*, *>) {
         val sanitizedModel = sanitizeForExport(processModel)
         serializeProcessModel(out, sanitizedModel)

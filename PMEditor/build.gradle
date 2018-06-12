@@ -39,7 +39,7 @@ dependencies {
     implementation project(':PE-diagram:android')
     implementation project(':PE-common:android')
     implementation project(':darwinlib')
-    implementation project(':DarwinJavaApi')
+//    implementation project(':DarwinJavaApi')
     implementation project(':JavaCommonApi:java')
 //    implementation project(':xmlutil:core:android')
     implementation project(':xmlutil:android')
@@ -111,6 +111,7 @@ android {
 //        jackOptions {
 //            enabled = true
 //        }
+        vectorDrawables.useSupportLibrary = true
     }
 
     dataBinding {
