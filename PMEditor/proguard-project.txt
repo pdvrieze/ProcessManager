@@ -21,3 +21,78 @@
 -forceprocessing
 #-target 1.7
 -keepnames class ** { *; }
+
+# Coroutines
+-dontobfuscate
+-dontwarn java.lang.invoke.SerializedLambda
+-dontwarn sun.misc.**
+-dontwarn sun.nio.ch.DirectBuffer
+-dontwarn java.beans.**
+-dontnote kotlin.internal.jdk8.JDK8PlatformImplementations
+-dontnote kotlin.internal.JRE8PlatformImplementations
+-dontnote kotlin.internal.jdk7.JDK7PlatformImplementations
+-dontnote kotlin.reflect.jvm.internal.ReflectionFactoryImpl
+-dontnote COM.newmonics.PercClassLoader.**
+-dontnote sun.reflect.ReflectionFactory
+-dontnote org.objenesis.strategy.PlatformDescription
+-dontnote org.apache.harmony.xnet.provider.jsse.NativeCrypto
+
+-keepclassmembers class ** {
+    *** INSTANCE;
+    int SDK_INT;
+}
+-keepclassmembers class kotlin.coroutines.experimental.SafeContinuation {
+    *;
+}
+-keep class kotlin.coroutines.experimental.CoroutineContext$Key
+-keep class kotlin.coroutines.experimental.CoroutineContext
+-keep class kotlin.coroutines.experimental.Continuation
+-keep class kotlin.jvm.functions.Function2
+
+# serialization
+-keep class **$serializer
+-dontwarn nl.adaptivity.messaging.ISendableMessage
+-dontwarn nl.adaptivity.process.messaging.ActivityResponse
+-dontwarn nl.adaptivity.process.messaging.ActivityResponse$Companion
+-dontwarn nl.adaptivity.process.processModel.ActivityBase
+-dontwarn nl.adaptivity.process.processModel.ActivityBase$Companion
+-dontwarn nl.adaptivity.process.processModel.ActivityBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.EndNodeBase
+-dontwarn nl.adaptivity.process.processModel.EndNodeBase$Companion
+-dontwarn nl.adaptivity.process.processModel.EndNodeBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.JoinBase
+-dontwarn nl.adaptivity.process.processModel.JoinBase$Companion
+-dontwarn nl.adaptivity.process.processModel.JoinBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.JoinSplitBase
+-dontwarn nl.adaptivity.process.processModel.JoinSplitBase$Companion
+-dontwarn nl.adaptivity.process.processModel.JoinSplitBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.SplitBase
+-dontwarn nl.adaptivity.process.processModel.SplitBase$Companion
+-dontwarn nl.adaptivity.process.processModel.SplitBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.StartNodeBase
+-dontwarn nl.adaptivity.process.processModel.StartNodeBase$Companion
+-dontwarn nl.adaptivity.process.processModel.StartNodeBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.PredecessorInfo$$serializer
+-dontwarn nl.adaptivity.process.processModel.ProcessNodeBase
+-dontwarn nl.adaptivity.process.processModel.ProcessNodeBase$Companion
+-dontwarn nl.adaptivity.process.processModel.ProcessNodeBase$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.ProcessModelBase
+-dontwarn nl.adaptivity.process.processModel.ProcessModelBase$Companion
+-dontwarn nl.adaptivity.process.processModel.XmlMessage
+-dontwarn nl.adaptivity.process.processModel.engine.XmlActivity
+-dontwarn nl.adaptivity.process.processModel.engine.XmlActivity$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlActivity$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlEndNode
+-dontwarn nl.adaptivity.process.processModel.engine.XmlEndNode$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlEndNode$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlJoin
+-dontwarn nl.adaptivity.process.processModel.engine.XmlJoin$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlJoin$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlSplit
+-dontwarn nl.adaptivity.process.processModel.engine.XmlSplit$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlSplit$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode
+-dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode$Builder$Companion
+-dontwarn nl.adaptivity.process.processModel.engine.XmlProcessModel
+-dontwarn nl.adaptivity.process.util.ListSet$$CC
