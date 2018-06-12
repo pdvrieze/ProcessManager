@@ -45,7 +45,7 @@ dependencies {
     implementation project(':xmlutil:android')
     implementation project(':xmlutil:serialization:java')
     implementation project(':java-common:android')
-    implementation 'net.devrieze:android-coroutines:0.6.3'
+    implementation 'net.devrieze:android-coroutines:0.7.0-SNAPSHOT'
 
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     kapt "com.android.databinding:compiler:$androidPluginVersion"
