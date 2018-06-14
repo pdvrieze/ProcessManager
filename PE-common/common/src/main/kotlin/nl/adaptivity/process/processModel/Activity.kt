@@ -37,14 +37,12 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
      * referred to by reference, not name.
      */
     @Deprecated("Not needed, use id.", ReplaceWith("id"))
-    var name: String?
+    val name: String?
 
     /**
      * The condition that needs to be true to start this activity. A null value means that the activity can run.
      */
-    var condition: String?
-        @Deprecated("Activities should be immutable")
-        set
+    val condition: String?
 
     /**
      * Get the list of imports. The imports are provided to the message for use as
@@ -52,16 +50,11 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
      */
     override val results: List<IXmlResultType>
 
-    @Deprecated("Activities should be immutable")
-    fun setResults(results: Collection<IXmlResultType>)
-
     /**
      * Get the list of exports. Exports will allow storing the response of an
      * activity. Setting will create a copy of the parameter for safety.
      */
     override val defines: List<IXmlDefineType>
-
-    fun setDefines(defines: Collection<IXmlDefineType>)
 
     /**
      * The predecessor node for this activity.
@@ -74,7 +67,7 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
      * The message of this activity. This provides all the information to be
      * able to actually invoke the service.
      */
-    var message: IXmlMessage?
+    val message: IXmlMessage?
 
     val childModel: ChildProcessModel<NodeT, ModelT>?
 

@@ -30,8 +30,8 @@ interface JoinSplit<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
 
   override fun builder(): Builder<NodeT, ModelT>
 
-  var min: Int
+  val min: Int
 
-  var max: Int
+  val max: Int
 
 }

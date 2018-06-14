@@ -143,25 +143,6 @@ class DrawableSplit : SplitBase<DrawableProcessNode, DrawableProcessModel?>, Spl
   override val idBase: String
     get() = IDBASE
 
-  @Deprecated("Use builders")
-  override fun setId(id: String) = super.setId(id)
-  @Deprecated("Use builders")
-  override fun setLabel(label: String?) = super.setLabel(label)
-  @Deprecated("Use builders")
-  override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
-  @Deprecated("Use builders")
-  override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
-  @Deprecated("Use builders")
-  override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
-  @Deprecated("Use builders")
-  override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
-  @Deprecated("Use builders")
-  override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
-  @Deprecated("Use builders")
-  override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
-  @Deprecated("Use builders")
-  override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
-
   companion object {
 
     private const val ARROWHEADDX = JOINWIDTH * 0.2

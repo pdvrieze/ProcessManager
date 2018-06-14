@@ -59,7 +59,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   private int mPos=-1;
 
   private DlgNodeEditActivityBinding mBinding;
-  private DrawableActivity mActivityNode;
+  private DrawableActivity.Builder mActivityNode;
 
   @Override
   public void onCheckedChanged(final RadioButtonHelper source, final int oldCheckedId, final int newCheckedId) {
@@ -102,10 +102,10 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     mBinding.editAcService.setOnClickListener(this);
 
     if (savedInstanceState!=null && savedInstanceState.containsKey(UIConstants.KEY_ACTIVITY)) {
-      mActivityNode = DrawableActivity.from(savedInstanceState.<ParcelableActivity>getParcelable(UIConstants.KEY_ACTIVITY), false);
+      mActivityNode = new DrawableActivity.Builder(savedInstanceState.<ParcelableActivity>getParcelable(UIConstants.KEY_ACTIVITY));
     } else if (getActivity() instanceof NodeEditListener) {
       final NodeEditListener listener = (NodeEditListener) getActivity();
-      mActivityNode = (DrawableActivity) listener.getNode(mPos);
+      mActivityNode = (DrawableActivity.Builder) listener.getNode(mPos);
       mBinding.setNode(mActivityNode);
     }
     return dialog;
@@ -116,7 +116,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     if (which==DialogInterface.BUTTON_POSITIVE) {
       if (getActivity() instanceof NodeEditListener) {
         final NodeEditListener listener = (NodeEditListener) getActivity();
-        final DrawableActivity node = (DrawableActivity) listener.getNode(mPos);
+        final DrawableActivity.Builder node = (DrawableActivity.Builder) listener.getNode(mPos);
         node.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
         node.setMessage(mActivityNode.getMessage());
         node.setResults(mActivityNode.getResults());

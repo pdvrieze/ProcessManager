@@ -72,10 +72,6 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
         return visitor.visitEndNode(this)
     }
 
-    // Override to make public.
-    @Suppress("OverridingDeprecatedMember")
-    override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
-
     @Serializable
     abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
         ProcessNodeBase.Builder<T, M>,

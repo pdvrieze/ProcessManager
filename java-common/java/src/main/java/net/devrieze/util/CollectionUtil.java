@@ -46,6 +46,7 @@ public final class CollectionUtil {
       mOthers = others;
     }
 
+    @NotNull
     @Override
     public Iterator<T> iterator() {
       return new CombiningIterator<>(this);
@@ -546,10 +547,10 @@ public final class CollectionUtil {
           try {
             listener.elementAdded(element);
           } catch (final RuntimeException e) {
-            error = MultiException.Companion.add(error, e);
+            error = MultiException.add(error, e);
           }
         }
-        MultiException.Companion.throwIfError(error);
+        MultiException.throwIfError(error);
       }
     }
 
@@ -560,10 +561,10 @@ public final class CollectionUtil {
           try {
             listener.collectionCleared();
           } catch (final RuntimeException e) {
-            error = MultiException.Companion.add(error, e);
+            error = MultiException.add(error, e);
           }
         }
-        MultiException.Companion.throwIfError(error);
+        MultiException.throwIfError(error);
       }
     }
 
@@ -574,10 +575,10 @@ public final class CollectionUtil {
           try {
             listener.elementRemoved(element);
           } catch (final RuntimeException e) {
-            error = MultiException.Companion.add(error, e);
+            error = MultiException.add(error, e);
           }
         }
-        MultiException.Companion.throwIfError(error);
+        MultiException.throwIfError(error);
       }
     }
 

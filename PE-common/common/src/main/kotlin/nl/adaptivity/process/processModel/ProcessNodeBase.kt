@@ -107,17 +107,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
     override val id: String? get() = mId
 
-    @Transient
-    private var _label: String?
-
-    override val label: String? get() = _label
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun setLabel(label: String?) {
-        _label = label
-        _hashCode = 0
-        notifyChange()
-    }
+    override val label: String?
 
 
     @Transient
@@ -146,7 +136,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         this._y = y
         this._defines = toExportableDefines(defines)
         this._results = toExportableResults(results)
-        this._label = label
+        this.label = label
         this.mId = id
     }
 
@@ -369,12 +359,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         notifyChange()
     }
 
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun setDefines(defines: Collection<IXmlDefineType>) {
-        _hashCode = 0
-        _defines = toExportableDefines(defines)
-    }
-
 
     @Deprecated("Use builders instead of mutable process models")
     fun setDefine(define: IXmlDefineType): XmlDefineType? {
@@ -440,7 +424,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         if (_defines != other._defines) return false
         if (_results != other._results) return false
         if (_hashCode != other._hashCode) return false
-        if (_label != other._label) return false
+        if (label != other.label) return false
         if (mId != other.mId) return false
 
         return true
@@ -455,7 +439,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         result = 31 * result + _defines.hashCode()
         result = 31 * result + _results.hashCode()
         result = 31 * result + _hashCode
-        result = 31 * result + (_label?.hashCode() ?: 0)
+        result = 31 * result + (label?.hashCode() ?: 0)
         result = 31 * result + (mId?.hashCode() ?: 0)
         return result
     }

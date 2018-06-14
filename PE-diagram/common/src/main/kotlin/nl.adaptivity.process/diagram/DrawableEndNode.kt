@@ -146,42 +146,6 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
         throw UnsupportedOperationException("Copying incompatible types")
     }
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun setId(id: String) = super.setId(id)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun setLabel(label: String?) = super.setLabel(label)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Use the builder")
-    override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
-
     companion object {
 
         private const val REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS

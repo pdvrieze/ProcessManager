@@ -170,42 +170,6 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
         }
     }
 
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun setId(id: String) = super.setId(id)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun setLabel(label: String?) = super.setLabel(label)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
-
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Use the builder")
-    override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
-
     companion object {
         const val IDBASE = "ac"
 

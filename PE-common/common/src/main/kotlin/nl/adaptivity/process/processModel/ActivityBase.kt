@@ -125,11 +125,6 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     /* Override to make public */
     @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
     @Deprecated("Don't have mutable process models")
-    override fun setDefines(defines: Collection<IXmlDefineType>) = super.setDefines(defines)
-
-    /* Override to make public */
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Don't have mutable process models")
     override fun setResults(results: Collection<IXmlResultType>) = super.setResults(results)
 
     override fun equals(other: Any?): Boolean {

@@ -32,6 +32,38 @@ import nl.adaptivity.xml.XmlSerializable
  */
 interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
 
+    val ownerModel: ModelT
+
+    val predecessors: IdentifyableSet<Identified>
+
+    val successors: IdentifyableSet<Identified>
+
+    val maxSuccessorCount: Int
+
+    val maxPredecessorCount: Int
+
+    val label: String?
+
+    val results: List<IXmlResultType>
+
+    val defines: List<IXmlDefineType>
+
+    val idBase: String
+
+    val isMultiInstance: Boolean
+
+    fun builder(): IBuilder<NodeT, ModelT>
+
+    fun asT(): NodeT
+
+    fun isPredecessorOf(node: ProcessNode<*, *>): Boolean
+
+    fun <R> visit(visitor: Visitor<R>): R
+
+    fun getResult(name: String): XmlResultType?
+
+    fun getDefine(name: String): XmlDefineType?
+
     @ProcessModelDSL
     interface IBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable {
         val predecessors: Set<Identified>
@@ -70,9 +102,6 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
         fun removePredecessor(identifier: Identifiable)
     }
 
-    @ProcessModelDSL
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : IBuilder<NodeT, ModelT>
-
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder<*, *>): R
         fun visitActivity(activity: Activity.Builder<*, *>): R
@@ -89,38 +118,6 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
         fun visitJoin(join: Join<*, *>): R
         fun visitEndNode(endNode: EndNode<*, *>): R
     }
-
-    fun builder(): IBuilder<NodeT, ModelT>
-
-    fun asT(): NodeT
-
-    fun isPredecessorOf(node: ProcessNode<*, *>): Boolean
-
-    fun <R> visit(visitor: Visitor<R>): R
-
-    fun getResult(name: String): XmlResultType?
-
-    fun getDefine(name: String): XmlDefineType?
-
-    val ownerModel: ModelT
-
-    val predecessors: IdentifyableSet<Identified>
-
-    val successors: IdentifyableSet<Identified>
-
-    val maxSuccessorCount: Int
-
-    val maxPredecessorCount: Int
-
-    val label: String?
-
-    val results: List<IXmlResultType>
-
-    val defines: List<IXmlDefineType>
-
-    val idBase: String
-
-    val isMultiInstance: Boolean
 }
 
 

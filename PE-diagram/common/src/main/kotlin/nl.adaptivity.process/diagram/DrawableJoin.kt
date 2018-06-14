@@ -140,16 +140,6 @@ class DrawableJoin(builder: Join.Builder<*, *>,
         return builder().build()
     }
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun setId(id: String) = super.setId(id)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun setLabel(label: String?) = super.setLabel(label)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun setOwnerModel(newOwnerModel: DrawableProcessModel?) = super.setOwnerModel(newOwnerModel)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun setPredecessors(predecessors: Collection<Identifiable>) = super.setPredecessors(predecessors)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun removePredecessor(predecessorId: Identified) = super.removePredecessor(predecessorId)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun addPredecessor(predecessorId: Identified) = super.addPredecessor(predecessorId)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun addSuccessor(successorId: Identified) = super.addSuccessor(successorId)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun removeSuccessor(successorId: Identified) = super.removeSuccessor(successorId)
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION") override fun setSuccessors(successors: Collection<Identified>) = super.setSuccessors(successors)
-
     companion object {
 
         private const val ARROWHEADD_X = JOINWIDTH * 0.375

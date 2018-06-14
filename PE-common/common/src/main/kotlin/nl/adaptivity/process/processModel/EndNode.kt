@@ -27,12 +27,9 @@ import nl.adaptivity.xml.QName
 
 interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
 
-    var predecessor: Identified?
+    val predecessor: Identified?
 
     override fun builder(): Builder<NodeT, ModelT>
-
-    @Deprecated("Don't modify nodes directly")
-    fun setDefines(defines: Collection<IXmlDefineType>)
 
     interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
         ProcessNode.IBuilder<NodeT, ModelT> {
