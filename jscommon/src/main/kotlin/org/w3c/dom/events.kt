@@ -14,18 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:Suppress("PackageDirectoryMismatch")
+
 package org.w3c.dom.events
 
 import org.w3c.dom.Element
 
-inline val Event.bubbles get() = asDynamic().bubbles as Boolean
-inline val Event.cancelable get() = asDynamic().cancelable as Boolean
-inline val Event.currentTarget get() = asDynamic().currentTarget as Boolean
-inline val Event.defaultPrevented get() = asDynamic().defaultPrevented as Boolean
-inline val Event.eventPhase get() = asDynamic().eventPhase as Number
-inline val Event.isTrusted get() = asDynamic().isTrusted as Boolean
 inline val Event.srcElement: Element? get() = asDynamic().srcElement as Element?
-inline val Event.target get() = asDynamic().target as EventTarget?
-inline val Event.timeStamp get() = asDynamic().target as Number
-
-fun myTest() = true

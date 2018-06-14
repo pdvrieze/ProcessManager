@@ -185,7 +185,7 @@ external interface JsArray<T> {
                       initialValue: U): U
 }
 
-@Suppress("UNCHECKED_CAST_TO_NATIVE_INTERFACE", "UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
 inline val <T> Array<T>.jsext: JsArray<T> get() = this as JsArray<T>
 
 inline fun <T> Array<T>.push(vararg values: T) = jsext.push(*values)
