@@ -50,54 +50,77 @@
 -keep class kotlin.jvm.functions.Function2
 
 # serialization
--keep class **$serializer
--dontwarn nl.adaptivity.messaging.ISendableMessage
--dontwarn nl.adaptivity.process.messaging.ActivityResponse
--dontwarn nl.adaptivity.process.messaging.ActivityResponse$Companion
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+
+-keep,includedescriptorclasses class nl.adaptivity.process.messaging.**$$serializer { *; } # <-- change package name to your app's
+-keepclassmembers class nl.adaptivity.process.messaging.** { # <-- change package name to your app's
+    *** Companion;
+}
+-keepclasseswithmembers class nl.adaptivity.process.messaging.** { # <-- change package name to your app's
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-keep,includedescriptorclasses class nl.adaptivity.messaging.**$$serializer { *; } # <-- change package name to your app's
+-keepclassmembers class nl.adaptivity.messaging.** { # <-- change package name to your app's
+    *** Companion;
+}
+-keepclasseswithmembers class nl.adaptivity.messaging.** { # <-- change package name to your app's
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-keep,includedescriptorclasses class nl.adaptivity.process.processModel.**$$serializer { *; } # <-- change package name to your app's
+-keepclassmembers class nl.adaptivity.process.processModel.** { # <-- change package name to your app's
+    *** Companion;
+}
+-keepclasseswithmembers class nl.adaptivity.process.processModel.** { # <-- change package name to your app's
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-keep,includedescriptorclasses class nl.adaptivity.process.processModel.engine.**$$serializer { *; } # <-- change package name to your app's
+-keepclassmembers class nl.adaptivity.process.processModel.engine.** { # <-- change package name to your app's
+    *** Companion;
+}
+-keepclasseswithmembers class nl.adaptivity.process.processModel.engine.** { # <-- change package name to your app's
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
 -dontwarn nl.adaptivity.process.processModel.ActivityBase
--dontwarn nl.adaptivity.process.processModel.ActivityBase$Companion
--dontwarn nl.adaptivity.process.processModel.ActivityBase$Builder$Companion
 -dontwarn nl.adaptivity.process.processModel.EndNodeBase
--dontwarn nl.adaptivity.process.processModel.EndNodeBase$Companion
--dontwarn nl.adaptivity.process.processModel.EndNodeBase$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.JoinBase
--dontwarn nl.adaptivity.process.processModel.JoinBase$Companion
--dontwarn nl.adaptivity.process.processModel.JoinBase$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.JoinSplitBase
--dontwarn nl.adaptivity.process.processModel.JoinSplitBase$Companion
--dontwarn nl.adaptivity.process.processModel.JoinSplitBase$Builder$Companion
+#-dontwarn nl.adaptivity.process.processModel.EndNodeBase$Companion
+#-dontwarn nl.adaptivity.process.processModel.EndNodeBase$Builder$Companion
+#-dontwarn nl.adaptivity.process.processModel.JoinBase
+#-dontwarn nl.adaptivity.process.processModel.JoinBase$Companion
+#-dontwarn nl.adaptivity.process.processModel.JoinBase$Builder$Companion
+#-dontwarn nl.adaptivity.process.processModel.JoinSplitBase
+#-dontwarn nl.adaptivity.process.processModel.JoinSplitBase$Companion
+#-dontwarn nl.adaptivity.process.processModel.JoinSplitBase$Builder$Companion
 -dontwarn nl.adaptivity.process.processModel.SplitBase
--dontwarn nl.adaptivity.process.processModel.SplitBase$Companion
--dontwarn nl.adaptivity.process.processModel.SplitBase$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.StartNodeBase
--dontwarn nl.adaptivity.process.processModel.StartNodeBase$Companion
--dontwarn nl.adaptivity.process.processModel.StartNodeBase$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.PredecessorInfo$$serializer
+#-dontwarn nl.adaptivity.process.processModel.SplitBase$Companion
+#-dontwarn nl.adaptivity.process.processModel.SplitBase$Builder$Companion
+#-dontwarn nl.adaptivity.process.processModel.StartNodeBase
+#-dontwarn nl.adaptivity.process.processModel.StartNodeBase$Companion
+#-dontwarn nl.adaptivity.process.processModel.StartNodeBase$Builder$Companion
+#-dontwarn nl.adaptivity.process.processModel.PredecessorInfo$$serializer
 -dontwarn nl.adaptivity.process.processModel.ProcessNodeBase
--dontwarn nl.adaptivity.process.processModel.ProcessNodeBase$Companion
--dontwarn nl.adaptivity.process.processModel.ProcessNodeBase$Builder$Companion
+
 -dontwarn nl.adaptivity.process.processModel.ProcessModelBase
 -dontwarn nl.adaptivity.process.processModel.ProcessModelBase$Companion
+-dontwarn nl.adaptivity.process.processModel.ProcessModelBase$$serializer
 -dontwarn nl.adaptivity.process.processModel.XmlMessage
 -dontwarn nl.adaptivity.process.processModel.engine.XmlActivity
--dontwarn nl.adaptivity.process.processModel.engine.XmlActivity$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlActivity$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlEndNode
--dontwarn nl.adaptivity.process.processModel.engine.XmlEndNode$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlEndNode$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlJoin
--dontwarn nl.adaptivity.process.processModel.engine.XmlJoin$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlJoin$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlSplit
--dontwarn nl.adaptivity.process.processModel.engine.XmlSplit$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlSplit$Builder$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode
--dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode$Companion
--dontwarn nl.adaptivity.process.processModel.engine.XmlStartNode$Builder$Companion
+
 -dontwarn nl.adaptivity.process.processModel.engine.XmlProcessModel
 -dontwarn nl.adaptivity.process.util.ListSet$$CC
 
 #Further suppressions for serialization
 -dontwarn nl.adaptivity.xml.serialization.XmlElement$Impl
 -dontwarn nl.adaptivity.xml.serialization.XmlDefault$Impl
--dontwarn nl.adaptivity.xml.serialization.canary.CanaryInput$Dummy$Companion
+#-dontwarn nl.adaptivity.xml.serialization.canary.CanaryInput$Dummy$Companion
+
+-keepclassmembers class nl.adaptivity.xml.serialization.canary.CanaryInput { # <-- change package name to your app's
+    *** Companion;
+}
+-keepclasseswithmembers class nl.adaptivity.xml.serialization.canary.CanaryInput { # <-- change package name to your app's
+    kotlinx.serialization.KSerializer serializer(...);
+}
