@@ -510,188 +510,7 @@ public final class CollectionUtil {
 
   }
 
-  private static class MonitoringCollectionAdapter<V> implements MonitorableCollection<V> {
-
-    private final Collection<V> mCollection;
-
-    private Set<CollectionChangeListener<? super V>> mListeners;
-
-
-    public MonitoringCollectionAdapter(final Collection<V> collection) {
-      mCollection = collection;
-    }
-
-    @Override
-    public void addCollectionChangeListener(final CollectionChangeListener<? super V> listener) {
-      getListeners().add(listener);
-    }
-
-    @Override
-    public void removeCollectionChangeListener(final CollectionChangeListener<? super V> listener) {
-      if (mListeners != null) {
-        getListeners().remove(listener);
-      }
-    }
-
-    private Set<CollectionChangeListener<? super V>> getListeners() {
-      if (mListeners == null) {
-        mListeners = new HashSet<>();
-      }
-      return mListeners;
-    }
-
-    private void fireAddEvent(final V element) {
-      if (mListeners != null) {
-        MultiException error = null;
-        for (final CollectionChangeListener<? super V> listener : mListeners) {
-          try {
-            listener.elementAdded(element);
-          } catch (final RuntimeException e) {
-            error = MultiException.add(error, e);
-          }
-        }
-        MultiException.throwIfError(error);
-      }
-    }
-
-    private void fireClearEvent() {
-      if (mListeners != null) {
-        MultiException error = null;
-        for (final CollectionChangeListener<? super V> listener : mListeners) {
-          try {
-            listener.collectionCleared();
-          } catch (final RuntimeException e) {
-            error = MultiException.add(error, e);
-          }
-        }
-        MultiException.throwIfError(error);
-      }
-    }
-
-    private void fireRemoveEvent(final V element) {
-      if (mListeners != null) {
-        MultiException error = null;
-        for (final CollectionChangeListener<? super V> listener : mListeners) {
-          try {
-            listener.elementRemoved(element);
-          } catch (final RuntimeException e) {
-            error = MultiException.add(error, e);
-          }
-        }
-        MultiException.throwIfError(error);
-      }
-    }
-
-    @Override
-    public boolean add(final V element) {
-      final boolean result = mCollection.add(element);
-      if (result) {
-        fireAddEvent(element);
-      }
-      return result;
-    }
-
-    @Override
-    public boolean addAll(@NotNull final Collection<? extends V> c) {
-      boolean result = false;
-      for (final V elem : c) {
-        result |= add(elem);
-      }
-      return result;
-    }
-
-    @Override
-    public void clear() {
-      mCollection.clear();
-      fireClearEvent();
-    }
-
-    @Override
-    public boolean contains(final Object o) {
-      return mCollection.contains(o);
-    }
-
-    @Override
-    public boolean containsAll(@NotNull final Collection<?> c) {
-      return mCollection.containsAll(c);
-    }
-
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    public boolean equals(final Object o) {
-      return mCollection.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-      return mCollection.hashCode();
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return mCollection.isEmpty();
-    }
-
-    @NotNull
-    @Override
-    public Iterator<V> iterator() {
-      return monitoringIterator(mListeners, mCollection.iterator());
-    }
-
-    @Override
-    public boolean remove(final Object o) {
-      final boolean result = mCollection.remove(o);
-      if (result) {
-        @SuppressWarnings("unchecked")
-        final V element = (V) o;
-        fireRemoveEvent(element);
-      }
-      return result;
-    }
-
-    @Override
-    public boolean removeAll(@NotNull final Collection<?> c) {
-      boolean result = false;
-      for (final Object o : c) {
-        result |= remove(o);
-      }
-      return result;
-    }
-
-    @Override
-    public boolean retainAll(@NotNull final Collection<?> c) {
-      boolean modified = false;
-      final Iterator<V> e = iterator();
-      while (e.hasNext()) {
-        if (!c.contains(e.next())) {
-          e.remove();
-          modified = true;
-        }
-      }
-      return modified;
-    }
-
-    @Override
-    public int size() {
-      return mCollection.size();
-    }
-
-    @NotNull
-    @Override
-    public Object[] toArray() {
-      return mCollection.toArray();
-    }
-
-    @NotNull
-    @Override
-    public <T> T[] toArray(@NotNull final T[] a) {
-      //noinspection SuspiciousToArrayCall
-      return mCollection.toArray(a);
-    }
-
-  }
-
-  @SuppressWarnings("rawtypes")
+    @SuppressWarnings("rawtypes")
   public static final SortedSet EMPTYSORTEDSET = new EmptySortedSet<>();
 
   private static class EmptySortedSet<T> extends AbstractSet<T> implements SortedSet<T> {
@@ -704,31 +523,31 @@ public final class CollectionUtil {
     @NotNull
     @Override
     public SortedSet<T> subSet(final T fromElement, final T toElement) {
-      throw new IllegalArgumentException();
+      throw new UnsupportedOperationException("empty lists have no subsets");
     }
 
     @NotNull
     @Override
     public SortedSet<T> headSet(final T toElement) {
-      throw new IllegalArgumentException();
+      throw new UnsupportedOperationException("empty lists have no subsets");
     }
 
     @NotNull
     @Override
     public SortedSet<T> tailSet(final T fromElement) {
-      throw new IllegalArgumentException();
+      throw new UnsupportedOperationException("empty lists have no subsets");
     }
 
     @NotNull
     @Override
     public T first() {
-      throw new IndexOutOfBoundsException();
+      throw new UnsupportedOperationException("empty lists have no subsets");
     }
 
     @NotNull
     @Override
     public T last() {
-      throw new IndexOutOfBoundsException();
+      throw new UnsupportedOperationException("empty lists have no subsets");
     }
 
     @NotNull

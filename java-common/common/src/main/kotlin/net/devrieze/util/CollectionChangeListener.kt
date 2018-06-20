@@ -17,7 +17,7 @@
 package net.devrieze.util
 
 
-interface CollectionChangeListener<V> {
+interface CollectionChangeListener<in V> {
 
     fun elementAdded(elem: V)
 

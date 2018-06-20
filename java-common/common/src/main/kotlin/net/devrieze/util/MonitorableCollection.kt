@@ -17,10 +17,10 @@
 package net.devrieze.util
 
 
-interface MonitorableCollection<V> : Collection<V> {
+interface MonitorableCollection<V> : MutableCollection<V> {
 
-    fun addCollectionChangeListener(listener: CollectionChangeListener<in V>)
+    fun addCollectionChangeListener(listener: CollectionChangeListener<V>)
 
-    fun removeCollectionChangeListener(listener: CollectionChangeListener<in V>)
+    fun removeCollectionChangeListener(listener: CollectionChangeListener<V>)
 
 }
