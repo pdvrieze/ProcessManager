@@ -526,7 +526,6 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
                         else
                             return singleton()
                     }
-                    return processNodeSet(elements)
                 }
                 else -> return processNodeSet(elements)
             }
