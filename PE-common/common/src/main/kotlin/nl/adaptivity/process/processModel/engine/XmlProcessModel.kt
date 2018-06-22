@@ -22,6 +22,7 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.UUID
@@ -34,7 +35,7 @@ import nl.adaptivity.xml.serialization.XmlSerialName
 
 /**
  * A class representing a process model.
-
+ *
  * @author Paul de Vrieze
  */
 @Serializable
@@ -47,6 +48,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         get() = this
 
     @Suppress("UNCHECKED_CAST")
+    @SerialName("childModel")
     override val childModels: Collection<XmlChildModel> get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
@@ -77,8 +79,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
     @Serializer(forClass = XmlProcessModel::class)
     companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>() {
-        override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(
-            XmlProcessModel::class.name)
 
         @Suppress("UNCHECKED_CAST")
         override val childModelSerializer: KSerializer<ChildProcessModel<*, *>>
@@ -140,7 +140,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
         @Serializer(forClass = Builder::class)
         companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
-            override val serialClassDesc: KSerialClassDesc = RootProcessModelBase.serialClassDesc(XmlProcessModel::class.name)
+            override val serialClassDesc: KSerialClassDesc = SerialClassDescImpl(XmlProcessModel.serialClassDesc, Builder::class.name)
 
             override fun builder() = Builder()
 

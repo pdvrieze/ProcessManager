@@ -84,7 +84,7 @@ interface IDrawableJoin: IDrawableJoinSplit {
 
 class DrawableJoin(builder: Join.Builder<*, *>,
                    buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : JoinBase<DrawableProcessNode, DrawableProcessModel?>(
-    builder, buildHelper), Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit, IDrawableJoin {
+    builder, buildHelper), Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
 
     class Builder : JoinBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder<DrawableJoin>, IDrawableJoin {
 
@@ -123,8 +123,6 @@ class DrawableJoin(builder: Join.Builder<*, *>,
             = DrawableJoin(this, buildHelper)
     }
 
-    override val itemCache = ItemCache()
-
     override val _delegate: DrawableJoinSplit.Delegate
 
     override val maxSuccessorCount: Int
@@ -134,10 +132,6 @@ class DrawableJoin(builder: Join.Builder<*, *>,
 
     override fun builder(): Builder {
         return Builder(this)
-    }
-
-    override fun copy(): DrawableJoin {
-        return builder().build()
     }
 
     companion object {

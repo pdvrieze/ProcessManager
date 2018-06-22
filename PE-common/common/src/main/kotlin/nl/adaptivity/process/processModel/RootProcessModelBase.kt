@@ -35,23 +35,27 @@ import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.serialization.XmlDefault
+import nl.adaptivity.xml.serialization.XmlPolyChildren
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
+@Serializable
 abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
     ProcessModelBase<NodeT, ModelT>,
     RootProcessModel<NodeT, ModelT>,
     MutableHandleAware<RootProcessModel<out NodeT, out ModelT>>,
     XmlSerializable {
 
-    @SerialName("name")
-    private var _name: String? = null
+    /**
+     * The name of the model.
+     */
+    override val name: String?
+
+    @Transient
+    private var _handle = -1L
 
     @SerialName("handle")
     @XmlDefault("-1")
-    private var _handle = -1L
-
-    @Transient
     val handleValue: Long
         get() = _handle
 
@@ -65,7 +69,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
 
     override val roles: Set<String>
-        get() = _roles
 
 
     final override val uuid: UUID?
@@ -79,11 +82,31 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     @Transient
     private val _processNodes: MutableIdentifyableSet<NodeT>
 
+    /* (non-Javadoc)
+       * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
+       */
+    @Transient
+    override val ref: IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>>
+        get() {
+            return ProcessModelRef(name, this.getHandle(), uuid)
+        }
+
     /**
      * Get an array of all process nodes in the model. Used by XmlProcessModel
      *
      * @return An array of all nodes.
      */
+    @SerialName("nodes")
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
     override val modelNodes: IdentifyableSet<NodeT>
         get() = _processNodes.readOnly()
 
@@ -95,10 +118,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         _processNodes = buildNodes(builder, childModelProvider)
         this._childModels = IdentifyableSet.processNodeSet(childModelProvider)
 
-        this._name = builder.name
+        this.name = builder.name
         this._handle = builder.handle
         this.owner = builder.owner
-        this._roles = builder.roles.toMutableArraySet()
+        this.roles = builder.roles.toArraySet()
         this.uuid = builder.uuid
     }
 
@@ -109,10 +132,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     protected constructor() : super(emptyList(), emptyList()) {
         this._childModels = IdentifyableSet.processNodeSet()
         this._processNodes = IdentifyableSet.processNodeSet()
-        this._name = null
+        this.name = null
         this._handle = -1L
         this.owner = SYSTEMPRINCIPAL
-        this._roles = ArraySet()
+        this.roles = ArraySet()
         this.uuid = null
     }
 
@@ -141,7 +164,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
                 writeAttribute("name", name)
                 writeAttribute("owner", owner.getName())
 
-                if (_roles.isNotEmpty()) {
+                if (roles.isNotEmpty()) {
                     writeAttribute(ATTR_ROLES, roles.joinToString(","))
                 }
                 if (uuid != null) {
@@ -162,20 +185,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     override fun getChildModel(childId: Identifiable) = _childModels[childId]
 
     /**
-     * The name of the model.
-     */
-    override val name: String? get() = _name
-
-    /**
-     * Set the name of the model.
-
-     * @param name The name
-     */
-    fun setName(name: String?) {
-        _name = name
-    }
-
-    /**
      * Get the handle recorded for this model.
      */
     override fun getHandle(): Handle<RootProcessModelBase<NodeT, ModelT>> {
@@ -187,17 +196,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
      */
     override fun setHandleValue(handleValue: Long) {
         _handle = handleValue
-    }
-
-    /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
-       */
-    override val ref: IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>>
-        get() {
-            return ProcessModelRef(name, this.getHandle(), uuid)
-        }
-    fun setRoles(roles: Collection<String>) {
-        _roles = HashSet(roles)
     }
 
     /**
@@ -216,10 +214,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
         other as RootProcessModelBase<*, *>
 
-        if (_name != other._name) return false
+        if (name != other.name) return false
         if (_handle != other._handle) return false
         if (owner != other.owner) return false
-        if (_roles != other._roles) return false
+        if (roles != other.roles) return false
         if (uuid != other.uuid) return false
         if (_childModels != other._childModels) return false
         if (_processNodes != other._processNodes) return false
@@ -229,10 +227,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (_name?.hashCode() ?: 0)
+        result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + _handle.hashCode()
         result = 31 * result + owner.hashCode()
-        result = 31 * result + _roles.hashCode()
+        result = 31 * result + roles.hashCode()
         result = 31 * result + (uuid?.hashCode() ?: 0)
         result = 31 * result + _childModels.hashCode()
         result = 31 * result + _processNodes.hashCode()
@@ -240,7 +238,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     }
 
     override fun toString(): String {
-        return "RootProcessModelBase(name=$_name, handle=$_handle, owner=$owner, roles=$_roles, uuid=$uuid, childModels=$_childModels, processNodes=$_processNodes) ${super.toString()}"
+        return "RootProcessModelBase(name=$name, handle=$_handle, owner=$owner, roles=$roles, uuid=$uuid, childModels=$_childModels, processNodes=$_processNodes) ${super.toString()}"
     }
 
 
@@ -282,17 +280,25 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
 
     companion object {
 
+/*
         fun serialClassDesc(name: String): SerialClassDescImpl {
+            val base = serialClassDesc
             return SerialClassDescImpl(name).apply {
-                addField(RootProcessModelBase<*, *>::_name)
-                addField(RootProcessModelBase<*, *>::_handle)
+                addFields(base)
+*/
+/*
+                addField(RootProcessModelBase<*, *>::name)
+                addField(RootProcessModelBase<*, *>::handleValue)
                 addField(RootProcessModelBase<*,*>::owner)
                 addField(RootProcessModelBase<*,*>::roles)
                 addField(RootProcessModelBase<*,*>::uuid)
                 addField(RootProcessModelBase<*,*>::childModels)
                 addFields(ProcessModelBase.serialClassDesc)
+*//*
+
             }
         }
+*/
 
         const val ELEMENTLOCALNAME = "processModel"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
@@ -390,25 +396,19 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         }
 
         abstract class BaseSerializer<T : RootProcessModelBase.Builder<*, *>> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            private val nameIdx by lazy { serialClassDesc.getElementIndexOrThrow("name") }
-            private val ownerIdx by lazy { serialClassDesc.getElementIndexOrThrow("owner") }
-            private val rolesIdx by lazy { serialClassDesc.getElementIndexOrThrow("roles") }
-            private val uuidIdx by lazy { serialClassDesc.getElementIndexOrThrow("uuid") }
-            private val handleIdx by lazy { serialClassDesc.getElementIndexOrThrow("handle") }
-            private val childModelsIdx by lazy { serialClassDesc.getElementIndexOrThrow(ChildProcessModel.ELEMENTLOCALNAME) }
 
-            override fun readElement(result: T, input: KInput, index: Int) {
-                when (index) {
-                    nameIdx        -> result.name = input.readNullableString(serialClassDesc, index)
-                    handleIdx      -> result.handle = input.readLongElementValue(serialClassDesc, index)
-                    ownerIdx       -> input.readNullableString(serialClassDesc, index)?.let {
+            override fun readElement(result: T, input: KInput, index: Int, name:String) {
+                when (name) {
+                    "name"        -> result.name = input.readNullableString(serialClassDesc, index)
+                    "handle"      -> result.handle = input.readLongElementValue(serialClassDesc, index)
+                    "owner"       -> input.readNullableString(serialClassDesc, index)?.let {
                         result.owner = SimplePrincipal(it)
                     }
-                    rolesIdx       -> input.readNullableString(serialClassDesc, index)?.let { value ->
+                    "roles"       -> input.readNullableString(serialClassDesc, index)?.let { value ->
                         result.roles.replaceBy(value.split(" *, *".toRegex()).filter(String::isEmpty))
                     }
-                    uuidIdx        -> result.uuid = input.readNullableString(serialClassDesc, index)?.toUUID()
-                    childModelsIdx -> {
+                    "uuid"        -> result.uuid = input.readNullableString(serialClassDesc, index)?.toUUID()
+                    ChildProcessModel.ELEMENTLOCALNAME -> {
                         @Suppress("UNCHECKED_CAST")
                         val newList = input.updateSerializableElementValue(serialClassDesc,
                                                                            index,
@@ -417,7 +417,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
                         @Suppress("UNCHECKED_CAST")
                         (result.childModels as MutableList<ChildProcessModel.Builder<XmlProcessNode, XmlModelCommon>>).replaceBy(newList)
                     }
-                    else           -> super.readElement(result, input, index)
+                    else           -> super.readElement(result, input, index, name)
                 }
             }
 

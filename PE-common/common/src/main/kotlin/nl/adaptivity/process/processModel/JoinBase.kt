@@ -172,18 +172,18 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
             this.isMultiMerge = isMultiMerge
         }
 
-        constructor(id: String? = null,
-                    predecessors: Collection<Identified>,
-                    successor: Identified? = null, label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = -1,
-                    max: Int = -1,
-                    isMultiMerge: Boolean = false,
-                    isMultiInstance: Boolean = false,
-                    dummy: Boolean = false):
+        protected constructor(id: String? = null,
+                              predecessors: Collection<Identified>,
+                              successor: Identified? = null, label: String? = null,
+                              defines: Collection<IXmlDefineType> = emptyList(),
+                              results: Collection<IXmlResultType> = emptyList(),
+                              x: Double = Double.NaN,
+                              y: Double = Double.NaN,
+                              min: Int = -1,
+                              max: Int = -1,
+                              isMultiMerge: Boolean = false,
+                              isMultiInstance: Boolean = false,
+                              @Suppress("UNUSED_PARAMETER") dummy: Boolean = false):
             this(id,
                  predecessors.map { PredecessorInfo(it.id, null) },
                  successor,

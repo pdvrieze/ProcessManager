@@ -27,10 +27,8 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITY
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.util.multiplatform.isTypeOf
 import nl.adaptivity.xml.XmlWriter
 import nl.adaptivity.xml.writeSimpleElement
 
@@ -81,12 +79,28 @@ interface IDrawableActivity : IDrawableProcessNode {
         val _bounds by lazy { Rectangle(STROKEWIDTH / 2, STROKEWIDTH / 2, ACTIVITYWIDTH, ACTIVITYHEIGHT) }
     }
 
+    val message: IXmlMessage?
+
+    val childId: String?
+
+    val isBodySpecified get() = message != null
+
+    val isUserTask: Boolean
+        get() {
+            val message = XmlMessage.from(message)
+            return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.endpointDescriptor)
+        }
+
+    val isService get() = isBodySpecified && !isUserTask
+
+    val isComposite get() = childId != null
+
 }
 
 open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<*, *>,
                                                       buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) :
     ActivityBase<DrawableProcessNode, DrawableProcessModel?>(builder,
-                                                             buildHelper), DrawableProcessNode, IDrawableActivity {
+                                                             buildHelper), DrawableProcessNode {
 
     class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
                           DrawableProcessNode.Builder<DrawableActivity>,
@@ -130,11 +144,6 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
 
     }
 
-    override fun copy(): IDrawableProcessNode {
-        if (!isTypeOf<DrawableActivity>(this)) throw UnsupportedOperationException("Copy must be overridden at the leaf")
-        return builder().build()
-    }
-
     @Suppress("PropertyName")
     override val _delegate: DrawableProcessNode.Delegate = DrawableProcessNode.Delegate(builder)
 
@@ -150,7 +159,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
 
     val isComposite get() = this.childModel != null
 
-    override var condition: String? = null
+    override val condition: String? = builder.condition
 
     override val maxSuccessorCount: Int
         get() = if (isCompat) Int.MAX_VALUE else 1

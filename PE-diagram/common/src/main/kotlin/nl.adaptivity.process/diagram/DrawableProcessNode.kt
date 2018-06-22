@@ -24,7 +24,7 @@ typealias DrawableState = Int
 
 
 
-interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessNode {
+interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcessModel?> {
 
   open class Delegate(builder: ProcessNode.IBuilder<*, *>) {
 
@@ -50,9 +50,13 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
 
     override var state: DrawableState
       get() = _delegate.state
-      set(value) { _delegate.state = value }
+      set(value) {
+          _delegate.state = value
+      }
 
-    override fun translate(dX: Double, dY: Double) {
+      override fun copy(): Builder<R>
+
+      override fun translate(dX: Double, dY: Double) {
       x += dX
       y += dY
     }
@@ -68,16 +72,6 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
 
   override val maxSuccessorCount: Int
   override val maxPredecessorCount: Int
-
-  override var state: Int
-    get() = _delegate.state
-    set(value) {
-      if (_delegate.state == value) {
-        return
-      }
-      _delegate.state = value
-      ownerModel?.notifyNodeChanged(this)
-    }
 /*
 
   override fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
@@ -87,28 +81,6 @@ interface DrawableProcessNode : ProcessNode<DrawableProcessNode, DrawableProcess
   }
 */
 
-  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
-
   override fun builder(): Builder<DrawableProcessNode>
 
-  /**
-   * Set the X coordinate of the reference point of the element. This is
-   * normally the center.
-
-   * @param x The x coordinate
-   */
-  @Deprecated("Use builders")
-  fun setX(x: Double)
-
-  /**
-   * Set the Y coordinate of the reference point of the element. This is
-   * normally the center of the symbol (excluding text).
-
-   * @param y
-   */
-  @Deprecated("Use builders")
-  fun setY(y: Double)
-
-  @Deprecated("Use builders")
-  fun setLabel(label: String?)
 }

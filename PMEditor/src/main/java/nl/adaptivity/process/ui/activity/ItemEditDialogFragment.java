@@ -36,6 +36,7 @@ import nl.adaptivity.android.dialogs.ComboDialogFragment;
 import nl.adaptivity.android.dialogs.DialogResultListener;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.DialogTaskItemBinding;
+import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.ui.UIConstants;
@@ -348,7 +349,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
 
 
 
-  public static ItemEditDialogFragment newInstance(final TaskItem item, final Collection<? extends VariableReference> variables, final List<? extends XmlDefineType> defines, final int itemNo) {
+  public static ItemEditDialogFragment newInstance(final TaskItem item, final Collection<? extends VariableReference> variables, final Collection<? extends IXmlDefineType> defines, final int itemNo) {
     final ItemEditDialogFragment f = new ItemEditDialogFragment();
     final Bundle args = new Bundle(4);
     args.putInt(UIConstants.KEY_ITEMNO, itemNo);

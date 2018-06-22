@@ -370,8 +370,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             processModels[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.RENAME,
                                                                      user) { pm ->
                 mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, user, pm)
-                pm.setName(newName)
-                processModels[handle] = pm // set it to ensure update on the database
+
+                processModels[handle] = pm.update { name=newName } // set it to ensure update on the database
             }
         }
     }

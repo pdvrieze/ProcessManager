@@ -21,7 +21,7 @@
     <data>
 
         <variable name="node"
-                  type="nl.adaptivity.process.diagram.DrawableJoinSplit" />
+                  type="nl.adaptivity.process.diagram.IDrawableJoinSplit" />
         <variable name="minMaxEnabled" type="boolean" />
     </data>
 

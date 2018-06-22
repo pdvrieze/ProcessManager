@@ -63,7 +63,7 @@ public class UserTaskEditorActivity extends AppCompatActivity implements ItemEdi
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     final Intent intent = getIntent();
-    mEditorFragment = UserTaskEditorFragment.newInstance(intent.<ParcelableActivity>getParcelableExtra(UIConstants.KEY_ACTIVITY), intent.<ResultReference>getParcelableArrayListExtra(UIConstants.KEY_VARIABLES));
+    mEditorFragment = UserTaskEditorFragment.Companion.newInstance(intent.<ParcelableActivity>getParcelableExtra(UIConstants.KEY_ACTIVITY), intent.<ResultReference>getParcelableArrayListExtra(UIConstants.KEY_VARIABLES));
     getSupportFragmentManager().beginTransaction().add(mBinding.fragment.getId(), mEditorFragment).commit();
 
 

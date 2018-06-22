@@ -40,9 +40,9 @@ abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootPro
 
     val leftPadding = (builder as? DrawableProcessModel.Builder)?.leftPadding ?: 5.0
 
-    var bottomPadding = (builder as? DrawableProcessModel.Builder)?.bottomPadding ?: 5.0
+    val bottomPadding = (builder as? DrawableProcessModel.Builder)?.bottomPadding ?: 5.0
 
-    var rightPadding = (builder as? DrawableProcessModel.Builder)?.rightPadding ?: 5.0
+    val rightPadding = (builder as? DrawableProcessModel.Builder)?.rightPadding ?: 5.0
 
     abstract val isInvalid: Boolean
 
@@ -76,14 +76,12 @@ abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootPro
 
     override abstract fun builder(): RootDrawableProcessModel.Builder
 
-    abstract fun invalidate()
-
     @Deprecated("Use the version taking an identifier",
                 ReplaceWith("getNode(Identifier(nodeId))", "nl.adaptivity.process.util.Identifier"))
     override fun getNode(nodeId: String) = getNode(Identifier(nodeId))
 
-    private fun toDiagramNodes(modelNodes: Collection<DrawableProcessNode>): List<DiagramNode<DrawableProcessNode>> {
-        val nodeMap = HashMap<Identified, DiagramNode<DrawableProcessNode>>()
+    private fun toDiagramNodes(modelNodes: Collection<DrawableProcessNode.Builder<*>>): List<DiagramNode<DrawableProcessNode.Builder<*>>> {
+        val nodeMap = HashMap<Identified, DiagramNode<DrawableProcessNode.Builder<*>>>()
         val result = modelNodes.map { node ->
             DiagramNode(node).apply { node.identifier?.let { nodeMap[it] = this } ?: Unit }
         }

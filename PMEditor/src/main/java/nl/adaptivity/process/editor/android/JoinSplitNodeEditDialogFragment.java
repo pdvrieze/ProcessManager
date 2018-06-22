@@ -78,7 +78,7 @@ public class JoinSplitNodeEditDialogFragment extends DialogFragment implements O
 
     if (getActivity() instanceof NodeEditListener) {
       final NodeEditListener listener = (NodeEditListener) getActivity();
-      final DrawableJoinSplit node = (DrawableJoinSplit) listener.getNode(mPos);
+      final DrawableJoinSplit.Builder<?> node = (DrawableJoinSplit.Builder<?>) listener.getNode(mPos);
       mBinding.setNode(node);
       setMinMaxEditEnabled(! (node.isAnd()||node.isOr()||node.isXor()));
 
@@ -105,7 +105,7 @@ public class JoinSplitNodeEditDialogFragment extends DialogFragment implements O
     if (which==DialogInterface.BUTTON_POSITIVE) {
       if (getActivity() instanceof NodeEditListener) {
         final NodeEditListener listener = (NodeEditListener) getActivity();
-        final DrawableJoinSplit node = (DrawableJoinSplit) listener.getNode(mPos);
+        final DrawableJoinSplit.Builder node = (DrawableJoinSplit.Builder) listener.getNode(mPos);
         node.setMin(mBinding.npMin.getValue());
         node.setMax(mBinding.npMax.getValue());
         node.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
@@ -126,7 +126,7 @@ public class JoinSplitNodeEditDialogFragment extends DialogFragment implements O
 
   @Override
   public void onCheckedChanged(final RadioGroup group, final int checkedId) {
-    final DrawableJoinSplit jsnode = (DrawableJoinSplit) ((NodeEditListener)getActivity()).getNode(mPos);
+    final DrawableJoinSplit.Builder jsnode = (DrawableJoinSplit.Builder) ((NodeEditListener)getActivity()).getNode(mPos);
     final int max = jsnode.getMaxPredecessorCount()==1 ? jsnode.getSuccessors().size() :jsnode.getPredecessors().size();
     final NumberPicker npMin = mBinding.npMin;
     final NumberPicker npMax = mBinding.npMax;

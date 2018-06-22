@@ -79,6 +79,12 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
         _exports = value.toList()
     }
 
+    /** For serialization only */
+    protected constructor() {
+        _imports = emptyList()
+        _exports = emptyList()
+    }
+
     constructor(builder: ProcessModel.Builder<*, *>, pedantic: Boolean) {
         builder.normalize(pedantic)
 
@@ -222,10 +228,6 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
         abstract class BaseSerializer<T : Builder<*, *>> : KSerializer<T> {
 
-            private val importsIdx by lazy { serialClassDesc.getElementIndex("import") }
-            private val exportsIdx by lazy { serialClassDesc.getElementIndex("export") }
-            private val nodesIdx by lazy { serialClassDesc.getElementIndex("nodes") }
-
             abstract fun builder(): T
 
             override fun load(input: KInput): T {
@@ -251,28 +253,32 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 
             }
 
-            open fun readElement(result: T, input: KInput, index: Int) = when (index) {
-                importsIdx -> {
+            fun readElement(result: T, input: KInput, index: Int) {
+                readElement(result, input, index, serialClassDesc.getElementName(index))
+            }
+
+            open fun readElement(result: T, input: KInput, index:Int, name: String) = when (name) {
+                "import" -> {
                     @Suppress("UNCHECKED_CAST")
                     val newImports = input.updateSerializableElementValue(serialClassDesc, index,
                                                                           XmlResultType.list,
                                                                           result.imports as List<XmlResultType>)
                     result.imports.replaceBy(newImports)
                 }
-                exportsIdx -> {
+                "export" -> {
                     @Suppress("UNCHECKED_CAST")
                     val newExports = input.updateSerializableElementValue(serialClassDesc, index, XmlDefineType.list,
                                                                           result.exports as List<XmlDefineType>)
                     result.exports.replaceBy(newExports)
                 }
-                nodesIdx   -> {
+                "nodes"   -> {
                     val newNodes: Iterable<Any> = input.updateSerializableElementValue(serialClassDesc, index,
                                                                                        ModelNodeBuilderSerializer.list, result.nodes)
                     // Generics is utterly broken here
                     @Suppress("UNCHECKED_CAST")
                     (result.nodes as MutableList<Any>).replaceBy(iterable=newNodes)
                 }
-                else       -> throw SerializationException("Could not resolve field ${if(index>=0 && index<serialClassDesc.associatedFieldsCount) serialClassDesc.getElementName(index) else "<MISSING>"} with index $index")
+                else       -> throw SerializationException("Could not resolve field $name with index $index")
             }
 
         }
@@ -317,7 +323,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     @Serializer(forClass = ProcessModelBase::class)
     companion object {
 
-        fun serialClassDesc(name:String): SerialClassDescImpl = SerialClassDescImpl(serialClassDesc, name)
+//        fun serialClassDesc(name:String): SerialClassDescImpl = SerialClassDescImpl(serialClassDesc, name)
 
         @JvmStatic
         protected fun <NodeT : ProcessNode<NodeT, ModelT>,

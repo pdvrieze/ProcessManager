@@ -203,15 +203,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     }
 
     @Deprecated("Use builders instead of mutable process models")
-    protected fun swapPredecessors(predecessors: Collection<NodeT>) {
-        _hashCode = 0
-        _predecessors = IdentifyableSet.processNodeSet(maxPredecessorCount, emptyList())
-
-        val tmp = predecessors.asSequence().map { it.identifier }.filterNotNull().toList()
-        setPredecessors(tmp)
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
     protected open fun addPredecessor(predecessorId: Identified) {
         _hashCode = 0
         if (predecessorId === this || predecessorId.id == id) {
@@ -278,85 +269,9 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         }
     }
 
-    /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
-       */
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun setPredecessors(predecessors: Collection<Identifiable>) {
-        if (predecessors.size > maxPredecessorCount) {
-            throw IllegalArgumentException()
-        }
-        _hashCode = 0
-
-        if (_predecessors.size > 0) {
-            val (toRemove, shared) = _predecessors.partition { it !in predecessors }
-
-            toRemove.forEach { removePredecessor(it) }
-            (predecessors.asSequence() - shared.asSequence()).forEach { it.identifier?.let { addPredecessor(it) } }
-        } else {
-
-            predecessors.toList().forEach { it.identifier?.let { addPredecessor(it) } }
-        }
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun setSuccessors(successors: Collection<Identified>) {
-        if (successors.size > maxSuccessorCount) {
-            throw IllegalArgumentException()
-        }
-        _hashCode = 0
-
-        if (_successors.size > 0) {
-            val (toRemove, shared) = _successors.partition { it !in successors }
-            toRemove.forEach { removeSuccessor(it) }
-            (successors.asSequence() - shared.asSequence()).forEach { addSuccessor(it) }
-        } else {
-            successors.forEach { addSuccessor(it) }
-        }
-    }
-
-    @Deprecated("Use builders instead")
-    protected open fun setOwnerModel(newOwnerModel: ModelT) {
-        if (_ownerModel !== newOwnerModel) {
-            _hashCode = 0
-            val thisT = this.asT()
-            (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.removeNode(thisT)
-            _ownerModel = newOwnerModel
-            (newOwnerModel as? MutableRootProcessModel<NodeT, ModelT>)?.addNode(thisT)
-        }
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    open protected fun setId(id: String) {
-        mId = id
-    }
-
     @Deprecated("Use builders instead of mutable process models")
     protected fun notifyChange() {
         (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.notifyNodeChanged(this.asT())
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    fun setX(x: Double) {
-        _x = x
-        _hashCode = 0
-        notifyChange()
-    }
-
-
-    @Deprecated("Use builders instead of mutable process models")
-    fun setY(y: Double) {
-        _y = y
-        _hashCode = 0
-        notifyChange()
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    open fun translate(dX: Double, dY: Double) {
-        _x += dX
-        _y += dY
-        _hashCode = 0
-        notifyChange()
     }
 
 

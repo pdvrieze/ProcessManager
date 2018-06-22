@@ -46,35 +46,12 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
     override val rootModel: RootDrawableProcessModel get() = this
 
-    override val itemCache: ItemCache = ItemCache()
     private var _bounds: Rectangle = Rectangle()
-
-    override val bounds: Rectangle
-        get() {
-            if (_bounds.hasUndefined && modelNodes.isNotEmpty()) {
-                updateBounds()
-            }
-            return _bounds
-        }
-
-    override val leftExtent: Double
-        get() = 0.0
-    override val rightExtent: Double
-        get() = bounds.width
-    override val topExtent: Double
-        get() = 0.0
-    override val bottomExtent: Double
-        get() = bounds.height
-
-    override var state = Drawable.STATE_DEFAULT
 
     private var idSeq = 0
     var isFavourite: Boolean = false
     override var isInvalid: Boolean = false
         private set
-
-    override val childElements: List<DrawableProcessNode>
-        get() = modelNodes
 
     constructor(original: RootProcessModel<*, *>) : this(Builder(original))
 
@@ -116,59 +93,10 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
         get() = ProcessModelRef(
             name, this.getHandle(), uuid)
 
-    override fun getHandle(): Handle<RootDrawableProcessModel> = handle(handle= handleValue)
-
-    override fun copy(): RootDrawableProcessModel {
-        if (this::class != RootDrawableProcessModel::class) throw UnsupportedOperationException(
-            "Copy must be implemented on a leaf")
-        return RootDrawableProcessModel(this)
-    }
+    override fun getHandle(): Handle<RootDrawableProcessModel> = handle(handle = handleValue)
 
     override fun getNode(nodeId: String): DrawableProcessNode? = super<RootClientProcessModel>.getNode(
         Identifier(nodeId))
-
-    override fun notifyNodeChanged(node: DrawableProcessNode) {
-        invalidateConnectors()
-        // TODO this is not correct as it will only expand the bounds.
-        val nodeBounds = node.bounds
-        if (_bounds.hasUndefined) {
-            _bounds = nodeBounds.copy()
-            return
-        }
-        val right = max(nodeBounds.right, _bounds.right)
-        val bottom = max(nodeBounds.bottom, _bounds.bottom)
-        if (nodeBounds.left < _bounds.left) {
-            _bounds.left = nodeBounds.left
-        }
-        if (nodeBounds.top < _bounds.top) {
-            _bounds.top = nodeBounds.top
-        }
-        _bounds.width = right - _bounds.left
-        _bounds.height = bottom - _bounds.top
-    }
-
-    private fun updateBounds() {
-        val modelNodes = modelNodes
-        if (modelNodes.isEmpty()) {
-            _bounds.set(0.0, 0.0, 0.0, 0.0)
-            return
-        }
-        val firstNode = modelNodes.iterator().next()
-        _bounds.set(firstNode.bounds)
-        for (node in modelNodes) {
-            _bounds.extendBounds(node.bounds)
-        }
-    }
-
-    override fun invalidate() {
-        isInvalid = true
-        invalidateConnectors()
-        _bounds.clear()
-    }
-
-    private fun invalidateConnectors() {
-        itemCache.clearPath(0)
-    }
 
     /**
      * Normalize the process model. By default this may do nothing.
@@ -266,6 +194,8 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
         var isFavourite: Boolean
 
+        override val rootBuilder: Builder get() = this
+
         constructor() : this(name = null)
 
         constructor(nodes: Collection<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>> = mutableSetOf(),
@@ -293,7 +223,8 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
         override fun copy(): Builder {
             if (this::class != Builder::class) throw UnsupportedOperationException(
                 "Copy must be overridden to be valid")
-            return Builder(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, isFavourite, layoutAlgorithm)
+            return Builder(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, isFavourite,
+                           layoutAlgorithm)
         }
 
         override fun getNode(nodeId: String): DrawableProcessNode.Builder<*>? {
@@ -349,6 +280,72 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
                 }
             }
         }
+
+/*
+        override fun notifyNodeChanged(node: DrawableProcessNode.Builder<*>) {
+            invalidateConnectors()
+            // TODO this is not correct as it will only expand the bounds.
+            val nodeBounds = node.bounds
+            if (_bounds.hasUndefined) {
+                _bounds = nodeBounds.copy()
+                return
+            }
+            val right = max(nodeBounds.right, _bounds.right)
+            val bottom = max(nodeBounds.bottom, _bounds.bottom)
+            if (nodeBounds.left < _bounds.left) {
+                _bounds.left = nodeBounds.left
+            }
+            if (nodeBounds.top < _bounds.top) {
+                _bounds.top = nodeBounds.top
+            }
+            _bounds.width = right - _bounds.left
+            _bounds.height = bottom - _bounds.top
+        }
+*/
+/*
+    override fun notifyNodeChanged(node: DrawableProcessNode.Builder<*>) {
+        invalidateConnectors()
+        // TODO this is not correct as it will only expand the bounds.
+        val nodeBounds = node.bounds
+        if (_bounds.hasUndefined) {
+            _bounds = nodeBounds.copy()
+            return
+        }
+        val right = max(nodeBounds.right, _bounds.right)
+        val bottom = max(nodeBounds.bottom, _bounds.bottom)
+        if (nodeBounds.left < _bounds.left) {
+            _bounds.left = nodeBounds.left
+        }
+        if (nodeBounds.top < _bounds.top) {
+            _bounds.top = nodeBounds.top
+        }
+        _bounds.width = right - _bounds.left
+        _bounds.height = bottom - _bounds.top
+    }
+*/
+
+/*
+    private fun updateBounds() {
+        val modelNodes = modelNodes
+        if (modelNodes.isEmpty()) {
+            _bounds.set(0.0, 0.0, 0.0, 0.0)
+            return
+        }
+        val firstNode = modelNodes.iterator().next()
+        _bounds.set(firstNode.bounds)
+        for (node in modelNodes) {
+            _bounds.extendBounds(node.bounds)
+        }
+    }
+*/
+
+/*
+    override fun invalidate() {
+        isInvalid = true
+        invalidateConnectors()
+        _bounds.clear()
+    }
+*/
 
 
         companion object {

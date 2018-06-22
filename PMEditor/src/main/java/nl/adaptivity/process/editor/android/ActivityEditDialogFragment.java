@@ -35,6 +35,7 @@ import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableProcessNode.Builder;
+import nl.adaptivity.process.diagram.STUB_DRAWABLE_BUILD_HELPER;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
 import nl.adaptivity.process.processModel.IXmlResultType;
@@ -135,7 +136,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
         mActivityNode.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
         final List<? extends ResultReference> variables = getAccessibleVariables();
         final Intent intent = UserTaskEditorActivity.createIntent(getActivity(),
-                                                                  ParcelableActivity.newInstance(mActivityNode, mActivityNode.isCompat()),
+                                                                  new ParcelableActivity(mActivityNode),
                                                                   mActivityNode.getId(), variables);
         startActivityForResult(intent, UIConstants.REQUEST_EDIT_HUMAN);
         break;
@@ -177,7 +178,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
           final ParcelableActivity newActivity = data.getParcelableExtra(UIConstants.KEY_ACTIVITY);
           if (newActivity!=null) {
             final NodeEditListener listener = (NodeEditListener) getActivity();
-            mActivityNode = DrawableActivity.from(newActivity, false);
+            mActivityNode = new DrawableActivity.Builder(newActivity);
             mBinding.setNode(mActivityNode);
           }
         }

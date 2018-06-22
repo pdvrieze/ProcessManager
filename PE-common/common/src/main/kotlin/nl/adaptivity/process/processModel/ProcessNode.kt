@@ -23,6 +23,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.xml.XmlDeserializable
 import nl.adaptivity.xml.XmlSerializable
 
@@ -100,6 +101,13 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
         /** Remove a predecessor in an appropriate way for the kind. It may fail if not valid */
         fun removePredecessor(identifier: Identifiable)
+
+        @JvmDefault
+        fun getResult(name: String): IXmlResultType? = results.firstOrNull { it.name == name }
+
+        @JvmDefault
+        fun getDefine(name: String): IXmlDefineType? = defines.firstOrNull { it.name == name }
+
     }
 
     interface BuilderVisitor<R> {

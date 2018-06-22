@@ -86,30 +86,6 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
        * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
        */
 
-    fun cacheStrings(stringCache: StringCache) {
-        if (owner is SimplePrincipal) {
-            owner = SimplePrincipal(stringCache.lookup(owner.name))
-        } else if (_cls_darwin_principal != null) {
-            if (_cls_darwin_principal!!.isInstance(owner)) {
-                try {
-                    val cacheStrings = _cls_darwin_principal?.getMethod("cacheStrings", StringCache::class.java)
-                    if (cacheStrings != null) {
-                        owner = cacheStrings.invoke(owner, stringCache) as Principal
-                    }
-                } catch (e: Exception) {
-                    // Ignore
-                }
-
-            }
-        }
-        name?.let { setName(stringCache.lookup(it)) }
-        val oldRoles = roles
-        if (oldRoles.isNotEmpty()) {
-            val newRoles = oldRoles.map { stringCache.lookup(it) }
-            setRoles(newRoles)
-        }
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

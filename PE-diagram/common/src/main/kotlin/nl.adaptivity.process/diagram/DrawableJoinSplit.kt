@@ -117,57 +117,52 @@ interface IDrawableJoinSplit : IDrawableProcessNode {
         return dx + dy <= 1.0
     }
 
-  /** Determine whether the node represents an or split.  */
-  fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings
+    /** Determine whether the node represents an or split.  */
+    @JvmDefault
+    fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings
 
-  /** Determine whether the node represents an xor split.  */
-  fun isXor(): Boolean = this.min == 1 && this.max == 1
+    /** Determine whether the node represents an xor split.  */
+    @JvmDefault
+    fun isXor(): Boolean = this.min == 1 && this.max == 1
 
-  /** Determine whether the node represents an and split.  */
-  fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
+    /** Determine whether the node represents an and split.  */
+    @JvmDefault
+    fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
 
 }
 
-interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode, IDrawableJoinSplit {
+interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
-  class Delegate(builder: ProcessNode.IBuilder<*, *>): DrawableProcessNode.Delegate(builder) {
+    class Delegate(builder: ProcessNode.IBuilder<*, *>) : DrawableProcessNode.Delegate(builder) {
 
-    val itemCache = ItemCache()
+        val itemCache = ItemCache()
 
-  }
+    }
 
-  interface Builder<R: DrawableJoinSplit> : DrawableProcessNode.Builder<R>, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableJoinSplit {
+    interface Builder<R : DrawableJoinSplit> : DrawableProcessNode.Builder<R>, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableJoinSplit {
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): R
-  }
+        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): R
+    }
 
-  override fun builder(): Builder<out DrawableJoinSplit>
+    override fun builder(): Builder<out DrawableJoinSplit>
 
-  override val _delegate: Delegate
+    override val _delegate: Delegate
 
-  override val maxSiblings: Int get() = if (this is Split<*,*>) successors.size else predecessors.size
+    companion object {
 
-  override fun getItemAt(x: Double, y: Double) = if (isWithinBounds(x, y)) this else null
+        const val CURVED_ARROWS = true
+        const val TEXT_DESC = true
 
-  override var state: Int
-    get() = _delegate.state
-    set(value) { _delegate.state = value }
-
-  companion object {
-
-    const val CURVED_ARROWS = true
-    const val TEXT_DESC = true
-
-    const val SQRT2 = 1.4142135623730951
-    const val STROKEEXTEND = SQRT2 * STROKEWIDTH
-    const val REFERENCE_OFFSET_X = (JOINWIDTH + STROKEEXTEND) / 2
-    const val REFERENCE_OFFSET_Y = (JOINHEIGHT + STROKEEXTEND) / 2
-    const val HORIZONTALDECORATIONLEN = JOINWIDTH * 0.4
-    const val CENTER_X = (JOINWIDTH + STROKEEXTEND) / 2
-    const val CENTER_Y = (JOINHEIGHT + STROKEEXTEND) / 2
-    const val ARROWHEADANGLE = 35 * PI / 180
-    const val ARROWLEN = JOINWIDTH * 0.15
-    const val ARROWCONTROLRATIO = 0.85
-  }
+        const val SQRT2 = 1.4142135623730951
+        const val STROKEEXTEND = SQRT2 * STROKEWIDTH
+        const val REFERENCE_OFFSET_X = (JOINWIDTH + STROKEEXTEND) / 2
+        const val REFERENCE_OFFSET_Y = (JOINHEIGHT + STROKEEXTEND) / 2
+        const val HORIZONTALDECORATIONLEN = JOINWIDTH * 0.4
+        const val CENTER_X = (JOINWIDTH + STROKEEXTEND) / 2
+        const val CENTER_Y = (JOINHEIGHT + STROKEEXTEND) / 2
+        const val ARROWHEADANGLE = 35 * PI / 180
+        const val ARROWLEN = JOINWIDTH * 0.15
+        const val ARROWCONTROLRATIO = 0.85
+    }
 
 }

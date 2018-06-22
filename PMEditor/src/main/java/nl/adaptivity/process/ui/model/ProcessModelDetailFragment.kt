@@ -135,7 +135,8 @@ class ProcessModelDetailFragment : PMProcessesFragment(), LoaderCallbacks<Proces
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        if (arguments!!.containsKey(ARG_ITEM_ID)) {
+        val itemId = arguments?.getLong(ARG_ITEM_ID)
+        if (itemId != null && itemId >= 0) {
             loaderManager.initLoader(LOADER_ITEM, arguments, this)
         }
     }

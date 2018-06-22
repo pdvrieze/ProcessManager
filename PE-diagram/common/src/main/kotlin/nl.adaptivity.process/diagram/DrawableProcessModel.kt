@@ -20,46 +20,45 @@ import nl.adaptivity.diagram.Positioned
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.RootProcessModel
 
 /**
  * Drawable version of the process model.
  */
-interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessModel {
-  interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessModel {
-    var  layoutAlgorithm: LayoutAlgorithm
+interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+    interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessModel {
+        var layoutAlgorithm: LayoutAlgorithm
 
-    override val nodes: MutableList<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>>
+        override val nodes: MutableList<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>>
 
-    override val childElements: List<DrawableProcessNode.Builder<*>>
+        override val childElements: List<DrawableProcessNode.Builder<*>>
 
-    override fun compositeActivityBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
-      TODO("DrawableChildModels still need to be implemented")
+        override val rootBuilder: RootDrawableProcessModel.Builder
+
+        override fun compositeActivityBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
+            TODO("DrawableChildModels still need to be implemented")
+        }
+
+        override fun getNode(nodeId: String): DrawableProcessNode.Builder<*>? {
+            return super.getNode(nodeId) as DrawableProcessNode.Builder<*>?
+        }
+
+        fun hasUnpositioned() = nodes.any { !(it as Positioned).hasPos() }
+
+        fun build(): DrawableProcessModel
+
+        fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder<*>> = AbstractLayoutStepper())
+
+
+        fun notifyNodeChanged(node: DrawableProcessNode) = Unit
+
     }
 
-    override fun getNode(nodeId: String): DrawableProcessNode.Builder<*>? {
-      return super.getNode(nodeId) as DrawableProcessNode.Builder<*>?
-    }
+    fun builder(): Builder
 
-    fun hasUnpositioned() = nodes.any { !(it as Positioned).hasPos() }
+    val layoutAlgorithm: LayoutAlgorithm
 
-    fun build(): DrawableProcessModel
+    override val modelNodes: List<DrawableProcessNode>
 
-    fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder<*>> = AbstractLayoutStepper())
-  }
-
-  fun builder(): Builder
-
-  val layoutAlgorithm: LayoutAlgorithm
-
-  override val x: Double get() = 0.0
-
-  override val y: Double get() = 0.0
-
-  override val modelNodes: List<DrawableProcessNode>
-
-  override val childElements: List<DrawableProcessNode> get() = modelNodes
-
-  override val rootModel: RootDrawableProcessModel
-
-  fun notifyNodeChanged(node: DrawableProcessNode) = Unit
+    override val rootModel: RootDrawableProcessModel
 }

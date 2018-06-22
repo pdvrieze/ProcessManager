@@ -81,7 +81,7 @@ interface IDrawableEndNode : IDrawableProcessNode {
 
 }
 
-class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode, IDrawableEndNode {
+class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
 
     class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableEndNode>, IDrawableEndNode {
 
@@ -139,13 +139,6 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
 
     override fun builder(): Builder {
         return Builder(this)
-    }
-
-    override fun copy(): DrawableEndNode {
-        if (isTypeOf<DrawableEndNode>(this)) {
-            return builder().build()
-        }
-        throw UnsupportedOperationException("Copying incompatible types")
     }
 
     companion object {

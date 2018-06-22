@@ -46,7 +46,7 @@ import nl.adaptivity.sync.SyncManager
  * [ListCallbacks] interface to listen for item
  * selections.
  */
-class ProcessModelListOuterFragment : MasterDetailOuterFragment(R.layout.outer_processmodel_list,
+class ProcessModelListOuterFragment constructor() : MasterDetailOuterFragment(R.layout.outer_processmodel_list,
                                                                 R.id.processmodel_list_container,
                                                                 R.id.processmodel_detail_container), ListCallbacks<SyncManager>, ProcessModelDetailFragmentCallbacks {
 

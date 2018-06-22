@@ -35,28 +35,12 @@ import nl.adaptivity.xml.toString
 import org.w3.soapEnvelope.Envelope
 import java.io.StringReader
 
-class ParcelableActivity(builder: Activity.Builder<*, *>,
+class ParcelableActivity @JvmOverloads constructor(builder: Activity.Builder<*, *>,
                                 buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) : DrawableActivity(
     builder, buildHelper), Parcelable {
     constructor(orig: Activity<*, *>, compat: Boolean) : this(builder(orig, compat))
 
     private constructor(source: Parcel) : this(fromParcel(source))
-
-    final override fun copy(): ParcelableActivity {
-        return ParcelableActivity(builder())
-    }
-
-    fun getUserTask(): EditableUserTask? {
-        val message = XmlMessage.from(message)
-        if (message != null && UserTaskServiceDescriptor.SERVICENAME == message.service &&
-            UserTaskServiceDescriptor.ENDPOINT == message.endpoint) {
-
-            val envelope: Envelope<PostTask> = Envelope.deserialize(message.bodyStreamReader, PostTask.FACTORY)
-            return envelope.body?.bodyContent?.task
-        }
-        return null
-    }
-
 
     override fun describeContents(): Int {
         return 0
@@ -184,4 +168,22 @@ class ParcelableActivity(builder: Activity.Builder<*, *>,
 
     }
 
+}
+
+fun DrawableActivity.getUserTask(): EditableUserTask? {
+    return getUserTask(XmlMessage.from(this.message))
+}
+
+fun DrawableActivity.Builder.getUserTask(): EditableUserTask? {
+    return getUserTask(XmlMessage.from(this.message))
+}
+
+private fun getUserTask(message: XmlMessage?): EditableUserTask? {
+    if (message != null && UserTaskServiceDescriptor.SERVICENAME == message.service &&
+        UserTaskServiceDescriptor.ENDPOINT == message.endpoint) {
+
+        val envelope: Envelope<PostTask> = Envelope.deserialize(message.bodyStreamReader, PostTask.FACTORY)
+        return envelope.body?.bodyContent?.task
+    }
+    return null
 }

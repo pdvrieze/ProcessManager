@@ -20,118 +20,105 @@ import nl.adaptivity.diagram.*
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STARTNODERADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.xml.XmlException
 import nl.adaptivity.xml.XmlReader
 import nl.adaptivity.xml.deserializeHelper
-import kotlin.math.abs
 
-interface IDrawableStartNode: IDrawableProcessNode {
-  override val leftExtent get() = REFERENCE_OFFSET_X
-  override val rightExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_X
-  override val topExtent get() = REFERENCE_OFFSET_Y
-  override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
+interface IDrawableStartNode : IDrawableProcessNode {
+    override val leftExtent get() = REFERENCE_OFFSET_X
+    override val rightExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_X
+    override val topExtent get() = REFERENCE_OFFSET_Y
+    override val bottomExtent get() = STARTNODERADIUS * 2 + STROKEWIDTH - REFERENCE_OFFSET_Y
 
-  override val maxPredecessorCount: Int get() = 0
+    override val maxPredecessorCount: Int get() = 0
 
-  override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>,
-                                                                                                              clipBounds: Rectangle?) {
-    if (hasPos()) {
-      val realradius = STARTNODERADIUS + STROKEWIDTH / 2
-      val fillPen = canvas.theme.getPen(ProcessThemeItems.LINEBG, state and Drawable.STATE_TOUCHED.inv())
+    override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> draw(canvas: Canvas<S, PEN_T, PATH_T>,
+                                                                                                                clipBounds: Rectangle?) {
+        if (hasPos()) {
+            val realradius = STARTNODERADIUS + STROKEWIDTH / 2
+            val fillPen = canvas.theme.getPen(ProcessThemeItems.LINEBG, state and Drawable.STATE_TOUCHED.inv())
 
-      if (state and Drawable.STATE_TOUCHED != 0) {
-        val touchedPen = canvas.theme.getPen(ProcessThemeItems.LINE, Drawable.STATE_TOUCHED)
-        canvas.drawCircle(realradius, realradius, STARTNODERADIUS, touchedPen)
-      }
+            if (state and Drawable.STATE_TOUCHED != 0) {
+                val touchedPen = canvas.theme.getPen(ProcessThemeItems.LINE, Drawable.STATE_TOUCHED)
+                canvas.drawCircle(realradius, realradius, STARTNODERADIUS, touchedPen)
+            }
 
-      canvas.drawFilledCircle(realradius, realradius, realradius, fillPen)
+            canvas.drawFilledCircle(realradius, realradius, realradius, fillPen)
+        }
     }
-  }
 
-  companion object {
-    val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
-    val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
-  }
+    companion object {
+        const val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
+        const val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
+    }
 
 }
 
 class DrawableStartNode(builder: StartNode.Builder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : /*ClientStartNode,*/ StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(
-  builder, buildHelper), DrawableProcessNode, IDrawableStartNode {
+                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) :
+    StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(builder, buildHelper),
+    DrawableProcessNode {
 
-  class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableStartNode>, IDrawableStartNode {
+    class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableStartNode>, IDrawableStartNode {
 
-    override val _delegate: DrawableProcessNode.Builder.Delegate
+        override val _delegate: DrawableProcessNode.Builder.Delegate
 
-    constructor(): this(id=null)
+        constructor() : this(id = null)
 
-    constructor(id: String? = null,
-                successor: Identified? = null,
-                label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                state: DrawableState = Drawable.STATE_DEFAULT,
-                isCompat: Boolean = false,
-                isMultiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, isMultiInstance) {
-      _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
+        constructor(id: String? = null,
+                    successor: Identified? = null,
+                    label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    state: DrawableState = Drawable.STATE_DEFAULT,
+                    isCompat: Boolean = false,
+                    isMultiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y,
+                                                              isMultiInstance) {
+            _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
+        }
+
+        constructor(node: StartNode<*, *>) : super(node) {
+            _delegate = DrawableProcessNode.Builder.Delegate(node)
+        }
+
+        override fun copy(): Builder {
+            return Builder(id, successor?.identifier, label, defines, results, x, y, state, isCompat, isMultiInstance)
+        }
+
+        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableStartNode(
+            this, buildHelper)
     }
 
-    constructor(node: StartNode<*, *>) : super(node) {
-      _delegate = DrawableProcessNode.Builder.Delegate(node)
+    override val _delegate = DrawableProcessNode.Delegate(builder)
+
+    override val idBase: String
+        get() = IDBASE
+
+    override val maxSuccessorCount: Int
+        get() = if (isCompat) Int.MAX_VALUE else 1
+
+    override val maxPredecessorCount get() = super.maxPredecessorCount
+
+    override fun builder(): Builder {
+        return Builder(this)
     }
 
-    override fun copy(): IDrawableProcessNode {
-      return Builder(id, successor?.identifier, label, defines, results, x, y, state, isCompat, isMultiInstance)
+    companion object {
+
+        const val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
+        const val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
+        const val IDBASE = "start"
+
+        @JvmStatic
+        fun deserialize(reader: XmlReader): Builder {
+            return DrawableStartNode.Builder().deserializeHelper(reader)
+        }
+
+        @JvmStatic
+        fun from(n: StartNode<*, *>, compat: Boolean = false) = Builder(n).apply { this.isCompat = compat }.build()
     }
-
-    override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableStartNode(
-      this, buildHelper)
-  }
-
-  override val _delegate = DrawableProcessNode.Delegate(builder)
-
-  override val idBase: String
-    get() = IDBASE
-
-  override val maxSuccessorCount: Int
-    get() = if (isCompat) Int.MAX_VALUE else 1
-
-  override val maxPredecessorCount get() = super<StartNodeBase>.maxPredecessorCount
-
-  override fun builder(): Builder {
-    return Builder(this)
-  }
-
-  override fun copy(): DrawableStartNode {
-    return builder().build()
-  }
-
-  override fun isWithinBounds(x: Double, y: Double): Boolean {
-    val realradius = STARTNODERADIUS + STROKEWIDTH / 2
-    val dx = abs(this.x - x)
-    val dy = abs(this.y - y)
-    return dx*dx+dy*dy <= realradius*realradius
-  }
-
-  companion object {
-
-    val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
-    val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
-    val IDBASE = "start"
-
-    @JvmStatic
-    fun deserialize(reader: XmlReader): Builder {
-      return DrawableStartNode.Builder().deserializeHelper(reader)
-    }
-
-    @JvmStatic
-    fun from(n: StartNode<*, *>, compat: Boolean = false)
-      = Builder(n).apply { this.isCompat = compat }.build()
-  }
 
 }

@@ -76,11 +76,9 @@ public final class OverviewPMCursorAdapter extends BasePMCursorAdapter<OverviewP
     viewHolder.binding.setName(mNameColumn >= 0 ? cursor.getString(mNameColumn) : null);
     viewHolder.binding.setInstanceCount(mCountColumn>=0 ? cursor.getInt(mCountColumn): 0);
     if (mModelColumn>=0) {
-      RootDrawableProcessModel model = RootDrawableProcessModel.deserialize(XmlStreaming.INSTANCE.newReader(new StringReader(cursor.getString(mModelColumn))));
+      RootDrawableProcessModel.Builder model = RootDrawableProcessModel.deserialize(XmlStreaming.INSTANCE.newReader(new StringReader(cursor.getString(mModelColumn)))).builder();
       if (model.hasUnpositioned()) {
-        final Builder b = model.builder();
-        b.layout(new AbstractLayoutStepper<DrawableProcessNode.Builder>());
-        model = b.build();
+          model.layout(new AbstractLayoutStepper<>());
       }
       final Drawable d = new DrawableDrawable(model, new AndroidTheme(AndroidStrategy.INSTANCE), true);
       viewHolder.binding.setThumbnail(d);

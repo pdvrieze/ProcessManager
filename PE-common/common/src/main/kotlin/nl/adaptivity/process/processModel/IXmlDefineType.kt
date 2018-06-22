@@ -116,9 +116,6 @@ var IXmlDefineType.name:String
     inline get() = getName()
     inline set(value) { setName(value) }
 
-val IXmlDefineType.originalNSContext: Iterable<Namespace>
-    inline get() = originalNSContext ?: emptyList()
-
 
 object IXmlDefineTypeListSerializer: KSerializer<List<IXmlDefineType>> {
 

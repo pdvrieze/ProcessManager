@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.KInput
 import kotlinx.serialization.KOutput
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
@@ -28,13 +29,14 @@ import nl.adaptivity.util.addField
 import nl.adaptivity.util.addFields
 import nl.adaptivity.util.multiplatform.JvmField
 import nl.adaptivity.xml.*
+import nl.adaptivity.xml.serialization.XmlPolyChildren
 import nl.adaptivity.xml.serialization.readNullableString
 import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 
 /**
  * Base class for submodels
  */
-//@Serializable
+@Serializable
 abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
     ProcessModelBase<T, M>, ChildProcessModel<T, M> {
 
@@ -43,8 +45,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
                                                                                                                buildHelper.pedantic) {
         modelNodes = buildNodes(builder, buildHelper.withOwner(asM))
         rootModel = buildHelper.newOwner?.rootModel
-            ?: throw IllegalProcessModelException(
-            "Childmodels must have roots")
+            ?: throw IllegalProcessModelException("Childmodels must have roots")
         this.id = builder.childId
     }
 
@@ -55,10 +56,21 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
         rootModel = XmlProcessModel.Builder().build() as RootProcessModel<T, M>
         id = null
         if (id == null) {// stupid if to make the compiler not complain about uninitialised values
-            throw UnsupportedOperationException("Actually nvoking this constructor is invalid")
+            throw UnsupportedOperationException("Actually invoking this constructor is invalid")
         }
     }
 
+    @SerialName("nodes")
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
     override val modelNodes: IdentifyableSet<T>
 
     @Transient
@@ -139,10 +151,10 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
         }
 
         abstract class BaseSerializer<T : ChildProcessModelBase.Builder<*, *>> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            override fun readElement(result: T, input: KInput, index: Int) {
-                when (serialClassDesc.getElementName(index)) {
+            override fun readElement(result: T, input: KInput, index: Int, name:String) {
+                when (name) {
                     ATTR_ID -> result.childId = input.readNullableString(serialClassDesc, index)
-                    else    -> super.readElement(result, input, index)
+                    else    -> super.readElement(result, input, index, name)
                 }
             }
         }
@@ -167,12 +179,14 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
                                 ProcessConsts.Engine.NSPREFIX)
 
 
+/*
         fun serialClassDesc(name: String): SerialClassDescImpl {
             return SerialClassDescImpl(name).apply {
                 addField(ChildProcessModelBase<*, *>::id)
                 addFields(ProcessModelBase.serialClassDesc)
             }
         }
+*/
 
     }
 

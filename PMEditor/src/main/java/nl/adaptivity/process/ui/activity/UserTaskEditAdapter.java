@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemViewHolder> {
 
-  class ItemViewHolder extends ClickableViewHolder implements OnTouchListener {
+  public class ItemViewHolder extends ClickableViewHolder implements OnTouchListener {
 
     private final ViewDataBinding mBinding;
 

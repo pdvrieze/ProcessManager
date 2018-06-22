@@ -19,7 +19,7 @@
     <data>
 
         <variable name="node"
-                  type="nl.adaptivity.process.diagram.DrawableProcessNode" />
+                  type="nl.adaptivity.process.diagram.IDrawableProcessNode" />
     </data>
 
     <LinearLayout android:layout_width="match_parent"

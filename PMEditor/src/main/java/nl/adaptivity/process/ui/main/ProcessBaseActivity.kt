@@ -30,11 +30,7 @@ import android.util.Log
 import nl.adaptivity.android.compat.Compat
 import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory
 import nl.adaptivity.android.graphics.AndroidTextMeasurer
-import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo
 import nl.adaptivity.diagram.svg.SVGCanvas
-import nl.adaptivity.diagram.svg.SVGPath
-import nl.adaptivity.diagram.svg.SVGPen
-import nl.adaptivity.diagram.svg.SVGStrategy
 import nl.adaptivity.process.diagram.DrawableProcessModel
 import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.editor.android.BuildConfig
@@ -89,7 +85,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
                 val out = FileOutputStream(file)
                 try {
                     if (mType == TYPE_SVG) {
-                        doExportSVG(out, RootDrawableProcessModel.get(params[0])!!)
+                        doExportSVG(out, params[0].rootModel)
                     } else {
                         doSaveFile(out, params[0].rootModel)
                     }
@@ -144,7 +140,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     }
 
     @CallSuper
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE, UIConstants.REQUEST_SHARE_PROCESSMODEL_SVG -> mTmpFile!!.delete()
@@ -159,11 +155,11 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     }
 
     @Throws(FileNotFoundException::class)
-    private fun getOutputStreamFromSave(data: Intent): OutputStream? {
-        return contentResolver.openOutputStream(data.data!!)
+    private fun getOutputStreamFromSave(data: Intent?): OutputStream? {
+        return contentResolver.openOutputStream(data?.data!!)
     }
 
-    protected fun doSaveFile(data: Intent, processModel: RootDrawableProcessModel) {
+    protected fun doSaveFile(data: Intent?, processModel: RootDrawableProcessModel) {
         try {
             val out = getOutputStreamFromSave(data)!!
             try {
@@ -208,7 +204,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
             throw NullPointerException()
         }
         val task = FileStoreTask(TYPE_FILE, FileStoreListener("*/*", UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE))
-        task.execute(processModel as DrawableProcessModel?)
+        task.execute((processModel as DrawableProcessModel?))
     }
 
     override fun requestSaveFile(processModel: RootDrawableProcessModel?) {
@@ -219,10 +215,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
         requestSaveFile("*/*", UIConstants.REQUEST_SAVE_PROCESSMODEL)
     }
 
-    override fun requestShareSVG(processModel: DrawableProcessModel?) {
-        if (BuildConfig.DEBUG && processModel == null) {
-            throw NullPointerException()
-        }
+    override fun requestShareSVG(processModel: DrawableProcessModel) {
         val task = FileStoreTask(TYPE_SVG, FileStoreListener("image/svg", UIConstants.REQUEST_SHARE_PROCESSMODEL_SVG))
         task.execute(processModel)
     }
@@ -261,7 +254,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
         }
     }
 
-    private fun doExportSVG(data: Intent, processModel: DrawableProcessModel) {
+    private fun doExportSVG(data: Intent?, processModel: DrawableProcessModel) {
         try {
             val out = getOutputStreamFromSave(data)!!
             try {
@@ -281,7 +274,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     private fun doExportSVG(out: OutputStream, processModel: DrawableProcessModel) {
         try {
             val serializer = PMParser.getSerializer(out)
-            doExportSVG(serializer, processModel)
+            doExportSVG(serializer, processModel.builder())
         } catch (e: XmlPullParserException) {
             throw IOException(e)
         }
@@ -289,7 +282,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     }
 
     @Throws(IOException::class)
-    private fun doExportSVG(out: Writer, processModel: DrawableProcessModel) {
+    private fun doExportSVG(out: Writer, processModel: DrawableProcessModel.Builder) {
         try {
             val serializer = PMParser.getSerializer(out)
             doExportSVG(serializer, processModel)
@@ -300,7 +293,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
     }
 
     @Throws(IOException::class)
-    private fun doExportSVG(serializer: XmlSerializer, processModel: DrawableProcessModel) {
+    private fun doExportSVG(serializer: XmlSerializer, processModel: DrawableProcessModel.Builder) {
         val canvas = SVGCanvas(AndroidTextMeasurer())
         val modelBounds = processModel.bounds
         val offsetCanvas = canvas
@@ -308,7 +301,7 @@ abstract class ProcessBaseActivity : AuthenticatedActivity(), ProcessesCallback 
         modelBounds.left = 0.0// set the origin to the actual top left corner of the image.
         modelBounds.top = 0.0
         canvas.bounds = modelBounds
-        processModel.draw<SVGStrategy<AndroidMeasureInfo>, SVGPen<AndroidMeasureInfo>, SVGPath>(offsetCanvas, null)
+        processModel.draw(offsetCanvas, null)
         serializer.startDocument(null, null)
         serializer.ignorableWhitespace("\n")
         serializer.comment("Generated by PMEditor")

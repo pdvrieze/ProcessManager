@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.SerialName
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.JvmName
@@ -28,12 +29,14 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
 
     override val rootModel: RootProcessModel<NodeT, ModelT> get() = this
 
+    @SerialName("childModel")
     val childModels: Collection<ChildProcessModel<NodeT, ModelT>>
 
     val owner: Principal
 
     val ref: IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>>?
 
+    @SerialName("nodes")
     override val modelNodes: List<NodeT>
     val uuid: UUID?
     val name: String?
@@ -75,7 +78,6 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
         var owner: Principal
         var uuid: UUID?
         val roles: MutableSet<String>
-
 
         fun newChildId(base: String): String {
             return generateSequence(1, { it + 1 }).map { "$base$it" }.first { candidateId ->

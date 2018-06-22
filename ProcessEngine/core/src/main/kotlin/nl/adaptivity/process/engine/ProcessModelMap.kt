@@ -45,9 +45,4 @@ internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBT
 
   override val elementFactory: ProcessModelFactory
     get() = super.elementFactory as ProcessModelFactory
-
-  override fun <W : SecureObject<ExecutableProcessModel>> put(transaction: ProcessDBTransaction, value: W): ComparableHandle<W> {
-    value.withPermission().cacheStrings(elementFactory.stringCache)
-    return super.put(transaction, value)
-  }
 }

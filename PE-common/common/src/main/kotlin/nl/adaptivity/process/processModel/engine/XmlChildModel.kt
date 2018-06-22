@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.name
 
 @Serializable
@@ -65,7 +66,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
 
         @Serializer(forClass = Builder::class)
         companion object : ChildProcessModelBase.Builder.BaseSerializer<Builder>() {
-            override val serialClassDesc: KSerialClassDesc = ChildProcessModelBase.serialClassDesc(Builder::class.name)
+            override val serialClassDesc: KSerialClassDesc = SerialClassDescImpl(XmlChildModel.serialClassDesc, Builder::class.name)
 
             override fun builder(): Builder {
                 return Builder()
@@ -86,8 +87,6 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
 
     @Serializer(forClass = XmlChildModel::class)
     companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>() {
-        override val serialClassDesc: KSerialClassDesc = ChildProcessModelBase.serialClassDesc(XmlChildModel::class.name)
-
         @Suppress("RedundantOverride")
         override fun save(output: KOutput, obj: XmlChildModel) {
             super.save(output, obj)

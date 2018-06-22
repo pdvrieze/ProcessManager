@@ -178,6 +178,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
         @Deprecated("Use normal factory method",
                     ReplaceWith("XmlDefineType(export)", "nl.adaptivity.process.processModel.XmlDefineType"))
+        @JvmStatic
         operator fun get(export: IXmlDefineType) = XmlDefineType(export)
 
 

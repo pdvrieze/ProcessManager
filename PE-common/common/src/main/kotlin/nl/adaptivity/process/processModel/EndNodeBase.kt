@@ -39,12 +39,8 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
 
     @Suppress("DEPRECATION")
     @Serializable(with = Identifiable.Companion::class)
-    override var predecessor: Identified?
+    override val predecessor: Identified?
         get() = if (predecessors.size == 0) null else predecessors.single()
-        @Deprecated("Use builder")
-        set(value) {
-            setPredecessors(listOfNotNull(value))
-        }
 
     @Transient
     override val maxSuccessorCount: Int get() = 0

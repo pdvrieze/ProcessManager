@@ -129,8 +129,9 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
         } else if (decoration === cachedDecorations[1]) {
             doEditNode(position)
         } else if (decoration === cachedDecorations[2]) {
-            if (overlay is LineView) {
-                view.invalidate(overlay!!)
+            val o = overlay
+            if (o is LineView) {
+                view.invalidate(o)
                 overlay = null
             } else {
                 decoration.isActive = true
@@ -152,9 +153,9 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
         if (context is Activity) {
             val node = diagram.childElements.get(position)
             val fragment: DialogFragment
-            if (node is DrawableJoinSplit) {
+            if (node is IDrawableJoinSplit) {
                 fragment = JoinSplitNodeEditDialogFragment.newInstance(position)
-            } else if (node is DrawableActivity) {
+            } else if (node is IDrawableActivity) {
                 fragment = ActivityEditDialogFragment.newInstance(position)
             } else {
                 fragment = NodeEditDialogFragment.newInstance(position)
@@ -165,17 +166,16 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
 
     override fun onDecorationMove(view: DiagramView, position: Int, decoration: RelativeLightView, x: Float, y: Float) {
         if (decoration === cachedDecorations[2]) {
-            val start = cachedDecorationItem
-            val x1 = (start!!.bounds.right - RootDrawableProcessModel.STROKEWIDTH).toFloat()
+            val start = cachedDecorationItem!!
+            val x1 = (start.bounds.right - RootDrawableProcessModel.STROKEWIDTH).toFloat()
             val y1 = start.y.toFloat()
 
-            if (overlay is LineView) {
-                view.invalidate(overlay!!) // invalidate both old
-                (overlay as LineView).setPos(x1, y1, x, y)
-            } else {
-                overlay = LineView(x1, y1, x, y)
-            }
-            view.invalidate(overlay!!) // and new bounds
+            val overlay = (overlay as? LineView)?.also {
+                view.invalidate(it) // invalidate both old
+                it.setPos(x1, y1, x, y)
+            } ?: LineView(x1, y1, x, y).also { overlay = it }
+
+            view.invalidate(overlay) // and new bounds
         }
     }
 
@@ -223,22 +223,20 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
 
             if (prev.successors.size < prev.maxSuccessorCount && next.predecessors.size < next.maxPredecessorCount) {
                 try {
-                    if (prev is Split<*, *>) {
-                        val split = prev as Split<*, *>
-                        if (split.min >= split.max) {
-                            split.min = split.min + 1
+                    if (prev is Split.Builder<*, *>) {
+                        if (prev.min >= prev.max) {
+                            prev.min = prev.min + 1
                         }
-                        if (split.max >= prev.successors.size) {
-                            split.max = split.max + 1
+                        if (prev.max >= prev.successors.size) {
+                            prev.max = prev.max + 1
                         }
                     }
-                    if (next is Join<*, *>) {
-                        val join = next as Join<*, *>
-                        if (join.min >= join.max) {
-                            join.min = join.min + 1
+                    if (next is Join.Builder<*, *>) {
+                        if (next.min >= next.max) {
+                            next.min = next.min + 1
                         }
-                        if (join.max >= prev.predecessors.size) {
-                            join.max = join.max + 1
+                        if (next.max >= prev.predecessors.size) {
+                            next.max = next.max + 1
                         }
                     }
                     prev.addSuccessor(next.identifier!!)

@@ -49,6 +49,7 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.process.processModel.ProcessNode.IBuilder;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
@@ -187,11 +188,11 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
      * @return <code>true</code> if handled succesfully.
      */
     private boolean onItemDropped(final DragEvent event) {
-        final DrawableProcessNode nodeType = (DrawableProcessNode) event.getLocalState();
+        final DrawableProcessNode.Builder<?> nodeType = (DrawableProcessNode.Builder<?>) event.getLocalState();
         final Constructor<?>      constructor;
         try {
             // TODO replace with factory
-            final DrawableProcessNode.Builder builder  = nodeType.builder();
+            final DrawableProcessNode.Builder<?> builder  = nodeType.copy();
             float                             diagramX = diagramView1.toDiagramX(event.getX());
             float                             diagramY = diagramView1.toDiagramY(event.getY());
             final int                         gridSize = diagramView1.getGridSize();
@@ -265,9 +266,10 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
                 builder.getNodes().add(builder.joinBuilder());
                 builder.getNodes().add(builder.endNodeBuilder());
                 viewOwner = builder.build(false);
-            }
-            for (DrawableProcessNode node : viewOwner.getModelNodes()) {
-                addNodeView(theme, node);
+
+                for (IBuilder<DrawableProcessNode, DrawableProcessModel> node : builder.getNodes()) {
+                    addNodeView(theme, (DrawableProcessNode.Builder<?>) node);
+                }
             }
 
             elementsView.requestLayout();
@@ -276,7 +278,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         if (savedInstanceState != null) {
             final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
             if (pmparcelable != null) {
-                setPm(RootDrawableProcessModel.get(pmparcelable.getProcessModel()));
+                setPm(pmparcelable.getProcessModel().builder());
             }
             mPmUri = savedInstanceState.getParcelable(KEY_PROCESSMODEL_URI);
         } else {
@@ -301,7 +303,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
      * @param theme
      * @param node
      */
-    private void addNodeView(final AndroidTheme theme, final DrawableProcessNode node) {
+    private void addNodeView(final AndroidTheme theme, final DrawableProcessNode.Builder node) {
         final LinearLayout.LayoutParams lp =
             new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         lp.gravity = Gravity.CENTER;
@@ -323,7 +325,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         elementsView.addView(v);
     }
 
-    private static DrawableProcessNode positionNode(final DrawableProcessNode node) {
+    private static <T extends DrawableProcessNode> DrawableProcessNode.Builder<T> positionNode(final DrawableProcessNode.Builder<T> node) {
         node.setX(0);
         node.setY(0);
         final Rectangle bounds = node.getBounds();
