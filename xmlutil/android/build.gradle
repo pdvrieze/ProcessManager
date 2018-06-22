@@ -36,11 +36,11 @@ test {
 }
 */
 android {
-    compileSdkVersion 27
+    compileSdkVersion androidTarget
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 27
+        targetSdkVersion androidTarget
         versionCode 1
         versionName version
     }

@@ -48,6 +48,7 @@
 -keep class kotlin.coroutines.experimental.CoroutineContext
 -keep class kotlin.coroutines.experimental.Continuation
 -keep class kotlin.jvm.functions.Function2
+-keep @interface kotlinx.serialization.SerialName
 
 # serialization
 -keepattributes *Annotation*, InnerClasses
@@ -61,6 +62,13 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
+-keep,includedescriptorclasses @kotlinx.serialization.Serializable class * { *; }
+# Generates invalid constructor call
+-dontwarn kotlinx.serialization.ContextSerializer
+#-keep class kotlinx.serialization.ContextSerializer { <init>(...); }
+# The serializer generates calls to synthetic fields
+-dontwarn nl.adaptivity.process.processModel.RootProcessModelBase
+
 -keep,includedescriptorclasses class nl.adaptivity.messaging.**$$serializer { *; } # <-- change package name to your app's
 -keepclassmembers class nl.adaptivity.messaging.** { # <-- change package name to your app's
     *** Companion;
@@ -72,6 +80,7 @@
 -keep,includedescriptorclasses class nl.adaptivity.process.processModel.**$$serializer { *; } # <-- change package name to your app's
 -keepclassmembers class nl.adaptivity.process.processModel.** { # <-- change package name to your app's
     *** Companion;
+    *;
 }
 -keepclasseswithmembers class nl.adaptivity.process.processModel.** { # <-- change package name to your app's
     kotlinx.serialization.KSerializer serializer(...);
@@ -124,3 +133,25 @@
 -keepclasseswithmembers class nl.adaptivity.xml.serialization.canary.CanaryInput { # <-- change package name to your app's
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+#Don't strip fragment constructor
+-keepclassmembers public class * extends android.support.v4.app.Fragment {
+   public <init>(...);
+}
+
+#Don't remove serialization annotations
+-keep @interface nl.adaptivity.xml.serialization.** { *; }
+-keep @interface kotlinx.serialization.** { *; }
+
+#Kotlin reflection
+-keep class kotlin.reflect.jvm.internal.impl.builtins.BuiltInsLoaderImpl
+-keep class kotlin.reflect.jvm.internal.impl.load.java.FieldOverridabilityCondition
+-keep class kotlin.reflect.jvm.internal.impl.load.java.ErasedOverridabilityCondition
+-keep class kotlin.reflect.jvm.internal.impl.load.java.JavaIncompatibilityRulesOverridabilityCondition
+-keepclassmembers class kotlin.reflect.jvm.** {
+ *;
+}
+-keepclassmembers class nl.adaptivity.process.processModel.RootProcessModelBase {
+    java.util.Set getRoles();
+}
+-keep class kotlin.Metadata { *; }

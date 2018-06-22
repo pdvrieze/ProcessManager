@@ -13,6 +13,8 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 
 plugins {
     base
@@ -27,6 +29,7 @@ base {
 
 val `kotlin_version`: String by project
 val kotlinVersion get() = `kotlin_version`
+val androidTarget: Int by project
 
 dependencies {
     implementation(kotlin("stdlib", kotlinVersion))
@@ -38,12 +41,19 @@ dependencies {
 }
 
 android {
-    compileSdkVersion(27)
+    compileSdkVersion(androidTarget)
     defaultConfig {
         minSdkVersion(14)
-        targetSdkVersion(27)
+        targetSdkVersion(androidTarget)
         versionCode = 1
         versionName = "1.0"
     }
 
+}
+
+val argJvmDefault:String by project
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
+    kotlinOptions.jvmTarget = "1.8"
 }

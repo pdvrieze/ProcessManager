@@ -37,16 +37,17 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+val kotlin_version:String by project
+val serializationVersion: String by project
+val argJvmDefault:String by project
+val androidTarget:Int by project
+
 android {
-    compileSdkVersion(27)
+    compileSdkVersion(androidTarget)
 //    defaultConfig {
 //        applicationId 'net.devrieze.pe-common'
 //    }
 }
-
-val kotlin_version:String by project
-val serializationVersion: String by project
-val argJvmDefault:String by project
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
@@ -64,6 +65,8 @@ dependencies {
     implementation(project(":multiplatform:android"))
     implementation(project(":java-common:android"))
     implementation(project(":xmlutil:serialization:java"))
+
+    implementation(kotlin("reflect", kotlin_version))
 
     compileOnly(project(":JavaCommonApi:jvm"))
 }
