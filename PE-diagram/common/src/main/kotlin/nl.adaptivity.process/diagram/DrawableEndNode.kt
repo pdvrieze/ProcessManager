@@ -24,6 +24,7 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEO
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.isTypeOf
 import nl.adaptivity.xml.XmlReader
@@ -70,6 +71,7 @@ interface IDrawableEndNode : IDrawableProcessNode {
         }
     }
 
+    @JvmDefault
     override fun isWithinBounds(x: Double, y: Double): Boolean {
         val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
         val dx = abs(this.x - x)
