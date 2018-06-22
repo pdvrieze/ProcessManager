@@ -22,24 +22,24 @@ import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 
 class WCP4: ModelSpek(run {
-  val model = object: ConfigurableModel("WCP4") {
-    val start by startNode
-    val split by split(start) { min = 1; max = 1 }
-    val ac1 by activity(split)
-    val ac2 by activity(split)
-    val end1 by endNode(ac1)
-    val end2 by endNode(ac2)
-  }
-  val validTraces = with(model) { trace {
-    start .. ((ac1 .. (end1 % split)) or
-      (ac2 .. (end2 % split)))
-  } }
+    val model = object: ConfigurableModel("WCP4") {
+        val start by startNode
+        val split by split(start) { min = 1; max = 1 }
+        val ac1 by activity(split)
+        val ac2 by activity(split)
+        val end1 by endNode(ac1)
+        val end2 by endNode(ac2)
+    }
+    val validTraces = with(model) { trace {
+        start .. ((ac1 .. (end1 % split)) or
+            (ac2 .. (end2 % split)))
+    } }
 
-  val invalidTraces = with(model) { trace {
-    end1 or end2 or split or
-      (start .. (split or end1 or end2 or
-        (ac1 .. (ac2 or end2)) or
-        (ac2 .. (ac1 or end1))))
-  } }
-  ModelData(model, validTraces, invalidTraces)
+    val invalidTraces = with(model) { trace {
+        end1 or end2 or split or
+            (start.opt .. (split or end1 or end2 or
+                (ac1 .. (ac2 or end2)) or
+                (ac2 .. (ac1 or end1))))
+    } }
+    ModelData(model, validTraces, invalidTraces)
 })
