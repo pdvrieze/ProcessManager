@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
+apply plugin: 'kotlin'
 apply plugin: 'idea'
 //apply plugin: 'application'
 
@@ -47,7 +47,8 @@ jar {
 }
 
 dependencies {
-    compile project(':PE-common:jvm')
-    compile project(path: ':PE-common:jvm', configuration:'compileOnly')
-    compile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    implementation project(':PE-common:jvm')
+    implementation project(path: ':PE-common:jvm', configuration:'compileOnly')
+    implementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
