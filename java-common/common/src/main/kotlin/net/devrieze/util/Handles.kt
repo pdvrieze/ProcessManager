@@ -60,8 +60,7 @@ fun <T> getInvalidHandle(): ComparableHandle<T> {
  * @return a Handle<T> object corresponding to the handle.
  */
 fun <T> handle(handle: Long): ComparableHandle<T> {
-    return if (handle < 0) getInvalidHandle() else SimpleHandle(
-        handle)
+    return if (handle < 0) getInvalidHandle() else SimpleHandle(handle)
 }
 
 fun <T> handle(handle: Handle<T>): ComparableHandle<T> {
