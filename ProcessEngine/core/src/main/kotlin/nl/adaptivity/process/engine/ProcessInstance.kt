@@ -266,7 +266,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       active().toList().forEach { nodeInstance ->
         try {
 
-          val newNodeInstance = ticklePredecessors(nodeInstance)
+          val newNodeInstance = updateChild(ticklePredecessors(nodeInstance)) {
+              tickle(engineData, messageService)
+          }
           if (newNodeInstance.state.isFinal) {
             handleFinishedState(engineData, newNodeInstance)
           }
