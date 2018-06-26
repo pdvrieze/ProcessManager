@@ -412,8 +412,9 @@ public final class MessagingRegistry {
    *         This result will also be passed along to the completionListener.
    * @see IMessenger#sendMessage(ISendableMessage, CompletionListener, Class, Class[])
    */
-  public static <T> Future<T> sendMessage(final ISendableMessage message, final CompletionListener<T> completionListener, final Class<T> returnType, final Class<?>[] returnTypeContext) {
-    return getMessenger().sendMessage(message, completionListener, returnType, returnTypeContext);
+  public static <T> Future<T> sendMessage(final ISendableMessage message, final CompletionListener<T> completionListener, final Class<?> returnType, final Class<?>[] returnTypeContext) {
+      //noinspection unchecked
+      return getMessenger().sendMessage(message, completionListener, (Class<T>) returnType, returnTypeContext);
   }
 
 }
