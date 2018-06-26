@@ -40,30 +40,24 @@ task testJar(type: Jar) {
 }
 
 dependencies {
-    testCompile project(path: ':ProcessEngine:core', configuration:"testRuntime")
     compileOnly project(':JavaCommonApi:jvm')
-    testCompile project(':DarwinJavaApi')
-
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
-
-    testCompile project(":TestSupport")
-    testCompile project(path: ':PE-common:jvm', configuration:"testRuntime")
-    testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation project(":multiplatform:jvm")
     implementation "org.jetbrains:annotations:13.0"
     implementation project(':ProcessEngine:core')
-//    runtime project(':xmlutil:core:jvm')
 
-    compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    testCompile project(path: ':ProcessEngine:core', configuration:"testRuntime")
+    testCompile project(':DarwinJavaApi')
+    testCompile project(":TestSupport")
+    testCompile project(path: ':PE-common:jvm', configuration:"testRuntime")
+    testCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
-/*
-    wsDoc project(":PE-common:endpointDoclet")
-    wsDocOutput files(wsDestDir) { builtBy 'wsDoc' }
-*/
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
+    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 }
 
 test {

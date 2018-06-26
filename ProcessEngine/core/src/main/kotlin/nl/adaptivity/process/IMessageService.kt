@@ -39,7 +39,7 @@ interface IMessageService<MSG_T> {
    *
    * @return The sendable message that can be sent.
    */
-  fun createMessage(message: IXmlMessage?): MSG_T
+  fun createMessage(message: IXmlMessage): MSG_T
 
   /**
    * Send a message.

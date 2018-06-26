@@ -14,25 +14,23 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.servlet;
+package nl.adaptivity.process.engine.servlet
 
-import nl.adaptivity.messaging.DarwinMessenger;
-import nl.adaptivity.messaging.MessagingRegistry;
+import nl.adaptivity.messaging.DarwinMessenger
+import nl.adaptivity.messaging.MessagingRegistry
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import javax.servlet.ServletContextEvent
+import javax.servlet.ServletContextListener
 
 
-public class PEContextListener implements ServletContextListener {
+class PEContextListener : ServletContextListener {
 
-  @Override
-  public void contextDestroyed(final ServletContextEvent sce) {
-    MessagingRegistry.registerMessenger(null);
-  }
+    override fun contextDestroyed(sce: ServletContextEvent) {
+        MessagingRegistry.registerMessenger(null)
+    }
 
-  @Override
-  public void contextInitialized(final ServletContextEvent sce) {
-    DarwinMessenger.register();
-  }
+    override fun contextInitialized(sce: ServletContextEvent) {
+        DarwinMessenger.register()
+    }
 
 }

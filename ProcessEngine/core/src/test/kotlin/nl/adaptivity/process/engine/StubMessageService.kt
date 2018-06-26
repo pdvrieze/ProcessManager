@@ -36,8 +36,8 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
   var _messages = mutableListOf<ExtMessage>()
 
-  override fun createMessage(message: IXmlMessage?): IXmlMessage {
-    return message?:XmlMessage()
+  override fun createMessage(message: IXmlMessage): IXmlMessage {
+    return message
   }
 
   fun clear() {

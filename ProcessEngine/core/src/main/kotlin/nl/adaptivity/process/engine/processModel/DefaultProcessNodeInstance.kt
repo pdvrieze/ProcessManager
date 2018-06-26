@@ -25,6 +25,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.xml.XmlDeserializer
@@ -123,7 +124,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         val shouldProgress = tryTask { node.provideTask(engineData, this) }
 
         if (node is ExecutableActivity) {
-          val preparedMessage = messageService.createMessage(node.message)
+          val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
           if (! tryTask { messageService.sendMessage(engineData, preparedMessage, this) }) {
             failTaskCreation(MessagingException("Failure to send message"))
           }
