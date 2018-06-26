@@ -14,6 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+apply plugin: 'kotlin'
 apply plugin: 'java-library'
 apply plugin: 'idea'
 
@@ -34,7 +35,7 @@ configurations {
 
 sourceSets {
     main {
-        java {
+        kotlin {
             srcDir genDir
         }
     }
@@ -72,6 +73,9 @@ dependencies {
     api project(':JavaCommonApi:jvm')
     api project(':java-common:jvm')
     api project(':PE-common:jvm')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(path: ':PE-common:jvm', configuration:'compileOnly')
 }

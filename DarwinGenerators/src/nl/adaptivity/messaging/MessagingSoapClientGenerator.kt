@@ -34,8 +34,11 @@ import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.*
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.jvm.jvmErasure
 
 
 /**
@@ -45,24 +48,24 @@ import kotlin.reflect.full.createInstance
  */
 object MessagingSoapClientGenerator {
 
-    private val METHODSORT = Comparator<Method> { m1, m2 ->
+    private val METHODSORT = Comparator<KFunction<*>> { m1, m2 ->
         // First sort on name
         val result = m1.name.compareTo(m2.name)
         if (result != 0) {
             result
         } else {
 
-            val param1 = m1.getParameterTypes()
-            val param2 = m2.getParameterTypes()
+            val param1 = m1.parameters.map { it.type }
+            val param2 = m2.parameters.map { it.type }
             // Next on parameter list length
             if (param1.size != param2.size) {
                 if (param1.size > param2.size) 1 else -1
             } else {
                 param1.indices
-                    .map { param1[it].simpleName.compareTo(param2[it].simpleName) }
+                    .map { param1[it].jvmErasure.java.simpleName.compareTo(param2[it].jvmErasure.java.simpleName) }
                     .firstOrNull { it != 0 } ?:
                 // This should not happen as methods can not be the same but for return type in Java (but in jvm can)
-                m1.getReturnType().getSimpleName().compareTo(m2.getReturnType().getSimpleName())
+                m1.returnType.jvmErasure.java.simpleName.compareTo(m2.returnType.jvmErasure.java.simpleName)
             }
         }
     }
@@ -70,7 +73,7 @@ object MessagingSoapClientGenerator {
     private var _errorCount = 0
 
 
-    private class ParamInfo(val mType: Type, val mName: String)
+    private class ParamInfo(val type: KType, val name: String)
 
     /**
      * @param args Standard arguments to the generator
@@ -157,11 +160,6 @@ object MessagingSoapClientGenerator {
                 return
             }
             inClasses.size == 1 && outClass == null -> getDefaultOutClassName(inClasses[0])
-            outClass == null                        -> {
-                System.err.println("Outclass needs to be specified as source when multiple input classes are present")
-                showHelp()
-                return
-            }
             else                                    -> outClass
         }
 
@@ -169,8 +167,10 @@ object MessagingSoapClientGenerator {
         val fs = FileSystems.getDefault()
         try {
             val pkgdir = destPkg.replace(".", fs.separator)
-            val classfilename = "$outClass.java"
-            val outfile = fs.getPath(dstdir, pkgdir, classfilename)
+            val outfile = when (outClass) {
+                null -> fs.getPath(dstdir, pkgdir)
+                else -> fs.getPath(dstdir, pkgdir, "$outClass.java")
+            }
 
             // Ensure the parent directory of the outfile exists.
             if (!outfile.parent.toFile().mkdirs()) {
@@ -183,11 +183,12 @@ object MessagingSoapClientGenerator {
             URLClassLoader.newInstance(getUrls(cp)).use { urlclassloader ->
 
                 if (inClasses.size == 1) {
-                    writeOutFile(inClasses[0], destPkg, outClass, fs, outfile, urlclassloader)
+                    writeOutFile(inClasses[0], destPkg, outClass!!, fs, outfile, urlclassloader)
                 } else {
+                    val outDir = if(outfile.toFile().isDirectory) outfile else outfile.parent
                     for (inClass in inClasses) {
                         val newOutClass = getDefaultOutClassName(inClass)
-                        val newOutFile = outfile.parent.resolve("$newOutClass.kt")
+                        val newOutFile = outDir.resolve("$newOutClass.kt")
                         writeOutFile(inClass, destPkg, newOutClass, fs, newOutFile, urlclassloader)
                     }
                 }
@@ -209,9 +210,9 @@ object MessagingSoapClientGenerator {
                              fs: FileSystem,
                              outfile: Path,
                              classloader: URLClassLoader) {
-        val endpointClass: Class<*>
+        val endpointClass: KClass<*>
         try {
-            endpointClass = classloader.loadClass(inClass)
+            endpointClass = classloader.loadClass(inClass).kotlin
         } catch (e: ClassNotFoundException) {
             e.printStackTrace()
             ++_errorCount
@@ -266,14 +267,12 @@ object MessagingSoapClientGenerator {
         println("  <inputclass>       : The Endpoint that needs a client")
     }
 
-    @Throws(IOException::class)
-    private fun generateJava(outfile: Path, endpointClass: Class<*>, pkgname: String, outClass: String) {
+    private fun generateJava(outfile: Path, endpointClass: KClass<*>, pkgname: String, outClass: String) {
         BufferedWriter(FileWriter(outfile.toFile())).use { out -> generateJava(out, endpointClass, pkgname, outClass) }
     }
 
-    @Throws(IOException::class)
-    private fun generateJava(out: Writer, endpointClass: Class<*>, pkgname: String, outClass: String) {
-        writeHead(out, endpointClass, pkgname)
+    private fun generateJava(out: Writer, endpointClass: KClass<*>, pkgname: String, outClass: String) {
+        out.writeHead(endpointClass, pkgname)
 
         val buffer = CharArrayWriter(0x2000)
 
@@ -295,7 +294,7 @@ object MessagingSoapClientGenerator {
         imports["SendableSoapSource"] = "nl.adaptivity.messaging.SendableSoapSource"
         imports["SoapHelper"] = "nl.adaptivity.ws.soap.SoapHelper"
 
-        writeClassBody(buffer, endpointClass, outClass, imports)
+        buffer.writeClassBody(endpointClass, outClass, imports)
 
         val finalStrings = ArrayList(imports.values)
         Collections.sort(finalStrings)
@@ -306,7 +305,7 @@ object MessagingSoapClientGenerator {
                 out.write('\n')
             }
 
-            out.append("import ").append(str).append(";\n")
+            out.append("import ").append(str).append("\n")
             oldPrefix = prefix
         }
         out.write('\n')
@@ -314,47 +313,49 @@ object MessagingSoapClientGenerator {
         buffer.writeTo(out)
     }
 
-    @Throws(IOException::class)
-    private fun writeHead(out: Writer, endpointClass: Class<*>, pkgname: String) {
-        out.write("/*\n")
-        out.write(" * Generated by MessagingSoapClientGenerator.\n")
-        out.write(" * Source class: ")
-        out.write(endpointClass.canonicalName)
-        out.write("\n */\n\n")
+    private fun Writer.writeHead(endpointClass: KClass<*>, pkgname: String) {
+        write("/*\n")
+        write(" * Generated by MessagingSoapClientGenerator.\n")
+        write(" * Source class: ")
+        write(endpointClass.java.canonicalName)
+        write("\n */\n\n")
+        write("@file:Suppress(\"all\")\n")
 
-        out.write("package ")
-        out.write(pkgname)
-        out.write(";\n\n")
+        write("package ")
+        write(pkgname)
+        write("\n\n")
     }
 
-    @Throws(IOException::class)
-    private fun writeClassBody(out: Writer,
-                               endpointClass: Class<*>,
-                               outClass: String,
-                               imports: MutableMap<String, String>) {
-        out.write("@SuppressWarnings(\"all\")\n")
-        out.write("public class ")
-        out.write(outClass)
-        out.write(" {\n\n")
+    private fun Writer.writeClassBody(endpointClass: KClass<*>,
+                                      outClass: String,
+                                      imports: MutableMap<String, String>) {
+        write("object ")
+        write(outClass)
+        write(" {\n\n")
+
+        this.writeMethods(endpointClass, imports)
 
         // Write service location constants / variables.
         var finalService = false
         try {
             val instance: EndpointDescriptor
-            if (endpointClass.isAnnotationPresent(Descriptor::class.java)) {
-                instance = endpointClass.getAnnotation(Descriptor::class.java).value.java.newInstance()
+            if (endpointClass.java.isAnnotationPresent(Descriptor::class.java)) {
+                instance = endpointClass.findAnnotation<Descriptor>()!!.value.createInstance()
             } else {
-                instance = endpointClass.newInstance() as EndpointDescriptor
+                instance = endpointClass.createInstance() as EndpointDescriptor
             }
-
-            out.write("  private static final QName SERVICE = " + qnamestring(instance.serviceName!!) + ";\n")
-            out.write(appendString(StringBuilder("  private static final String ENDPOINT = "),
-                                   instance.endpointName).append(";\n").toString())
+            write("  @JvmStatic")
+            write("  private val SERVICE: QName = ${qnamestring(instance.serviceName!!)}\n")
+            write(appendString(
+                StringBuilder("  private const val ENDPOINT = "),
+                instance.endpointName).append("\n").toString())
+            write("  @JvmStatic")
             if (instance.endpointLocation != null) {
-                out.write(appendString(StringBuilder("  private static final URI LOCATION = URI.create("),
-                                       instance.endpointLocation!!.toString()).append(");\n\n").toString())
+                write(appendString(
+                    StringBuilder("  private val LOCATION = URI.create("),
+                    instance.endpointLocation!!.toString()).append(")\n\n").toString())
             } else {
-                out.write("  private static final URI LOCATION = null;\n\n")
+                write("  private val LOCATION: URI? = null\n\n")
             }
             finalService = true
         } catch (e: ClassCastException) { /*
@@ -369,66 +370,56 @@ object MessagingSoapClientGenerator {
         }
 
         if (!finalService) {
-            out.write("  private static QName SERVICE = null;\n")
-            out.write("  private static String ENDPOINT = null;\n")
-            out.write("  private static URI LOCATION = null;\n\n")
+            write("  @JvmStatic")
+            write("  private lateinit var SERVICE: QName\n")
+            write("  @JvmStatic")
+            write("  private lateinit var ENDPOINT: String\n")
+            write("  @JvmStatic")
+            write("  private lateinit var LOCATION: URI\n\n")
+
+            write("  private fun init(service: QName, endpoint: String, location: URI) {\n")
+            write("    SERVICE=service\n")
+            write("    ENDPOINT=endpoint\n")
+            write("    LOCATION=location\n")
+            write("  }\n\n")
         }
 
-        // Constructor
-        out.write("  private ")
-        out.write(outClass)
-        out.write("() { }\n\n")
-
-        writeMethods(out, endpointClass, imports)
-
-
-        // Initializer in case we can't figure out the locations
-        if (!finalService) {
-            out.write("  private static void init(QName service, String endpoint, URI location) {\n")
-            out.write("    SERVICE=service;\n")
-            out.write("    ENDPOINT=endpoint;\n")
-            out.write("    LOCATION=location;\n")
-            out.write("  }\n\n")
-        }
-
-        out.write("}\n")
+        write("}\n")
     }
 
-    @Throws(IOException::class)
-    private fun writeMethods(out: Writer, endpointClass: Class<*>, imports: MutableMap<String, String>) {
-        val methods = endpointClass.methods
-        Arrays.sort(methods, METHODSORT)
+    private fun Writer.writeMethods(endpointClass: KClass<*>,
+                                    imports: MutableMap<String, String>) {
+        val methods = endpointClass.memberFunctions.sortedWith(METHODSORT)
         for (method in methods) {
-            val annotation = method.getAnnotation(WebMethod::class.java)
+            val annotation = method.findAnnotation<WebMethod>()
             if (annotation != null) {
-                writeMethod(out, method, annotation, imports)
+                writeMethod(this, method, annotation, imports)
             }
         }
     }
 
     @Throws(IOException::class)
-    private fun writeMethod(out: Writer, method: Method, webMethod: WebMethod, imports: MutableMap<String, String>) {
+    private fun writeMethod(out: Writer, method: KFunction<*>, webMethod: WebMethod, imports: MutableMap<String, String>) {
         var principalName: String? = null
 
         val methodName: String = webMethod.operationName.let { if (it.isEmpty()) method.name else it }
 
-        out.write("  public static")
+        out.write("  @JvmStatic\n")
+        out.write("  @Throws(JAXBException::class, XmlException::class)")
+        out.write("  fun ")
         writeTypeParams(out, method.typeParameters, imports)
-        out.write(" Future<")
-        writeType(out, method.genericReturnType, false, false, imports)
-        out.write("> ")
         out.write(methodName)
         out.write("(")
         var firstParam = true
         val params = ArrayList<ParamInfo>()
         run {
             var paramNo = 0
-            val parameterTypes = method.genericParameterTypes
-            for (i in parameterTypes.indices) {
-                val paramType = parameterTypes[i]
-                var name: String? = null
+            val parameters = method.parameters
+            for (i in 1 until parameters.size) {
+                val parameter = parameters[i]
+                val paramType = parameter.type
                 var isPrincipal = false
-                name = method.parameterAnnotations[paramNo]
+                val name = parameter.annotations
                     .asSequence()
                     .mapNotNull { an ->
                         when {
@@ -442,7 +433,7 @@ object MessagingSoapClientGenerator {
                             }
                             else -> null
                         }
-                    }.firstOrNull { it.isNotEmpty() } ?: "param$paramNo"
+                    }.firstOrNull { it.isNotEmpty() } ?: parameter.name ?: "param$paramNo"
 
                 if (isPrincipal) {
                     principalName = name
@@ -454,76 +445,70 @@ object MessagingSoapClientGenerator {
                 } else {
                     out.write(", ")
                 }
-                writeType(out, paramType, true, method.isVarArgs && i == parameterTypes.size - 1, imports)
-                out.write(' ')
                 out.write(name)
+                out.write(": ")
+                val isVarArgs = parameter.isVararg
+                if (isVarArgs) out.write("vararg ")
+                writeType(out, paramType, true, isVarArgs, imports)
 
                 ++paramNo
             }
         }
-        val seeAlso = Annotations.getAnnotation(method.annotations, SoapSeeAlso::class.java)
+        out.write(", completionListener: CompletionListener<")
+        writeType(out, method.returnType, false, false, imports)
+
+        val seeAlso = method.findAnnotation<SoapSeeAlso>()
         if (seeAlso == null) {
             out.write(
-                ", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {\n")
+                ">?, vararg jaxbcontext: Class<*>)")
         } else {
-            out.write(", CompletionListener completionListener) throws JAXBException, XmlException {\n")
+            out.write(">?)")
         }
+        out.write(": Future<")
+        writeType(out, method.returnType, false, false, imports)
+        out.write("> {\n")
+
         run {
             var paramNo = 0
             for (param in params) {
-                out.write("    final Tripple<String, Class<")
-                val rawtype = getRawType(param.mType)
-                writeType(out, rawtype, false, false, imports)
-                out.write(">, ")
-                writeType(out, param.mType, false, false, imports)
-                out.write("> param")
-                out.write(Integer.toString(paramNo))
-                out.write(" = Tripple.<String, Class<")
-                writeType(out, rawtype, false, false, imports)
-                out.write(">, ")
-                writeType(out, param.mType, false, false, imports)
-                out.write(">tripple(")
-                out.write(appendString(StringBuilder(), param.mName).append(", ").toString())
-                if (rawtype!!.isArray) {
-                    out.write("Array.class, ")
-                } else {
+                val rawtype = getRawType(param.type)
+                out.write("    val param${paramNo} = Tripple.tripple(")
+                out.write(appendString(StringBuilder(), param.name).append(", ").toString())
+//                if (rawtype.isArray) {
+//                    out.write("Array::class.java, ")
+//                } else {
                     writeType(out, rawtype, true, false, imports)
-                    out.write(".class, ")
-                }
-                out.write(param.mName)
-                out.write(");\n")
+                    out.write("::class.java, ")
+//                }
+                out.write(param.name)
+                out.write(")\n")
 
                 ++paramNo
             }
         }
         out.write("\n")
-        out.write("    Source message = SoapHelper.createMessage(new QName(")
-        if (webMethod.operationName != null) {
+        out.write("    val message = SoapHelper.createMessage(QName(")
+        if (webMethod.operationName.isNotEmpty()) {
             out.write(appendString(StringBuilder(), webMethod.operationName).append("), ").toString())
         } else {
             out.write(appendString(StringBuilder(), method.name).append("), ").toString())
         }
         if (principalName != null) {
             out.write(
-                "Arrays.asList(new JAXBElement<String>(new QName(\"http://adaptivity.nl/ProcessEngine/\",\"principal\"), String.class, "
-                + principalName + ".getName())), ")
+                "listOf(JAXBElement<String>(QName(\"http://adaptivity.nl/ProcessEngine/\",\"principal\"), String::class.java, "
+                + principalName + "?.name)), ")
         }
-        out.write("Arrays.<Tripple<String, ? extends Class<?>, ?>>asList(")
-        for (i in params.indices) {
-            if (i > 0) {
-                out.write(", ")
-            }
-            out.write("param$i")
-        }
-        out.write("));\n\n")
+        out.write("listOf(")
+        params.indices.joinTo(out) { "param$it" }
+        out.write("))\n\n")
 
-        out.write("    EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);\n\n")
+        out.write("    val endpoint = EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION)\n\n")
 
         out.write(
-            "    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ")
-        writeType(out, getRawType(method.genericReturnType), true, false, imports)
+            "    return MessagingRegistry.sendMessage(SendableSoapSource(endpoint, message), completionListener, ")
+        writeType(out, getRawType(method.returnType), true, false, imports)
 
-        out.write(".class, ")
+        out.write("::class.java, ")
 
         if (seeAlso == null) {
             out.write("jaxbcontext")
@@ -531,7 +516,10 @@ object MessagingSoapClientGenerator {
             writeClassArray(out, seeAlso.value, imports)
         }
 
-        out.write(");\n")
+//        out.write(") as Future<")
+//        writeType(out, method.returnType, false, false, imports)
+//        out.write(">\n")
+        out.write(")\n")
 
         out.write("  }\n\n")
 
@@ -540,83 +528,158 @@ object MessagingSoapClientGenerator {
     @Throws(IOException::class)
     private fun writeClassArray(out: Writer, value: Array<KClass<*>>, imports: MutableMap<String, String>) {
         if (value.isEmpty()) {
-            out.write("new Class<?>[0]")
+            out.write("emptyArray<Class<?>>()")
             return
         }
-        out.write("new Class<?>[] {")
-        writeType(out, value[0].java, false, false, imports)
+        out.write("arrayOf(")
+        writeType(out, value[0], false, false, imports)
         for (i in 1 until value.size) {
             out.write(", ")
-            writeType(out, value[i].java, false, false, imports)
+            writeType(out, value[i], false, false, imports)
         }
-        out.write('}')
+        out.write(')')
     }
 
-    private fun getRawType(type: Type): Class<*>? {
-        if (type is Class<*>) {
-            return type
-        } else if (type is ParameterizedType) {
-            return getRawType(type.rawType)
-        } else if (type is GenericArrayType) {
-            val componentType = getRawType(type.genericComponentType)
-            return java.lang.reflect.Array.newInstance(componentType, 0).javaClass
-        } else if (type is TypeVariable<*>) {
-            for (bound in type.bounds) {
-                return getRawType(bound)
-            }
-            return Any::class.java
-        } else if (type is WildcardType) {
-            for (bound in type.upperBounds) {
-                return getRawType(bound)
-            }
-            return Any::class.java
-
-        }
-        return null
+    private fun getRawType(type: KType): KClass<*> {
+        return type.jvmErasure
+/*
+        return when (type) {
+                   is Class<*>
+                        -> type
+                   is ParameterizedType
+                        -> getRawType(type.rawType)
+                   is GenericArrayType
+                        -> java.lang.reflect.Array.newInstance(
+                       getRawType(type.genericComponentType), 0).javaClass
+                   is TypeVariable<*>
+                        -> type.bounds.asSequence().map {
+                       getRawType(it)
+                   }.firstOrNull()
+                   is WildcardType
+                        -> type.upperBounds.asSequence().map {
+                       getRawType(it)
+                   }.firstOrNull()
+                   else -> null
+               } ?: Any::class.java
+*/
     }
 
-    @Throws(IOException::class)
     private fun writeType(out: Writer,
-                          type: Type?,
+                          projection: KTypeProjection,
                           allowPrimitive: Boolean,
-                          varArgs: Boolean,
+                          varargs: Boolean,
                           imports: MutableMap<String, String>) {
-        if (type is ParameterizedType) {
-            val parameterizedType = type as ParameterizedType?
-            writeType(out, parameterizedType!!.rawType, allowPrimitive, varArgs, imports)
-            writeTypes(out, parameterizedType.actualTypeArguments, imports)
-        } else if (type is GenericArrayType) {
-            val genericArrayType = type as GenericArrayType?
-            writeType(out, genericArrayType!!.genericComponentType, true, false, imports)
-            if (varArgs) {
-                out.write("...")
-            } else {
-                out.write("[]")
-            }
-        } else if (type is TypeVariable<*>) {
-            val typeVariable = type as TypeVariable<*>?
-            out.write(typeVariable!!.name)
-        } else if (type is WildcardType) {
-            val wildcardType = type as WildcardType?
-            out.write('?')
-            run {
-                val lower = wildcardType!!.lowerBounds
-                if (lower.size > 0) {
-                    out.write(" super ")
-                    var first = true
+        if (projection.type == null) {
+            out.write('*'); return
+        }
+        @Suppress("NON_EXHAUSTIVE_WHEN")
+        when (projection.variance) {
+            KVariance.IN  -> out.write("in ")
+            KVariance.OUT -> out.write("out ")
+        }
+        writeType(out, projection.type!!, allowPrimitive, varargs, imports)
+    }
 
-                    for (bound in lower) {
-                        if (first) {
-                            first = false
-                        } else {
-                            out.write(" & ")
+    private fun writeType(out: Writer,
+                          classifier: KClassifier?,
+                          allowPrimitive: Boolean,
+                          varargs: Boolean,
+                          imports: MutableMap<String, String>) {
+        when (classifier) {
+            null              -> out.write("*")
+
+            is KTypeParameter -> {
+                if (classifier.upperBounds.size>1) throw IllegalArgumentException("Multiple upper bounds are not supported yet")
+                when (classifier.variance) {
+                    KVariance.IN -> out.write("in ")
+                    KVariance.OUT -> out.write("out ")
+                }
+                out.write(classifier.name)
+                classifier.upperBounds.singleOrNull()?.run { out.write(": "); writeType(out, this, false, false, imports)}
+            }
+
+            is KClass<*>      -> {
+                val canonname = classifier.qualifiedName ?: throw IllegalArgumentException("Type is not expressable")
+                val pkg = getPackage(canonname)
+                val cls = getName(canonname)
+                when (pkg) {
+                    "java.lang",
+                    "kotlin" -> out.write(cls)
+                    else -> {
+                        val import = imports[cls]
+                        if (import == null) {
+                            imports[cls] = canonname
+                            out.write(cls)
+                        } else if (import == canonname) {
+                            out.write(cls)
+                        } else { // duplicate, use full name
+                            out.write(canonname)
                         }
-                        writeType(out, bound, false, varArgs, imports)
                     }
                 }
             }
-            run {
-                val upper = wildcardType!!.upperBounds
+
+        }
+    }
+
+    private fun writeType(out: Writer,
+                          ktype: KType,
+                          allowPrimitive: Boolean,
+                          varArgs: Boolean,
+                          imports: MutableMap<String, String>) {
+
+        writeType(out, ktype.classifier, allowPrimitive, false, imports)
+        if (ktype.arguments.isNotEmpty()) {
+            writeTypeProjections(out, ktype.arguments, imports)
+        }
+        if (ktype.isMarkedNullable) {
+            out.write('?')
+        }
+/*
+
+
+        val jtype = ktype.javaType
+        if (jtype is ParameterizedType) {
+            writeType(out, jtype.rawType, allowPrimitive, varArgs, imports)
+            writeTypeParams(out, jtype.actualTypeArguments, imports)
+        } else if (type is GenericArrayType) {
+            if (varArgs) {
+                writeType(out, type.genericComponentType, true, false, imports)
+//                out.write("...")
+            } else {
+                out.write("Array<")
+                writeType(out, type.genericComponentType, true, false, imports)
+                out.write(">")
+            }
+        } else if (type is TypeVariable<*>) {
+            out.write(type.name)
+        } else if (type is WildcardType) {
+            val lower = type.lowerBounds
+            val upper = type.upperBounds
+            if (lower.isNotEmpty()) {
+                out.write("in ")
+                writeType(out, lower[0], false, varArgs, imports)
+*/
+/*
+                TODO support multiple bounds
+
+                for (bound in lower) {
+                    if (first) {
+                        first = false
+                    } else {
+                        out.write(" & ")
+                    }
+                    writeType(out, bound, false, varArgs, imports)
+                }
+*//*
+
+
+            } else if (upper.isNotEmpty()) {
+                out.write("out ")
+                writeType(out, upper[0], isNullable, false, varArgs, imports)
+*/
+/*
+                TODO support multiple bounds
                 if (!(upper.size == 0 || upper.size == 1 && Any::class.java == upper[0])) {
                     out.write(" extends ")
                     var first = true
@@ -631,14 +694,19 @@ object MessagingSoapClientGenerator {
                     }
 
                 }
+*//*
+
+            } else {
+                out.write("*")
             }
         } else if (type is Class<*>) {
-            val clazz = type as Class<*>?
-            if (allowPrimitive || !clazz!!.isPrimitive) {
-                val canonname = clazz!!.canonicalName
+            if (type == Any::class.java) {
+                out.write("Any")
+            } else if (allowPrimitive || !type.isPrimitive) {
+                val canonname = type.canonicalName
                 val pkg = getPackage(canonname)
                 val cls = getName(canonname)
-                if ("java.lang" == pkg || clazz.isPrimitive) {
+                if ("java.lang" == pkg || type.isPrimitive) {
                     out.write(cls)
                 } else {
                     val imp = imports[cls]
@@ -652,12 +720,13 @@ object MessagingSoapClientGenerator {
                     }
                 }
             } else {
-                out.write(toBox(clazz.simpleName))
+                out.write(toBox(type.simpleName))
             }
         } else {
             throw IllegalArgumentException(
-                "Type parameter of type " + type!!.javaClass.canonicalName + " not supported")
+                "Type parameter of type ${type.javaClass.canonicalName} not supported")
         }
+*/
     }
 
     private fun getPackage(name: String): String {
@@ -689,8 +758,8 @@ object MessagingSoapClientGenerator {
     }
 
     @Throws(IOException::class)
-    private fun writeTypes(out: Writer, types: Array<Type>, imports: MutableMap<String, String>) {
-        if (types.size > 0) {
+    private fun writeTypeProjections(out: Writer, types: List<KTypeProjection>, imports: MutableMap<String, String>) {
+        if (types.isNotEmpty()) {
             out.write('<')
             writeType(out, types[0], false, false, imports)
             for (i in 1 until types.size) {
@@ -701,6 +770,21 @@ object MessagingSoapClientGenerator {
         }
 
     }
+
+    @Throws(IOException::class)
+    private fun writeTypeParams(out: Writer, types: List<KTypeParameter>, imports: MutableMap<String, String>) {
+        if (types.isNotEmpty()) {
+            out.write('<')
+            writeType(out, types[0], false, false, imports)
+            for (i in 1 until types.size) {
+                out.write(',')
+                writeType(out, types[i], false, false, imports)
+            }
+            out.write('>')
+        }
+
+    }
+/*
 
     @Throws(IOException::class)
     private fun writeTypeParams(out: Writer, params: Array<TypeVariable<Method>>, imports: MutableMap<String, String>) {
@@ -731,11 +815,12 @@ object MessagingSoapClientGenerator {
         }
 
     }
+*/
 
     private fun qnamestring(qName: QName): String {
         val result = StringBuilder()
 
-        result.append("new QName(")
+        result.append("QName(")
         appendString(result, qName.namespaceURI).append(", ")
         appendString(result, qName.localPart)
         if (qName.prefix != null) {
@@ -767,6 +852,7 @@ object MessagingSoapClientGenerator {
     }
 
 }
+
 /** No object instances expected. */
 
-inline fun Writer.write(ch:Char) = write(ch.toInt())
+inline fun Writer.write(ch: Char) = write(ch.toInt())

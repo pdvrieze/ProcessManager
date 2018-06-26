@@ -49,6 +49,9 @@ jar {
 dependencies {
     implementation project(':PE-common:jvm')
     implementation project(path: ':PE-common:jvm', configuration:'compileOnly')
+    implementation project(":java-common:java")
     implementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    runtime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
 }
