@@ -21,10 +21,10 @@ version = '0.5.0'
 description = 'Code generator library to support the xmlutil'
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile project(':xmlutil:core:jvm')
-    compile project(':java-common:jvm')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    runtime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    implementation project(':xmlutil:core:jvm')
+    implementation project(':java-common:jvm')
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 }
