@@ -40,9 +40,10 @@ task testJar(type: Jar) {
 }
 
 dependencies {
-    compileOnly project(':JavaCommonApi:jvm')
-    compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    providedCompile project(':JavaCommonApi:java')
+    providedCompile project(':JavaCommonApi:jvm')
+    providedCompile project(path: ':ProcessEngine:core', configuration: "compileOnly")
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation project(":multiplatform:jvm")
