@@ -23,18 +23,12 @@ plugins {
     id("kotlin-kapt")
 }
 
-val `kotlin_version`: String by project
+val kotlin_version: String by project
 val kotlinVersion get() = `kotlin_version`
 
 base {
     archivesBaseName = "multiplatform"
 }
-/*
-
-android {
-    compileSdkVersion(27)
-}
-*/
 
 dependencies {
 //    expectedBy(project(":multiplatform:common"))
