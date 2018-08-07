@@ -23,7 +23,7 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 //@Serializable
 interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {

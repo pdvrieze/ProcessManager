@@ -24,9 +24,9 @@ import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.deserializeHelper
 
 @Serializable
 class XmlEndNode : EndNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {

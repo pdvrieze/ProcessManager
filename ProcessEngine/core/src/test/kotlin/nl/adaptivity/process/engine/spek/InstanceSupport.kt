@@ -27,7 +27,7 @@ import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.Gettable
 import nl.adaptivity.util.Getter
-import nl.adaptivity.xml.XmlStreaming
+import nl.adaptivity.xmlutil.XmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 

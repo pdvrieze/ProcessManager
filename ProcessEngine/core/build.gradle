@@ -56,10 +56,8 @@ dependencies {
 
     testImplementation project(':DarwinJavaApi')
     testImplementation project(':TestSupport')
-    testImplementation project(':xmlutil:serialization:java')
+    testImplementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
 
-//    testRuntime project(':xmlutil:core:jvm')
-//    testRuntime "org.junit.platform:junit-platform-engine:${junit5_version}"
     testRuntime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 

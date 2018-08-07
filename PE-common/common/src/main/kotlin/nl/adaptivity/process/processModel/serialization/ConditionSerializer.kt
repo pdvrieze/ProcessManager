@@ -26,7 +26,7 @@ import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.PredecessorInfo
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.serialization.writeBegin
+import nl.adaptivity.xmlutil.serialization.writeBegin
 
 
 internal class ConditionSerializer(ks: KSerializer<*>, vs: KSerializer<*>): KSerializer<MutableMap<Identifier, Condition?>> {

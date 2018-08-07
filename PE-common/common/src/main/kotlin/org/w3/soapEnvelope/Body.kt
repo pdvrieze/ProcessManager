@@ -25,7 +25,7 @@
 package org.w3.soapEnvelope
 
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 
 
 /**

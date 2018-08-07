@@ -20,8 +20,8 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.DomUtil;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.util.CompactFragment;
+import nl.adaptivity.xmlutil.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS;
-import static nl.adaptivity.xml.SimpleNamespaceContext.Companion;
+import static nl.adaptivity.xmlutil.SimpleNamespaceContext.Companion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

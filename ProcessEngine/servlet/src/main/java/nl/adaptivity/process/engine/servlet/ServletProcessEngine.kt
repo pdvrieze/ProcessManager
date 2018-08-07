@@ -42,7 +42,8 @@ import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.DomUtil
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.SerializableList
+import nl.adaptivity.xmlutil.*
 import org.jetbrains.annotations.TestOnly
 import org.w3.soapEnvelope.Envelope
 import org.w3c.dom.Element

@@ -17,9 +17,9 @@
 package nl.adaptivity.ws.soap;
 
 import nl.adaptivity.process.engine.TestProcessDataKt;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.EventType;
+import nl.adaptivity.xmlutil.util.CompactFragment;
+import nl.adaptivity.xmlutil.*;
+import nl.adaptivity.xmlutil.EventType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.w3.soapEnvelope.Envelope;

@@ -16,9 +16,10 @@
 
 package nl.adaptivity.util
 
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.multiplatform.IOException
 import org.w3c.dom.*
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException

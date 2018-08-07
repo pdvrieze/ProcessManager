@@ -30,7 +30,7 @@ import nl.adaptivity.process.tasks.ExecutableUserTask.TaskState;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xmlutil.XmlException;
 
 import java.io.InputStream;
 import java.util.ArrayList;

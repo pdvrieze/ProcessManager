@@ -24,7 +24,7 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.xml.XmlStreaming
+import nl.adaptivity.xmlutil.XmlStreaming
 import uk.ac.bournemouth.kotlinsql.*
 import java.io.StringReader
 

@@ -168,7 +168,7 @@ dependencies {
     apiImplementation project(':PE-common:jvm')
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    implementation project(':xmlutil:core:jvm')
+    implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
     implementation project(':PE-common:jvm')
 
     implementation project(':DarwinClients')

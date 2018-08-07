@@ -24,8 +24,8 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.xml.QName
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlSerializable
 
 
 /**

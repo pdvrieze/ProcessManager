@@ -34,10 +34,10 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.SimpleContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
-import nl.adaptivity.xml.EventType;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xmlutil.EventType;
+import nl.adaptivity.xmlutil.XmlException;
+import nl.adaptivity.xmlutil.XmlReader;
+import nl.adaptivity.xmlutil.XmlStreaming;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;

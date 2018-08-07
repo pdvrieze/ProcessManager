@@ -20,10 +20,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.ICompactFragment;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.util.CompactFragment;
+import nl.adaptivity.xmlutil.util.ICompactFragment;
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable;
+import nl.adaptivity.xmlutil.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

@@ -18,8 +18,8 @@ package nl.adaptivity.process.userMessageHandler.server
 
 import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
 import javax.xml.namespace.QName
 
 

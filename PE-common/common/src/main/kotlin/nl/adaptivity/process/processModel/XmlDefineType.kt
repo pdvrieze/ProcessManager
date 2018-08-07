@@ -27,11 +27,11 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlSerialName
-import nl.adaptivity.xml.serialization.readNullableString
-import nl.adaptivity.xml.serialization.simpleSerialClassDesc
-import nl.adaptivity.xml.serialization.writeNullableStringElementValue
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.xmlutil.serialization.simpleSerialClassDesc
+import nl.adaptivity.xmlutil.serialization.writeNullableStringElementValue
 
 @Serializable
 @XmlSerialName(XmlDefineType.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)

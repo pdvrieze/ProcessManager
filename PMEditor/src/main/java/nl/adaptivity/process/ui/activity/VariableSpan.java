@@ -34,9 +34,9 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
-import nl.adaptivity.xml.EventType;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlReaderUtil;
+import nl.adaptivity.xmlutil.EventType;
+import nl.adaptivity.xmlutil.XmlReader;
+import nl.adaptivity.xmlutil.XmlReaderUtil;
 import android.support.annotation.NonNull;
 
 

@@ -24,9 +24,7 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.xml.QName
-import nl.adaptivity.xml.schema.annotations.Child
-import nl.adaptivity.xml.schema.annotations.Element
+import nl.adaptivity.xmlutil.QName
 
 
 /**
@@ -51,8 +49,6 @@ import nl.adaptivity.xml.schema.annotations.Element
  * </complexType>
  * ```
  */
-@Element(name = "Subcode", nsUri = Envelope.NAMESPACE, nsPrefix = Envelope.PREFIX,
-         children = arrayOf(Child(name = "Value", type = QName::class), Child(name = "Subcode", type = Subcode::class)))
 class Subcode {
 
     var value: QName? = null

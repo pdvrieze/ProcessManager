@@ -24,7 +24,7 @@ import kotlinx.serialization.internal.ArrayListClassDesc
 import kotlinx.serialization.internal.SIZE_INDEX
 import nl.adaptivity.process.processModel.PredecessorInfo
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.serialization.writeBegin
+import nl.adaptivity.xmlutil.serialization.writeBegin
 
 internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifier>, val valueSerializer: KSerializer<String>): KSerializer<MutableMap<Identifier, String?>> {
 

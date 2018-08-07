@@ -27,9 +27,9 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeChild
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.writeChild
 
 
 /**

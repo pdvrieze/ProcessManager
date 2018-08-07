@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 
 
 expect abstract class XPathHolder : XMLContainer {

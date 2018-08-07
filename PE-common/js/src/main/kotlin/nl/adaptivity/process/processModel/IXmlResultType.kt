@@ -21,9 +21,9 @@ import kotlinx.serialization.KOutput
 import kotlinx.serialization.KSerialClassDesc
 import kotlinx.serialization.KSerializer
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.xml.Namespace
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlSerializable
 import org.w3c.dom.Node
 
 actual interface IXmlResultType : XmlSerializable {

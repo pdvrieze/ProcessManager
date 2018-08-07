@@ -30,7 +30,7 @@ import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.processModel.engine.XmlProcessModel.Builder
 import nl.adaptivity.ws.soap.SoapHelper
-import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xmlutil.XmlException
 
 import org.w3c.dom.Node
 

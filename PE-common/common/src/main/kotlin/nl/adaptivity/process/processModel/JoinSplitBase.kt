@@ -19,11 +19,11 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeAttribute
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.writeAttribute
 
 
 /**

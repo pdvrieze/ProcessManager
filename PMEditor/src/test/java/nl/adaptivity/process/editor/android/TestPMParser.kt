@@ -24,7 +24,7 @@ import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.tasks.PostTask
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.XMLUnit
 import org.junit.Assert.*

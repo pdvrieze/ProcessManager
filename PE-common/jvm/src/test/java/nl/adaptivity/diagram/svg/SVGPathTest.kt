@@ -18,7 +18,7 @@ package nl.adaptivity.diagram.svg
 
 import nl.adaptivity.diagram.Rectangle
 import nl.adaptivity.process.engine.assertXMLEqual
-import nl.adaptivity.xml.XmlStreaming
+import nl.adaptivity.xmlutil.XmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.CharArrayWriter

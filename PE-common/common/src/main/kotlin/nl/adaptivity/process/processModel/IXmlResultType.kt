@@ -17,9 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import nl.adaptivity.xml.Namespace
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlSerializable
 
 
 expect interface IXmlResultType : XmlSerializable {

@@ -26,7 +26,7 @@ import nl.adaptivity.messaging.SendableSoapSource
 import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.userMessageHandler.server.UserTask
 import nl.adaptivity.ws.soap.SoapHelper
-import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xmlutil.XmlException
 
 object InternalEndpointClient {
 

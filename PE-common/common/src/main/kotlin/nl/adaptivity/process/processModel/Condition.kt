@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel
 
 
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 
 interface Condition {

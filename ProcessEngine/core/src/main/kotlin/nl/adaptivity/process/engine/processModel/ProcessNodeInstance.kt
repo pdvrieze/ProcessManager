@@ -26,8 +26,9 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.WritableCompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Node
 import java.io.CharArrayWriter
 import java.security.Principal

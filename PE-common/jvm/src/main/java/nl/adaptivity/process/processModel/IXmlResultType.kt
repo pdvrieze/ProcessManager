@@ -23,15 +23,15 @@ import kotlinx.serialization.KSerializer
 import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.util.DomUtil
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.Namespace
-import nl.adaptivity.xml.SimpleNamespaceContext
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlSerializable
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import javax.xml.xpath.XPathConstants
-import nl.adaptivity.xml.siblingsToFragment
+import nl.adaptivity.xmlutil.siblingsToFragment
 
 import javax.xml.xpath.XPathExpression
 

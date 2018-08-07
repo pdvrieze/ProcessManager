@@ -36,6 +36,7 @@ val imageGenCompile = configurations["imageGenCompile"].apply { extendsFrom(conf
 val imageGenRuntime = configurations["imageGenRuntime"].apply { extendsFrom(configurations["runtimeElements"]) }
 
 val jupiterVersion: String by project
+val xmlutilVersion: String by project
 
 dependencies {
     expectedBy(project(":PE-diagram:common"))
@@ -43,7 +44,7 @@ dependencies {
     implementation(project(":PE-common:jvm"))
     compileOnly(project(path= ":PE-common:jvm", configuration="compileOnly"))
     imageGenCompile(project(":PE-diagram:jvm"))
-    imageGenRuntime(project (":xmlutil:core:jvm"))
+    imageGenRuntime("net.devrieze:xmlutil-jvm:$xmlutilVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")

@@ -14,10 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml;
+package nl.adaptivity.xmlutil.util;
 
-import nl.adaptivity.xml.XmlSerializable;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xmlutil.XmlSerializable;
+import nl.adaptivity.xmlutil.XmlStreaming;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;

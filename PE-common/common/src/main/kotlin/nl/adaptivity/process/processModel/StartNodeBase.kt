@@ -21,11 +21,11 @@ import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.QName
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.smartStartTag
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.smartStartTag
 
 
 /**

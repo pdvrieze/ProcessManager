@@ -20,7 +20,7 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 import javax.xml.namespace.QName
 
 @XmlDeserializer(HProcessInstance.Factory::class)

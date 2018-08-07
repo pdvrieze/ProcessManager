@@ -21,10 +21,10 @@ import kotlinx.serialization.KOutput
 import kotlinx.serialization.KSerialClassDesc
 import kotlinx.serialization.list
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XML
-import nl.adaptivity.xml.serialization.readNullableString
-import nl.adaptivity.xml.serialization.writeNullableStringElementValue
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.xmlutil.serialization.writeNullableStringElementValue
 
 open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
     open class PathHolderData<T : XPathHolder>(owner: XPathHolderSerializer<in T>,

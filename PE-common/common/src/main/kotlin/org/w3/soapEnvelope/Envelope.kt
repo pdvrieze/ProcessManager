@@ -27,11 +27,9 @@ package org.w3.soapEnvelope
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.multiplatform.createUri
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.schema.annotations.Attribute
-import nl.adaptivity.xml.schema.annotations.Child
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.*
 
 
 /**
@@ -57,10 +55,6 @@ import nl.adaptivity.xml.schema.annotations.Child
  * </complexType>
  * ```
  */
-@nl.adaptivity.xml.schema.annotations.Element(name = Envelope.ELEMENTLOCALNAME, nsUri = Envelope.NAMESPACE,
-                                              nsPrefix = Envelope.PREFIX, attributes = arrayOf(Attribute("otherAttributes")),
-                                              children = arrayOf(Child(type = Header::class),
-                                                                 Child(type = Body::class)))
 @XmlDeserializer(Envelope.Factory::class)
 class Envelope<T : XmlSerializable>() : XmlSerializable {
 

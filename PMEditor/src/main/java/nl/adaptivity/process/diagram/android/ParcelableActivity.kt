@@ -30,8 +30,8 @@ import nl.adaptivity.process.tasks.PostTask
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.XmlStreaming
-import nl.adaptivity.xml.toString
+import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.toString
 import org.w3.soapEnvelope.Envelope
 import java.io.StringReader
 

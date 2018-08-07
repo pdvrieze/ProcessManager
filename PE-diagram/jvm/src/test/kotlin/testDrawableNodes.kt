@@ -1,6 +1,6 @@
 import nl.adaptivity.diagram.svg.JVMTextMeasurer
 import nl.adaptivity.diagram.svg.SVGCanvas
-import nl.adaptivity.xml.XmlStreaming
+import nl.adaptivity.xmlutil.XmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

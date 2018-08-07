@@ -26,8 +26,8 @@ import android.provider.BaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xmlutil.XmlException;
+import nl.adaptivity.xmlutil.XmlReader;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;

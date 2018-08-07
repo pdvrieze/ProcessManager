@@ -28,10 +28,10 @@ import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xml.XmlDeserializer
-import nl.adaptivity.xml.XmlDeserializerFactory
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.XmlDeserializer
+import nl.adaptivity.xmlutil.XmlDeserializerFactory
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
  * A class representing a process model.

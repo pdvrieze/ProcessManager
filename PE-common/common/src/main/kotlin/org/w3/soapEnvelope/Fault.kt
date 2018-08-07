@@ -25,10 +25,7 @@
 package org.w3.soapEnvelope
 
 import nl.adaptivity.util.multiplatform.URI
-import nl.adaptivity.xml.schema.annotations.AnyType
-import nl.adaptivity.xml.schema.annotations.Child
-import nl.adaptivity.xml.schema.annotations.Element
-import nl.adaptivity.xml.schema.annotations.XmlName
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -57,27 +54,21 @@ import nl.adaptivity.xml.schema.annotations.XmlName
  * </complexType>
  * ```
  */
-@Element(name = "Fault", nsUri = Envelope.NAMESPACE, nsPrefix = Envelope.PREFIX,
-         children = arrayOf(Child(name = "Code", type = Faultcode::class),
-                            Child(name = "Reason", type = Faultreason::class),
-                            Child(name = "Node", type = AnyType::class),
-                            Child(name = "Role", type = URI::class),
-                            Child(name = "Detail", type = Detail::class)))
 class Fault {
 
-    @XmlName("Code")
+    @XmlSerialName("Code", Envelope.NAMESPACE, Envelope.PREFIX)
     var code: Faultcode? = null
 
-    @XmlName("Reason")
+    @XmlSerialName("Reason", Envelope.NAMESPACE, Envelope.PREFIX)
     var reason: Faultreason? = null
 
-    @XmlName("Node")
+    @XmlSerialName("Node", Envelope.NAMESPACE, Envelope.PREFIX)
     var node: URI? = null
 
-    @XmlName("Role")
+    @XmlSerialName("Role", Envelope.NAMESPACE, Envelope.PREFIX)
     var role: URI ? =null
 
-    @XmlName("Detail")
+    @XmlSerialName("Detail", Envelope.NAMESPACE, Envelope.PREFIX)
     var detail: Detail? = null
 
 }

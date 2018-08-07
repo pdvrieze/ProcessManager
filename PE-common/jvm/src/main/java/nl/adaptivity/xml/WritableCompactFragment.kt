@@ -17,9 +17,12 @@
 package nl.adaptivity.xml
 
 import nl.adaptivity.io.Writable
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.util.xml.XMLFragmentStreamReader
+import nl.adaptivity.xmlutil.IterableNamespaceContext
+import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 
 import java.io.IOException
 import java.io.Writer

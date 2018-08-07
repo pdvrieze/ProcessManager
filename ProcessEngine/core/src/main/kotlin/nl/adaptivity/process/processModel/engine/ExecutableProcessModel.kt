@@ -27,10 +27,10 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xml.XmlDeserializer
-import nl.adaptivity.xml.XmlDeserializerFactory
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xmlutil.XmlDeserializer
+import nl.adaptivity.xmlutil.XmlDeserializerFactory
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
 
 
 typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode, ExecutableModelCommon>

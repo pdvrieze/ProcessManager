@@ -20,7 +20,7 @@ import net.devrieze.util.PrefixMap;
 import nl.adaptivity.rest.annotations.HttpMethod;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xmlutil.XmlException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.TransformerException;

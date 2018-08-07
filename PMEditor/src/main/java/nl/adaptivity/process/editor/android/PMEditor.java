@@ -52,7 +52,7 @@ import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.processModel.ProcessNode.IBuilder;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xmlutil.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;

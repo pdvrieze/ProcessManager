@@ -34,8 +34,8 @@ import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xml.XmlDeserializerFactory
-import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xmlutil.XmlDeserializerFactory
+import nl.adaptivity.xmlutil.XmlReader
 import kotlin.math.max
 
 

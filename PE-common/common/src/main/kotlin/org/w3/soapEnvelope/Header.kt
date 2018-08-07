@@ -26,13 +26,10 @@ package org.w3.soapEnvelope
 
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.schema.annotations.AnyType
-import nl.adaptivity.xml.schema.annotations.Attribute
-import nl.adaptivity.xml.schema.annotations.Child
-import nl.adaptivity.xml.schema.annotations.XmlName
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -59,12 +56,9 @@ import nl.adaptivity.xml.schema.annotations.XmlName
  * </complexType>
  *
  */
-@nl.adaptivity.xml.schema.annotations.Element(name = Header.ELEMENTLOCALNAME, nsUri = Envelope.NAMESPACE,
-                                              nsPrefix = Envelope.PREFIX, attributes = arrayOf(Attribute("otherAttributes")),
-                                              children = arrayOf(Child(name = "any", type = AnyType::class)))
 class Header : SimpleXmlDeserializable, XmlSerializable {
 
-    @XmlName("any")
+    @XmlSerialName("any", Envelope.NAMESPACE, Envelope.PREFIX)
     protected var _any: MutableList<CompactFragment>? = null
 
     val any: MutableList<CompactFragment>

@@ -22,12 +22,15 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm
 import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XML
+import nl.adaptivity.xmlutil.AndroidXmlReader
+import nl.adaptivity.xmlutil.AndroidXmlWriter
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.impl.BetterXmlSerializer
+import nl.adaptivity.xmlutil.serialization.XML
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlSerializer
 import java.io.*
-import java.io.IOException
 import java.util.*
 
 object PMParser {

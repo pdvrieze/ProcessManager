@@ -17,8 +17,8 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.CombiningNamespaceContext
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
+import nl.adaptivity.xmlutil.*
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger

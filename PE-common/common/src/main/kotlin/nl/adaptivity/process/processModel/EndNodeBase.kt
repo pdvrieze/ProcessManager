@@ -23,8 +23,8 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
 
 
 /**

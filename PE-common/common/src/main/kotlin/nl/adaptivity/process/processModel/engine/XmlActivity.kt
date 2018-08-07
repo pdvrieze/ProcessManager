@@ -26,9 +26,9 @@ import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.addField
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlDefault
-import nl.adaptivity.xml.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**

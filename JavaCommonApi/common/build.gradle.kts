@@ -40,5 +40,6 @@ base {
 
 dependencies {
     implementation(kotlin("stdlib-common"))
+    implementation(project(":multiplatform:common-nonshared"))
     implementation(project(":multiplatform:common"))
 }

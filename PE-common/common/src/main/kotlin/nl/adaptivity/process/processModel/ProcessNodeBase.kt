@@ -23,8 +23,8 @@ import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlDefault
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlDefault
 
 
 /**

@@ -44,7 +44,7 @@ import nl.adaptivity.process.util.CharSequenceDecorator;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.*;
 import android.support.annotation.Nullable;
 
 import java.io.CharArrayWriter;

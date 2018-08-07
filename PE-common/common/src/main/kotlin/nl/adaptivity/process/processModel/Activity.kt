@@ -16,16 +16,13 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Optional
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.util.multiplatform.JvmDefault
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 
 interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {

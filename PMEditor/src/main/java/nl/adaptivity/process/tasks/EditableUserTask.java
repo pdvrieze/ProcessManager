@@ -31,8 +31,8 @@ import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.util.CompactFragment;
+import nl.adaptivity.xmlutil.*;
 import android.support.annotation.NonNull;
 import org.w3.soapEnvelope.Envelope;
 

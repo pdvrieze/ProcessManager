@@ -15,7 +15,7 @@
  */
 
 package nl.adaptivity.xml
-
+@Deprecated("Use xmlutil version", ReplaceWith("QName", imports = ["nl.adaptivity.xmlutil.QName"]))
 expect class QName {
     constructor(namespaceURI: String, localPart: String, prefix: String)
     constructor(namespaceURI: String, localPart: String)

@@ -21,7 +21,7 @@ import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.xml.XmlSerializable
+import nl.adaptivity.xmlutil.XmlSerializable
 
 
 interface IProcessModelRef<NodeT : ProcessNode<NodeT, ModelT>,

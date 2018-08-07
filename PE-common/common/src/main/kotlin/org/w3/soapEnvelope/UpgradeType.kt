@@ -24,7 +24,7 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.xml.schema.annotations.XmlName
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -50,7 +50,7 @@ import nl.adaptivity.xml.schema.annotations.XmlName
  */
 class UpgradeType {
 
-    @XmlName("SupportedEnvelope")
+    @XmlSerialName("SupportedEnvelope", Envelope.NAMESPACE, Envelope.PREFIX)
     protected var _supportedEnvelope: MutableList<SupportedEnvType>? = null
 
     val supportedEnvelope: MutableList<SupportedEnvType>

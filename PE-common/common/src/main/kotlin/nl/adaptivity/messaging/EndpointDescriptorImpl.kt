@@ -18,8 +18,12 @@ package nl.adaptivity.messaging
 
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xml.QName
+import nl.adaptivity.xml.localPart
+import nl.adaptivity.xml.namespaceURI
+import nl.adaptivity.xmlutil.QName as XmlQName
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 
 
 /**
@@ -37,7 +41,7 @@ class EndpointDescriptorImpl(serviceName: QName?,
 
     internal var serviceNamespace: String? = null
 
-    override val elementName: QName
+    override val elementName: XmlQName
         get() = ELEMENTNAME
 
     internal var endpointLocationString: String
@@ -133,8 +137,7 @@ class EndpointDescriptorImpl(serviceName: QName?,
 
         val MY_JBI_NS = "http://adaptivity.nl/jbi"
         val ELEMENTLOCALNAME = "endpointDescriptor"
-        val ELEMENTNAME = QName(MY_JBI_NS,
-                                ELEMENTLOCALNAME, "jbi")
+        val ELEMENTNAME = XmlQName(MY_JBI_NS, ELEMENTLOCALNAME, "jbi")
 
 
         private fun deserialize(reader: XmlReader): EndpointDescriptorImpl {

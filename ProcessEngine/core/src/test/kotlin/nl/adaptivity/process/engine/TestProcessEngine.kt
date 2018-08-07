@@ -30,7 +30,7 @@ import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.util.activation.Sources
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

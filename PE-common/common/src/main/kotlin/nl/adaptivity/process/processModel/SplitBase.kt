@@ -23,7 +23,7 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 
 
 /**

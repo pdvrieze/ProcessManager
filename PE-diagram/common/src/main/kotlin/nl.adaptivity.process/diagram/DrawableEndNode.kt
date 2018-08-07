@@ -27,8 +27,8 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.isTypeOf
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.deserializeHelper
 import kotlin.math.abs
 
 interface IDrawableEndNode : IDrawableProcessNode {

@@ -23,7 +23,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.util.xml.CompactFragment
+import nl.adaptivity.xmlutil.util.CompactFragment
 import java.util.*
 
 

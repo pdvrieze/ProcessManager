@@ -21,9 +21,9 @@ import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.*
 import java.util.*
 
 class ProcessNodeInstanceContext(private val processNodeInstance: ProcessNodeInstance<*>, private val defines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {

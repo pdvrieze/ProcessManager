@@ -20,8 +20,8 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.svg.JVMTextMeasurer;
 import nl.adaptivity.diagram.svg.JVMTextMeasurer.JvmMeasureInfo;
 import nl.adaptivity.diagram.svg.SVGCanvas;
-import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xmlutil.XmlStreaming;
+import nl.adaptivity.xmlutil.XmlWriter;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -28,7 +28,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.util.Getter
 import nl.adaptivity.util.getter
-import nl.adaptivity.xml.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.spek.api.dsl.SpecBody
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given

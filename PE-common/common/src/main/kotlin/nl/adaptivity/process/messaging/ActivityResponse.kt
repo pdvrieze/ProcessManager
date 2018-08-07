@@ -31,9 +31,9 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.util.multiplatform.Class
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 @XmlDeserializer(ActivityResponse.Factory::class)

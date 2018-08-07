@@ -33,11 +33,11 @@ import nl.adaptivity.util.addField
 import nl.adaptivity.util.addFields
 import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlDefault
-import nl.adaptivity.xml.serialization.XmlPolyChildren
-import nl.adaptivity.xml.serialization.readNullableString
-import nl.adaptivity.xml.serialization.writeNullableStringElementValue
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
+import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.xmlutil.serialization.writeNullableStringElementValue
 
 @Serializable
 abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :

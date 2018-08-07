@@ -23,9 +23,9 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xmlutil.XmlDeserializable
+import nl.adaptivity.xmlutil.XmlSerializable
 import nl.adaptivity.util.multiplatform.JvmDefault
-import nl.adaptivity.xml.XmlDeserializable
-import nl.adaptivity.xml.XmlSerializable
 
 
 /**

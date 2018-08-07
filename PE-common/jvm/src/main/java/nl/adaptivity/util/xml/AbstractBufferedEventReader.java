@@ -16,7 +16,8 @@
 
 package nl.adaptivity.util.xml;
 
-import nl.adaptivity.xml.XmlUtil;
+import nl.adaptivity.xmlutil.XmlUtil;
+import nl.adaptivity.xmlutil.util.AbstractEventReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

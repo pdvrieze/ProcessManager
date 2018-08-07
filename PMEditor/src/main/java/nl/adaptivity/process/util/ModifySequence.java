@@ -19,7 +19,7 @@ package nl.adaptivity.process.util;
 import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.*;
 
 import javax.xml.namespace.QName;
 

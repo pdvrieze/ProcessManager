@@ -21,8 +21,8 @@ import net.devrieze.util.PrefixMap.Entry;
 import net.devrieze.util.ValueCollection;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.util.xml.ICompactFragment;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.util.ICompactFragment;
+import nl.adaptivity.xmlutil.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Envelope;
 

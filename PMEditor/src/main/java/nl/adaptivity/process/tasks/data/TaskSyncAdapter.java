@@ -33,7 +33,7 @@ import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.*;
 import org.xmlpull.v1.XmlPullParserException;
 
 import javax.xml.XMLConstants;

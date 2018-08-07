@@ -22,8 +22,8 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWI
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.deserializeHelper
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.deserializeHelper
 
 interface IDrawableStartNode : IDrawableProcessNode {
     override val leftExtent get() = REFERENCE_OFFSET_X

@@ -14,10 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml;
+package nl.adaptivity.xmlutil.util;
 
 import nl.adaptivity.util.DomUtil;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

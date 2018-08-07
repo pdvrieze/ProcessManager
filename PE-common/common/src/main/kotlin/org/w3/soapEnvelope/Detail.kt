@@ -24,10 +24,7 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.xml.QName
-import nl.adaptivity.xml.schema.annotations.AnyType
-import nl.adaptivity.xml.schema.annotations.Child
-
+import nl.adaptivity.xmlutil.QName
 
 /**
  *
@@ -51,8 +48,6 @@ import nl.adaptivity.xml.schema.annotations.Child
  * </complexType>
  * ```
  */
-@nl.adaptivity.xml.schema.annotations.Element(name = "detail", nsUri = Envelope.NAMESPACE, nsPrefix = Envelope.PREFIX,
-                                              children = arrayOf(Child(type = AnyType::class)))
 class Detail {
 
     private var _any: MutableList<Any?>? = null

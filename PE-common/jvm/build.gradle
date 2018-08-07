@@ -81,12 +81,13 @@ test {
 
 dependencies {
     expectedBy project(':PE-common:common')
-//    generateXml project(':xmlutil:generator')
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation project(":multiplatform:jvm")
-    implementation project(":xmlutil:serialization:java")
+    implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
+    implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
     api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
-    api project(':xmlutil:core:jvm')
+    api("net.devrieze:xmlutil-jvm:$xmlutilVersion")
     api project(':java-common:jvm')
     compileOnly 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
@@ -101,11 +102,10 @@ dependencies {
     testImplementation project(':JavaCommonApi:jvm')
     testImplementation project(':DarwinJavaApi')
     testImplementation project(':TestSupport')
-//    testRuntime project(':xmlutil:core:jvm')
+
     compileOnly project(':DarwinJavaApi')
     compileOnly project(':JavaCommonApi:jvm')
-//    generateXml project(':DarwinJavaApi')
-//    generateXml "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }
 

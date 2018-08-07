@@ -33,7 +33,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.spek.*
-import nl.adaptivity.xml.XmlStreaming
+import nl.adaptivity.xmlutil.XmlStreaming
 import org.jetbrains.spek.api.dsl.ActionBody
 import org.jetbrains.spek.api.dsl.SpecBody
 import org.jetbrains.spek.api.dsl.TestBody

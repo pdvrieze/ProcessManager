@@ -20,13 +20,10 @@ import net.devrieze.util.Iterators
 import net.devrieze.util.security.SimplePrincipal
 import net.devrieze.util.toString
 import net.devrieze.util.webServer.HttpRequest
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.schema.annotations.Attribute
-import nl.adaptivity.xml.schema.annotations.Element
-import nl.adaptivity.xml.schema.annotations.XmlName
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Document
 import java.io.*
 import java.io.IOException
@@ -42,6 +39,7 @@ import javax.xml.bind.annotation.XmlAttribute
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.Map.Entry
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 // TODO change this to handle regular request bodies.
@@ -62,17 +60,17 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
     private val _queries: MutableMap<String, String>// by lazy { HashMap<String, String>() }
 
+    @XmlSerialName("query", HttpMessage.NAMESPACE, "http")
     val queries: Collection<Query>
-        @XmlName("query")
         get() = QueryCollection(_queries)
 
     private val _post: MutableMap<String, String>// by lazy { HashMap<String, String>() }
 
+    @XmlSerialName("post", HttpMessage.NAMESPACE, "http")
     val posts: Collection<Post>
-        @XmlName("post")
         get() = PostCollection(_post)
 
-    @get:XmlName("body")
+    @XmlSerialName("body", HttpMessage.NAMESPACE, "http")
     var body: ICompactFragment? = null
 
     private val _byteContent: MutableList<ByteContentDataSource> by lazy { ArrayList<ByteContentDataSource>() }
@@ -114,8 +112,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         @Throws(XmlException::class)
         get() = body?.getXmlReader()
 
+    @XmlSerialName("user", HttpMessage.NAMESPACE, "http")
     internal var user: String?
-        @XmlName("user")
         get() = userPrincipal?.name
         set(name) {
             userPrincipal = name?.let { SimplePrincipal(it) }
@@ -208,15 +206,6 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
     }
 
-    /*
-        XmlUtil.writeAttribute(out, "name", mKey);
-      if (mValue!=null) { out.text(mValue); }
-   */
-
-    @Element(name = "query", nsUri = NAMESPACE, nsPrefix = "http",
-                                                  attributes = arrayOf(
-                                                      Attribute(value = "name",
-                                                                                                     optional = false)), content = "value")
     class Query : PairBase {
 
         override val elementName: QName
@@ -237,9 +226,6 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
     }
 
-    @Element(name = "post", nsUri = NAMESPACE, nsPrefix = "http",
-                                                  attributes = [(Attribute(
-                value = "name", optional = false))], content = "value")
     class Post : PairBase {
 
         override val elementName: QName
@@ -262,7 +248,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
     abstract class PairBase : XmlSerializable, SimpleXmlDeserializable {
 
-        @get:XmlName("name")
+        @XmlSerialName("name", HttpMessage.NAMESPACE, "http")
         lateinit var key: String
 
         lateinit var value: String

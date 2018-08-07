@@ -22,10 +22,10 @@ import nl.adaptivity.diagram.Theme
 import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo
 import nl.adaptivity.util.multiplatform.toHex
 import nl.adaptivity.xml.XMLConstants.DEFAULT_NS_PREFIX
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.smartStartTag
-import nl.adaptivity.xml.writeAttribute
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.smartStartTag
+import nl.adaptivity.xmlutil.writeAttribute
 import kotlin.math.abs
 
 open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {

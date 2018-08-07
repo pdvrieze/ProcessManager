@@ -53,9 +53,9 @@ import nl.adaptivity.process.util.CharSequenceDecorator
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.ModifySequence
 import nl.adaptivity.process.util.VariableReference.ResultReference
-import nl.adaptivity.xml.SimpleNamespaceContext
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
 
 import java.util.ArrayList
 

@@ -40,8 +40,8 @@ import nl.adaptivity.process.editor.android.PMProcessesFragment.ProcessesCallbac
 import nl.adaptivity.process.editor.android.R
 import nl.adaptivity.process.ui.ProcessSyncManager
 import nl.adaptivity.process.ui.UIConstants
-import nl.adaptivity.xml.AndroidXmlWriter
-import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xmlutil.AndroidXmlWriter
+import nl.adaptivity.xmlutil.XmlException
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlSerializer
 import java.io.*

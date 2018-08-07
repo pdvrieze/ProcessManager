@@ -19,12 +19,12 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.util.xml.ExtXmlDeserializable
-import nl.adaptivity.util.xml.NamespaceAddingStreamReader
-import nl.adaptivity.util.xml.XMLFragmentStreamReader
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.CharArrayAsStringSerializer
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.util.ExtXmlDeserializable
+import nl.adaptivity.xmlutil.util.NamespaceAddingStreamReader
+import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.CharArrayAsStringSerializer
 
 
 /**

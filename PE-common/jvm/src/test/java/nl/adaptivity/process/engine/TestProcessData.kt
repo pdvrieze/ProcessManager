@@ -25,10 +25,10 @@ import net.devrieze.util.readString
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xml.IOException
-import nl.adaptivity.xml.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

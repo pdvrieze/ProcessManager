@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import kotlinx.serialization.SerialName
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.getInvalidHandle
@@ -26,9 +27,8 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.schema.annotations.XmlName
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Document
 import org.w3c.dom.DocumentFragment
 import java.security.Principal
@@ -80,7 +80,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
   private val _items by lazy { mutableListOf<XmlItem>() }
 
   /*, namespace=Constants.USER_MESSAGE_HANDLER_NS*/
-  @get:XmlName(value = "item")
+  @SerialName(value = "item")
   override var items: List<XmlItem>
     get() = _items
     set(value) {

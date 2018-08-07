@@ -18,11 +18,11 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.CharArrayAsStringSerializer
-import nl.adaptivity.xml.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.CharArrayAsStringSerializer
+import nl.adaptivity.xmlutil.serialization.XML
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 open class XmlContainerSerializer<T : XMLContainer> {

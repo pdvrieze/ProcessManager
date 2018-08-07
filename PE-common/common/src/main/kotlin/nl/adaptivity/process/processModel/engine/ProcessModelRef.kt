@@ -26,8 +26,8 @@ import nl.adaptivity.util.multiplatform.JvmField
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.multiplatform.toUUID
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
 
 @XmlDeserializer(ProcessModelRef.Factory::class)
 class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?, out ObjectT: RootProcessModel<NodeT, ModelT>>constructor(override var name:String?, var handle: Long, override var uuid: UUID?) : IProcessModelRef<NodeT, ModelT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {

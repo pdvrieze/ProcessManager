@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.util.xml.ICompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xml.QName
 
 interface IXmlMessage {

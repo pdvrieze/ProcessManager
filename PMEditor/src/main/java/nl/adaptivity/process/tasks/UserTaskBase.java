@@ -20,8 +20,8 @@ import android.databinding.BaseObservable;
 import android.support.annotation.CallSuper;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable;
+import nl.adaptivity.xmlutil.*;
 import android.support.annotation.NonNull;
 
 import javax.xml.namespace.QName;

@@ -22,7 +22,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
 import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 import java.util.*
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.*

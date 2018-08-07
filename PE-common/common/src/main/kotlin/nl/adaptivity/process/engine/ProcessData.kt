@@ -20,10 +20,10 @@ import kotlinx.serialization.*
 import kotlinx.serialization.internal.StringSerializer
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.*
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /** Class to represent data attached to process instances.  */
 @Serializable

@@ -18,8 +18,8 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xml.serialization.XmlElement
-import nl.adaptivity.xml.serialization.XmlValue
+import nl.adaptivity.xmlutil.serialization.XmlElement
+import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
 class PredecessorInfo(@SerialName("predecessor")

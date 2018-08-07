@@ -14,12 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml
+package nl.adaptivity.xmlutil.util
 
-import nl.adaptivity.xml.EventType
-import nl.adaptivity.xml.NamespaceContext
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xmlutil.EventType
+import nl.adaptivity.xmlutil.NamespaceContext
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
 
 
 /**

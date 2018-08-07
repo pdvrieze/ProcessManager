@@ -23,9 +23,9 @@ import nl.adaptivity.process.processModel.serialization.ConditionSerializer
 import nl.adaptivity.process.processModel.serialization.ConditionStringSerializer
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlDefault
-import nl.adaptivity.xml.serialization.XmlElement
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import kotlin.collections.AbstractMutableSet
 import kotlin.collections.Collection
 import kotlin.collections.Map

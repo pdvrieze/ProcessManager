@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.SerialClassDescImpl
 import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
@@ -26,14 +25,14 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
-import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlPolyChildren
-import nl.adaptivity.xml.serialization.writeBegin
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
+import nl.adaptivity.xmlutil.serialization.writeBegin
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.deserializeHelper
 
 /**
  * Created by pdvrieze on 02/01/17.
@@ -441,7 +440,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
                                                 context: SerialContext?): KSerializer<out ProcessNode.IBuilder<*, *>> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
-        } else if (klassName == "nl.adaptivity.xml.serialization.canary.CanaryInput\$Dummy") {
+        } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
             return context.klassSerializer(XmlActivity.Builder::class)
         }
         throw IllegalArgumentException("No serializer found for class $klassName")

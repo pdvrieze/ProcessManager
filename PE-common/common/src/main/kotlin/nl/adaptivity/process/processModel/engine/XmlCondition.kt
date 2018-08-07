@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.Condition
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 
 
 /**

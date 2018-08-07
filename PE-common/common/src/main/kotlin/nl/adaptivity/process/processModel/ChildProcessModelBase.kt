@@ -28,10 +28,10 @@ import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.addField
 import nl.adaptivity.util.addFields
 import nl.adaptivity.util.multiplatform.JvmField
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlPolyChildren
-import nl.adaptivity.xml.serialization.readNullableString
-import nl.adaptivity.xml.serialization.writeNullableStringElementValue
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
+import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.xmlutil.serialization.writeNullableStringElementValue
 
 /**
  * Base class for submodels

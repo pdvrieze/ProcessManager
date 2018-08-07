@@ -30,13 +30,16 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmName
 import nl.adaptivity.util.multiplatform.toUri
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.util.xml.ExtXmlDeserializable
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.serialization.XmlSerialName
-import nl.adaptivity.xml.serialization.readNullableString
-import nl.adaptivity.xml.serialization.writeNullableStringElementValue
+import nl.adaptivity.xml.localPart
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.xmlutil.serialization.writeNullableStringElementValue
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ExtXmlDeserializable
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xml.QName as DescQName
+import nl.adaptivity.xmlutil.QName as XmlQName
 
 
 /**
@@ -72,7 +75,7 @@ import nl.adaptivity.xml.serialization.writeNullableStringElementValue
 class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
 
     @Transient
-    override var service: QName?
+    override var service: DescQName?
 
     override var endpoint: String?
     override var operation: String?
@@ -90,19 +93,19 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         get() = type ?: "application/soap+xml"
 
     @Transient
-    override val elementName: QName
+    override val elementName: XmlQName
         get() = ELEMENTNAME
 
     override var serviceName: String?
         get() = service?.localPart
         set(name) {
-            service = name?.let { QName(service?.getNamespaceURI() ?: "", it) }
+            service = name?.let { DescQName(service?.getNamespaceURI() ?: "", it) }
         }
 
     override var serviceNS: String?
         get() = service?.getNamespaceURI()
         set(namespace) {
-            this.service = namespace?.let { QName(it, service?.getLocalPart() ?: "xx") }
+            this.service = namespace?.let { DescQName(it, service?.getLocalPart() ?: "xx") }
         }
 
     override var namespaces: SimpleNamespaceContext
@@ -128,7 +131,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     }
 
 
-    constructor(service: QName? = null,
+    constructor(service: DescQName? = null,
                 endpoint: String? = null,
                 operation: String? = null,
                 url: String? = null,
@@ -243,7 +246,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
 
         const val ELEMENTLOCALNAME = "message"
 
-        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+        val ELEMENTNAME = XmlQName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
 
         @JvmName("fromNullable")
@@ -298,7 +301,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
             var method: String? = null
             var contentType: String? = null
 
-            val service: QName? get() = serviceName?.let { QName(serviceNS ?: "", it) }
+            val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }
 
             override fun handleAttribute(attributeLocalName: String, attributeValue: String) {
                 return when (attributeLocalName) {

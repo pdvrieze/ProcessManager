@@ -28,9 +28,9 @@ import net.devrieze.util.Handle
 import net.devrieze.util.handle
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.util.xml.ICompactFragment
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.*
 
 @XmlDeserializer(XmlProcessNodeInstance.Factory::class)
 class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {

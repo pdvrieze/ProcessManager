@@ -18,7 +18,7 @@ package nl.adaptivity.process.util;
 
 import nl.adaptivity.process.util.ModifySequence.AttributeSequence;
 import nl.adaptivity.process.util.ModifySequence.FragmentSequence;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.*;
 
 import java.util.List;
 

@@ -27,8 +27,8 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xml.*
-import nl.adaptivity.xml.EventType
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.EventType
 import org.w3.soapEnvelope.Envelope
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB

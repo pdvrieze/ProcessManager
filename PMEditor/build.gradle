@@ -31,19 +31,16 @@ configurations {
 }
 
 dependencies {
-//    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3.1' // or 1.4-beta1
-//    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3.1' // or 1.4-beta1
-//    compile files("${buildDir}/libs/annotations-cleaned.jar") { builtBy 'cleanAnnotationsJar' }
     implementation 'org.jetbrains:annotations-java5:15.0'
 
     implementation project(':PE-diagram:android')
     implementation project(':PE-common:android')
     implementation project(':darwinlib')
-//    implementation project(':DarwinJavaApi')
+
     implementation project(':JavaCommonApi:java')
-//    implementation project(':xmlutil:core:android')
-    implementation project(':xmlutil:android')
-    implementation project(':xmlutil:serialization:java')
+
+    implementation("net.devrieze:xmlutil-android:$xmlutilVersion")
+    implementation("net.devrieze:xmlutil-serialization-android:$xmlutilVersion")
     implementation project(':java-common:android')
     implementation 'net.devrieze:android-coroutines-appcompat:0.7.0'
 
@@ -51,16 +48,11 @@ dependencies {
     implementation "com.android.support:support-vector-drawable:${androidCompatVersion}"
     kapt "com.android.databinding:compiler:$androidPluginVersion"
 
-//    testImplementation "org.testng:testng:$testngVersion"
     testImplementation 'junit:junit:4.12'
     testImplementation 'xmlunit:xmlunit:1.6'
     testImplementation project(':java-common:android')
-//    testImplementation project(path: ':java-common:jvm', configuration: 'testCompileClasspath')
-//    testImplementation project(path: ':PE-common:jvm', configuration: 'testJarConfig')
-//    testImplementation 'org.robolectric:robolectric:3.0'
     testImplementation 'net.sf.kxml:kxml2:2.3.0'
-//    testLocalCompile project(':PE-diagram')
-//    testLocalCompile project(':darwinlib')
+
     implementation "com.android.support:appcompat-v7:${androidCompatVersion}"
     implementation "com.android.support:support-annotations:${androidCompatVersion}"
     implementation "com.android.support:design:${androidCompatVersion}"
@@ -79,8 +71,6 @@ dependencies {
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
 
     kapt "android.arch.lifecycle:compiler:$lifecycle_version"
-
-
 
     cleanedAnnotations 'org.jetbrains:annotations-java5:15.0'
 }

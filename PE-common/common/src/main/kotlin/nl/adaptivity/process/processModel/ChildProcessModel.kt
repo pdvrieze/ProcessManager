@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 /**
  * Created by pdvrieze on 02/01/17.

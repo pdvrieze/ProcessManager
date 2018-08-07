@@ -29,7 +29,7 @@ import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
-import nl.adaptivity.xml.*;
+import nl.adaptivity.xmlutil.*;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;

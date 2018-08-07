@@ -24,9 +24,6 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.xml.schema.annotations.Child
-import nl.adaptivity.xml.schema.annotations.Element
-
 
 /**
  *
@@ -49,8 +46,6 @@ import nl.adaptivity.xml.schema.annotations.Element
  * </complexType>
  * ```
  */
-@Element(name = "Reason", nsUri = Envelope.NAMESPACE, nsPrefix = Envelope.NAMESPACE,
-         children = arrayOf(Child(name = "Text", type = Reasontext::class)))
 class Faultreason {
 
     private var _text: MutableList<Reasontext>? = null

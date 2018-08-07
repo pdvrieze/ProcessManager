@@ -20,9 +20,9 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.xml.CombiningNamespaceContext
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Document
 import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node

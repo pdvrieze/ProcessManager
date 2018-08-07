@@ -22,8 +22,8 @@ import net.devrieze.util.handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlStreaming
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xml.serialize
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull

@@ -28,10 +28,10 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.xml.XmlDeserializer
-import nl.adaptivity.xml.XmlDeserializerFactory
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlReader
+import nl.adaptivity.xmlutil.XmlDeserializer
+import nl.adaptivity.xmlutil.XmlDeserializerFactory
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
 import java.security.Principal
 import java.util.logging.Logger
 

@@ -17,11 +17,11 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
-import nl.adaptivity.util.xml.SimpleXmlDeserializable
-import nl.adaptivity.xml.XmlReader
-import nl.adaptivity.xml.XmlSerializable
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeSimpleElement
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlSerializable
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.writeSimpleElement
 
 
 /**

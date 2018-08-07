@@ -29,7 +29,7 @@ import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.writeHandleAttr
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xml.*
+import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Node
 import java.io.FileNotFoundException
 import java.sql.SQLException

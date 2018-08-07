@@ -24,10 +24,7 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.xml.schema.annotations.Attribute
-import nl.adaptivity.xml.schema.annotations.Element
-import nl.adaptivity.xml.schema.annotations.XmlName
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -49,12 +46,11 @@ import nl.adaptivity.xml.schema.annotations.XmlName
  * </complexType>
  * ```
  */
-@Element(nsUri = ProcessConsts.Soap.SOAP_ENCODING_NS, name="reasontext", attributes = arrayOf(Attribute("lang")), content="value")
 class Reasontext {
 
     var value: String? = null
 
-    @XmlName("lang", nsUri = "http://www.w3.org/XML/1998/namespace")
+    @XmlSerialName("lang", "http://www.w3.org/XML/1998/namespace", "")
     var lang: String? = null
 
 }

@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml;
+package nl.adaptivity.xmlutil.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
@@ -47,7 +47,7 @@ public class SimpleAdapter {
   private static Method _getNamespaceURI;
 
   QName name;
-  private nl.adaptivity.xml.SimpleNamespaceContext namespaceContext;
+  private nl.adaptivity.xmlutil.SimpleNamespaceContext namespaceContext;
 
   @NotNull
   public Map<QName, Object> getAttributes() {
@@ -99,7 +99,7 @@ public class SimpleAdapter {
           for (int i = prefixes.length - 1; i >= 0; --i) {
             namespaces[i] = (String) _getNamespaceURI.invoke(context, prefixes[i]);
           }
-          namespaceContext = new nl.adaptivity.xml.SimpleNamespaceContext(prefixes, namespaces);
+          namespaceContext = new nl.adaptivity.xmlutil.SimpleNamespaceContext(prefixes, namespaces);
         }
       }
 
@@ -109,7 +109,7 @@ public class SimpleAdapter {
     }
   }
 
-  nl.adaptivity.xml.SimpleNamespaceContext getNamespaceContext() {
+  nl.adaptivity.xmlutil.SimpleNamespaceContext getNamespaceContext() {
     return namespaceContext;
   }
 }

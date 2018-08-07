@@ -29,7 +29,7 @@ import nl.adaptivity.android.darwin.AuthenticatedWebClientFactory;
 import nl.adaptivity.android.darwinlib.BuildConfig;
 import nl.adaptivity.process.ui.ProcessSyncManager;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xmlutil.XmlException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;

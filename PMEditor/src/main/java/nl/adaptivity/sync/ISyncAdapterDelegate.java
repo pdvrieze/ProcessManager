@@ -21,7 +21,7 @@ import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.os.RemoteException;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xmlutil.XmlException;
 
 import java.io.IOException;
 

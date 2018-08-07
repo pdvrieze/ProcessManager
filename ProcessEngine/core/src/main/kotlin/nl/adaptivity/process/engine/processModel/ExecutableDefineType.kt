@@ -33,10 +33,10 @@ import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.processModel.refName
 import nl.adaptivity.process.processModel.refNode
 import nl.adaptivity.util.DomUtil
-import nl.adaptivity.util.xml.CompactFragment
-import nl.adaptivity.xml.SimpleNamespaceContext
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.siblingsToFragment
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.siblingsToFragment
 import org.w3c.dom.NodeList
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants

@@ -31,7 +31,7 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xmlutil.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;

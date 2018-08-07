@@ -282,7 +282,7 @@ object MessagingSoapClientGenerator {
         imports["Arrays"] = "java.util.Arrays"
         imports["JAXBElement"] = "javax.xml.bind.JAXBElement"
         imports["JAXBException"] = "javax.xml.bind.JAXBException"
-        imports["XmlException"] = "nl.adaptivity.xml.XmlException"
+        imports["XmlException"] = "nl.adaptivity.xmlutil.XmlException"
         imports["QName"] = "javax.xml.namespace.QName"
         imports["Source"] = "javax.xml.transform.Source"
         imports["Tripple"] = "net.devrieze.util.Tripple"

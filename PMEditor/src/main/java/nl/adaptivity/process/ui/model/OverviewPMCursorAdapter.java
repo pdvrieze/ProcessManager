@@ -33,8 +33,8 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.OverviewModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.OverviewPMCursorAdapter.OverviewPMViewHolder;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xmlutil.XmlException;
+import nl.adaptivity.xmlutil.XmlStreaming;
 
 import java.io.StringReader;
 

@@ -54,17 +54,18 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+val xmlutilVersion: String by project
+
 dependencies {
     expectedBy(project(":PE-common:common"))
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
-    implementation(project(":xmlutil:core:android"))
-    implementation(project(":xmlutil:serialization:java"))
+    implementation("net.devrieze:xmlutil-android:$xmlutilVersion")
+    implementation("net.devrieze:xmlutil-serialization-android:$xmlutilVersion")
     api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
 
     implementation(project(":multiplatform:android"))
     implementation(project(":java-common:android"))
-    implementation(project(":xmlutil:serialization:java"))
 
     implementation(kotlin("reflect", kotlin_version))
 

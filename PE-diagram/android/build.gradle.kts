@@ -30,12 +30,13 @@ base {
 val `kotlin_version`: String by project
 val kotlinVersion get() = `kotlin_version`
 val androidTarget: Int by project
+val xmlutilVersion: String by project
 
 dependencies {
     implementation(kotlin("stdlib", kotlinVersion))
     api(project(":PE-common:android"))
     implementation(project(":multiplatform:android"))
-    api(project(":xmlutil:android"))
+    api("net.devrieze:xmlutil-android:$xmlutilVersion")
     api(project(":java-common:android"))
     expectedBy(project(":PE-diagram:common"))
 }

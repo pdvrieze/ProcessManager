@@ -29,8 +29,8 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.JvmStatic
-import nl.adaptivity.xml.XmlWriter
-import nl.adaptivity.xml.writeSimpleElement
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.writeSimpleElement
 
 interface IDrawableActivity : IDrawableProcessNode {
     override val leftExtent: Double
