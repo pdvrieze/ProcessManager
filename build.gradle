@@ -204,12 +204,6 @@ allprojects {
         maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }
     }
 
-//    if (JavaVersion.current().isJava8Compatible()) {
-//        tasks.withType(Javadoc) {
-//            options.addStringOption('Xdoclint:none', '-quiet')
-//        }
-//    }
-
     tasks.withType(KotlinCompile) {
         kotlinOptions.jvmTarget = '1.8'
     }

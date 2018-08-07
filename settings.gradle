@@ -52,59 +52,70 @@ include(":multiplatform:java")
 include(":multiplatform:jvm")
 include(":multiplatform:js")
 
-
-include(":DarwinGenerators")
-include(":java-common:common")
-include(":java-common:jvm")
-include(":java-common:java")
-include(":java-common:js")
-include(":jscommon")
-include(":DarwinClients")
-// No longer contains any worthwhile code.
-//include(":DarwinCommon")
-include(":DarwinJavaApi")
-include(":PE-common:common")
-include(":PE-common:jvm")
-//Does not work serialization
-//include(":PE-common:js")
-include(":PE-common:endpointDoclet")
 include(":JavaCommonApi:common")
 include(":JavaCommonApi:java")
 include(":JavaCommonApi:jvm")
 include(":JavaCommonApi:js")
-include(":PE-dataservices")
+
+if(file("kotlinsql").exists()) {
+    includeBuild("kotlinsql") {
+        dependencySubstitution {
+            substitute module("net.devrieze:kotlinsql:") with project(":")
+        }
+    }
+}
+
+include(":java-common:common")
+include(":java-common:jvm")
+include(":java-common:java")
+include(":java-common:js")
+
+include(":DarwinJavaApi")
+
+include(":TestSupport")
+
+include(":PE-common:common")
+include(":PE-common:jvm")
+include(":PE-common:endpointDoclet")
+
+include(":DarwinGenerators")
+include(":darwin-sql")
+
 include(":PEUserMessageHandler")
+
 include(":ProcessEngine:core")
 include(":ProcessEngine:servlet")
+
+include(":DarwinClients")
+
+include(":PE-dataservices")
 include(":PE-diagram:common")
 include(":PE-diagram:jvm")
 include(":DarwinRealm")
 include(":DarwinServices")
 include(":PE-server")
-include(":darwin-sql")
 include(":accountmgr")
 include(":accountmgr:js")
 include(":accountcommon")
 include(":darwin:jvm")
 include(":darwin:shared")
 include(":darwin:js")
-include(":kotlinsql")
 include(":structurizr")
 
-/*
-if (file("xmlutil2").exists()) {
+if (file("xmlutil").exists()) {
     includeBuild("xmlutil") {
-        substitute module('net.devrieze:xmlutil-java') with project(':core:java')
-        substitute module('net.devrieze:xmlutil-android') with project(':core:android')
-        substitute module('net.devrieze:xmlutil-jvm') with project(':core:jvm')
-        substitute module('net.devrieze:xmlutil-js') with project(':core:js')
-        substitute module('net.devrieze:xmlutil-serialization-jvm') with project(':serialization:java')
-        substitute module('net.devrieze:xmlutil-serialization-android') with project(':serialization:java')
+        dependencySubstitution {
+            substitute module('net.devrieze:xmlutil-java') with project(':core:java')
+            substitute module('net.devrieze:xmlutil-android') with project(':core:android')
+            substitute module('net.devrieze:xmlutil-jvm') with project(':core:jvm')
+            substitute module('net.devrieze:xmlutil-js') with project(':core:js')
+            substitute module('net.devrieze:xmlutil-serialization-jvm') with project(':serialization:java')
+            substitute module('net.devrieze:xmlutil-serialization-android') with project(':serialization:java')
+        }
     }
 }
-*/
 
-include(":TestSupport")
+include(":jscommon")
 include(":webeditor")
 
 // Android modules

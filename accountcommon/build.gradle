@@ -21,7 +21,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    api project(':kotlinsql')
+    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
     implementation project(':darwin-sql')
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"

@@ -19,3 +19,5 @@ wiki
 /.idea/shelf/
 /.idea/modules/
 /.idea/workspace.xml
+xmlutil
+kotlinsql

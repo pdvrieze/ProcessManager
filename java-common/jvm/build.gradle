@@ -41,7 +41,7 @@ dependencies {
     api project(':JavaCommonApi:jvm')
     api project(':multiplatform:jvm')
     api(project(":java-common:java"))
-    api project(":kotlinsql")
+    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
 
     implementation "org.jetbrains:annotations:13.0"
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

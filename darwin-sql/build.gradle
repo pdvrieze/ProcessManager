@@ -21,7 +21,7 @@ description = 'The DDL files for the darwin databases'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    api project(":kotlinsql")
+    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"

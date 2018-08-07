@@ -6,10 +6,6 @@
 	path = android-auth
 	url = https://github.com/pdvrieze/darwin-android-auth.git
 	ignore = dirty
-[submodule "kotlinsql"]
-	path = kotlinsql
-	url = https://github.com/pdvrieze/kotlinsql.git
-	ignore = dirty
 [submodule "webeditor"]
 	path = webeditor
 	url = https://github.com/pdvrieze/webeditor.git
