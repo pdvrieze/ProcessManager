@@ -27,7 +27,6 @@ import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xml.IOException
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll

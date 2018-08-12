@@ -17,6 +17,7 @@
 package nl.adaptivity.ws.soap;
 
 import nl.adaptivity.process.engine.TestProcessDataKt;
+import nl.adaptivity.xml.DebugWriter;
 import nl.adaptivity.xmlutil.util.CompactFragment;
 import nl.adaptivity.xmlutil.*;
 import nl.adaptivity.xmlutil.EventType;

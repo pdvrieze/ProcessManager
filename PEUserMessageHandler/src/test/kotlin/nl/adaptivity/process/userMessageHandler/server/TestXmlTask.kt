@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlStreaming
-import nl.adaptivity.xml.serialize
+import nl.adaptivity.xmlutil.serialize
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach

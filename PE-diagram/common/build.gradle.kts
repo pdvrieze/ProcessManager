@@ -22,17 +22,22 @@ plugins {
 }
 
 base {
-    archivesBaseName="PE-diagram-common"
+    archivesBaseName = "PE-diagram-common"
 }
 
-val argJvmDefault:String by project
+val argJvmDefault: String by project
+val xmlutilVersion: String by project
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
+    kotlinOptions.freeCompilerArgs = listOf(argJvmDefault)
 }
 
 dependencies {
     implementation(kotlin("stdlib-common"))
+    implementation(project(":multiplatform:common"))
+    implementation(project(":multiplatform:common-nonshared"))
+    implementation(project(":java-common:common"))
     implementation(project(":PE-common:common"))
+    implementation("net.devrieze:xmlutil-common-nonshared:$xmlutilVersion")
     implementation(project(":JavaCommonApi:common"))
 }

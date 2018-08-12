@@ -16,6 +16,7 @@
 
 package nl.adaptivity.xml;
 
+import nl.adaptivity.xmlutil.XmlWriter;
 import nl.adaptivity.xmlutil.util.XmlDelegatingWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
