@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-library")
     id("kotlin-platform-jvm")
-    id("kotlin-kapt")
 }
 
 val kotlin_version: String by project
