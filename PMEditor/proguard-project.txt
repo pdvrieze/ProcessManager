@@ -31,6 +31,7 @@
 -dontnote kotlin.internal.jdk8.JDK8PlatformImplementations
 -dontnote kotlin.internal.JRE8PlatformImplementations
 -dontnote kotlin.internal.jdk7.JDK7PlatformImplementations
+-dontnote kotlin.internal.JRE7PlatformImplementations
 -dontnote kotlin.reflect.jvm.internal.ReflectionFactoryImpl
 -dontnote COM.newmonics.PercClassLoader.**
 -dontnote sun.reflect.ReflectionFactory
@@ -76,6 +77,7 @@
 -keepclasseswithmembers class nl.adaptivity.messaging.** { # <-- change package name to your app's
     kotlinx.serialization.KSerializer serializer(...);
 }
+-keepclassmembers class nl.adaptivity.android.kryo.serializers.KryoAndroidConstants { *; }
 
 -keep,includedescriptorclasses class nl.adaptivity.process.processModel.**$$serializer { *; } # <-- change package name to your app's
 -keepclassmembers class nl.adaptivity.process.processModel.** { # <-- change package name to your app's
@@ -122,15 +124,18 @@
 -dontwarn nl.adaptivity.process.processModel.engine.XmlProcessModel
 -dontwarn nl.adaptivity.process.util.ListSet$$CC
 
+#Kotlin reflection includes this
+-dontwarn kotlin.annotations.jvm.ReadOnly
+-dontwarn kotlin.annotations.jvm.Mutable
 #Further suppressions for serialization
--dontwarn nl.adaptivity.xml.serialization.XmlElement$Impl
--dontwarn nl.adaptivity.xml.serialization.XmlDefault$Impl
-#-dontwarn nl.adaptivity.xml.serialization.canary.CanaryInput$Dummy$Companion
+-dontwarn nl.adaptivity.xmlutil.serialization.XmlElement$Impl
+-dontwarn nl.adaptivity.xmlutil.serialization.XmlDefault$Impl
+#-dontwarn nl.adaptivity.xmlutil.serialization.canary.CanaryInput$Dummy$Companion
 
--keepclassmembers class nl.adaptivity.xml.serialization.canary.CanaryInput { # <-- change package name to your app's
+-keepclassmembers class nl.adaptivity.xmlutil.serialization.canary.CanaryInput { # <-- change package name to your app's
     *** Companion;
 }
--keepclasseswithmembers class nl.adaptivity.xml.serialization.canary.CanaryInput { # <-- change package name to your app's
+-keepclasseswithmembers class nl.adaptivity.xmlutil.serialization.canary.CanaryInput { # <-- change package name to your app's
     kotlinx.serialization.KSerializer serializer(...);
 }
 
@@ -140,11 +145,11 @@
 }
 
 #Don't remove serialization annotations
--keep @interface nl.adaptivity.xml.serialization.** { *; }
+-keep @interface nl.adaptivity.xmlutil.serialization.** { *; }
 -keep @interface kotlinx.serialization.** { *; }
 
 #Kotlin reflection
--keep class kotlin.reflect.jvm.internal.impl.builtins.BuiltInsLoaderImpl
+-keep class kotlin.reflect.jvm.internal.impl.serialization.deserialization.builtins.BuiltInsLoaderImpl
 -keep class kotlin.reflect.jvm.internal.impl.load.java.FieldOverridabilityCondition
 -keep class kotlin.reflect.jvm.internal.impl.load.java.ErasedOverridabilityCondition
 -keep class kotlin.reflect.jvm.internal.impl.load.java.JavaIncompatibilityRulesOverridabilityCondition
