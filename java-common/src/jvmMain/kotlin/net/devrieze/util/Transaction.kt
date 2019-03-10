@@ -14,25 +14,28 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security;
+package net.devrieze.util
+
+import java.io.Closeable
+import java.sql.SQLException
+
 
 /**
- * Exception to signify that no user was associated, but a user should be specified.
+ * Created by pdvrieze on 18/08/15.
  */
-public class AuthenticationNeededException extends RuntimeException {
+interface Transaction : AutoCloseable, Closeable {
 
-  public AuthenticationNeededException(final String message) {
-    super(message);
-  }
+    // Don't let transaction close throw exception, only runtime exceptions allowed
+    override fun close()
 
-  public AuthenticationNeededException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+    @Throws(SQLException::class)
+    fun commit()
 
-  public AuthenticationNeededException(final Throwable cause) {
-    super(cause);
-  }
+    @Throws(SQLException::class)
+    fun rollback()
 
-  public AuthenticationNeededException() {
-  }
+    @Throws(SQLException::class)
+    fun <T> commit(value: T): T
+
+    fun addRollbackHandler(runnable: Runnable)
 }

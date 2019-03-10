@@ -58,10 +58,10 @@ open class DBTransaction(connection: DBConnection): Transaction {
     }
   }
 
-  override fun <T : Any?> commit(pValue: T): T {
+  override fun <T : Any?> commit(value: T): T {
     commit()
     rollbackHandlers.clear()
-    return pValue
+    return value
   }
 
   open fun rollback(savePoint: Savepoint) {

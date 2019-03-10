@@ -16,33 +16,12 @@
 
 package net.devrieze.util
 
-interface StringCache {
+/**
+ * Created by pdvrieze on 18/08/15.
+ */
+interface TransactionFactory<T : Transaction> {
 
-  enum class UniqueCaches : StringCache {
-    NOP;
+    fun startTransaction(): T
 
-    override fun lookup(string: String?): String? {
-      return string
-    }
-
-  }
-
-  /**
-   * Look up a string in the cache for string reuse.
-   * @param string `null` parameters will always return null
-   *
-   * @return
-   */
-  fun lookup(string: String?): String?
-
-  companion object {
-
-    val NOPCACHE = StringCache.UniqueCaches.NOP
-
-  }
-
+    fun isValidTransaction(transaction: Transaction): Boolean
 }
-
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun StringCache.lookup(string: String?): String? = string?.let { lookup(it) }

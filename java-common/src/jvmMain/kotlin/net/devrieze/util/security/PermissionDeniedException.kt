@@ -14,27 +14,23 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security;
+package net.devrieze.util.security
 
 
-public class PermissionDeniedException extends RuntimeException {
+class PermissionDeniedException : RuntimeException {
 
-  private static final long serialVersionUID = 1782673055725449807L;
+    constructor(message: String, cause: Throwable, enableSuppression: Boolean, writableStackTrace: Boolean) :
+        super(message, cause, enableSuppression, writableStackTrace)
 
-  public PermissionDeniedException(final String pMessage, final Throwable pCause, final boolean pEnableSuppression, final boolean pWritableStackTrace) {
-    super(pMessage, pCause, pEnableSuppression, pWritableStackTrace);
-  }
+    constructor(message: String, cause: Throwable) : super(message, cause)
 
-  public PermissionDeniedException(final String pMessage, final Throwable pCause) {
-    super(pMessage, pCause);
-  }
+    constructor(message: String) : super(message)
 
-  public PermissionDeniedException(final String pMessage) {
-    super(pMessage);
-  }
+    constructor(cause: Throwable) : super(cause)
 
-  public PermissionDeniedException(final Throwable pCause) {
-    super(pCause);
-  }
+    companion object {
+
+        private const val serialVersionUID = 1782673055725449807L
+    }
 
 }

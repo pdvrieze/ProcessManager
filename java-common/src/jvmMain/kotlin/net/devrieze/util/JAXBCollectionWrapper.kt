@@ -14,14 +14,27 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util;
+package net.devrieze.util
 
-/**
- * Created by pdvrieze on 18/08/15.
- */
-public interface TransactionFactory<T extends Transaction> {
+import javax.xml.bind.JAXBElement
+import javax.xml.bind.annotation.XmlAccessType
+import javax.xml.bind.annotation.XmlAccessorType
+import javax.xml.bind.annotation.XmlAnyElement
+import javax.xml.bind.annotation.XmlMixed
+import javax.xml.namespace.QName
 
-  T startTransaction();
 
-  boolean isValidTransaction(Transaction pTransaction);
+@XmlAccessorType(XmlAccessType.NONE)
+class JAXBCollectionWrapper(
+    @get:XmlMixed
+    @get:XmlAnyElement(lax = true)
+    val elements: Collection<*>,
+    val elementType: Class<*>) {
+
+    constructor(): this(emptyList<Any>(), Any::class.java)
+
+    fun getJAXBElement(pName: QName): JAXBElement<JAXBCollectionWrapper> {
+        return JAXBElement(pName, JAXBCollectionWrapper::class.java, this)
+    }
+
 }

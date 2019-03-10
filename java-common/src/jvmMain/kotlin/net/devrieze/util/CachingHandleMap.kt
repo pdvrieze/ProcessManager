@@ -171,7 +171,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
                      updatedValue.getHandle() != handle)) return
 
                 synchronized(cacheHandles) {
-                    transaction.addRollbackHandler({ invalidateCache(handle) })
+                    transaction.addRollbackHandler(Runnable { invalidateCache(handle) })
                     val pos = cacheHead
                     val handleValue = handle.handleValue
                     if (cacheHandles[pos] != handleValue) {

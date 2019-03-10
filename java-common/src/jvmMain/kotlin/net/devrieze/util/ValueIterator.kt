@@ -14,17 +14,17 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.lang;
+package net.devrieze.util
 
-/**
- * Utility class for doubles.
- * Created by pdvrieze on 23/01/16.
- */
-public final class Doubles {
 
-  private Doubles() {}
+class ValueIterator<T>(private val backingIterator: Iterator<Map.Entry<*, T>>) : Iterator<T> {
 
-  public static boolean isFinite(final double d) {
-    return ! (Double.isNaN(d) || Double.isInfinite(d));
-  }
+    override fun hasNext(): Boolean {
+        return backingIterator.hasNext()
+    }
+
+    override fun next(): T {
+        return backingIterator.next().value
+    }
+
 }
