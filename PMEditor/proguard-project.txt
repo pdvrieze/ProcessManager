@@ -77,7 +77,13 @@
 -keepclasseswithmembers class nl.adaptivity.messaging.** { # <-- change package name to your app's
     kotlinx.serialization.KSerializer serializer(...);
 }
--keepclassmembers class nl.adaptivity.android.kryo.serializers.KryoAndroidConstants { *; }
+-keep,allowshrinking class com.esotericsoftware.** {
+   <fields>;
+   <methods>;
+}
+-keep,allowshrinking class com.esotericsoftware.kryo.** { *; }
+-keep,allowshrinking class com.esotericsoftware.kryo.io.** { *; }
+
 
 -keep,includedescriptorclasses class nl.adaptivity.process.processModel.**$$serializer { *; } # <-- change package name to your app's
 -keepclassmembers class nl.adaptivity.process.processModel.** { # <-- change package name to your app's
@@ -131,6 +137,7 @@
 -dontwarn nl.adaptivity.xmlutil.serialization.XmlElement$Impl
 -dontwarn nl.adaptivity.xmlutil.serialization.XmlDefault$Impl
 #-dontwarn nl.adaptivity.xmlutil.serialization.canary.CanaryInput$Dummy$Companion
+
 
 -keepclassmembers class nl.adaptivity.xmlutil.serialization.canary.CanaryInput { # <-- change package name to your app's
     *** Companion;

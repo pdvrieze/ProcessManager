@@ -29,7 +29,7 @@ base {
 
 val `kotlin_version`: String by project
 val kotlinVersion get() = `kotlin_version`
-val androidTarget: Int by project
+val androidTarget: String by project
 val xmlutilVersion: String by project
 
 dependencies {
@@ -42,10 +42,10 @@ dependencies {
 }
 
 android {
-    compileSdkVersion(androidTarget)
+    compileSdkVersion(androidTarget.toInt())
     defaultConfig {
         minSdkVersion(14)
-        targetSdkVersion(androidTarget)
+        targetSdkVersion(androidTarget.toInt())
         versionCode = 1
         versionName = "1.0"
     }

@@ -45,10 +45,10 @@ dependencies {
 
     runtimeOnly 'com.fasterxml.woodstox:woodstox-core:5.0.3'
 
-    testImplementation ("org.jetbrains.spek:spek-api:${spekVersion}") {
+    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spekVersion}") {
         exclude group: 'org.jetbrains.kotlin'
     }
-    testImplementation "org.jetbrains.spek:spek-subject-extension:${spekVersion}"
+    testImplementation "org.spekframework.spek2:spek-dsl-jvm:${spekVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
 
     testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
@@ -61,7 +61,7 @@ dependencies {
     testRuntime "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 
-    testRuntime ("org.jetbrains.spek:spek-junit-platform-engine:${spekVersion}") {
+    testRuntime ("org.spekframework.spek2:spek-runner-junit5:${spekVersion}") {
         exclude group: 'org.junit.platform'
         exclude group: 'org.jetbrains.kotlin'
     }

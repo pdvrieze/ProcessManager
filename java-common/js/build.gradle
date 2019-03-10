@@ -27,8 +27,8 @@ archivesBaseName="java-common"
 
 dependencies {
 //    api project(':JavaCommonApi:jvm')
-    compile project(':multiplatform:js')
+    compile project(':multiplatform')
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
-    compile project(":JavaCommonApi:js")
+    compile project(":JavaCommonApi")
     expectedBy project(":java-common:common")
 }

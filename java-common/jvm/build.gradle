@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin-platform-jvm'
 apply plugin: 'java-library'
 
 sourceCompatibility = myJavaVersion
@@ -27,7 +26,22 @@ description = 'A library with generic support classes'
 
 //group = 'util'
 
-archivesBaseName="java-common"
+archivesBaseName="java-common-jvm"
+
+def androidAttr = Attribute.of("net.devrieze.android", Boolean)
+
+configurations {
+    "default" {
+        attributes {
+            attribute(androidAttr, false)
+        }
+    }
+    api {
+        attributes {
+            attribute(androidAttr, false)
+        }
+    }
+}
 
 test {
     useJUnitPlatform()
@@ -38,13 +52,19 @@ tasks.withType(KotlinCompile) {
 }
 
 dependencies {
-    api project(':JavaCommonApi:jvm')
-    api project(':multiplatform:jvm')
-    api(project(":java-common:java"))
-    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+    attributesSchema {
+        attribute(androidAttr)
+    }
 
+    api(project(":JavaCommonApi")).attributes {
+        attribute(androidAttr, false)
+    }
+    api(project(":multiplatform")).attributes {
+        attribute(androidAttr, false)
+    }
+
+    implementation(project(path: ":java-common", configuration:"javaMainImplementation"))
     implementation "org.jetbrains:annotations:13.0"
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
 }

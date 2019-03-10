@@ -23,7 +23,7 @@ plugins {
 
 val `kotlin_version`: String by project
 val kotlinVersion get() = `kotlin_version`
-val androidTarget: Int by project
+val androidTarget: String by project
 
 base {
     archivesBaseName="java-common"
@@ -38,5 +38,5 @@ dependencies {
 }
 
 android {
-    compileSdkVersion(androidTarget)
+    compileSdkVersion(androidTarget.toInt())
 }

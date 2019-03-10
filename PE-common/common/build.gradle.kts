@@ -40,9 +40,8 @@ val xmlutilVersion: String by project
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serializationVersion")
-    implementation("net.devrieze:xmlutil-common-nonshared:$xmlutilVersion")
-    implementation("net.devrieze:xmlutil-common:$xmlutilVersion")
-    implementation("net.devrieze:xmlutil-serialization-common:$xmlutilVersion")
+    implementation("net.devrieze:xmlutil:$xmlutilVersion")
+    implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
     implementation(project(":multiplatform:common"))
     implementation(project(":multiplatform:common-nonshared"))
     compileOnly(project(":JavaCommonApi:common"))

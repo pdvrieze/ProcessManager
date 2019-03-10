@@ -38,6 +38,6 @@ dependencies {
     implementation(project(":multiplatform:common-nonshared"))
     implementation(project(":java-common:common"))
     implementation(project(":PE-common:common"))
-    implementation("net.devrieze:xmlutil-common-nonshared:$xmlutilVersion")
+    implementation("net.devrieze:xmlutil:$xmlutilVersion")
     implementation(project(":JavaCommonApi:common"))
 }

@@ -28,6 +28,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version"
     implementation 'com.sun.mail:javax.mail:1.5.5'
     implementation project(':accountcommon')
+    implementation("net.devrieze:kotlinsql:$kotlinsqlVersion")
     implementation project(':darwin:jvm')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(':JavaCommonApi:jvm')

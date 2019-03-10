@@ -50,9 +50,9 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    api(project(":JavaCommonApi:java"))
-    api(project(":multiplatform:java"))
-    compileOnly(project(":multiplatform:jvm"))
+    api(project(":JavaCommonApi"))
+    api(project(":multiplatform"))
+    compileOnly(project(":multiplatform"))
 //    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
     implementation("org.jetbrains:annotations:13.0")
     api("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")

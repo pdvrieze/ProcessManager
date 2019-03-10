@@ -25,7 +25,6 @@ base {
 
 dependencies {
     implementation(kotlin("stdlib-common"))
-    implementation(project(":JavaCommonApi:common"))
-    implementation(project(":multiplatform:common-nonshared"))
-    implementation(project(":multiplatform:common"))
+    implementation(project(":JavaCommonApi"))
+    implementation(project(":multiplatform"))
 }

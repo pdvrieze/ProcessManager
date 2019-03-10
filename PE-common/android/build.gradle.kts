@@ -40,10 +40,10 @@ java {
 val kotlin_version:String by project
 val serializationVersion: String by project
 val argJvmDefault:String by project
-val androidTarget:Int by project
+val androidTarget:String by project
 
 android {
-    compileSdkVersion(androidTarget)
+    compileSdkVersion(androidTarget.toInt())
 //    defaultConfig {
 //        applicationId 'net.devrieze.pe-common'
 //    }

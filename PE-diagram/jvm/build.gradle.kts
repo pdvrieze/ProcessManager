@@ -26,10 +26,11 @@ base {
     archivesBaseName="PE-diagram"
 }
 
-java.sourceSets {
+sourceSets {
     create("imageGen").apply {
         java.srcDir("src/imagegen/java")
     }
+    Unit
 }
 
 val imageGenCompile = configurations["imageGenCompile"].apply { extendsFrom(configurations["apiElements"]) }
