@@ -14,20 +14,28 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java-library'
-apply plugin: 'kotlin'
-apply plugin: 'idea'
+import multiplatform.registerAndroidAttributeForDeps
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+plugins {
+    id("java-library")
+    id("kotlin")
+    id("idea")
+}
 
-version = '1.1.0'
-description = 'The api library for the Darwin system - Preferably this is loaded into the container classpath'
+val myJavaVersion: JavaVersion by project
+
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
+
+version = "1.1.0"
+description = "The api library for the Darwin system - Preferably this is loaded into the container classpath"
 
 //group = ['server', 'serverclasspath']
-
+registerAndroidAttributeForDeps()
 
 dependencies {
-    compileOnly project(':JavaCommonApi:jvm')
-    compileOnly "org.jetbrains:annotations:13.0"
+    compileOnly(project(":JavaCommonApi"))
+    compileOnly("org.jetbrains:annotations:13.0")
 }

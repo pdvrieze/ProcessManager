@@ -1,3 +1,5 @@
+import multiplatform.registerAndroidAttributeForDeps
+
 /*
  * Copyright (c) 2018.
  *
@@ -14,33 +16,39 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin'
-apply plugin: 'idea'
+plugins {
+    id("kotlin")
+    id("idea")
+}
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+version = "1.0.0"
+description = "A library with process engine support classes"
+
+val myJavaVersion: JavaVersion by project
+
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
 
 configurations {
-    testJarConfig {
-        extendsFrom testRuntime
+    val testRuntime by getting {}
+    val testJarConfig by creating {
+        extendsFrom(testRuntime)
     }
 }
 
-version = '1.0.0'
-description = 'A library with process engine support classes'
-
-//group = ['util', 'process' ]
-
-
-task testJar(type: Jar) {
-    from sourceSets.test.output
-    classifier = 'test'
+val testJar by tasks.creating(Jar::class) {
+    from(sourceSets["test"].output)
+    classifier = "test"
 }
 
 artifacts {
-    testRuntime testJar
+    add("testRuntime", testJar)
 }
 
+registerAndroidAttributeForDeps()
+
 dependencies {
-    compile project(':java-common:jvm')
+    implementation(project(":java-common"))
 }

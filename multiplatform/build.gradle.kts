@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Date
+import multiplatform.androidAttribute
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
@@ -45,7 +46,7 @@ val serializationVersion: String by project
 
 val kotlin_version: String by project
 
-val androidAttribute = Attribute.of("net.devrieze.android", Boolean::class.javaObjectType)
+
 
 kotlin {
     targets {

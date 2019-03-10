@@ -1,3 +1,4 @@
+import multiplatform.androidAttribute
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -30,7 +31,6 @@ base {
 }
 
 val kotlin_version: String by project
-val androidAttribute = Attribute.of("net.devrieze.android", Boolean::class.javaObjectType)
 val kotlinsqlVersion: String by project
 val jupiterVersion: String by project
 
@@ -92,7 +92,6 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-                api(project(":java-common:jvm"))
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
             }
         }

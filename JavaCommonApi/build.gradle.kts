@@ -14,6 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+import multiplatform.androidAttribute
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
@@ -36,8 +37,6 @@ base {
 }
 
 val kotlin_version: String by project
-
-val androidAttribute = Attribute.of("net.devrieze.android", Boolean::class.javaObjectType)
 
 kotlin {
     targets {
