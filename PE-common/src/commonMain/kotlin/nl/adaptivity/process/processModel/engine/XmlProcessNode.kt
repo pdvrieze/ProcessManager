@@ -14,19 +14,23 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.util.security.Principal
+import kotlinx.serialization.Serializable
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
+import nl.adaptivity.process.processModel.ProcessNode
 
-data class SimplePrincipal(private val name: String) : Principal {
 
-    override fun getName(): String {
-        return name
+/**
+ * Fix compilation by converting it properly to Kotlin.
+ */
+@Serializable
+interface XmlProcessNode : ProcessNode<XmlProcessNode, XmlModelCommon> {
+
+    interface Builder : ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon> {
+
+        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlProcessNode
     }
 
-    override fun toString(): String {
-        return name
-    }
+    override fun builder(): Builder
 }
-
-inline val Principal.name get() = getName()

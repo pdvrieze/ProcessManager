@@ -14,19 +14,37 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package nl.adaptivity.util.xml;
 
-import nl.adaptivity.util.security.Principal
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-data class SimplePrincipal(private val name: String) : Principal {
+public class SingletonNodeList implements NodeList {
 
-    override fun getName(): String {
-        return name
-    }
+  private final Node mNode;
 
-    override fun toString(): String {
-        return name
-    }
+  public SingletonNodeList(final Node node) {
+    mNode = node;
+  }
+
+  @Nullable
+  @Override
+  public Node item(final int index) {
+    if (index!=0) { return null; }
+    return mNode;
+  }
+
+  @Override
+  public int getLength() {
+    return 1;
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return "[" + mNode.toString()+"]";
+  }
+
 }
-
-inline val Principal.name get() = getName()

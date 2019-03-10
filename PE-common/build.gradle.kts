@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2018. 
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
- * ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the 
+ * ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
  * GNU Lesser General Public License as published by the Free Software Foundation.
  *
  * ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
@@ -15,22 +15,31 @@
  */
 
 import multiplatform.androidAttribute
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
+import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.kotlin.dsl.kotlin
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
+    id("idea")
+    id("net.devrieze.gradlecodegen")
+    id("kotlinx-serialization")
 }
 
 base {
-    archivesBaseName = "java-common"
-    version = "1.1.0"
-    description = "A library with generic support classes"
+    archivesBaseName = "PE-common"
+    version = "1.0.0"
+    description = "A library with process engine support classes"
 }
 
 val kotlin_version: String by project
 val kotlinsqlVersion: String by project
 val jupiterVersion: String by project
+val serializationVersion: String by project
+val xmlutilVersion: String by project
+val tomcatVersion: String by project
 
 kotlin {
     targets {
@@ -46,6 +55,7 @@ kotlin {
             }
             attributes.attribute(androidAttribute, false)
         }
+/*
         jvm("android") {
             attributes.attribute(androidAttribute, true)
             compilations.all {
@@ -55,6 +65,8 @@ kotlin {
                 }
             }
         }
+*/
+/*
         js {
             compilations.all {
                 tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
@@ -68,6 +80,7 @@ kotlin {
                 }
             }
         }
+*/
     }
 
     sourceSets {
@@ -76,9 +89,13 @@ kotlin {
                 implementation(project(":multiplatform"))
                 implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
 
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
+                implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+
                 compileOnly(project(":JavaCommonApi"))
-                api(project(":JavaCommonApi"))
-                api(project(":multiplatform"))
+                implementation(project(":java-common"))
+
             }
         }
         val javaMain by creating {
@@ -92,6 +109,12 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+                compileOnly(project(":DarwinJavaApi"))
+                compileOnly(project(":JavaCommonApi"))
+                compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+
+                implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
             }
         }
         val jvmTest by getting {
@@ -101,21 +124,27 @@ kotlin {
 
             }
         }
+/*
         val androidMain by getting {
             dependsOn(javaMain)
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
             }
         }
+*/
+/*
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
         }
+*/
     }
 
 }
+
+//registerAndroidAttributeForDeps()
 
 
 repositories {

@@ -14,19 +14,25 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package nl.adaptivity.util;
 
-import nl.adaptivity.util.security.Principal
+import org.jetbrains.annotations.NotNull;
 
-data class SimplePrincipal(private val name: String) : Principal {
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-    override fun getName(): String {
-        return name
-    }
+import java.net.URI;
 
-    override fun toString(): String {
-        return name
-    }
+
+public class JaxbUriAdapter extends XmlAdapter<String, URI> {
+
+  @Override
+  public URI unmarshal(@NotNull final String v) throws Exception {
+    return URI.create(v);
+  }
+
+  @Override
+  public String marshal(@NotNull final URI v) throws Exception {
+    return v.toString();
+  }
+
 }
-
-inline val Principal.name get() = getName()

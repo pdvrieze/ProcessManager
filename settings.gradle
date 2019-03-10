@@ -26,7 +26,7 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == "kotlinx-serialization") {
-                def version = (requested.version == null || requested.version.length() == 0) ? serializationPluginVersion : requested.version
+                def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
 /*
                 // The kotlin version. Unfortunately intellij doesn't support the settings delegate (even though gradle does)
                 val version = when {
@@ -36,7 +36,7 @@ pluginManagement {
                     else -> gradle.rootProject.extra["serializationVersion"]
                 }
 */
-                useModule("org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$version")
+                useModule("org.jetbrains.kotlin:kotlin-serialization:$version")
 
             } else if (requested.id.id == "net.devrieze.gradlecodegen") {
                 useModule("net.devrieze:gradle-codegen:0.5.6")
@@ -46,16 +46,9 @@ pluginManagement {
 }
 
 rootProject.name = "ProcessManager"
-include(":multiplatform:common")
-include(":multiplatform:common-nonshared")
-include(":multiplatform:java")
-include(":multiplatform:jvm")
-include(":multiplatform:js")
 
-include(":JavaCommonApi:common")
-include(":JavaCommonApi:java")
-include(":JavaCommonApi:jvm")
-include(":JavaCommonApi:js")
+include(":multiplatform")
+include(":JavaCommonApi")
 
 if(file("kotlinsql").exists()) {
     includeBuild("kotlinsql") {
@@ -65,14 +58,13 @@ if(file("kotlinsql").exists()) {
     }
 }
 
-include(":java-common:common")
-include(":java-common:jvm")
-include(":java-common:java")
-include(":java-common:js")
-
+include(":java-common")
 include(":DarwinJavaApi")
 
 include(":TestSupport")
+include(":PE-common")
+
+/*
 
 include(":PE-common:common")
 include(":PE-common:jvm")
@@ -101,20 +93,22 @@ include(":darwin:jvm")
 include(":darwin:shared")
 include(":darwin:js")
 include(":structurizr")
-
+*/
 if (file("xmlutil").exists()) {
     includeBuild("xmlutil") {
         dependencySubstitution {
-            substitute module('net.devrieze:xmlutil-java') with project(':core:java')
-            substitute module('net.devrieze:xmlutil-android') with project(':core:android')
-            substitute module('net.devrieze:xmlutil-jvm') with project(':core:jvm')
-            substitute module('net.devrieze:xmlutil-js') with project(':core:js')
-            substitute module('net.devrieze:xmlutil-serialization-jvm') with project(':serialization:java')
-            substitute module('net.devrieze:xmlutil-serialization-android') with project(':serialization:java')
+            substitute module('net.devrieze:xmlutil') with project(':core')
+//            substitute module('net.devrieze:xmlutil-java') with project(':core:java')
+//            substitute module('net.devrieze:xmlutil-android') with project(':core:android')
+//            substitute module('net.devrieze:xmlutil-jvm') with project(':core:jvm')
+//            substitute module('net.devrieze:xmlutil-js') with project(':core:js')
+            substitute module('net.devrieze:xmlutil-serialization') with project(':serialization')
+//            substitute module('net.devrieze:xmlutil-serialization-jvm') with project(':serialization:java')
+//            substitute module('net.devrieze:xmlutil-serialization-android') with project(':serialization:java')
         }
     }
 }
-
+/*
 include(":jscommon")
 include(":webeditor")
 
@@ -130,3 +124,4 @@ if (Boolean.parseBoolean(androidEnabledProp)) {
     include(":darwinlib")
     include(":PMEditor")
 }
+*/

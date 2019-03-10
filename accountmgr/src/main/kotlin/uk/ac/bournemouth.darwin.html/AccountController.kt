@@ -66,6 +66,7 @@ const val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
 class AccountController : HttpServlet() {
 
     companion object {
+        private val log = Logger.getLogger(AccountController::class.java.name)
         const val FIELD_USERNAME = "username"
         const val FIELD_PASSWORD = "password"
         const val FIELD_PUBKEY = "pubkey"
@@ -278,24 +279,29 @@ class AccountController : HttpServlet() {
         val username = req.getParameter(FIELD_USERNAME)
         val password = req.getParameter(FIELD_PASSWORD)
         val keyid = req.getParameter(FIELD_KEYID)
+        log.finer("registerkey called with username: $username password: ${"?".repeat(password.length)} keyid: $keyid")
         if (username.isNullOrEmpty() || password.isNullOrEmpty()) {
             resp.darwinError(req, "Missing credentials", HttpServletResponse.SC_FORBIDDEN, "Missing credentials")
+            log.warning("Missing credentials attempting to register key")
         } else {
 
             val pubkey = req.getParameter(FIELD_PUBKEY)
             val appname: String? = req.getParameter(FIELD_APPNAME)
+            log.finer("registerkey: appname=$appname pubkey.length=${pubkey.length}")
             accountDb(DBRESOURCE) {
                 if (verifyCredentials(username, password)) {
                     if (pubkey.isNullOrBlank()) {
                         resp.contentType("text/plain")
                         resp.writer.use {
                             it.append("authenticated:").appendln(username)
+                            log.warning("registerkey: User authenticated but missing public key to register")
                         }
                     } else {
                         try {
                             val newKeyId = registerkey(username, pubkey, appname, keyid?.toInt())
                             resp.contentType("text/plain")
                             resp.writer.use { it.append("key:").appendln(newKeyId.toString()) }
+                            log.fine("registerkey: registered key with id: $newKeyId")
                         } catch (e: NumberFormatException) {
                             resp.darwinError(req, "Invalid key format", SC_UNPROCESSIBLE_ENTITY, "UNPROCESSIBLE ENTITY",
                                              e)
@@ -305,6 +311,7 @@ class AccountController : HttpServlet() {
                 } else {
                     resp.darwinError(req, "Invalid credentials", HttpServletResponse.SC_FORBIDDEN,
                                      "Invalid credentials")
+                    log.info("Invalid authentication for user $username")
                 }
             }
         }

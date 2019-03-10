@@ -183,9 +183,9 @@ class HttpRequest(input: BufferedReader, var uri: String) {
 
         val TEXT_PLAIN = mimeType("text/plain")
 
-        fun mimeType(pRawData: String): MimeType {
+        fun mimeType(rawData: String): MimeType {
             try {
-                return MimeType(pRawData)
+                return MimeType(rawData)
             } catch (ex: MimeTypeParseException) {
                 throw RuntimeException(ex)
             }
@@ -202,182 +202,10 @@ class HttpRequest(input: BufferedReader, var uri: String) {
          */
         @Throws(IOException::class)
         fun parseMultipartFormdata(input: InputStream,
-                                   contentType: MimeType?,
-                                   encoding: String): Map<String, DataSource> {
-            if (contentType == null) {
-                throw NullPointerException("Content type must be given")
-            }
-            val boundary = contentType.getParameter("boundary") ?: throw IllegalArgumentException(
-                    "Content type does not specify a boundary")
+                                   contentType: MimeType,
+                                   encoding: String?): Map<String, DataSource> {
 
-            BufferedInputStream(input).use { input ->
-
-                var b = input.read()
-                if (b == Const._CR.toInt()) {
-                    b = input.read()
-                    if (b == Const._LF.toInt()) {
-                        b = input.read()
-                    }
-                }
-                var curPos = 0 // We just optionally read a CRLF
-                var stage = 2
-                var contentDisposition: MimeType? = null
-                var content: ByteArrayOutputStream? = null
-                var wsBuffer: ByteArrayOutputStream? = null
-                var headerLine: StringBuilder? = null
-                var contentType = TEXT_PLAIN
-                val result = HashMap<String, DataSource>()
-                while (b >= 0) {
-
-
-                    if (stage == 0 && b == Const._CR.toInt()) {
-                        stage = 1
-                    } else if (stage == 1 && b == Const._LF.toInt()) {
-                        stage = 2
-                    } else if ((stage == 2 || stage == 3) && b == '-'.toInt()) { // Reading two hyphens
-                        ++stage
-                    } else if (stage == 4 && b == boundary[curPos].toInt()) { // Reading the actual boundary
-                        ++curPos
-                        if (curPos == boundary.length) {
-                            stage = 5
-                            curPos = 0
-                        }
-                    } else if (stage == 5 && (b == ' '.toInt() || b == '\t'.toInt())) {
-                        if (wsBuffer == null) {
-                            wsBuffer = ByteArrayOutputStream()
-                        } // Remember to be able to replay
-                        wsBuffer.write(b)
-                    } else if (stage == 5 && b == '-'.toInt() && wsBuffer == null) {
-                        b = input.read()
-                        if (b != '-'.toInt()) {
-                            wsBuffer = ByteArrayOutputStream()
-                            wsBuffer.write('-'.toInt())
-                            continue // This will fail in the next loop iteration
-                        }
-                        // We found an end of all data.
-                        if (content != null) { // First time don't do this
-                            val contentName = contentDisposition?.getParameter(
-                                    "name")
-                            if (contentName == null) {
-                                result[Integer.toString(result.size)] = toDataSource(content,
-                                                                                     Integer.toString(result.size),
-                                                                                     contentType)
-                            } else {
-                                result[contentName] = toDataSource(content, contentName, contentType)
-                            }
-                        }
-                        break // Go out of the loop.
-                    } else if (stage == 5 && b == Const._CR.toInt()) {
-                        stage = 6
-                    } else if (stage == 6 && b == Const._LF.toInt()) {
-                        stage = 7 // We completed, next step is to finish previous block, and then read headers
-                        wsBuffer = null
-                        if (content != null) { // First time don't do this
-                            val contentName = contentDisposition?.getParameter(
-                                    "name")
-                            if (contentName == null) {
-                                result[Integer.toString(result.size)] = toDataSource(content,
-                                                                                     Integer.toString(result.size),
-                                                                                     contentType)
-                            } else {
-                                result[contentName] = toDataSource(content, contentName, contentType)
-                            }
-                        }
-                        contentDisposition = null
-                        headerLine = StringBuilder()
-                    } else if (stage == 7) {
-                        if (b == Const._CR.toInt()) {
-                            b = input.read()
-                            if (b != Const._LF.toInt()) {
-                                content?.close()
-                                throw IllegalArgumentException("Header lines should be separated by CRLF, not CR only")
-                            }
-                            if (headerLine == null) {
-                                content?.close()
-                                throw AssertionError("Headerline is null, but never should be")
-                            }
-                            if (headerLine.length == 0) {
-                                headerLine = null
-                                content = ByteArrayOutputStream()
-                                stage = 0
-                            } else {
-                                val s = headerLine.toString()
-                                headerLine = StringBuilder()
-                                val colonPos = s.indexOf(':')
-                                if (colonPos >= 1) {
-                                    val name = s.substring(0, colonPos).trim { it <= ' ' }
-                                    val `val` = s.substring(colonPos + 1).trim { it <= ' ' }
-                                    val nmLC = name.toLowerCase()
-                                    if ("content-disposition" == nmLC) {
-                                        try {
-                                            if (`val`.startsWith("form-data")) {
-                                                contentDisposition = MimeType("multipart/$`val`")
-                                            } else {
-                                                contentDisposition = MimeType(`val`)
-                                            }
-                                        } catch (ex: MimeTypeParseException) {
-                                            // Just ignore invalid content dispositions
-                                        }
-
-                                    } else if ("content-type" == nmLC) {
-                                        try {
-                                            contentType = MimeType(`val`)
-                                        } catch (ex: MimeTypeParseException) {
-                                            // Just ignore invalid content dispositions
-                                        }
-
-                                    }
-                                }
-                            }
-                        } else {
-                            if (headerLine == null) {
-                                throw AssertionError("Headerline is null, but never should be")
-                            }
-                            headerLine.append(b.toChar())
-                        }
-                    } else {
-                        if (content != null) { // Ignore any preamble (it's legal that there is stuff so ignore it
-                            // Reset
-                            if (stage > 0) {
-                                content.write(Const._CR.toInt())
-                                if (stage > 1) {
-                                    content.write(Const._LF.toInt())
-                                    if (stage > 2) {
-                                        content.write('-'.toInt())
-                                        if (stage > 3) {
-                                            content.write('-'.toInt())
-                                            for (i in 0 until curPos) {
-                                                content.write(boundary[i].toInt())
-                                            }
-                                            if (stage > 4) {
-                                                val ws = if (wsBuffer == null) ByteArray(0) else wsBuffer.toByteArray()
-                                                for (w in ws) {
-                                                    content.write(ws)
-                                                }
-                                                if (stage > 5) {
-                                                    content.write(Const._CR.toInt())
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            content.write(b)
-                        }
-                        curPos = 0
-                    }
-                    b = input.read()
-
-                }
-
-
-                return result
-            }
-        }
-
-        private fun toDataSource(content: ByteArrayOutputStream, name: String, contentType: MimeType): DataSource {
-            return BytesDatasource(content.toByteArray(), name, contentType)
+            return input.parseMultipartFormDataTo(HashMap(), contentType, encoding)
         }
 
         fun parseUrlEncoded(pSource: CharSequence?): Map<String, String> {
@@ -439,29 +267,6 @@ class HttpRequest(input: BufferedReader, var uri: String) {
     }
 
 
-    private class BytesDatasource(private val content: ByteArray,
-                                  private val name: String,
-                                  private val contentType: MimeType) : DataSource {
-
-        @Throws(IOException::class)
-        override fun getOutputStream(): OutputStream {
-            throw UnsupportedOperationException()
-        }
-
-        override fun getName(): String {
-            return name
-        }
-
-        @Throws(IOException::class)
-        override fun getInputStream(): InputStream {
-            return ByteArrayInputStream(content)
-        }
-
-        override fun getContentType(): String {
-            return contentType.toString()
-        }
-    }
-
     /** Enumeration for the various HTTP methods supported.  */
     enum class Method private constructor(private val methodString: String) {
         OPTIONS("OPTIONS"),
@@ -491,4 +296,206 @@ class HttpRequest(input: BufferedReader, var uri: String) {
         }
     }
 
+}
+
+
+private class BytesDatasource(private val content: ByteArray,
+                              private val name: String,
+                              private val contentType: MimeType) : DataSource {
+
+    @Throws(IOException::class)
+    override fun getOutputStream(): OutputStream {
+        throw UnsupportedOperationException()
+    }
+
+    override fun getName(): String {
+        return name
+    }
+
+    @Throws(IOException::class)
+    override fun getInputStream(): InputStream {
+        return ByteArrayInputStream(content)
+    }
+
+    override fun getContentType(): String {
+        return contentType.toString()
+    }
+}
+
+
+private fun toDataSource(content: ByteArrayOutputStream, name: String, contentType: MimeType): DataSource {
+    return BytesDatasource(content.toByteArray(), name, contentType)
+}
+
+
+fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(receiver: M,contentType: MimeType, encoding: String?=null):M {
+
+    val boundary = contentType.getParameter("boundary") ?: throw IllegalArgumentException(
+        "Content type does not specify a boundary")
+
+    BufferedInputStream(this).use { input ->
+
+        var b = input.read()
+        if (b == Const._CR.toInt()) {
+            b = input.read()
+            if (b == Const._LF.toInt()) {
+                b = input.read()
+            }
+        }
+        var curPos = 0 // We just optionally read a CRLF
+        var stage = 2
+        var contentDisposition: MimeType? = null
+        var content: ByteArrayOutputStream? = null
+        var wsBuffer: ByteArrayOutputStream? = null
+        var headerLine: StringBuilder? = null
+        var contentType = HttpRequest.TEXT_PLAIN
+        while (b >= 0) {
+
+
+            if (stage == 0 && b == Const._CR.toInt()) {
+                stage = 1
+            } else if (stage == 1 && b == Const._LF.toInt()) {
+                stage = 2
+            } else if ((stage == 2 || stage == 3) && b == '-'.toInt()) { // Reading two hyphens
+                ++stage
+            } else if (stage == 4 && b == boundary[curPos].toInt()) { // Reading the actual boundary
+                ++curPos
+                if (curPos == boundary.length) {
+                    stage = 5
+                    curPos = 0
+                }
+            } else if (stage == 5 && (b == ' '.toInt() || b == '\t'.toInt())) {
+                if (wsBuffer == null) {
+                    wsBuffer = ByteArrayOutputStream()
+                } // Remember to be able to replay
+                wsBuffer.write(b)
+            } else if (stage == 5 && b == '-'.toInt() && wsBuffer == null) {
+                b = input.read()
+                if (b != '-'.toInt()) {
+                    wsBuffer = ByteArrayOutputStream()
+                    wsBuffer.write('-'.toInt())
+                    continue // This will fail in the next loop iteration
+                }
+                // We found an end of all data.
+                if (content != null) { // First time don't do this
+                    val contentName = contentDisposition?.getParameter(
+                        "name")
+                    if (contentName == null) {
+                        receiver[Integer.toString(receiver.size)] = toDataSource(content,
+                                                                                             Integer.toString(
+                                                                                                 receiver.size),
+                                                                                             contentType)
+                    } else {
+                        receiver[contentName] = toDataSource(content, contentName, contentType)
+                    }
+                }
+                break // Go out of the loop.
+            } else if (stage == 5 && b == Const._CR.toInt()) {
+                stage = 6
+            } else if (stage == 6 && b == Const._LF.toInt()) {
+                stage = 7 // We completed, next step is to finish previous block, and then read headers
+                wsBuffer = null
+                if (content != null) { // First time don't do this
+                    val contentName = contentDisposition?.getParameter(
+                        "name")
+                    if (contentName == null) {
+                        receiver[Integer.toString(receiver.size)] = toDataSource(content,
+                                                                                             Integer.toString(
+                                                                                                 receiver.size),
+                                                                                             contentType)
+                    } else {
+                        receiver[contentName] = toDataSource(content, contentName, contentType)
+                    }
+                }
+                contentDisposition = null
+                headerLine = StringBuilder()
+            } else if (stage == 7) {
+                if (b == Const._CR.toInt()) {
+                    b = input.read()
+                    if (b != Const._LF.toInt()) {
+                        content?.close()
+                        throw IllegalArgumentException("Header lines should be separated by CRLF, not CR only")
+                    }
+                    if (headerLine == null) {
+                        content?.close()
+                        throw AssertionError("Headerline is null, but never should be")
+                    }
+                    if (headerLine.length == 0) {
+                        headerLine = null
+                        content = ByteArrayOutputStream()
+                        stage = 0
+                    } else {
+                        val s = headerLine.toString()
+                        headerLine = StringBuilder()
+                        val colonPos = s.indexOf(':')
+                        if (colonPos >= 1) {
+                            val name = s.substring(0, colonPos).trim { it <= ' ' }
+                            val `val` = s.substring(colonPos + 1).trim { it <= ' ' }
+                            val nmLC = name.toLowerCase()
+                            if ("content-disposition" == nmLC) {
+                                try {
+                                    if (`val`.startsWith("form-data")) {
+                                        contentDisposition = MimeType("multipart/$`val`")
+                                    } else {
+                                        contentDisposition = MimeType(`val`)
+                                    }
+                                } catch (ex: MimeTypeParseException) {
+                                    // Just ignore invalid content dispositions
+                                }
+
+                            } else if ("content-type" == nmLC) {
+                                try {
+                                    contentType = MimeType(`val`)
+                                } catch (ex: MimeTypeParseException) {
+                                    // Just ignore invalid content dispositions
+                                }
+
+                            }
+                        }
+                    }
+                } else {
+                    if (headerLine == null) {
+                        throw AssertionError("Headerline is null, but never should be")
+                    }
+                    headerLine.append(b.toChar())
+                }
+            } else {
+                if (content != null) { // Ignore any preamble (it's legal that there is stuff so ignore it
+                    // Reset
+                    if (stage > 0) {
+                        content.write(Const._CR.toInt())
+                        if (stage > 1) {
+                            content.write(Const._LF.toInt())
+                            if (stage > 2) {
+                                content.write('-'.toInt())
+                                if (stage > 3) {
+                                    content.write('-'.toInt())
+                                    for (i in 0 until curPos) {
+                                        content.write(boundary[i].toInt())
+                                    }
+                                    if (stage > 4) {
+                                        val ws = if (wsBuffer == null) ByteArray(0) else wsBuffer.toByteArray()
+                                        for (w in ws) {
+                                            content.write(ws)
+                                        }
+                                        if (stage > 5) {
+                                            content.write(Const._CR.toInt())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    content.write(b)
+                }
+                curPos = 0
+            }
+            b = input.read()
+
+        }
+
+
+        return receiver
+    }
 }

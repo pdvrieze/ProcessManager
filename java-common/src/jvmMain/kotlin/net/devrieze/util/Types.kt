@@ -118,10 +118,12 @@ object Types {
     }
 
     @JvmStatic
-    fun commonAncestor(result: Iterable<Any>): Class<*>? {
+    fun commonAncestor(result: Iterable<*>): Class<*>? {
         val classes = HashSet<Class<*>>()
         for (o in result) {
-            classes.add(o.javaClass)
+            if (o!=null) {
+                classes.add(o.javaClass)
+            }
         }
         return commonAncestorClass(classes)
     }

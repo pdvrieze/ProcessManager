@@ -16,15 +16,21 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.KInput
-import kotlinx.serialization.KOutput
-import kotlinx.serialization.KSerialClassDesc
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.*
+import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.util.DomUtil
+import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlSerializable
 import org.w3c.dom.Node
+import org.w3c.dom.NodeList
+import javax.xml.xpath.XPathConstants
+import nl.adaptivity.xmlutil.siblingsToFragment
+
+import javax.xml.xpath.XPathExpression
 
 actual interface IXmlResultType : XmlSerializable {
 
@@ -44,6 +50,8 @@ actual interface IXmlResultType : XmlSerializable {
      */
     actual fun getPath(): String?
 
+    val xPath: XPathExpression?
+
     /**
      * Sets the value of the path property.
      *
@@ -55,7 +63,28 @@ actual interface IXmlResultType : XmlSerializable {
 
     actual val bodyStreamReader: XmlReader
 
-    fun applyData(payload: Node?): ProcessData = TODO("Android XPath processing is not like Java. Not supported yet")
+    fun applyData(payload: Node?): ProcessData {
+        // shortcircuit missing path
+        if (payload==null) { return ProcessData(getName(), CompactFragment("")) }
+        val processData = if (getPath() == null || "." == getPath()) {
+            ProcessData(getName(), DomUtil.nodeToFragment(payload))
+        } else {
+            ProcessData(getName(), DomUtil.nodeListToFragment(xPath!!.evaluate(DomUtil.ensureAttached(payload), XPathConstants.NODESET) as NodeList))
+        }
+        val content = content
+        if (content?.isNotEmpty() ?: false) {
+            val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
+            val reader = transformer.createFilter(bodyStreamReader)
+
+            if (reader.hasNext()) reader.next() // Initialise the reader
+
+            val transformed = reader.siblingsToFragment()
+            return ProcessData(getName(), transformed)
+        } else {
+            return processData
+        }
+
+    }
 
     /**
      * Get the namespace context for evaluating the xpath expression.
@@ -65,15 +94,14 @@ actual interface IXmlResultType : XmlSerializable {
 
     actual companion object serializer: KSerializer<IXmlResultType> {
         override val descriptor: SerialDescriptor
-            get() = XmlResultType.serializer().serialClassDesc
+            get() = XmlResultType.serializer().descriptor
 
-        override fun load(input: KInput): IXmlResultType {
-            return XmlResultType.serializer().load(input)
+        override fun deserialize(decoder: Decoder): IXmlResultType {
+            return XmlResultType.serializer().deserialize(decoder)
         }
 
-        override fun save(output: KOutput, obj: IXmlResultType) {
-            XmlResultType.serializer().save(output, XmlResultType(obj))
+        override fun serialize(encoder: Encoder, obj: IXmlResultType) {
+            XmlResultType.serializer().serialize(encoder, XmlResultType(obj))
         }
     }
-
 }

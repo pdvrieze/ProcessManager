@@ -14,19 +14,27 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util.security
+package nl.adaptivity.diagram
 
-import nl.adaptivity.util.security.Principal
+import kotlin.math.sqrt
 
-data class SimplePrincipal(private val name: String) : Principal {
 
-    override fun getName(): String {
-        return name
-    }
+class Point(val x: Double, val y: Double) {
 
     override fun toString(): String {
-        return name
+        return "($x, $y)"
+    }
+
+    fun distanceTo(other: Point): Double {
+        val dx = other.x - x
+        val dy = other.y - y
+        return sqrt(dx * dx + dy * dy)
+    }
+
+    companion object {
+        @Deprecated("Use constructor", ReplaceWith("Point(x,y)"))
+        fun of(x: Double, y: Double): Point {
+            return Point(x, y)
+        }
     }
 }
-
-inline val Principal.name get() = getName()

@@ -106,7 +106,7 @@ dependencies {
     compileOnly project(':DarwinJavaApi')
     compileOnly project(':JavaCommonApi:jvm')
 
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8 //myJavaVersion

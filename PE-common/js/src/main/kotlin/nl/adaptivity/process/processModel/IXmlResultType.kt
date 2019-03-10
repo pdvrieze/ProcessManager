@@ -64,7 +64,7 @@ actual interface IXmlResultType : XmlSerializable {
 
 
     actual companion object serializer: KSerializer<IXmlResultType> {
-        override val serialClassDesc: KSerialClassDesc
+        override val descriptor: SerialDescriptor
             get() = XmlResultType.serializer().serialClassDesc
 
         override fun load(input: KInput): IXmlResultType {
