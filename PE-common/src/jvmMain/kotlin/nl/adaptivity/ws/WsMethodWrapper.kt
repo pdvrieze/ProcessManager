@@ -24,11 +24,14 @@ import java.lang.reflect.Method
  * Created by pdvrieze on 28/11/15.
  */
 abstract class WsMethodWrapper(protected val owner: Any, protected val method: Method) {
-    protected var params: Array<Any?>? = null
+    protected lateinit var params: Array<Any?>
     protected open var result: Any? = null
 
+    protected val paramsInitialised: Boolean get() = ::params.isInitialized
+
     open fun exec() {
-        val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+        if (! ::params.isInitialized)throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+        val params = params
 
         try {
             result = method.invoke(owner, *params)

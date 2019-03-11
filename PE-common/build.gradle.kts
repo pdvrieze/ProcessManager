@@ -122,6 +122,14 @@ kotlin {
                 implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 
+                implementation("org.xmlunit:xmlunit-core:2.6.0")
+                implementation("org.mockito:mockito-core:2.25.0")
+                implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
+
+//                implementation(project(":JavaCommonApi"))
+//                implementation(project(":DarwinJavaApi"))
+                implementation(project(":TestSupport"))
+
             }
         }
 /*
@@ -149,6 +157,7 @@ kotlin {
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 //test {
