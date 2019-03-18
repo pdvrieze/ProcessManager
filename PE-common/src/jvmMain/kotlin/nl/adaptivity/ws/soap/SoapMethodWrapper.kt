@@ -124,7 +124,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
 
     }
 
-    fun unmarshalParams(envelope: Envelope<ICompactFragment>, attachments: Map<String, DataSource>) {
+    fun unmarshalParams(envelope: Envelope<out ICompactFragment>, attachments: Map<String, out DataSource>) {
         if (paramsInitialised) {
             throw IllegalStateException("Parameters have already been unmarshalled")
         }
@@ -157,10 +157,10 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
     }
 
     @Throws(XmlException::class)
-    private fun processSoapBody(envelope: org.w3.soapEnvelope.Envelope<ICompactFragment>,
-                                attachments: Map<String, DataSource>) {
-        val body = envelope.body
-        val reader = body!!.bodyContent!!.getXmlReader()
+    private fun processSoapBody(envelope: Envelope<out ICompactFragment>,
+                                attachments: Map<String, out DataSource>) {
+        val body = envelope.body!!
+        val reader = body.bodyContent!!.getXmlReader()
         reader.nextTag()
         assertRootNode(reader)
 
@@ -190,8 +190,8 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
             if (annotation == null) {
                 if (params.isEmpty()) {
                     throw MessagingFormatException(
-                            "Missing parameter " + (i + 1) + " of type " + parameterTypes[i] + " for method " +
-                            method)
+                        "Missing parameter " + (i + 1) + " of type " + parameterTypes[i] + " for method " +
+                        method)
                 }
                 name = params.keys.iterator().next()
             } else {
@@ -203,7 +203,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                     this.params[i] = envelope.header!!.principal
                     continue //Finish the parameter, we don't need to unmarshal
                 } else if (parameterTypes[i].isAssignableFrom(
-                                String::class.java) && envelope.header!!.principal != null) {
+                        String::class.java) && envelope.header!!.principal != null) {
                     this.params[i] = envelope.header!!.principal!!.name
                     continue
                 } else {

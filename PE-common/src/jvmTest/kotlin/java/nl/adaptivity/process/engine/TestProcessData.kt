@@ -927,7 +927,7 @@ class TestProcessData {
         @Suppress("unused")
         @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
                 SAXException::class)
-        fun <T : Any> testRoundTrip(xml: String, target: KClass<T>,
+        fun <T : Any> testRoundTrip(xml: String, target: KClass<out T>,
                                     serializer: KSerializer<T>,
                                     @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
                                     repairNamespaces: Boolean = false,
