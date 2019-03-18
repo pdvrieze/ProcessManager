@@ -22,7 +22,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.ProcessConsts.Soap
 import nl.adaptivity.process.engine.MessagingFormatException
 import nl.adaptivity.process.messaging.ActivityResponse
-import nl.adaptivity.util.activation.Sources
+import nl.adaptivity.util.activation.writeToStream
 import nl.adaptivity.util.kotlin.arrayMap
 import nl.adaptivity.ws.WsMethodWrapper
 import nl.adaptivity.xmlutil.EventType
@@ -254,7 +254,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
         fun marshalResult(response: HttpServletResponse, source: Source) {
             response.contentType = "application/soap+xml"
             try {
-                Sources.writeToStream(source, response.outputStream)
+                source.writeToStream(response.outputStream)
             } catch (e: TransformerException) {
                 throw MessagingException(e)
             } catch (e: IOException) {

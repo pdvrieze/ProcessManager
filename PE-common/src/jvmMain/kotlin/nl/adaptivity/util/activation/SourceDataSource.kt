@@ -28,7 +28,7 @@ class SourceDataSource @JvmOverloads constructor(private val contentType: String
   override fun getContentType() = contentType
 
   @Throws(IOException::class)
-  override fun getInputStream(): InputStream = Sources.toInputStream(content)
+  override fun getInputStream(): InputStream = content.toInputStream()
 
   override fun getName()= name
 

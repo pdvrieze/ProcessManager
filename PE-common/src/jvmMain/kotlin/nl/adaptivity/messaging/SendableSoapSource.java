@@ -76,7 +76,7 @@ public class SendableSoapSource implements ISendableMessage, Writable {
   }
 
   public Reader getBodyReader() {
-    return Sources.toReader(mMessage);
+    return Sources.INSTANCE.toReader(mMessage);
   }
 
   @Override
@@ -87,7 +87,7 @@ public class SendableSoapSource implements ISendableMessage, Writable {
   @Override
   public void writeTo(final Writer destination) throws IOException {
     try {
-      Sources.writeToWriter(mMessage, destination);
+      Sources.INSTANCE.writeToWriter(mMessage, destination);
     } catch (TransformerException e) {
       throw new IOException(e);
     }

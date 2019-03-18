@@ -28,6 +28,7 @@ import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.HttpMessage
 import nl.adaptivity.util.activation.Sources
+import nl.adaptivity.util.activation.writeToStream
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
@@ -317,7 +318,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       }
       is Node                              -> {
         pResponse.contentType = "text/xml"
-        Sources.writeToStream(DOMSource(value as Node?), pResponse.outputStream)
+          DOMSource(value as Node?).writeToStream(pResponse.outputStream)
       }
       is XmlSerializable -> {
         pResponse.contentType = "text/xml"
@@ -346,7 +347,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         setContentType(pResponse, "text/xml")
 
         val jaxbSource = JAXBSource(JAXBContext.newInstance(returnType), value)
-        Sources.writeToStream(jaxbSource, pResponse.outputStream)
+          jaxbSource.writeToStream(pResponse.outputStream)
       }
     }
   }
@@ -373,7 +374,8 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       val jaxbContext = JAXBContext.newInstance(returnType)
       val jaxbSource = JAXBSource(jaxbContext, result)
       setContentType(pResponse, "text/xml")
-      Sources.writeToStream(jaxbSource, pResponse.outputStream)
+        jaxbSource.writeToStream(pResponse.outputStream)
+        Unit
     } ?: serializeValue(pResponse, result)
   }
 
