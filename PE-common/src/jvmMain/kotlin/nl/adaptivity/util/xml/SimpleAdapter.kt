@@ -42,7 +42,7 @@ class SimpleAdapter {
 
     internal var name: QName? = null
 
-    internal var namespaceContext: SimpleNamespaceContext? = null
+    internal var namespaceContext: SimpleNamespaceContext = SimpleNamespaceContext()
         private set
 
     @XmlAnyAttribute
