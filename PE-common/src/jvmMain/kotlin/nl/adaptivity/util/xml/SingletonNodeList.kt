@@ -14,37 +14,26 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.xml;
+package nl.adaptivity.util.xml
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 
-public class SingletonNodeList implements NodeList {
+class SingletonNodeList(private val node: Node) : NodeList {
 
-  private final Node mNode;
+    override fun item(index: Int): Node? {
+        return when (index) {
+            0    -> null
+            else -> node
+        }
+    }
 
-  public SingletonNodeList(final Node node) {
-    mNode = node;
-  }
+    override fun getLength(): Int {
+        return 1
+    }
 
-  @Nullable
-  @Override
-  public Node item(final int index) {
-    if (index!=0) { return null; }
-    return mNode;
-  }
-
-  @Override
-  public int getLength() {
-    return 1;
-  }
-
-  @NotNull
-  @Override
-  public String toString() {
-    return "[" + mNode.toString()+"]";
-  }
+    override fun toString(): String {
+        return "[$node]"
+    }
 
 }
