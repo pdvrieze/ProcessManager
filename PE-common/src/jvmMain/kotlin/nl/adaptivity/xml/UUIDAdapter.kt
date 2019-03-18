@@ -14,29 +14,26 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.xml;
+package nl.adaptivity.xml
 
-import org.jetbrains.annotations.NotNull;
+import javax.xml.bind.annotation.adapters.XmlAdapter
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-
-import java.util.UUID;
+import java.util.UUID
 
 /**
  * Simple JAXB adapter that maps UUID's to strings and reverse
  * @author Paul de Vrieze
- *
  */
-public class UUIDAdapter extends XmlAdapter<String, UUID> {
+class UUIDAdapter : XmlAdapter<String, UUID>() {
 
-  @Override
-  public UUID unmarshal(final String v) throws Exception {
-    return UUID.fromString(v);
-  }
+    @Throws(Exception::class)
+    override fun unmarshal(v: String): UUID {
+        return UUID.fromString(v)
+    }
 
-  @Override
-  public String marshal(@NotNull final UUID v) throws Exception {
-    return v.toString();
-  }
+    @Throws(Exception::class)
+    override fun marshal(v: UUID): String {
+        return v.toString()
+    }
 
 }
