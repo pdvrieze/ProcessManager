@@ -25,4 +25,5 @@ import javax.xml.stream.XMLStreamWriter
  * Delegate that simply forwards to the wrapped streamwriter
  * Created by pdvrieze on 24/08/15.
  */
+@Deprecated("Use direct delegate in Kotlin")
 class StreamWriterDelegate(val delegate: XMLStreamWriter) : XMLStreamWriter by delegate
