@@ -314,7 +314,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
       null                                 -> throw FileNotFoundException()
       is Source                            -> {
         setContentType(pResponse, "application/binary")// Unknown content type
-        Sources.writeToStream(value as Source?, pResponse.outputStream)
+        Sources.writeToStream(value, pResponse.outputStream)
       }
       is Node                              -> {
         pResponse.contentType = "text/xml"
@@ -343,10 +343,10 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         setContentType(pResponse, "text/plain")
         pResponse.writer.append(value as CharSequence?)
       }
-      else -> if (value != null) {
-        setContentType(pResponse, "text/xml")
+      else -> {
+          setContentType(pResponse, "text/xml")
 
-        val jaxbSource = JAXBSource(JAXBContext.newInstance(returnType), value)
+          val jaxbSource = JAXBSource(JAXBContext.newInstance(returnType), value)
           jaxbSource.writeToStream(pResponse.outputStream)
       }
     }
@@ -436,13 +436,13 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         for (item in collection) {
           when (item) {
             is XmlSerializable -> item.serialize(xmlWriter)
-            is Node                              -> xmlWriter.serialize(item as Node)
+            is Node                              -> xmlWriter.serialize(item)
             null                                 -> Unit
             else                                 -> {
               val m = marshaller ?: run {
                 val jaxbcontext: JAXBContext = when (elementType) {
                   null -> newJAXBContext(JAXBCollectionWrapper::class.java)
-                  else -> newJAXBContext(JAXBCollectionWrapper::class.java, elementType!!)
+                  else -> newJAXBContext(JAXBCollectionWrapper::class.java, elementType)
                 }
                 jaxbcontext.createMarshaller().also { marshaller = it }
               }

@@ -125,7 +125,7 @@ private constructor() : IMessenger {
          * @param future The future to notify completion of.
          */
         private fun notififyCompletion(future: MessageTask<T>) {
-            future.completionListener.onMessageCompletion(future)
+            future.completionListener?.onMessageCompletion(future)
         }
 
 
@@ -141,13 +141,13 @@ private constructor() : IMessenger {
     internal inner class MessageTask<T> : RunnableFuture<T> {
 
         /** The uri to use for sending the message.  */
-        private val destURL: URI
+        private var destURL: URI? = null
 
         /** The message to send.  */
-        private val message: ISendableMessage
+        private var message: ISendableMessage? = null
 
         /** The listener to notify of completion.  */
-        private val completionListener: CompletionListener<T>
+        var completionListener: CompletionListener<T>? = null
 
         /** The result value.  */
         private var result: T? = null
@@ -253,13 +253,14 @@ private constructor() : IMessenger {
             val destination: URL
 
             try {
-                destination = destURL.toURL()
+                destination = destURL!!.toURL()
             } catch (e: MalformedURLException) {
                 throw MessagingException(e)
             }
 
             val connection = destination.openConnection()
             if (connection is HttpURLConnection) {
+                val message = message!!
                 val hasPayload = message.bodySource != null
                 connection.setDoOutput(hasPayload)
                 var method: String? = message.method
@@ -575,7 +576,7 @@ private constructor() : IMessenger {
         MessagingRegistry.registerMessenger(null) // Unregister this messenger
         notifier.shutdown()
         executor.shutdown()
-        services = null
+        services = ConcurrentHashMap()
     }
 
     /**
@@ -586,8 +587,8 @@ private constructor() : IMessenger {
      *
      * @param future The Task whose completion to notify of.
      */
-    internal fun notifyCompletionListener(future: MessageTask<*>) {
-        notifier.addNotification(future)
+    internal fun <T> notifyCompletionListener(future: MessageTask<T>) {
+        (notifier as MessageCompletionNotifier<T>).addNotification(future)
     }
 
     /**
@@ -661,4 +662,17 @@ private constructor() : IMessenger {
         }
     }
 
+}
+
+
+private inline fun DarwinMessenger.wait() {
+    (this as java.lang.Object).wait()
+}
+
+private inline fun DarwinMessenger.wait(timeout: Long) {
+    (this as java.lang.Object).wait(timeout)
+}
+
+private inline fun DarwinMessenger.wait(timeout: Long, nanos: Int) {
+    (this as java.lang.Object).wait(timeout, nanos)
 }

@@ -42,7 +42,7 @@ import java.util.logging.Logger
  *
  * @author Paul de Vrieze
  */
-class EndpointServlet : HttpServlet {
+open class EndpointServlet : HttpServlet {
 
     /**
      * Override this to override the endpoint used by this servlet to serve
