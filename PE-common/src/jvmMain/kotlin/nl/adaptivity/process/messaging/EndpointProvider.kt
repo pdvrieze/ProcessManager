@@ -14,29 +14,22 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.messaging;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
+package nl.adaptivity.process.messaging
 
 
 /**
  * Marker interface for classes that can provide a set of endpoints.
- * 
+ *
  * @author Paul de Vrieze
- * @deprecated Does not work currently in servlet context as they are
- *             declarative.
  */
-@Deprecated
-public interface EndpointProvider {
+@Deprecated("Does not work currently in servlet context as they are declarative.")
+interface EndpointProvider {
 
-  /**
-   * Get the endpoints provided.
-   * 
-   * @return The collection
-   */
-  @NotNull
-  Collection<GenericEndpoint> getEndpoints();
+    /**
+     * Get the endpoints provided.
+     *
+     * @return The collection
+     */
+    val endpoints: Collection<GenericEndpoint>
 
 }
