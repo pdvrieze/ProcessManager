@@ -30,6 +30,7 @@ class XmlStartNode : StartNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNo
 
     override fun builder() = Builder(this)
 
+    @SerialName("start")
     @Serializable
     class Builder : StartNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
 

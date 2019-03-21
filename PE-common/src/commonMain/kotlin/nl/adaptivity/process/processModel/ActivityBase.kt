@@ -25,6 +25,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -172,6 +173,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         override val elementName: QName
             get() = Activity.ELEMENTNAME
 
+        @SerialName("predecessor")
+        @XmlSerialName("predecessor", "", "")
         @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 

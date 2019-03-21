@@ -25,6 +25,7 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -92,10 +93,10 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
     @Serializer(forClass = XmlResultType::class)
     companion object : XPathHolderSerializer<XmlResultType>(), KSerializer<XmlResultType> {
-        override val descriptor = simpleSerialClassDesc<XmlResultType>("name",
-                                                                            "xpath",
-                                                                            "namespaces",
-                                                                            "content")
+        override val descriptor = simpleSerialClassDesc<XmlResultType>("name" to StringSerializer,
+                                                                       "xpath" to StringSerializer,
+                                                                       "namespaces" to Namespace.list,
+                                                                       "content" to StringSerializer)
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {

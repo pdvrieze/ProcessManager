@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Optional
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -133,6 +134,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         override val idBase: String
             get() = "join"
 
+        @Optional
         @XmlDefault("false")
         final override var isMultiMerge: Boolean = false
 

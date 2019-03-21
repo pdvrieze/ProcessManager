@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
@@ -393,12 +390,15 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         override var id: String?
         override var label: String?
 
+        @Optional
         @XmlDefault("NaN")
         override var x: Double = Double.NaN
 
+        @Optional
         @XmlDefault("NaN")
         override var y: Double = Double.NaN
 
+        @Optional
         @XmlDefault("false")
         override var isMultiInstance: Boolean = false
 

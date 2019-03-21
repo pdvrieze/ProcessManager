@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import kotlinx.serialization.context.SerialContext
 import kotlinx.serialization.internal.ListLikeSerializer
+import kotlinx.serialization.internal.StringSerializer
 import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
@@ -27,10 +28,7 @@ import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
-import nl.adaptivity.xmlutil.serialization.decodeElements
-import nl.adaptivity.xmlutil.serialization.decodeStructure
-import nl.adaptivity.xmlutil.serialization.writeStructure
+import nl.adaptivity.xmlutil.serialization.*
 import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import kotlin.jvm.JvmStatic
 
@@ -346,7 +344,15 @@ private object ModelNodeClassDesc : SerialDescriptor {
     override fun getElementIndex(name: String) = when (name) {
         "klass" -> 0
         "value" -> 1
-        else    -> KInput.UNKNOWN_NAME
+        else    -> CompositeDecoder.UNKNOWN_NAME
+    }
+
+    override fun getElementDescriptor(index: Int): SerialDescriptor {
+        return when(index) {
+            0 -> StringSerializer.descriptor
+            1 -> simpleSerialClassDesc<XmlProcessNode>()
+            else -> throw IndexOutOfBoundsException("$index")
+        }
     }
 
     override fun getElementName(index: Int): String {

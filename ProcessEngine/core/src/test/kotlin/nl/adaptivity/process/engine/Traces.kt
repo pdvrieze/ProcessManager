@@ -306,7 +306,7 @@ class TraceBuilder {
     @TraceDsl
     val Traces.opt: Traces get() = listOf(trace()) or this
 
-    /** flatten parallalel sequences */
+    /** flatten parallalel sequences, generating all valid zips between the two ordered lists */
     @TraceDsl
     operator fun BTrace.div(other: BTrace): Traces {
         return when {

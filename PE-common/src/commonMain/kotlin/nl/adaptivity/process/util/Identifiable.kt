@@ -17,6 +17,8 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.NullableSerializer
+import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.xmlutil.serialization.DelegateSerializer
 import nl.adaptivity.xmlutil.serialization.simpleSerialClassDesc
 
@@ -43,7 +45,7 @@ interface Identifiable : Comparable<Identifiable> {
     @Serializer(forClass = Identifiable::class)
     companion object {
         override val descriptor: SerialDescriptor
-            get() = simpleSerialClassDesc<Identifiable>()
+            get() = StringSerializer.descriptor
 
         override fun deserialize(decoder: Decoder): Identifiable {
             return Identifier(decoder.decodeString())

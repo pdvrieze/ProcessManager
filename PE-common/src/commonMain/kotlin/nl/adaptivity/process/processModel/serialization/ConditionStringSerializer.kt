@@ -31,22 +31,22 @@ internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifi
 
     override fun patch(decoder: Decoder, old: MutableMap<Identifier, String?>): MutableMap<Identifier, String?> {
         val desc = descriptor
+        val startIndex = old.size
         decoder.decodeStructure(desc) {
-            var size = -1
+            var size = decodeCollectionSize(desc)
             loop@ while (true) {
                 val index = decodeElementIndex(desc)
                 when (index) {
-                    0                -> size = decodeIntElement(desc, 0)
                     CompositeDecoder.READ_DONE -> break@loop
                     CompositeDecoder.READ_ALL  -> {
                         size = decodeIntElement(desc, 0)
-                        for (i in 1..size) {
-                            val e = decodeSerializableElement(desc, i, predecessorSerializer)
+                        for (i in 0 until size) {
+                            val e = decodeSerializableElement(desc, startIndex + i, predecessorSerializer)
                             old[Identifier(e.id)] = e.condition
                         }
                     }
                     else             -> {
-                        val e = decodeSerializableElement(desc, index, predecessorSerializer)
+                        val e = decodeSerializableElement(desc, startIndex+index, predecessorSerializer)
                         old[Identifier(e.id)] = e.condition
                     }
 

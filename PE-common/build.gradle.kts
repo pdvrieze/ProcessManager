@@ -126,6 +126,9 @@ kotlin {
                 implementation("org.mockito:mockito-core:2.25.0")
                 implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
 
+                runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
+
+
 //                implementation(project(":JavaCommonApi"))
 //                implementation(project(":DarwinJavaApi"))
                 implementation(project(":TestSupport"))

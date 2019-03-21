@@ -25,6 +25,7 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
@@ -155,10 +156,15 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     }
 
     @Serializer(forClass = XmlDefineType::class)
-    companion object: XPathHolderSerializer<XmlDefineType>() {
+    companion object : XPathHolderSerializer<XmlDefineType>() {
 
         override val descriptor =
-            simpleSerialClassDesc<XmlDefineType>("name", "refnode", "refname", "xpath", "namespaces", "content")
+            simpleSerialClassDesc<XmlDefineType>("name" to StringSerializer,
+                                                 "refnode" to StringSerializer,
+                                                 "refname" to StringSerializer,
+                                                 "xpath" to StringSerializer,
+                                                 "namespaces" to Namespace.list,
+                                                 "content" to StringSerializer)
 
         const val ELEMENTLOCALNAME = "define"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
@@ -176,7 +182,8 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         override fun deserialize(decoder: Decoder): XmlDefineType {
             val data = DefineTypeData()
             data.deserialize(descriptor, decoder)
-            return XmlDefineType(data.name, data.refNode, data.refName, data.path, data.content, data.namespaces?: emptyList())
+            return XmlDefineType(data.name, data.refNode, data.refName, data.path, data.content,
+                                 data.namespaces ?: emptyList())
         }
 
         override fun writeAdditionalAttributes(writer: XmlWriter, data: XmlDefineType) {
@@ -195,14 +202,15 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             serialize(descriptor, encoder, obj)
         }
 
-        private class DefineTypeData(var refNode: String? = null, var refName: String? = null) : PathHolderData<XmlDefineType>(this) {
+        private class DefineTypeData(var refNode: String? = null,
+                                     var refName: String? = null) : PathHolderData<XmlDefineType>(this) {
 
             override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
                 val name = desc.getElementName(index)
-                when (name)  {
+                when (name) {
                     "refnode" -> refNode = decoder.readNullableString(desc, index)
                     "refname" -> refName = decoder.readNullableString(desc, index)
-                    else -> super.readAdditionalChild(desc, decoder, index)
+                    else      -> super.readAdditionalChild(desc, decoder, index)
                 }
             }
 
@@ -210,7 +218,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
                 when (attributeLocalName) {
                     "refnode" -> refNode = attributeValue
                     "refname" -> refName = attributeValue
-                    else -> super.handleAttribute(attributeLocalName, attributeValue)
+                    else      -> super.handleAttribute(attributeLocalName, attributeValue)
                 }
             }
         }
