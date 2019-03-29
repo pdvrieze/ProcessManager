@@ -20,6 +20,7 @@ import kotlinx.serialization.Optional
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.serialization.ConditionSerializer
 import nl.adaptivity.process.processModel.serialization.ConditionStringSerializer
 import nl.adaptivity.process.util.*
@@ -27,6 +28,7 @@ import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlElement
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import kotlin.collections.AbstractMutableSet
 import kotlin.collections.Collection
 import kotlin.collections.Map
@@ -68,16 +70,20 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    @Serializable(IdentifiableSetSerializer::class)
-    @SerialName("predecessor")
+    @Transient
     override val predecessors: IdentifyableSet<Identified>
         get() = super.predecessors
 
     @Transient
-//    @Serializable(with = ConditionSerializer::class)
-    @SerialName("predecessor")
-    @XmlElement(true)
     final override val conditions: Map<Identifier, Condition?>
+
+    @Serializable(with = ConditionStringSerializer::class)
+    @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @SerialName("predecessors")
+    @XmlElement(true)
+    private var conditionStringsForSerialization: Map<Identifier, String?>
+        get() = conditions.mapValues { (_, value) -> value?.condition }
+        set(value) = TODO("Not supported")
 
     @Suppress("DEPRECATION")
     @Deprecated("Use builders")
@@ -139,14 +145,15 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         final override var isMultiMerge: Boolean = false
 
         @Transient
-        final override var predecessors: MutableSet<Identified> = PrececessorSet()
+        final override var predecessors: MutableSet<Identified> = PredecessorSet()
             set(value) {
                 field.retainAll(value)
                 field.addAll(value)
             }
 
         @Serializable(ConditionStringSerializer::class)
-        @SerialName("predecessor")
+        @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+        @SerialName("predecessors")
         override var conditions: MutableMap<Identifier, String?> = mutableMapOf()
 
         @Transient
@@ -217,7 +224,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
             return super.deserializeChild(reader)
         }
 
-        private inner class PrececessorSet: AbstractMutableSet<Identified>() {
+        private inner class PredecessorSet: AbstractMutableSet<Identified>() {
             override val size: Int get() = conditions.size
 
             override fun add(element: Identified): Boolean {

@@ -20,6 +20,7 @@ import kotlinx.serialization.*
 import nl.adaptivity.process.processModel.PredecessorInfo
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.serialization.decodeStructure
+import nl.adaptivity.xmlutil.serialization.writeCollection
 import nl.adaptivity.xmlutil.serialization.writeStructure
 
 internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifier>, val valueSerializer: KSerializer<String>): KSerializer<MutableMap<Identifier, String?>> {
@@ -39,7 +40,6 @@ internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifi
                 when (index) {
                     CompositeDecoder.READ_DONE -> break@loop
                     CompositeDecoder.READ_ALL  -> {
-                        size = decodeIntElement(desc, 0)
                         for (i in 0 until size) {
                             val e = decodeSerializableElement(desc, startIndex + i, predecessorSerializer)
                             old[Identifier(e.id)] = e.condition
@@ -62,10 +62,8 @@ internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifi
 
     override fun serialize(encoder: Encoder, obj: MutableMap<Identifier, String?>) {
         val desc = descriptor
-        encoder.writeStructure(desc) {
-            encodeIntElement(desc, 0, obj.size)
-
-            var idx = 1
+        encoder.writeCollection(desc, obj.size) {
+            var idx = 0
             for (elem in obj) {
                 encodeSerializableElement(desc, idx, predecessorSerializer, PredecessorInfo(elem.key.id, elem.value))
                 idx++

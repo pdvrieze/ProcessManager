@@ -22,6 +22,7 @@ import nl.adaptivity.process.processModel.PredecessorInfo
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.serialization.decodeStructure
+import nl.adaptivity.xmlutil.serialization.writeCollection
 import nl.adaptivity.xmlutil.serialization.writeStructure
 
 
@@ -61,10 +62,9 @@ internal class ConditionSerializer(ks: KSerializer<*>, vs: KSerializer<*>): KSer
 
     override fun serialize(encoder: Encoder, obj: MutableMap<Identifier, Condition?>) {
         val desc = descriptor
-        encoder.writeStructure(desc) {
-            encodeIntElement(desc, 0, obj.size)
+        encoder.writeCollection(desc, obj.size) {
 
-            var idx = 1
+            var idx = 0
             for (elem in obj) {
                 encodeSerializableElement(desc, idx, predecessorSerializer,
                                           PredecessorInfo(elem.key.id, elem.value?.condition))
