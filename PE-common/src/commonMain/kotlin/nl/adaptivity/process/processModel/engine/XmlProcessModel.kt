@@ -29,6 +29,7 @@ import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XmlChildrenName
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**

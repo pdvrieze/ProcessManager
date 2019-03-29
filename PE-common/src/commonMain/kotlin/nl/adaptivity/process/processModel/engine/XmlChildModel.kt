@@ -17,11 +17,15 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlChildModel.Companion::class)
+@SerialName(ChildProcessModel.ELEMENTLOCALNAME)
+@XmlSerialName(ChildProcessModel.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
                       ChildProcessModel<XmlProcessNode, XmlModelCommon>,
                       XmlModelCommon {

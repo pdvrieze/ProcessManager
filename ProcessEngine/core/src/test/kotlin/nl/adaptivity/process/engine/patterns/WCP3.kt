@@ -21,6 +21,14 @@ import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 
+private const val WCP3_expectedJson = "{\"name\":\"WCP3\",\"owner\":\"pdvrieze\",\"roles\":null,\"uuid\":null,\"childModel\":[],\"import\":[],\"export\":[],\"nodes\":[" +
+                                      "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"start\",\"label\":null}]," +
+                                      "[\"nl.adaptivity.process.processModel.engine.XmlSplit\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"split\",\"label\":null,\"min\":2,\"max\":2,\"predecessor\":\"start\"}]," +
+                                      "[\"nl.adaptivity.process.processModel.engine.XmlActivity\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac1\",\"label\":null,\"name\":null,\"childId\":null,\"predecessor\":\"split\",\"message\":null}]," +
+                                      "[\"nl.adaptivity.process.processModel.engine.XmlActivity\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac2\",\"label\":null,\"name\":null,\"childId\":null,\"predecessor\":\"split\",\"message\":null}]," +
+                                      "[\"nl.adaptivity.process.processModel.engine.XmlJoin\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"join\",\"label\":null,\"min\":2,\"max\":2,\"isMultiMerge\":false,\"predecessors\":[{\"predecessor\":\"ac1\",\"condition\":null},{\"predecessor\":\"ac2\",\"condition\":null}]}]," +
+                                      "[\"nl.adaptivity.process.processModel.engine.XmlEndNode\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"join\"}]]}"
+
 class WCP3: ModelSpek(run{
   val model = object: ConfigurableModel("WCP3") {
     val start by startNode
@@ -42,4 +50,4 @@ class WCP3: ModelSpek(run{
                 ))
   }}
   ModelData(model, validTraces, invalidTraces)
-})
+}, modelJson = WCP3_expectedJson)
