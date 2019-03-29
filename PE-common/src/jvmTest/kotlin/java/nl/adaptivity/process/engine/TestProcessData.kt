@@ -832,7 +832,7 @@ class TestProcessData {
         @Throws(FileNotFoundException::class)
         private fun getDocument(name: String): InputStream {
             return TestProcessData::class.java.getResourceAsStream("/nl/adaptivity/process/engine/test/$name")
-                   ?: FileInputStream("PE-common/src/jvmTest/resources/nl/adaptivity/process/engine/test/$name")
+                   ?: FileInputStream("src/jvmTest/resources/nl/adaptivity/process/engine/test/$name")
         }
 
         @BeforeAll
