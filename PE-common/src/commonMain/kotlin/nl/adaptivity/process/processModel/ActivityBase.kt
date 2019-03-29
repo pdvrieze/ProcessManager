@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Optional
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -161,7 +162,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         @Suppress("OverridingDeprecatedMember")
         final override var name: String?
 
-        final override var condition: String?
+        @Optional
+        final override var condition: String? = null
 
         @Transient
         override val idBase: String
