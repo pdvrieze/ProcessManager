@@ -236,17 +236,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                     val input = this
                     val result = builder()
                     decodeElements(input) { index ->
-                        when (index) {
-                            CompositeDecoder.READ_ALL  -> {
-                                for (i in 0 until descriptor.associatedFieldsCount) {
-                                    readElement(result, input, i)
-                                }
-                                return result
-                            }
-                            CompositeDecoder.READ_DONE ->
-                                return result
-                            else             -> readElement(result, input, index)
-                        }
+                        readElement(result, input, index)
                     }
                     return result
                 }
