@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Decoder
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.Join
@@ -39,6 +42,11 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
     @Serializer(XmlJoin::class)
     companion object: KSerializer<XmlJoin> {
+        val parentSerializer = JoinBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer())
+
+        override fun serialize(encoder: kotlinx.serialization.Encoder, obj: XmlJoin) {
+            parentSerializer.serialize(encoder, obj)
+        }
 
         @Throws(XmlException::class)
         fun deserialize(reader: XmlReader,

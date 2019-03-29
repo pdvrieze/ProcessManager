@@ -90,10 +90,10 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     override val elementName: QName
         get() = ELEMENTNAME
 
-
     @Serializer(forClass = XmlResultType::class)
     companion object : XPathHolderSerializer<XmlResultType>(), KSerializer<XmlResultType> {
-        override val descriptor = simpleSerialClassDesc<XmlResultType>("name" to StringSerializer,
+        override val descriptor = simpleSerialClassDesc<XmlResultType>(XmlResultTypeAnnotationHelper.descriptor.getEntityAnnotations(),
+                                                                       "name" to StringSerializer,
                                                                        "xpath" to StringSerializer,
                                                                        "namespaces" to Namespace.list,
                                                                        "content" to StringSerializer)
@@ -144,3 +144,7 @@ fun XmlResultType(import: IXmlResultType): XmlResultType {
     return XmlResultType(import.getName(), import.getPath(), content = null,
                          originalNSContext = originalNSContext)
 }
+
+/** Dummy serializer that is just used to get the annotations on the type. */
+@Serializer(XmlResultType::class)
+private object XmlResultTypeAnnotationHelper {}

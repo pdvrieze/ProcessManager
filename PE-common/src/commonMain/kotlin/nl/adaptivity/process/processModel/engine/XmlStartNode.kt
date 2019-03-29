@@ -45,12 +45,13 @@ class XmlStartNode : StartNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNo
 
     @Serializer(XmlStartNode::class)
     companion object: KSerializer<XmlStartNode> {
+        val parentSerializer = StartNodeBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer())
 
         fun serializer(): KSerializer<XmlStartNode> = this
 
         override fun serialize(encoder: kotlinx.serialization.Encoder,
                                obj: XmlStartNode) {
-            StartNodeBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer()).serialize(encoder, obj)
+            parentSerializer.serialize(encoder, obj)
         }
 
         override fun deserialize(decoder: Decoder): XmlStartNode {
