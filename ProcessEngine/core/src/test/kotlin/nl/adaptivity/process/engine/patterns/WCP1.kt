@@ -22,7 +22,18 @@ import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 import org.junit.jupiter.api.Assertions.assertEquals
 
-class WCP1 : ModelSpek(run {
+private const val expectedWCP1Json = "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",\"roles\":null,\"uuid\":null,\"childModel\":[],\"import\":[],\"export\":[],\"nodes\":[" +
+                                     "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\"," +
+                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"start\",\"label\":null}]," +
+                                     "[\"nl.adaptivity.process.processModel.engine.XmlActivity\"," +
+                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac1\",\"label\":null,\"name\":null,\"childId\":null,\"predecessor\":\"start\",\"message\":null}]," +
+                                     "[\"nl.adaptivity.process.processModel.engine.XmlActivity\"," +
+                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac2\",\"label\":null,\"name\":null,\"childId\":null,\"predecessor\":\"ac1\",\"message\":null}]," +
+                                     "[\"nl.adaptivity.process.processModel.engine.XmlEndNode\"," +
+                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"ac2\"}]" +
+                                     "]}"
+
+object WCP1 : ModelSpek(run {
     val m = object : ConfigurableModel("WCP1") {
         val start by startNode
         val ac1 by activity(start)
@@ -43,4 +54,4 @@ class WCP1 : ModelSpek(run {
                                    assertEquals("WCP1", m.name)
                                }
                            }
-                       })
+                       }, modelJson = expectedWCP1Json)

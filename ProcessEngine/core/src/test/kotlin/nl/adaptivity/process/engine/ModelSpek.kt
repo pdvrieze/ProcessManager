@@ -79,11 +79,11 @@ fun <T> List<T>.selectN(max: Int): List<T> {
     }
 }
 
-class EngineTestBody(delegate: TestBody): DelegateTestBody(delegate) {
+class EngineTestBody(delegate: TestBody) : DelegateTestBody(delegate) {
     val engineData by memoized<EngineTestData>()
 }
 
-open class EngineSuite(val delegate: Suite): LifecycleAware by delegate {
+open class EngineSuite(val delegate: Suite) : LifecycleAware by delegate {
     val engineData by memoized<EngineTestData>()
 
     @Synonym(SynonymType.GROUP)
@@ -101,13 +101,13 @@ open class EngineSuite(val delegate: Suite): LifecycleAware by delegate {
     @Synonym(SynonymType.GROUP, excluded = true)
     @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
     fun xdescribe(description: String, reason: String = "", body: EngineSuite.() -> Unit) {
-        delegate.xdescribe(description, reason) {EngineSuite(this).body()}
+        delegate.xdescribe(description, reason) { EngineSuite(this).body() }
     }
 
     @Synonym(SynonymType.GROUP, excluded = true)
     @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
     fun xcontext(description: String, reason: String = "", body: EngineSuite.() -> Unit) {
-        delegate.xcontext(description, reason) {EngineSuite(this).body()}
+        delegate.xcontext(description, reason) { EngineSuite(this).body() }
     }
 
     @Synonym(SynonymType.TEST)
@@ -143,7 +143,8 @@ open class EngineSuite(val delegate: Suite): LifecycleAware by delegate {
 abstract class ModelSpek(val modelData: ModelData,
                          custom: (CustomDsl.() -> Unit)? = null,
                          val maxValid: Int = Int.MAX_VALUE,
-                         val maxInvalid: Int = maxValid) : Spek(
+                         val maxInvalid: Int = maxValid,
+                         val modelJson: String? = null) : Spek(
     {
 
         val model by memoized(CachingMode.SCOPE) { modelData.model }
@@ -191,16 +192,22 @@ abstract class ModelSpek(val modelData: ModelData,
                 context("JSON") {
                     lateinit var jsonSerialization: String
 
-                    it("Should be able to be serialized to XML") {
+                    it("Should be able to be serialized to JSON") {
                         Assertions.assertDoesNotThrow {
-                            jsonSerialization = Json.stringify(XmlProcessModel.serializer(),
-                                                               XmlProcessModel(model.builder()))
+                            jsonSerialization = Json(strictMode = false).stringify(XmlProcessModel.serializer(),
+                                                                                   XmlProcessModel(model.builder()))
+                        }
+                    }
+                    if (modelJson != null) {
+                        it("should match the expected json") {
+                            assertEquals(modelJson, jsonSerialization)
                         }
                     }
                     it("Should also be able to be deserialized") {
                         lateinit var deserializedModel: XmlProcessModel.Builder
                         Assertions.assertDoesNotThrow {
-                            deserializedModel = Json.parse(XmlProcessModel.Builder.serializer(), jsonSerialization)
+                            deserializedModel = Json(strictMode = false).parse(XmlProcessModel.Builder.serializer(),
+                                                                               jsonSerialization)
                         }
                         assertEquals(model, ExecutableProcessModel(deserializedModel))
                     }
@@ -304,7 +311,7 @@ internal fun EngineSuite.testInvalidTrace(
         transaction().readableEngineData.instance(hinstance()).withPermission()
     }
     context("given ${if (failureExpected) "invalid" else "valid"} trace ${invalidTrace.joinToString(prefix = "[",
-                                                                                                     postfix = "]")}") {
+                                                                                                    postfix = "]")}") {
         it("Executing the trace should ${if (!failureExpected) "not fail" else "fail"}") {
             var success = false
             try {
@@ -330,10 +337,10 @@ internal fun EngineSuite.testInvalidTrace(
 }
 
 private fun EngineSuite.startProcess(transactionGetter: Getter<StubProcessTransaction>,
-                                                    model: ExecutableProcessModel,
-                                                    owner: Principal,
-                                                    name: String,
-                                                    payload: Node? = null): Lazy<HProcessInstance> {
+                                     model: ExecutableProcessModel,
+                                     owner: Principal,
+                                     name: String,
+                                     payload: Node? = null): Lazy<HProcessInstance> {
     return lazy {
         val transaction = transactionGetter()
         val hmodel = if (model.getHandle().isValid &&
@@ -365,10 +372,10 @@ private fun EngineSuite.testTraceStarting(processInstanceF: Getter<ProcessInstan
 }
 
 private fun EngineSuite.testTraceCompletion(model: ExecutableProcessModel,
-                                         queue: StateQueue.SolidQueue,
-                                         transaction: Getter<StubProcessTransaction>,
-                                         processInstanceF: Getter<ProcessInstance>,
-                                         validTrace: Trace) {
+                                            queue: StateQueue.SolidQueue,
+                                            transaction: Getter<StubProcessTransaction>,
+                                            processInstanceF: Getter<ProcessInstance>,
+                                            validTrace: Trace) {
     context("The trace should be finished correctly") {
         beforeGroup { queue.invoke() }
         it("The trace should be valid") {
@@ -417,8 +424,8 @@ private fun EngineSuite.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance<
 }
 
 private fun EngineSuite.testComposite(transaction: Getter<StubProcessTransaction>,
-                                   nodeInstanceF: Getter<ProcessNodeInstance<*>>,
-                                   traceElement: TraceElement) {
+                                      nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                      traceElement: TraceElement) {
     it("A child instance should have been created for $traceElement") {
         Assertions.assertTrue(
             (nodeInstanceF() as CompositeInstance).hChildInstance.isValid) { "No child instance was recorded" }
@@ -435,8 +442,8 @@ private fun EngineSuite.testComposite(transaction: Getter<StubProcessTransaction
 }
 
 private fun EngineSuite.testActivity(transaction: Getter<StubProcessTransaction>,
-                                  nodeInstanceF: Getter<ProcessNodeInstance<*>>,
-                                  traceElement: TraceElement) {
+                                     nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                     traceElement: TraceElement) {
     it("$traceElement should not be in a final state") {
         val nodeInstance = nodeInstanceF()
         Assertions.assertFalse(
@@ -479,8 +486,8 @@ private fun EngineSuite.testActivity(transaction: Getter<StubProcessTransaction>
 }
 
 private fun EngineSuite.testSplit(transaction: Getter<StubProcessTransaction>,
-                               nodeInstanceF: Getter<ProcessNodeInstance<*>>,
-                               traceElement: TraceElement) {
+                                  nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                  traceElement: TraceElement) {
     it("Split $traceElement should already be finished") {
         val nodeInstance = nodeInstanceF()
         Assertions.assertEquals(Complete, nodeInstance.state) {
@@ -493,8 +500,8 @@ private fun EngineSuite.testSplit(transaction: Getter<StubProcessTransaction>,
 }
 
 private fun EngineSuite.testJoin(transaction: Getter<StubProcessTransaction>,
-                              nodeInstanceF: Getter<ProcessNodeInstance<*>>,
-                              traceElement: TraceElement) {
+                                 nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                 traceElement: TraceElement) {
     it("Join $traceElement should already be finished") {
         val nodeInstance = nodeInstanceF() as JoinInstance
         val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
@@ -511,8 +518,8 @@ private fun EngineSuite.testJoin(transaction: Getter<StubProcessTransaction>,
 }
 
 private fun EngineSuite.testEndNode(transaction: Getter<StubProcessTransaction>,
-                                 nodeInstanceF: Getter<ProcessNodeInstance<*>>,
-                                 traceElement: TraceElement) {
+                                    nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                    traceElement: TraceElement) {
     testAssertNodeFinished(nodeInstanceF, traceElement)
     it("$traceElement should be part of the completion nodes") {
         val nodeInstance = nodeInstanceF()
@@ -531,13 +538,15 @@ private fun EngineSuite.testEndNode(transaction: Getter<StubProcessTransaction>,
     }
 }
 
-private fun EngineSuite.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
+private fun EngineSuite.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                               traceElement: TraceElement) {
     it("$traceElement should be finished") {
         Assertions.assertEquals(Complete, nodeInstanceF().state)
     }
 }
 
-private fun EngineTestBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
+private fun EngineTestBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>,
+                                                  traceElement: TraceElement) {
     Assertions.assertEquals(Complete, nodeInstanceF().state)
 }
 

@@ -42,7 +42,7 @@ object TestWorkflowPatterns2 : Spek(
       describe("basic control-flow patterns") {
 
         describe("WCP1: A sequential process") {
-          includeLocal(WCP1())
+          includeLocal(WCP1)
         }
 
         describe("WCP2: Parallel split") {
