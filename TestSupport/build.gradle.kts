@@ -50,5 +50,5 @@ artifacts {
 registerAndroidAttributeForDeps()
 
 dependencies {
-    implementation(project(":java-common"))
+    api(project(":java-common"))
 }

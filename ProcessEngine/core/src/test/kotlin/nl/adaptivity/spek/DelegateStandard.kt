@@ -17,7 +17,7 @@
 package nl.adaptivity.spek
 
 import nl.adaptivity.process.engine.ProcessTestingDslMarker
-import org.jetbrains.spek.api.dsl.Pending
+import org.spekframework.spek2.dsl.Skip
 
 fun <SPECBODY> DelegateSpecBody<SPECBODY, *, *, *>.describe(description: String, body: SPECBODY.() -> Unit) {
   group("describe $description", extbody = body)
@@ -40,29 +40,28 @@ fun <TESTBODY> DelegateTestContainer<*, TESTBODY>.it(description: String, body: 
 }
 
 fun <SPECBODY> DelegateSpecBody<SPECBODY, *, *, *>.xdescribe(description: String, reason: String? = null, body: SPECBODY.() -> Unit) {
-  group("describe $description", Pending.Yes(reason), extbody = body)
+  group("describe $description", Skip.Yes(reason), extbody = body)
 }
 
 fun <SPECBODY> DelegateSpecBody<SPECBODY, *, *, *>.xcontext(description: String, reason: String? = null, body: SPECBODY.() -> Unit) {
-  group("context $description", Pending.Yes(reason), extbody = body)
+  group("context $description", Skip.Yes(reason), extbody = body)
 }
 
 fun <SPECBODY> DelegateSpecBody<SPECBODY, *, *, *>.xgiven(description: String, reason: String? = null, body: SPECBODY.() -> Unit) {
-  group("given $description", Pending.Yes(reason), extbody = body)
+  group("given $description", Skip.Yes(reason), extbody = body)
 }
 
 fun <ACTIONBODY> DelegateSpecBody<*, ACTIONBODY, *, *>.xon(description: String, reason: String? = null, body: ACTIONBODY.() -> Unit = {}) {
-  action("on $description", Pending.Yes(reason), extbody = body)
+  action("on $description", Skip.Yes(reason), extbody = body)
 }
 
 fun <TESTBODY> DelegateTestContainer<*, TESTBODY>.xit(description: String, reason: String? = null, body: TESTBODY.() -> Unit = {}) {
-  test("it $description", Pending.Yes(reason), extbody = body)
+  test("it $description", Skip.Yes(reason), extbody = body)
 }
 
-
 @ProcessTestingDslMarker
-inline fun <SPECBODY, R> DelegateSpecBody<SPECBODY, *, *, *>.rgroup(description: String, pending: Pending = Pending.No, noinline body: SPECBODY.() -> R):R {
+inline fun <SPECBODY, R> DelegateSpecBody<SPECBODY, *, *, *>.rgroup(description: String, skip: Skip = Skip.No, noinline body: SPECBODY.() -> R):R {
   var result: R? = null
-  group(description, pending, extbody = { result = body() })
+  group(description, skip, extbody = { result = body() })
   return result!!
 }

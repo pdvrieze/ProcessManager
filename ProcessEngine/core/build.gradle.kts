@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -21,6 +22,8 @@ plugins {
     id("kotlin")
     id("idea")
 }
+
+registerAndroidAttributeForDeps()
 
 version = "1.0.0"
 description = "The core process engine, independent of deployment location."
@@ -35,30 +38,37 @@ tasks.named<Jar>("jar") {
     baseName = "${project.parent?.name}-${project.name}"
 }
 
+configurations {
+    named<Configuration>("implementation") {
+        attributes {
+            attribute(androidAttribute, false)
+        }
+    }
+}
+
 artifacts {
     add("testRuntime", testJar)
 }
 
-val spekVersion: String by project
+val spek2Version: String by project
 val jupiterVersion: String by project
 val xmlutilVersion: String by project
 val kotlin_version: String by project
 val argJvmDefault: String by project
 
-registerAndroidAttributeForDeps()
-
 dependencies {
-    api(project(":java-common"))
-    api(project(":PE-common"))
+    implementation(project(":java-common"))
+    implementation(project(":PE-common"))
+    
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
 
     runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
 
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spekVersion}") {
+    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}") {
         exclude(group="org.jetbrains.kotlin")
     }
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spekVersion}")
+    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
@@ -71,7 +81,7 @@ dependencies {
     testRuntime("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 
-    testRuntime("org.spekframework.spek2:spek-runner-junit5:${spekVersion}") {
+    testRuntime("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
         exclude(group="org.junit.platform")
         exclude(group="org.jetbrains.kotlin")
     }
@@ -91,7 +101,7 @@ tasks.withType<KotlinCompile> {
 
 tasks.named<Test>("test") {
     useJUnitPlatform {
-        includeEngines("spek", "junit-jupiter")
+        includeEngines("spek2", "junit-jupiter")
         include("**/TestWorkflowPatterns**")
         include("**/TestProcessEngine**")
     }

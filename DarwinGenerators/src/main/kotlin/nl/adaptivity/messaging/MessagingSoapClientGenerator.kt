@@ -526,7 +526,7 @@ object MessagingSoapClientGenerator {
     }
 
     @Throws(IOException::class)
-    private fun writeClassArray(out: Writer, value: Array<KClass<*>>, imports: MutableMap<String, String>) {
+    private fun writeClassArray(out: Writer, value: Array<out KClass<*>>, imports: MutableMap<String, String>) {
         if (value.isEmpty()) {
             out.write("emptyArray<Class<?>>()")
             return

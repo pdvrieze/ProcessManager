@@ -17,6 +17,7 @@ import multiplatform.registerAndroidAttributeForDeps
  */
 
 plugins{
+//    id("application")
     id("kotlin")
     id("idea")
 }
@@ -38,7 +39,7 @@ java {
 
 
 val mainClassName = "nl.adaptivity.messaging.MessagingSoapClientGenerator"
-project.ext["main"] = mainClassName
+project.ext["mainClassName"] = mainClassName
 
 tasks {
     named<Jar>("jar") {
@@ -52,11 +53,12 @@ val tomcatVersion: String by project
 val kotlin_version: String by project
 
 dependencies {
-    implementation(project(":PE-common"))
-    implementation(project( ":PE-common", "compileOnly"))
+    implementation(project(":JavaCommonApi"))
+    implementation(project(":DarwinJavaApi"))
     implementation(project(":java-common"))
+    implementation(project(":PE-common"))
     implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    runtime("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
 
 }

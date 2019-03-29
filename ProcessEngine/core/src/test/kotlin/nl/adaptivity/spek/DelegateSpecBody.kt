@@ -16,15 +16,15 @@
 
 package nl.adaptivity.spek
 
-import org.jetbrains.spek.api.dsl.ActionBody
-import org.jetbrains.spek.api.dsl.Pending
-import org.jetbrains.spek.api.dsl.SpecBody
-import org.jetbrains.spek.api.lifecycle.CachingMode
-import org.jetbrains.spek.api.lifecycle.LifecycleAware
+import org.spekframework.spek2.dsl.GroupBody
+import org.spekframework.spek2.dsl.Skip
+import org.spekframework.spek2.dsl.TestBody
+import org.spekframework.spek2.lifecycle.CachingMode
+import org.spekframework.spek2.lifecycle.MemoizedValue
 
-abstract class DelegateSpecBody<out SPECBODY, out ACTIONBODY, TESTBODY, FIXTUREBODY: Any>(delegate: SpecBody): DelegateTestContainer<SpecBody, TESTBODY>(delegate)/*, SpecBody*/ {
-  abstract fun actionBody(base: ActionBody):ACTIONBODY
-  abstract fun specBody(base: SpecBody):SPECBODY
+abstract class DelegateSpecBody<out SPECBODY, out ACTIONBODY, TESTBODY, FIXTUREBODY: Any>(delegate: GroupBody): DelegateTestContainer<GroupBody, TESTBODY>(delegate)/*, LifecycleAware*/ {
+  abstract fun actionBody(base: TestBody):ACTIONBODY
+  abstract fun specBody(base: GroupBody):SPECBODY
   abstract fun otherBody():FIXTUREBODY
 
 //  override fun action(description: String, pending: Pending, body: ActionBody.() -> Unit) {
@@ -32,18 +32,18 @@ abstract class DelegateSpecBody<out SPECBODY, out ACTIONBODY, TESTBODY, FIXTUREB
 //  }
 
 //  @JvmName("extAction")
-  fun action(description: String, pending: Pending = Pending.No, extbody: ACTIONBODY.() -> Unit) {
-    delegate.action(description, pending, {actionBody(this).extbody()})
-  }
+  fun action(description: String, skip: Skip = Skip.No, extbody: ACTIONBODY.() -> Unit) {
+    delegate.test(description, skip) {actionBody(this).extbody()}
+}
 
 //  override fun group(description: String, pending: Pending, body: SpecBody.() -> Unit) {
 //    delegate.group(description, pending, body)
 //  }
 
 //  @JvmName("ExtGroup")
-  fun group(description: String, pending: Pending = Pending.No, extbody: SPECBODY.() -> Unit) {
-    delegate.group(description, pending, {specBody(this).extbody()})
-  }
+  fun group(description: String, skip: Skip = Skip.No, extbody: SPECBODY.() -> Unit) {
+    delegate.group(description, skip) {specBody(this).extbody()}
+}
 
 //  override fun afterEachTest(callback: () -> Unit) = delegate.afterEachTest(callback)
 
@@ -73,7 +73,14 @@ abstract class DelegateSpecBody<out SPECBODY, out ACTIONBODY, TESTBODY, FIXTUREB
     delegate.beforeGroup { otherBody().callback() }
   }
 
-  fun <T> memoized(mode: CachingMode = CachingMode.TEST, factory: () -> T): LifecycleAware<T> {
+  fun <T> memoized(mode: CachingMode = delegate.defaultCachingMode,
+                   factory: () -> T,
+                   destructor: (T) -> Unit): MemoizedValue<T> {
+    return delegate.memoized(mode, factory, destructor)
+  }
+
+  fun <T> memoized(mode: CachingMode = delegate.defaultCachingMode,
+                   factory: () -> T): MemoizedValue<T> {
     return delegate.memoized(mode, factory)
   }
 }

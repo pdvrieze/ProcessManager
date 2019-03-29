@@ -1,3 +1,4 @@
+import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -16,55 +17,61 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * see <http://www.gnu.org/licenses/>.
  */
 
-buildscript {
-    repositories {
-        jcenter()
-    }
+plugins {
+    id("kotlin")
+    war
+    id("idea")
 }
 
-
-apply plugin: 'idea'
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin: 'war'
-
-version = '1.0.0'
-description = 'The service that handles tasks for users (and functions as web interface entry point'
+base {
+    version = "1.0.0"
+    description = "The service that handles tasks for users (and functions as web interface entry point"
 //group = ['service', 'server']
+}
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+val myJavaVersion: JavaVersion by project
+val argJvmDefault: String by project
+val kotlin_version: String by project
+val tomcatVersion: String by project
+val xmlutilVersion: String by project
+val jupiterVersion: String by project
 
-def wsDestDir = file("${buildDir}/docs/wsDoc")
+val wsDestDir = file("${buildDir}/docs/wsDoc")
+val genImageDir = "$projectDir/gen/generated-images"
+val genResourceDir = "$projectDir/gen/genResources"
+
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
+
 
 configurations {
-    apiCompile
-    main {
-        extendsFrom apiCompile
+    val apiCompile by creating
+    val main by creating {
+        extendsFrom(apiCompile)
     }
-    wsDoc {
-        description "Dependencies needed to run the custom web service doclet."
+    val wsDoc by creating {
+        description ="Dependencies needed to run the custom web service doclet."
     }
-    wsDocOutput
+    val wsDocOutput by creating
 }
 
-def genImageDir = "$projectDir/gen/generated-images"
-def genResourceDir = "$projectDir/gen/genResources"
 
 sourceSets {
-    api {
+    val api by creating {
         java {
-            srcDir 'src/api/java'
+            srcDir("src/api/java")
         }
     }
-    main {
+    val main by getting {
         java {
-            srcDirs sourceSets.api.allSource
+            srcDirs(sourceSets["api"].allSource)
         }
         resources {
-            srcDir genResourceDir
+            srcDir(genResourceDir)
         }
-        compileClasspath += files(api.compileClasspath)
+//        compileClasspath.add(files(api.compileClasspath))
     }
 //    imageSource {
 //        output.dir(genImageDir, builtBy: 'generateImages')
@@ -119,32 +126,33 @@ task generateAll {
     dependsOn project.tasks['generateStartNode']
 }
 */
-task tomcatRun(dependsOn: ["war"]) {
-    group = 'web application'
+val tomcatRun by tasks.registering {
+    dependsOn("war")
+    group = "web application"
     description = "Do everything needed to be able to run as embedded tomcat"
 }
 
-jar {
-    from sourceSets.main.output
+tasks.named<Jar>("jar") {
+    from(sourceSets["main"].output)
 }
 
-tasks.withType(KotlinCompile) {
-    kotlinOptions.freeCompilerArgs=[argJvmDefault]
+tasks.withType<KotlinCompile> {
+    kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
 }
 
-task apiJar(type: Jar) {
-    from sourceSets.api.output
-    appendix 'api'
+val apiJar by tasks.registering(Jar::class) {
+    from(sourceSets["api"].output)
+    appendix="api"
 }
 
 artifacts {
-    apiCompile apiJar
+    add("apiCompile", apiJar)
 }
 
-war {
+tasks.named<War>("war") {
 //    dependsOn generateAll
-    classpath sourceSets.api.output
-    from fileTree(genImageDir)
+//    classpath=sourceSets["api"].output
+    from(fileTree(genImageDir))
 //    dependsOn(project.task('apiCompile'))
 //    from tasks.apiCompile {
 //        into 'WEB-INF/classes'
@@ -157,31 +165,34 @@ tomcat {
 }
 */
 
+registerAndroidAttributeForDeps()
+
 dependencies {
 //    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    apiCompileOnly project(':JavaCommonApi:jvm')
-    compileOnly project(':JavaCommonApi:jvm')
-    apiCompileOnly project(':DarwinJavaApi')
-    apiCompileOnly project(path: ':PE-common:jvm', configuration:'compileOnly')
+    "apiCompileOnly"(project(":JavaCommonApi"))
+    "apiCompileOnly"(project(":DarwinJavaApi"))
+    "apiImplementation"(project(":PE-common"))
 
-    apiImplementation project(':PE-common:jvm')
-
-    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
-    implementation project(':PE-common:jvm')
-
-    implementation project(':DarwinClients')
-    implementation project(':darwin-sql')
-    compileOnly project(':DarwinJavaApi')
+    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    compileOnly(project(":JavaCommonApi"))
+    compileOnly(sourceSets["api"].output)
 
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-    testImplementation 'org.xmlunit:xmlunit-core:2.6.0'
-    testImplementation project(path: ':PE-common:jvm', configuration:'compileOnly')
-    testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.3'
-    testRuntime 'mysql:mysql-connector-java:5.1.36'
+    runtime("com.fasterxml.woodstox:woodstox-core:5.0.3")
+    implementation(("net.devrieze:xmlutil-jvm:$xmlutilVersion"))
+    implementation(project(":PE-common"))
+
+    implementation(project(":DarwinClients"))
+    implementation(project(":darwin-sql"))
+    compileOnly(project(":DarwinJavaApi"))
+
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testImplementation("org.xmlunit:xmlunit-core:2.6.0")
+    testImplementation(project(":PE-common"))
+    testRuntime("com.fasterxml.woodstox:woodstox-core:5.0.3")
+    testRuntime("mysql:mysql-connector-java:5.1.36")
 
 /*
     wsDoc project(":PE-common:endpointDoclet")
@@ -189,7 +200,7 @@ dependencies {
 */
 }
 
-test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 

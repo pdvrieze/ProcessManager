@@ -16,11 +16,11 @@
 
 package nl.adaptivity.spek
 
-import org.jetbrains.spek.api.dsl.TestBody
+import org.spekframework.spek2.dsl.TestBody
 
 /**
  * Created by pdvrieze on 15/01/17.
  */
-abstract class DelegateTestBody(val delegate: TestBody): TestBody {
+abstract class DelegateTestBody(val delegate: TestBody): TestBody by delegate {
 
 }

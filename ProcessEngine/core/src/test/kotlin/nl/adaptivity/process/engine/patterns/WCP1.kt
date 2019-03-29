@@ -20,28 +20,27 @@ import nl.adaptivity.process.engine.ConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
-import nl.adaptivity.process.processModel.name
-import org.jetbrains.spek.api.dsl.it
 import org.junit.jupiter.api.Assertions.assertEquals
 
-class WCP1: ModelSpek(run{
-  val m = object : ConfigurableModel("WCP1") {
-    val start by startNode
-    val ac1 by activity(start)
-    val ac2 by activity(ac1)
-    val end by endNode(ac2)
-  }
-  with(m) {
-    val valid = trace { start..ac1..ac2..end }
-    val invalid = trace {
-      (start.opt * (ac2 or end)) or
-      (start .. ac1 .. end)
+class WCP1 : ModelSpek(run {
+    val m = object : ConfigurableModel("WCP1") {
+        val start by startNode
+        val ac1 by activity(start)
+        val ac2 by activity(ac1)
+        val end by endNode(ac2)
     }
-    ModelData(m, valid, invalid)
-  }
-}, {  group("model verification") {
-  it("should be correctly named") {
-    assertEquals("WCP1", model.name)
-  }
-}
-})
+    with(m) {
+        val valid = trace { start..ac1..ac2..end }
+        val invalid = trace {
+            (start.opt * (ac2 or end)) or
+                (start..ac1..end)
+        }
+        ModelData(m, valid, invalid)
+    }
+}, {val m = model
+                           context("model verification") {
+                               it("should be correctly named") {
+                                   assertEquals("WCP1", m.name)
+                               }
+                           }
+                       })

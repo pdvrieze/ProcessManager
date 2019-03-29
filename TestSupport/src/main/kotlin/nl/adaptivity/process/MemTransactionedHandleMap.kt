@@ -39,7 +39,7 @@ open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(private val a
     }
   }
 
-  interface TransactionFactory<TR : StubTransaction> {
+  interface TestTransactionFactory<TR : StubTransaction> {
     fun newTransaction(): TR
   }
 

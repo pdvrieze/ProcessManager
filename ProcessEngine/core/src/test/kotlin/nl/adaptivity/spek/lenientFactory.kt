@@ -16,8 +16,8 @@
 
 package nl.adaptivity.spek
 
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.lifecycle.InstanceFactory
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.lifecycle.InstanceFactory
 import kotlin.reflect.KClass
 
 /**

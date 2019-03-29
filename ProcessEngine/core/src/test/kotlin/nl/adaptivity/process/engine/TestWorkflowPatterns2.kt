@@ -17,23 +17,24 @@
 package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.engine.patterns.*
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.*
-import org.jetbrains.spek.api.include
-import org.jetbrains.spek.api.lifecycle.LifecycleListener
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.dsl.GroupBody
+import org.spekframework.spek2.dsl.LifecycleAware
+import org.spekframework.spek2.dsl.Root
+import org.spekframework.spek2.lifecycle.CachingMode
+import org.spekframework.spek2.lifecycle.LifecycleListener
+import org.spekframework.spek2.style.specification.Suite
+import org.spekframework.spek2.style.specification.describe
 
 /**
  * Created by pdvrieze on 15/01/17.
  */
 object TestWorkflowPatterns2 : Spek(
   {
-    fun SpecBody.includeLocal(spec: Spek) {
-      val thisAsSpec: Spec = object : Spec, SpecBody by this {
-        override fun registerListener(listener: LifecycleListener) {
-          registerListener(listener)
-        }
-      }
-      thisAsSpec.include(spec)
+    fun Suite.includeLocal(spec: Spek) {
+        val includedBody = spec.root
+        val inclusionRoot = InclusionRoot(this)
+        inclusionRoot.includedBody()
     }
 
     describe("control flow patterns") {
@@ -63,26 +64,26 @@ object TestWorkflowPatterns2 : Spek(
 
       describe("Advanced branching and synchronization patterns") {
         describe("WCP6: multi-choice / or-split") {
-          given("ac1.condition=true, ac2.condition=false") {
+          context("ac1.condition=true, ac2.condition=false") {
             includeLocal(WCP6(true, false))
           }
-          given("ac1.condition=false, ac2.condition=true") {
+          context("ac1.condition=false, ac2.condition=true") {
             includeLocal(WCP6(false, true))
           }
-          given("ac1.condition=true, ac2.condition=true") {
+          context("ac1.condition=true, ac2.condition=true") {
             includeLocal(WCP6(true, true))
           }
 
         }
 
         describe("WCP7: structured synchronized merge") {
-          given("ac1.condition=true, ac2.condition=false") {
+          context("ac1.condition=true, ac2.condition=false") {
             includeLocal(WCP7(true, false))
           }
-          given("ac1.condition=false, ac2.condition=true") {
+          context("ac1.condition=false, ac2.condition=true") {
             includeLocal(WCP7(false, true))
           }
-          given("ac1.condition=true, ac2.condition=true") {
+          context("ac1.condition=true, ac2.condition=true") {
             includeLocal(WCP7(true, true))
           }
 

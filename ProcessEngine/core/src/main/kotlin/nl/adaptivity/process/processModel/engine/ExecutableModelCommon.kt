@@ -16,11 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.CollectionUtil
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
 import org.w3c.dom.Node
 import java.util.*
+import net.devrieze.util.addInstancesOf
 
 /**
  * Shared interface for both root and child models that are executable.
@@ -34,7 +34,7 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode, Executable
      * @return The start nodes.
      */
     val startNodes: Collection<ExecutableStartNode>
-        get() = Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(ArrayList<ExecutableStartNode>(),
+        get() = Collections.unmodifiableCollection(addInstancesOf(ArrayList<ExecutableStartNode>(),
                                                                                  modelNodes,
                                                                                  ExecutableStartNode::class.java))
     val endNodeCount: Int

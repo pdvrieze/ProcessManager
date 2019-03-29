@@ -16,14 +16,14 @@
 
 package nl.adaptivity.spek
 
-import org.jetbrains.spek.api.dsl.SpecBody
-import org.jetbrains.spek.api.lifecycle.LifecycleAware
+import org.spekframework.spek2.dsl.LifecycleAware
 import kotlin.reflect.KProperty
 
 /**
  * Created by pdvrieze on 19/01/17.
- */
-class DelayedValue<T>: LifecycleAware<T> {
+ *//*
+
+class DelayedValue<T>: LifecycleAware {
   var value: T? = null
 
   fun set(value: T?) {
@@ -44,4 +44,4 @@ fun <T> SpecBody.delayedGroup(factory: ()->T): DelayedValue<T> {
     beforeGroup { set(factory()) }
     afterGroup { set(null) }
   }
-}
+}*/

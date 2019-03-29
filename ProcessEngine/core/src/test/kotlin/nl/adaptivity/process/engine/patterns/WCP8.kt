@@ -20,10 +20,9 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.invoke
 import nl.adaptivity.spek.lenientFactory
-import org.jetbrains.spek.api.CreateWith
-import org.jetbrains.spek.api.dsl.it
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Tag
+import org.spekframework.spek2.CreateWith
 
 @CreateWith(lenientFactory::class)
 @Tag("slow")
@@ -55,26 +54,27 @@ class WCP8(maxValidTraces:Int, maxInvalidTraces: Int = maxValidTraces): ModelSpe
 
     ModelData(model, validTraces, invalidTraces)
 }, {
-    val t: CustomDsl = this
-    group("When join is not multiInstance") {
-        val modifiedModel = model.update { join("join")!! { isMultiMerge = false } }
+    val m = model
+    val c = this
+    context("When join is not multiInstance") {
+        val modifiedModel = m.update { join("join")!! { isMultiMerge = false } }
         it("should not have a multiInstance join") {
             assertFalse((modifiedModel.getNode("join") as? Join<*,*>)?.isMultiMerge ?: true)
         }
-        for (trace in valid) {
-            t.testInvalidTrace(this, modifiedModel, model.owner, trace)
+        for (trace in c.valid) {
+            testInvalidTrace(modifiedModel, m.owner, trace)
         }
     }
-    group("When ac3 is not multiInstance") {
-        val modifiedModel = model.update { activity("ac5")!! { isMultiInstance = false } }
-        for (trace in valid) {
-            t.testInvalidTrace(this, modifiedModel, model.owner, trace)
+    context("When ac3 is not multiInstance") {
+        val modifiedModel = m.update { activity("ac5")!! { isMultiInstance = false } }
+        for (trace in c.valid) {
+            testInvalidTrace(modifiedModel, m.owner, trace)
         }
     }
-    group("When end is not multiInstance") {
-        val modifiedModel = model.update { endNode("end")!! { isMultiInstance = false } }
-        for (trace in valid) {
-            t.testInvalidTrace(this, modifiedModel, model.owner, trace)
+    context("When end is not multiInstance") {
+        val modifiedModel = m.update { endNode("end")!! { isMultiInstance = false } }
+        for (trace in c.valid) {
+            testInvalidTrace(modifiedModel, m.owner, trace)
         }
     }
 }, maxValidTraces, maxInvalidTraces) {

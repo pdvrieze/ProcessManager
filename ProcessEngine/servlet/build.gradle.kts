@@ -49,7 +49,7 @@ registerAndroidAttributeForDeps()
 
 dependencies {
     providedCompile(project(":JavaCommonApi"))
-    providedCompile(project(path= ":ProcessEngine:core", configuration= "compileOnly"))
+    implementation(project(":ProcessEngine:core"))
     providedCompile("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
 
@@ -57,10 +57,9 @@ dependencies {
     implementation("org.jetbrains:annotations:13.0")
     implementation(project(":ProcessEngine:core"))
 
-    testCompile(project(path= ":ProcessEngine:core", configuration="testRuntime"))
     testCompile(project(":DarwinJavaApi"))
     testCompile(project(":TestSupport"))
-    testCompile(project(path= ":PE-common", configuration="testRuntime"))
+//    testCompile(project(path= ":PE-common", configuration="testRuntime"))
     testCompile("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")

@@ -18,7 +18,7 @@ package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.spek.describe
-import org.jetbrains.spek.api.Spek
+import org.spekframework.spek2.Spek
 
 /**
  * Created by pdvrieze on 02/01/17.

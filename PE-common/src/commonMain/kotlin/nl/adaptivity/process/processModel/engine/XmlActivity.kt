@@ -74,6 +74,8 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {
 
+        private val parentSerializer = ActivityBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer())
+
         fun serializer():KSerializer<XmlActivity> = this
 
         @Throws(XmlException::class)
@@ -88,7 +90,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         }
 
         override fun serialize(encoder: Encoder, obj: XmlActivity) {
-            TODO("IMPLEMENT")
+            parentSerializer.serialize(encoder, obj)
         }
 
 

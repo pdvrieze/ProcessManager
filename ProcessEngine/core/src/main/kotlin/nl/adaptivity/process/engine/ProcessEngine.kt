@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
+import net.devrieze.util.Transaction
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptor
@@ -144,8 +145,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
         override fun startTransaction(): T = transactionFactory.startTransaction(this)
 
-        override fun isValidTransaction(pTransaction: Transaction?): Boolean {
-            return pTransaction is ProcessTransaction && pTransaction.readableEngineData == this
+        override fun isValidTransaction(transaction: Transaction): Boolean {
+            return transaction is ProcessTransaction && transaction.readableEngineData == this
         }
     }
 

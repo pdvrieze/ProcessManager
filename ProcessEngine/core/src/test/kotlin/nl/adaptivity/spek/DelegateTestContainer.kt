@@ -16,9 +16,9 @@
 
 package nl.adaptivity.spek
 
-import org.jetbrains.spek.api.dsl.Pending
-import org.jetbrains.spek.api.dsl.TestBody
-import org.jetbrains.spek.api.dsl.TestContainer
+import org.spekframework.spek2.dsl.Skip
+import org.spekframework.spek2.dsl.TestBody
+import org.spekframework.spek2.dsl.TestContainer
 
 /**
  * Created by pdvrieze on 15/01/17.
@@ -32,8 +32,8 @@ abstract class DelegateTestContainer<D: TestContainer, TESTBODY>(val delegate:D)
 //  }
 
 //  @JvmName("extTest")
-  fun test(description: String, pending: Pending = Pending.No, extbody: TESTBODY.() -> Unit) {
-    delegate.test(description, pending, { testBody(this).extbody() })
+  fun test(description: String, skip: Skip = Skip.No, extbody: TESTBODY.() -> Unit) {
+    delegate.test(description, skip, { testBody(this).extbody() })
   }
 
 }

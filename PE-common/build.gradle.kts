@@ -91,7 +91,7 @@ kotlin {
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
                 implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
 
                 compileOnly(project(":JavaCommonApi"))
                 implementation(project(":java-common"))

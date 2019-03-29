@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import kotlinx.serialization.json.JSON
+import kotlinx.serialization.json.Json
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -26,24 +26,21 @@ import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
+import nl.adaptivity.spek.DelegateTestBody
 import nl.adaptivity.util.Getter
 import nl.adaptivity.util.getter
 import nl.adaptivity.xmlutil.serialization.XML
-import org.jetbrains.spek.api.dsl.SpecBody
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.xit
-import org.jetbrains.spek.api.lifecycle.CachingMode
-import org.jetbrains.spek.api.lifecycle.LifecycleAware
-import org.jetbrains.spek.api.lifecycle.LifecycleListener
-import org.jetbrains.spek.subject.SubjectSpek
-import org.jetbrains.spek.subject.dsl.SubjectDsl
-import org.jetbrains.spek.subject.dsl.SubjectProviderDsl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.fail
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.dsl.LifecycleAware
+import org.spekframework.spek2.dsl.Skip
+import org.spekframework.spek2.dsl.TestBody
+import org.spekframework.spek2.lifecycle.CachingMode
+import org.spekframework.spek2.meta.*
+import org.spekframework.spek2.style.specification.*
 import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
@@ -56,6 +53,7 @@ data class ModelData(val engineData: () -> EngineTestData,
         { EngineTestData.defaultEngine() }, model.rootModel, valid, invalid)
 }
 
+/*
 class ModelSpekSubjectContext(private val subjectProviderDsl: SubjectProviderDsl<ModelData>) {
     internal fun ModelData(model: ConfigurableModel, valid: List<Trace>, invalid: List<Trace>): ModelData {
         val engineData = { EngineTestData.defaultEngine() }
@@ -63,11 +61,16 @@ class ModelSpekSubjectContext(private val subjectProviderDsl: SubjectProviderDsl
     }
 
 }
+*/
 
-val SubjectDsl<EngineTestData>.engine get() = subject.engine
+//val SubjectDsl<EngineTestData>.engine get() = subject.engine
 
 private var subjectCreated = false
 
+/**
+ * This function takes n elements from the list by sampling. This differs from [List.take] as that function will take
+ * the first n elements where this function will sample.
+ */
 fun <T> List<T>.selectN(max: Int): List<T> {
     val origSize = size
     if (max >= origSize) return this
@@ -76,98 +79,164 @@ fun <T> List<T>.selectN(max: Int): List<T> {
     }
 }
 
-abstract class ModelSpek(modelData: ModelData,
+class EngineTestBody(delegate: TestBody): DelegateTestBody(delegate) {
+    val engineData by memoized<EngineTestData>()
+}
+
+open class EngineSuite(val delegate: Suite): LifecycleAware by delegate {
+    val engineData by memoized<EngineTestData>()
+
+    @Synonym(SynonymType.GROUP)
+    @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
+    fun describe(description: String, skip: Skip = Skip.No, body: EngineSuite.() -> Unit) {
+        delegate.describe(description, skip) { EngineSuite(this).body() }
+    }
+
+    @Synonym(SynonymType.GROUP)
+    @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
+    fun context(description: String, skip: Skip = Skip.No, body: EngineSuite.() -> Unit) {
+        delegate.context(description, skip) { EngineSuite(this).body() }
+    }
+
+    @Synonym(SynonymType.GROUP, excluded = true)
+    @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
+    fun xdescribe(description: String, reason: String = "", body: EngineSuite.() -> Unit) {
+        delegate.xdescribe(description, reason) {EngineSuite(this).body()}
+    }
+
+    @Synonym(SynonymType.GROUP, excluded = true)
+    @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
+    fun xcontext(description: String, reason: String = "", body: EngineSuite.() -> Unit) {
+        delegate.xcontext(description, reason) {EngineSuite(this).body()}
+    }
+
+    @Synonym(SynonymType.TEST)
+    @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
+    fun it(description: String, skip: Skip = Skip.No, body: EngineTestBody.() -> Unit) {
+        delegate.it(description, skip) { EngineTestBody(this).body() }
+    }
+
+    @Synonym(SynonymType.TEST, excluded = true)
+    @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
+    fun xit(description: String, reason: String = "", body: EngineTestBody.() -> Unit) {
+        delegate.xit(description, reason) { EngineTestBody(this).body() }
+    }
+
+    fun before(cb: () -> Unit) {
+        beforeGroup(cb)
+    }
+
+    fun after(cb: () -> Unit) {
+        afterGroup(cb)
+    }
+
+    fun beforeEach(cb: () -> Unit) {
+        beforeEachTest(cb)
+    }
+
+    fun afterEach(cb: () -> Unit) {
+        afterEachTest(cb)
+    }
+
+}
+
+abstract class ModelSpek(val modelData: ModelData,
                          custom: (CustomDsl.() -> Unit)? = null,
                          val maxValid: Int = Int.MAX_VALUE,
-                         val maxInvalid: Int = maxValid) : SubjectSpek<EngineTestData>(
+                         val maxInvalid: Int = maxValid) : Spek(
     {
-        val model = modelData.model
+
+        val model by memoized(CachingMode.SCOPE) { modelData.model }
         val valid = modelData.valid.selectN(maxValid)
         val invalid = modelData.invalid.selectN(maxInvalid)
         val principal by getter { model.owner }
 
-        subject(CachingMode.GROUP, {
+        val engineData by memoized<EngineTestData>(mode = CachingMode.SCOPE) {
             if (subjectCreated) {
                 System.err.println("Recreating the subject")
             } else {
                 subjectCreated = true
             }
             modelData.engineData()
-        })
+        }
 
         describe("model ${model.name}") {
-            this.it("should be valid") {
-                model.builder().validate()
-            }
-
-            given("XML") {
-
-                lateinit var xmlSerialization: String
-                it("Should be able to be serialized to XML") {
-                    Assertions.assertDoesNotThrow {
-                        xmlSerialization = XML(indent = 4).stringify(XmlProcessModel(model.builder()))
-                    }
+            with(EngineSuite(this)) {
+                it("should be valid") {
+                    model.builder().validate()
                 }
-                it("Should also be able to be deserialized") {
-                    lateinit var deserializedModel: XmlProcessModel.Builder
-                    try {
+
+                context("XML") {
+
+                    lateinit var xmlSerialization: String
+                    it("Should be able to be serialized to XML") {
                         Assertions.assertDoesNotThrow {
-                            deserializedModel = XML.parse(xmlSerialization)
+                            xmlSerialization = XML(indent = 4).stringify(XmlProcessModel.serializer(),
+                                                                         XmlProcessModel(model.builder()))
+                        }
+                    }
+                    it("Should also be able to be deserialized") {
+                        lateinit var deserializedModel: XmlProcessModel.Builder
+                        try {
+                            Assertions.assertDoesNotThrow {
+                                deserializedModel = XML.parse(XmlProcessModel.Builder.serializer(), xmlSerialization)
+                            }
+                            assertEquals(model, ExecutableProcessModel(deserializedModel))
+                        } catch (e: Throwable) {
+                            fail("Failure to deserialize the model:\n$xmlSerialization", e)
+                        }
+                    }
+
+                }
+                context("JSON") {
+                    lateinit var jsonSerialization: String
+
+                    it("Should be able to be serialized to XML") {
+                        Assertions.assertDoesNotThrow {
+                            jsonSerialization = Json.stringify(XmlProcessModel.serializer(),
+                                                               XmlProcessModel(model.builder()))
+                        }
+                    }
+                    it("Should also be able to be deserialized") {
+                        lateinit var deserializedModel: XmlProcessModel.Builder
+                        Assertions.assertDoesNotThrow {
+                            deserializedModel = Json.parse(XmlProcessModel.Builder.serializer(), jsonSerialization)
                         }
                         assertEquals(model, ExecutableProcessModel(deserializedModel))
-                    } catch (e: Throwable) {
-                        fail("Failure to deserialize the model:\n$xmlSerialization", e)
+                    }
+
+                }
+
+                if (custom != null) {
+                    context("Custom checks") {
+                        CustomDsl(delegate, model, valid, invalid).custom()
                     }
                 }
 
-            }
-            given("JSON") {
-                lateinit var jsonSerialization: String
+                for (validTrace in valid) {
+                    val x = this
+                    testValidTrace(model, principal, validTrace) // valid group
 
-                it("Should be able to be serialized to XML") {
-                    Assertions.assertDoesNotThrow {
-                        jsonSerialization = JSON.stringify(XmlProcessModel(model.builder()))
-                    }
+                } // for valid traces
+                for (validTrace in valid) {
+                    testInvalidTrace(model, principal, validTrace, false)
                 }
-                it("Should also be able to be deserialized") {
-                    lateinit var deserializedModel: XmlProcessModel.Builder
-                    Assertions.assertDoesNotThrow {
-                        deserializedModel = JSON.parse(jsonSerialization)
-                    }
-                    assertEquals(model, ExecutableProcessModel(deserializedModel))
+                for (invalidTrace in invalid) {
+                    testInvalidTrace(model, principal, invalidTrace)
                 }
 
             }
-
-            if (custom != null) {
-                this.group("Custom checks") {
-                    CustomDsl(subject(), model, valid, invalid, this).custom()
-                }
-            }
-
-            for (validTrace in valid) {
-                testValidTrace(this, model, principal, validTrace) // valid group
-
-            } // for valid traces
-            for (validTrace in valid) {
-                testInvalidTrace(this, model, principal, validTrace, false)
-            }
-            for (invalidTrace in invalid) {
-                testInvalidTrace(this, model, principal, invalidTrace)
-            }
-
         }
 
     }) {
 }
 
-internal fun SubjectDsl<EngineTestData>.testValidTrace(
-    specBody: SpecBody,
+internal fun EngineSuite.testValidTrace(
     model: ExecutableProcessModel,
     principal: Principal,
     validTrace: Trace) {
-    specBody.group("For valid trace [${validTrace.joinToString()}]") {
-        val traceTransaction by lazy { subject.engine.startTransaction() }
+    context("For valid trace [${validTrace.joinToString()}]") {
+        val traceTransaction by memoized(CachingMode.GROUP) { engineData.engine.startTransaction() }
 
         val transaction = getter { traceTransaction }
         val hinstance = startProcess(transaction, model, principal,
@@ -193,7 +262,7 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
 
             queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
 
-            given("trace element #$pos -> ${traceElement}") {
+            context("trace element #$pos -> ${traceElement}") {
                 beforeGroup { previous(); }
                 val node = model.findNode(traceElement) ?: throw AssertionError(
                     "No node could be find for trace element $traceElement")
@@ -206,7 +275,7 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
                         node.childModel == null -> testActivity(transaction, nodeInstanceF, traceElement)
                         else                    -> testComposite(transaction, nodeInstanceF, traceElement)
                     }
-                    else               -> test("$traceElement should not be in a final state") {
+                    else               -> it("$traceElement should not be in a final state") {
                         val nodeInstance = nodeInstanceF()
                         Assertions.assertFalse(
                             nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
@@ -223,21 +292,20 @@ internal fun SubjectDsl<EngineTestData>.testValidTrace(
     }
 }
 
-internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
-    specBody: SpecBody,
+internal fun EngineSuite.testInvalidTrace(
     model: ExecutableProcessModel,
     principal: Principal,
     invalidTrace: Trace,
     failureExpected: Boolean = true) {
-    val transaction = getter { subject.engine.startTransaction() }
+    val transaction = getter { engineData.engine.startTransaction() }
     val hinstance = startProcess(transaction, model, principal,
                                  "${model.name} instance for [${invalidTrace.joinToString()}]}")
     val processInstanceF = getter {
         transaction().readableEngineData.instance(hinstance()).withPermission()
     }
-    specBody.given("${if (failureExpected) "invalid" else "valid"} trace ${invalidTrace.joinToString(prefix = "[",
+    context("given ${if (failureExpected) "invalid" else "valid"} trace ${invalidTrace.joinToString(prefix = "[",
                                                                                                      postfix = "]")}") {
-        test("Executing the trace should ${if (!failureExpected) "not fail" else "fail"}") {
+        it("Executing the trace should ${if (!failureExpected) "not fail" else "fail"}") {
             var success = false
             try {
                 val instanceSupport = object : InstanceSupport {
@@ -254,14 +322,14 @@ internal fun SubjectDsl<EngineTestData>.testInvalidTrace(
                 "The invalid trace ${invalidTrace.joinToString(prefix = "[", postfix = "]")} could be executed")
         }
         if (!failureExpected) {
-            test("The process instance should have a finished state") {
+            it("The process instance should have a finished state") {
                 assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state)
             }
         }
     }
 }
 
-private fun SubjectDsl<EngineTestData>.startProcess(transactionGetter: Getter<StubProcessTransaction>,
+private fun EngineSuite.startProcess(transactionGetter: Getter<StubProcessTransaction>,
                                                     model: ExecutableProcessModel,
                                                     owner: Principal,
                                                     name: String,
@@ -274,15 +342,15 @@ private fun SubjectDsl<EngineTestData>.startProcess(transactionGetter: Getter<St
             model.getHandle()
         } else {
             model.setHandleValue(-1)
-            subject.engine.addProcessModel(transaction, model.builder(), owner)
+            engineData.engine.addProcessModel(transaction, model.builder(), owner)
         }
-        engine.startProcess(transaction, owner, hmodel, name, UUID.randomUUID(), payload)
+        engineData.engine.startProcess(transaction, owner, hmodel, name, UUID.randomUUID(), payload)
     }
 }
 
-private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>) {
-    group("After starting") {
-        test("Only start nodes should be finished") {
+private fun EngineSuite.testTraceStarting(processInstanceF: Getter<ProcessInstance>) {
+    context("After starting") {
+        it("Only start nodes should be finished") {
             val processInstance = processInstanceF()
             val predicate: (ProcessNodeInstance<*>) -> Boolean = { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> || it.node is Split<*, *> || it.node is Join<*, *> }
             val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
@@ -296,31 +364,31 @@ private fun SpecBody.testTraceStarting(processInstanceF: Getter<ProcessInstance>
     }
 }
 
-private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
+private fun EngineSuite.testTraceCompletion(model: ExecutableProcessModel,
                                          queue: StateQueue.SolidQueue,
                                          transaction: Getter<StubProcessTransaction>,
                                          processInstanceF: Getter<ProcessInstance>,
                                          validTrace: Trace) {
-    group("The trace should be finished correctly") {
+    context("The trace should be finished correctly") {
         beforeGroup { queue.invoke() }
-        test("The trace should be valid") {
+        it("The trace should be valid") {
             processInstanceF().assertTracePossible(transaction(), validTrace)
         }
-        test("All non-endnodes are finished") {
+        it("All non-endnodes are finished") {
             val expectedFinishedNodes = validTrace.asSequence()
                 .map { model.findNode(it)!! }
                 .filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
             processInstanceF().assertFinished(transaction(), *expectedFinishedNodes)
         }
-        test("No nodes are active") {
+        it("No nodes are active") {
             processInstanceF().assertActive(transaction())
         }
-        test("The process itself is marked finished") {
+        it("The process itself is marked finished") {
             assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state,
                          "Instance state should be finished, but is not. ${processInstanceF().toDebugString(
                              transaction())}")
         }
-        test("All endNodes in the trace are complete, skipped, cancelled or failed") {
+        it("All endNodes in the trace are complete, skipped, cancelled or failed") {
             val transaction = transaction()
             val processInstance = processInstanceF()
             val expectedCompletedNodes = validTrace.asSequence()
@@ -342,46 +410,46 @@ private fun SpecBody.testTraceCompletion(model: ExecutableProcessModel,
     }
 }
 
-private fun SpecBody.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
-    test("Start node $traceElement should be finished") {
+private fun EngineSuite.testStartNode(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
+    it("Start node $traceElement should be finished") {
         testAssertNodeFinished(nodeInstanceF, traceElement)
     }
 }
 
-private fun SpecBody.testComposite(transaction: Getter<StubProcessTransaction>,
+private fun EngineSuite.testComposite(transaction: Getter<StubProcessTransaction>,
                                    nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                    traceElement: TraceElement) {
-    test("A child instance should have been created for $traceElement") {
+    it("A child instance should have been created for $traceElement") {
         Assertions.assertTrue(
             (nodeInstanceF() as CompositeInstance).hChildInstance.isValid) { "No child instance was recorded" }
     }
-    test("The child instance was finished for $traceElement") {
+    it("The child instance was finished for $traceElement") {
         val childInstance = transaction().readableEngineData.instance(
             (nodeInstanceF() as CompositeInstance).hChildInstance).withPermission()
         Assertions.assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
     }
-    test("The activity itself should be finished for $traceElement") {
+    it("The activity itself should be finished for $traceElement") {
         assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
     }
 
 }
 
-private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
+private fun EngineSuite.testActivity(transaction: Getter<StubProcessTransaction>,
                                   nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                   traceElement: TraceElement) {
-    test("$traceElement should not be in a final state") {
+    it("$traceElement should not be in a final state") {
         val nodeInstance = nodeInstanceF()
         Assertions.assertFalse(
             nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
     }
-    test("$traceElement should not be in pending or sent state") {
+    it("$traceElement should not be in pending or sent state") {
         val nodeInstance = nodeInstanceF()
         assertFalse(
             nodeInstance.state == Pending) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in pending state" }
         assertFalse(
             nodeInstance.state == Sent) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in sent (not acknowledged) state" }
     }
-    test("node instance ${traceElement} should be committed after starting") {
+    it("node instance ${traceElement} should be committed after starting") {
         var nodeInstance = nodeInstanceF()
         assertEquals(traceElement.nodeId, nodeInstance.node.id)
         val tr = transaction()
@@ -398,7 +466,7 @@ private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
         }
         Assertions.assertEquals(NodeInstanceState.Started, nodeInstance.state)
     }
-    test("the node instance ${traceElement} should be final after finishing") {
+    it("the node instance ${traceElement} should be final after finishing") {
         val tr = transaction()
         val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission().update(
             tr.writableEngineData) {
@@ -410,10 +478,10 @@ private fun SpecBody.testActivity(transaction: Getter<StubProcessTransaction>,
     }
 }
 
-private fun SpecBody.testSplit(transaction: Getter<StubProcessTransaction>,
+private fun EngineSuite.testSplit(transaction: Getter<StubProcessTransaction>,
                                nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                traceElement: TraceElement) {
-    test("Split $traceElement should already be finished") {
+    it("Split $traceElement should already be finished") {
         val nodeInstance = nodeInstanceF()
         Assertions.assertEquals(Complete, nodeInstance.state) {
             val processInstance = transaction().readableEngineData.instance(
@@ -424,10 +492,10 @@ private fun SpecBody.testSplit(transaction: Getter<StubProcessTransaction>,
     }
 }
 
-private fun SpecBody.testJoin(transaction: Getter<StubProcessTransaction>,
+private fun EngineSuite.testJoin(transaction: Getter<StubProcessTransaction>,
                               nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                               traceElement: TraceElement) {
-    test("Join $traceElement should already be finished") {
+    it("Join $traceElement should already be finished") {
         val nodeInstance = nodeInstanceF() as JoinInstance
         val processInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
         val activePredecessors = processInstance.getActivePredecessorsFor(transaction().readableEngineData,
@@ -442,11 +510,11 @@ private fun SpecBody.testJoin(transaction: Getter<StubProcessTransaction>,
     }
 }
 
-private fun SpecBody.testEndNode(transaction: Getter<StubProcessTransaction>,
+private fun EngineSuite.testEndNode(transaction: Getter<StubProcessTransaction>,
                                  nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                  traceElement: TraceElement) {
     testAssertNodeFinished(nodeInstanceF, traceElement)
-    test("$traceElement should be part of the completion nodes") {
+    it("$traceElement should be part of the completion nodes") {
         val nodeInstance = nodeInstanceF()
         val parentInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
         Assertions.assertTrue(
@@ -454,7 +522,7 @@ private fun SpecBody.testEndNode(transaction: Getter<StubProcessTransaction>,
             "Instance is: ${parentInstance.toDebugString(transaction)}"
         }
     }
-    test("The predecessors of $traceElement should be final") {
+    it("The predecessors of $traceElement should be final") {
         Assertions.assertTrue(
             nodeInstanceF().predecessors.map {
                 transaction().readableEngineData.nodeInstance(it).withPermission()
@@ -463,10 +531,14 @@ private fun SpecBody.testEndNode(transaction: Getter<StubProcessTransaction>,
     }
 }
 
-private fun SpecBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
-    test("$traceElement should be finished") {
+private fun EngineSuite.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
+    it("$traceElement should be finished") {
         Assertions.assertEquals(Complete, nodeInstanceF().state)
     }
+}
+
+private fun EngineTestBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>, traceElement: TraceElement) {
+    Assertions.assertEquals(Complete, nodeInstanceF().state)
 }
 
 fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance, traceElement: TraceElement) {
@@ -515,21 +587,10 @@ private class StateQueue {
     }
 }
 
-class CustomDsl(private val _subject: LifecycleAware<EngineTestData>,
+class CustomDsl(delegate: Suite,
                 val model: ExecutableProcessModel,
                 val valid: List<Trace>,
-                val invalid: List<Trace>,
-                val specBody: SpecBody) : SpecBody by specBody, SubjectDsl<EngineTestData> {
-    override fun registerListener(listener: LifecycleListener) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override val subject: EngineTestData
-        get() = _subject()
-
-    override fun subject(): LifecycleAware<EngineTestData> {
-        return _subject
-    }
+                val invalid: List<Trace>) : EngineSuite(delegate) {
 }
 
 private inline operator fun <T> Lazy<T>.invoke() = this.value

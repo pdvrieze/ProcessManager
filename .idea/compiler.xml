@@ -2,56 +2,46 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="accountcommon" target="1.7" />
-      <module name="accountmgr" target="1.7" />
-      <module name="accountmgr-js" target="1.7" />
-      <module name="core_androidMain" target="1.6" />
-      <module name="core_androidTest" target="1.6" />
-      <module name="core_jvmMain" target="1.8" />
-      <module name="core_jvmTest" target="1.8" />
-      <module name="darwin-jvm" target="1.7" />
-      <module name="darwin-sql" target="1.7" />
-      <module name="DarwinClients" target="1.7" />
-      <module name="DarwinGenerators" target="1.7" />
-      <module name="DarwinJavaApi" target="1.7" />
-      <module name="darwinjs" target="1.7" />
-      <module name="DarwinRealm" target="1.7" />
-      <module name="DarwinServices" target="1.7" />
-      <module name="endpointDoclet" target="1.7" />
-      <module name="java-common" target="1.7" />
+      <module name="darwin-sql_main" target="1.8" />
+      <module name="darwin-sql_test" target="1.8" />
+      <module name="DarwinGenerators_main" target="1.8" />
+      <module name="DarwinGenerators_test" target="1.8" />
+      <module name="DarwinJavaApi_main" target="1.8" />
+      <module name="DarwinJavaApi_test" target="1.8" />
       <module name="java-common_androidMain" target="1.6" />
       <module name="java-common_androidTest" target="1.6" />
       <module name="java-common_jvmMain" target="1.8" />
       <module name="java-common_jvmTest" target="1.8" />
-      <module name="JavaCommonApi" target="1.7" />
       <module name="JavaCommonApi_androidMain" target="1.6" />
       <module name="JavaCommonApi_androidTest" target="1.6" />
       <module name="JavaCommonApi_jvmMain" target="1.8" />
       <module name="JavaCommonApi_jvmTest" target="1.8" />
-      <module name="jscommon" target="1.7" />
-      <module name="kotlinsql" target="1.7" />
+      <module name="kotlinsql_generators" target="1.8" />
+      <module name="kotlinsql_main" target="1.8" />
+      <module name="kotlinsql_test" target="1.8" />
+      <module name="kotlinsql_testGenerators" target="1.8" />
       <module name="multiplatform_androidMain" target="1.6" />
       <module name="multiplatform_androidTest" target="1.6" />
       <module name="multiplatform_jvmMain" target="1.8" />
       <module name="multiplatform_jvmTest" target="1.8" />
-      <module name="PE-common" target="1.7" />
-      <module name="PE-common_androidMain" target="1.6" />
-      <module name="PE-common_androidTest" target="1.6" />
       <module name="PE-common_jvmMain" target="1.8" />
       <module name="PE-common_jvmTest" target="1.8" />
-      <module name="PE-dataservices" target="1.7" />
-      <module name="PE-diagram" target="1.7" />
-      <module name="PE-server" target="1.7" />
-      <module name="PEUserMessageHandler" target="1.7" />
-      <module name="serialization_androidMain" target="1.6" />
-      <module name="serialization_androidTest" target="1.6" />
-      <module name="serialization_jvmMain" target="1.8" />
-      <module name="serialization_jvmTest" target="1.8" />
-      <module name="shared" target="1.7" />
-      <module name="structurizr" target="1.7" />
-      <module name="TestSupport" target="1.7" />
-      <module name="webeditor" target="1.7" />
-      <module name="xmlutil-core" target="1.7" />
+      <module name="ProcessEngine-core_main" target="1.8" />
+      <module name="ProcessEngine-core_test" target="1.8" />
+      <module name="ProcessManager_buildSrc_main" target="1.8" />
+      <module name="ProcessManager_buildSrc_test" target="1.8" />
+      <module name="TestSupport_main" target="1.8" />
+      <module name="TestSupport_test" target="1.8" />
+      <module name="xmlutil-core_androidMain" target="1.6" />
+      <module name="xmlutil-core_androidTest" target="1.6" />
+      <module name="xmlutil-core_jvmMain" target="1.8" />
+      <module name="xmlutil-core_jvmTest" target="1.8" />
+      <module name="xmlutil-serialization_androidMain" target="1.6" />
+      <module name="xmlutil-serialization_androidTest" target="1.6" />
+      <module name="xmlutil-serialization_jvmMain" target="1.8" />
+      <module name="xmlutil-serialization_jvmTest" target="1.8" />
+      <module name="xmlutil_buildSrc_main" target="1.8" />
+      <module name="xmlutil_buildSrc_test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

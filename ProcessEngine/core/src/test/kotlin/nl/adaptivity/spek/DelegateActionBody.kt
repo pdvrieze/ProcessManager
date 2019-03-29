@@ -16,8 +16,9 @@
 
 package nl.adaptivity.spek
 
-import org.jetbrains.spek.api.dsl.ActionBody
-import org.jetbrains.spek.api.dsl.TestBody
+import nl.adaptivity.process.engine.EngineTestBody
+import org.spekframework.spek2.dsl.GroupBody
+import org.spekframework.spek2.dsl.TestBody
 
-abstract class DelegateActionBody<TESTBODY: TestBody>(delegate: ActionBody): DelegateTestContainer<ActionBody, TESTBODY>(delegate)/*, ActionBody*/ {
-}
+//abstract class DelegateActionBody<TESTBODY: TestBody>(delegate: GroupBody): DelegateTestContainer<ActionBody, TESTBODY>(delegate)/*, ActionBody*/ {
+//}

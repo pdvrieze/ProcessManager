@@ -64,21 +64,22 @@ include(":DarwinJavaApi")
 include(":TestSupport")
 include(":PE-common")
 
-/*
-
-include(":PE-common:common")
-include(":PE-common:jvm")
-include(":PE-common:endpointDoclet")
-
 include(":DarwinGenerators")
+
 include(":darwin-sql")
 
-include(":PEUserMessageHandler")
-
 include(":ProcessEngine:core")
-include(":ProcessEngine:servlet")
+//include(":ProcessEngine:servlet")
 
-include(":DarwinClients")
+//include(":PEUserMessageHandler")
+
+//include(":DarwinClients")
+
+/*
+include(":PE-common:endpointDoclet")
+
+
+
 
 include(":PE-dataservices")
 include(":PE-diagram:common")

@@ -34,10 +34,10 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.spek.*
 import nl.adaptivity.xmlutil.XmlStreaming
-import org.jetbrains.spek.api.dsl.ActionBody
-import org.jetbrains.spek.api.dsl.SpecBody
-import org.jetbrains.spek.api.dsl.TestBody
 import org.junit.jupiter.api.Assertions.*
+import org.spekframework.spek2.dsl.GroupBody
+import org.spekframework.spek2.dsl.TestBody
+import org.spekframework.spek2.dsl.TestContainer
 import org.w3c.dom.Node
 import java.security.Principal
 
@@ -49,13 +49,13 @@ annotation class ProcessTestingDslMarker
 class EngineTesting {
 
   @ProcessTestingDslMarker
-  inner class EngineSpecBody(delegate:SpecBody): DelegateSpecBody<EngineSpecBody, EngineActionBody, EngineTestBody, Any>(delegate) {
+  inner class EngineSpecBody(delegate:GroupBody): DelegateSpecBody<EngineSpecBody, EngineTestBody, EngineTestBody, Any>(delegate) {
     val stubMessageService = this@EngineTesting.testData.messageService
     val processEngine = this@EngineTesting.testData.engine
 
-    override fun actionBody(base: ActionBody) = EngineActionBody(base)
+    override fun actionBody(base: TestBody) = EngineTestBody(base)
 
-    override fun specBody(base: SpecBody) = EngineSpecBody(base)
+    override fun specBody(base: GroupBody): EngineSpecBody = EngineSpecBody(base)
 
     override fun testBody(base: TestBody) = EngineTestBody(base)
 
@@ -75,21 +75,11 @@ class EngineTesting {
 
   }
 
-  @ProcessTestingDslMarker
-  inner class EngineActionBody(delegate:ActionBody): DelegateActionBody<EngineTestBody>(delegate) {
-    override fun testBody(base: TestBody) = EngineTestBody(base)
-  }
-
-  @ProcessTestingDslMarker
-  inner class EngineTestBody(delegate:TestBody): DelegateTestBody(delegate) {
-
-  }
-
   val testData = EngineTestData.defaultEngine()
 
 }
 
-inline fun SpecBody.givenEngine(body: EngineSpecBody.()->Unit) {
+inline fun GroupBody.givenEngine(body: EngineSpecBody.()->Unit) {
   EngineTesting().EngineSpecBody(this).body()
 }
 
@@ -105,18 +95,18 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction:StubPro
 
     val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
 
-    override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: engineTesting.EngineTestBody(base))
+    override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: EngineTestBody(base))
 
-    override fun actionBody(base: ActionBody) = InstanceActionBody(base as? EngineActionBody ?: engineTesting.EngineActionBody(base))
+    override fun actionBody(base: TestBody): InstanceActionBody = InstanceActionBody(base as? EngineTestBody ?: EngineTestBody(base))
 
-    override fun specBody(base: SpecBody) = InstanceSpecBody(base as? EngineSpecBody ?: engineTesting.EngineSpecBody(base))
+    override fun specBody(base: GroupBody) = InstanceSpecBody(base as? EngineSpecBody ?: engineTesting.EngineSpecBody(base))
 
     override fun otherBody() = InstanceFixtureBody()
   }
 
   @ProcessTestingDslMarker
-  inner class InstanceActionBody(delegate: EngineActionBody): DelegateActionBody<InstanceTestBody>(delegate.delegate), ProcessNodeActions {
-    override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: engineTesting.EngineTestBody(base))
+  inner class InstanceActionBody(delegate: EngineTestBody): DelegateTestBody(delegate.delegate), ProcessNodeActions {
+    /*override*/ fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: EngineTestBody(base))
     override val transaction get() = this@ProcessTestingDsl.transaction
   }
 
