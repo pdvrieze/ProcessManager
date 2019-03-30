@@ -249,6 +249,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
         protected abstract val childModelSerializer: KSerializer<ChildProcessModel<*,*>>
 
         override fun serialize(encoder: Encoder, obj: T) {
+            // For serialization node ids are required. If they are somehow missing, rebuild the model with ids.
             if (obj.modelNodes.any { it.id == null }) {
                 val rebuilt = obj.builder().build()
                 @Suppress("UNCHECKED_CAST")
@@ -274,26 +275,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     }
 
     companion object {
-
-/*
-        fun descriptor(name: String): SerialClassDescImpl {
-            val base = descriptor
-            return SerialClassDescImpl(name).apply {
-                addFields(base)
-*/
-/*
-                addField(RootProcessModelBase<*, *>::name)
-                addField(RootProcessModelBase<*, *>::handleValue)
-                addField(RootProcessModelBase<*,*>::owner)
-                addField(RootProcessModelBase<*,*>::roles)
-                addField(RootProcessModelBase<*,*>::uuid)
-                addField(RootProcessModelBase<*,*>::childModels)
-                addFields(ProcessModelBase.descriptor)
-*//*
-
-            }
-        }
-*/
 
         const val ELEMENTLOCALNAME = "processModel"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
