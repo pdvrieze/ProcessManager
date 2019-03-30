@@ -55,7 +55,6 @@ kotlin {
             }
             attributes.attribute(androidAttribute, false)
         }
-/*
         jvm("android") {
             attributes.attribute(androidAttribute, true)
             compilations.all {
@@ -65,7 +64,6 @@ kotlin {
                 }
             }
         }
-*/
 /*
         js {
             compilations.all {
@@ -135,14 +133,14 @@ kotlin {
 
             }
         }
-/*
         val androidMain by getting {
             dependsOn(javaMain)
             dependencies {
+                compileOnly(project(":DarwinJavaApi"))
+                compileOnly(project(":JavaCommonApi"))
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
             }
         }
-*/
 /*
         val jsMain by getting {
             dependsOn(commonMain)
@@ -161,6 +159,11 @@ kotlin {
 repositories {
     jcenter()
     mavenCentral()
+}
+
+tasks.create<Task>("test") {
+    dependsOn(tasks.named("jvmTest"))
+    group="verification"
 }
 
 //test {

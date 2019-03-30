@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.KInput
-import kotlinx.serialization.KOutput
-import kotlinx.serialization.KSerialClassDesc
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.*
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
@@ -65,14 +62,14 @@ actual interface IXmlResultType : XmlSerializable {
 
     actual companion object serializer: KSerializer<IXmlResultType> {
         override val descriptor: SerialDescriptor
-            get() = XmlResultType.serializer().serialClassDesc
+            get() = XmlResultType.serializer().descriptor
 
-        override fun load(input: KInput): IXmlResultType {
-            return XmlResultType.serializer().load(input)
+        override fun deserialize(decoder: Decoder): IXmlResultType {
+            return XmlResultType.serializer().deserialize(decoder)
         }
 
-        override fun save(output: KOutput, obj: IXmlResultType) {
-            XmlResultType.serializer().save(output, XmlResultType(obj))
+        override fun serialize(encoder: Encoder, obj: IXmlResultType) {
+            XmlResultType.serializer().serialize(encoder, XmlResultType(obj))
         }
     }
 

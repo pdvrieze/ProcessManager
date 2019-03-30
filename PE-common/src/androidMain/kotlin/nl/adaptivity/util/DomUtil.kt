@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util
 
+import nl.adaptivity.xmlutil.util.CombiningReader
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
