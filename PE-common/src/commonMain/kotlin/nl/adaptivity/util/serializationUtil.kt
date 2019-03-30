@@ -17,18 +17,22 @@
 package nl.adaptivity.util
 
 import kotlinx.serialization.KSerialClassDesc
+import kotlinx.serialization.SerialDescriptor
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlin.reflect.KProperty
 
-fun SerialClassDescImpl(original: KSerialClassDesc, name: String): SerialClassDescImpl {
+fun SerialClassDescImpl(original: SerialDescriptor, name: String): SerialClassDescImpl {
     return SerialClassDescImpl(name).apply {
+        for(a in original.getEntityAnnotations()) {
+            pushClassAnnotation(a)
+        }
         addFields(original)
     }
 }
 
-fun SerialClassDescImpl.addFields(origin: KSerialClassDesc) {
+fun SerialClassDescImpl.addFields(origin: SerialDescriptor) {
     for (i in 0 until origin.elementsCount) {
-        addElement(origin.getElementName(i))
+        addElement(origin.getElementName(i), origin.isElementOptional(i))
         for (a in origin.getElementAnnotations(i)) {
             pushAnnotation(a)
         }
@@ -39,7 +43,7 @@ fun SerialClassDescImpl.addFields(origin: KSerialClassDesc) {
 
 expect fun SerialClassDescImpl.addField(property: KProperty<*>)
 
-fun KSerialClassDesc.describe(): String {
+fun SerialDescriptor.describe(): String {
     return (0 until elementsCount).joinToString(",\n", prefix = "$name[$kind] (", postfix = ")") {
         getElementAnnotations(it).joinToString(postfix = " : ${getElementName(it)}")
     }
