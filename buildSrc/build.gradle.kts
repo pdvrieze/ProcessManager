@@ -26,8 +26,8 @@ run {
     FileInputStream(file("../gradle.properties")).use { input ->
         properties.load(input)
     }
-    for(key in properties.stringPropertyNames()) {
-        ext[key]=properties[key]
+    for (key in properties.stringPropertyNames()) {
+        ext[key] = properties[key]
     }
 }
 
@@ -41,4 +41,6 @@ dependencies {
 repositories {
     mavenLocal()
     jcenter()
+    maven(url = "https://dl.bintray.com/kotlin/kotlin-eap")
+
 }

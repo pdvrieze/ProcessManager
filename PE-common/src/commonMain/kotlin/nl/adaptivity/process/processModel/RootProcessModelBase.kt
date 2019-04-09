@@ -60,9 +60,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     final override var owner: Principal = SYSTEMPRINCIPAL
 
     @SerialName("roles")
-    private var _roles: MutableSet<String> = ArraySet()
-
-
     override val roles: Set<String>
 
     @Serializable(UUIDSerializer::class)

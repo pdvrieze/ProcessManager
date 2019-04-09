@@ -74,9 +74,7 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {
 
-        private val parentSerializer = ActivityBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer())
-
-        fun serializer():KSerializer<XmlActivity> = this
+        private val parentSerializer = ActivityBase.serializer(this, XmlProcessModel.serializer())  as KSerializer<XmlActivity>
 
         @Throws(XmlException::class)
         fun deserialize(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>,

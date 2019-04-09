@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.ProcessNode
@@ -24,7 +25,6 @@ import nl.adaptivity.process.processModel.ProcessNode
 /**
  * Fix compilation by converting it properly to Kotlin.
  */
-@Serializable
 interface XmlProcessNode : ProcessNode<XmlProcessNode, XmlModelCommon> {
 
     interface Builder : ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon> {

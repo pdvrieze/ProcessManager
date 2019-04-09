@@ -42,7 +42,7 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
     @Serializer(XmlJoin::class)
     companion object: KSerializer<XmlJoin> {
-        val parentSerializer = JoinBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer())
+        val parentSerializer = JoinBase.serializer(this, XmlProcessModel.serializer()) as KSerializer<XmlJoin>
 
         override fun serialize(encoder: kotlinx.serialization.Encoder, obj: XmlJoin) {
             parentSerializer.serialize(encoder, obj)
@@ -53,8 +53,6 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
                         buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlJoin {
             return deserialize(reader).build(buildHelper)
         }
-
-        fun serializer(): KSerializer<XmlJoin> = this
 
         @Throws(XmlException::class)
         fun deserialize(reader: XmlReader): XmlJoin.Builder {

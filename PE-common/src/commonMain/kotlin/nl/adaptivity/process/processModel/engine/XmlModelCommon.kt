@@ -22,7 +22,7 @@ import nl.adaptivity.process.processModel.*
 /**
  * Created by pdvrieze on 04/01/17.
  */
-@Serializable
+//@Serializable
 interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
 
   interface Builder: ProcessModel.Builder<XmlProcessNode, XmlModelCommon> {

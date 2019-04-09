@@ -79,8 +79,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     @Serializer(forClass = XmlProcessModel::class)
     companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>(), KSerializer<XmlProcessModel> {
 
-        fun serializer(): KSerializer<XmlProcessModel> = this
-
         @Suppress("UNCHECKED_CAST")
         override val childModelSerializer: KSerializer<ChildProcessModel<*, *>>
             get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*, *>>

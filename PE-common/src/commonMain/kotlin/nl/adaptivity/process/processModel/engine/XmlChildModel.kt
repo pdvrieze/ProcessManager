@@ -93,8 +93,6 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode, XmlModelCommon>,
     @Serializer(forClass = XmlChildModel::class)
     companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>() {
 
-        fun serializer(): KSerializer<XmlChildModel> = this
-
         @Suppress("RedundantOverride")
         override fun serialize(encoder: Encoder, obj: XmlChildModel) {
             super.serialize(encoder, obj)

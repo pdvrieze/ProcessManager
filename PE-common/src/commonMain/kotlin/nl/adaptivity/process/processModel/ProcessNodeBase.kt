@@ -390,15 +390,15 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         override var id: String?
         override var label: String?
 
-        @Optional
+//        @Optional
         @XmlDefault("NaN")
         override var x: Double = Double.NaN
 
-        @Optional
+//        @Optional
         @XmlDefault("NaN")
         override var y: Double = Double.NaN
 
-        @Optional
+//        @Optional
         @XmlDefault("false")
         override var isMultiInstance: Boolean = false
 

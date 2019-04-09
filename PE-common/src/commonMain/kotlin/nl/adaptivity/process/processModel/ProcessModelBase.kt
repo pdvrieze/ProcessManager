@@ -17,9 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import kotlinx.serialization.context.SerialContext
 import kotlinx.serialization.internal.ListLikeSerializer
 import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.modules.SerialModule
 import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
@@ -54,11 +54,13 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     abstract override val modelNodes: IdentifyableSet<NodeT>
 
     @SerialName("import")
+    @XmlSerialName(value = "import", namespace = ProcessConsts.Engine.NAMESPACE, prefix = ProcessConsts.Engine.NSPREFIX)
     @XmlPolyChildren(arrayOf("import=XmlResultType"))
     @Serializable(IXmlResultTypeListSerializer::class)
     private var _imports: List<IXmlResultType>
 
     @SerialName("export")
+    @XmlSerialName(value = "export", namespace = ProcessConsts.Engine.NAMESPACE, prefix = ProcessConsts.Engine.NSPREFIX)
     @Serializable(IXmlDefineTypeListSerializer::class)
     @XmlPolyChildren(arrayOf("export=XmlDefineType"))
     private var _exports: List<IXmlDefineType>
@@ -247,28 +249,29 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                 readElement(result, input, index, descriptor.getElementName(index))
             }
 
-            open fun readElement(result: T, input: KInput, index:Int, name: String) = when (name) {
+            open fun readElement(result: T, input: KInput, index: Int, name: String) = when (name) {
                 "import" -> {
                     @Suppress("UNCHECKED_CAST")
                     val newImports = input.updateSerializableElement(descriptor, index,
-                                                                          XmlResultType.list,
-                                                                          result.imports as List<XmlResultType>)
+                                                                     XmlResultType.list,
+                                                                     result.imports as List<XmlResultType>)
                     result.imports.replaceBy(newImports)
                 }
                 "export" -> {
                     @Suppress("UNCHECKED_CAST")
                     val newExports = input.updateSerializableElement(descriptor, index, XmlDefineType.list,
-                                                                          result.exports as List<XmlDefineType>)
+                                                                     result.exports as List<XmlDefineType>)
                     result.exports.replaceBy(newExports)
                 }
-                "nodes"   -> {
+                "nodes"  -> {
                     val newNodes: Iterable<Any> = input.updateSerializableElement(descriptor, index,
-                                                                                       ModelNodeBuilderSerializer.list, result.nodes)
+                                                                                  ModelNodeBuilderSerializer.list,
+                                                                                  result.nodes)
                     // Generics is utterly broken here
                     @Suppress("UNCHECKED_CAST")
-                    (result.nodes as MutableList<Any>).replaceBy(iterable=newNodes)
+                    (result.nodes as MutableList<Any>).replaceBy(iterable = newNodes)
                 }
-                else       -> throw SerializationException("Could not resolve field $name with index $index")
+                else     -> throw SerializationException("Could not resolve field $name with index $index")
             }
 
         }
@@ -338,9 +341,9 @@ private object ModelNodeClassDesc : SerialDescriptor {
     }
 
     override fun getElementDescriptor(index: Int): SerialDescriptor {
-        return when(index) {
-            0 -> StringSerializer.descriptor
-            1 -> simpleSerialClassDesc<XmlProcessNode>()
+        return when (index) {
+            0    -> StringSerializer.descriptor
+            1    -> simpleSerialClassDesc<XmlProcessNode>()
             else -> throw IndexOutOfBoundsException("$index")
         }
     }
@@ -367,7 +370,7 @@ object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
 
 
     override fun serialize(encoder: Encoder, obj: ProcessNode<*, *>) {
-        val saver = serializerByValue(obj, encoder.context) as SerializationStrategy<ProcessNode<*,*>>
+        val saver = serializerByValue(obj, encoder.context) as SerializationStrategy<ProcessNode<*, *>>
         encoder.writeStructure(descriptor) {
             encodeStringElement(descriptor, 0, saver.descriptor.name)
             encodeSerializableElement(descriptor, 1, saver, obj)
@@ -376,9 +379,9 @@ object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
 
 
     @JvmStatic
-    private fun serializerByValue(obj: ProcessNode<*, *>, context: SerialContext?): KSerializer<out ProcessNode<*, *>> {
+    private fun serializerByValue(obj: ProcessNode<*, *>, context: SerialModule?): KSerializer<out ProcessNode<*, *>> {
         // If the context has a serializer use that
-        context?.get(obj::class)?.let { return it }
+        context?.getContextual(obj::class)?.let { return it }
         // Otherwise fall back to "known" serializers
         when (obj) {
             is XmlStartNode -> return XmlStartNode.serializer()
@@ -387,7 +390,7 @@ object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
             is XmlJoin      -> return XmlJoin.serializer()
             is XmlEndNode   -> return XmlEndNode.serializer()
         }
-        return context?.getByValue(obj)!!
+        throw SerializationException("No serializer known for ${obj::class} with value '${obj.toString()}'")
     }
 
 }
@@ -436,7 +439,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
 
     @JvmStatic
     private fun serializerBySerialDescClassname(klassName: String,
-                                                context: SerialContext?): KSerializer<out ProcessNode.IBuilder<*, *>> {
+                                                context: SerialModule?): KSerializer<out ProcessNode.IBuilder<*, *>> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
         } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
@@ -447,7 +450,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
 
     @JvmStatic
     private fun serializerBySimpleName(simpleName: String,
-                                       context: SerialContext? = null): KSerializer<out ProcessNode.IBuilder<*, *>>? = when (simpleName) {
+                                       context: SerialModule? = null): KSerializer<out ProcessNode.IBuilder<*, *>>? = when (simpleName) {
         "XmlStartNode",
         "XmlStartNode\$Builder" -> XmlStartNode.Builder.serializer()
         "XmlActivity",

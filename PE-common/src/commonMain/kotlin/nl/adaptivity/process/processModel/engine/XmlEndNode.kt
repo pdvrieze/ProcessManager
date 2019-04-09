@@ -40,9 +40,7 @@ class XmlEndNode : EndNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
     @Serializer(XmlEndNode::class)
     companion object: KSerializer<XmlEndNode> {
 
-        val parentSerializer = EndNodeBase.serializer(XmlProcessNode.serializer(), XmlModelCommon.serializer())
-
-        fun serializer(): KSerializer<XmlEndNode> = this
+        val parentSerializer = EndNodeBase.serializer(this, XmlProcessModel.serializer())  as KSerializer<XmlEndNode>
 
         override fun serialize(encoder: kotlinx.serialization.Encoder,
                                obj: nl.adaptivity.process.processModel.engine.XmlEndNode) {
