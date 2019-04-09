@@ -128,7 +128,7 @@ kotlin {
 
 
 //                implementation(project(":JavaCommonApi"))
-//                implementation(project(":DarwinJavaApi"))
+                implementation(project(":DarwinJavaApi"))
                 implementation(project(":TestSupport"))
 
             }

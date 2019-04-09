@@ -14,10 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package java.nl.adaptivity.ws.soap
+package nl.adaptivity.ws.soap
 
 import nl.adaptivity.process.engine.*
-import java.nl.adaptivity.xml.DebugWriter
+import nl.adaptivity.xml.DebugWriter
 
 import nl.adaptivity.ws.soap.SoapHelper
 import nl.adaptivity.xmlutil.util.CompactFragment

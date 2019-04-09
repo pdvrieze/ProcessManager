@@ -371,8 +371,8 @@ object SoapHelper {
                 }
                 EventType.START_ELEMENT        -> {
                     if (reader.isElement("http://www.w3.org/2003/05/soap-rpc", "result")) {
-                        val s = toString(reader.readSimpleElement())
-                        val i = s!!.indexOf(':')
+                        val s = reader.readSimpleElement().toString()
+                        val i = s.indexOf(':')
                         if (i >= 0) {
                             returnName = QName(reader.getNamespaceURI(s.substring(0, i)), s.substring(i + 1))
                         } else {

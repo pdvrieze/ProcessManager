@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package java.nl.adaptivity.process.engine
+package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.*

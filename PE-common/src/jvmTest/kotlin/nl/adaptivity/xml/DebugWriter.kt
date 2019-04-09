@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package java.nl.adaptivity.xml
+package nl.adaptivity.xml
 
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.util.XmlDelegatingWriter
