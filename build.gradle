@@ -124,7 +124,8 @@ if (soapTarget.isDirectory()) {
     }
 }
 
-task wrapper(type: Wrapper) {
+
+tasks.wrapper {
     gradleVersion = '4.10.2'
 }
 

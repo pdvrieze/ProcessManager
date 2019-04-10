@@ -15,10 +15,11 @@
  */
 
 import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
-    id("kotlin")
+    kotlin("jvm")
     id("idea")
 }
 
@@ -38,4 +39,17 @@ registerAndroidAttributeForDeps()
 dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly("org.jetbrains:annotations:13.0")
+    implementation(kotlin("stdlib-jdk8"))
+}
+repositories {
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    mavenCentral()
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }

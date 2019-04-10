@@ -74,8 +74,6 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {
 
-        private val parentSerializer = ActivityBase.serializer(this, XmlProcessModel.serializer())  as KSerializer<XmlActivity>
-
         @Throws(XmlException::class)
         fun deserialize(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>,
                         reader: XmlReader): XmlActivity {
@@ -86,11 +84,6 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         fun deserialize(reader: XmlReader): XmlActivity.Builder {
             return Builder().deserializeHelper(reader)
         }
-
-        override fun serialize(encoder: Encoder, obj: XmlActivity) {
-            parentSerializer.serialize(encoder, obj)
-        }
-
 
         override fun deserialize(decoder: Decoder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")

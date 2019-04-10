@@ -18,7 +18,7 @@ import multiplatform.registerAndroidAttributeForDeps
  */
 
 plugins {
-    id("kotlin")
+    kotlin("jvm")
     id("java-library")
     id("idea")
 }
@@ -95,7 +95,7 @@ dependencies {
     "api"(project(":java-common"))
     "api"(project(":PE-common"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation(kotlin("stdlib-jdk8"))
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
 //    compileOnly(project(path= ":PE-common", configuration="compileOnly"))

@@ -64,11 +64,6 @@ class XmlSplit :
 
     @Serializer(XmlSplit::class)
     companion object: KSerializer<XmlSplit> {
-        val parentSerializer = SplitBase.serializer(this, XmlProcessModel.serializer()) as KSerializer<XmlSplit>
-
-        override fun serialize(encoder: Encoder, obj: XmlSplit) {
-            parentSerializer.serialize(encoder, obj)
-        }
 
         override fun deserialize(decoder: Decoder): XmlSplit {
             throw Exception("Deserializing a split directly is not possible")

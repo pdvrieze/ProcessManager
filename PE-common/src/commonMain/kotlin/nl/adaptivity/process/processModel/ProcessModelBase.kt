@@ -39,6 +39,7 @@ import kotlin.jvm.JvmStatic
 abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
     ProcessModel<NodeT, ModelT>, XmlSerializable {
 
+/*
     @SerialName("nodes")
     @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
                              "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
@@ -51,18 +52,20 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                              "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
                              "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
     @Serializable(IdentifiableSetSerializer::class)
+*/
+    @Transient
     abstract override val modelNodes: IdentifyableSet<NodeT>
 
     @SerialName("import")
     @XmlSerialName(value = "import", namespace = ProcessConsts.Engine.NAMESPACE, prefix = ProcessConsts.Engine.NSPREFIX)
-    @XmlPolyChildren(arrayOf("import=XmlResultType"))
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlResultType=import"))
     @Serializable(IXmlResultTypeListSerializer::class)
     private var _imports: List<IXmlResultType>
 
     @SerialName("export")
     @XmlSerialName(value = "export", namespace = ProcessConsts.Engine.NAMESPACE, prefix = ProcessConsts.Engine.NSPREFIX)
     @Serializable(IXmlDefineTypeListSerializer::class)
-    @XmlPolyChildren(arrayOf("export=XmlDefineType"))
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlDefineType=export"))
     private var _exports: List<IXmlDefineType>
 
     @Transient

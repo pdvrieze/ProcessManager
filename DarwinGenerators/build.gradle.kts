@@ -1,4 +1,5 @@
 import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * Copyright (c) 2018.
@@ -18,8 +19,8 @@ import multiplatform.registerAndroidAttributeForDeps
 
 plugins{
 //    id("application")
-    id("kotlin")
     id("idea")
+    kotlin("jvm")
 }
 
 base {
@@ -58,7 +59,19 @@ dependencies {
     implementation(project(":java-common"))
     implementation(project(":PE-common"))
     implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
 
+}
+repositories {
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    mavenCentral()
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }

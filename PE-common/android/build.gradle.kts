@@ -59,7 +59,7 @@ val xmlutilVersion: String by project
 dependencies {
     expectedBy(project(":PE-common:common"))
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+    implementation(kotlin("stdlib-jdk7"))
     implementation("net.devrieze:xmlutil-android:$xmlutilVersion")
     implementation("net.devrieze:xmlutil-serialization-android:$xmlutilVersion")
     api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")

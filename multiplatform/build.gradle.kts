@@ -31,7 +31,7 @@ import java.util.Date
 import multiplatform.androidAttribute
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    kotlin("multiplatform")
 //    id("kotlinx-serialization")
 //    id("maven-publish")
 //    id("com.jfrog.bintray")
@@ -86,19 +86,19 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+                implementation(kotlin("stdlib"))
             }
         }
         val javaShared by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+                implementation(kotlin("stdlib-jdk7"))
             }
         }
         val jvmMain by getting {
             dependsOn(javaShared)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+                implementation(kotlin("stdlib-jdk7"))
             }
         }
         val androidMain by getting {
@@ -118,4 +118,5 @@ kotlin {
 
 repositories {
     jcenter()
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }

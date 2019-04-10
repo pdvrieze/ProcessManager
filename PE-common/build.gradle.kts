@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    kotlin("multiplatform")
     id("idea")
     id("net.devrieze.gradlecodegen")
     id("kotlinx-serialization")
@@ -64,7 +64,6 @@ kotlin {
                 }
             }
         }
-/*
         js {
             compilations.all {
                 tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
@@ -78,14 +77,13 @@ kotlin {
                 }
             }
         }
-*/
     }
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+                implementation(kotlin("stdlib"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
                 implementation("net.devrieze:xmlutil:$xmlutilVersion")
@@ -99,13 +97,13 @@ kotlin {
         val javaMain by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+                implementation(kotlin("stdlib"))
             }
         }
         val jvmMain by getting {
             dependsOn(javaMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+                implementation(kotlin("stdlib-jdk8"))
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
@@ -126,6 +124,8 @@ kotlin {
 
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
 
+                implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
 
 //                implementation(project(":JavaCommonApi"))
                 implementation(project(":DarwinJavaApi"))
@@ -138,27 +138,29 @@ kotlin {
             dependencies {
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+                implementation(kotlin("stdlib-jdk7"))
             }
         }
-/*
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
+                api("net.devrieze:xmlutil-js:$xmlutilVersion")
+                api("net.devrieze:xmlutil-serialization-js:$xmlutilVersion")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serializationVersion")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
         }
-*/
     }
 
 }
 
-//registerAndroidAttributeForDeps()
+registerAndroidAttributeForDeps()
 
 
 repositories {
     jcenter()
     mavenCentral()
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }
 
 tasks.create<Task>("test") {

@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  */
 
 plugins {
-    id("kotlin")
+    kotlin("jvm")
     id("war")
     id("idea")
 }
@@ -51,7 +51,7 @@ dependencies {
     providedCompile(project(":JavaCommonApi"))
     implementation(project(":ProcessEngine:core"))
     providedCompile("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation(kotlin("stdlib-jdk8"))
 
     implementation(project(":multiplatform"))
     implementation("org.jetbrains:annotations:13.0")

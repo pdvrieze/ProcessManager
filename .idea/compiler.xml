@@ -24,6 +24,8 @@
       <module name="multiplatform_androidTest" target="1.6" />
       <module name="multiplatform_jvmMain" target="1.8" />
       <module name="multiplatform_jvmTest" target="1.8" />
+      <module name="PE-common_androidMain" target="1.6" />
+      <module name="PE-common_androidTest" target="1.6" />
       <module name="PE-common_jvmMain" target="1.8" />
       <module name="PE-common_jvmTest" target="1.8" />
       <module name="ProcessEngine-core_main" target="1.8" />

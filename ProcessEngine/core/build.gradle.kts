@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java-library")
-    id("kotlin")
+    kotlin("jvm")
     id("idea")
 }
 
@@ -85,6 +85,7 @@ dependencies {
         exclude(group="org.junit.platform")
         exclude(group="org.jetbrains.kotlin")
     }
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 java {
@@ -117,4 +118,8 @@ idea {
     module {
         name = "${parent?.name}-${project.name}"
     }
+}
+repositories {
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    mavenCentral()
 }

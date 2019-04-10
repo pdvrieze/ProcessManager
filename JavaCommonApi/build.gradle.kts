@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Date
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    kotlin("multiplatform")
 }
 
 base {
@@ -77,13 +77,13 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+                implementation(kotlin("stdlib"))
             }
         }
         val javaShared by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+                implementation(kotlin("stdlib-jdk7"))
             }
         }
         val jvmMain by getting {
@@ -106,4 +106,5 @@ kotlin {
 
 repositories {
     jcenter()
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }

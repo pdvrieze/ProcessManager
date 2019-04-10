@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    kotlin("multiplatform")
 }
 
 base {
@@ -74,7 +74,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+                implementation(kotlin("stdlib"))
 
                 compileOnly(project(":JavaCommonApi"))
                 api(project(":JavaCommonApi"))
@@ -84,13 +84,13 @@ kotlin {
         val javaMain by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+                implementation(kotlin("stdlib"))
             }
         }
         val jvmMain by getting {
             dependsOn(javaMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+                implementation(kotlin("stdlib-jdk8"))
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
             }
         }
@@ -104,13 +104,13 @@ kotlin {
         val androidMain by getting {
             dependsOn(javaMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version")
+                implementation(kotlin("stdlib-jdk7"))
             }
         }
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
+                implementation(kotlin("stdlib-js"))
             }
         }
     }
@@ -120,6 +120,7 @@ kotlin {
 
 repositories {
     jcenter()
+    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }
 
 //test {

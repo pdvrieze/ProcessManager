@@ -71,7 +71,18 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
     @Transient
     private val _childModels: IdentifyableSet<ChildProcessModelBase<NodeT, ModelT>>
 
-    @Transient
+    @SerialName("nodes")
+    @Serializable(IdentifiableSetSerializer::class)
+    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
     private val _processNodes: MutableIdentifyableSet<NodeT>
 
     /* (non-Javadoc)
@@ -88,18 +99,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT :
      *
      * @return An array of all nodes.
      */
-    @SerialName("nodes")
-    @Serializable(IdentifiableSetSerializer::class)
-    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
-                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
+    @Transient
     override val modelNodes: IdentifyableSet<NodeT>
         get() = _processNodes.readOnly()
 
