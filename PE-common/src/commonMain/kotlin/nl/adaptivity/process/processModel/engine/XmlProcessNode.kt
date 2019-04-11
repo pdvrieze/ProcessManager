@@ -24,14 +24,10 @@ import nl.adaptivity.process.processModel.ProcessNode
 /**
  * Fix compilation by converting it properly to Kotlin.
  */
-interface XmlProcessNode : ProcessNode<XmlProcessNode, XmlModelCommon> {
+interface XmlProcessNode : ProcessNode {
 
-    interface Builder : ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon> {
-
-        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlProcessNode
-    }
-
-    override fun builder(): Builder
+    @Deprecated("Use regular ProcessNode.IBuilder", ReplaceWith("ProcessNode.IBuilder", "nl.adaptivity.process.processModel.ProcessNode"))
+    interface Builder : ProcessNode.IBuilder
 
     @Serializer(forClass = XmlProcessNode::class)
     companion object: KSerializer<XmlProcessNode> {
@@ -48,3 +44,5 @@ interface XmlProcessNode : ProcessNode<XmlProcessNode, XmlModelCommon> {
         }
     }
 }
+
+internal typealias XmlBuildHelper = BuildHelper<XmlProcessNode, XmlModelCommon, XmlProcessModel, XmlChildModel>

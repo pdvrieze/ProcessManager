@@ -274,15 +274,15 @@ internal fun EngineSuite.testValidTrace(
                 val node = model.findNode(traceElement) ?: throw AssertionError(
                     "No node could be find for trace element $traceElement")
                 when (node) {
-                    is StartNode<*, *> -> testStartNode(nodeInstanceF, traceElement)
-                    is EndNode<*, *>   -> testEndNode(transaction, nodeInstanceF, traceElement)
-                    is Join<*, *>      -> testJoin(transaction, nodeInstanceF, traceElement)
-                    is Split<*, *>     -> testSplit(transaction, nodeInstanceF, traceElement)
-                    is Activity<*, *>  -> when {
+                    is StartNode -> testStartNode(nodeInstanceF, traceElement)
+                    is EndNode   -> testEndNode(transaction, nodeInstanceF, traceElement)
+                    is Join      -> testJoin(transaction, nodeInstanceF, traceElement)
+                    is Split     -> testSplit(transaction, nodeInstanceF, traceElement)
+                    is Activity  -> when {
                         node.childModel == null -> testActivity(transaction, nodeInstanceF, traceElement)
                         else                    -> testComposite(transaction, nodeInstanceF, traceElement)
                     }
-                    else               -> it("$traceElement should not be in a final state") {
+                    else             -> it("$traceElement should not be in a final state") {
                         val nodeInstance = nodeInstanceF()
                         Assertions.assertFalse(
                             nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
@@ -359,7 +359,7 @@ private fun EngineSuite.testTraceStarting(processInstanceF: Getter<ProcessInstan
     context("After starting") {
         it("Only start nodes should be finished") {
             val processInstance = processInstanceF()
-            val predicate: (ProcessNodeInstance<*>) -> Boolean = { it.state == NodeInstanceState.Skipped || it.node is StartNode<*, *> || it.node is Split<*, *> || it.node is Join<*, *> }
+            val predicate: (ProcessNodeInstance<*>) -> Boolean = { it.state == NodeInstanceState.Skipped || it.node is StartNode || it.node is Split || it.node is Join }
             val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
             Assertions.assertTrue(onlyStartNodesCompleted) {
                 processInstance.finishedNodes
@@ -384,7 +384,7 @@ private fun EngineSuite.testTraceCompletion(model: ExecutableProcessModel,
         it("All non-endnodes are finished") {
             val expectedFinishedNodes = validTrace.asSequence()
                 .map { model.findNode(it)!! }
-                .filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
+                .filterNot { it is EndNode }.map { it.id }.toList().toTypedArray()
             processInstanceF().assertFinished(transaction(), *expectedFinishedNodes)
         }
         it("No nodes are active") {

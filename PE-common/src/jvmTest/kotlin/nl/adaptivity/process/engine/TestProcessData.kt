@@ -299,7 +299,8 @@ class TestProcessData {
     fun testXmlStreamingRoundTripProcessModel1() {
 
         testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class, XmlProcessModel.serializer()) { model ->
-            val ac1 = model.getNode("ac1") as Activity<*, *>
+            val ac1 = model.getNode("ac1") as Activity
+            assertEquals("ac1", ac1.name)
             assertEquals("start", ac1.predecessor?.id)
             assertEquals("start", ac1.predecessors.singleOrNull()?.id)
             assertEquals("ac1", model.getNode("ac2")?.predecessors?.singleOrNull()?.id)

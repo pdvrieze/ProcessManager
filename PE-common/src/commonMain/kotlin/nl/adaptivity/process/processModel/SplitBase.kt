@@ -30,9 +30,7 @@ import nl.adaptivity.xmlutil.*
  * Created by pdvrieze on 26/11/15.
  */
 @Serializable
-abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-    JoinSplitBase<NodeT, ModelT>,
-    Split<NodeT, ModelT> {
+abstract class SplitBase : JoinSplitBase, Split {
 
     @Transient
     override val maxSuccessorCount: Int
@@ -42,7 +40,7 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
     final override val predecessor: Identifiable?
         get() = predecessors.singleOrNull()
 
-    constructor(ownerModel: ModelT,
+    constructor(ownerModel: ProcessModel<ProcessNode>,
                 predecessor: Identified? = null,
                 successors: Collection<Identified> = emptyList(),
                 id: String?,
@@ -55,10 +53,13 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
                 max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
                                        label, x, y, defines, results, min, max)
 
-    constructor(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
-                                                                                                            buildHelper)
+    @Deprecated("Don't use")
+    constructor(builder: Split.Builder, buildHelper: ProcessModel.BuildHelper<*,*,*,*>): this(builder, buildHelper.newOwner)
 
-    override abstract fun builder(): Builder<NodeT, ModelT>
+    constructor(builder: Split.Builder, newOwner: ProcessModel<*>) :
+        super(builder, newOwner)
+
+    override abstract fun builder(): Builder
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(Split.ELEMENTNAME) {
@@ -79,16 +80,19 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
     }
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-        JoinSplitBase.Builder<NodeT, ModelT>,
-        Split.Builder<NodeT, ModelT> {
+    abstract class Builder :
+        JoinSplitBase.Builder,
+        Split.Builder {
 
         @Transient
-        override val idBase: String get() = "split"
+        override val idBase: String
+            get() = "split"
 
         @Transient
         final override var successors: MutableSet<Identified> = ArraySet()
-            set(value) { field.replaceBy(value) }
+            set(value) {
+                field.replaceBy(value)
+            }
 
         @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
@@ -110,8 +114,9 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
                     y: Double = Double.NaN,
                     min: Int = -1,
                     max: Int = -1,
-                    multiInstance: Boolean = false) : this(id, predecessors.singleOrNull(), successors, label, defines, results, x, y,
-                                                            min, max, multiInstance)
+                    multiInstance: Boolean = false) : this(id, predecessors.singleOrNull(), successors, label, defines,
+                                                           results, x, y,
+                                                           min, max, multiInstance)
 
 
         constructor(id: String? = null,
@@ -132,7 +137,7 @@ abstract class SplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMod
 
         }
 
-        constructor(node: Split<*, *>) : super(node) {
+        constructor(node: Split) : super(node) {
             this.predecessor = node.predecessor
             this.successors.addAll(node.successors)
         }

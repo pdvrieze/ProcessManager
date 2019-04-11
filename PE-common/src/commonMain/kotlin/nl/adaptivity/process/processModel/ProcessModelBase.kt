@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.ListLikeSerializer
 import kotlinx.serialization.internal.StringSerializer
 import kotlinx.serialization.modules.SerialModule
 import net.devrieze.util.collection.ArrayAccess
@@ -36,23 +35,23 @@ import kotlin.jvm.JvmStatic
  * Created by pdvrieze on 02/01/17.
  */
 @Serializable
-abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-    ProcessModel<NodeT, ModelT>, XmlSerializable {
+abstract class ProcessModelBase<NodeT : ProcessNode> :
+    ProcessModel<NodeT>, XmlSerializable {
 
-/*
-    @SerialName("nodes")
-    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
-                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
-    @Serializable(IdentifiableSetSerializer::class)
-*/
+    /*
+        @SerialName("nodes")
+        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+                                 "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+                                 "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                                 "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                                 "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+                                 "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                                 "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+                                 "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                                 "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                                 "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
+        @Serializable(IdentifiableSetSerializer::class)
+    */
     @Transient
     abstract override val modelNodes: IdentifyableSet<NodeT>
 
@@ -90,7 +89,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
         _exports = emptyList()
     }
 
-    constructor(builder: ProcessModel.Builder<*, *>, pedantic: Boolean) {
+    constructor(builder: ProcessModel.Builder, pedantic: Boolean) {
         builder.normalize(pedantic)
 
         this._imports = builder.imports.map { XmlResultType(it) }
@@ -107,7 +106,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
        * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
        */
     override fun getNode(nodeId: Identifiable): NodeT? {
-        if (nodeId is ProcessNode<*, *>) {
+        if (nodeId is ProcessNode) {
             @Suppress("UNCHECKED_CAST")
             return nodeId as NodeT
         }
@@ -124,7 +123,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
-        other as ProcessModelBase<*, *>
+        other as ProcessModelBase<*>
 
         if (_imports != other._imports) return false
         if (_exports != other._exports) return false
@@ -143,7 +142,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
     }
 
 
-    abstract class BaseSerializer<T : ProcessModelBase<*, *>> : KSerializer<T> {
+    abstract class BaseSerializer<T : ProcessModelBase<*>> : KSerializer<T> {
 
         private val importsIdx by lazy { descriptor.getElementIndex("import") }
         private val exportsIdx by lazy { descriptor.getElementIndex("export") }
@@ -163,48 +162,75 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
         }
     }
 
-    interface NodeFactory<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
-        operator fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
-                            buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): NodeT
+    interface NodeFactory<NodeT : ProcessNode> {
+        operator fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
+                            buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): NodeT
 
-        operator fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
-                            buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModelBase<NodeT, ModelT>
+        operator fun <ChildT : ChildProcessModel<NodeT>> invoke(baseChildBuilder: ChildProcessModel.Builder,
+                                                                buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT
 
         fun condition(text: String): Condition
     }
 
+    @Serializable
     @ProcessModelDSL
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    constructor(nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
-                imports: Collection<IXmlResultType> = emptyList(),
-                exports: Collection<IXmlDefineType> = emptyList()) :
-        ProcessModel.Builder<NodeT, ModelT>, SimpleXmlDeserializable {
+    abstract class Builder : ProcessModel.Builder, SimpleXmlDeserializable {
+
+        constructor(nodes: Collection<ProcessNode.IBuilder> = emptyList(),
+                    imports: Collection<IXmlResultType> = emptyList(),
+                    exports: Collection<IXmlDefineType> = emptyList()) {
+            this.nodes = nodes.toMutableList()
+            this.imports = imports.toMutableList()
+            this.exports = exports.toMutableList()
+            this.node = object : ArrayAccess<String, ProcessNode.IBuilder> {
+                override operator fun get(key: String) = this@Builder.nodes.firstOrNull { it.id == key }
+            }
+        }
 
         constructor() : this(nodes = emptyList())
 
-        final override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
+        @SerialName("nodes")
+        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+                                 "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+                                 "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                                 "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                                 "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+                                 "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                                 "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+                                 "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                                 "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                                 "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
+        final override val nodes: MutableList<ProcessNode.IBuilder>
+
         @SerialName("import")
-        final override val imports: MutableList<IXmlResultType> = imports.toMutableList()
+        @XmlSerialName(value = "import", namespace = ProcessConsts.Engine.NAMESPACE,
+                       prefix = ProcessConsts.Engine.NSPREFIX)
+        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlResultType=import"))
+        @Serializable(IXmlResultTypeListSerializer::class)
+        final override val imports: MutableList<IXmlResultType>
+
         @SerialName("export")
-        final override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
+        @XmlSerialName(value = "export", namespace = ProcessConsts.Engine.NAMESPACE,
+                       prefix = ProcessConsts.Engine.NSPREFIX)
+        @Serializable(IXmlDefineTypeListSerializer::class)
+        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlDefineType=export"))
+        final override val exports: MutableList<IXmlDefineType>
 
         @Transient
-        val node = object : ArrayAccess<String, ProcessNode.IBuilder<NodeT, ModelT>> {
-            override operator fun get(key: String) = this@Builder.nodes.firstOrNull { it.id == key }
-        }
+        val node: ArrayAccess<String, ProcessNode.IBuilder>
 
-        constructor(base: ProcessModel<*, *>) :
+        constructor(base: ProcessModel<*>) :
             this(emptyList(),
                  base.imports.toMutableList(),
                  base.exports.toMutableList()) {
 
             base.modelNodes.mapTo(nodes) {
-                it.visit(object : ProcessNode.Visitor<ProcessNode.IBuilder<NodeT, ModelT>> {
-                    override fun visitStartNode(startNode: StartNode<*, *>) = startNodeBuilder(startNode)
-                    override fun visitActivity(activity: Activity<*, *>) = activityBuilder(activity)
-                    override fun visitSplit(split: Split<*, *>) = splitBuilder(split)
-                    override fun visitJoin(join: Join<*, *>) = joinBuilder(join)
-                    override fun visitEndNode(endNode: EndNode<*, *>) = endNodeBuilder(endNode)
+                it.visit(object : ProcessNode.Visitor<ProcessNode.IBuilder> {
+                    override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
+                    override fun visitActivity(activity: Activity) = activityBuilder(activity)
+                    override fun visitSplit(split: Split) = splitBuilder(split)
+                    override fun visitJoin(join: Join) = joinBuilder(join)
+                    override fun visitEndNode(endNode: EndNode) = endNodeBuilder(endNode)
                 })
             }
 
@@ -231,7 +257,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
             return "${this::class.simpleName}(nodes=$nodes, imports=$imports, exports=$exports)"
         }
 
-        abstract class BaseSerializer<T : Builder<*, *>> : KSerializer<T> {
+        abstract class BaseSerializer<T : Builder> : KSerializer<T> {
 
             abstract fun builder(): T
 
@@ -284,7 +310,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
             @Throws(XmlException::class)
             @JvmStatic
             @Deprecated("Poor approach")
-            fun <B : ProcessModelBase.Builder<*, *>> deserialize(builder: B, reader: XmlReader): B {
+            fun <B : ProcessModelBase.Builder> deserialize(builder: B, reader: XmlReader): B {
 
                 reader.skipPreamble()
                 val elementName = RootProcessModelBase.ELEMENTNAME
@@ -310,7 +336,6 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
                 return builder
             }
 
-
         }
 
 
@@ -322,9 +347,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Pro
 //        fun descriptor(name:String): SerialClassDescImpl = SerialClassDescImpl(descriptor, name)
 
         @JvmStatic
-        protected fun <NodeT : ProcessNode<NodeT, ModelT>,
-            ModelT : ProcessModel<NodeT, ModelT>?> buildNodes(builder: ProcessModel.Builder<*, *>,
-                                                              buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): MutableIdentifyableSet<NodeT> {
+        protected fun <NodeT : ProcessNode> buildNodes(builder: ProcessModel.Builder,
+                                                       buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): MutableIdentifyableSet<NodeT> {
             val newNodes = builder.nodes.map {
                 buildHelper.node(it)
             }.let { IdentifyableSet.processNodeSet(Int.MAX_VALUE, it) }
@@ -364,16 +388,16 @@ private object ModelNodeClassDesc : SerialDescriptor {
     override val elementsCount: Int get() = 2
 }
 
-object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
+object ModelNodeSerializer : KSerializer<ProcessNode> {
     override val descriptor: SerialDescriptor get() = ModelNodeClassDesc
 
-    override fun deserialize(decoder: Decoder): ProcessNode<*, *> {
+    override fun deserialize(decoder: Decoder): ProcessNode {
         throw UnsupportedOperationException("No valid model loading outside of process model context")
     }
 
 
-    override fun serialize(encoder: Encoder, obj: ProcessNode<*, *>) {
-        val saver = serializerByValue(obj, encoder.context) as SerializationStrategy<ProcessNode<*, *>>
+    override fun serialize(encoder: Encoder, obj: ProcessNode) {
+        val saver = serializerByValue(obj, encoder.context) as SerializationStrategy<ProcessNode>
         encoder.writeStructure(descriptor) {
             encodeStringElement(descriptor, 0, saver.descriptor.name)
             encodeSerializableElement(descriptor, 1, saver, obj)
@@ -382,7 +406,7 @@ object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
 
 
     @JvmStatic
-    private fun serializerByValue(obj: ProcessNode<*, *>, context: SerialModule?): KSerializer<out ProcessNode<*, *>> {
+    private fun serializerByValue(obj: ProcessNode, context: SerialModule?): KSerializer<out ProcessNode> {
         // If the context has a serializer use that
         context?.getContextual(obj::class)?.let { return it }
         // Otherwise fall back to "known" serializers
@@ -398,14 +422,14 @@ object ModelNodeSerializer : KSerializer<ProcessNode<*, *>> {
 
 }
 
-object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
+object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder> {
     override val descriptor: SerialDescriptor get() = ModelNodeClassDesc
 
-    override fun deserialize(decoder: Decoder): ProcessNode.IBuilder<*, *> {
+    override fun deserialize(decoder: Decoder): ProcessNode.IBuilder {
         decoder.decodeStructure(descriptor) {
             val input = this
             var klassName: String? = null
-            var value: ProcessNode.IBuilder<*, *>? = null
+            var value: ProcessNode.IBuilder? = null
             mainLoop@ while (true) {
                 when (input.decodeElementIndex(descriptor)) {
                     KInput.READ_ALL  -> {
@@ -434,7 +458,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
 
     }
 
-    override fun serialize(encoder: Encoder, obj: ProcessNode.IBuilder<*, *>) {
+    override fun serialize(encoder: Encoder, obj: ProcessNode.IBuilder) {
         throw UnsupportedOperationException("Only final process nodes can be serialized for now")
     }
 
@@ -442,7 +466,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
 
     @JvmStatic
     private fun serializerBySerialDescClassname(klassName: String,
-                                                context: SerialModule?): KSerializer<out ProcessNode.IBuilder<*, *>> {
+                                                context: SerialModule?): KSerializer<out ProcessNode.IBuilder> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
         } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
@@ -453,7 +477,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder<*, *>> {
 
     @JvmStatic
     private fun serializerBySimpleName(simpleName: String,
-                                       context: SerialModule? = null): KSerializer<out ProcessNode.IBuilder<*, *>>? = when (simpleName) {
+                                       context: SerialModule? = null): KSerializer<out ProcessNode.IBuilder>? = when (simpleName) {
         "XmlStartNode",
         "XmlStartNode\$Builder" -> XmlStartNode.Builder.serializer()
         "XmlActivity",

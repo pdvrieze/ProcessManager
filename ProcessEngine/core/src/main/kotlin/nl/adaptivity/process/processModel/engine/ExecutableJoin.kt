@@ -27,10 +27,10 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
+class ExecutableJoin(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper)
   : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : JoinBase.Builder<ExecutableProcessNode, ExecutableModelCommon>,
+  class Builder : JoinBase.Builder,
                   ExecutableProcessNode.Builder {
 
     constructor(id: String? = null,
@@ -45,9 +45,9 @@ class ExecutableJoin(builder: Join.Builder<*, *>, buildHelper: ProcessModel.Buil
                 isMultiMerge: Boolean = false,
                 isMultiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y, min, max, isMultiMerge,
                                                           isMultiInstance)
-    constructor(node: Join<*, *>) : super(node)
+    constructor(node: Join) : super(node)
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableJoin(
+    override fun build(buildHelper: ProcessModel.BuildHelper) = ExecutableJoin(
       this, buildHelper)
   }
 

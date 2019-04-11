@@ -25,10 +25,12 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.JvmName
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xml.localPart
 import nl.adaptivity.xmlutil.*
@@ -96,6 +98,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     override val elementName: XmlQName
         get() = ELEMENTNAME
 
+    @Serializable
     override var serviceName: String?
         get() = service?.localPart
         set(name) {
@@ -274,11 +277,14 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         }
 
         override fun deserialize(decoder: Decoder): XmlMessage {
-            val data = XmlMessageData(this).apply { deserialize(descriptor, decoder) }
+            val data = XmlMessageData(this).apply { deserialize(descriptor, decoder, XmlMessage.Companion) }
 
             return XmlMessage(data.service, data.endpoint, data.operation, data.url, data.method, data.contentType,
                               data.fragment)
         }
+
+        override val descriptor: SerialDescriptor = XmlMessageData.serializer().descriptor
+
 
         override fun serialize(encoder: Encoder, obj: XmlMessage) {
             super.serialize(descriptor, encoder, obj)
@@ -295,14 +301,18 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
             super.writeAdditionalValues(encoder, desc, data)
         }
 
-        private class XmlMessageData(owner: Companion) :
-            XmlContainerSerializer.ContainerData<XmlMessage>(owner) {
+        @Serializable
+        @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
+        private class XmlMessageData : XmlContainerSerializer.ContainerData<XmlMessage> {
+            constructor(owner: XmlMessage.Companion) : super()
+
             var serviceName: String? = null
             var serviceNS: String? = null
             var endpoint: String? = null
             var operation: String? = null
             var url: String? = null
             var method: String? = null
+            @SerialName("type")
             var contentType: String? = null
 
             val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }

@@ -20,11 +20,11 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableEndNode(builder: EndNode.Builder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : EndNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
+class ExecutableEndNode(builder: EndNode.Builder,
+                        buildHelper: ProcessModel.BuildHelper) : EndNodeBase(
   builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : EndNodeBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
+  class Builder : EndNodeBase.Builder, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -35,9 +35,9 @@ class ExecutableEndNode(builder: EndNode.Builder<*, *>,
                 y: Double = Double.NaN,
                 multiInstance: Boolean = false) : super(id, predecessor, label, defines, results, x, y, multiInstance)
 
-    constructor(node: EndNode<*, *>) : super(node)
+    constructor(node: EndNode) : super(node)
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableEndNode(
+    override fun build(buildHelper: ProcessModel.BuildHelper) = ExecutableEndNode(
       this, buildHelper)
   }
 

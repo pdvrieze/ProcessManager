@@ -31,15 +31,15 @@ import java.io.FileNotFoundException
  * Utilities for handling process things
  */
 
-fun <N: ProcessNode<*,*>> N?.mustExist(id:Identifiable): N = this ?: throw ProcessException("The node with id $id is missing")
+fun <N: ProcessNode> N?.mustExist(id:Identifiable): N = this ?: throw ProcessException("The node with id $id is missing")
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <N: ProcessNode<*,*>> N?.mustExist(id:String): N = mustExist(Identifier(id))
+inline fun <N: ProcessNode> N?.mustExist(id:String): N = mustExist(Identifier(id))
 
-fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
+fun <T: ProcessNode> ProcessModel.requireNode(id:Identifiable):T = getNode(id).mustExist(id)
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T: ProcessNode<T, *>> ProcessModel<T, *>.requireNode(id:String):T = requireNode(Identifier(id))
+inline fun <T: ProcessNode> ProcessModel.requireNode(id:String):T = requireNode(Identifier(id))
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
@@ -88,11 +88,11 @@ fun <T: ProcessTransaction> ProcessInstance?.shouldExist(handle: ComparableHandl
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.mustExist(handle: Handle<RootProcessModel<N,M>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <N: ProcessNode, M: RootProcessModel> M?.mustExist(handle: Handle<RootProcessModel>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws FileNotFoundException If it doesn't.
  */
-fun <N: ProcessNode<N, M>, M: RootProcessModel<N,M>> M?.shouldExist(handle: Handle<RootProcessModel<N,M>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <N: ProcessNode, M: RootProcessModel> M?.shouldExist(handle: Handle<RootProcessModel>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")

@@ -17,21 +17,19 @@
 package nl.adaptivity.process.processModel
 
 
-interface JoinSplit<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
+interface JoinSplit : ProcessNode {
 
-  interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
+    interface Builder : ProcessNode.IBuilder {
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+        var min: Int
+        var max: Int
 
-    var min:Int
-    var max:Int
+    }
 
-  }
+    override fun builder(): Builder
 
-  override fun builder(): Builder<NodeT, ModelT>
+    val min: Int
 
-  val min: Int
-
-  val max: Int
+    val max: Int
 
 }

@@ -21,7 +21,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.serialization.ConditionSerializer
 import nl.adaptivity.process.processModel.serialization.ConditionStringSerializer
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
@@ -39,7 +38,6 @@ import kotlin.collections.all
 import kotlin.collections.associateByTo
 import kotlin.collections.contains
 import kotlin.collections.emptyList
-import kotlin.collections.emptyMap
 import kotlin.collections.fold
 import kotlin.collections.forEach
 import kotlin.collections.map
@@ -52,9 +50,9 @@ import kotlin.collections.singleOrNull
  * Created by pdvrieze on 26/11/15.
  */
 @Serializable
-abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-    JoinSplitBase<NodeT, ModelT>,
-    Join<NodeT, ModelT> {
+abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
+    JoinSplitBase,
+    Join {
 
     @Transient
     override val maxPredecessorCount: Int
@@ -85,15 +83,10 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         get() = conditions.mapValues { (_, value) -> value?.condition }
         set(value) = TODO("Not supported")
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Use builders")
-    constructor(ownerModel: ModelT) : super(ownerModel) {
-        isMultiMerge = false
-        conditions= emptyMap()
-    }
 
-    constructor(builder: Join.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
-                                                                                                           buildHelper) {
+
+    constructor(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>)
+        : super(builder, buildHelper.newOwner) {
         isMultiMerge = builder.isMultiMerge
         val predecessors = (this.predecessors as MutableIdentifyableSet<Identified>)
         val conditions = mutableMapOf<Identifier, Condition?>()
@@ -104,7 +97,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
         this.conditions = conditions
     }
 
-    abstract override fun builder(): Builder<NodeT, ModelT>
+    abstract override fun builder(): Builder
 
     @Throws(XmlException::class)
     override fun serialize(out: XmlWriter) {
@@ -132,9 +125,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
     }
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-        JoinSplitBase.Builder<NodeT, ModelT>,
-        Join.Builder<NodeT, ModelT> {
+    abstract class Builder : JoinSplitBase.Builder, Join.Builder {
 
         @Transient
         override val idBase: String
@@ -202,7 +193,7 @@ abstract class JoinBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessMode
                  defines,
                  results, x, y, min, max, isMultiMerge, isMultiInstance)
 
-        constructor(node: Join<*, *>) : super(node) {
+        constructor(node: Join) : super(node) {
             this.isMultiMerge = node.isMultiMerge
             node.predecessors.associateByTo(this.conditions, Identified::identifier) {
                 node.conditions[it.identifier]?.condition

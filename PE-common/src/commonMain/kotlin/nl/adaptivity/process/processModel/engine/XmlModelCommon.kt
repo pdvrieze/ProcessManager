@@ -16,40 +16,39 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.*
 
 /**
  * Created by pdvrieze on 04/01/17.
  */
 //@Serializable
-interface XmlModelCommon: ProcessModel<XmlProcessNode, XmlModelCommon> {
+interface XmlModelCommon: ProcessModel<XmlProcessNode> {
 
-  interface Builder: ProcessModel.Builder<XmlProcessNode, XmlModelCommon> {
+  interface Builder: ProcessModel.Builder {
 
     override val rootBuilder: XmlProcessModel.Builder
 
     override fun startNodeBuilder() = XmlStartNode.Builder()
 
-    override fun startNodeBuilder(startNode: StartNode<*, *>) = XmlStartNode.Builder(startNode)
+    override fun startNodeBuilder(startNode: StartNode) = XmlStartNode.Builder(startNode)
 
     override fun splitBuilder() = XmlSplit.Builder()
 
-    override fun splitBuilder(split: Split<*, *>) = XmlSplit.Builder(split)
+    override fun splitBuilder(split: Split) = XmlSplit.Builder(split)
 
     override fun joinBuilder() = XmlJoin.Builder()
 
-    override fun joinBuilder(join: Join<*, *>) = XmlJoin.Builder(join)
+    override fun joinBuilder(join: Join) = XmlJoin.Builder(join)
 
     override fun activityBuilder() = XmlActivity.Builder()
 
-    override fun activityBuilder(activity: Activity<*, *>) = XmlActivity.Builder(activity)
+    override fun activityBuilder(activity: Activity) = XmlActivity.Builder(activity)
 
     override fun compositeActivityBuilder() = XmlActivity.ChildModelBuilder(rootBuilder=this.rootBuilder)
 
     override fun endNodeBuilder() = XmlEndNode.Builder()
 
-    override fun endNodeBuilder(endNode: EndNode<*, *>) = XmlEndNode.Builder(endNode)
+    override fun endNodeBuilder(endNode: EndNode) = XmlEndNode.Builder(endNode)
 
   }
 

@@ -37,7 +37,7 @@ internal abstract class ConfigurableModel(
     override val owner: Principal = EngineTestData.principal,
     override val uuid: UUID = UUID.randomUUID())
     :
-    RootProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+    RootProcessModel {
 
     class NodeDelegate<T : Identifiable>(override val id: String) : ReadOnlyProperty<ConfigurableModel, T>, Identifiable {
         override fun getValue(thisRef: ConfigurableModel, property: KProperty<*>): T {
@@ -67,7 +67,7 @@ internal abstract class ConfigurableModel(
         inline operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = childRef(property.name)
     }
 
-    override fun builder(): RootProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun builder(): RootProcessModel.Builder {
         return builder
     }
 
@@ -98,7 +98,7 @@ internal abstract class ConfigurableModel(
                       uuid: UUID?,
                       roles: Set<String>,
                       owner: nl.adaptivity.util.security.Principal,
-                      childModels: Collection<ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>>): ExecutableProcessModel {
+                      childModels: Collection<ChildProcessModel>): ExecutableProcessModel {
         return ExecutableProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, -1L, owner, roles,
                                               uuid).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })

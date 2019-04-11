@@ -24,9 +24,7 @@ import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.xmlutil.XmlSerializable
 
 
-interface IProcessModelRef<NodeT : ProcessNode<NodeT, ModelT>,
-                           ModelT : ProcessModel<NodeT, ModelT>?,
-                           out ObjectT : RootProcessModel<NodeT, ModelT>> :
+interface IProcessModelRef<out NodeT: ProcessNode, out ObjectT : RootProcessModel<NodeT>> :
     Handle<ObjectT>, XmlSerializable  {
 
     val name: String?

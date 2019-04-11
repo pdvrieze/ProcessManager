@@ -27,17 +27,10 @@ annotation class ProcessModelDSL
 /**
  * Created by pdvrieze on 02/01/17.
  */
-interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
+interface ProcessModel<out NodeT: ProcessNode> {
 
     @Transient
-    val rootModel: RootProcessModel<NodeT, ModelT>
-
-    @Transient
-    val asM: ModelT
-        get() {
-            @Suppress("UNCHECKED_CAST")
-            return this as ModelT
-        }
+    val rootModel: RootProcessModel<NodeT>
 
     val modelNodes: Collection<NodeT>
 
@@ -52,51 +45,51 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     fun getNode(nodeId: Identifiable): NodeT?
 
     @ProcessModelDSL
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
+    interface Builder {
         val defaultPedantic get() = false
-        val rootBuilder: RootProcessModel.Builder<NodeT, ModelT>
-        val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>>
+        val rootBuilder: RootProcessModel.Builder
+        val nodes: MutableList<ProcessNode.IBuilder>
         val imports: MutableList<IXmlResultType>
         val exports: MutableList<IXmlDefineType>
 
-        fun startNodeBuilder(): StartNode.Builder<NodeT, ModelT>
-        fun splitBuilder(): Split.Builder<NodeT, ModelT>
-        fun joinBuilder(): Join.Builder<NodeT, ModelT>
-        fun activityBuilder(): Activity.Builder<NodeT, ModelT>
-        fun compositeActivityBuilder(): Activity.ChildModelBuilder<NodeT, ModelT>
-        fun endNodeBuilder(): EndNode.Builder<NodeT, ModelT>
+        fun startNodeBuilder(): StartNode.Builder
+        fun splitBuilder(): Split.Builder
+        fun joinBuilder(): Join.Builder
+        fun activityBuilder(): Activity.Builder
+        fun compositeActivityBuilder(): Activity.ChildModelBuilder
+        fun endNodeBuilder(): EndNode.Builder
 
-        fun startNodeBuilder(startNode: StartNode<*, *>): StartNode.Builder<NodeT, ModelT>
-        fun splitBuilder(split: Split<*, *>): Split.Builder<NodeT, ModelT>
-        fun joinBuilder(join: Join<*, *>): Join.Builder<NodeT, ModelT>
-        fun activityBuilder(activity: Activity<*, *>): Activity.Builder<NodeT, ModelT>
-        fun endNodeBuilder(endNode: EndNode<*, *>): EndNode.Builder<NodeT, ModelT>
+        fun startNodeBuilder(startNode: StartNode): StartNode.Builder
+        fun splitBuilder(split: Split): Split.Builder
+        fun joinBuilder(join: Join): Join.Builder
+        fun activityBuilder(activity: Activity): Activity.Builder
+        fun endNodeBuilder(endNode: EndNode): EndNode.Builder
 
-        fun startNode(body: StartNode.Builder<NodeT, ModelT>.() -> Unit): Identifiable {
+        fun startNode(body: StartNode.Builder.() -> Unit): Identifiable {
             return nodeHelper(startNodeBuilder(), body)
         }
 
         fun startNode(id: String) = nodes.firstOrNull { it.id == id }?.let { it as StartNode.Builder }
 
-        fun split(body: Split.Builder<NodeT, ModelT>.() -> Unit): Identifiable {
+        fun split(body: Split.Builder.() -> Unit): Identifiable {
             return nodeHelper(splitBuilder(), body)
         }
 
         fun split(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Split.Builder }
 
-        fun join(body: Join.Builder<NodeT, ModelT>.() -> Unit): Identifiable {
+        fun join(body: Join.Builder.() -> Unit): Identifiable {
             return nodeHelper(joinBuilder(), body)
         }
 
         fun join(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Join.Builder }
 
-        fun activity(body: Activity.Builder<NodeT, ModelT>.() -> Unit): Identifiable {
+        fun activity(body: Activity.Builder.() -> Unit): Identifiable {
             return nodeHelper(activityBuilder(), body)
         }
 
         fun activity(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Activity.Builder }
 
-        fun compositeActivity(body: Activity.ChildModelBuilder<NodeT, ModelT>.() -> Unit): Identifiable {
+        fun compositeActivity(body: Activity.ChildModelBuilder.() -> Unit): Identifiable {
             val builder = compositeActivityBuilder()
             builder.apply(body)
             builder.ensureChildId().ensureId()
@@ -105,7 +98,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
             return Identifier(builder.id!!)
         }
 
-        fun endNode(body: EndNode.Builder<NodeT, ModelT>.() -> Unit): Identifiable {
+        fun endNode(body: EndNode.Builder.() -> Unit): Identifiable {
             return nodeHelper(endNodeBuilder(), body)
         }
 
@@ -117,13 +110,13 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
                 .first { candidateId -> nodes.none { it.id == candidateId } }
         }
 
-        fun <B : ChildProcessModel.Builder<*, *>> B.ensureChildId(): B = apply {
+        fun <B : ChildProcessModel.Builder> B.ensureChildId(): B = apply {
             if (childId == null) {
                 childId = rootBuilder.newChildId(this.childIdBase)
             }
         }
 
-        fun <B : ProcessNode.IBuilder<*, *>> B.ensureId(): B = apply {
+        fun <B : ProcessNode.IBuilder> B.ensureId(): B = apply {
             if (id == null) {
                 id = this@Builder.newId(this.idBase)
             }
@@ -171,7 +164,7 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
             nodeList.indices.filter { nodeIdx ->
                 val node = nodeList[nodeIdx]
                 node.predecessors.isEmpty().also { empty ->
-                    if (empty && node !is StartNode.Builder<NodeT, ModelT>) throw ProcessException(
+                    if (empty && node !is StartNode.Builder) throw ProcessException(
                         "Non-start node without predecessors found (${node.id})")
                 }
             }.forEach(::visitSuccessors)
@@ -184,19 +177,19 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
         }
 
         fun normalize(pedantic: Boolean) {
-            val nodeMap: MutableMap<String, ProcessNode.IBuilder<NodeT, ModelT>> = mutableMapOf()
+            val nodeMap: MutableMap<String, ProcessNode.IBuilder> = mutableMapOf()
             nodes.asSequence()
                 .filter { it.id != null }
                 .associateByTo(nodeMap) { it.id!! }
 
             // First drop all missing predecessors and successors (before adding id's)
-            val splitsToInject = mutableMapOf<String, Split.Builder<NodeT, ModelT>>()
+            val splitsToInject = mutableMapOf<String, Split.Builder>()
             nodes.forEach { nodeBuilder ->
                 if (pedantic) { // Pedantic will throw exceptions on missing things
-                    if (nodeBuilder is StartNode.Builder<NodeT, ModelT> && !nodeBuilder.predecessors.isEmpty()) {
+                    if (nodeBuilder is StartNode.Builder && !nodeBuilder.predecessors.isEmpty()) {
                         throw ProcessException("Start nodes have no predecessors")
                     }
-                    if (nodeBuilder is EndNode.Builder<NodeT, ModelT> && !nodeBuilder.successors.isEmpty()) {
+                    if (nodeBuilder is EndNode.Builder && !nodeBuilder.successors.isEmpty()) {
                         throw ProcessException("End nodes have no successors")
                     }
 
@@ -311,19 +304,21 @@ interface ProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel
     }
 
     /** Interface that helps collating all the elements needed to build child nodes and child models*/
-    interface BuildHelper<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> {
-        val newOwner: ModelT
+    interface BuildHelper<NodeT: ProcessNode, ModelT: ProcessModel<NodeT>, out RootT: RootProcessModel<NodeT>, out ChildT: ChildProcessModel<NodeT>> {
+        val newOwner: ProcessModel<NodeT>// TODO must this be nullable ?
         val pedantic: Boolean get() = false
-        fun childModel(childId: String): ChildProcessModel<NodeT, ModelT>
-        fun node(builder: ProcessNode.IBuilder<*, *>): NodeT
-        fun withOwner(newOwner: ModelT): BuildHelper<NodeT, ModelT>
+        fun childModel(childId: String): ChildT
+        fun childModel(builder: ChildProcessModel.Builder): ChildT
+        fun node(builder: ProcessNode.IBuilder): NodeT
+        fun <M:ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
         fun condition(text: String): Condition
     }
 
     companion object {
-        private fun <B : ProcessNode.IBuilder<NodeT, ModelT>, NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> ProcessModel.Builder<NodeT, ModelT>.nodeHelper(
+        private fun <B : ProcessNode.IBuilder> ProcessModel.Builder.nodeHelper(
             builder: B,
             body: B.() -> Unit): Identifiable {
+
             return builder.apply(body).ensureId().apply { this@nodeHelper.nodes.add(this) }.let { Identifier(it.id!!) }
         }
     }

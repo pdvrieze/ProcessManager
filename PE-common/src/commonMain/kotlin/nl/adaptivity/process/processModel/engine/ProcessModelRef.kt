@@ -19,7 +19,6 @@ package nl.adaptivity.process.processModel.engine
 import kotlinx.serialization.Transient
 import net.devrieze.util.Handle
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.util.multiplatform.JvmField
@@ -29,31 +28,37 @@ import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
 
 @XmlDeserializer(ProcessModelRef.Factory::class)
-class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?, out ObjectT: RootProcessModel<NodeT, ModelT>>constructor(override var name:String?, var handle: Long, override var uuid: UUID?) : IProcessModelRef<NodeT, ModelT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
+class ProcessModelRef<NodeT : ProcessNode, out ObjectT : RootProcessModel<NodeT>>
+constructor(override var name: String?,
+            var handle: Long,
+            override var uuid: UUID?)
+    : IProcessModelRef<NodeT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
 
     @Transient
     override val elementName: QName
-        get() =  ELEMENTNAME
+        get() = ELEMENTNAME
 
 
-    override val handleValue:Long get() = handle
+    override val handleValue: Long get() = handle
 
-    constructor():this(null, -1L, null)
+    constructor() : this(null, -1L, null)
 
-    constructor(name:String?, handle: Handle<RootProcessModel<*,*>>, uuid: UUID?): this(name, handle.handleValue, uuid)
+    constructor(name: String?, handle: Handle<RootProcessModel<NodeT>>, uuid: UUID?) : this(name, handle.handleValue, uuid)
 
-    constructor(source: IProcessModelRef<*, ModelT, ObjectT>): this(source.name, source.handleValue, source.uuid)
+    constructor(source: IProcessModelRef<NodeT, ObjectT>) : this(source.name, source.handleValue, source.uuid)
 
     override fun deserializeChild(reader: XmlReader) = false
 
     override fun deserializeChildText(elementText: CharSequence) = false
 
-    override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String):Boolean {
+    override fun deserializeAttribute(attributeNamespace: String?,
+                                      attributeLocalName: String,
+                                      attributeValue: String): Boolean {
         when (attributeLocalName) {
-            "name" -> name = attributeValue
+            "name"   -> name = attributeValue
             "handle" -> handle = attributeValue.toLong()
-            "uuid" -> uuid = attributeValue.toUUID()
-            else -> return false
+            "uuid"   -> uuid = attributeValue.toUUID()
+            else     -> return false
         }
         return true
     }
@@ -71,7 +76,7 @@ class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ProcessModelRef<*, *, *>) return false
+        if (other !is ProcessModelRef<*,*>) return false
 
         if (name != other.name) return false
         if (handle != other.handle) return false
@@ -87,11 +92,11 @@ class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
         return result
     }
 
-    class Factory: XmlDeserializerFactory<ProcessModelRef<*, *, *>> {
+    class Factory : XmlDeserializerFactory<ProcessModelRef<*,*>> {
 
-        override fun deserialize(reader: XmlReader): ProcessModelRef<*, *, *> {
+        override fun deserialize(reader: XmlReader): ProcessModelRef<XmlProcessNode,XmlProcessModel> {
             // The type parameters here are just dummies as Kotlin insists on having parameters
-            return ProcessModelRef.deserialize<XmlProcessNode,XmlModelCommon, XmlProcessModel>(reader)
+            return ProcessModelRef.deserialize<XmlProcessNode, XmlProcessModel>(reader)
         }
     }
 
@@ -99,16 +104,17 @@ class ProcessModelRef<NodeT:ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
 
         const val ELEMENTLOCALNAME = "processModel"
 
-        @JvmField val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+        @JvmField
+        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
         @kotlin.jvm.JvmStatic
-        fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> get(src: IProcessModelRef<NodeT, ModelT, ObjectT>) : ProcessModelRef<NodeT, ModelT, ObjectT> {
+        fun <NodeT : ProcessNode, ObjectT : RootProcessModel<NodeT>> get(src: IProcessModelRef<NodeT, ObjectT>): ProcessModelRef<NodeT, ObjectT> {
             return src as? ProcessModelRef ?: ProcessModelRef(src)
         }
 
         @kotlin.jvm.JvmStatic
-        fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>, ObjectT: RootProcessModel<NodeT, ModelT>> deserialize(reader: XmlReader): ProcessModelRef<NodeT,ModelT, ObjectT> {
-            return ProcessModelRef<NodeT, ModelT, ObjectT>().deserializeHelper(reader)
+        fun <NodeT : ProcessNode, ObjectT : RootProcessModel<NodeT>> deserialize(reader: XmlReader): ProcessModelRef<NodeT, ObjectT> {
+            return ProcessModelRef<NodeT, ObjectT>().deserializeHelper(reader)
         }
 
     }

@@ -37,7 +37,6 @@ import nl.adaptivity.xmlutil.XmlStreaming
 import org.junit.jupiter.api.Assertions.*
 import org.spekframework.spek2.dsl.GroupBody
 import org.spekframework.spek2.dsl.TestBody
-import org.spekframework.spek2.dsl.TestContainer
 import org.w3c.dom.Node
 import java.security.Principal
 
@@ -135,7 +134,7 @@ fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProce
 
 @Suppress("NOTHING_TO_INLINE")
 @ProcessTestingDslMarker
-inline fun EngineSpecBody.testTraces(model:RootProcessModel<*,*>, valid: List<Trace>, invalid:List<Trace>) {
+inline fun EngineSpecBody.testTraces(model:RootProcessModel, valid: List<Trace>, invalid:List<Trace>) {
   return testTraces(ExecutableProcessModel.from(model.rootModel), valid, invalid)
 }
 
@@ -149,12 +148,12 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
     val node = model.findNode(
       traceElement) ?: throw AssertionError("No node with id $traceElement was defined in the tested model\n\n${XmlStreaming.toString(model).prependIndent(">  ")}\n")
     when(node) {
-      is StartNode<*,*> -> {
+      is StartNode -> {
         test("$traceElement should be finished") {
           assertEquals(NodeInstanceState.Complete, nodeInstance.state)
         }
       }
-      is EndNode<*,*> -> {
+      is EndNode   -> {
         test("$traceElement should be finished") {
           assertEquals(NodeInstanceState.Complete, nodeInstance.state)
         }
@@ -163,27 +162,27 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
           assertTrue(parentInstance.completedNodeInstances.any { it.withPermission().node.id==traceElement.id }) { "Instance is: ${parentInstance.toDebugString()}" }
         }
       }
-      is Join<*, *> -> test("Join $traceElement should already be finished") {
+      is Join     -> test("Join $traceElement should already be finished") {
         assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "There are still active predecessors: ${instance.getActivePredecessorsFor(
           transaction.readableEngineData, nodeInstance as JoinInstance)}" }
       }
-      is Split<*,*> -> test("Split $traceElement should already be finished") {
+      is Split    -> test("Split $traceElement should already be finished") {
         assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "Node $traceElement should be finished. The current nodes are: ${instance.toDebugString()}"}
       }
-      is Activity<*,*> -> {
+      is Activity -> {
         if (node.childModel==null) {
           test("$traceElement should not be in a final state") {
             assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
           }
         }
       }
-      else -> {
+      else        -> {
         test("$traceElement should not be in a final state") {
           assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
         }
       }
     }
-    if (node is Activity<*,*> && node.childModel!=null) {
+    if (node is Activity && node.childModel != null) {
       test("A child instance should have been created for $traceElement") {
         assertTrue((nodeInstance as CompositeInstance).hChildInstance.isValid) {"No child instance was recorded"}
       }
@@ -196,15 +195,15 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
       instance.assertTracePossible(trace)
     }
     return when(node) {
-      is EndNode<*,*>,
-      is StartNode<*,*>,
-      is Join<*,*>,
-      is Split<*,*> -> if (i+1 <trace.size) {
+      is EndNode,
+      is StartNode,
+      is Join,
+      is Split -> if (i + 1 < trace.size) {
         addStartedNodeContext(trace, i + 1)
       } else {
         this
       }
-      else -> {
+      else     -> {
         test("node instance ${traceElement} should be committed after starting") {
           nodeInstance.start()
           assertTrue(nodeInstance.state.isCommitted) { "The instance state was ${instance.toDebugString()}" }
@@ -229,7 +228,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
   for(validTrace in valid) {
     givenProcess(model, description = validTrace.joinToString(prefix = "For trace: [", postfix = "]")) {
       test("Only start nodes should be finished") {
-        assertTrue(instance.finishedNodes.all { it.state== NodeInstanceState.Skipped || it.node is StartNode<*, *> }) { "Nodes [${instance.finishedNodes.filter { it.state!= NodeInstanceState.Skipped && it.node !is StartNode<*,*> }}] are not startnodes, but already finished" }
+        assertTrue(instance.finishedNodes.all { it.state== NodeInstanceState.Skipped || it.node is StartNode }) { "Nodes [${instance.finishedNodes.filter { it.state != NodeInstanceState.Skipped && it.node !is StartNode }}] are not startnodes, but already finished" }
       }
 
       val startPos = 0
@@ -241,7 +240,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
           test("All non-endnodes are finished") {
             val expectedFinishedNodes = validTrace.asSequence()
               .map { model.findNode(it)!! }
-              .filterNot { it is EndNode<*, *> }.map { it.id }.toList().toTypedArray()
+              .filterNot { it is EndNode }.map { it.id }.toList().toTypedArray()
             instance.assertFinished(*expectedFinishedNodes)
           }
           test("No nodes are active") {
@@ -317,7 +316,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
       val nodeInstance = traceElement.getNodeInstance(transaction, outerInstance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
       if (nodeInstance.state != NodeInstanceState.Complete) {
-        if (!(nodeInstance.node is Join<*, *> || nodeInstance.node is Split<*, *>)) {
+        if (!(nodeInstance.node is Join || nodeInstance.node is Split)) {
           if (nodeInstance is CompositeInstance) {
             val childInstance = transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
             if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {

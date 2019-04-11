@@ -18,12 +18,10 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Transient
 import net.devrieze.util.Handle
-import net.devrieze.util.StringCache
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
-import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
@@ -33,7 +31,7 @@ import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 
 
-typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode, ExecutableModelCommon>
+typealias ExecutableModelCommonAlias = ProcessModel
 
 /**
  * A class representing a process model.
@@ -41,9 +39,9 @@ typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode, Execu
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ExecutableProcessModel.Factory::class)
-class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel.Builder<*, *>,
+class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel.Builder,
                                                        pedantic: Boolean = true) :
-    RootProcessModelBase<ExecutableProcessNode, ExecutableModelCommon>(builder, EXEC_NODEFACTORY, pedantic),
+    RootProcessModelBase<ExecutableProcessNode>(builder, EXEC_NODEFACTORY, pedantic),
     ExecutableModelCommon,
     /*MutableHandleAware<ExecutableProcessModel>,*/
     SecureObject<ExecutableProcessModel> {
@@ -55,7 +53,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     override val rootModel get() = this
 
     @Transient
-    override val ref: IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>
+    override val ref: IProcessModelRef<ExecutableProcessModel>
         get() = ProcessModelRef(name, this.getHandle(), uuid)
 
     override fun copy(imports: Collection<IXmlResultType>,
@@ -65,7 +63,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
                       uuid: UUID?,
                       roles: Set<String>,
                       owner: Principal,
-                      childModels: Collection<ChildProcessModel<ExecutableProcessNode, ExecutableModelCommon>>): ExecutableProcessModel {
+                      childModels: Collection<ChildProcessModel>): ExecutableProcessModel {
         return Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles, uuid).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })
         }.build(false)
@@ -75,7 +73,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
     override fun builder(): Builder = Builder(this)
 
-    override fun update(body: RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>.() -> Unit): ExecutableProcessModel {
+    override fun update(body: RootProcessModelBase.Builder.() -> Unit): ExecutableProcessModel {
         return Builder(this).apply(body).build()
     }
 
@@ -100,7 +98,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
     companion object {
 
-        fun from(basepm: RootProcessModel<*, *>): ExecutableProcessModel {
+        fun from(basepm: RootProcessModel): ExecutableProcessModel {
             return basepm as? ExecutableProcessModel ?: ExecutableProcessModel(Builder(basepm))
         }
 
@@ -157,7 +155,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     }
 
 
-    class Builder : RootProcessModelBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableModelCommon.Builder {
+    class Builder : RootProcessModelBase.Builder, ExecutableModelCommon.Builder {
         constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
                     childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
                     name: String? = null,
@@ -169,7 +167,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
                     exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner,
                                                                                roles, uuid, imports, exports)
 
-        constructor(base: RootProcessModel<*, *>) : super(base)
+        constructor(base: RootProcessModel) : super(base)
 
         override val rootBuilder get() = this
 
@@ -177,7 +175,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
         override fun childModelBuilder() = ExecutableChildModel.Builder(rootBuilder)
 
-        override fun childModelBuilder(base: ChildProcessModel<*, *>) = ExecutableChildModel.Builder(rootBuilder, base)
+        override fun childModelBuilder(base: ChildProcessModel) = ExecutableChildModel.Builder(rootBuilder, base)
 
         companion object {
             @JvmStatic
@@ -203,42 +201,42 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
 
 val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ExecutableProcessNode.Builder> {
-    override fun visitStartNode(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
+    override fun visitStartNode(startNode: StartNode) = ExecutableStartNode.Builder(startNode)
 
-    override fun visitActivity(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
+    override fun visitActivity(activity: Activity) = ExecutableActivity.Builder(activity)
 
-    override fun visitSplit(split: Split<*, *>) = ExecutableSplit.Builder(split)
+    override fun visitSplit(split: Split) = ExecutableSplit.Builder(split)
 
-    override fun visitJoin(join: Join<*, *>) = ExecutableJoin.Builder(join)
+    override fun visitJoin(join: Join) = ExecutableJoin.Builder(join)
 
-    override fun visitEndNode(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
+    override fun visitEndNode(endNode: EndNode) = ExecutableEndNode.Builder(endNode)
 }
 
-object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableModelCommon> {
+object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory {
 
-    private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
-        override fun visitStartNode(startNode: StartNode.Builder<*, *>) = ExecutableStartNode(startNode, buildHelper)
+    private fun visitor(buildHelper: ProcessModel.BuildHelper) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
+        override fun visitStartNode(startNode: StartNode.Builder) = ExecutableStartNode(startNode, buildHelper)
 
-        override fun visitActivity(activity: Activity.Builder<*, *>) = ExecutableActivity(activity, buildHelper)
+        override fun visitActivity(activity: Activity.Builder) = ExecutableActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = ExecutableActivity(activity,
-                                                                                                    buildHelper)
+        override fun visitActivity(activity: Activity.ChildModelBuilder) = ExecutableActivity(activity,
+                                                                                              buildHelper)
 
-        override fun visitSplit(split: Split.Builder<*, *>) = ExecutableSplit(split, buildHelper)
+        override fun visitSplit(split: Split.Builder) = ExecutableSplit(split, buildHelper)
 
-        override fun visitJoin(join: Join.Builder<*, *>) = ExecutableJoin(join, buildHelper)
+        override fun visitJoin(join: Join.Builder) = ExecutableJoin(join, buildHelper)
 
-        override fun visitEndNode(endNode: EndNode.Builder<*, *>) = ExecutableEndNode(endNode, buildHelper)
+        override fun visitEndNode(endNode: EndNode.Builder) = ExecutableEndNode(endNode, buildHelper)
     }
 
 
-    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = baseNodeBuilder.visit(
+    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
+                        buildHelper: ProcessModel.BuildHelper) = baseNodeBuilder.visit(
         visitor(
             buildHelper))
 
-    override fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ChildProcessModelBase<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun invoke(baseChildBuilder: ChildProcessModel.Builder,
+                        buildHelper: ProcessModel.BuildHelper): ChildProcessModelBase<ExecutableProcessNode> {
         return ExecutableChildModel(baseChildBuilder, buildHelper)
     }
 

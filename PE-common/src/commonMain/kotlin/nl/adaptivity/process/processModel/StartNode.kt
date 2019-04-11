@@ -26,14 +26,12 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
 //@Serializable
-interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
+interface StartNode : ProcessNode {
 
     val successor: Identifiable?
 
     //    @Serializable
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT> {
-        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
-
+    interface Builder : ProcessNode.IBuilder {
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitStartNode(this)
 
         @Transient
@@ -67,7 +65,7 @@ interface StartNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<No
 
     }
 
-    override fun builder(): Builder<NodeT, ModelT>
+    override fun builder(): Builder
 
     companion object {
 

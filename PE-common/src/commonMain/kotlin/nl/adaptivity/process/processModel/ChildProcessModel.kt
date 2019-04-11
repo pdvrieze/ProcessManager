@@ -23,24 +23,24 @@ import nl.adaptivity.xmlutil.QName
 /**
  * Created by pdvrieze on 02/01/17.
  */
-interface ChildProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT,ModelT>, Identifiable {
+interface ChildProcessModel<out NodeT: ProcessNode> : ProcessModel<NodeT>, Identifiable {
 
   @Deprecated("Not needed as childmodels are not nested")
-  val ownerModel: RootProcessModel<NodeT, ModelT>? get() = rootModel
+  val ownerModel: RootProcessModel<NodeT>? get() = rootModel
 
-  override val rootModel: RootProcessModel<NodeT, ModelT>
+  override val rootModel: RootProcessModel<NodeT>
 
-  fun builder(rootBuilder: RootProcessModel.Builder<NodeT, ModelT>): Builder<NodeT, ModelT>
+    fun builder(rootBuilder: RootProcessModel.Builder): Builder
 
-  companion object {
+    companion object {
     const val ELEMENTLOCALNAME="childModel"
     val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
   }
 
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT,ModelT> {
+    interface Builder : ProcessModel.Builder {
         val childIdBase: String get() = "child"
         var childId: String?
-        fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
+        fun <NodeT: ProcessNode, ChildT: ChildProcessModel<NodeT>>buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT
     }
 
 }

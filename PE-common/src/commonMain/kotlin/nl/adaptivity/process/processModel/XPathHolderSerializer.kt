@@ -23,10 +23,10 @@ import nl.adaptivity.xmlutil.serialization.encodeNullableStringElement
 import nl.adaptivity.xmlutil.serialization.readNullableString
 
 open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
-    open class PathHolderData<T : XPathHolder>(owner: XPathHolderSerializer<in T>,
+    open class PathHolderData<T : XPathHolder>(val owner: XPathHolderSerializer<in T>,
                                                var name: String? = null,
                                                var path: String? = null) :
-        ContainerData<T>(owner) {
+        ContainerData<T>() {
 
         override fun handleLastRootAttributeReadEvent(reader: XmlReader,
                                                       gatheringNamespaceContext: GatheringNamespaceContext) {

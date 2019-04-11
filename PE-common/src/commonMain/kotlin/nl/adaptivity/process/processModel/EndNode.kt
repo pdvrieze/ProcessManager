@@ -25,16 +25,13 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
 
-interface EndNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
+interface EndNode : ProcessNode {
 
     val predecessor: Identified?
 
-    override fun builder(): Builder<NodeT, ModelT>
+    override fun builder(): Builder
 
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-        ProcessNode.IBuilder<NodeT, ModelT> {
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+    interface Builder : ProcessNode.IBuilder {
 
         var predecessor: Identifiable?
 

@@ -25,7 +25,7 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
 
-interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT> {
+interface Activity : ProcessNode {
 
     /**
      * The name of this activity. Note that for serialization to XML to work
@@ -66,12 +66,12 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
      */
     val message: IXmlMessage?
 
-    val childModel: ChildProcessModel<NodeT, ModelT>?
+    val childModel: ChildProcessModel<ProcessNode>?
 
-    override fun builder(): Builder<NodeT, ModelT>
+    override fun builder(): Builder
 
-//    @Serializable
-    interface IBuilder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNode.IBuilder<T, M> {
+    //    @Serializable
+    interface IBuilder : ProcessNode.IBuilder {
         var condition: String?
 
         var predecessor: Identifiable?
@@ -116,7 +116,7 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
         }
     }
 
-    interface Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : IBuilder<T, M>, ProcessNode.IBuilder<T, M> {
+    interface Builder : IBuilder, ProcessNode.IBuilder {
         var message: IXmlMessage?
         @Deprecated("Names are not used anymore")
         var name: String?
@@ -124,15 +124,9 @@ interface Activity<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<Nod
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
     }
 
-    interface ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : IBuilder<NodeT, ModelT>, ChildProcessModel.Builder<NodeT, ModelT> {
+    interface ChildModelBuilder : IBuilder, ChildProcessModel.Builder {
 
         override val idBase: String get() = "sub"
-
-        override fun buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ChildProcessModel<NodeT, ModelT>
-
-        fun buildActivity(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): Activity<NodeT, ModelT>
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) = buildActivity(buildHelper)
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
     }

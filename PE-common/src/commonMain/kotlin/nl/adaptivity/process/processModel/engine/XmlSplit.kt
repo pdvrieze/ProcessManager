@@ -22,27 +22,30 @@ import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.SplitBase
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.util.Identified
 
 @Serializable(XmlSplit.Companion::class)
-class XmlSplit :
-    SplitBase<XmlProcessNode, XmlModelCommon>,
-    XmlProcessNode {
+class XmlSplit : SplitBase, XmlProcessNode {
+
+    @Deprecated("No need to use the buildHelper")
+    constructor(builder: Split.Builder, buildHelper: XmlBuildHelper) :
+        this(builder, buildHelper.newOwner)
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    constructor(builder: Split.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) :
-        super(builder, buildHelper)
+    constructor(builder: Split.Builder, newOwner: ProcessModel<*>) :
+        super(builder, newOwner)
 
     override fun builder(): Builder {
         return Builder(this)
     }
 
     @Serializable
-    class Builder : SplitBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
+    class Builder : SplitBase.Builder, XmlProcessNode.Builder {
 
         constructor()
 
-        constructor(node: Split<*, *>) : super(node)
+        constructor(node: Split) : super(node)
 
         constructor(predecessor: Identified? = null,
                     successors: Collection<Identified> = emptyList(),
@@ -57,8 +60,8 @@ class XmlSplit :
                     multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y,
                                                             min, max, multiInstance)
 
-        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlSplit {
-            return XmlSplit(this, buildHelper)
+        fun build(newOwner: ProcessModel<*>): XmlSplit {
+            return XmlSplit(this, newOwner)
         }
     }
 

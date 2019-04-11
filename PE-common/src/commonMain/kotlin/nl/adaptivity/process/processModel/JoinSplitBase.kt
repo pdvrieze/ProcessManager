@@ -30,10 +30,9 @@ import nl.adaptivity.xmlutil.writeAttribute
  * Created by pdvrieze on 25/11/15.
  */
 @Serializable
-abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-    ProcessNodeBase<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
+abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
 
-    constructor(ownerModel: ModelT,
+    constructor(ownerModel: ProcessModel<ProcessNode>,
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
                 id: String?,
@@ -53,24 +52,17 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
     override var min: Int
     override var max: Int
 
-    @Deprecated("Use the main constructor")
-    constructor(ownerModel: ModelT, predecessors: Collection<Identified>, max: Int, min: Int) : this(ownerModel,
-                                                                                                     predecessors = predecessors,
-                                                                                                     id = null,
-                                                                                                     max = max,
-                                                                                                     min = min)
+    @Deprecated("Don't use, not needed")
+    constructor(builder: JoinSplit.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>)
+        : this(builder, buildHelper.newOwner)
 
-    @Deprecated("Use builders")
-    constructor(ownerModel: ModelT) : this(ownerModel, id = null) {
-    }
-
-    constructor(builder: JoinSplit.Builder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+    constructor(builder: JoinSplit.Builder,
+                newOwner: ProcessModel<*>) : super(builder, newOwner) {
         this.min = builder.min
         this.max = builder.max
     }
 
-    override abstract fun builder(): Builder<NodeT, ModelT>
+    override abstract fun builder(): Builder
 
     @Deprecated("Don't use")
     open fun deserializeChildText(elementText: CharSequence): Boolean {
@@ -89,9 +81,9 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
     }
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-        ProcessNodeBase.Builder<NodeT, ModelT>,
-        JoinSplit.Builder<NodeT, ModelT>,
+    abstract class Builder :
+        ProcessNodeBase.Builder,
+        JoinSplit.Builder,
         SimpleXmlDeserializable {
 
         override var min: Int
@@ -111,7 +103,7 @@ abstract class JoinSplitBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
             this.max = max
         }
 
-        constructor(node: JoinSplit<*, *>) : super(node) {
+        constructor(node: JoinSplit) : super(node) {
             min = node.min
             max = node.max
         }

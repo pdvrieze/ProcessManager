@@ -165,7 +165,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
   for (successorNode in successorNodes) {
     if (committedCount>=node.max) break // stop the loop when we are at the maximum successor count
 
-    if (successorNode is Join<*, *>) {
+    if (successorNode is Join) {
         if (successorNode.conditions[node.identifier]==null)
             throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
     }

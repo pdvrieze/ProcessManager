@@ -31,16 +31,18 @@ import nl.adaptivity.xmlutil.*
  * Created by pdvrieze on 24/11/15.
  */
 @Serializable
-abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessNodeBase<T, M>, EndNode<T, M> {
+abstract class EndNodeBase : ProcessNodeBase, EndNode {
+
+    @Deprecated("Don't use")
+    constructor(builder: EndNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : this(builder, buildHelper.newOwner)
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    constructor(builder: EndNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) :
-        super(builder, buildHelper)
+    constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>) :
+        super(builder, newOwner)
 
     @Suppress("DEPRECATION")
     @Serializable(with = Identifiable.Companion::class)
-    override val predecessor: Identified?
-        get() = if (predecessors.size == 0) null else predecessors.single()
+    override val predecessor: Identified? = predecessors.singleOrNull()
 
     @Transient
     override val maxSuccessorCount: Int get() = 0
@@ -50,7 +52,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
         get() = IdentifyableSet.empty<Identified>()
 
 
-    override abstract fun builder(): Builder<T, M>
+    override abstract fun builder(): Builder
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(EndNode.ELEMENTNAME) {
@@ -69,9 +71,9 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
     }
 
     @Serializable
-    abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
-        ProcessNodeBase.Builder<T, M>,
-        EndNode.Builder<T, M>,
+    abstract class Builder :
+        ProcessNodeBase.Builder,
+        EndNode.Builder,
         SimpleXmlDeserializable {
 
         @Transient
@@ -98,7 +100,7 @@ abstract class EndNodeBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : Pro
         }
 
 
-        constructor(node: EndNode<*, *>) : super(node) {
+        constructor(node: EndNode) : super(node) {
             this.predecessor = node.predecessor
         }
 

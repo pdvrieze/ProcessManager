@@ -130,7 +130,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     fun updateSplits(engineData: MutableProcessEngineDataAccess) {
-      for(split in allChildren { !it.state.isFinal && it.node is Split<*, *> } ) {
+      for(split in allChildren { !it.state.isFinal && it.node is Split } ) {
         updateChild(split) {
           if((this as SplitInstance.Builder).updateState(engineData) && state!=NodeInstanceState.Complete) {
             state=NodeInstanceState.Complete
@@ -145,7 +145,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
           var success = 0
           var fail = 0
           var skipped = 0
-          allChildren { it.state.isFinal && it.node is EndNode<*, *> }.forEach {
+          allChildren { it.state.isFinal && it.node is EndNode }.forEach {
             when {
               it.state == NodeInstanceState.Complete -> success++
               it.state.isSkipped                     -> skipped++
@@ -295,7 +295,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                                                                           nodeInstance: N) {
       // XXX todo, handle failed or cancelled tasks
       try {
-        if (nodeInstance.node is EndNode<*, *>) {
+        if (nodeInstance.node is EndNode) {
           finish(engineData).apply {
             val h = nodeInstance.handle()
             assert(getChild(h).let { it.state.isFinal && it.node is ExecutableEndNode})
@@ -319,7 +319,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
       // TODO reduce the need to do a double update.
       this.let { newInstance ->
         // TODO("Make the state dependent on the kind of child state")
-        val endNodes = allChildren { it.state.isFinal && it.node is EndNode<*, *> }.toList()
+        val endNodes = allChildren { it.state.isFinal && it.node is EndNode }.toList()
         if (endNodes.count() >= processModel.endNodeCount) {
           state = when {
             endNodes.any { it.state == NodeInstanceState.Failed || it.state == NodeInstanceState.SkippedFail } -> State.FAILED
@@ -614,7 +614,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   val finishedNodes get() = childNodes.asSequence()
       .map { it.withPermission() }
-      .filter { it.state.isFinal && it.node !is EndNode<*,*> }
+      .filter { it.state.isFinal && it.node !is EndNode }
 
   val finished: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> get() = finishedNodes
       .map { it.getHandle() }
@@ -622,7 +622,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
   val completedNodeInstances: Sequence<SecureObject<ProcessNodeInstance<*>>> get() = childNodes.asSequence()
       .map { it.withPermission() }
-      .filter { it.state.isFinal && it.node is EndNode<*,*> }
+      .filter { it.state.isFinal && it.node is EndNode }
 
   val completedEndnodes: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> get() = completedNodeInstances
       .map { it.withPermission().getHandle() }

@@ -25,7 +25,7 @@ import net.devrieze.util.addInstancesOf
 /**
  * Shared interface for both root and child models that are executable.
  */
-interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode, ExecutableModelCommon> {
+interface ExecutableModelCommon : ProcessModel {
 
     override val rootModel: ExecutableProcessModel
     /**
@@ -47,7 +47,7 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode, Executable
 
     fun getNode(nodeId: String): ExecutableProcessNode?
 
-    interface Builder : ProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon> {
+    interface Builder : ProcessModel.Builder {
 
         override val rootBuilder: ExecutableProcessModel.Builder
 
@@ -55,25 +55,25 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode, Executable
 
         override fun startNodeBuilder() = ExecutableStartNode.Builder()
 
-        override fun startNodeBuilder(startNode: StartNode<*, *>) = ExecutableStartNode.Builder(startNode)
+        override fun startNodeBuilder(startNode: StartNode) = ExecutableStartNode.Builder(startNode)
 
         override fun splitBuilder() = ExecutableSplit.Builder()
 
-        override fun splitBuilder(split: Split<*, *>) = ExecutableSplit.Builder(split)
+        override fun splitBuilder(split: Split) = ExecutableSplit.Builder(split)
 
         override fun joinBuilder() = ExecutableJoin.Builder()
 
-        override fun joinBuilder(join: Join<*, *>) = ExecutableJoin.Builder(join)
+        override fun joinBuilder(join: Join) = ExecutableJoin.Builder(join)
 
         override fun activityBuilder() = ExecutableActivity.Builder()
 
-        override fun activityBuilder(activity: Activity<*, *>) = ExecutableActivity.Builder(activity)
+        override fun activityBuilder(activity: Activity) = ExecutableActivity.Builder(activity)
 
         override fun compositeActivityBuilder() = ExecutableActivity.ChildModelBuilder(this.rootBuilder)
 
         override fun endNodeBuilder() = ExecutableEndNode.Builder()
 
-        override fun endNodeBuilder(endNode: EndNode<*, *>) = ExecutableEndNode.Builder(endNode)
+        override fun endNodeBuilder(endNode: EndNode) = ExecutableEndNode.Builder(endNode)
 
     }
 

@@ -20,6 +20,7 @@ import kotlinx.serialization.*
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.SerialClassDescImpl
@@ -43,13 +44,13 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  */
 @Serializable(XmlActivity.Companion::class)
 @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
+class XmlActivity : ActivityBase, XmlProcessNode {
 
-    constructor(builder: Activity.Builder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder, buildHelper)
+    constructor(builder: Activity.Builder,
+                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
-    constructor(builder: Activity.ChildModelBuilder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder, buildHelper)
+    constructor(builder: Activity.ChildModelBuilder,
+                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
     @Transient
     private var xmlCondition: XmlCondition? = null
@@ -63,21 +64,18 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         out.writeChild(xmlCondition)
     }
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override var condition: String?
+    override val condition: String?
         get() = xmlCondition?.toString()
-        set(condition) {
-            xmlCondition = condition?.let { XmlCondition(it) }
-            notifyChange()
-        }
 
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {
 
+
+
         @Throws(XmlException::class)
-        fun deserialize(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>,
+        fun deserialize(buildHelper: XmlBuildHelper,
                         reader: XmlReader): XmlActivity {
-            return XmlActivity.Builder().deserializeHelper(reader).build(buildHelper)
+            return XmlActivity(XmlActivity.Builder().deserializeHelper(reader),buildHelper)
         }
 
         @Throws(XmlException::class)
@@ -90,8 +88,9 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
         }
     }
 
+    @Deprecated("Use ActivityBase.Builder", ReplaceWith("ActivityBase.Builder", "nl.adaptivity.process.processModel.ActivityBase"))
     @Serializable
-    class Builder : ActivityBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
+    class Builder : ActivityBase.Builder, XmlProcessNode.Builder {
 
         constructor()
 
@@ -109,16 +108,12 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
                     multiInstance: Boolean = false)
             : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, multiInstance)
 
-        constructor(node: Activity<*, *>) : super(node)
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): XmlActivity {
-            return XmlActivity(this, buildHelper)
-        }
+        constructor(node: Activity) : super(node)
     }
 
     @Serializable
     class ChildModelBuilder : XmlChildModel.Builder,
-                              Activity.ChildModelBuilder<XmlProcessNode, XmlModelCommon>,
+                              Activity.ChildModelBuilder,
                               XmlModelCommon.Builder {
 
         override var id: String?
@@ -188,11 +183,13 @@ class XmlActivity : ActivityBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode
             this.results = results.toMutableList()
         }
 
-        override fun buildModel(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModel<XmlProcessNode, XmlModelCommon> {
-            return XmlChildModel(this, buildHelper)
+        override fun <NodeT : ProcessNode, ChildT : ChildProcessModel<NodeT>> buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT {
+            return buildHelper.childModel(this)
         }
 
-        override fun buildActivity(buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): Activity<XmlProcessNode, XmlModelCommon> {
+        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T = buildHelper.node(this)
+
+        fun buildActivity(buildHelper: ProcessModel.BuildHelper<*,*,*,*>): XmlActivity {
             return XmlActivity(this, buildHelper)
         }
 

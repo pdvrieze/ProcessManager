@@ -31,9 +31,9 @@ import nl.adaptivity.util.multiplatform.JvmDefault
 /**
  * Created by pdvrieze on 27/11/16.
  */
-interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : Positioned, Identifiable, XmlSerializable {
+interface ProcessNode : Positioned, Identifiable, XmlSerializable {
 
-    val ownerModel: ModelT
+    val ownerModel: ProcessModel<out ProcessNode>?
 
     val predecessors: IdentifyableSet<Identified>
 
@@ -53,11 +53,11 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
 
     val isMultiInstance: Boolean
 
-    fun builder(): IBuilder<NodeT, ModelT>
+    fun builder(): IBuilder
 
-    fun asT(): NodeT
+    fun asT(): ProcessNode
 
-    fun isPredecessorOf(node: ProcessNode<*, *>): Boolean
+    fun isPredecessorOf(node: ProcessNode): Boolean
 
     fun <R> visit(visitor: Visitor<R>): R
 
@@ -66,7 +66,7 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
     fun getDefine(name: String): XmlDefineType?
 
     @ProcessModelDSL
-    interface IBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : XmlDeserializable {
+    interface IBuilder : XmlDeserializable {
         val predecessors: Set<Identified>
         val successors: Set<Identified>
         var id: String?
@@ -83,7 +83,7 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
             results.add(XmlResultType.Builder().apply(builder).build())
         }
 
-        fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+        fun <T:ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T
 
         fun <R> visit(visitor: BuilderVisitor<R>): R
 
@@ -111,53 +111,48 @@ interface ProcessNode<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<
     }
 
     interface BuilderVisitor<R> {
-        fun visitStartNode(startNode: StartNode.Builder<*, *>): R
-        fun visitActivity(activity: Activity.Builder<*, *>): R
-        fun visitActivity(activity: Activity.ChildModelBuilder<*, *>): R
-        fun visitSplit(split: Split.Builder<*, *>): R
-        fun visitJoin(join: Join.Builder<*, *>): R
-        fun visitEndNode(endNode: EndNode.Builder<*, *>): R
+        fun visitStartNode(startNode: StartNode.Builder): R
+        fun visitActivity(activity: Activity.Builder): R
+        fun visitActivity(activity: Activity.ChildModelBuilder): R
+        fun visitSplit(split: Split.Builder): R
+        fun visitJoin(join: Join.Builder): R
+        fun visitEndNode(endNode: EndNode.Builder): R
     }
 
     interface Visitor<R> {
-        fun visitStartNode(startNode: StartNode<*, *>): R
-        fun visitActivity(activity: Activity<*, *>): R
-        fun visitSplit(split: Split<*, *>): R
-        fun visitJoin(join: Join<*, *>): R
-        fun visitEndNode(endNode: EndNode<*, *>): R
+        fun visitStartNode(startNode: StartNode): R
+        fun visitActivity(activity: Activity): R
+        fun visitSplit(split: Split): R
+        fun visitJoin(join: Join): R
+        fun visitEndNode(endNode: EndNode): R
     }
 }
 
 
-inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    StartNode.Builder<NodeT, ModelT>?.invoke(body: StartNode.Builder<NodeT, ModelT>.() -> Unit) {
+inline operator fun StartNode.Builder?.invoke(body: StartNode.Builder.() -> Unit) {
     this?.body()
 }
 
-inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    Activity.Builder<NodeT, ModelT>?.invoke(body: Activity.Builder<NodeT, ModelT>.() -> Unit) {
+inline operator fun Activity.Builder?.invoke(body: Activity.Builder.() -> Unit) {
     this?.body()
 }
 
-inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    Split.Builder<NodeT, ModelT>?.invoke(body: Split.Builder<NodeT, ModelT>.() -> Unit) {
+inline operator fun Split.Builder?.invoke(body: Split.Builder.() -> Unit) {
     this?.body()
 }
 
-inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    Join.Builder<NodeT, ModelT>?.invoke(body: Join.Builder<NodeT, ModelT>.() -> Unit) {
+inline operator fun Join.Builder?.invoke(body: Join.Builder.() -> Unit) {
     this?.body()
 }
 
-inline operator fun <NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    EndNode.Builder<NodeT, ModelT>?.invoke(body: EndNode.Builder<NodeT, ModelT>.() -> Unit) {
+inline operator fun EndNode.Builder?.invoke(body: EndNode.Builder.() -> Unit) {
     this?.body()
 }
 
-internal inline fun ProcessNode.IBuilder<*,*>.removeAllPredecessors(predicate: (Identified) -> Boolean) {
+internal inline fun ProcessNode.IBuilder.removeAllPredecessors(predicate: (Identified) -> Boolean) {
     predecessors.filter(predicate).forEach { removePredecessor(it.identifier) }
 }
 
-internal inline fun ProcessNode.IBuilder<*,*>.removeAllSuccessors(predicate: (Identified) -> Boolean) {
+internal inline fun ProcessNode.IBuilder.removeAllSuccessors(predicate: (Identified) -> Boolean) {
     successors.filter(predicate).forEach { removeSuccessor(it.identifier) }
 }

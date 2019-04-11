@@ -35,8 +35,8 @@ import nl.adaptivity.xmlutil.deserializeHelper
 class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    constructor(builder: Join.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) : super(builder,
-                                                                                                               buildHelper)
+    constructor(builder: Join.Builder, buildHelper: BuildHelper<*,*,*,*>)
+        : super(builder, buildHelper)
 
     override fun builder() = Builder(this)
 
@@ -45,7 +45,7 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
         @Throws(XmlException::class)
         fun deserialize(reader: XmlReader,
-                        buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlJoin {
+                        buildHelper: XmlBuildHelper): XmlJoin {
             return deserialize(reader).build(buildHelper)
         }
 
@@ -61,11 +61,11 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
     }
 
     @Serializable
-    class Builder : JoinBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
+    class Builder : JoinBase.Builder, XmlProcessNode.Builder {
 
         constructor() : this(id = null)
 
-        constructor(node: Join<*, *>) : super(node)
+        constructor(node: Join) : super(node)
 
 
         constructor(predecessors: Collection<Identified> = emptyList(),
@@ -84,7 +84,7 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
                                                             isMultiInstance = multiInstance)
 
 
-        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlJoin {
+        fun build(buildHelper: XmlBuildHelper): XmlJoin {
             return XmlJoin(this, buildHelper)
         }
     }

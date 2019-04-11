@@ -35,12 +35,12 @@ import java.sql.SQLException
 /**
  * Base type for any process node that can be executed
  */
-interface ExecutableProcessNode : ProcessNode<ExecutableProcessNode, ExecutableModelCommon>, Identified {
+interface ExecutableProcessNode : ProcessNode, Identified {
 
-  interface Builder : ProcessNode.IBuilder<ExecutableProcessNode, ExecutableModelCommon> {
-    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon>
+  interface Builder : ProcessNode.IBuilder {
+    override fun build(buildHelper: ProcessModel.BuildHelper): ProcessNode
 
-    override fun result(builder: XmlResultType.Builder.() -> Unit) {
+      override fun result(builder: XmlResultType.Builder.() -> Unit) {
       results.add(XmlResultType.Builder().apply(builder).build())
     }
 

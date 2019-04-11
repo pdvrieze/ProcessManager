@@ -218,7 +218,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
 
       serializeAll(results)
 
-      (node as? Activity<*, *>)?.message?.messageBody?.let { body ->
+      (node as? Activity)?.message?.messageBody?.let { body ->
         instantiateXmlPlaceholders(engineData, body.getXmlReader(), out, true, localEndpoint)
       }
     }
@@ -228,7 +228,7 @@ abstract class ProcessNodeInstance<T: ProcessNodeInstance<T>>(override val node:
   fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
     val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
 
-    val body: ICompactFragment? = (node as? Activity<*,*>)?.message?.let { message ->
+    val body: ICompactFragment? = (node as? Activity)?.message?.let { message ->
       try {
         val xmlReader = message.messageBody.getXmlReader()
         instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)

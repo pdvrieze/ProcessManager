@@ -59,7 +59,7 @@ class WCP8(maxValidTraces:Int, maxInvalidTraces: Int = maxValidTraces): ModelSpe
     context("When join is not multiInstance") {
         val modifiedModel = m.update { join("join")!! { isMultiMerge = false } }
         it("should not have a multiInstance join") {
-            assertFalse((modifiedModel.getNode("join") as? Join<*,*>)?.isMultiMerge ?: true)
+            assertFalse((modifiedModel.getNode("join") as? Join)?.isMultiMerge ?: true)
         }
         for (trace in c.valid) {
             testInvalidTrace(modifiedModel, m.owner, trace)

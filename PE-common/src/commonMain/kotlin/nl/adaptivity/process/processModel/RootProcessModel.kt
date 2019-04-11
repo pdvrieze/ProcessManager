@@ -19,22 +19,21 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.SerialName
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.multiplatform.JvmName
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
-interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel<NodeT, ModelT> {
+interface RootProcessModel<out NodeT: ProcessNode> : ProcessModel<NodeT> {
 
-    override val rootModel: RootProcessModel<NodeT, ModelT> get() = this
+    override val rootModel: RootProcessModel<NodeT> get() = this
 
     @SerialName("childModel")
-    val childModels: Collection<ChildProcessModel<NodeT, ModelT>>
+    val childModels: Collection<ChildProcessModel<out NodeT>>
 
     val owner: Principal
 
-    val ref: IProcessModelRef<NodeT, ModelT, RootProcessModel<NodeT, ModelT>>?
+    val ref: IProcessModelRef<NodeT, RootProcessModel<NodeT>>?
 
     @SerialName("nodes")
     override val modelNodes: List<NodeT>
@@ -44,14 +43,14 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
 
     fun copy(imports: Collection<IXmlResultType> = this.imports,
              exports: Collection<IXmlDefineType> = this.exports,
-             nodes: Collection<NodeT> = modelNodes,
+             nodes: Collection<ProcessNode> = modelNodes,
              name: kotlin.String? = this.name,
              uuid: UUID? = this.uuid,
              roles: Set<String> = this.roles,
              owner: Principal = this.owner,
-             childModels: Collection<ChildProcessModel<NodeT, ModelT>> = this.childModels): RootProcessModel<NodeT, ModelT>
+             childModels: Collection<ChildProcessModel<@UnsafeVariance NodeT>> = this.childModels): RootProcessModel<NodeT>
 
-    fun builder(): RootProcessModel.Builder<NodeT, ModelT>
+    fun builder(): RootProcessModel.Builder
 
     /**
      * Get the process node with the given id.
@@ -61,17 +60,17 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
      */
     override fun getNode(nodeId: Identifiable): NodeT?
 
-    fun getChildModel(childId: Identifiable): ChildProcessModel<NodeT, ModelT>?
+    fun getChildModel(childId: Identifiable): ChildProcessModel<NodeT>?
 
     companion object {
         const val ATTR_ROLES = "roles"
         const val ATTR_NAME = "name"
     }
 
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessModel.Builder<NodeT, ModelT> {
-        override val rootBuilder: Builder<NodeT, ModelT> get() = this
+    interface Builder : ProcessModel.Builder {
+        override val rootBuilder: Builder get() = this
 
-        val childModels: MutableList<ChildProcessModel.Builder<NodeT, ModelT>>
+        val childModels: MutableList<ChildProcessModel.Builder>
 
         var name: String?
         var handle: Long
@@ -85,7 +84,7 @@ interface RootProcessModel<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessM
             }
         }
 
-        fun build(pedantic: Boolean = defaultPedantic): RootProcessModel<NodeT, ModelT>
+        fun build(pedantic: Boolean = defaultPedantic): RootProcessModel<out ProcessNode>
 
         override fun normalize(pedantic: Boolean) {
             super.normalize(pedantic)

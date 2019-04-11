@@ -25,10 +25,10 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>)
-  : SplitBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
+class ExecutableSplit(builder: Split.Builder, buildHelper: ProcessModel.BuildHelper)
+  : SplitBase(builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : SplitBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
+  class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
                 predecessor: Identified? = null,
                 successors: Collection<Identified> = emptyList(), label: String? = null,
@@ -39,9 +39,9 @@ class ExecutableSplit(builder: Split.Builder<*, *>, buildHelper: ProcessModel.Bu
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance)
-    constructor(node: Split<*, *>) : super(node)
+    constructor(node: Split) : super(node)
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun build(buildHelper: ProcessModel.BuildHelper): ProcessNode {
       return ExecutableSplit(this, buildHelper)
     }
   }

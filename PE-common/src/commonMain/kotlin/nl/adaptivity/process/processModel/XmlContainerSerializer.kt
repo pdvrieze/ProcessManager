@@ -58,10 +58,12 @@ open class XmlContainerSerializer<T : XMLContainer> {
     }
 
 
-    open class ContainerData<T : XMLContainer>(val owner: XmlContainerSerializer<in T>) {
+    open class ContainerData<T : XMLContainer> {
+
         var content: CharArray? = null
         var namespaces: Iterable<Namespace>? = null
 
+        @Transient
         val fragment: ICompactFragment?
             get() = content?.let {
                 CompactFragment(namespaces ?: emptyList(), it)
@@ -71,7 +73,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
             throw SerializationException("Unknown attribute: $attributeLocalName")
         }
 
-        fun deserialize(desc: SerialDescriptor, decoder: Decoder) {
+        fun deserialize(desc: SerialDescriptor, decoder: Decoder,  owner: XmlContainerSerializer<in T>) {
             @Suppress("NAME_SHADOWING")
             decoder.decodeStructure(desc) {
                 val input = this

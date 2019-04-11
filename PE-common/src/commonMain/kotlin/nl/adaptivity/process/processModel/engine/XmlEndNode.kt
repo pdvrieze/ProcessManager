@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
 import nl.adaptivity.process.processModel.IXmlDefineType
@@ -29,11 +30,11 @@ import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.deserializeHelper
 
 @Serializable(XmlEndNode.Companion::class)
-class XmlEndNode : EndNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
+class XmlEndNode : EndNodeBase, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    constructor(builder: EndNode.Builder<*, *>, buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>) :
-        super(builder, buildHelper)
+    constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>) :
+        super(builder, newOwner)
 
     override fun builder() = Builder(this)
 
@@ -51,7 +52,7 @@ class XmlEndNode : EndNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
     }
 
     @Serializable
-    class Builder : EndNodeBase.Builder<XmlProcessNode, XmlModelCommon>, XmlProcessNode.Builder {
+    class Builder : EndNodeBase.Builder, XmlProcessNode.Builder {
 
         constructor() : this(id = null)
 
@@ -67,10 +68,10 @@ class XmlEndNode : EndNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
             : super(id, predecessor, label, defines, results, x, y, multiInstance)
 
 
-        constructor(node: EndNode<*, *>) : super(node)
+        constructor(node: EndNode) : super(node)
 
-        override fun build(buildHelper: BuildHelper<XmlProcessNode, XmlModelCommon>): XmlEndNode {
-            return XmlEndNode(this, buildHelper)
+        fun build(newOwner: ProcessModel<*>): XmlEndNode {
+            return XmlEndNode(this, newOwner)
         }
     }
 

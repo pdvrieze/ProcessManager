@@ -40,7 +40,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable(XmlProcessModel.Companion::class)
 @XmlDeserializer(XmlProcessModel.Factory::class)
 @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, XmlModelCommon {
+class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcessNode>, XmlModelCommon {
 
     @Transient
     override val rootModel: XmlProcessModel
@@ -51,17 +51,17 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     override val childModels: Collection<XmlChildModel> get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    constructor(builder: RootProcessModel.Builder<*, *>, pedantic: Boolean = false) :
+    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = false) :
         super(builder, XML_NODE_FACTORY, pedantic)
 
     override fun copy(imports: Collection<IXmlResultType>,
                       exports: Collection<IXmlDefineType>,
-                      nodes: Collection<XmlProcessNode>,
+                      nodes: Collection<ProcessNode>,
                       name: String?,
                       uuid: UUID?,
                       roles: Set<String>,
                       owner: Principal,
-                      childModels: Collection<ChildProcessModel<XmlProcessNode, XmlModelCommon>>): XmlProcessModel {
+                      childModels: Collection<ChildProcessModel<XmlProcessNode>>): XmlProcessModel {
         return XmlProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
                                        uuid).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })
@@ -72,6 +72,10 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
         return Builder(this)
     }
 
+    override fun update(body: (RootProcessModelBase.Builder) -> Unit): RootProcessModelBase<XmlProcessNode> {
+        return XmlProcessModel(builder().apply(body))
+    }
+
     override fun getChildModel(childId: Identifiable): XmlChildModel? {
         return super.getChildModel(childId)?.let { it as XmlChildModel }
     }
@@ -79,11 +83,11 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
     @Serializer(forClass = XmlProcessModel::class)
     companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>(), KSerializer<XmlProcessModel> {
 
-        override val descriptor: SerialDescriptor = RootProcessModelBase.serializer(XmlProcessNode.serializer(), this).descriptor
+        override val descriptor: SerialDescriptor = Builder.descriptor
 
         @Suppress("UNCHECKED_CAST")
-        override val childModelSerializer: KSerializer<ChildProcessModel<*, *>>
-            get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*, *>>
+        override val childModelSerializer: KSerializer<ChildProcessModel<*>>
+            get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*>>
 
         override fun deserialize(decoder: Decoder): XmlProcessModel {
             return Builder.serializer().deserialize(decoder).build()
@@ -105,16 +109,17 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 
     @Serializable
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    class Builder : RootProcessModelBase.Builder<XmlProcessNode, XmlModelCommon>, XmlModelCommon.Builder {
+    class Builder : RootProcessModelBase.Builder, XmlModelCommon.Builder {
         @Transient
         override val rootBuilder: Builder
             get() = this
+
         @Transient
         override val defaultPedantic: Boolean
             get() = true
 
         constructor(
-            nodes: Collection<ProcessNode.IBuilder<XmlProcessNode, XmlModelCommon>> = emptySet(),
+            nodes: Collection<ProcessNode.IBuilder> = emptySet(),
             childModels: Collection<XmlChildModel.Builder> = emptySet(),
             name: String? = null,
             handle: Long = -1L,
@@ -135,13 +140,13 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
             return XmlChildModel.Builder(rootBuilder)
         }
 
-        override fun childModelBuilder(base: ChildProcessModel<*, *>): XmlChildModel.Builder {
+        override fun childModelBuilder(base: ChildProcessModel<*>): XmlChildModel.Builder {
             return XmlChildModel.Builder(rootBuilder, base)
         }
 
         @Serializer(forClass = Builder::class)
         companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
-            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
+//            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
 
             override fun builder() = Builder()
 
@@ -170,43 +175,43 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode, XmlModelCommon>, Xm
 }
 
 val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<XmlProcessNode.Builder> {
-    override fun visitStartNode(startNode: StartNode<*, *>) = XmlStartNode.Builder(startNode)
+    override fun visitStartNode(startNode: StartNode) = XmlStartNode.Builder(startNode)
 
-    override fun visitActivity(activity: Activity<*, *>) = XmlActivity.Builder(activity)
+    override fun visitActivity(activity: Activity) = XmlActivity.Builder(activity)
 
-    override fun visitSplit(split: Split<*, *>) = XmlSplit.Builder(split)
+    override fun visitSplit(split: Split) = XmlSplit.Builder(split)
 
-    override fun visitJoin(join: Join<*, *>) = XmlJoin.Builder(join)
+    override fun visitJoin(join: Join) = XmlJoin.Builder(join)
 
-    override fun visitEndNode(endNode: EndNode<*, *>) = XmlEndNode.Builder(endNode)
+    override fun visitEndNode(endNode: EndNode) = XmlEndNode.Builder(endNode)
 }
 
 
 @Suppress("ClassName")
-object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlModelCommon> {
+object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode> {
 
-    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
-        override fun visitStartNode(startNode: StartNode.Builder<*, *>) = XmlStartNode(startNode, buildHelper)
+    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
+        override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
 
-        override fun visitActivity(activity: Activity.Builder<*, *>) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: Activity.Builder) = XmlActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.ChildModelBuilder<*, *>) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: Activity.ChildModelBuilder) = XmlActivity(activity, buildHelper)
 
-        override fun visitSplit(split: Split.Builder<*, *>) = XmlSplit(split, buildHelper)
+        override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner)
 
-        override fun visitJoin(join: Join.Builder<*, *>) = XmlJoin(join, buildHelper)
+        override fun visitJoin(join: Join.Builder) = XmlJoin(join, buildHelper)
 
-        override fun visitEndNode(endNode: EndNode.Builder<*, *>) = XmlEndNode(endNode, buildHelper)
+        override fun visitEndNode(endNode: EndNode.Builder) = XmlEndNode(endNode, buildHelper.newOwner)
     }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): XmlProcessNode {
+    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
+                                              buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlProcessNode {
         return baseNodeBuilder.visit(Visitor(buildHelper))
     }
 
-    override fun invoke(baseChildBuilder: ChildProcessModel.Builder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, XmlModelCommon>): ChildProcessModelBase<XmlProcessNode, XmlModelCommon> {
-        return XmlChildModel(baseChildBuilder, buildHelper)
+    override fun <ChildT : ChildProcessModel<XmlProcessNode>> invoke(baseChildBuilder: ChildProcessModel.Builder,
+                                                                     buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, ChildT>): ChildT {
+        return buildHelper.childModel(baseChildBuilder)
     }
 
     override fun condition(text: String) = XmlCondition(text)

@@ -19,7 +19,6 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
@@ -28,15 +27,13 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
 
-interface Split<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode<NodeT, ModelT>, JoinSplit<NodeT, ModelT> {
+interface Split : ProcessNode, JoinSplit {
 
     val predecessor: Identifiable?
 
-    override fun builder(): Builder<NodeT, ModelT>
+    override fun builder(): Builder
 
-    interface Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : JoinSplit.Builder<NodeT, ModelT> {
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+    interface Builder : JoinSplit.Builder {
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitSplit(this)
 

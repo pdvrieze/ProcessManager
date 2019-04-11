@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Optional
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -34,20 +33,20 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * Created by pdvrieze on 23/11/15.
  */
 @Serializable
-abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, Activity<NodeT, ModelT> {
+abstract class ActivityBase : ProcessNodeBase, Activity {
 
-    @Transient
-    private var _message: XmlMessage? = null
+    @SerialName("message")
+    @Serializable(with = IXmlMessage.Companion::class)
+    internal var _message: XmlMessage? = null
 
     @SerialName("name")
-    private var _name: String? = null
+    internal var _name: String? = null
 
     val childId: String? get() = childModel?.id
 
     @Transient
-    override val childModel: ChildProcessModel<NodeT, ModelT>?
+    override val childModel: ChildProcessModel<ProcessNode>?
 
-    @Transient
     @Suppress("OverridingDeprecatedMember")
     override var name: String?
         get() = _name
@@ -56,14 +55,13 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         }
 
     @Serializable(with = Identifiable.Companion::class)
-    final override val predecessor: Identifiable?
-        get() = predecessors.singleOrNull()
+    final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
     @Transient
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    @Serializable(with = IXmlMessage.Companion::class)
+    @Transient
     override var message: IXmlMessage?
         get() = _message
         set(value) {
@@ -74,8 +72,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         _message = message
     }
 
-    constructor(builder: Activity.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
-                                                                                                               buildHelper) {
+    constructor(builder: Activity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder,
+                                                                                          buildHelper.newOwner) {
         if (builder.message != null && builder.childId != null) throw IllegalProcessModelException(
             "Activities can not have child models as well as messages")
         this._message = XmlMessage.from(builder.message)
@@ -85,8 +83,8 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         childModel = builder.childId?.let { buildHelper.childModel(it) }
     }
 
-    constructor(builder: Activity.ChildModelBuilder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder, buildHelper) {
+    constructor(builder: Activity.ChildModelBuilder,
+                buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder, buildHelper.newOwner) {
         this._message = null
         this._name = null
         @Suppress("LeakingThis")
@@ -94,7 +92,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
     }
 
 
-    abstract override fun builder(): Builder<NodeT, ModelT>
+    abstract override fun builder(): Builder
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitActivity(this)
@@ -124,14 +122,9 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
     protected abstract fun serializeCondition(out: XmlWriter)
 
-    /* Override to make public */
-    @Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-    @Deprecated("Don't have mutable process models")
-    override fun setResults(results: Collection<IXmlResultType>) = super.setResults(results)
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ActivityBase<*, *>) return false
+        if (other !is ActivityBase) return false
         if (!super.equals(other)) return false
 
         if (_message != other._message) return false
@@ -151,10 +144,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-        ProcessNodeBase.Builder<NodeT, ModelT>,
-        Activity.Builder<NodeT, ModelT>,
-        SimpleXmlDeserializable {
+    abstract class Builder : ProcessNodeBase.Builder, Activity.Builder, SimpleXmlDeserializable {
 
         @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
@@ -162,7 +152,6 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         @Suppress("OverridingDeprecatedMember")
         final override var name: String?
 
-        @Optional
         final override var condition: String? = null
 
         @Transient
@@ -207,7 +196,7 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
             this.condition = condition
         }
 
-        constructor(node: Activity<*, *>) : super(node) {
+        constructor(node: Activity) : super(node) {
             message = XmlMessage.from(node.message)
 
             @Suppress("DEPRECATION")
@@ -262,10 +251,10 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
 
     }
 
-    abstract class ChildModelBuilder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>(
+    abstract class ChildModelBuilder<NodeT : ProcessNode>(
         id: String? = null,
         override var childId: String? = null,
-        nodes: Collection<ProcessNode.IBuilder<NodeT, ModelT>> = emptyList(),
+        nodes: Collection<ProcessNode.IBuilder> = emptyList(),
         @Serializable(with = Identifiable.Companion::class)
         override var predecessor: Identifiable? = null,
         @Transient override var successor: Identifiable? = null,
@@ -276,10 +265,10 @@ abstract class ActivityBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Process
         results: Collection<IXmlResultType> = emptyList(),
         x: Double = Double.NaN,
         y: Double = Double.NaN,
-        multiInstance: Boolean) : ProcessNodeBase.Builder<NodeT, ModelT>(id, label, defines, results, x, y,
-                                                                         multiInstance), Activity.ChildModelBuilder<NodeT, ModelT> {
+        multiInstance: Boolean) : ProcessNodeBase.Builder(id, label, defines, results, x, y,
+                                                          multiInstance), Activity.ChildModelBuilder {
 
-        override val nodes: MutableList<ProcessNode.IBuilder<NodeT, ModelT>> = nodes.toMutableList()
+        override val nodes: MutableList<ProcessNode.IBuilder> = nodes.toMutableList()
         override val imports: MutableList<IXmlResultType> = imports.toMutableList()
         override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
         override var condition: String? = null

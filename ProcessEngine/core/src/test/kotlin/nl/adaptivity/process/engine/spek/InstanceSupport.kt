@@ -86,11 +86,11 @@ interface InstanceSupport {
 
   fun  ProcessInstance.assertComplete(vararg nodeIds: String) {
     val complete = allChildren()
-      .filter { it.state.isFinal && it.node is EndNode<*, *> }
+      .filter { it.state.isFinal && it.node is EndNode }
       .mapNotNull { nodeInstance ->
         Assertions.assertTrue(nodeInstance.state.isFinal,
                               { "The node instance state should be final (but is ${nodeInstance.state})" })
-        Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
+        Assertions.assertTrue(nodeInstance.node is EndNode, "Completion nodes should be EndNodes")
         if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
       }.sorted().toList()
     Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString()})" })
@@ -208,11 +208,11 @@ fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg n
 
 fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg nodeIds: String) {
   val finished = allChildren(transaction)
-    .filter { it.state.isFinal && it.node !is EndNode<*, *> }
+    .filter { it.state.isFinal && it.node !is EndNode }
     .mapNotNull { nodeInstance ->
       assertTrue(nodeInstance.state.isFinal,
                  { "The node instance state should be final (but is ${nodeInstance.state})" })
-      assertTrue(nodeInstance.node !is EndNode<*, *>, { "Completed nodes should not be endnodes" })
+      assertTrue(nodeInstance.node !is EndNode, { "Completed nodes should not be endnodes" })
       if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
     }.sorted().toList()
   Assertions.assertEquals(nodeIds.sorted(), finished,
@@ -230,11 +230,11 @@ fun ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg n
 
 fun  ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg nodeIds: String) {
   val complete = allChildren(transaction)
-    .filter { it.state.isFinal && it.node is EndNode<*, *> }
+    .filter { it.state.isFinal && it.node is EndNode }
     .mapNotNull { nodeInstance ->
       Assertions.assertTrue(nodeInstance.state.isFinal,
                             { "The node instance state should be final (but is ${nodeInstance.state})" })
-      Assertions.assertTrue(nodeInstance.node is EndNode<*, *>, "Completion nodes should be EndNodes")
+      Assertions.assertTrue(nodeInstance.node is EndNode, "Completion nodes should be EndNodes")
       if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
     }.sorted().toList()
   Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString(transaction)})" })

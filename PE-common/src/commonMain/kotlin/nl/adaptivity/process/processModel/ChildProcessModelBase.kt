@@ -31,13 +31,13 @@ import kotlin.jvm.JvmField
  * Base class for submodels
  */
 @Serializable
-abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> :
-    ProcessModelBase<T, M>, ChildProcessModel<T, M> {
+abstract class ChildProcessModelBase<NodeT : ProcessNode> :
+    ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
     @Suppress("LeakingThis")
-    constructor(builder: ChildProcessModel.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<T, M>) : super(builder,
-                                                                                                               buildHelper.pedantic) {
-        modelNodes = buildNodes(builder, buildHelper.withOwner(asM))
+    constructor(builder: ChildProcessModel.Builder, buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>) :
+        super(builder, buildHelper.pedantic) {
+        modelNodes = buildNodes(builder, buildHelper.withOwner(this))
         rootModel = buildHelper.newOwner?.rootModel
             ?: throw IllegalProcessModelException("Childmodels must have roots")
         this.id = builder.childId
@@ -47,7 +47,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
     @Suppress("UNCHECKED_CAST", "LeakingThis")
     protected constructor() : super(emptyList(), emptyList()) {
         modelNodes = IdentifyableSet.processNodeSet()
-        rootModel = XmlProcessModel.Builder().build() as RootProcessModel<T, M>
+        rootModel = XmlProcessModel.Builder().build() as RootProcessModel<NodeT>
         id = null
         if (id == null) {// stupid if to make the compiler not complain about uninitialised values
             throw UnsupportedOperationException("Actually invoking this constructor is invalid")
@@ -66,15 +66,16 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
                              "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
                              "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
     @Serializable(IdentifiableSetSerializer::class)
-    override val modelNodes: IdentifyableSet<T>
+    override val modelNodes: IdentifyableSet<NodeT>
 
     @Transient
-    override val rootModel: RootProcessModel<T, M>
+    override val rootModel: RootProcessModel<NodeT>
 
     @SerialName("id")
     override val id: String?
 
-    override abstract fun builder(rootBuilder: RootProcessModel.Builder<T, M>): ChildProcessModelBase.Builder<T, M>
+
+    override abstract fun builder(rootBuilder: RootProcessModel.Builder): ChildProcessModelBase.Builder
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(ELEMENTNAME) {
@@ -86,14 +87,14 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
         }
     }
 
-    abstract class Builder<T : ProcessNode<T, M>, M : ProcessModel<T, M>?> : ProcessModelBase.Builder<T, M>, ChildProcessModel.Builder<T, M> {
+    abstract class Builder : ProcessModelBase.Builder, ChildProcessModel.Builder {
 
 
         @Transient
-        private lateinit var _rootBuilder: RootProcessModel.Builder<T, M>
+        private lateinit var _rootBuilder: RootProcessModel.Builder
 
         @Transient
-        override val rootBuilder: RootProcessModel.Builder<T, M>
+        override val rootBuilder: RootProcessModel.Builder
             get() = _rootBuilder
 
         @SerialName("id")
@@ -103,9 +104,9 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
             childId = null
         }
 
-        constructor(rootBuilder: RootProcessModel.Builder<T, M>,
+        constructor(rootBuilder: RootProcessModel.Builder,
                     childId: String? = null,
-                    nodes: Collection<ProcessNode.IBuilder<T, M>> = emptyList(),
+                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
                     imports: Collection<IXmlResultType> = emptyList(),
                     exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, imports, exports) {
             this._rootBuilder = rootBuilder
@@ -120,9 +121,11 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
          * When this is overridden and it returns a non-`null` value, it will allow childmodels to be nested in eachother.
          * Note that this does not actually introduce a scope. The nesting is not retained.
          */
-        open fun nestedBuilder(): ChildProcessModelBase.Builder<T, M>? = null
+        open fun nestedBuilder(): ChildProcessModelBase.Builder? = null
 
-        abstract override fun buildModel(buildHelper: ProcessModel.BuildHelper<T, M>): ChildProcessModel<T, M>
+        override fun <NodeT: ProcessNode, ChildT: ChildProcessModel<NodeT>>buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT {
+            return buildHelper.childModel(this)
+        }
 
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
@@ -145,7 +148,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
             }
         }
 
-        abstract class BaseSerializer<T : ChildProcessModelBase.Builder<*, *>> : ProcessModelBase.Builder.BaseSerializer<T>() {
+        abstract class BaseSerializer<T : ChildProcessModelBase.Builder> : ProcessModelBase.Builder.BaseSerializer<T>() {
             override fun readElement(result: T, input: KInput, index: Int, name:String) {
                 when (name) {
                     ATTR_ID -> result.childId = input.readNullableString(descriptor, index)
@@ -156,7 +159,7 @@ abstract class ChildProcessModelBase<T : ProcessNode<T, M>, M : ProcessModel<T, 
 
     }
 
-    abstract class BaseSerializer<T : ChildProcessModelBase<*, *>> : ProcessModelBase.BaseSerializer<T>() {
+    abstract class BaseSerializer<T : ChildProcessModelBase<*>> : ProcessModelBase.BaseSerializer<T>() {
 
         private val idIdx by lazy { descriptor.getElementIndex(ATTR_ID) }
 

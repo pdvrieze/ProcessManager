@@ -25,10 +25,10 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
+class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
   builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : StartNodeBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
+  class Builder : StartNodeBase.Builder, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
                 successor: Identified? = null,
                 label: String? = null,
@@ -37,10 +37,10 @@ class ExecutableStartNode(builder: StartNode.Builder<*, *>, buildHelper: Process
                 x: Double = Double.NaN,
                 y: Double = Double.NaN,
                 multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance)
-    constructor(node: StartNode<*, *>) : super(node)
+    constructor(node: StartNode) : super(node)
 
 
-    override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): ProcessNode<ExecutableProcessNode, ExecutableModelCommon> {
+    override fun build(buildHelper: ProcessModel.BuildHelper): ProcessNode {
       return ExecutableStartNode(this, buildHelper)
     }
   }

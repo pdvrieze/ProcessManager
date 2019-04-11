@@ -113,7 +113,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
         override fun deserialize(decoder: Decoder): XmlResultType {
             val data = PathHolderData(this)
-            data.deserialize(descriptor, decoder)
+            data.deserialize(descriptor, decoder, XmlResultType.Companion)
             return XmlResultType(data.name, data.path, data.content, data.namespaces)
         }
 
@@ -123,7 +123,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
                 path = old.path
                 content = old.content
                 namespaces = old.namespaces
-                deserialize(descriptor, decoder)
+                deserialize(descriptor, decoder, XmlResultType.Companion)
 
                 return XmlResultType(name, path, content, namespaces)
             }

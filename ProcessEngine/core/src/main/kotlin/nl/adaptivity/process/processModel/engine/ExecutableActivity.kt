@@ -35,21 +35,21 @@ import nl.adaptivity.xmlutil.writeChild
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode {
+class ExecutableActivity : ActivityBase, ExecutableProcessNode {
 
-    constructor(builder: Activity.Builder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : super(builder,
-                                                                                                             buildHelper) {
+    constructor(builder: Activity.Builder,
+                buildHelper: ProcessModel.BuildHelper) : super(builder,
+                                                               buildHelper) {
         this._condition = builder.condition?.let(::ExecutableCondition)
     }
 
-    constructor(builder: Activity.ChildModelBuilder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) : super(builder,
-                                                                                                             buildHelper) {
+    constructor(builder: Activity.ChildModelBuilder,
+                buildHelper: ProcessModel.BuildHelper) : super(builder,
+                                                               buildHelper) {
         this._condition = builder.condition?.let(::ExecutableCondition)
     }
 
-    class Builder : ActivityBase.Builder<ExecutableProcessNode, ExecutableModelCommon>, ExecutableProcessNode.Builder {
+    class Builder : ActivityBase.Builder, ExecutableProcessNode.Builder {
 
         constructor(id: String? = null,
                     predecessor: Identified? = null,
@@ -65,9 +65,9 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
                     multiInstance: Boolean = false) : super(id, predecessor, successor, label, defines, results,
                                                             message, condition, name, x, y, multiInstance)
 
-        constructor(node: Activity<*, *>) : super(node)
+        constructor(node: Activity) : super(node)
 
-        override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = ExecutableActivity(
+        override fun build(buildHelper: ProcessModel.BuildHelper) = ExecutableActivity(
             this, buildHelper)
     }
 
@@ -88,7 +88,7 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
                             override var y: Double = Double.NaN,
                             override var isMultiInstance: Boolean = false) :
         ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports),
-        Activity.ChildModelBuilder<ExecutableProcessNode, ExecutableModelCommon>,
+        Activity.ChildModelBuilder,
         ExecutableModelCommon.Builder,
         ExecutableProcessNode.Builder {
 
@@ -102,14 +102,14 @@ class ExecutableActivity : ActivityBase<ExecutableProcessNode, ExecutableModelCo
                 field.replaceBy(value)
             }
 
-        override fun buildModel(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) =
+        override fun buildModel(buildHelper: ProcessModel.BuildHelper) =
             ExecutableChildModel(this, buildHelper)
 
-        override fun buildActivity(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>): Activity<ExecutableProcessNode, ExecutableModelCommon> {
+        override fun buildActivity(buildHelper: ProcessModel.BuildHelper): Activity {
             return ExecutableActivity(this, buildHelper)
         }
 
-        override fun build(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ExecutableModelCommon>) = buildActivity(
+        override fun build(buildHelper: ProcessModel.BuildHelper) = buildActivity(
             buildHelper)
     }
 

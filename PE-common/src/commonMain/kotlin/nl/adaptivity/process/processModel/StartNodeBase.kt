@@ -32,7 +32,7 @@ import nl.adaptivity.xmlutil.smartStartTag
  * Base class for start nodes. It knows about the data
  */
 @Serializable
-abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNodeBase<NodeT, ModelT>, StartNode<NodeT, ModelT> {
+abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> : ProcessNodeBase, StartNode {
 
     @Transient
     override val maxPredecessorCount: Int
@@ -55,14 +55,12 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
                 listOfNotNull(successor),
                 id, label, x, y, defines, results)
 
-    @Deprecated("Use the full constructor")
-    constructor(ownerModel: ModelT) : super(ownerModel) {
-    }
+    constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : this(builder, buildHelper.newOwner)
 
-    constructor(builder: StartNode.Builder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) : super(builder,
-                                                                                                                buildHelper)
+    constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
+        super(builder, newOwner)
 
-    override abstract fun builder(): Builder<NodeT, ModelT>
+    override abstract fun builder(): Builder
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(StartNode.ELEMENTNAME) {
@@ -77,10 +75,7 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
 
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> :
-        ProcessNodeBase.Builder<NodeT, ModelT>,
-        StartNode.Builder<NodeT, ModelT>,
-        SimpleXmlDeserializable {
+    abstract class Builder : ProcessNodeBase.Builder, StartNode.Builder, SimpleXmlDeserializable {
 
         @Transient
         override val idBase: String
@@ -111,7 +106,7 @@ abstract class StartNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proces
             this.successor = successor
         }
 
-        constructor(node: StartNode<*, *>) : super(node) {
+        constructor(node: StartNode) : super(node) {
             successor = node.successor
         }
 

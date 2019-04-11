@@ -20,6 +20,7 @@ import kotlinx.serialization.*
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.xml.XMLConstants
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 
@@ -29,18 +30,17 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
  * Created by pdvrieze on 23/11/15.
  */
 @Serializable
-abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?>
-    : ProcessNode<NodeT, ModelT> {
+abstract class ProcessNodeBase : ProcessNode {
 
     @Transient
-    private var _ownerModel: ModelT
+    private val _ownerModel: ProcessModel<out ProcessNode>?
 
 //    @Optional
     @XmlDefault("false")
     override val isMultiInstance: Boolean
 
     @Transient
-    private var _predecessors: MutableIdentifyableSet<Identified>
+    private val _predecessors: MutableIdentifyableSet<Identified>
 
     @Transient
     override val predecessors: IdentifyableSet<Identified>
@@ -48,7 +48,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
 
     @Transient
-    private var _successors: MutableIdentifyableSet<Identified>
+    private val _successors: MutableIdentifyableSet<Identified>
 
     @Transient
     override val successors: IdentifyableSet<Identified>
@@ -57,7 +57,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 //    @Optional
     @SerialName("x")
     @XmlDefault("NaN")
-    private var _x: Double
+    internal val _x: Double
 
     @Transient
     override val x: Double get() = _x
@@ -65,19 +65,19 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 //    @Optional
     @SerialName("y")
     @XmlDefault("NaN")
-    private var _y: Double
+    internal val _y: Double
 
     @Transient
     override val y: Double get() = _y
 
     @SerialName("define")
-    private var _defines: MutableList<XmlDefineType>
+    internal val _defines: MutableList<XmlDefineType>
     @Transient
     override val defines: List<XmlDefineType>
         get() = _defines
 
     @SerialName("result")
-    private var _results: MutableList<XmlResultType>
+    internal val _results: MutableList<XmlResultType>
 
     @Transient
     override val results: List<XmlResultType>
@@ -87,22 +87,14 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     private var _hashCode = 0
 
     @Transient
-    override val ownerModel: ModelT
+    override val ownerModel: ProcessModel<out ProcessNode>?
         get() = _ownerModel
 
     @Transient
     override val idBase: String
         get() = "id"
 
-    @Transient
-    private var mId: String?
-        set(value) {
-            field = value
-            _hashCode = 0
-            notifyChange()
-        }
-
-    override val id: String? get() = mId
+    override val id: String?
 
     override val label: String?
 
@@ -115,7 +107,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     override val maxPredecessorCount: Int
         get() = 1
 
-    constructor(_ownerModel: ModelT,
+    constructor(_ownerModel: ProcessModel<ProcessNode>?,
                 predecessors: Collection<Identified> = emptyList(),
                 successors: Collection<Identified> = emptyList(),
                 id: String?,
@@ -134,23 +126,18 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         this._defines = toExportableDefines(defines)
         this._results = toExportableResults(results)
         this.label = label
-        this.mId = id
+        this.id = id
     }
 
-    @Deprecated("Don't use this if it can be avoided")
-    constructor(ownerModel: ModelT) : this(ownerModel, id = null)
+    @Deprecated("BuildHelper is not needed here")
+    internal constructor(builder: ProcessNode.IBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+        this(builder, buildHelper.newOwner)
 
-    constructor(builder: ProcessNode.IBuilder<*, *>, buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>) :
-        this(buildHelper.newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
+    internal constructor(builder: ProcessNode.IBuilder, newOwner: ProcessModel<*>) :
+        this(newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
              builder.y, builder.defines, builder.results, builder.isMultiInstance)
 
-    abstract override fun builder(): Builder<NodeT, ModelT>
-
-    fun offset(offsetX: Int, offsetY: Int) {
-        _x += offsetX
-        _y += offsetY
-        notifyChange()
-    }
+    abstract override fun builder(): Builder
 
     @Throws(XmlException::class)
     protected open fun serializeAttributes(out: XmlWriter) {
@@ -166,9 +153,9 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         out.writeChildren(defines)
     }
 
-    override fun asT(): NodeT {
+    override fun asT(): ProcessNodeBase {
         @Suppress("UNCHECKED_CAST")
-        return this as NodeT
+        return this
     }
 
     override fun compareTo(other: Identifiable): Int {
@@ -179,11 +166,11 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         return x.isFinite() && y.isFinite()
     }
 
-    override fun isPredecessorOf(node: ProcessNode<*, *>): Boolean {
+    override fun isPredecessorOf(node: ProcessNode): Boolean {
         return node.predecessors.any { pred ->
             this === pred ||
             id == pred.id ||
-            (pred is ProcessNode<*, *> && isPredecessorOf(pred)) ||
+            (pred is ProcessNode && isPredecessorOf(pred)) ||
             _ownerModel?.getNode(pred)?.let { node -> isPredecessorOf(node) } ?: false
         }
     }
@@ -199,97 +186,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         // do nothing
     }
 
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun addPredecessor(predecessorId: Identified) {
-        _hashCode = 0
-        if (predecessorId === this || predecessorId.id == id) {
-            throw IllegalArgumentException()
-        }
-        if (true) {
-            if (_predecessors.containsKey(predecessorId.id)) {
-                return
-            }
-            if (_predecessors.size + 1 > maxPredecessorCount) {
-                throw IllegalProcessModelException("Can not add more predecessors")
-            }
-        }
-
-        if (_predecessors.add(predecessorId)) {
-            val ownerModel = _ownerModel
-
-            val mutableNode = predecessorId as? MutableProcessNode<*, *> ?: ownerModel?.getNode(
-                predecessorId) as? MutableProcessNode<*, *>
-            identifier?.let { mutableNode?.addSuccessor(it) }
-        }
-
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun removePredecessor(predecessorId: Identified) {
-        _hashCode = 0
-        if (_predecessors.remove(predecessorId)) {
-            val owner = _ownerModel
-            val predecessor: NodeT? = owner?.getNode(predecessorId)
-            if (predecessor != null) {
-                identifier?.let {
-                    (predecessor as MutableProcessNode<*, *>).removeSuccessor(it)
-                }
-            }
-        }
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun addSuccessor(successorId: Identified) {
-        _hashCode = 0
-
-        if (successorId in _successors) return
-
-        if (_successors.size + 1 > maxSuccessorCount) throw IllegalProcessModelException("Can not add more successors")
-
-        _successors.add(successorId)
-
-        val mutableNode = successorId as? MutableProcessNode<*, *> ?: _ownerModel?.getNode(
-            successorId) as? MutableProcessNode<*, *>
-        identifier?.let {
-            mutableNode?.addPredecessor(it)
-        }
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun removeSuccessor(successorId: Identified) {
-        if (_successors.remove(successorId)) {
-            _hashCode = 0
-            val successorNode = successorId as? MutableProcessNode<*, *>
-                                ?: if (_ownerModel == null) null else _ownerModel!!.getNode(
-                                    successorId) as MutableProcessNode<*, *>
-            identifier?.let { successorNode?.removePredecessor(it) }
-        }
-    }
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected fun notifyChange() {
-        (_ownerModel as? MutableRootProcessModel<NodeT, ModelT>)?.notifyNodeChanged(this.asT())
-    }
-
-
-    @Deprecated("Use builders instead of mutable process models")
-    fun setDefine(define: IXmlDefineType): XmlDefineType? {
-        val targetName = define.name
-        val idx = _defines.indexOfFirst { it.name == targetName }
-        if (idx >= 0) {
-            return _defines.set(idx, XmlDefineType.get(define))
-        } else {
-            _defines.add(XmlDefineType.get(define))
-            return null
-        }
-    }
-
-
-    @Deprecated("Use builders instead of mutable process models")
-    protected open fun setResults(results: Collection<IXmlResultType>) {
-        _hashCode = 0
-        _results = results.let { toExportableResults(results) }
-    }
 
     override fun toString(): String {
         var name = this::class.name.substringAfterLast('.')
@@ -309,13 +205,13 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         }
         return buildString {
             append(name).append('(')
-            mId?.let { id -> append(" id='$id'") }
+            id?.let { id -> append(" id='$id'") }
 
             if (_predecessors.size > 0) {
                 _predecessors.joinTo(this, ", ", " pred='", "'") { it.id }
             }
 
-            (_ownerModel as? RootProcessModel<*, *>)?.name?.let { name ->
+            (_ownerModel as? RootProcessModel<*>)?.name?.let { name ->
                 if (!name.isEmpty()) append(" owner='$name'")
             }
             append(" )")
@@ -324,7 +220,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ProcessNodeBase<*, *>) return false
+        if (other !is ProcessNodeBase) return false
 
         if (isMultiInstance != other.isMultiInstance) return false
         if (_predecessors != other._predecessors) return false
@@ -337,7 +233,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         if (_results != other._results) return false
         if (_hashCode != other._hashCode) return false
         if (label != other.label) return false
-        if (mId != other.mId) return false
+        if (id != other.id) return false
 
         return true
     }
@@ -352,7 +248,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         result = 31 * result + _results.hashCode()
         result = 31 * result + _hashCode
         result = 31 * result + (label?.hashCode() ?: 0)
-        result = 31 * result + (mId?.hashCode() ?: 0)
+        result = 31 * result + (id?.hashCode() ?: 0)
         return result
     }
 
@@ -385,7 +281,7 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
     }
 
     @Serializable
-    abstract class Builder<NodeT : ProcessNode<NodeT, ModelT>, ModelT : ProcessModel<NodeT, ModelT>?> : ProcessNode.IBuilder<NodeT, ModelT>, XmlDeserializable {
+    abstract class Builder : ProcessNode.IBuilder, XmlDeserializable {
 
         override var id: String?
         override var label: String?
@@ -429,10 +325,12 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
 
-        constructor(node: ProcessNode<*, *>) : this(node.id, node.label,
-                                                    node.defines, node.results, node.x, node.y, node.isMultiInstance)
+        constructor(node: ProcessNode) : this(node.id, node.label,
+                                              node.defines, node.results, node.x, node.y, node.isMultiInstance)
 
-        override abstract fun build(buildHelper: ProcessModel.BuildHelper<NodeT, ModelT>): ProcessNode<NodeT, ModelT>
+        override final fun <T: ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T {
+            return buildHelper.node(this)
+        }
 
         override fun onBeforeDeserializeChildren(reader: XmlReader) {
             // By default do nothing
@@ -459,11 +357,6 @@ abstract class ProcessNodeBase<NodeT : ProcessNode<NodeT, ModelT>, ModelT : Proc
             val className = this::class.name
             val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.')-1)
             return "${className.substring(pkgPos+1)}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
-        }
-
-        @Serializer(forClass = Builder::class)
-        companion object {
-
         }
     }
 
