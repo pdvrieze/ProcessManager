@@ -57,9 +57,11 @@ val kotlin_version: String by project
 val argJvmDefault: String by project
 
 dependencies {
-    implementation(project(":java-common"))
-    implementation(project(":PE-common"))
-    
+    api(project(":java-common"))
+    api(project(":PE-common"))
+
+    implementation(kotlin("stdlib-jdk8"))
+
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
 
@@ -85,7 +87,6 @@ dependencies {
         exclude(group="org.junit.platform")
         exclude(group="org.jetbrains.kotlin")
     }
-    implementation(kotlin("stdlib-jdk8"))
 }
 
 java {

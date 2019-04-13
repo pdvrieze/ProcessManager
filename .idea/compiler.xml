@@ -30,6 +30,8 @@
       <module name="PE-common_jvmTest" target="1.8" />
       <module name="ProcessEngine-core_main" target="1.8" />
       <module name="ProcessEngine-core_test" target="1.8" />
+      <module name="ProcessEngine-servlet_main" target="1.8" />
+      <module name="ProcessEngine-servlet_test" target="1.8" />
       <module name="ProcessManager_buildSrc_main" target="1.8" />
       <module name="ProcessManager_buildSrc_test" target="1.8" />
       <module name="TestSupport_main" target="1.8" />
