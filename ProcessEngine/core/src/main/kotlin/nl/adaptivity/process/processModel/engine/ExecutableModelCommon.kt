@@ -25,7 +25,7 @@ import net.devrieze.util.addInstancesOf
 /**
  * Shared interface for both root and child models that are executable.
  */
-interface ExecutableModelCommon : ProcessModel {
+interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode> {
 
     override val rootModel: ExecutableProcessModel
     /**

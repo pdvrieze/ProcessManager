@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -147,6 +148,8 @@ abstract class ModelSpek(val modelData: ModelData,
                          val modelJson: String? = null) : Spek(
     {
 
+        val myJsonConfiguration = JsonConfiguration(strictMode = false, encodeDefaults = false)
+
         val model by memoized(CachingMode.SCOPE) { modelData.model }
         val valid = modelData.valid.selectN(maxValid)
         val invalid = modelData.invalid.selectN(maxInvalid)
@@ -194,7 +197,7 @@ abstract class ModelSpek(val modelData: ModelData,
 
                     it("Should be able to be serialized to JSON") {
                         Assertions.assertDoesNotThrow {
-                            jsonSerialization = Json(strictMode = false).stringify(XmlProcessModel.serializer(),
+                            jsonSerialization = Json(myJsonConfiguration).stringify(XmlProcessModel.serializer(),
                                                                                    XmlProcessModel(model.builder()))
                         }
                     }
@@ -206,7 +209,7 @@ abstract class ModelSpek(val modelData: ModelData,
                     it("Should also be able to be deserialized") {
                         lateinit var deserializedModel: XmlProcessModel.Builder
                         Assertions.assertDoesNotThrow {
-                            deserializedModel = Json(strictMode = false).parse(XmlProcessModel.Builder.serializer(),
+                            deserializedModel = Json(myJsonConfiguration).parse(XmlProcessModel.Builder.serializer(),
                                                                                jsonSerialization)
                         }
                         assertEquals(model, ExecutableProcessModel(deserializedModel))

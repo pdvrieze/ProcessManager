@@ -42,10 +42,10 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     @SerialName("name")
     internal var _name: String? = null
 
-    val childId: String? get() = childModel?.id
-
     @Transient
     override val childModel: ChildProcessModel<ProcessNode>?
+
+    val childId: String?
 
     @Suppress("OverridingDeprecatedMember")
     override var name: String?
@@ -81,6 +81,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         _name = builder.name
         @Suppress("LeakingThis")
         childModel = builder.childId?.let { buildHelper.childModel(it) }
+        childId = childModel?.id
     }
 
     constructor(builder: Activity.ChildModelBuilder,
@@ -89,6 +90,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         this._name = null
         @Suppress("LeakingThis")
         this.childModel = buildHelper.childModel(builder.childId!!)
+        childId = childModel?.id
     }
 
 

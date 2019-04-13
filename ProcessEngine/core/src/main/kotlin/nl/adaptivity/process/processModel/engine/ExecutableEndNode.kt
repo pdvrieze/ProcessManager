@@ -21,10 +21,13 @@ import nl.adaptivity.process.util.Identified
 
 
 class ExecutableEndNode(builder: EndNode.Builder,
-                        buildHelper: ProcessModel.BuildHelper) : EndNodeBase(
+                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) : EndNodeBase(
   builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : EndNodeBase.Builder, ExecutableProcessNode.Builder {
+    override val ownerModel: ExecutableModelCommon
+        get() = super.ownerModel as ExecutableModelCommon
+
+    class Builder : EndNodeBase.Builder, ExecutableProcessNode.Builder {
     constructor(): this(predecessor=null)
     constructor(id: String? = null,
                 predecessor: Identified? = null,
@@ -36,9 +39,6 @@ class ExecutableEndNode(builder: EndNode.Builder,
                 multiInstance: Boolean = false) : super(id, predecessor, label, defines, results, x, y, multiInstance)
 
     constructor(node: EndNode) : super(node)
-
-    override fun build(buildHelper: ProcessModel.BuildHelper) = ExecutableEndNode(
-      this, buildHelper)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

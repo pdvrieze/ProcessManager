@@ -25,41 +25,43 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableSplit(builder: Split.Builder, buildHelper: ProcessModel.BuildHelper)
-  : SplitBase(builder, buildHelper), ExecutableProcessNode {
+class ExecutableSplit(builder: Split.Builder, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>)
+    : SplitBase(builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
-    constructor(id: String? = null,
-                predecessor: Identified? = null,
-                successors: Collection<Identified> = emptyList(), label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                min: Int = -1,
-                max: Int = -1,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance)
-    constructor(node: Split) : super(node)
+    override val ownerModel: ExecutableModelCommon
+        get() = super.ownerModel as ExecutableModelCommon
 
-    override fun build(buildHelper: ProcessModel.BuildHelper): ProcessNode {
-      return ExecutableSplit(this, buildHelper)
+
+    class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
+        constructor(id: String? = null,
+                    predecessor: Identified? = null,
+                    successors: Collection<Identified> = emptyList(), label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    min: Int = -1,
+                    max: Int = -1,
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y,
+                                                            min, max, multiInstance)
+
+        constructor(node: Split) : super(node)
     }
-  }
 
-  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+    override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  override fun builder() = Builder(this)
+    override fun builder() = Builder(this)
 
-  override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
-                                     processInstanceBuilder: ProcessInstance.Builder,
-                                     predecessor: IProcessNodeInstance,
-                                     entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-    // TODO handle reentry
-    return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.handle(),
-                                                                                       processInstanceBuilder,
-                                                                                       processInstanceBuilder.owner,
-                                                                                       entryNo)
-  }
+    override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
+                                       processInstanceBuilder: ProcessInstance.Builder,
+                                       predecessor: IProcessNodeInstance,
+                                       entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+        // TODO handle reentry
+        return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.handle(),
+                                                                                           processInstanceBuilder,
+                                                                                           processInstanceBuilder.owner,
+                                                                                           entryNo)
+    }
 
-  override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = false
+    override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = false
 }

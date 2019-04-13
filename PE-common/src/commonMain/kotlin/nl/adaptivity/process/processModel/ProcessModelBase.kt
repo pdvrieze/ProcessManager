@@ -18,12 +18,17 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.modules.EmptyModule
 import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.modules.getContextualOrDefault
 import net.devrieze.util.collection.ArrayAccess
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.*
-import nl.adaptivity.process.util.*
+import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
@@ -162,12 +167,12 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
         }
     }
 
-    interface NodeFactory<NodeT : ProcessNode> {
+    interface NodeFactory<NodeT : ChildNodeT, out ChildNodeT: ProcessNode, out ChildT : ChildProcessModel<ChildNodeT>> {
         operator fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
                             buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): NodeT
 
-        operator fun <ChildT : ChildProcessModel<NodeT>> invoke(baseChildBuilder: ChildProcessModel.Builder,
-                                                                buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT
+        operator fun invoke(baseChildBuilder: ChildProcessModel.Builder,
+                            buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): ChildT
 
         fun condition(text: String): Condition
     }
@@ -404,7 +409,6 @@ object ModelNodeSerializer : KSerializer<ProcessNode> {
         }
     }
 
-
     @JvmStatic
     private fun serializerByValue(obj: ProcessNode, context: SerialModule?): KSerializer<out ProcessNode> {
         // If the context has a serializer use that
@@ -432,13 +436,13 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder> {
             var value: ProcessNode.IBuilder? = null
             mainLoop@ while (true) {
                 when (input.decodeElementIndex(descriptor)) {
-                    KInput.READ_ALL  -> {
+                    CompositeDecoder.READ_ALL  -> {
                         klassName = input.decodeStringElement(descriptor, 0)
                         val loader = serializerBySerialDescClassname(klassName, input.context)
                         value = input.decodeSerializableElement(descriptor, 1, loader)
                         break@mainLoop
                     }
-                    KInput.READ_DONE -> {
+                    CompositeDecoder.READ_DONE -> {
                         break@mainLoop
                     }
                     0                -> {
@@ -466,7 +470,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder> {
 
     @JvmStatic
     private fun serializerBySerialDescClassname(klassName: String,
-                                                context: SerialModule?): KSerializer<out ProcessNode.IBuilder> {
+                                                context: SerialModule = EmptyModule): KSerializer<out ProcessNode.IBuilder> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
         } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
@@ -477,7 +481,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder> {
 
     @JvmStatic
     private fun serializerBySimpleName(simpleName: String,
-                                       context: SerialModule? = null): KSerializer<out ProcessNode.IBuilder>? = when (simpleName) {
+                                       context: SerialModule = EmptyModule): KSerializer<out ProcessNode.IBuilder>? = when (simpleName) {
         "XmlStartNode",
         "XmlStartNode\$Builder" -> XmlStartNode.Builder.serializer()
         "XmlActivity",

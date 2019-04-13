@@ -304,7 +304,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
     }
 
     /** Interface that helps collating all the elements needed to build child nodes and child models*/
-    interface BuildHelper<NodeT: ProcessNode, ModelT: ProcessModel<NodeT>, out RootT: RootProcessModel<NodeT>, out ChildT: ChildProcessModel<NodeT>> {
+    interface BuildHelper<NodeT: ProcessNode, ModelT: ProcessModel<NodeT>, out RootT: RootProcessModel<*>, out ChildT: ChildProcessModel<*>> {
         val newOwner: ProcessModel<NodeT>// TODO must this be nullable ?
         val pedantic: Boolean get() = false
         fun childModel(childId: String): ChildT

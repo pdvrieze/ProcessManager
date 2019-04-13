@@ -37,8 +37,7 @@ abstract class SplitBase : JoinSplitBase, Split {
         get() = Int.MAX_VALUE
 
     @Serializable(with = Identifiable.Companion::class)
-    final override val predecessor: Identifiable?
-        get() = predecessors.singleOrNull()
+    final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
     constructor(ownerModel: ProcessModel<ProcessNode>,
                 predecessor: Identified? = null,

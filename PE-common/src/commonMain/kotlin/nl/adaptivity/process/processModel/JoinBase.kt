@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Optional
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.serialization.ConditionStringSerializer
 import nl.adaptivity.process.util.*
@@ -75,13 +72,12 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
     @Transient
     final override val conditions: Map<Identifier, Condition?>
 
+    @Required
     @Serializable(with = ConditionStringSerializer::class)
     @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @SerialName("predecessors")
     @XmlElement(true)
-    private var conditionStringsForSerialization: Map<Identifier, String?>
-        get() = conditions.mapValues { (_, value) -> value?.condition }
-        set(value) = TODO("Not supported")
+    internal val conditionStringsForSerialization: Map<Identifier, String?>
 
 
 
@@ -95,6 +91,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             conditions[entry.key] = entry.value?.let { buildHelper.condition(it)}
         }
         this.conditions = conditions
+        conditionStringsForSerialization = conditions.mapValues { (_, value) -> value?.condition }
     }
 
     abstract override fun builder(): Builder

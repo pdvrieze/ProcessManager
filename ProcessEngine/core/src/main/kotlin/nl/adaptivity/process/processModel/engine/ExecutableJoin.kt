@@ -27,11 +27,14 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableJoin(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper)
+class ExecutableJoin(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>)
   : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : JoinBase.Builder,
-                  ExecutableProcessNode.Builder {
+    override val ownerModel: ExecutableModelCommon
+        get() = super.ownerModel as ExecutableModelCommon
+
+    class Builder : JoinBase.Builder,
+                    ExecutableProcessNode.Builder {
 
     constructor(id: String? = null,
                 predecessors: Collection<Identified> = emptyList(),
@@ -47,8 +50,6 @@ class ExecutableJoin(builder: Join.Builder, buildHelper: ProcessModel.BuildHelpe
                                                           isMultiInstance)
     constructor(node: Join) : super(node)
 
-    override fun build(buildHelper: ProcessModel.BuildHelper) = ExecutableJoin(
-      this, buildHelper)
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

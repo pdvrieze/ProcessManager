@@ -47,12 +47,16 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         get() = this
 
     @Suppress("UNCHECKED_CAST")
-    @XmlSerialName(ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    override val childModels: Collection<XmlChildModel> get() = super.childModels as Collection<XmlChildModel>
+    @XmlSerialName(ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE,
+                   ProcessConsts.Engine.NSPREFIX)
+    override val childModels: Collection<XmlChildModel>
+        get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
     constructor(builder: RootProcessModel.Builder, pedantic: Boolean = false) :
-        super(builder, XML_NODE_FACTORY, pedantic)
+        super(builder,
+              XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
+              pedantic)
 
     override fun copy(imports: Collection<IXmlResultType>,
                       exports: Collection<IXmlDefineType>,
@@ -188,9 +192,9 @@ val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<XmlProcessNode.Builder> {
 
 
 @Suppress("ClassName")
-object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode> {
+object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, XmlChildModel> {
 
-    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
+    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
 
         override fun visitActivity(activity: Activity.Builder) = XmlActivity(activity, buildHelper)
@@ -205,13 +209,13 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode> {
     }
 
     override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
-                                              buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlProcessNode {
+                        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlProcessNode {
         return baseNodeBuilder.visit(Visitor(buildHelper))
     }
 
-    override fun <ChildT : ChildProcessModel<XmlProcessNode>> invoke(baseChildBuilder: ChildProcessModel.Builder,
-                                                                     buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, ChildT>): ChildT {
-        return buildHelper.childModel(baseChildBuilder)
+    override fun invoke(baseChildBuilder: ChildProcessModel.Builder,
+                        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlChildModel {
+        return XmlChildModel(baseChildBuilder, buildHelper)
     }
 
     override fun condition(text: String) = XmlCondition(text)

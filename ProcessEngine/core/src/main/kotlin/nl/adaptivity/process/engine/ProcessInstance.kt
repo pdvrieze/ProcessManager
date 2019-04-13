@@ -182,7 +182,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
       for (successorId in predecessor.node.successors) {
         val nonRegisteredNodeInstance = processModel
-          .getNode(successorId)
+          .getNode(successorId.id)
           .mustExist(successorId)
           .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo )
 
@@ -230,7 +230,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun  skipSuccessors(engineData: MutableProcessEngineDataAccess,
                         predecessor: IProcessNodeInstance,
                         state: NodeInstanceState) {
-      for (successorNode in predecessor.node.successors.map { processModel.getNode(it)!! }.toList()) {
+      for (successorNode in predecessor.node.successors.map { processModel.getNode(it.id)!! }.toList()) {
         // Attempt to get the successor instance as it may already be final. In that case the system would attempt to
         // create a new instance. We don't want to do that just to skip it.
         val successorInstance =  getChild(successorNode, predecessor.entryNo)

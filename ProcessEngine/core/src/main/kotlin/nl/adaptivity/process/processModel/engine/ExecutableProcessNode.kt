@@ -37,14 +37,13 @@ import java.sql.SQLException
  */
 interface ExecutableProcessNode : ProcessNode, Identified {
 
-  interface Builder : ProcessNode.IBuilder {
-    override fun build(buildHelper: ProcessModel.BuildHelper): ProcessNode
+    interface Builder : ProcessNode.IBuilder {
 
-      override fun result(builder: XmlResultType.Builder.() -> Unit) {
-      results.add(XmlResultType.Builder().apply(builder).build())
+        override fun result(builder: XmlResultType.Builder.() -> Unit) {
+            results.add(XmlResultType.Builder().apply(builder).build())
+        }
+
     }
-
-  }
 
   override val ownerModel: ExecutableModelCommon
 

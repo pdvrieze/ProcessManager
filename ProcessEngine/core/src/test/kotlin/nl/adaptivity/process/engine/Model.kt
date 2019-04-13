@@ -17,10 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.processModel.ChildProcessModel
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.RootProcessModel
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -36,8 +33,7 @@ internal abstract class ConfigurableModel(
     override val name: String? = null,
     override val owner: Principal = EngineTestData.principal,
     override val uuid: UUID = UUID.randomUUID())
-    :
-    RootProcessModel {
+    : RootProcessModel<ExecutableProcessNode> {
 
     class NodeDelegate<T : Identifiable>(override val id: String) : ReadOnlyProperty<ConfigurableModel, T>, Identifiable {
         override fun getValue(thisRef: ConfigurableModel, property: KProperty<*>): T {
@@ -93,12 +89,12 @@ internal abstract class ConfigurableModel(
 
     override fun copy(imports: Collection<IXmlResultType>,
                       exports: Collection<IXmlDefineType>,
-                      nodes: Collection<ExecutableProcessNode>,
+                      nodes: Collection<ProcessNode>,
                       name: String?,
                       uuid: UUID?,
                       roles: Set<String>,
-                      owner: nl.adaptivity.util.security.Principal,
-                      childModels: Collection<ChildProcessModel>): ExecutableProcessModel {
+                      owner: Principal,
+                      childModels: Collection<ChildProcessModel<ExecutableProcessNode>>): ExecutableProcessModel {
         return ExecutableProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, -1L, owner, roles,
                                               uuid).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })

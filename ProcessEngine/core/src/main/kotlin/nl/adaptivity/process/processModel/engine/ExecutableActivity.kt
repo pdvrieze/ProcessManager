@@ -38,13 +38,13 @@ import nl.adaptivity.xmlutil.writeChild
 class ExecutableActivity : ActivityBase, ExecutableProcessNode {
 
     constructor(builder: Activity.Builder,
-                buildHelper: ProcessModel.BuildHelper) : super(builder,
+                buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : super(builder,
                                                                buildHelper) {
         this._condition = builder.condition?.let(::ExecutableCondition)
     }
 
     constructor(builder: Activity.ChildModelBuilder,
-                buildHelper: ProcessModel.BuildHelper) : super(builder,
+                buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : super(builder,
                                                                buildHelper) {
         this._condition = builder.condition?.let(::ExecutableCondition)
     }
@@ -66,9 +66,6 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
                                                             message, condition, name, x, y, multiInstance)
 
         constructor(node: Activity) : super(node)
-
-        override fun build(buildHelper: ProcessModel.BuildHelper) = ExecutableActivity(
-            this, buildHelper)
     }
 
 
@@ -102,19 +99,16 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
                 field.replaceBy(value)
             }
 
-        override fun buildModel(buildHelper: ProcessModel.BuildHelper) =
-            ExecutableChildModel(this, buildHelper)
-
-        override fun buildActivity(buildHelper: ProcessModel.BuildHelper): Activity {
-            return ExecutableActivity(this, buildHelper)
+        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T {
+            return buildHelper.node(this)
         }
-
-        override fun build(buildHelper: ProcessModel.BuildHelper) = buildActivity(
-            buildHelper)
     }
 
     override val childModel: ExecutableChildModel? get() = super.childModel?.let { it as ExecutableChildModel }
     private var _condition: ExecutableCondition?
+
+    override val ownerModel: ExecutableModelCommon
+        get() = super.ownerModel as ExecutableModelCommon
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 

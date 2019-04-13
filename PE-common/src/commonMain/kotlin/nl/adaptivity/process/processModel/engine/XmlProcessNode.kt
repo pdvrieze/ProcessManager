@@ -17,8 +17,10 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.util.multiplatform.name
 
 
 /**
@@ -31,7 +33,8 @@ interface XmlProcessNode : ProcessNode {
 
     @Serializer(forClass = XmlProcessNode::class)
     companion object: KSerializer<XmlProcessNode> {
-        override val descriptor: SerialDescriptor = PolymorphicSerializer(XmlProcessNode::class).descriptor
+        @UseExperimental(ImplicitReflectionSerializer::class)
+        override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessNode::class.name)
 
         fun serializer(): KSerializer<XmlProcessNode> = this
 

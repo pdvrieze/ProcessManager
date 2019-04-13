@@ -25,10 +25,14 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
+class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
   builder, buildHelper), ExecutableProcessNode {
 
-  class Builder : StartNodeBase.Builder, ExecutableProcessNode.Builder {
+    override val ownerModel: ExecutableModelCommon
+        get() = super.ownerModel as ExecutableModelCommon
+
+
+    class Builder : StartNodeBase.Builder, ExecutableProcessNode.Builder {
     constructor(id: String? = null,
                 successor: Identified? = null,
                 label: String? = null,
@@ -39,10 +43,6 @@ class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.
                 multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance)
     constructor(node: StartNode) : super(node)
 
-
-    override fun build(buildHelper: ProcessModel.BuildHelper): ProcessNode {
-      return ExecutableStartNode(this, buildHelper)
-    }
   }
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")

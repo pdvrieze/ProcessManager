@@ -134,7 +134,7 @@ fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProce
 
 @Suppress("NOTHING_TO_INLINE")
 @ProcessTestingDslMarker
-inline fun EngineSpecBody.testTraces(model:RootProcessModel, valid: List<Trace>, invalid:List<Trace>) {
+inline fun EngineSpecBody.testTraces(model:RootProcessModel<*>, valid: List<Trace>, invalid:List<Trace>) {
   return testTraces(ExecutableProcessModel.from(model.rootModel), valid, invalid)
 }
 

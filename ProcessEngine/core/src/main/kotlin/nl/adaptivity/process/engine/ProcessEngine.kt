@@ -273,7 +273,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     @Throws(SQLException::class)
     fun addProcessModel(transaction: TRXXX,
                         basepm: RootProcessModel.Builder,
-                        user: Principal): IProcessModelRef<ExecutableProcessModel> {
+                        user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
         mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user)
 
         return engineData.inWriteTransaction(transaction) {
@@ -301,7 +301,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     fun addProcessModel(transaction: TRXXX,
                         pm: ExecutableProcessModel,
-                        user: Principal): IProcessModelRef<ExecutableProcessModel> {
+                        user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
         mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user)
 
         return engineData.inWriteTransaction(transaction) {
@@ -380,8 +380,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     @Throws(FileNotFoundException::class, SQLException::class)
     fun updateProcessModel(transaction: TRXXX,
                            handle: Handle<SecureObject<ExecutableProcessModel>>,
-                           processModel: RootProcessModel,
-                           user: Principal): IProcessModelRef<ExecutableProcessModel> {
+                           processModel: RootProcessModel<*>,
+                           user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
         engineData.inWriteTransaction(transaction) {
             return updateProcessModel(this, handle, processModel, user)
         }
@@ -389,8 +389,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
     fun updateProcessModel(engineData: MutableProcessEngineDataAccess,
                            handle: Handle<SecureObject<ExecutableProcessModel>>,
-                           processModel: RootProcessModel,
-                           user: Principal): IProcessModelRef<ExecutableProcessModel> {
+                           processModel: RootProcessModel<*>,
+                           user: Principal): ExecutableProcessModelRef {
         val oldModel = engineData.processModels[handle] ?: throw FileNotFoundException(
             "The model did not exist, instead post a new model.")
 

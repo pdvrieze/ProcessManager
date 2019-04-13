@@ -105,7 +105,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         get() = _processNodes.readOnly()
 
     constructor(builder: RootProcessModel.Builder,
-                nodeFactory: NodeFactory<NodeT>,
+                nodeFactory: NodeFactory<NodeT, NodeT, ChildProcessModelBase<NodeT>>,
                 pedantic: Boolean = builder.defaultPedantic) : super(builder, pedantic) {
         @Suppress("LeakingThis")
         val childModelProvider = ChildModelProvider<NodeT, ProcessModel<NodeT>, RootProcessModel<NodeT>, ChildProcessModelBase<NodeT>>(
@@ -488,14 +488,14 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
     private class ChildModelProvider<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>, RootT : RootProcessModel<NodeT>, ChildT : ChildProcessModel<NodeT>> : ProcessModel.BuildHelper<NodeT, ModelT, RootT, ChildT>, Sequence<ChildT> {
 
-        private val nodeFactory: NodeFactory<NodeT>
+        private val nodeFactory: NodeFactory<NodeT, NodeT, ChildT>
         override val pedantic: Boolean
         override val newOwner: ModelT
 
         private val data: LinkedHashMap<String, Node>
 
         constructor(childModelBuilders: List<ChildProcessModel.Builder>,
-                    nodeFactory: NodeFactory<NodeT>,
+                    nodeFactory: NodeFactory<NodeT, NodeT, ChildT>,
                     pedantic: Boolean,
                     newOwner: ModelT) {
             this.nodeFactory = nodeFactory

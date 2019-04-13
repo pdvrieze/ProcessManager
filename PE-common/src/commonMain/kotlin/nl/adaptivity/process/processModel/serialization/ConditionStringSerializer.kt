@@ -44,6 +44,7 @@ internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifi
                             val e = decodeSerializableElement(desc, startIndex + i, predecessorSerializer)
                             old[Identifier(e.id)] = e.condition
                         }
+                        break@loop
                     }
                     else             -> {
                         val e = decodeSerializableElement(desc, startIndex+index, predecessorSerializer)

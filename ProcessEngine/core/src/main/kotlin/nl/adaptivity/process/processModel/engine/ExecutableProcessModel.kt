@@ -31,7 +31,7 @@ import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 
 
-typealias ExecutableModelCommonAlias = ProcessModel
+typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode>
 
 /**
  * A class representing a process model.
@@ -50,23 +50,26 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     override val endNodeCount by lazy { modelNodes.count { it is ExecutableEndNode } }
 
     @Transient
-    override val rootModel get() = this
+    override val rootModel
+        get() = this
 
     @Transient
-    override val ref: IProcessModelRef<ExecutableProcessModel>
+    override val ref: ExecutableProcessModelRef
         get() = ProcessModelRef(name, this.getHandle(), uuid)
 
     override fun copy(imports: Collection<IXmlResultType>,
                       exports: Collection<IXmlDefineType>,
-                      nodes: Collection<ExecutableProcessNode>,
+                      nodes: Collection<ProcessNode>,
                       name: String?,
                       uuid: UUID?,
                       roles: Set<String>,
                       owner: Principal,
-                      childModels: Collection<ChildProcessModel>): ExecutableProcessModel {
-        return Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles, uuid).also { builder ->
-            builder.childModels.replaceBy(childModels.map { it.builder(builder) })
-        }.build(false)
+                      childModels: Collection<ChildProcessModel<ExecutableProcessNode>>): ExecutableProcessModel {
+        return ExecutableProcessModel(
+            ExecutableProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
+                                           uuid).also { builder ->
+                builder.childModels.replaceBy(childModels.map { it.builder(builder) })
+            }, false)
     }
 
     override fun withPermission() = this
@@ -98,7 +101,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
     companion object {
 
-        fun from(basepm: RootProcessModel): ExecutableProcessModel {
+        fun from(basepm: RootProcessModel<*>): ExecutableProcessModel {
             return basepm as? ExecutableProcessModel ?: ExecutableProcessModel(Builder(basepm))
         }
 
@@ -110,7 +113,9 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
         @JvmStatic
         inline fun build(body: Builder.() -> Unit) = Builder().apply(body).also {
-            if (it.uuid==null) { it.uuid = java.util.UUID.randomUUID() }
+            if (it.uuid == null) {
+                it.uuid = java.util.UUID.randomUUID()
+            }
         }.build()
 
         /**
@@ -156,7 +161,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
 
     class Builder : RootProcessModelBase.Builder, ExecutableModelCommon.Builder {
-        constructor(nodes: Collection<ExecutableProcessNode.Builder> = emptySet(),
+        constructor(nodes: Collection<ProcessNode.IBuilder> = emptySet(),
                     childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
                     name: String? = null,
                     handle: Long = -1L,
@@ -167,7 +172,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
                     exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner,
                                                                                roles, uuid, imports, exports)
 
-        constructor(base: RootProcessModel) : super(base)
+        constructor(base: RootProcessModel<*>) : super(base)
 
         override val rootBuilder get() = this
 
@@ -175,7 +180,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
         override fun childModelBuilder() = ExecutableChildModel.Builder(rootBuilder)
 
-        override fun childModelBuilder(base: ChildProcessModel) = ExecutableChildModel.Builder(rootBuilder, base)
+        override fun childModelBuilder(base: ChildProcessModel<*>) = ExecutableChildModel.Builder(rootBuilder, base)
 
         companion object {
             @JvmStatic
@@ -212,9 +217,9 @@ val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ExecutableProcessNode.Bu
     override fun visitEndNode(endNode: EndNode) = ExecutableEndNode.Builder(endNode)
 }
 
-object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory {
+object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableProcessNode, ExecutableChildModel> {
 
-    private fun visitor(buildHelper: ProcessModel.BuildHelper) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
+    private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = ExecutableStartNode(startNode, buildHelper)
 
         override fun visitActivity(activity: Activity.Builder) = ExecutableActivity(activity, buildHelper)
@@ -229,16 +234,17 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory {
         override fun visitEndNode(endNode: EndNode.Builder) = ExecutableEndNode(endNode, buildHelper)
     }
 
-
     override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
-                        buildHelper: ProcessModel.BuildHelper) = baseNodeBuilder.visit(
-        visitor(
-            buildHelper))
+                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>): ExecutableProcessNode =
+        baseNodeBuilder.visit(visitor(buildHelper))
+
 
     override fun invoke(baseChildBuilder: ChildProcessModel.Builder,
-                        buildHelper: ProcessModel.BuildHelper): ChildProcessModelBase<ExecutableProcessNode> {
+                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>): ExecutableChildModel {
         return ExecutableChildModel(baseChildBuilder, buildHelper)
     }
 
     override fun condition(text: String) = ExecutableCondition(text)
 }
+
+typealias ExecutableProcessModelRef = IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>
