@@ -81,7 +81,7 @@ open class EndpointServlet : HttpServlet {
      */
     constructor() {
         if (this is GenericEndpoint) {
-            endpointProvider = this as GenericEndpoint
+            endpointProvider = this
         }
     }
 

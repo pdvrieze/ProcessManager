@@ -131,7 +131,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 this@DelegateProcessEngineData.invalidateCachePI(handle)
             }
 
-            override fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
+            override fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
                 this@DelegateProcessEngineData.invalidateCachePNI(handle)
             }
 
