@@ -48,19 +48,21 @@ val jupiterVersion: String by project
 registerAndroidAttributeForDeps()
 
 dependencies {
-    providedCompile(project(":JavaCommonApi"))
-    implementation(project(":ProcessEngine:core"))
-    providedCompile("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-    implementation(kotlin("stdlib-jdk8"))
+    compileOnly(project(":JavaCommonApi"))
+    compileOnly(project(":DarwinJavaApi"))
+    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
 
+    implementation(project(":ProcessEngine:core"))
     implementation(project(":multiplatform"))
-    implementation("org.jetbrains:annotations:13.0")
     implementation(project(":ProcessEngine:core"))
 
-    testCompile(project(":DarwinJavaApi"))
-    testCompile(project(":TestSupport"))
-//    testCompile(project(path= ":PE-common", configuration="testRuntime"))
-    testCompile("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains:annotations:13.0")
+
+    testImplementation(project(":DarwinJavaApi"))
+    testImplementation(project(":TestSupport"))
+    testImplementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+//    testImplementation(project(path= ":PE-common", configuration="testRuntime"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
