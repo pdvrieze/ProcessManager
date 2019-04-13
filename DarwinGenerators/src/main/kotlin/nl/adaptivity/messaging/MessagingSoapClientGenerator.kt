@@ -16,7 +16,6 @@
 
 package nl.adaptivity.messaging
 
-import net.devrieze.util.Annotations
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.ws.soap.SoapSeeAlso
@@ -25,7 +24,6 @@ import javax.jws.WebMethod
 import javax.jws.WebParam
 import javax.xml.namespace.QName
 import java.io.*
-import java.lang.reflect.*
 import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
@@ -169,7 +167,7 @@ object MessagingSoapClientGenerator {
             val pkgdir = destPkg.replace(".", fs.separator)
             val outfile = when (outClass) {
                 null -> fs.getPath(dstdir, pkgdir)
-                else -> fs.getPath(dstdir, pkgdir, "$outClass.java")
+                else -> fs.getPath(dstdir, pkgdir, "$outClass.kt")
             }
 
             // Ensure the parent directory of the outfile exists.
@@ -221,7 +219,7 @@ object MessagingSoapClientGenerator {
 
         val pkgname = pkg.replace(fs.separator, ".")
         try {
-            generateJava(outfile, endpointClass, pkgname, outClass)
+            generateKotlin(outfile, endpointClass, pkgname, outClass)
         } catch (e: IOException) {
             e.printStackTrace()
             ++_errorCount
@@ -263,15 +261,15 @@ object MessagingSoapClientGenerator {
         println("  -out <classname>   : The output classname to generate")
         println("  -package <pkgname> : The output package name to generate")
         println("  -cp <path>         : The classpath to look for source classes and their dependencies")
-        println("  -dstdir <dirname>  : The directory to write the generated java files")
+        println("  -dstdir <dirname>  : The directory to write the generated kotlin files")
         println("  <inputclass>       : The Endpoint that needs a client")
     }
 
-    private fun generateJava(outfile: Path, endpointClass: KClass<*>, pkgname: String, outClass: String) {
-        BufferedWriter(FileWriter(outfile.toFile())).use { out -> generateJava(out, endpointClass, pkgname, outClass) }
+    private fun generateKotlin(outfile: Path, endpointClass: KClass<*>, pkgname: String, outClass: String) {
+        BufferedWriter(FileWriter(outfile.toFile())).use { out -> generateKotlin(out, endpointClass, pkgname, outClass) }
     }
 
-    private fun generateJava(out: Writer, endpointClass: KClass<*>, pkgname: String, outClass: String) {
+    private fun generateKotlin(out: Writer, endpointClass: KClass<*>, pkgname: String, outClass: String) {
         out.writeHead(endpointClass, pkgname)
 
         val buffer = CharArrayWriter(0x2000)

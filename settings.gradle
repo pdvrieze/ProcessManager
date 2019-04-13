@@ -74,9 +74,10 @@ include(":darwin-sql")
 include(":ProcessEngine:core")
 include(":ProcessEngine:servlet")
 
-//include(":PEUserMessageHandler")
+include(":DarwinClients:ProcessEngine")
+include(":DarwinClients:WorkQueue")
 
-//include(":DarwinClients")
+include(":PEUserMessageHandler")
 
 /*
 include(":PE-common:endpointDoclet")

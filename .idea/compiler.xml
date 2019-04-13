@@ -4,6 +4,10 @@
     <bytecodeTargetLevel>
       <module name="darwin-sql_main" target="1.8" />
       <module name="darwin-sql_test" target="1.8" />
+      <module name="DarwinClients-ProcessEngine_main" target="1.8" />
+      <module name="DarwinClients-ProcessEngine_test" target="1.8" />
+      <module name="DarwinClients_main" target="1.8" />
+      <module name="DarwinClients_test" target="1.8" />
       <module name="DarwinGenerators_main" target="1.8" />
       <module name="DarwinGenerators_test" target="1.8" />
       <module name="DarwinJavaApi_main" target="1.8" />
@@ -28,6 +32,9 @@
       <module name="PE-common_androidTest" target="1.6" />
       <module name="PE-common_jvmMain" target="1.8" />
       <module name="PE-common_jvmTest" target="1.8" />
+      <module name="PEUserMessageHandler_api" target="1.8" />
+      <module name="PEUserMessageHandler_main" target="1.8" />
+      <module name="PEUserMessageHandler_test" target="1.8" />
       <module name="ProcessEngine-core_main" target="1.8" />
       <module name="ProcessEngine-core_test" target="1.8" />
       <module name="ProcessEngine-servlet_main" target="1.8" />
@@ -36,6 +43,8 @@
       <module name="ProcessManager_buildSrc_test" target="1.8" />
       <module name="TestSupport_main" target="1.8" />
       <module name="TestSupport_test" target="1.8" />
+      <module name="WorkQueue_main" target="1.8" />
+      <module name="WorkQueue_test" target="1.8" />
       <module name="xmlutil-core_androidMain" target="1.6" />
       <module name="xmlutil-core_androidTest" target="1.6" />
       <module name="xmlutil-core_jvmMain" target="1.8" />

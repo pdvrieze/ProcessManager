@@ -52,9 +52,8 @@ dependencies {
     compileOnly(project(":DarwinJavaApi"))
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
 
-    implementation(project(":ProcessEngine:core"))
+    api(project(":ProcessEngine:core"))
     implementation(project(":multiplatform"))
-    implementation(project(":ProcessEngine:core"))
 
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains:annotations:13.0")

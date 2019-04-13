@@ -45,19 +45,6 @@ java {
     targetCompatibility = myJavaVersion
 }
 
-
-configurations {
-    val apiCompile by creating
-    val main by creating {
-        extendsFrom(apiCompile)
-    }
-    val wsDoc by creating {
-        description ="Dependencies needed to run the custom web service doclet."
-    }
-    val wsDocOutput by creating
-}
-
-
 sourceSets {
     val api by creating {
         java {
@@ -79,6 +66,19 @@ sourceSets {
 //                'images/arrow.svg')
 //    }
 }
+
+
+configurations {
+    val apiImplementation by getting
+    val implementation by getting {
+        extendsFrom(apiImplementation)
+    }
+    val wsDoc by creating {
+        description ="Dependencies needed to run the custom web service doclet."
+    }
+    val wsDocOutput by creating
+}
+
 /*
 class PngGenerator extends Exec {
     @InputFile
@@ -132,10 +132,6 @@ val tomcatRun by tasks.registering {
     description = "Do everything needed to be able to run as embedded tomcat"
 }
 
-tasks.named<Jar>("jar") {
-    from(sourceSets["main"].output)
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
 }
@@ -145,9 +141,20 @@ val apiJar by tasks.registering(Jar::class) {
     appendix="api"
 }
 
-artifacts {
-    add("apiCompile", apiJar)
+tasks.named<Jar>("jar") {
+    dependsOn(apiJar)
+    from(sourceSets["main"].output)
 }
+
+artifacts {
+    add("api", apiJar)
+}
+/*
+
+tasks.named("buildApiElements") {
+    dependsOn(apiJar)
+}
+*/
 
 tasks.named<War>("war") {
 //    dependsOn generateAll
@@ -172,6 +179,7 @@ dependencies {
     "apiCompileOnly"(project(":JavaCommonApi"))
     "apiCompileOnly"(project(":DarwinJavaApi"))
     "apiImplementation"(project(":PE-common"))
+//    "apiElements"(apiJar)
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     compileOnly(project(":JavaCommonApi"))
@@ -179,10 +187,10 @@ dependencies {
 
 
     runtime("com.fasterxml.woodstox:woodstox-core:5.0.3")
-    implementation(("net.devrieze:xmlutil-jvm:$xmlutilVersion"))
+    implementation(("net.devrieze:xmlutil:$xmlutilVersion"))
     implementation(project(":PE-common"))
 
-    implementation(project(":DarwinClients"))
+    implementation(project(":DarwinClients:ProcessEngine"))
     implementation(project(":darwin-sql"))
     compileOnly(project(":DarwinJavaApi"))
 

@@ -13,6 +13,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
@@ -39,13 +40,15 @@ val imageGenRuntime = configurations["imageGenRuntime"].apply { extendsFrom(conf
 val jupiterVersion: String by project
 val xmlutilVersion: String by project
 
+registerAndroidAttributeForDeps()
+
 dependencies {
     expectedBy(project(":PE-diagram:common"))
     implementation(kotlin("stdlib-jdk8"))
     implementation(project(":PE-common:jvm"))
     compileOnly(project(path= ":PE-common:jvm", configuration="compileOnly"))
     imageGenCompile(project(":PE-diagram:jvm"))
-    imageGenRuntime("net.devrieze:xmlutil-jvm:$xmlutilVersion")
+    imageGenRuntime("net.devrieze:xmlutil:$xmlutilVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
