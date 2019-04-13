@@ -79,21 +79,21 @@ include(":DarwinClients:WorkQueue")
 
 include(":PEUserMessageHandler")
 
+// No actual implementation yet
+// include(":PE-dataservices")
+
+include(":PE-diagram")
+
+include(":accountcommon")
+include(":DarwinRealm")
+
 /*
 include(":PE-common:endpointDoclet")
 
-
-
-
-include(":PE-dataservices")
-include(":PE-diagram:common")
-include(":PE-diagram:jvm")
-include(":DarwinRealm")
 include(":DarwinServices")
 include(":PE-server")
 include(":accountmgr")
 include(":accountmgr:js")
-include(":accountcommon")
 include(":darwin:jvm")
 include(":darwin:shared")
 include(":darwin:js")

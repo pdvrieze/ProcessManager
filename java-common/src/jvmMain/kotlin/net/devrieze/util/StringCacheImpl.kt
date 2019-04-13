@@ -36,8 +36,8 @@ open class StringCacheImpl : StringCache {
     class SafeStringCache : StringCacheImpl() {
 
         @Synchronized
-        override fun lookup(string: String?): String? {
-            return super.lookup(string)
+        override fun lookupImpl(string: String?): String? {
+            return super.lookupImpl(string)
         }
 
     }
@@ -46,7 +46,7 @@ open class StringCacheImpl : StringCache {
    * (non-Javadoc)
    * @see net.devrieze.util.StringCache#lookup(java.lang.String)
    */
-    override fun lookup(string: String?): String? {
+    override fun lookupImpl(string: String?): String? {
         if (string == null) {
             return null
         }

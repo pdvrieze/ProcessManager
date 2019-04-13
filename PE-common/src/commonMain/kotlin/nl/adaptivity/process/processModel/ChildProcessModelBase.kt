@@ -35,11 +35,12 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
     @Suppress("LeakingThis")
-    constructor(builder: ChildProcessModel.Builder, buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>) :
+    constructor(builder: ChildProcessModel.Builder, buildHelper: ProcessModel.BuildHelper<NodeT, ProcessModel<NodeT>, *, *>) :
         super(builder, buildHelper.pedantic) {
         modelNodes = buildNodes(builder, buildHelper.withOwner(this))
-        rootModel = buildHelper.newOwner?.rootModel
-            ?: throw IllegalProcessModelException("Childmodels must have roots")
+        val newOwner: ProcessModel<NodeT> = buildHelper.newOwner
+        rootModel = newOwner?.rootModel
+                    ?: throw IllegalProcessModelException("Childmodels must have roots")
         this.id = builder.childId
     }
 

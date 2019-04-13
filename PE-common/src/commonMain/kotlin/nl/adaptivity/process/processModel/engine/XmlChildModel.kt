@@ -35,7 +35,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: ChildProcessModel.Builder,
-                buildHelper: BuildHelper<XmlProcessNode, *, *, *>) : super(builder, buildHelper)
+                buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>) : super(builder, buildHelper)
 
     override fun builder(rootBuilder: RootProcessModel.Builder): XmlChildModel.Builder {
         return Builder(rootBuilder as XmlProcessModel.Builder, this)

@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -178,8 +177,6 @@ actual abstract class XPathHolder : XMLContainer {
 
     actual companion object {
 
-
-        @JvmStatic
         actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
             return result.deserializeHelper(reader)
         }

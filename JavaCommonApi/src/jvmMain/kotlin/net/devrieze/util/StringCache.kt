@@ -18,31 +18,34 @@ package net.devrieze.util
 
 interface StringCache {
 
-  enum class UniqueCaches : StringCache {
-    NOP;
+    enum class UniqueCaches : StringCache {
+        NOP;
 
-    override fun lookup(string: String?): String? {
-      return string
+        override fun lookupImpl(string: String?): String? {
+            return string
+        }
+
     }
 
-  }
+    /**
+     * Look up a string in the cache for string reuse.
+     * @param string `null` parameters will always return null
+     *
+     * @return
+     */
+    fun lookupImpl(string: String?): String?
 
-  /**
-   * Look up a string in the cache for string reuse.
-   * @param string `null` parameters will always return null
-   *
-   * @return
-   */
-  fun lookup(string: String?): String?
+    companion object {
 
-  companion object {
+        val NOPCACHE = StringCache.UniqueCaches.NOP
 
-    val NOPCACHE = StringCache.UniqueCaches.NOP
-
-  }
+    }
 
 }
 
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun StringCache.lookup(string: String): String = lookup(string as String?)!!
+inline fun StringCache.lookup(string: String): String = lookupImpl(string as String?)!!
+@Suppress("NOTHING_TO_INLINE")
+@JvmName("lookupNullable")
+inline fun StringCache.lookup(string: String?): String? = lookupImpl(string)

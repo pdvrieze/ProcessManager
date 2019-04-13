@@ -17,6 +17,7 @@
 package uk.ac.bournemouth.darwin.catalina.realm
 
 import net.devrieze.util.StringCache
+import net.devrieze.util.lookup
 import org.ietf.jgss.GSSCredential
 import uk.ac.bournemouth.darwin.accounts.accountDb
 import java.security.Principal

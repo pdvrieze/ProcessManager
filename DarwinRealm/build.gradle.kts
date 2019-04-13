@@ -1,3 +1,5 @@
+import multiplatform.registerAndroidAttributeForDeps
+
 /*
  * Copyright (c) 2016.
  *
@@ -13,23 +15,30 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+plugins{
+    kotlin("jvm")
+    id("idea")
+}
 
-apply plugin: 'kotlin'
-apply plugin: 'idea'
+val myJavaVersion: JavaVersion by project
+val dbcpSpec: String by project
+val tomcatVersion: String by project
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
 
-version = '1.1.0'
-description = 'A tomcat realm to work with the darwin authentication system'
+version = "1.1.0"
+description = "A tomcat realm to work with the darwin authentication system"
 
-//group = 'serverclasspath'
+registerAndroidAttributeForDeps()
 
 dependencies {
-    compileOnly "org.apache.tomcat:tomcat-catalina:${tomcatVersion}"
-    runtime dbcpSpec
+    compileOnly("org.apache.tomcat:tomcat-catalina:${tomcatVersion}")
+    runtime(dbcpSpec)
 
-    compile project(':DarwinJavaApi')
-    compile project(':JavaCommonApi:jvm')
-    compile project(':accountcommon')
+    compile(project(":DarwinJavaApi"))
+    compile(project(":JavaCommonApi"))
+    compile(project(":accountcommon"))
 }

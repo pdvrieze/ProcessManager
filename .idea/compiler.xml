@@ -2,6 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
+      <module name="accountcommon_main" target="1.8" />
+      <module name="accountcommon_test" target="1.8" />
       <module name="darwin-sql_main" target="1.8" />
       <module name="darwin-sql_test" target="1.8" />
       <module name="DarwinClients-ProcessEngine_main" target="1.8" />
@@ -12,6 +14,8 @@
       <module name="DarwinGenerators_test" target="1.8" />
       <module name="DarwinJavaApi_main" target="1.8" />
       <module name="DarwinJavaApi_test" target="1.8" />
+      <module name="DarwinRealm_main" target="1.8" />
+      <module name="DarwinRealm_test" target="1.8" />
       <module name="java-common_androidMain" target="1.6" />
       <module name="java-common_androidTest" target="1.6" />
       <module name="java-common_jvmMain" target="1.8" />
@@ -32,6 +36,12 @@
       <module name="PE-common_androidTest" target="1.6" />
       <module name="PE-common_jvmMain" target="1.8" />
       <module name="PE-common_jvmTest" target="1.8" />
+      <module name="PE-dataservices_main" target="1.8" />
+      <module name="PE-dataservices_test" target="1.8" />
+      <module name="PE-diagram_androidMain" target="1.6" />
+      <module name="PE-diagram_androidTest" target="1.6" />
+      <module name="PE-diagram_jvmMain" target="1.8" />
+      <module name="PE-diagram_jvmTest" target="1.8" />
       <module name="PEUserMessageHandler_api" target="1.8" />
       <module name="PEUserMessageHandler_main" target="1.8" />
       <module name="PEUserMessageHandler_test" target="1.8" />
