@@ -48,6 +48,7 @@ import org.jetbrains.annotations.TestOnly
 import org.w3.soapEnvelope.Envelope
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import java.io.*
 
 import javax.activation.DataHandler
 import javax.activation.DataSource
@@ -65,10 +66,6 @@ import javax.xml.stream.events.Namespace
 import javax.xml.transform.Result
 import javax.xml.transform.Source
 
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.Reader
-import java.io.Writer
 import java.net.URI
 import java.security.Principal
 import java.sql.SQLException
@@ -197,7 +194,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         override fun getBodySource(): Writable? = data
 
         override fun getBodyReader(): Reader {
-            return WritableReader(data) // XXX see if there's a better way
+            val d = data
+            return if(d==null) StringReader("") else WritableReader(d) // XXX see if there's a better way
         }
 
         override fun getContentType(): String {
@@ -430,14 +428,6 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
     }
 
-    /*
-     * Servlet methods
-     */
-
-    override fun getEndpointProvider(): GenericEndpoint {
-        return this
-    }
-
     override fun destroy() {
         MessagingRegistry.getMessenger().unregisterEndpoint(this)
     }
@@ -476,16 +466,16 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @RestMethod(method = HttpMethod.GET, path = "/processModels")
     fun getProcesModelRefs(@RestParam(
-        type = RestParamType.PRINCIPAL) user: Principal): SerializableList<IProcessModelRef<*, *, *>> {
+        type = RestParamType.PRINCIPAL) user: Principal): SerializableList<IProcessModelRef<*, *>> {
         try {
             processEngine.startTransaction().use { transaction ->
                 val processModels = processEngine.getProcessModels(transaction.readableEngineData, user)
 
-                val list = ArrayList<IProcessModelRef<ExecutableProcessNode, ExecutableModelCommon, ExecutableProcessModel>>()
+                val list = ArrayList<IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>>()
                 for (pm in processModels) {
                     list.add(pm.withPermission().ref)
                 }
-                return transaction.commit(SerializableList<IProcessModelRef<*, *, *>>(REFS_TAG, list))
+                return transaction.commit(SerializableList<IProcessModelRef<*, *>>(REFS_TAG, list))
             }
         } catch (e: SQLException) {
             logger.log(Level.WARNING, "Error getting process model references", e)
@@ -510,7 +500,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                 val handle1 = handle<ExecutableProcessModel>(handle)
                 processEngine.invalidateModelCache(handle1)
                 return transaction.commit<ExecutableProcessModel>(
-                    processEngine.getProcessModel(transaction.readableEngineData, handle1, user))
+                    processEngine.getProcessModel(transaction.readableEngineData, handle1, user) ?: throw FileNotFoundException())
             }
         } catch (e: NullPointerException) {
             throw FileNotFoundException("Process handle invalid").initCause(e) as FileNotFoundException
@@ -533,7 +523,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @Throws(IOException::class)
     fun updateProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
                            @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) attachment: DataHandler,
-                           @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ProcessModelRef<*, *, *> {
+                           @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ProcessModelRef<*, *> {
         val builder = XmlStreaming.deSerialize(attachment.inputStream, XmlProcessModel.Builder::class.java)
         return updateProcessModel(handle, builder, user)
     }
@@ -549,10 +539,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @Throws(FileNotFoundException::class)
     fun updateProcessModel(@WebParam(name = "handle") handle: Long,
                            @WebParam(name = "processModel",
-                                     mode = Mode.IN) processModelBuilder: RootProcessModel.Builder<*, *>?,
+                                     mode = Mode.IN) processModelBuilder: RootProcessModel.Builder?,
                            @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(
                                type = RestParamType.PRINCIPAL) user: Principal?)
-        : ProcessModelRef<*, *, *> {
+        : ProcessModelRef<*, *> {
 
         if (user == null) throw AuthenticationNeededException("There is no user associated with this request")
 
@@ -585,7 +575,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @RestMethod(method = HttpMethod.POST, path = "/processModels")
     @Throws(IOException::class)
     fun postProcessModel(@RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) attachment: DataHandler,
-                         @RestParam(type = RestParamType.PRINCIPAL) owner: Principal): ProcessModelRef<*, *, *>? {
+                         @RestParam(type = RestParamType.PRINCIPAL) owner: Principal): ProcessModelRef<*, *>? {
         val processModel = XmlStreaming.deSerialize(attachment.inputStream, XmlProcessModel.Builder::class.java)
         return postProcessModel(processModel, owner)
     }
@@ -600,7 +590,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     fun postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) processModel: XmlProcessModel.Builder?,
                          @RestParam(type = RestParamType.PRINCIPAL)
                          @WebParam(name = "principal", mode = Mode.IN, header = true) owner: Principal?)
-        : ProcessModelRef<*, *, *>? {
+        : ProcessModelRef<*, *>? {
 
         if (owner == null) throw AuthenticationNeededException("There is no user associated with this request")
 
