@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.util.multiplatform.JvmStatic
 import kotlin.math.*
 
 
@@ -33,7 +32,7 @@ object Connectors {
   private const val TAIL_JOIN_DIST = 6.0
   private const val TAIL_CONTROL_DIST = TAIL_JOIN_DIST * 0.6
 
-  @JvmStatic
+  @kotlin.jvm.JvmStatic
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
     PATH_T : DiagramPath<PATH_T>> drawArrow(canvas: Canvas<S, PEN_T, PATH_T>,
@@ -46,7 +45,7 @@ object Connectors {
     canvas.drawPath(arrowPath, pen, null)
   }
 
-  @JvmStatic
+  @kotlin.jvm.JvmStatic
   fun <PEN_T : Pen<PEN_T>,
     PATH_T : DiagramPath<PATH_T>,
     S : DrawingStrategy<S, PEN_T, PATH_T>> getArrow(strategy: S,
@@ -151,7 +150,7 @@ object Connectors {
     }
   }
 
-  @JvmStatic
+  @kotlin.jvm.JvmStatic
   fun <S : DrawingStrategy<S, PEN_T, PATH_T>,
     PEN_T : Pen<PEN_T>,
     PATH_T : DiagramPath<PATH_T>> drawStraightArrow(canvas: Canvas<S, PEN_T, PATH_T>, theme: Theme<S, PEN_T, PATH_T>,
@@ -162,7 +161,7 @@ object Connectors {
     canvas.drawPath(arrowPath, paint, null)
   }
 
-  @JvmStatic
+  @kotlin.jvm.JvmStatic
   fun <PATH_T : DiagramPath<PATH_T>,
     PEN_T : Pen<PEN_T>,
     S : DrawingStrategy<S, PEN_T, PATH_T>> getStraightArrow(strategy: S, x1: Double, y1: Double,

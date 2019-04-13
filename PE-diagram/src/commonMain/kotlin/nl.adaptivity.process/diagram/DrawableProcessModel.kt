@@ -25,17 +25,17 @@ import nl.adaptivity.process.processModel.RootProcessModel
 /**
  * Drawable version of the process model.
  */
-interface DrawableProcessModel : ProcessModel<DrawableProcessNode, DrawableProcessModel?> {
-    interface Builder : ProcessModel.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableProcessModel {
+interface DrawableProcessModel : ProcessModel<DrawableProcessNode> {
+    interface Builder : ProcessModel.Builder, IDrawableProcessModel {
         var layoutAlgorithm: LayoutAlgorithm
 
-        override val nodes: MutableList<ProcessNode.IBuilder<DrawableProcessNode, DrawableProcessModel?>>
+        override val nodes: MutableList<ProcessNode.IBuilder>
 
         override val childElements: List<DrawableProcessNode.Builder<*>>
 
         override val rootBuilder: RootDrawableProcessModel.Builder
 
-        override fun compositeActivityBuilder(): Activity.ChildModelBuilder<DrawableProcessNode, DrawableProcessModel?> {
+        override fun compositeActivityBuilder(): Activity.ChildModelBuilder {
             TODO("DrawableChildModels still need to be implemented")
         }
 

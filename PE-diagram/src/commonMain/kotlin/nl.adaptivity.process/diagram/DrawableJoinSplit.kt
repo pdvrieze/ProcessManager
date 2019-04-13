@@ -131,18 +131,15 @@ interface IDrawableJoinSplit : IDrawableProcessNode {
 
 }
 
-interface DrawableJoinSplit : JoinSplit<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+interface DrawableJoinSplit : JoinSplit, DrawableProcessNode {
 
-    class Delegate(builder: ProcessNode.IBuilder<*, *>) : DrawableProcessNode.Delegate(builder) {
+    class Delegate(builder: ProcessNode.IBuilder) : DrawableProcessNode.Delegate(builder) {
 
         val itemCache = ItemCache()
 
     }
 
-    interface Builder<R : DrawableJoinSplit> : DrawableProcessNode.Builder<R>, JoinSplit.Builder<DrawableProcessNode, DrawableProcessModel?>, IDrawableJoinSplit {
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): R
-    }
+    interface Builder<R : DrawableJoinSplit> : DrawableProcessNode.Builder<R>, JoinSplit.Builder, IDrawableJoinSplit
 
     override fun builder(): Builder<out DrawableJoinSplit>
 

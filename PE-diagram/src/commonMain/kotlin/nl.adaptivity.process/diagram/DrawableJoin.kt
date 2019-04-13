@@ -25,18 +25,19 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIG
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.multiplatform.JvmStatic
+import kotlin.jvm.JvmStatic
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-interface IDrawableJoin: IDrawableJoinSplit {
+interface IDrawableJoin : IDrawableJoinSplit {
 
     override val maxPredecessorCount: Int get() = Int.MAX_VALUE
 
-    override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(canvas: Canvas<S, PEN_T, PATH_T>, clipBounds: Rectangle?) {
+    override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(
+        canvas: Canvas<S, PEN_T, PATH_T>,
+        clipBounds: Rectangle?) {
         if (hasPos()) {
             val path = itemCache.getPath(canvas.strategy, 1) {
                 if (CURVED_ARROWS) {
@@ -46,8 +47,11 @@ interface IDrawableJoin: IDrawableJoinSplit {
                     lineTo(CENTER_X + ARROWHEADD_X, CENTER_Y)
                     lineTo(CENTER_X + ARROWHEADD_X - ARROWDNEAR, CENTER_Y + ARROWDFAR)
                     moveTo(CENTER_X - IND_X, CENTER_Y - IND_Y)
-                    cubicTo(CENTER_X - IND_X * (1 - ARROWCONTROLRATIO), CENTER_Y - IND_Y * (1 - ARROWCONTROLRATIO), CENTER_X + INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + INLEN, CENTER_Y)
-                    cubicTo(CENTER_X + INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X - IND_X * (1 - ARROWCONTROLRATIO), CENTER_Y + IND_Y * (1 - ARROWCONTROLRATIO), CENTER_X - IND_X, CENTER_Y + IND_Y)
+                    cubicTo(CENTER_X - IND_X * (1 - ARROWCONTROLRATIO), CENTER_Y - IND_Y * (1 - ARROWCONTROLRATIO),
+                            CENTER_X + INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y, CENTER_X + INLEN, CENTER_Y)
+                    cubicTo(CENTER_X + INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y,
+                            CENTER_X - IND_X * (1 - ARROWCONTROLRATIO), CENTER_Y + IND_Y * (1 - ARROWCONTROLRATIO),
+                            CENTER_X - IND_X, CENTER_Y + IND_Y)
                     moveTo(CENTER_X + INLEN, CENTER_Y)
                     lineTo(CENTER_X + ARROWHEADD_X, CENTER_Y)
                 } else {
@@ -82,15 +86,15 @@ interface IDrawableJoin: IDrawableJoinSplit {
 
 }
 
-class DrawableJoin(builder: Join.Builder<*, *>,
-                   buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : JoinBase<DrawableProcessNode, DrawableProcessModel?>(
-    builder, buildHelper), Join<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
+class DrawableJoin(builder: Join.Builder,
+                   buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : JoinBase<DrawableProcessNode, DrawableProcessModel?>(
+    builder, buildHelper), Join, DrawableJoinSplit {
 
-    class Builder : JoinBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder<DrawableJoin>, IDrawableJoin {
+    class Builder : JoinBase.Builder, DrawableJoinSplit.Builder<DrawableJoin>, IDrawableJoin {
 
         override val _delegate: DrawableProcessNode.Builder.Delegate
 
-        constructor(): this(id=null)
+        constructor() : this(id = null)
 
         constructor(id: String? = null,
                     predecessors: Collection<Identified> = emptyList(),
@@ -110,17 +114,15 @@ class DrawableJoin(builder: Join.Builder<*, *>,
             _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
         }
 
-        constructor(node: Join<*, *>) : super(node) {
+        constructor(node: Join) : super(node) {
             _delegate = DrawableProcessNode.Builder.Delegate(node)
         }
 
         override val itemCache = ItemCache()
 
         override fun copy(): Builder =
-            Builder(id, predecessors, successor?.identifier, label, defines, results, x, y, min, max, state, isMultiMerge, isMultiInstance, isCompat)
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>)
-            = DrawableJoin(this, buildHelper)
+            Builder(id, predecessors, successor?.identifier, label, defines, results, x, y, min, max, state,
+                    isMultiMerge, isMultiInstance, isCompat)
     }
 
     override val _delegate: DrawableJoinSplit.Delegate
@@ -150,7 +152,7 @@ class DrawableJoin(builder: Join.Builder<*, *>,
         @Deprecated("Use the builder",
                     ReplaceWith("Builder(elem).build()", "nl.adaptivity.process.diagram.DrawableJoin.Builder"))
         @JvmStatic
-        fun from(elem: Join<*, *>, compat: Boolean): DrawableJoin {
+        fun from(elem: Join, compat: Boolean): DrawableJoin {
             return Builder(elem).build()
         }
 

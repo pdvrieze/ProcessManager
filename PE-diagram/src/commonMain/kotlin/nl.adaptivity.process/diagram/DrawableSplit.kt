@@ -26,7 +26,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWI
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.deserializeHelper
 import kotlin.math.PI
@@ -96,10 +95,10 @@ interface IDrawableSplit : IDrawableJoinSplit {
 
 }
 
-class DrawableSplit(builder: Split.Builder<*, *>,
-                    buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) :
-    SplitBase<DrawableProcessNode, DrawableProcessModel?>(builder, buildHelper),
-    Split<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit {
+class DrawableSplit(builder: Split.Builder,
+                    buildHelper: ProcessModel.BuildHelper<*,*,*,*>) :
+    SplitBase(builder, buildHelper.newOwner),
+    Split, DrawableJoinSplit {
 
 
     override val _delegate: DrawableJoinSplit.Delegate
@@ -132,17 +131,17 @@ class DrawableSplit(builder: Split.Builder<*, *>,
         private val INLEN = sqrt(ARROWHEADDX * ARROWHEADDX + ARROWHEADDY * ARROWHEADDY)
         const val IDBASE = "split"
 
-        @JvmStatic
+        @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): Builder {
             return Builder().deserializeHelper(reader)
         }
 
-        fun from(elem: Split<*, *>): DrawableSplit {
+        fun from(elem: Split): DrawableSplit {
             return DrawableSplit.Builder(elem).build()
         }
     }
 
-    class Builder : SplitBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableJoinSplit.Builder<DrawableSplit>, IDrawableSplit {
+    class Builder : SplitBase.Builder, DrawableJoinSplit.Builder<DrawableSplit>, IDrawableSplit {
 
         override val _delegate: DrawableProcessNode.Builder.Delegate
 
@@ -166,15 +165,12 @@ class DrawableSplit(builder: Split.Builder<*, *>,
 
         override val itemCache = ItemCache()
 
-        constructor(node: Split<*, *>) : super(node) {
+        constructor(node: Split) : super(node) {
             _delegate = DrawableProcessNode.Builder.Delegate(node)
         }
 
         override fun copy() = Builder(id, predecessor?.identifier, successors, label, defines, results, x, y, min, max,
                                       state, isMultiInstance)
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableSplit(
-            this, buildHelper)
 
     }
 

@@ -25,7 +25,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.JvmDefault
-import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.isTypeOf
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.deserializeHelper
@@ -81,9 +80,9 @@ interface IDrawableEndNode : IDrawableProcessNode {
 
 }
 
-class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode {
+class DrawableEndNode : EndNodeBase, DrawableProcessNode {
 
-    class Builder : EndNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableEndNode>, IDrawableEndNode {
+    class Builder : EndNodeBase.Builder, DrawableProcessNode.Builder<DrawableEndNode>, IDrawableEndNode {
 
         override val _delegate: DrawableProcessNode.Builder.Delegate
 
@@ -108,15 +107,13 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
             _delegate = DrawableProcessNode.Builder.Delegate(state, false)
         }
 
-        constructor(node: EndNode<*, *>) : super(node) {
+        constructor(node: EndNode) : super(node) {
             _delegate = DrawableProcessNode.Builder.Delegate(node)
         }
 
         override fun copy() =
             Builder(id, predecessor?.identifier, label, x, y, defines, results, isMultiInstance, state)
 
-        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableEndNode(
-            this, buildHelper)
     }
 
     override val _delegate: DrawableProcessNode.Delegate
@@ -129,11 +126,11 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
     override val maxSuccessorCount get() = super<EndNodeBase>.maxSuccessorCount
 
     @Deprecated("Use the builder", ReplaceWith("this(Builder(orig))"))
-    constructor(orig: EndNode<*, *>) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
+    constructor(orig: EndNode) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
 
-    constructor(builder: EndNode.Builder<*, *>,
-                buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) : super(builder,
-                                                                                                           buildHelper) {
+    constructor(builder: EndNode.Builder,
+                buildHelper: ProcessModel.BuildHelper<*, *, *, *>)
+        : super(builder, buildHelper) {
         _delegate = DrawableProcessNode.Delegate(builder)
     }
 
@@ -147,14 +144,14 @@ class DrawableEndNode : EndNodeBase<DrawableProcessNode, DrawableProcessModel?>,
         private const val REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS
         const val IDBASE = "end"
 
-        @JvmStatic
+        @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): DrawableEndNode.Builder {
             return DrawableEndNode.Builder(state = Drawable.STATE_DEFAULT).deserializeHelper(reader)
         }
 
         @Deprecated("Use the builder",
                     ReplaceWith("Builder(elem).build()", "nl.adaptivity.process.diagram.DrawableEndNode.Builder"))
-        fun from(elem: EndNode<*, *>): DrawableEndNode = Builder(elem).build()
+        fun from(elem: EndNode): DrawableEndNode = Builder(elem).build()
     }
 
 }

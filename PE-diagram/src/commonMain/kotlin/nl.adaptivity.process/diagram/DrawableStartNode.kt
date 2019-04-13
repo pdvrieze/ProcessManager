@@ -21,7 +21,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STARTNOD
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.deserializeHelper
 
@@ -55,12 +54,12 @@ interface IDrawableStartNode : IDrawableProcessNode {
 
 }
 
-class DrawableStartNode(builder: StartNode.Builder<*, *>,
-                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) :
+class DrawableStartNode(builder: StartNode.Builder,
+                        buildHelper: ProcessModel.BuildHelper<*,*,*,*>) :
     StartNodeBase<DrawableProcessNode, DrawableProcessModel?>(builder, buildHelper),
     DrawableProcessNode {
 
-    class Builder : StartNodeBase.Builder<DrawableProcessNode, DrawableProcessModel?>, DrawableProcessNode.Builder<DrawableStartNode>, IDrawableStartNode {
+    class Builder : StartNodeBase.Builder, DrawableProcessNode.Builder<DrawableStartNode>, IDrawableStartNode {
 
         override val _delegate: DrawableProcessNode.Builder.Delegate
 
@@ -80,7 +79,7 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
             _delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
         }
 
-        constructor(node: StartNode<*, *>) : super(node) {
+        constructor(node: StartNode) : super(node) {
             _delegate = DrawableProcessNode.Builder.Delegate(node)
         }
 
@@ -88,8 +87,6 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
             return Builder(id, successor?.identifier, label, defines, results, x, y, state, isCompat, isMultiInstance)
         }
 
-        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>) = DrawableStartNode(
-            this, buildHelper)
     }
 
     override val _delegate = DrawableProcessNode.Delegate(builder)
@@ -112,13 +109,13 @@ class DrawableStartNode(builder: StartNode.Builder<*, *>,
         const val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
         const val IDBASE = "start"
 
-        @JvmStatic
+        @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): Builder {
             return DrawableStartNode.Builder().deserializeHelper(reader)
         }
 
-        @JvmStatic
-        fun from(n: StartNode<*, *>, compat: Boolean = false) = Builder(n).apply { this.isCompat = compat }.build()
+        @kotlin.jvm.JvmStatic
+        fun from(n: StartNode, compat: Boolean = false) = Builder(n).apply { this.isCompat = compat }.build()
     }
 
 }

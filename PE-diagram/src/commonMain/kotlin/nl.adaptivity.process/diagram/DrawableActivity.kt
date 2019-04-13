@@ -27,8 +27,8 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITY
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.multiplatform.JvmOverloads
-import nl.adaptivity.util.multiplatform.JvmStatic
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.writeSimpleElement
 
@@ -97,12 +97,12 @@ interface IDrawableActivity : IDrawableProcessNode {
 
 }
 
-open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<*, *>,
-                                                      buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) :
-    ActivityBase<DrawableProcessNode, DrawableProcessModel?>(builder,
+open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder,
+                                                      buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *> = STUB_DRAWABLE_BUILD_HELPER) :
+    ActivityBase(builder,
                                                              buildHelper), DrawableProcessNode {
 
-    class Builder : ActivityBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
+    class Builder : ActivityBase.Builder,
                           DrawableProcessNode.Builder<DrawableActivity>,
                           IDrawableActivity {
 
@@ -129,17 +129,13 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
         @Suppress("PropertyName")
         override val _delegate: DrawableProcessNode.Builder.Delegate
 
-        constructor(node: Activity<*, *>) : super(node) {
+        constructor(node: Activity) : super(node) {
             _delegate = DrawableProcessNode.Builder.Delegate(node)
         }
 
         override fun copy(): Builder {
             return Builder(id, predecessor?.identifier, successor, label, x, y, defines, results,
                            XmlMessage.from(message), condition, name, state, isMultiInstance, isCompat)
-        }
-
-        override fun build(buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?>): DrawableActivity {
-            return DrawableActivity(this, buildHelper)
         }
 
     }
@@ -185,8 +181,9 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder<
         @Deprecated("Use the builder", ReplaceWith("Builder(elem).apply { isCompat = compat }.build()",
                                                            "nl.adaptivity.process.diagram.DrawableActivity.Builder"))
         @JvmStatic
-        fun from(elem: Activity<*, *>, compat: Boolean): DrawableActivity {
-            return Builder(elem).apply { isCompat = compat }.build()
+        fun from(elem: Activity, compat: Boolean): DrawableActivity {
+            val builder: Builder = Builder(elem).apply { isCompat = compat }
+            return builder.build()
         }
     }
 

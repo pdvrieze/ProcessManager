@@ -21,6 +21,7 @@ package nl.adaptivity.process.clientProcessModel
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.diagram.*
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.ProcessModelBase.NodeFactory
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
@@ -28,11 +29,11 @@ import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 
-abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder<DrawableProcessNode, DrawableProcessModel?>,
-                                                                nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessModel?>,
+abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder,
+                                                                nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessNode, ChildProcessModelBase<DrawableProcessNode>>,
                                                                 pedantic: Boolean = builder.defaultPedantic)
-    : RootProcessModelBase<DrawableProcessNode, DrawableProcessModel?>(builder, nodeFactory, pedantic),
-      RootProcessModel<DrawableProcessNode, DrawableProcessModel?> {
+    : RootProcessModelBase<DrawableProcessNode>(builder, nodeFactory, pedantic),
+      RootProcessModel<DrawableProcessNode> {
 
     abstract val layoutAlgorithm: LayoutAlgorithm
 
@@ -49,27 +50,26 @@ abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootPro
     val startNodes: Collection<DrawableStartNode>
         get() = modelNodes.filterIsInstance<DrawableStartNode>()
 
-
     @Deprecated("Use full version", level = DeprecationLevel.HIDDEN)
-    final override fun copy(imports: Collection<IXmlResultType>,
-                            exports: Collection<IXmlDefineType>,
-                            nodes: Collection<DrawableProcessNode>,
-                            name: String?,
-                            uuid: UUID?,
-                            roles: Set<String>,
-                            owner: Principal,
-                            childModels: Collection<ChildProcessModel<DrawableProcessNode, DrawableProcessModel?>>): RootDrawableProcessModel {
+    final     override fun copy(imports: Collection<IXmlResultType>,
+                                exports: Collection<IXmlDefineType>,
+                                nodes: Collection<ProcessNode>,
+                                name: String?,
+                                uuid: UUID?,
+                                roles: Set<String>,
+                                owner: Principal,
+                                childModels: Collection<ChildProcessModel<DrawableProcessNode>>): RootDrawableProcessModel {
         return copy(imports, exports, nodes, name, uuid, roles, owner, childModels, this.handleValue, this.layoutAlgorithm)
     }
 
     abstract fun copy(imports: Collection<IXmlResultType> = this.imports,
                       exports: Collection<IXmlDefineType> = this.exports,
-                      nodes: Collection<DrawableProcessNode> = modelNodes,
+                      nodes: Collection<ProcessNode> = modelNodes,
                       name: String? = this.name,
                       uuid: UUID? = this.uuid,
                       roles: Set<String> = this.roles,
                       owner: Principal = this.owner,
-                      childModels: Collection<ChildProcessModel<DrawableProcessNode, DrawableProcessModel?>> = this.childModels,
+                      childModels: Collection<ChildProcessModel<DrawableProcessNode>> = this.childModels,
                       handle: Long = this.handleValue,
                       layoutAlgorithm: LayoutAlgorithm = this.layoutAlgorithm): RootDrawableProcessModel
 
