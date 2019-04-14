@@ -47,7 +47,7 @@ configurations {
     create("codegen") {
         attributes {
             attribute(androidAttribute, false)
-            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
         }
     }

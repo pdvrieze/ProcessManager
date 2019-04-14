@@ -86,14 +86,18 @@ include(":PE-diagram")
 
 include(":accountcommon")
 include(":DarwinRealm")
+include(":darwin")
+include(":darwin:war")
+include(":accountmgr")
+include(":accountmgr:js")
+
+include(":DarwinServices")
+
+//include(":PE-server")
 
 /*
 include(":PE-common:endpointDoclet")
 
-include(":DarwinServices")
-include(":PE-server")
-include(":accountmgr")
-include(":accountmgr:js")
 include(":darwin:jvm")
 include(":darwin:shared")
 include(":darwin:js")

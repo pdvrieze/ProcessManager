@@ -17,7 +17,7 @@
 package uk.ac.bournemouth.darwin.services;
 
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.xmlutil.util.JaxbUriAdapter;
+import nl.adaptivity.util.JaxbUriAdapter;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;

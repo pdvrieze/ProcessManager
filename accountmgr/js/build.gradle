@@ -23,7 +23,7 @@ dependencies {
 //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
-    compile project(":darwin:js")
+    compile project(":darwin")
 }
 
 def outDir = "${buildDir}/kotlin2js/main/"

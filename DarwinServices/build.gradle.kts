@@ -1,3 +1,5 @@
+import multiplatform.registerAndroidAttributeForDeps
+
 /*
  * Copyright (c) 2018.
  *
@@ -14,28 +16,38 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'idea'
+plugins {
+    java
+    kotlin("jvm")
+    war
+    idea
+}
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+val myJavaVersion: JavaVersion by project
+val tomcatVersion: String by project
 
-version = '1.0.0'
-description = 'A container for general support services for the darwin system, including messaging'
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
+
+version = "1.0.0"
+description = "A container for general support services for the darwin system, including messaging"
 
 //group = [ 'server', 'service' ]
 
-task tomcatRun(dependsOn: ["classes"]) {
-    group='web application'
+tasks.register("tomcatRun") {
+    dependsOn(tasks.named("classes"))
+    group= "web application"
     description = "Do everything needed to be able to run as embedded tomcat"
 }
 
+registerAndroidAttributeForDeps()
 
 dependencies {
-    compile project(':PE-common:jvm')
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    compileOnly project(':JavaCommonApi:jvm')
-    compileOnly project(":DarwinJavaApi")
+    implementation(project(":PE-common"))
+    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    compileOnly(project(":JavaCommonApi"))
+    compileOnly(project(":DarwinJavaApi"))
 }
 

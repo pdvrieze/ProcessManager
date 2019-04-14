@@ -4,8 +4,12 @@
     <bytecodeTargetLevel>
       <module name="accountcommon_main" target="1.8" />
       <module name="accountcommon_test" target="1.8" />
+      <module name="accountmgr_main" target="1.8" />
+      <module name="accountmgr_test" target="1.8" />
       <module name="darwin-sql_main" target="1.8" />
       <module name="darwin-sql_test" target="1.8" />
+      <module name="darwin_jvmMain" target="1.8" />
+      <module name="darwin_jvmTest" target="1.8" />
       <module name="DarwinClients-ProcessEngine_main" target="1.8" />
       <module name="DarwinClients-ProcessEngine_test" target="1.8" />
       <module name="DarwinClients_main" target="1.8" />
@@ -16,6 +20,8 @@
       <module name="DarwinJavaApi_test" target="1.8" />
       <module name="DarwinRealm_main" target="1.8" />
       <module name="DarwinRealm_test" target="1.8" />
+      <module name="DarwinServices_main" target="1.8" />
+      <module name="DarwinServices_test" target="1.8" />
       <module name="java-common_androidMain" target="1.6" />
       <module name="java-common_androidTest" target="1.6" />
       <module name="java-common_jvmMain" target="1.8" />
@@ -24,6 +30,8 @@
       <module name="JavaCommonApi_androidTest" target="1.6" />
       <module name="JavaCommonApi_jvmMain" target="1.8" />
       <module name="JavaCommonApi_jvmTest" target="1.8" />
+      <module name="js_main" target="1.8" />
+      <module name="js_test" target="1.8" />
       <module name="kotlinsql_generators" target="1.8" />
       <module name="kotlinsql_main" target="1.8" />
       <module name="kotlinsql_test" target="1.8" />
@@ -53,6 +61,8 @@
       <module name="ProcessManager_buildSrc_test" target="1.8" />
       <module name="TestSupport_main" target="1.8" />
       <module name="TestSupport_test" target="1.8" />
+      <module name="war_main" target="1.8" />
+      <module name="war_test" target="1.8" />
       <module name="WorkQueue_main" target="1.8" />
       <module name="WorkQueue_test" target="1.8" />
       <module name="xmlutil-core_androidMain" target="1.6" />

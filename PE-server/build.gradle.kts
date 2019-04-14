@@ -1,3 +1,6 @@
+import com.bmuschko.gradle.tomcat.embedded.TomcatUser
+import multiplatform.registerAndroidAttributeForDeps
+
 /*
  * Copyright (c) 2018.
  *
@@ -14,81 +17,85 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
-apply plugin: 'com.bmuschko.tomcat'
-apply plugin: 'idea'
+plugins {
+    java
+    id("com.bmuschko.tomcat")
+    idea
+}
 
-defaultTasks 'tomcatRunWar'
+base {
+    defaultTasks("tomcatRunWar")
+    version = "1.0.0"
+    description = "A project for running an embedded tomcat server that works."
 
-version = '1.0.0'
-description = 'A project for running an embedded tomcat server that works.'
+}
+
+val tomcatVersion:String by project
+val mysqlConnectorVersion: String by project
 
 //group = ['util' ]
 
 
 configurations {
-    extraBootCp {
-        description "This configuration allows for assembling all the jars for the boot classpath of catalina"
+    create("extraBootCp") {
+        description="This configuration allows for assembling all the jars for the boot classpath of catalina"
     }
-    warContents {
-        description "The contents of the combined war file"
+    val warContents by creating {
+        description="The contents of the combined war file"
     }
-    runtime.extendsFrom warContents
+    "runtime" {
+        setExtendsFrom(listOf(warContents))
+    }
 }
 
+registerAndroidAttributeForDeps()
+
 dependencies {
-    tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
-            "org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}",
-            "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
+    tomcat("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
+    tomcat("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
+    tomcat("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
 //    tomcat dbcpSpec
 
-    extraBootCp 'mysql:mysql-connector-java:5.1.36'
-    extraBootCp project(':DarwinJavaApi')
-    extraBootCp project(':JavaCommonApi:jvm')
-    extraBootCp project(':DarwinRealm')
+    "extraBootCp"("mysql:mysql-connector-java:$mysqlConnectorVersion")
+    "extraBootCp"(project(":DarwinJavaApi"))
+    "extraBootCp"(project(":JavaCommonApi"))
+    "extraBootCp"(project(":DarwinRealm"))
     // Todo dynamically determine version needed from -api version
-    extraBootCp 'org.slf4j:slf4j-simple:1.7.16'
+    "extraBootCp"("org.slf4j:slf4j-simple:1.7.16")
 //    extraBootCp dbcpSpec
 
-    tomcat 'mysql:mysql-connector-java:5.1.36'
-    tomcat project(':DarwinJavaApi')
-    tomcat project(':JavaCommonApi:jvm')
-    tomcat project(':DarwinRealm')
+    tomcat("mysql:mysql-connector-java:$mysqlConnectorVersion")
+    tomcat(project(":DarwinJavaApi"))
+    tomcat(project(":JavaCommonApi"))
+    tomcat(project(":DarwinRealm"))
 
-    warContents project(path: ':PEUserMessageHandler', configuration: 'runtime')
-    warContents project(':DarwinServices')
-    warContents project(path: ':darwin:jvm', configuration: 'warConfig')
-    warContents project(path: ':ProcessEngine:servlet')
-    warContents project(':accountmgr')
+    "warContents"(project(path= ":PEUserMessageHandler", configuration= "runtime"))
+    "warContents"(project(":DarwinServices"))
+    "warContents"(project(path= ":darwin:war", configuration= "warConfig"))
+    "warContents"(project(path= ":ProcessEngine:servlet"))
+    "warContents"(project(":accountmgr"))
 }
 
 
 idea {
     module {
-        scopes.PROVIDED.plus += [configurations.tomcat]
-        scopes.TEST.plus += [configurations.tomcat]
-        excludeDirs += file('catalina')
-        excludeDirs += file('catalina7')
+        scopes["PROVIDED"]!!["plus"]!!.add(configurations["tomcat"])
+        scopes["TEST"]!!["plus"]!!.add(configurations["tomcat"])
+        excludeDirs.add(file("catalina"))
+        excludeDirs.add(file("catalina7"))
     }
 }
 
 tomcat {
-    contextPath='/'
+    contextPath="/"
     daemon=false
 
-    users {
-        user {
-            username = 'pdvrieze'
-            password = 'geheim'
-            roles = ['admin']
-        }
-    }
-
+    users = listOf(TomcatUser("pdvrieze", "geheim", listOf("admin")))
 }
 
-task assembleExtraBootCp(type: Copy) {
-    from configurations.extraBootCp
-    into "${buildDir}/bootClasspath"
+val assembleExtraBootCp by tasks.creating(Copy::class) {
+    from(configurations["extraBootCp"])
+    into("${buildDir}/bootClasspath")
 }
 
 /*
@@ -139,7 +146,9 @@ task war(type: War, overwrite:true, dependsOn: configurations.warContents, group
 //artifacts { runtime war }
 
 
-tomcatRun() {
+tasks.named("tomcatRun") {
+    webDefaultXml = file ("src/main/webapp/WEB-INF/web.xml")
+    configFile = file ("src/main/webapp/META-INF/context.xml")
 /*
     dependsOn: configurations.warContents
     configurations.warContents.each { File file ->
@@ -169,22 +178,23 @@ tomcatRun() {
 
     doFirst {
 //        webAppClasspath=webAppClasspath.plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
-        logger.lifecycle('Running Tomcat')
-        configurations.tomcat.allDependencies.each({ logger.debug("Dependency: $it")})
+        logger.lifecycle("Running Tomcat")
+        configurations.tomcat.get().allDependencies.forEach({ logger.debug("Dependency: $it")})
 //        sourceSets.main.compileClasspath.each({ println("CompileClasspath: $it") })
-        logger.info('');
-        tomcatClasspath.each({ logger.info("TomcatClasspath: $it")})
-        logger.info('')
+//        logger.info("");
+//        tomcatClasspath.each({ logger.info("TomcatClasspath: $it")})
+//        logger.info("")
 
-        System.setProperty('nl.adaptivity.messaging.localurl', 'http://localhost:8080')
+        System.setProperty("nl.adaptivity.messaging.localurl", "http://localhost:8080")
 //	    systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
     }
 
 }
 
-
-[tomcatRun, tomcatRunWar]*.webDefaultXml = file ('src/main/webapp/WEB-INF/web.xml')
-[tomcatRun, tomcatRunWar]*.configFile = file ('src/main/webapp/META-INF/context.xml')
+tasks.named("tomcatRunWar") {
+    webDefaultXml = file ("src/main/webapp/WEB-INF/web.xml")
+    configFile = file ("src/main/webapp/META-INF/context.xml")
+}
 
 
 //artifacts {
@@ -193,11 +203,8 @@ tomcatRun() {
 
 idea {
     module {
-        excludeDirs << file('catalina')
-        excludeDirs << file('catalina7')
+        excludeDirs.add(file("catalina"))
+        excludeDirs.add(file("catalina7"))
 
     }
 }
-
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
