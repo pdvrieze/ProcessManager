@@ -61,6 +61,15 @@ if(file("kotlinsql").exists()) {
     }
 }
 
+if (file("xmlutil").exists()) {
+    includeBuild("xmlutil") {
+        dependencySubstitution {
+            substitute module('net.devrieze:xmlutil') with project(':core')
+            substitute module('net.devrieze:xmlutil-serialization') with project(':serialization')
+        }
+    }
+}
+
 include(":java-common")
 include(":DarwinJavaApi")
 
@@ -93,42 +102,18 @@ include(":accountmgr:js")
 
 include(":DarwinServices")
 
-//include(":PE-server")
+include(":PE-server")
 
-/*
 include(":PE-common:endpointDoclet")
 
-include(":darwin:jvm")
-include(":darwin:shared")
-include(":darwin:js")
 include(":structurizr")
-*/
-if (file("xmlutil").exists()) {
-    includeBuild("xmlutil") {
-        dependencySubstitution {
-            substitute module('net.devrieze:xmlutil') with project(':core')
-//            substitute module('net.devrieze:xmlutil-java') with project(':core:java')
-//            substitute module('net.devrieze:xmlutil-android') with project(':core:android')
-//            substitute module('net.devrieze:xmlutil-jvm') with project(':core:jvm')
-//            substitute module('net.devrieze:xmlutil-js') with project(':core:js')
-            substitute module('net.devrieze:xmlutil-serialization') with project(':serialization')
-//            substitute module('net.devrieze:xmlutil-serialization-jvm') with project(':serialization:java')
-//            substitute module('net.devrieze:xmlutil-serialization-android') with project(':serialization:java')
-        }
-    }
-}
-/*
+
 include(":jscommon")
 include(":webeditor")
-
-include(":multiplatform:android")
+/*
 
 // Android modules
 if (Boolean.parseBoolean(androidEnabledProp)) {
-    include(":java-common:android")
-    include(":PE-common:android")
-    include(":PE-diagram:android")
-
     include(":android-auth")
     include(":darwinlib")
     include(":PMEditor")

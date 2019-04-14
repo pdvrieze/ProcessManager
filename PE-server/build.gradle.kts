@@ -1,5 +1,9 @@
 import com.bmuschko.gradle.tomcat.embedded.TomcatUser
+import com.bmuschko.gradle.tomcat.tasks.TomcatRun
+import com.bmuschko.gradle.tomcat.tasks.TomcatRunWar
+import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 /*
  * Copyright (c) 2018.
@@ -42,6 +46,12 @@ configurations {
     }
     val warContents by creating {
         description="The contents of the combined war file"
+    }
+    "runtimeClasspath" {
+        attributes {
+            attribute(androidAttribute, false)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+        }
     }
     "runtime" {
         setExtendsFrom(listOf(warContents))
@@ -146,7 +156,7 @@ task war(type: War, overwrite:true, dependsOn: configurations.warContents, group
 //artifacts { runtime war }
 
 
-tasks.named("tomcatRun") {
+tasks.named<TomcatRun>("tomcatRun") {
     webDefaultXml = file ("src/main/webapp/WEB-INF/web.xml")
     configFile = file ("src/main/webapp/META-INF/context.xml")
 /*
@@ -191,7 +201,7 @@ tasks.named("tomcatRun") {
 
 }
 
-tasks.named("tomcatRunWar") {
+tasks.named<TomcatRunWar>("tomcatRunWar") {
     webDefaultXml = file ("src/main/webapp/WEB-INF/web.xml")
     configFile = file ("src/main/webapp/META-INF/context.xml")
 }
