@@ -57,6 +57,7 @@ kotlin {
         }
         jvm("android") {
             attributes.attribute(androidAttribute, true)
+            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
             compilations.all {
                 tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
                     jvmTarget = "1.6"
@@ -98,6 +99,11 @@ kotlin {
 
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
         val javaMain by creating {
             dependsOn(commonMain)
             dependencies {
@@ -115,6 +121,11 @@ kotlin {
 
 //                implementation("net.devrieze:xmlutil:$xmlutilVersion")
 //                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                kotlin("test-junit5")
             }
         }
 /*

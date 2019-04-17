@@ -43,9 +43,19 @@ val mysqlConnectorVersion: String by project
 configurations {
     create("extraBootCp") {
         description="This configuration allows for assembling all the jars for the boot classpath of catalina"
+        attributes {
+            attribute(androidAttribute, false)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+        }
     }
     val warContents by creating {
         description="The contents of the combined war file"
+    }
+    "tomcat" {
+        attributes {
+            attribute(androidAttribute, false)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+        }
     }
     "runtimeClasspath" {
         attributes {

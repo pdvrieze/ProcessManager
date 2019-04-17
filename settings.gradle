@@ -110,12 +110,9 @@ include(":structurizr")
 
 include(":jscommon")
 include(":webeditor")
-/*
-
 // Android modules
 if (Boolean.parseBoolean(androidEnabledProp)) {
     include(":android-auth")
     include(":darwinlib")
-    include(":PMEditor")
+//    include(":PMEditor")
 }
-*/

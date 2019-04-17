@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Date
 import multiplatform.androidAttribute
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     kotlin("multiplatform")
@@ -61,6 +62,7 @@ kotlin {
         }
         jvm("android") {
             attributes.attribute(androidAttribute, true)
+            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
             compilations.all {
                 tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
                     jvmTarget = "1.6"
