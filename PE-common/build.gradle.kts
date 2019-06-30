@@ -155,8 +155,8 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation("net.devrieze:serialutil-js:$xmlutilVersion")
-                api("net.devrieze:xmlutil:$xmlutilVersion")
-                api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                api("net.devrieze:xmlutil-js:$xmlutilVersion")
+                api("net.devrieze:xmlutil-serialization-js:$xmlutilVersion")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serializationVersion")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
