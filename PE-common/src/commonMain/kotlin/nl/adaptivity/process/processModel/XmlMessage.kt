@@ -34,9 +34,10 @@ import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xml.localPart
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.serialization.encodeNullableStringElement
-import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.serialutil.encodeNullableStringElement
+import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ExtXmlDeserializable
 import nl.adaptivity.xmlutil.util.ICompactFragment

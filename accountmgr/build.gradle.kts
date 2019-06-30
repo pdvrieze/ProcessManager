@@ -1,6 +1,7 @@
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * Copyright (c) 2017.
@@ -70,6 +71,10 @@ dependencies {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 tasks.named<War>("war") {

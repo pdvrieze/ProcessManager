@@ -88,6 +88,7 @@ kotlin {
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
                 implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("net.devrieze:serialutil:$xmlutilVersion")
                 api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
 
                 compileOnly(project(":JavaCommonApi"))
@@ -99,6 +100,8 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(kotlin("stdlib"))
+                implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("net.devrieze:serialutil:$xmlutilVersion")
             }
         }
         val jvmMain by getting {
@@ -109,9 +112,11 @@ kotlin {
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+                compileOnly("com.sun.xml.ws:jaxws-ri:2.3.2")
 
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
+                implementation("net.devrieze:serialutil-jvm:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
             }
         }
         val jvmTest by getting {
@@ -125,8 +130,9 @@ kotlin {
 
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
 
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
+                implementation("net.devrieze:serialutil-jvm:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
 
 //                implementation(project(":JavaCommonApi"))
                 implementation(project(":DarwinJavaApi"))
@@ -140,11 +146,15 @@ kotlin {
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
                 implementation(kotlin("stdlib-jdk7"))
+                implementation("net.devrieze:xmlutil-android:$xmlutilVersion")
+                implementation("net.devrieze:serialutil-android:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization-android:$xmlutilVersion")
             }
         }
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
+                implementation("net.devrieze:serialutil-js:$xmlutilVersion")
                 api("net.devrieze:xmlutil:$xmlutilVersion")
                 api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serializationVersion")

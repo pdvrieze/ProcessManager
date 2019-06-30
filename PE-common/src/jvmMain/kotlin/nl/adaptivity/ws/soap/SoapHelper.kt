@@ -336,7 +336,7 @@ object SoapHelper {
                         // This is the parameter wrapper
                         return unMarshalNode(null, resultType, context, useSiteAnnotations, params[RESULT])
                     }
-                    else                           -> reader.unhandledEvent(null)
+                    else                           -> throw XmlException("Unexpected content in soap response")
                 }// whitespace is ignored
             }
             return null // no nodes
@@ -396,7 +396,7 @@ object SoapHelper {
                     }
                 }
                 EventType.END_ELEMENT          -> break@outer
-                else                           -> reader.unhandledEvent()
+                else                           -> throw XmlException("Unexpected content in SOAP invocation")
             }// whitespace is ignored
             // This is the parameter wrapper
         }

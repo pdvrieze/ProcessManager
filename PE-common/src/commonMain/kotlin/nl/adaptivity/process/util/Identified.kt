@@ -17,7 +17,7 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.*
-import nl.adaptivity.xmlutil.serialization.simpleSerialClassDesc
+import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 /**
  * Created by pdvrieze on 04/12/16.

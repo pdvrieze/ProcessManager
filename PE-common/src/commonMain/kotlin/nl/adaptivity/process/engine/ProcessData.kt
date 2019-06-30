@@ -22,6 +22,7 @@ import kotlinx.serialization.internal.StringSerializer
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.serialization.*
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -84,8 +85,8 @@ class ProcessData constructor(@XmlElement(false) override val name: String?,
         override fun deserialize(decoder: Decoder): ProcessData {
             var name: String? = null
             lateinit var content: ICompactFragment
-            decoder.readBegin(descriptor) {
-                readElements(this) {i ->
+            decoder.decodeStructure(descriptor) {
+                decodeElements(this) {i ->
                     when (i) {
                         KInput.READ_ALL -> throw UnsupportedOperationException()
                         0               -> name = decodeNullableSerializableElement(descriptor, 0, NullableSerializer(StringSerializer))

@@ -24,6 +24,7 @@
 
 package org.w3.soapEnvelope
 
+import nl.adaptivity.process.processModel.engine.XmlEndNode
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -169,9 +170,9 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
                         if (result.deserializeChild(reader, bodyDeserializer)) {
                             continue@loop
                         }
-                        reader.unhandledEvent()
+                        throw XmlException("Unexpected child tag in Envelope")
                     }
-                    else                    -> reader.unhandledEvent()
+                    else                    -> throw XmlException("Unexpected element content in Envelope")
                 }
             }
             return result

@@ -1,4 +1,5 @@
 import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * Copyright (c) 2016.
@@ -41,4 +42,8 @@ dependencies {
     compile(project(":DarwinJavaApi"))
     compile(project(":JavaCommonApi"))
     compile(project(":accountcommon"))
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
 }

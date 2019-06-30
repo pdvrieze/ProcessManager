@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.util.ExtXmlDeserializable
 import nl.adaptivity.xmlutil.util.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.CharArrayAsStringSerializer
+import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 
 
 /**

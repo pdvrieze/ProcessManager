@@ -29,6 +29,7 @@ import nl.adaptivity.util.PrincipalSerializer
 import nl.adaptivity.util.UUIDSerializer
 import nl.adaptivity.util.multiplatform.*
 import nl.adaptivity.util.security.Principal
+import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
 import kotlin.jvm.JvmStatic
@@ -440,7 +441,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 while (reader.hasNext() && event !== EventType.END_ELEMENT) {
                     event = reader.next()
                     if (!(event == EventType.START_ELEMENT && builder.deserializeChild(reader))) {
-                        reader.unhandledEvent()
+                        throw XmlException("Expected child tag, found other content")
                     }
                 }
 

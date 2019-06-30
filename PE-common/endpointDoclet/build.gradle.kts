@@ -1,4 +1,5 @@
 import multiplatform.registerAndroidAttributeForDeps
+import org.gradle.internal.jvm.Jvm
 
 /*
  * Copyright (c) 2018.
@@ -35,7 +36,10 @@ registerAndroidAttributeForDeps()
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains:annotations:13.0")
-    implementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
+    if(! Jvm.current().javaVersion!!.isJava9Compatible) {
+        // Add the tools jar only if we are on jdk8 or lower. tools.jar was removed in jdk 9. 
+        implementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
+    }
     implementation(project(":PE-common"))
     compileOnly(project(":JavaCommonApi"))
     implementation(project(":DarwinJavaApi"))

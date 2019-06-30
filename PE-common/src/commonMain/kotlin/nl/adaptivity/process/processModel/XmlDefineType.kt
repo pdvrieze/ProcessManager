@@ -28,6 +28,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.serialization.*
 
 @Serializable

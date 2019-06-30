@@ -81,7 +81,7 @@ abstract class SoapMessageHandler {
             loop@ while (reader.hasNext()) {
                 when (reader.next()) {
                     EventType.START_ELEMENT -> break@loop
-                    else                    -> reader.unhandledEvent()
+                    else                    -> throw XmlException("Unexpected content in soap message")
                 }
             }
             if (reader.eventType !== EventType.START_ELEMENT) {

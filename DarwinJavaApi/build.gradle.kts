@@ -39,10 +39,12 @@ registerAndroidAttributeForDeps()
 dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly("org.jetbrains:annotations:13.0")
+    compileOnly("com.sun.xml.ws:jaxws-ri:2.3.2")
     implementation(kotlin("stdlib-jdk8"))
 }
 repositories {
     maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    jcenter()
     mavenCentral()
 }
 val compileKotlin: KotlinCompile by tasks

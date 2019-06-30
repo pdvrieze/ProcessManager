@@ -19,8 +19,8 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.encodeNullableStringElement
-import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.serialutil.encodeNullableStringElement
+import nl.adaptivity.serialutil.readNullableString
 
 open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
     open class PathHolderData<T : XPathHolder>(val owner: XPathHolderSerializer<in T>,

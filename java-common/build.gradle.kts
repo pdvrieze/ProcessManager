@@ -93,6 +93,7 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
+                implementation("javax.xml.bind:jaxb-api:2.3.1")
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
             }
         }
@@ -122,6 +123,7 @@ kotlin {
 
 repositories {
     jcenter()
+    mavenCentral()
     maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }
 

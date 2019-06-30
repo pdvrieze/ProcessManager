@@ -31,6 +31,7 @@ import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
 import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
@@ -329,7 +330,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
                 while (reader.hasNext() && event !== EventType.END_ELEMENT) {
                     event = reader.next()
                     if (!(event == EventType.START_ELEMENT && builder.deserializeChild(reader))) {
-                        reader.unhandledEvent()
+                        throw XmlException("Expected child tag, found other content")
                     }
                 }
 

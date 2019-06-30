@@ -21,10 +21,11 @@ import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.CharArrayAsStringSerializer
+import nl.adaptivity.serialutil.*
+import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.decodeStructure
-import nl.adaptivity.xmlutil.serialization.writeStructure
+import nl.adaptivity.serialutil.decodeStructure
+import nl.adaptivity.serialutil.writeStructure
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 open class XmlContainerSerializer<T : XMLContainer> {

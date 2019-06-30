@@ -19,9 +19,9 @@ package nl.adaptivity.process.processModel.serialization
 import kotlinx.serialization.*
 import nl.adaptivity.process.processModel.PredecessorInfo
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xmlutil.serialization.decodeStructure
-import nl.adaptivity.xmlutil.serialization.writeCollection
-import nl.adaptivity.xmlutil.serialization.writeStructure
+import nl.adaptivity.serialutil.decodeStructure
+import nl.adaptivity.serialutil.writeCollection
+import nl.adaptivity.serialutil.writeStructure
 
 internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifier>, val valueSerializer: KSerializer<String>): KSerializer<MutableMap<Identifier, String?>> {
 

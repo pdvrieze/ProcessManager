@@ -16,10 +16,10 @@
 
 package nl.adaptivity.util
 
+import kotlinx.io.IOException
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.multiplatform.IOException
 import org.w3c.dom.*
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException

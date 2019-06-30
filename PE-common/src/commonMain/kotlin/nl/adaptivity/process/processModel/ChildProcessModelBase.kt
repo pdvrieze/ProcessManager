@@ -21,10 +21,10 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.IdentifiableSetSerializer
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
-import nl.adaptivity.xmlutil.serialization.encodeNullableStringElement
-import nl.adaptivity.xmlutil.serialization.readNullableString
+import nl.adaptivity.serialutil.encodeNullableStringElement
 import kotlin.jvm.JvmField
 
 /**
@@ -131,7 +131,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
                 nestedBuilder()?.let { rootBuilder.childModels.add(deserializeHelper(reader)) }
-                ?: reader.unhandledEvent("Child models are not currently allowed to be nested")
+                ?: throw XmlException("Child models are not currently allowed to be nested")
                 return true
             } else {
                 return super.deserializeChild(reader)

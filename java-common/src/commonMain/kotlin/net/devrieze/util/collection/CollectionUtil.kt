@@ -54,6 +54,14 @@ fun <T, C: MutableCollection<in T>> C.replaceBy(iterable: Iterable<T>) {
 /**
  * Helper function to reset and set values in a set.
  */
+fun <T, C: MutableCollection<in T>> C.replaceBy(item: T) {
+    clear()
+    add(item)
+}
+
+/**
+ * Helper function to reset and set values in a set.
+ */
 fun <T, C: MutableCollection<in T>> C.replaceBy(elements: Iterator<T>) {
     replaceBy(elements.asSequence())
 }

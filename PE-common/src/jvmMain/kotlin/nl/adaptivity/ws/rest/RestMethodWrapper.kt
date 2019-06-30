@@ -32,7 +32,6 @@ import nl.adaptivity.util.activation.writeToStream
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.multiplatform.IOException
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.*

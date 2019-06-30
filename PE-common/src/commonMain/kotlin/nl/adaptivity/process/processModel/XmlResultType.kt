@@ -29,7 +29,7 @@ import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.serialization.simpleSerialClassDesc
+import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 @XmlDeserializer(XmlResultType.Factory::class)
 @Serializable

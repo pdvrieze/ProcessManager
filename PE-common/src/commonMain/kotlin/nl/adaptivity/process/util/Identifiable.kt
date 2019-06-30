@@ -19,8 +19,8 @@ package nl.adaptivity.process.util
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.NullableSerializer
 import kotlinx.serialization.internal.StringSerializer
-import nl.adaptivity.xmlutil.serialization.DelegateSerializer
-import nl.adaptivity.xmlutil.serialization.simpleSerialClassDesc
+import nl.adaptivity.serialutil.DelegateSerializer
+import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 /**
  * Interface for objects that may have identifiers.
