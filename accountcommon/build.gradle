@@ -14,10 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-description = 'A library that abstracts away the access to the account database through a nicer api'
+plugins {
+    id("org.jetbrains.kotlin.jvm")
+    id("java-library")
+}
 
-apply plugin: 'kotlin'
-apply plugin: 'java-library'
+description = 'A library that abstracts away the access to the account database through a nicer api'
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

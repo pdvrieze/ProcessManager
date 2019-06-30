@@ -21,6 +21,8 @@ plugins {
     `kotlin-dsl`
 }
 
+project.
+
 run {
     val properties = Properties()
     FileInputStream(file("../gradle.properties")).use { input ->

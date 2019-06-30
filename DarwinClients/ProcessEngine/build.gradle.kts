@@ -1,6 +1,5 @@
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.cli.jvm.repl.KOTLIN_REPL_JVM_TARGET_PROPERTY
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 

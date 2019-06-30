@@ -1,6 +1,8 @@
 import com.android.builder.model.ApiVersion
+import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -29,6 +31,7 @@ val xmlutilVersion: String by project
 val androidCompatVersion: String by project
 val androidTarget:String by project
 val argJvmDefault:String by project
+val androidPluginVersion:String by project
 
 version = "0.5.1"
 description = "Android interface with process model editor and task interface"
@@ -36,14 +39,53 @@ description = "Android interface with process model editor and task interface"
 configurations {
     create("cleanedAnnotations")
 
+    "implementation" {
+        attributes {
+            attribute(androidAttribute, true)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+        }
+    }
+
+    create("releaseRuntimeClasspath") {
+        attributes {
+            attribute(androidAttribute, true)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+        }
+    }
+
+    create("debugRuntimeClasspath") {
+        attributes {
+            attribute(androidAttribute, true)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+        }
+    }
+
     "compile" {
         exclude(group= "org.jetbrains", module= "annotations")
+        attributes {
+            attribute(androidAttribute, true)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+        }
+
     }
 }
 
 registerAndroidAttributeForDeps()
 
+class MyPlatformRule:  AttributeDisambiguationRule<KotlinPlatformType> {
+    override fun execute(t: MultipleCandidatesDetails<KotlinPlatformType>) {
+        if (t.candidateValues.contains(KotlinPlatformType.androidJvm)) {
+            t.closestMatch(KotlinPlatformType.androidJvm)
+        } else if (t.candidateValues.contains(KotlinPlatformType.jvm)) {
+            t.closestMatch(KotlinPlatformType.jvm)
+        }
+    }
+
+}
+
 dependencies {
+//    KotlinPlatformType.setupAttributesMatchingStrategy(attributesSchema)
+    attributesSchema.attribute(KotlinPlatformType.attribute).disambiguationRules.add(MyPlatformRule::class.java)
     implementation("org.jetbrains:annotations-java5:15.0")
 
     implementation(project(":PE-diagram"))
@@ -55,7 +97,7 @@ dependencies {
     implementation("net.devrieze:xmlutil:$xmlutilVersion")
     implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
     implementation(project(":java-common"))
-    implementation("net.devrieze:android-coroutines-appcompat:0.7.0")
+    implementation("net.devrieze:android-coroutines-appcompat:0.7.990")
 
     implementation("com.android.support.constraint:constraint-layout:1.1.2")
     implementation("com.android.support:support-vector-drawable:${androidCompatVersion}")
@@ -83,6 +125,7 @@ dependencies {
     implementation("android.arch.lifecycle:extensions:$lifecycle_version")
 
     "kapt"("android.arch.lifecycle:compiler:$lifecycle_version")
+//    "kapt"("com.android.databinding:compiler:$androidPluginVersion")
 
     "cleanedAnnotations"("org.jetbrains:annotations-java5:15.0")
 }
@@ -104,7 +147,7 @@ android {
     compileSdkVersion(androidTarget.toInt())
 
     defaultConfig {
-        minSdkVersion(14)
+        minSdkVersion(16)
         targetSdkVersion(androidTarget.toInt())
         versionCode=2
         versionName=version.toString()
@@ -116,7 +159,7 @@ android {
     }
 
     dataBinding {
-//        enabled = true
+        isEnabled=true
     }
 
     compileOptions {
