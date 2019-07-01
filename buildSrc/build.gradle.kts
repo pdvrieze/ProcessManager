@@ -35,9 +35,10 @@ run {
 
 val bintrayVersion: String by project
 val kotlin_version: String by project
+val androidPluginVersion: String by project
 
 dependencies {
-    compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
 }
 
 repositories {
