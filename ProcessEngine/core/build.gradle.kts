@@ -55,12 +55,14 @@ val jupiterVersion: String by project
 val xmlutilVersion: String by project
 val kotlin_version: String by project
 val argJvmDefault: String by project
+val jaxwsVersion: String by project
 
 dependencies {
     api(project(":java-common"))
     api(project(":PE-common"))
 
     implementation(kotlin("stdlib-jdk8"))
+    api("com.sun.xml.ws:jaxws-ri:$jaxwsVersion")
 
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
@@ -78,7 +80,7 @@ dependencies {
 
     testImplementation(project(":DarwinJavaApi"))
     testImplementation(project(":TestSupport"))
-    testImplementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+    testImplementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
 
     testRuntime("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")

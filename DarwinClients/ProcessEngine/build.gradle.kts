@@ -23,6 +23,7 @@ plugins {
     kotlin("jvm")
     id("java-library")
     id("idea")
+    id("mpconsumer")
 }
 
 val myJavaVersion: JavaVersion by project
@@ -41,6 +42,7 @@ val genDir = File(projectDir, "gen")
 val genClasses = listOf("nl.adaptivity.process.engine.servlet.ServletProcessEngine")
 val kotlin_version: String by project
 val tomcatVersion: String by project
+val jaxbVersion: String by project
 
 configurations {
     create("codegen") {
@@ -53,6 +55,8 @@ configurations {
     create("codegenClasspath") {
         attributes {
             attribute(androidAttribute, false)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
         }
     }
 }
@@ -87,7 +91,7 @@ tasks {
             args("-cp")
             val cpString = cp.asPath
             args(cpString)
-            logger.lifecycle("Classpath for generation: $cpString")
+            logger.info("Classpath for generation: $cpString")
 
             args("-package", "nl.adaptivity.process.client", "-dstdir", genDir.absolutePath)
             genClasses.forEach {
@@ -118,6 +122,7 @@ dependencies {
     "api"(project(":PE-common"))
 
     implementation(kotlin("stdlib-jdk8"))
+    implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
     compileOnly(project(":DarwinJavaApi"))
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")

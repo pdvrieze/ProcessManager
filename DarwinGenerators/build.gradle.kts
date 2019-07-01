@@ -31,6 +31,7 @@ base {
 registerAndroidAttributeForDeps()
 
 val myJavaVersion: JavaVersion by project
+val jaxwsVersion: String by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -52,6 +53,7 @@ tasks {
 
 val tomcatVersion: String by project
 val kotlin_version: String by project
+val jaxbVersion: String by project
 
 dependencies {
     implementation(project(":JavaCommonApi"))
@@ -61,6 +63,7 @@ dependencies {
     implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+    implementation("com.sun.xml.ws:jaxws-ri:$jaxwsVersion")
 
 }
 repositories {

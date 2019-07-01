@@ -114,9 +114,9 @@ kotlin {
                 compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
                 compileOnly("com.sun.xml.ws:jaxws-ri:2.3.2")
 
-                implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
-                implementation("net.devrieze:serialutil-jvm:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("net.devrieze:serialutil:$xmlutilVersion")
+                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
             }
         }
         val jvmTest by getting {

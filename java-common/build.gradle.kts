@@ -32,6 +32,7 @@ base {
 val kotlin_version: String by project
 val kotlinsqlVersion: String by project
 val jupiterVersion: String by project
+val jaxbVersion: String by project
 
 kotlin {
     targets {
@@ -93,7 +94,7 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
-                implementation("javax.xml.bind:jaxb-api:2.3.1")
+                implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
             }
         }

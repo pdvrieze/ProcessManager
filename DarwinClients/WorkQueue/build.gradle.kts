@@ -87,7 +87,7 @@ tasks {
             args("-cp")
             val cpString = cp.asPath
             args(cpString)
-            logger.lifecycle("Classpath for generation: $cpString")
+            logger.info("Classpath for generation: $cpString")
 
             args("-package", "nl.adaptivity.process.client", "-dstdir", genDir.absolutePath)
             genClasses.forEach {
