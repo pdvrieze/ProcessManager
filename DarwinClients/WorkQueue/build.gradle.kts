@@ -41,6 +41,7 @@ val genDir = File(projectDir, "gen")
 val genClasses = listOf("nl.adaptivity.process.userMessageHandler.server.InternalEndpoint")
 val kotlin_version: String by project
 val tomcatVersion: String by project
+val jaxbVersion: String by project
 
 configurations {
     create("codegen") {
@@ -118,6 +119,7 @@ dependencies {
     "api"(project(":PE-common"))
 
     implementation(kotlin("stdlib-jdk8"))
+    implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
     compileOnly(project(":DarwinJavaApi"))
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")

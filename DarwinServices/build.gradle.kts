@@ -25,6 +25,7 @@ plugins {
 
 val myJavaVersion: JavaVersion by project
 val tomcatVersion: String by project
+val jaxbVersion: String by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -46,6 +47,7 @@ registerAndroidAttributeForDeps()
 
 dependencies {
     implementation(project(":PE-common"))
+    implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))

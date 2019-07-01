@@ -86,7 +86,9 @@ dependencies {
     tomcatClasspath project(":DarwinRealm")
 
     if (Boolean.valueOf(androidEnabledProp)) {
-        androidApps project(path: ":android-auth", configuration: "debugRuntime")
+        if (file("android-auth").exists()) {
+            androidApps project(path: ":android-auth", configuration: "debugRuntime")
+        }
 //        androidApps project(path: ':PMEditor', configuration: 'debugRuntimeElements')
     }
 
@@ -133,7 +135,7 @@ if (soapTarget.isDirectory()) {
 
 
 tasks.wrapper {
-    gradleVersion = "4.10.2"
+    gradleVersion = "5.4.1"
 }
 
 task copyTomcatWars(type: Copy) {

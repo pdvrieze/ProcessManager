@@ -66,7 +66,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
             reader.skipElement()
             reader.require(EventType.END_ELEMENT, null, null)
           }
-          else                                      -> reader.unhandledEvent()
+          else                                      -> throw XmlException("unsupported event ${reader.eventType} in reading postTask")
         }
       }
       reader.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask")

@@ -35,6 +35,7 @@ val kotlin_version: String by project
 val tomcatVersion: String by project
 val xmlutilVersion: String by project
 val jupiterVersion: String by project
+val jaxwsVersion: String by project
 
 val wsDestDir = file("${buildDir}/docs/wsDoc")
 val genImageDir = "$projectDir/gen/generated-images"
@@ -74,7 +75,7 @@ configurations {
         extendsFrom(apiImplementation)
     }
     val wsDoc by creating {
-        description ="Dependencies needed to run the custom web service doclet."
+        description = "Dependencies needed to run the custom web service doclet."
     }
     val wsDocOutput by creating
 }
@@ -133,12 +134,15 @@ val tomcatRun by tasks.registering {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs=listOf(argJvmDefault)
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs = listOf(argJvmDefault)
+    }
 }
 
 val apiJar by tasks.registering(Jar::class) {
     from(sourceSets["api"].output)
-    appendix="api"
+    appendix = "api"
 }
 
 tasks.named<Jar>("jar") {
@@ -157,7 +161,7 @@ tasks.named("buildApiElements") {
 */
 
 tasks.named<War>("war") {
-//    dependsOn generateAll
+    //    dependsOn generateAll
 //    classpath=sourceSets["api"].output
     from(fileTree(genImageDir))
 //    dependsOn(project.task('apiCompile'))
@@ -175,10 +179,11 @@ tomcat {
 registerAndroidAttributeForDeps()
 
 dependencies {
-//    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    //    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     "apiCompileOnly"(project(":JavaCommonApi"))
     "apiCompileOnly"(project(":DarwinJavaApi"))
     "apiImplementation"(project(":PE-common"))
+    "apiImplementation"("com.sun.xml.ws:jaxws-ri:$jaxwsVersion")
 //    "apiElements"(apiJar)
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
