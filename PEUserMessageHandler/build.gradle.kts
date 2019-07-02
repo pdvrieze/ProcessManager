@@ -188,6 +188,7 @@ dependencies {
     runtime("com.fasterxml.woodstox:woodstox-core:5.0.3")
     implementation(("net.devrieze:xmlutil:$xmlutilVersion"))
     implementation(project(":PE-common"))
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
     implementation(project(":DarwinClients:ProcessEngine"))
     implementation(project(":darwin-sql"))
