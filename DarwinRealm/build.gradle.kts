@@ -1,6 +1,3 @@
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 /*
  * Copyright (c) 2016.
  *
@@ -16,14 +13,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
+
 plugins{
     kotlin("jvm")
     id("idea")
 }
 
-val myJavaVersion: JavaVersion by project
 val dbcpSpec: String by project
-val tomcatVersion: String by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -36,7 +36,7 @@ description = "A tomcat realm to work with the darwin authentication system"
 registerAndroidAttributeForDeps()
 
 dependencies {
-    compileOnly("org.apache.tomcat:tomcat-catalina:${tomcatVersion}")
+    compileOnly("org.apache.tomcat:tomcat-catalina:$tomcatVersion")
     runtime(dbcpSpec)
 
     compile(project(":DarwinJavaApi"))

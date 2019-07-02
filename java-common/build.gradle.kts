@@ -18,6 +18,7 @@ import multiplatform.androidAttribute
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 plugins {
     kotlin("multiplatform")
@@ -28,11 +29,6 @@ base {
     version = "1.1.0"
     description = "A library with generic support classes"
 }
-
-val kotlin_version: String by project
-val kotlinsqlVersion: String by project
-val jupiterVersion: String by project
-val jaxbVersion: String by project
 
 kotlin {
     targets {
@@ -94,7 +90,7 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
-                implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
+                implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
             }
         }

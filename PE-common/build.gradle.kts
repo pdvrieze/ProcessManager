@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import versions.*
 
 plugins {
     kotlin("multiplatform")
@@ -33,13 +34,6 @@ base {
     version = "1.0.0"
     description = "A library with process engine support classes"
 }
-
-val kotlin_version: String by project
-val kotlinsqlVersion: String by project
-val jupiterVersion: String by project
-val serializationVersion: String by project
-val xmlutilVersion: String by project
-val tomcatVersion: String by project
 
 kotlin {
     targets {
@@ -112,7 +106,9 @@ kotlin {
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-                compileOnly("com.sun.xml.ws:jaxws-ri:2.3.2")
+                implementation("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+                implementation("javax.activation:javax.activation-api:$activationVersion")
+                implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
                 implementation("net.devrieze:xmlutil:$xmlutilVersion")
                 implementation("net.devrieze:serialutil:$xmlutilVersion")

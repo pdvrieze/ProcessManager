@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
+import versions.*
 
 plugins {
     base
@@ -27,13 +27,8 @@ base {
     archivesBaseName="PE-diagram"
 }
 
-val `kotlin_version`: String by project
-val kotlinVersion get() = `kotlin_version`
-val androidTarget: String by project
-val xmlutilVersion: String by project
-
 dependencies {
-    implementation(kotlin("stdlib", kotlinVersion))
+    implementation(kotlin("stdlib", kotlin_version))
     api(project(":PE-common:android"))
     implementation(project(":multiplatform:android"))
     api("net.devrieze:xmlutil-android:$xmlutilVersion")

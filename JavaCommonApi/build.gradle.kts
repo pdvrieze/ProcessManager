@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinTargetPreset
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.kotlin_version
 import java.util.Date
 
 plugins {
@@ -36,8 +37,6 @@ base {
     version = "1.1.0"
     description = "Api project for the java-common project"
 }
-
-val kotlin_version: String by project
 
 kotlin {
     targets {

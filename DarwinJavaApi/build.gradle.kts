@@ -16,15 +16,13 @@
 
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 plugins {
     id("java-library")
     kotlin("jvm")
     id("idea")
 }
-
-val myJavaVersion: JavaVersion by project
-val jaxwsVersion: String by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -40,7 +38,8 @@ registerAndroidAttributeForDeps()
 dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly("org.jetbrains:annotations:13.0")
-    compileOnly("com.sun.xml.ws:jaxws-ri:$jaxwsVersion")
+    compileOnly("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+    implementation("javax.activation:javax.activation-api:$activationVersion")
     implementation(kotlin("stdlib-jdk8"))
 }
 repositories {

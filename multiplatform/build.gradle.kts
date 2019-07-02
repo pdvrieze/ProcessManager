@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Date
 import multiplatform.androidAttribute
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import versions.kotlin_version
 
 plugins {
     kotlin("multiplatform")
@@ -42,12 +43,6 @@ base {
     archivesBaseName = "multiplatform"
     version = "0.1"
 }
-
-val serializationVersion: String by project
-
-val kotlin_version: String by project
-
-
 
 kotlin {
     targets {

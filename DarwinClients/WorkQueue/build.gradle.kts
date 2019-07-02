@@ -1,8 +1,3 @@
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-
 /*
  * Copyright (c) 2018.
  *
@@ -19,13 +14,17 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
  * see <http://www.gnu.org/licenses/>.
  */
 
+import multiplatform.androidAttribute
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
+import versions.*
+
 plugins {
     kotlin("jvm")
     id("java-library")
     id("idea")
 }
-
-val myJavaVersion: JavaVersion by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -39,9 +38,6 @@ description = "A project for the automatically generated service clients for the
 
 val genDir = File(projectDir, "gen")
 val genClasses = listOf("nl.adaptivity.process.userMessageHandler.server.InternalEndpoint")
-val kotlin_version: String by project
-val tomcatVersion: String by project
-val jaxbVersion: String by project
 
 configurations {
     create("codegen") {
@@ -119,7 +115,7 @@ dependencies {
     "api"(project(":PE-common"))
 
     implementation(kotlin("stdlib-jdk8"))
-    implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
     compileOnly(project(":DarwinJavaApi"))
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")

@@ -19,6 +19,7 @@ import multiplatform.registerAndroidAttributeForDeps
 import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 plugins {
     kotlin("multiplatform")
@@ -30,10 +31,6 @@ base {
     description = "Wrapper project for the main darwin web interface. This is not really process dependent."
 }
 
-val kotlin_version: String by project
-val kotlinx_html_version: String by project
-val requirejs_version: String by project
-val tomcatVersion: String by project
 val outDir = "$buildDir/kotlin2js/main/"
 
 lateinit var javascriptConfiguration: Configuration

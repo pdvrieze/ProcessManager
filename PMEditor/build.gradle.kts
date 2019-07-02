@@ -1,9 +1,9 @@
 import com.android.builder.model.ApiVersion
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 /*
  * Copyright (c) 2018.
@@ -26,12 +26,6 @@ plugins {
     kotlin("kapt")
     id("kotlin-android-extensions")
 }
-
-val xmlutilVersion: String by project
-val androidCompatVersion: String by project
-val androidTarget:String by project
-val argJvmDefault:String by project
-val androidPluginVersion:String by project
 
 version = "0.5.1"
 description = "Android interface with process model editor and task interface"

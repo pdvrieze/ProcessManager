@@ -1,6 +1,3 @@
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 /*
  * Copyright (c) 2018.
  *
@@ -17,6 +14,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * see <http://www.gnu.org/licenses/>.
  */
 
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
+
 plugins {
     kotlin("jvm")
     war
@@ -29,14 +30,7 @@ base {
 //group = ['service', 'server']
 }
 
-val myJavaVersion: JavaVersion by project
 val argJvmDefault: String by project
-val kotlin_version: String by project
-val tomcatVersion: String by project
-val xmlutilVersion: String by project
-val jupiterVersion: String by project
-val jaxwsVersion: String by project
-
 val wsDestDir = file("${buildDir}/docs/wsDoc")
 val genImageDir = "$projectDir/gen/generated-images"
 val genResourceDir = "$projectDir/gen/genResources"
@@ -183,7 +177,7 @@ dependencies {
     "apiCompileOnly"(project(":JavaCommonApi"))
     "apiCompileOnly"(project(":DarwinJavaApi"))
     "apiImplementation"(project(":PE-common"))
-    "apiImplementation"("com.sun.xml.ws:jaxws-ri:$jaxwsVersion")
+    "apiImplementation"("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
 //    "apiElements"(apiJar)
 
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")

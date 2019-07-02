@@ -1,6 +1,3 @@
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 /*
  * Copyright (c) 2018.
  *
@@ -16,6 +13,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 plugins {
     kotlin("jvm")
@@ -41,9 +42,6 @@ configurations {
 }
 
 val argJvmDefault: String by project
-val kotlin_version: String by project
-val tomcatVersion: String by project
-val jupiterVersion: String by project
 
 registerAndroidAttributeForDeps()
 
@@ -51,6 +49,7 @@ dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
     api(project(":ProcessEngine:core"))
     implementation(project(":multiplatform"))

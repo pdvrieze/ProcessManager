@@ -16,6 +16,7 @@
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 plugins {
     id("java-library")
@@ -50,19 +51,14 @@ artifacts {
     add("testRuntime", testJar)
 }
 
-val spek2Version: String by project
-val jupiterVersion: String by project
-val xmlutilVersion: String by project
-val kotlin_version: String by project
-val argJvmDefault: String by project
-val jaxwsVersion: String by project
-
 dependencies {
     api(project(":java-common"))
     api(project(":PE-common"))
 
     implementation(kotlin("stdlib-jdk8"))
-    api("com.sun.xml.ws:jaxws-ri:$jaxwsVersion")
+    api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+    api("javax.activation:javax.activation-api:$activationVersion")
+    compileOnly("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))

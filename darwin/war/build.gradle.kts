@@ -1,7 +1,3 @@
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-
 /*
  * Copyright (c) 2018.
  *
@@ -18,6 +14,15 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
  * see <http://www.gnu.org/licenses/>.
  */
 
+import multiplatform.androidAttribute
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import versions.kotlinx_html_version
+import versions.myJavaVersion
+import versions.requirejs_version
+import versions.tomcatVersion
+
+
 plugins {
     kotlin("jvm")
     war
@@ -27,12 +32,6 @@ base {
     description = "Main darwin web interface ported from PHP/GWT"
     archivesBaseName = "darwinjvm"
 }
-
-val html_version: String by project
-val kotlinx_html_version: String by project
-val tomcatVersion: String by project
-val requirejs_version: String by project
-val myJavaVersion: JavaVersion by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -58,7 +57,7 @@ dependencies {
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
-    "javascript"("org.webjars:requirejs:${requirejs_version}")
+    "javascript"("org.webjars:requirejs:$requirejs_version")
     "javascript"(project(":darwin"/*, configuration = "jsDefault"*/))
 //    javascript project(":accountmgr:js")
 }

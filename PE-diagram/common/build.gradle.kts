@@ -14,6 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.xmlutilVersion
 
 
 plugins {
@@ -26,7 +27,6 @@ base {
 }
 
 val argJvmDefault: String by project
-val xmlutilVersion: String by project
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs = listOf(argJvmDefault)

@@ -1,5 +1,3 @@
-import multiplatform.registerAndroidAttributeForDeps
-
 /*
  * Copyright (c) 2018.
  *
@@ -16,16 +14,15 @@ import multiplatform.registerAndroidAttributeForDeps
  * see <http://www.gnu.org/licenses/>.
  */
 
+import multiplatform.registerAndroidAttributeForDeps
+import versions.*
+
 plugins {
     java
     kotlin("jvm")
     war
     idea
 }
-
-val myJavaVersion: JavaVersion by project
-val tomcatVersion: String by project
-val jaxbVersion: String by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -47,7 +44,7 @@ registerAndroidAttributeForDeps()
 
 dependencies {
     implementation(project(":PE-common"))
-    implementation("javax.xml.bind:jaxb-api:$jaxbVersion")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))

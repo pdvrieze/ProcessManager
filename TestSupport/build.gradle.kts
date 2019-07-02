@@ -1,6 +1,3 @@
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 /*
  * Copyright (c) 2018.
  *
@@ -17,6 +14,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * see <http://www.gnu.org/licenses/>.
  */
 
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.myJavaVersion
+
 plugins {
     kotlin("jvm")
     id("idea")
@@ -24,8 +25,6 @@ plugins {
 
 version = "1.0.0"
 description = "A library with process engine support classes"
-
-val myJavaVersion: JavaVersion by project
 
 java {
     sourceCompatibility = myJavaVersion

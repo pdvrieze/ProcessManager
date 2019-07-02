@@ -15,6 +15,8 @@
  */
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.jupiterVersion
+import versions.xmlutilVersion
 
 
 plugins {
@@ -36,9 +38,6 @@ sourceSets {
 
 val imageGenCompile = configurations["imageGenCompile"].apply { extendsFrom(configurations["apiElements"]) }
 val imageGenRuntime = configurations["imageGenRuntime"].apply { extendsFrom(configurations["runtimeElements"]) }
-
-val jupiterVersion: String by project
-val xmlutilVersion: String by project
 
 registerAndroidAttributeForDeps()
 

@@ -2,6 +2,7 @@ import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
 
 /*
  * Copyright (c) 2017.
@@ -36,13 +37,6 @@ configurations {
         }
     }
 }
-
-val kotlin_version: String by project
-val kotlinx_html_version: String by project
-val kotlinsqlVersion: String by project
-val tomcatVersion: String by project
-val jupiterVersion: String by project
-val myJavaVersion: JavaVersion by project
 
 java {
     sourceCompatibility = myJavaVersion
@@ -92,14 +86,5 @@ tasks.named<War>("war") {
             r
         }
     }
-/*
-
-    configurations["javascript"].forEach { file ->
-        logger.debug("Adding javascript dependency "+file.toString())
-        into("js") {
-            from(zipTree(file.absolutePath))
-        }
-    }
-*/
 }
 

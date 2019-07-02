@@ -4,6 +4,8 @@ import com.bmuschko.gradle.tomcat.tasks.TomcatRunWar
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import versions.mysqlConnectorVersion
+import versions.tomcatVersion
 
 /*
  * Copyright (c) 2018.
@@ -33,12 +35,6 @@ base {
     description = "A project for running an embedded tomcat server that works."
 
 }
-
-val tomcatVersion:String by project
-val mysqlConnectorVersion: String by project
-
-//group = ['util' ]
-
 
 configurations {
     create("extraBootCp") {
@@ -115,7 +111,7 @@ tomcat {
 
 val assembleExtraBootCp by tasks.creating(Copy::class) {
     from(configurations["extraBootCp"])
-    into("${buildDir}/bootClasspath")
+    into("$buildDir/bootClasspath")
 }
 
 /*
