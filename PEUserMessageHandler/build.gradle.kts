@@ -48,7 +48,7 @@ sourceSets {
     }
     val main by getting {
         java {
-            srcDirs(sourceSets["api"].allSource)
+            srcDirs(api.allSource)
         }
         resources {
             srcDir(genResourceDir)
