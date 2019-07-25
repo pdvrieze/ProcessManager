@@ -1,3 +1,5 @@
+import versions.*
+
 /*
  * Copyright (c) 2017.
  *
@@ -17,23 +19,26 @@
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("java-library")
+    id("mpconsumer")
 }
 
-description = 'A library that abstracts away the access to the account database through a nicer api'
+description = "A library that abstracts away the access to the account database through a nicer api"
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     api("net.devrieze:kotlinsql:$kotlinsqlVersion")
-    implementation project(':darwin-sql')
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-    testRuntimeOnly 'mysql:mysql-connector-java:5.1.36'
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation(project(":darwin-sql"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
 }
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
 
 
-test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 }

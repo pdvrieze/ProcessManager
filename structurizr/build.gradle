@@ -14,17 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+plugins {
+    id("kotlin")
+    id("application")
+    id("mpconsumer")
+}
+
 description = 'Structurizr architecture generation for the project'
 
-apply plugin: 'kotlin'
-apply plugin: 'application'
-
 ext {
-    structurizrVer='0.6.0'
-    if (!hasProperty('structurizrWs1ApikeyProp')) {
+    structurizrVer= "0.6.0"
+    if (!hasProperty("structurizrWs1ApikeyProp")) {
         structurizrWs1ApikeyProp="dummy"
     }
-    if (!hasProperty('structurizrWs1ApisecretProp')) {
+    if (!hasProperty("structurizrWs1ApisecretProp")) {
         structurizrWs1ApisecretProp="dummy"
     }
 }
@@ -32,14 +35,14 @@ ext {
 
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "org.jetbrains:annotations:13.0"
-    compile "com.structurizr:structurizr-core:${structurizrVer}"
-    compile "com.structurizr:structurizr-client:${structurizrVer}"
-    compile project(':darwin-sql')
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    compile("org.jetbrains:annotations:13.0")
+    compile("com.structurizr:structurizr-core:${structurizrVer}")
+    compile("com.structurizr:structurizr-client:${structurizrVer}")
+    compile(project(":darwin-sql"))
 }
 
-mainClassName='uk.ac.bournemouth.darwin.architecture.StructurizrKt'
+mainClassName= "uk.ac.bournemouth.darwin.architecture.StructurizrKt"
 
 sourceCompatibility = myJavaVersion
 targetCompatibility = myJavaVersion

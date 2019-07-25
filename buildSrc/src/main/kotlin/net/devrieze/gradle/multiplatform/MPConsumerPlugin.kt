@@ -55,7 +55,7 @@ class MPConsumerPlugin: Plugin<Project> {
                         // All should defer actual application
                         attributes {
                             if (! contains(KotlinPlatformType.attribute)) {
-                                logger.lifecycle("Adding kotlin usage attribute to configuration: ${name}")
+                                logger.lifecycle("Adding kotlin usage attribute $platformType to configuration: ${name}")
                                 attribute(KotlinPlatformType.attribute, platformType)
                             } else {
                                 logger.lifecycle("Preserving kotlin usage attribute on configuration $name as ${getAttribute(KotlinPlatformType.attribute)} instead of $platformType")

@@ -21,6 +21,7 @@ import versions.*
 plugins{
     kotlin("jvm")
     id("idea")
+    id("mpconsumer")
 }
 
 val dbcpSpec: String by project

@@ -23,6 +23,7 @@ import versions.*
 plugins {
     kotlin("jvm")
     war
+    id("mpconsumer")
 }
 
 base {

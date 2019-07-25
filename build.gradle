@@ -14,6 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+
 buildscript {
 
     repositories {
@@ -34,6 +36,7 @@ buildscript {
 plugins {
     id("idea")
     id("project-report")
+    id("mpconsumer")
 }
 
 //plugins {
@@ -58,7 +61,11 @@ def artifactType = Attribute.of("artifactType", String)
 
 configurations {
     tomcatWars
-    tomcatClasspath
+    tomcatClasspath {
+        attributes {
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+        }
+    }
     if (androidEnabled) {
         androidApps {
             attributes {
