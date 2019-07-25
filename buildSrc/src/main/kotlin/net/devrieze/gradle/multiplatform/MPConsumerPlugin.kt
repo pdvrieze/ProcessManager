@@ -45,20 +45,17 @@ class MPConsumerPlugin: Plugin<Project> {
                     else -> KotlinPlatformType.jvm
                 }
 
-//            logger.lifecycle("Applying multiplatform consumer plugin. Applied plugins: ${plugins.joinToString { it.javaClass.name }}")
                 configurations.all {
                     if (isCanBeResolved) {
                         logger.debug("Skipping configuration $name because it is resolvable")
-//                    } else if (isCanBeConsumed) {
-//                        logger.debug("Skipping configuration $name because it is consumable")
                     } else {
                         // All should defer actual application
                         attributes {
                             if (! contains(KotlinPlatformType.attribute)) {
-                                logger.lifecycle("Adding kotlin usage attribute $platformType to configuration: ${name}")
+                                logger.info("Adding kotlin usage attribute $platformType to configuration: ${name}")
                                 attribute(KotlinPlatformType.attribute, platformType)
                             } else {
-                                logger.lifecycle("Preserving kotlin usage attribute on configuration $name as ${getAttribute(KotlinPlatformType.attribute)} instead of $platformType")
+                                logger.debug("Preserving kotlin usage attribute on configuration $name as ${getAttribute(KotlinPlatformType.attribute)} instead of $platformType")
                             }
                         }
                     }

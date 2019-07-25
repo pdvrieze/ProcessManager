@@ -21,3 +21,6 @@ wiki
 /.idea/workspace.xml
 xmlutil
 kotlinsql
+/DarwinClients/*/gen/*
+/endpointDokkalet/
+*.bak
