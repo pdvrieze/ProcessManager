@@ -50,7 +50,7 @@ data class ModelData(val engineData: () -> EngineTestData,
                      val model: ExecutableProcessModel,
                      val valid: List<Trace>,
                      val invalid: List<Trace>) {
-    internal constructor(model: ConfigurableModel, valid: List<Trace>, invalid: List<Trace>) : this(
+    internal constructor(model: TestConfigurableModel, valid: List<Trace>, invalid: List<Trace>) : this(
         { EngineTestData.defaultEngine() }, model.rootModel, valid, invalid)
 }
 

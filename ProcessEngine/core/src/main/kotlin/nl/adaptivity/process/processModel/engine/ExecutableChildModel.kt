@@ -30,11 +30,11 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder,
     override val endNodeCount by lazy { modelNodes.count { it is ExecutableEndNode } }
 
     override fun builder(rootBuilder: RootProcessModel.Builder) = ExecutableChildModel.Builder(
-        rootBuilder as ExecutableProcessModel.Builder, id, modelNodes.map(ExecutableProcessNode::builder), imports,
+        rootBuilder, id, modelNodes.map(ExecutableProcessNode::builder), imports,
         exports)
 
     open class Builder(
-        override val rootBuilder: ExecutableProcessModel.Builder,
+        override val rootBuilder: RootProcessModel.Builder,
         childId: String? = null,
         nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
         imports: Collection<IXmlResultType> = emptyList(),
@@ -42,7 +42,7 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder,
                                                                                            imports,
                                                                                            exports), ExecutableModelCommon.Builder {
 
-        constructor(rootBuilder: ExecutableProcessModel.Builder, base: ChildProcessModel<*>)
+        constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>)
             : this(rootBuilder,
                    base.id,
                    base.modelNodes.map { it.visit(EXEC_BUILDER_VISITOR) },

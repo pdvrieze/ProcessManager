@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ConfigurableModel
+import nl.adaptivity.process.engine.TestConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 
 class WCP2: ModelSpek(run{
-  val model = object : ConfigurableModel("WCP2") {
+  val model = object : TestConfigurableModel("WCP2") {
     val start by startNode
     val split by split(start) { min = 2; max = 2 }
     val ac1   by activity(split)

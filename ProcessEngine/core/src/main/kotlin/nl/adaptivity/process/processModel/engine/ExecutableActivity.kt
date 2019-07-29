@@ -69,7 +69,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
     }
 
 
-    class ChildModelBuilder(override val rootBuilder: ExecutableProcessModel.Builder,
+    class ChildModelBuilder(override val rootBuilder: RootProcessModel.Builder,
                             override var id: String? = null,
                             childId: String? = null,
                             nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),

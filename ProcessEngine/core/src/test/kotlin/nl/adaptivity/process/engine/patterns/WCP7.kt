@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine.patterns
 import nl.adaptivity.process.engine.*
 
 class WCP7(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
-  val model = object: ConfigurableModel("WCP7") {
+  val model = object: TestConfigurableModel("WCP7") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
     val ac1 by activity(split) { condition = ac1Condition.toXPath() }

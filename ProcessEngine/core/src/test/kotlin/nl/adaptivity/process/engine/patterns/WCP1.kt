@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ConfigurableModel
+import nl.adaptivity.process.engine.TestConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
@@ -34,7 +34,7 @@ private const val expectedWCP1Json = "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",
                                      "]}"
 
 object WCP1 : ModelSpek(run {
-    val m = object : ConfigurableModel("WCP1") {
+    val m = object : TestConfigurableModel("WCP1") {
         val start by startNode
         val ac1 by activity(start)
         val ac2 by activity(ac1)

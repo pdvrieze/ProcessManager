@@ -22,9 +22,8 @@ plugins {
     id("java-library")
     kotlin("jvm")
     id("idea")
+    id("mpconsumer")
 }
-
-registerAndroidAttributeForDeps()
 
 version = "1.0.0"
 description = "The core process engine, independent of deployment location."

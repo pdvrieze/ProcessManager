@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.util.Identifier
 
 class WCP10: ModelSpek(run {
-  val model = object : ConfigurableModel("WCP10") {
+  val model = object : TestConfigurableModel("WCP10") {
     val start1 by startNode
     val join by join(start1, Identifier("ac2")) { min = 1; max = 1; isMultiMerge = true }
     val ac1 by activity(join) { isMultiInstance = true }

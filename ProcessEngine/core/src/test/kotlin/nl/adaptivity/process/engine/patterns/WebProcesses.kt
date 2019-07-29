@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ConfigurableModel
+import nl.adaptivity.process.engine.TestConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
@@ -26,7 +26,7 @@ import nl.adaptivity.process.engine.trace
  * https://bpmai.org/foswiki/pub/BPMAcademicInitiative/AnalyzeProcessModels/ex1_execution_traces.pdf
  */
 class WebProcess1 : ModelSpek(run {
-    val m = object : ConfigurableModel("Signavio-insurance-emergency") {
+    val m = object : TestConfigurableModel("Signavio-insurance-emergency") {
         val start by startNode { label = "Insurance emergency" }
 
         val split1 by split(start) {

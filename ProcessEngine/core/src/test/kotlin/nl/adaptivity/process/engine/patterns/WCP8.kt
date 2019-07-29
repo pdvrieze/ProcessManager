@@ -27,7 +27,7 @@ import org.spekframework.spek2.CreateWith
 @CreateWith(lenientFactory::class)
 @Tag("slow")
 class WCP8(maxValidTraces:Int, maxInvalidTraces: Int = maxValidTraces): ModelSpek(run {
-    val model = object : ConfigurableModel("WCP8") {
+    val model = object : TestConfigurableModel("WCP8") {
         val start1 by startNode
         val start2 by startNode
         val ac1    by activity(start1)
