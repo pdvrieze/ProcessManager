@@ -24,12 +24,11 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.process.processModel.engine.XmlEndNode
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.multiplatform.createUri
+import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.*
 
 
 /**
@@ -82,9 +81,11 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
 
     constructor(content: T) : this(Body<T>(content))
 
-    fun deserializeAttribute(attributeNamespace: CharSequence,
-                             attributeLocalName: CharSequence,
-                             attributeValue: CharSequence): Boolean {
+    fun deserializeAttribute(
+        attributeNamespace: CharSequence,
+        attributeLocalName: CharSequence,
+        attributeValue: CharSequence
+                            ): Boolean {
         if ("encodingStyle" == attributeLocalName.toString()) {
             encodingStyle = createUri(attributeValue.toString())
             return true
@@ -152,18 +153,22 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
         }
 
         @kotlin.jvm.JvmStatic
-        fun <T : XmlSerializable> deserialize(reader: XmlReader,
-                                              bodyDeserializer: XmlDeserializerFactory<T>): Envelope<T> {
+        fun <T : XmlSerializable> deserialize(
+            reader: XmlReader,
+            bodyDeserializer: XmlDeserializerFactory<T>
+                                             ): Envelope<T> {
             val result = Envelope<T>()
             reader.skipPreamble()
             val elementName = result.elementName
             assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
             for (i in reader.attributeCount - 1 downTo 0) {
-                result.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
-                                            reader.getAttributeValue(i))
+                result.deserializeAttribute(
+                    reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
+                    reader.getAttributeValue(i)
+                                           )
             }
             var event: EventType? = null
-            loop@ while (reader.hasNext() && event !== EventType.END_ELEMENT) {
+            loop@ while (reader.hasNext()) {
                 event = reader.next()
                 when (event) {
                     EventType.START_ELEMENT -> {
@@ -172,7 +177,10 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
                         }
                         throw XmlException("Unexpected child tag in Envelope")
                     }
-                    else                    -> throw XmlException("Unexpected element content in Envelope")
+                    EventType.END_ELEMENT -> break@loop
+                    EventType.IGNORABLE_WHITESPACE,
+                    EventType.COMMENT       -> Unit // just skip
+                    else                    -> throw XmlException("Unexpected element content ($event) in Envelope\n  $reader")
                 }
             }
             return result
