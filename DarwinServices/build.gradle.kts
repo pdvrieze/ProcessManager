@@ -22,6 +22,7 @@ plugins {
     kotlin("jvm")
     war
     idea
+    id("mpconsumer")
 }
 
 java {

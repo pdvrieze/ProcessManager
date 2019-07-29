@@ -27,6 +27,7 @@ plugins {
     java
     id("com.bmuschko.tomcat")
     idea
+    id("mpconsumer")
 }
 
 base {
@@ -54,6 +55,12 @@ configurations {
         }
     }
     "runtimeClasspath" {
+        attributes {
+            attribute(androidAttribute, false)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+        }
+    }
+    "testRuntimeClasspath" {
         attributes {
             attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
