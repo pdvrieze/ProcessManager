@@ -96,6 +96,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(kotlin("test-annotations-common"))
             }
         }
         val javaMain by creating {
@@ -119,7 +120,10 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                kotlin("test-junit5")
+                implementation(kotlin("test-junit5"))
+//                implementation(kotlin("test-annotations-common"))
+//                implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
             }
         }
 /*
