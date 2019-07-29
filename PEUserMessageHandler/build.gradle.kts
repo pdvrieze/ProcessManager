@@ -195,6 +195,7 @@ dependencies {
     compileOnly(project(":DarwinJavaApi"))
 
 
+    testRuntime(project(":DarwinJavaApi"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
