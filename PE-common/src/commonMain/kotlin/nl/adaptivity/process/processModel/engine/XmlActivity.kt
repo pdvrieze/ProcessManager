@@ -131,14 +131,14 @@ class XmlActivity : ActivityBase, XmlProcessNode {
 
         @Serializable(IXmlDefineTypeListSerializer::class)
         @SerialName("define")
-        override var defines: MutableCollection<IXmlDefineType>
+        override var defines: MutableCollection<IXmlDefineType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)
             }
 
         @Serializable(IXmlResultTypeListSerializer::class)
         @SerialName("result")
-        override var results: MutableCollection<IXmlResultType>
+        override var results: MutableCollection<IXmlResultType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)
             }
@@ -155,10 +155,10 @@ class XmlActivity : ActivityBase, XmlProcessNode {
             results = mutableListOf()
         }
 
-        constructor(rootBuilder: XmlProcessModel.Builder,
+        constructor(rootBuilder: RootProcessModel.Builder,
                     id: String? = null,
                     childId: String? = null,
-                    nodes: Collection<XmlProcessNode.Builder> = emptyList(),
+                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
                     predecessor: Identifiable? = null,
                     condition: String? = null,
                     successor: Identifiable? = null,

@@ -19,13 +19,14 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 import java.util.*
-import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 @Suppress("NOTHING_TO_INLINE")
@@ -40,7 +41,14 @@ internal abstract class TestConfigurableModel(
         uuid
                                                    ) {
 
-    override val rootModel: ExecutableProcessModel by lazy { buildModel { it.uuid=null;ExecutableProcessModel(it, false)} }
+    override val rootModel: ExecutableProcessModel by lazy {
+        buildModel {
+            it.uuid = null;ExecutableProcessModel(
+            it,
+            false
+                                                 )
+        }
+    }
 
     override fun copy(
         imports: Collection<IXmlResultType>,
@@ -61,15 +69,15 @@ internal abstract class TestConfigurableModel(
     }
 
 
-    operator fun ExecutableProcessNode.Builder.provideDelegate(
+    operator fun ProcessNode.IBuilder.provideDelegate(
         thisRef: TestConfigurableModel,
         property: KProperty<*>
-                                                              ): Identifier {
+                                                     ): Identifier {
         val modelBuilder = builder
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
         with(modelBuilder) {
-            if (nodeBuilder is ExecutableActivity.ChildModelBuilder) {
+            if (nodeBuilder is Activity.ChildModelBuilder) {
                 childModels.add(nodeBuilder.ensureChildId())
             }
 
@@ -83,69 +91,74 @@ internal abstract class TestConfigurableModel(
         property: KProperty<*>
                                                      ): Identifier = this
 
-    inline protected val startNode get() = ExecutableStartNode.Builder()
-    inline protected fun startNode(config: ExecutableStartNode.Builder.() -> Unit) =
-        ExecutableStartNode.Builder().apply(
+    inline protected val startNode get():StartNode.Builder = XmlStartNode.Builder()
+    inline protected fun startNode(config: XmlStartNode.Builder.() -> Unit): StartNode.Builder =
+        XmlStartNode.Builder().apply(
             config
-                                           )
+                                 )
 
-    inline protected fun activity(predecessor: Identified) = ExecutableActivity.Builder(predecessor = predecessor)
+    inline protected fun activity(predecessor: Identified): Activity.Builder =
+        XmlActivity.Builder(predecessor = predecessor)
+
     inline protected fun activity(
         predecessor: Identified,
-        config: ExecutableActivity.Builder.() -> Unit
-                                 ) = ExecutableActivity.Builder(
-        predecessor = predecessor
-                                                               ).apply(config)
+        config: Activity.Builder.() -> Unit
+                                 ): Activity.Builder =
+        XmlActivity.Builder(
+            predecessor = predecessor
+                           ).apply(config)
 
-    inline protected fun compositeActivity(predecessor: Identified) = ExecutableActivity.ChildModelBuilder(
-        builder!!,
-        predecessor = predecessor
-                                                                                                          )
+    inline protected fun compositeActivity(predecessor: Identified): Activity.ChildModelBuilder =
+        XmlActivity.ChildModelBuilder(
+            builder,
+            predecessor = predecessor
+                                     )
 
     inline protected fun compositeActivity(
         predecessor: Identified,
-        config: ExecutableActivity.ChildModelBuilder.() -> Unit
-                                          ) = ExecutableActivity.ChildModelBuilder(
-        builder, predecessor = predecessor
-                                                                                  ).apply(config)
+        config: Activity.ChildModelBuilder.() -> Unit
+                                          ): Activity.ChildModelBuilder =
+        XmlActivity.ChildModelBuilder(
+            builder, predecessor = predecessor
+                                     ).apply(config)
 
-    inline protected fun split(predecessor: Identified) = ExecutableSplit.Builder(predecessor = predecessor)
+    inline protected fun split(predecessor: Identified): Split.Builder = XmlSplit.Builder(predecessor = predecessor)
     inline protected fun split(
         predecessor: Identified,
-        config: ExecutableSplit.Builder.() -> Unit
-                              ) = ExecutableSplit.Builder(
-        predecessor = predecessor
-                                                         ).apply(config)
+        config: Split.Builder.() -> Unit
+                              ) : Split.Builder = XmlSplit.Builder(
+    predecessor = predecessor
+    ).apply(config)
 
-    inline protected fun join(vararg predecessors: Identified) = ExecutableJoin.Builder(
+    inline protected fun join(vararg predecessors: Identified): Join.Builder = XmlJoin.Builder(
         predecessors = Arrays.asList(*predecessors)
-                                                                                       )
+                                                                             )
 
-    inline protected fun join(predecessors: Collection<Identified>) = ExecutableJoin.Builder(
+    inline protected fun join(predecessors: Collection<Identified>) : Join.Builder = XmlJoin.Builder(
         predecessors = predecessors
-                                                                                            )
+                                                                                  )
 
     inline protected fun join(
         vararg predecessors: Identified,
-        config: ExecutableJoin.Builder.() -> Unit
-                             ) = ExecutableJoin.Builder(
+        config: Join.Builder.() -> Unit
+                             ): Join.Builder = XmlJoin.Builder(
         predecessors = Arrays.asList(*predecessors)
-                                                       ).apply(config)
+                                             ).apply(config)
 
     inline protected fun join(
         predecessors: Collection<Identified>,
-        config: ExecutableJoin.Builder.() -> Unit
-                             ) = ExecutableJoin.Builder(
+        config: Join.Builder.() -> Unit
+                             ) : Join.Builder = XmlJoin.Builder(
         predecessors = predecessors
-                                                       ).apply(config)
+                                             ).apply(config)
 
-    inline protected fun endNode(predecessor: Identified) = ExecutableEndNode.Builder(predecessor = predecessor)
+    inline protected fun endNode(predecessor: Identified): EndNode.Builder = XmlEndNode.Builder(predecessor = predecessor)
     inline protected fun endNode(
         predecessor: Identified,
-        config: ExecutableEndNode.Builder.() -> Unit
-                                ) = ExecutableEndNode.Builder(
+        config: EndNode.Builder.() -> Unit
+                                ): EndNode.Builder = XmlEndNode.Builder(
         predecessor = predecessor
-                                                             ).apply(config)
+                                                   ).apply(config)
 
 
     inline operator fun <T : CompositeActivity> T.provideDelegate(
@@ -169,12 +182,12 @@ internal abstract class TestConfigurableModel(
 
         private inline fun rootBuilder() = this@TestConfigurableModel.builder
 
-        private val builder: ExecutableActivity.ChildModelBuilder = ExecutableActivity.ChildModelBuilder(
+        private val builder: Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(
             rootBuilder(),
             childId = childId,
             id = id,
             predecessor = predecessor
-                                                                                                        )
+                                                                                    )
 
         init {
             rootBuilder().childModels.add(builder)
@@ -199,15 +212,15 @@ internal abstract class TestConfigurableModel(
             }
         }
 
-        operator fun ExecutableProcessNode.Builder.provideDelegate(
+        operator fun ProcessNode.IBuilder.provideDelegate(
             thisRef: CompositeActivity,
             property: KProperty<*>
-                                                                  ): Identifier {
+                                                        ): Identifier {
             val modelBuilder = builder
             val nodeBuilder = this
             if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
             with(modelBuilder) {
-                if (nodeBuilder is ExecutableActivity.ChildModelBuilder) {
+                if (nodeBuilder is Activity.ChildModelBuilder) {
                     modelBuilder.rootBuilder.childModels.add(nodeBuilder.ensureChildId())
                 }
 
@@ -221,68 +234,68 @@ internal abstract class TestConfigurableModel(
             property: KProperty<*>
                                                          ): Identifier = this
 
-        inline protected val startNode get() = ExecutableStartNode.Builder()
-        inline protected fun startNode(config: ExecutableStartNode.Builder.() -> Unit) =
-            ExecutableStartNode.Builder().apply(
+        inline protected val startNode get(): StartNode.Builder = XmlStartNode.Builder()
+        inline protected fun startNode(config: StartNode.Builder.() -> Unit): StartNode.Builder =
+            XmlStartNode.Builder().apply(
                 config
-                                               )
+                                     )
 
-        inline protected fun activity(predecessor: Identified) = ExecutableActivity.Builder(predecessor = predecessor)
+        inline protected fun activity(predecessor: Identified): Activity.Builder = XmlActivity.Builder(predecessor = predecessor)
         inline protected fun activity(
             predecessor: Identified,
-            config: ExecutableActivity.Builder.() -> Unit
-                                     ) = ExecutableActivity.Builder(
+            config: Activity.Builder.() -> Unit
+                                     ) : Activity.Builder = ActivityBase.Builder(
             predecessor = predecessor
-                                                                   ).apply(config)
+                                                         ).apply(config)
 
-        inline protected fun compositeActivity(predecessor: Identified) = ExecutableActivity.ChildModelBuilder(
+        inline protected fun compositeActivity(predecessor: Identified) : Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(
             rootBuilder(), predecessor = predecessor
-                                                                                                              )
+                                                                                                    )
 
         inline protected fun compositeActivity(
             predecessor: Identified,
-            config: ExecutableActivity.ChildModelBuilder.() -> Unit
-                                              ) = ExecutableActivity.ChildModelBuilder(
+            config: Activity.ChildModelBuilder.() -> Unit
+                                              ) : Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(
             rootBuilder(), predecessor = predecessor
-                                                                                      ).apply(config)
+                                                                            ).apply(config)
 
-        inline protected fun split(predecessor: Identified) = ExecutableSplit.Builder(predecessor = predecessor)
+        inline protected fun split(predecessor: Identified) : Split.Builder = XmlSplit.Builder(predecessor = predecessor)
         inline protected fun split(
             predecessor: Identified,
-            config: ExecutableSplit.Builder.() -> Unit
-                                  ) = ExecutableSplit.Builder(
+            config: Split.Builder.() -> Unit
+                                  ) : Split.Builder = XmlSplit.Builder(
             predecessor = predecessor
-                                                             ).apply(config)
+                                                   ).apply(config)
 
-        inline protected fun join(vararg predecessors: Identified) = ExecutableJoin.Builder(
+        inline protected fun join(vararg predecessors: Identified) : Join.Builder = XmlJoin.Builder(
             predecessors = Arrays.asList(*predecessors)
-                                                                                           )
+                                                                                 )
 
-        inline protected fun join(predecessors: Collection<Identified>) = ExecutableJoin.Builder(
+        inline protected fun join(predecessors: Collection<Identified>) : Join.Builder = XmlJoin.Builder(
             predecessors = predecessors
-                                                                                                )
+                                                                                      )
 
         inline protected fun join(
             vararg predecessors: Identified,
-            config: ExecutableJoin.Builder.() -> Unit
-                                 ) = ExecutableJoin.Builder(
+            config: Join.Builder.() -> Unit
+                                 ) : Join.Builder = XmlJoin.Builder(
             predecessors = Arrays.asList(*predecessors)
-                                                           ).apply(config)
+                                                 ).apply(config)
 
         inline protected fun join(
             predecessors: Collection<Identified>,
-            config: ExecutableJoin.Builder.() -> Unit
-                                 ) = ExecutableJoin.Builder(
+            config: Join.Builder.() -> Unit
+                                 ) : Join.Builder = XmlJoin.Builder(
             predecessors = predecessors
-                                                           ).apply(config)
+                                                 ).apply(config)
 
-        inline protected fun endNode(predecessor: Identified) = ExecutableEndNode.Builder(predecessor = predecessor)
+        inline protected fun endNode(predecessor: Identified): EndNode.Builder = XmlEndNode.Builder(predecessor = predecessor)
         inline protected fun endNode(
             predecessor: Identified,
-            config: ExecutableEndNode.Builder.() -> Unit
-                                    ) = ExecutableEndNode.Builder(
+            config: EndNode.Builder.() -> Unit
+                                    ) : EndNode.Builder = XmlEndNode.Builder(
             predecessor = predecessor
-                                                                 ).apply(config)
+                                                       ).apply(config)
 
 
     }

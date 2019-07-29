@@ -52,14 +52,14 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
 
         protected constructor() : super()
 
-        constructor(rootBuilder: XmlProcessModel.Builder,
+        constructor(rootBuilder: RootProcessModel.Builder,
                     childId: String? = null,
-                    nodes: Collection<XmlProcessNode.Builder> = emptyList(),
+                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
                     imports: Collection<IXmlResultType> = emptyList(),
                     exports: Collection<IXmlDefineType> = emptyList()) : super(rootBuilder, childId, nodes, imports,
                                                                                exports)
 
-        constructor(rootBuilder: XmlProcessModel.Builder, base: ChildProcessModel<*>) :
+        constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>) :
             this(rootBuilder,
                  base.id,
                  base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },

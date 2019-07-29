@@ -146,7 +146,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
 
     @Serializable
-    abstract class Builder : ProcessNodeBase.Builder, Activity.Builder, SimpleXmlDeserializable {
+    open class Builder : ProcessNodeBase.Builder, Activity.Builder, SimpleXmlDeserializable {
 
         @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
