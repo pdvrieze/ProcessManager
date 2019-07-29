@@ -123,6 +123,7 @@ kotlin {
                 implementation(kotlin("test-junit5"))
 //                implementation(kotlin("test-annotations-common"))
 //                implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+                runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
             }
         }
@@ -136,7 +137,7 @@ kotlin {
                 implementation("org.mockito:mockito-core:2.25.0")
                 implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
 
-                runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
+                runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
 
                 implementation("net.devrieze:xmlutil:$xmlutilVersion")
                 implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")

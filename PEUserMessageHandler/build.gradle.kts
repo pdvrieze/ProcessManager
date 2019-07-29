@@ -185,7 +185,7 @@ dependencies {
     compileOnly(sourceSets["api"].output)
 
 
-    runtime("com.fasterxml.woodstox:woodstox-core:5.0.3")
+    runtime("com.fasterxml.woodstox:woodstox-core:5.1.0")
     implementation(("net.devrieze:xmlutil:$xmlutilVersion"))
     implementation(project(":PE-common"))
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
@@ -200,7 +200,7 @@ dependencies {
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
     testImplementation(project(":PE-common"))
-    testRuntime("com.fasterxml.woodstox:woodstox-core:5.0.3")
+    testRuntime("com.fasterxml.woodstox:woodstox-core:5.1.0")
     testRuntime("mysql:mysql-connector-java:5.1.36")
 
 /*

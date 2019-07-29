@@ -63,7 +63,9 @@ dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
 
-    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
+    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
+
+    testImplementation(project(":PE-common"))
 
     testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}") {
