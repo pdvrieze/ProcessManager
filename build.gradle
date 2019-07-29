@@ -37,6 +37,8 @@ plugins {
     id("idea")
     id("project-report")
     id("mpconsumer")
+    id("com.android.application") apply false
+    id("kotlin-android") apply false
 }
 
 //plugins {
@@ -91,8 +93,8 @@ dependencies {
     tomcatClasspath project(":DarwinRealm")
 
     if (Boolean.valueOf(androidEnabledProp)) {
-        if (file("android-auth").exists()) {
-            androidApps project(path: ":android-auth", configuration: "debugRuntime")
+        if (file("android-auth/build.gradle").exists()) {
+            androidApps project(path: ":android-auth", configuration: "debugRuntimeElements")
         }
 //        androidApps project(path: ':PMEditor', configuration: 'debugRuntimeElements')
     }

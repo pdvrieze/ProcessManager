@@ -37,11 +37,13 @@ val androidPluginVersion: String by project
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    runtimeOnly("com.android.tools.build:gradle:$androidPluginVersion")
 }
 
 repositories {
     mavenLocal()
     jcenter()
+    google()
     maven(url = "https://dl.bintray.com/kotlin/kotlin-eap")
 
 }

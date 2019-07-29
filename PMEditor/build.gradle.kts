@@ -91,7 +91,7 @@ dependencies {
     implementation("net.devrieze:xmlutil:$xmlutilVersion")
     implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
     implementation(project(":java-common"))
-    implementation("net.devrieze:android-coroutines-appcompat:0.7.990")
+//    implementation("net.devrieze:android-coroutines-appcompat:0.7.990")
 
     implementation("com.android.support.constraint:constraint-layout:1.1.2")
     implementation("com.android.support:support-vector-drawable:${androidCompatVersion}")
