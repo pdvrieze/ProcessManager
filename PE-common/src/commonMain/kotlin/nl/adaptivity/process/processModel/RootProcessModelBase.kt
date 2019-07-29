@@ -425,6 +425,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
         companion object {
 
+            @Deprecated("Use kotlinx.serializer")
             @JvmStatic
             fun <B : Builder> deserialize(builder: B,
                                           reader: XmlReader): B {
@@ -437,11 +438,11 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                                                  reader.getAttributeValue(i))
                 }
 
-                var event: EventType? = null
-                while (reader.hasNext() && event !== EventType.END_ELEMENT) {
-                    event = reader.next()
+//                var event: EventType? = null
+                while (reader.hasNext() && reader.nextTag() !== EventType.END_ELEMENT) {
+                    val event = reader.eventType
                     if (!(event == EventType.START_ELEMENT && builder.deserializeChild(reader))) {
-                        throw XmlException("Expected child tag, found other content")
+                        throw XmlException("Expected child tag, found other content ($event)\n  $reader")
                     }
                 }
 
