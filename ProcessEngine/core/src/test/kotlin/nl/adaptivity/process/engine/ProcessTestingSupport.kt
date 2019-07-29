@@ -86,7 +86,7 @@ inline fun GroupBody.givenEngine(body: EngineSpecBody.()->Unit) {
 /**
  * An extended dsl for testing processes without having to carry around large amounts of local variables.
  */
-class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction:StubProcessTransaction, val instanceHandle: HProcessInstance) {
+class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubProcessTransaction, val instanceHandle: HProcessInstance) {
 
   @ProcessTestingDslMarker
   inner class InstanceSpecBody(delegate:EngineSpecBody): DelegateSpecBody<InstanceSpecBody, InstanceActionBody, InstanceTestBody, InstanceFixtureBody>(delegate.delegate), InstanceSupport {
@@ -368,7 +368,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
       val instance = transaction.readableEngineData.instance(_instance.getHandle()).withPermission()
       val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
       if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
-        "At trace ${traceElement} -  State of node ${nodeInstance} not complete but ${nodeInstance.state} ${instance.toDebugString(transaction)}")
+        "At trace ${traceElement} -  State of node ${nodeInstance} not complete but ${nodeInstance.state} ${instance.toDebugString()}")
     }
   }
 }

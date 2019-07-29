@@ -51,6 +51,8 @@ registerAndroidAttributeForDeps()
 
 dependencies {
     api(project(":java-common"))
+    implementation(project(":ProcessEngine:core"))
+    implementation(project(":DarwinJavaApi"))
     implementation(kotlin("stdlib-jdk8"))
 }
 repositories {

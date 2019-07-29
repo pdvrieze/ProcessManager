@@ -35,9 +35,9 @@ open class EngineTestData(val messageService: StubMessageService, val engine: Pr
   }, TestProcessEngine.cacheModels<Any>(
     MemProcessModelMap(), 3),
            TestProcessEngine.cacheInstances(
-             MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 3),
+               MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 3),
            TestProcessEngine.cacheNodes<Any>(
-             MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 3))
+               MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 3))
 
   private constructor(messageService: StubMessageService,
                       transactionFactory: ProcessTransactionFactory<StubProcessTransaction>,

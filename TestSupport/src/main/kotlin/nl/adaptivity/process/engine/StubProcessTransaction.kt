@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -26,13 +26,14 @@ import kotlin.reflect.KProperty
 /**
  * Created by pdvrieze on 20/11/16.
  */
-class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction>) : StubTransaction(), ProcessTransaction {
+class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction>) : StubTransaction(),
+                                                                                                   ProcessTransaction {
   override val readableEngineData: ProcessEngineDataAccess
     get() = engineData.createReadDelegate(this)
   override val writableEngineData: MutableProcessEngineDataAccess
     get() = engineData.createWriteDelegate(this)
 
-  internal inner class InstanceWrapper(val instanceHandle: HProcessInstance) {
+  inner class InstanceWrapper(val instanceHandle: HProcessInstance) {
 
     operator fun invoke(): ProcessInstance { return readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission() }
 
@@ -42,7 +43,7 @@ class StubProcessTransaction(private val engineData: IProcessEngineData<StubProc
 
   }
 
-  internal fun ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null): InstanceWrapper {
+  fun ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null): InstanceWrapper {
     val modelHandle = addProcessModel(this@StubProcessTransaction, model, owner)
     val instanceHandle = startProcess(this@StubProcessTransaction, owner, modelHandle, "TestInstance", UUID.randomUUID(), payload)
     return InstanceWrapper(instanceHandle)
