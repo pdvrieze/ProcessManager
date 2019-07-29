@@ -1,8 +1,3 @@
-import nl.adaptivity.diagram.svg.JVMTextMeasurer
-import nl.adaptivity.diagram.svg.SVGCanvas
-import nl.adaptivity.xmlutil.XmlStreaming
-import java.io.StringWriter
-import nl.adaptivity.process.diagram.*
 /*
  * Copyright (c) 2017.
  *
@@ -19,6 +14,12 @@ import nl.adaptivity.process.diagram.*
  * see <http://www.gnu.org/licenses/>.
  */
 
+import nl.adaptivity.diagram.svg.JVMTextMeasurer
+import nl.adaptivity.diagram.svg.SVGCanvas
+import nl.adaptivity.xmlutil.XmlStreaming
+import java.io.StringWriter
+import nl.adaptivity.process.diagram.*
+import kotlin.test.*
 
 class NodeTest {
   @Test
