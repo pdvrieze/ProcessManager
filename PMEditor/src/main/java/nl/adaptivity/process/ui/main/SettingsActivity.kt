@@ -35,7 +35,6 @@ import android.support.v4.app.NavUtils
 import android.text.InputType
 import android.text.TextUtils
 import android.view.MenuItem
-import kotlinx.coroutines.android.UI
 import nl.adaptivity.android.coroutines.ActivityCoroutineScope
 import nl.adaptivity.android.coroutines.aAsync
 import nl.adaptivity.android.coroutines.aLaunch

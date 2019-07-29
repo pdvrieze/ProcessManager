@@ -58,9 +58,9 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
         val drawableProcessNode = getItem(position)
 
         val decorations: Array<RelativeLightView>
-        if (drawableProcessNode is StartNode.Builder<*, *>) {
+        if (drawableProcessNode is StartNode.Builder) {
             decorations = getStartDecorations(drawableProcessNode, scale)
-        } else if (drawableProcessNode is EndNode.Builder<*, *>) {
+        } else if (drawableProcessNode is EndNode.Builder) {
             decorations = getEndDecorations(drawableProcessNode, scale)
         } else {
             decorations = getDefaultDecorations(drawableProcessNode, scale)
@@ -216,14 +216,14 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
         return false
     }
 
-    fun tryAddSuccessor(prev: DrawableProcessNode.Builder<DrawableProcessNode>, next: DrawableProcessNode.Builder<*>) {
+    fun tryAddSuccessor(prev: DrawableProcessNode.Builder<DrawableProcessNode>, next: DrawableProcessNode.Builder<DrawableProcessNode>) {
         if (prev.successors.any { it.id == next.id }) {
             prev.removeSuccessor(next)
         } else {
 
             if (prev.successors.size < prev.maxSuccessorCount && next.predecessors.size < next.maxPredecessorCount) {
                 try {
-                    if (prev is Split.Builder<*, *>) {
+                    if (prev is Split.Builder) {
                         if (prev.min >= prev.max) {
                             prev.min = prev.min + 1
                         }
@@ -231,7 +231,7 @@ class MyDiagramAdapter(private val context: Context, diagram: DrawableProcessMod
                             prev.max = prev.max + 1
                         }
                     }
-                    if (next is Join.Builder<*, *>) {
+                    if (next is Join.Builder) {
                         if (next.min >= next.max) {
                             next.min = next.min + 1
                         }

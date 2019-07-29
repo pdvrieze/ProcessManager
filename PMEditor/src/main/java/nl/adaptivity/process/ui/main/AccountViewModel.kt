@@ -21,6 +21,7 @@ import android.app.Activity
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import nl.adaptivity.android.coroutines.CoroutineActivity
 import nl.adaptivity.android.coroutines.aAsync
 import nl.adaptivity.android.coroutines.aLaunch
 import nl.adaptivity.android.darwin.ensureAccount
@@ -29,7 +30,7 @@ import java.net.URI
 class AccountViewModel(): ViewModel() {
     val account: LiveData<Account?> = MutableLiveData()
 
-    fun requestAccount(activity: Activity, authBase: URI?) {
+    fun requestAccount(activity: CoroutineActivity, authBase: URI?) {
 
         activity.aLaunch {
             val a = ensureAccount(authBase)

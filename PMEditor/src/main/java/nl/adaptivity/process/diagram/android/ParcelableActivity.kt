@@ -20,10 +20,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor
-import nl.adaptivity.process.diagram.DrawableActivity
-import nl.adaptivity.process.diagram.DrawableProcessModel
-import nl.adaptivity.process.diagram.DrawableProcessNode
-import nl.adaptivity.process.diagram.STUB_DRAWABLE_BUILD_HELPER
+import nl.adaptivity.process.diagram.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.tasks.EditableUserTask
 import nl.adaptivity.process.tasks.PostTask
@@ -35,10 +32,11 @@ import nl.adaptivity.xmlutil.toString
 import org.w3.soapEnvelope.Envelope
 import java.io.StringReader
 
-class ParcelableActivity @JvmOverloads constructor(builder: Activity.Builder<*, *>,
-                                buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel?> = STUB_DRAWABLE_BUILD_HELPER) : DrawableActivity(
-    builder, buildHelper), Parcelable {
-    constructor(orig: Activity<*, *>, compat: Boolean) : this(builder(orig, compat))
+class ParcelableActivity @JvmOverloads
+constructor(builder: Activity.Builder,
+            buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, DrawableProcessModel, RootDrawableProcessModel, ChildProcessModelBase<DrawableProcessNode>> = STUB_DRAWABLE_BUILD_HELPER)
+    : DrawableActivity(builder, buildHelper), Parcelable {
+    constructor(orig: Activity, compat: Boolean) : this(builder(orig, compat))
 
     private constructor(source: Parcel) : this(fromParcel(source))
 
@@ -99,13 +97,13 @@ class ParcelableActivity @JvmOverloads constructor(builder: Activity.Builder<*, 
 
         @JvmStatic
         @Deprecated("Use constructor directly", ReplaceWith("ParcelableActivity(orig, compat)"))
-        fun newInstance(orig: Activity<*, *>, compat: Boolean): ParcelableActivity {
+        fun newInstance(orig: Activity, compat: Boolean): ParcelableActivity {
             return ParcelableActivity(orig, compat)
         }
 
 
         @JvmStatic
-        private fun builder(orig: Activity<*, *>, compat: Boolean): DrawableActivity.Builder {
+        private fun builder(orig: Activity, compat: Boolean): DrawableActivity.Builder {
             return Builder(orig).apply { isCompat = compat }
         }
 

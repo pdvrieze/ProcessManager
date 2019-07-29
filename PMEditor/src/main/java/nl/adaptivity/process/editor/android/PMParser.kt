@@ -18,6 +18,7 @@ package nl.adaptivity.process.editor.android
 
 import android.util.Log
 import nl.adaptivity.process.diagram.AbstractLayoutStepper
+import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.diagram.LayoutAlgorithm
 import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.processModel.RootProcessModel
@@ -55,7 +56,7 @@ object PMParser {
             val writer = AndroidXmlWriter(serializer)
             try {
                 val serModel = XmlProcessModel(processModel.builder())
-                XML.toXml(writer, serModel)
+                XML().toXml(target= writer, serializer=XmlProcessModel.serializer(), obj=serModel, prefix=null)
                 //            processModel.serialize(writer);
             } finally {
                 writer.close()
@@ -77,19 +78,19 @@ object PMParser {
 
     @JvmStatic
     @Throws(XmlPullParserException::class, IOException::class)
-    fun exportProcessModel(out: OutputStream, processModel: RootProcessModel<*, *>) {
+    fun exportProcessModel(out: OutputStream, processModel: RootProcessModel<*>) {
         val sanitizedModel = sanitizeForExport(processModel)
         serializeProcessModel(out, sanitizedModel)
     }
 
     @JvmStatic
     @Throws(XmlPullParserException::class, IOException::class)
-    fun exportProcessModel(out: Writer, processModel: RootProcessModel<*, *>) {
+    fun exportProcessModel(out: Writer, processModel: RootProcessModel<*>) {
         val sanitizedModel = sanitizeForExport(processModel)
         serializeProcessModel(out, sanitizedModel)
     }
 
-    private fun sanitizeForExport(processModel: RootProcessModel<*, *>): RootDrawableProcessModel {
+    private fun sanitizeForExport(processModel: RootProcessModel<*>): RootDrawableProcessModel {
         val result = RootDrawableProcessModel.get(processModel)!!
 
         result.setHandleValue(-1)
@@ -161,7 +162,7 @@ object PMParser {
     fun parseProcessModel(input: XmlReader,
                           simpleLayoutAlgorithm: LayoutAlgorithm,
                           advancedAlgorithm: LayoutAlgorithm): RootDrawableProcessModel.Builder {
-        val result = RootDrawableProcessModel.Builder(XML.parse<XmlProcessModel>(input))
+        val result: RootDrawableProcessModel.Builder = RootDrawableProcessModel.Builder(XML().parse(XmlProcessModel.serializer(), input))
         if (result.uuid == null) {
             result.uuid = UUID.randomUUID()
         }

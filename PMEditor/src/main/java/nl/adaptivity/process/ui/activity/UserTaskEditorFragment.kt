@@ -29,8 +29,8 @@ import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import net.devrieze.util.CollectionUtil
-import net.devrieze.util.*
+import net.devrieze.util.isNullOrEmpty
+import net.devrieze.util.toArrayList
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.android.recyclerview.ClickableAdapter
 import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener
@@ -56,9 +56,7 @@ import nl.adaptivity.process.util.VariableReference.ResultReference
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
-
-import java.util.ArrayList
-
+import java.util.*
 
 /**
  * A placeholder fragment containing a simple view.
@@ -283,7 +281,7 @@ class UserTaskEditorFragment : Fragment(), OnItemClickListener<ItemViewHolder>, 
         }
     }
 
-    override fun onClickItem(adapter: ClickableAdapter<out ItemViewHolder>,
+    override fun onClickItem(adapter: ClickableAdapter<*>,
                              viewHolder: ItemViewHolder): Boolean {
         ItemEditDialogFragment.newInstance(taskEditAdapter.getItem(viewHolder.adapterPosition), variables,
                                            activity.defines, viewHolder.adapterPosition)
@@ -336,7 +334,7 @@ class UserTaskEditorFragment : Fragment(), OnItemClickListener<ItemViewHolder>, 
                         variables: Collection<ResultReference>): UserTaskEditorFragment {
             val args = Bundle(2)
             args.putParcelable(UIConstants.KEY_ACTIVITY, activity)
-            args.putParcelableArrayList(UIConstants.KEY_VARIABLES, CollectionUtil.toArrayList(variables))
+            args.putParcelableArrayList(UIConstants.KEY_VARIABLES, toArrayList(variables))
             val fragment = UserTaskEditorFragment()
             fragment.arguments = args
             return fragment

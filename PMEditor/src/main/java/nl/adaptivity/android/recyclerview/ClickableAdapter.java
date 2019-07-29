@@ -29,7 +29,7 @@ public interface ClickableAdapter<VH extends ClickableViewHolder> {
      * @param viewHolder The underlying viewHolder for the event.
      * @return true if the click has been absorbed, false if not.
      */
-    boolean onClickItem(ClickableAdapter<? extends VH> adapter, VH viewHolder);
+    boolean onClickItem(ClickableAdapter<?> adapter, VH viewHolder);
   }
 
   void doClickView(VH clickableViewHolder);
