@@ -65,6 +65,7 @@ dependencies {
 
     runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.0.3")
 
+    testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}") {
         exclude(group="org.jetbrains.kotlin")
     }
