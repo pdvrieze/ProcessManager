@@ -82,7 +82,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
             }
 
             override fun serialize(encoder: Encoder, obj: Builder) {
-                val rootModel = XmlProcessModel.Builder().apply { childModels.add(obj) }.build()
+                val rootModel = XmlProcessModel(XmlProcessModel.Builder().apply { childModels.add(obj) })
                 XmlChildModel.serialize(encoder, rootModel.childModels.single())
                 throw UnsupportedOperationException("Cannot be independently saved")
             }

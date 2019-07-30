@@ -24,31 +24,7 @@ import nl.adaptivity.process.processModel.*
 //@Serializable
 interface XmlModelCommon: ProcessModel<XmlProcessNode> {
 
-  interface Builder: ProcessModel.Builder {
+  interface Builder: ProcessModel.Builder
 
-    override fun startNodeBuilder(): StartNode.Builder = StartNodeBase.Builder()
-
-    override fun startNodeBuilder(startNode: StartNode): StartNode.Builder = StartNodeBase.Builder(startNode)
-
-    override fun splitBuilder(): Split.Builder = SplitBase.Builder()
-
-    override fun splitBuilder(split: Split): Split.Builder = SplitBase.Builder(split)
-
-    override fun joinBuilder(): Join.Builder = JoinBase.Builder()
-
-    override fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
-
-    override fun activityBuilder(): Activity.Builder = ActivityBase.Builder()
-
-    override fun activityBuilder(activity: Activity): Activity.Builder = ActivityBase.Builder(activity)
-
-    override fun compositeActivityBuilder(): Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
-
-    override fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
-
-    override fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
-
-  }
-
-  override val rootModel: RootProcessModel<XmlProcessNode>//XmlProcessModel
+    override val rootModel: RootProcessModel<XmlProcessNode>//XmlProcessModel
 }

@@ -282,7 +282,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             }
 
             if (pastHandle != null && pastHandle.isValid) {
-                updateProcessModel(transaction, pastHandle, basepm.build(false), user)
+                updateProcessModel(transaction, pastHandle, ExecutableProcessModel(basepm, false), user)
             } else {
                 val uuid = basepm.uuid ?: UUID.randomUUID().also { basepm.uuid = it }
 

@@ -18,8 +18,10 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.engine.ProcessException
+import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.util.multiplatform.JvmDefault
 
 @DslMarker
 annotation class ProcessModelDSL
@@ -52,18 +54,29 @@ interface ProcessModel<out NodeT: ProcessNode> {
         val imports: MutableList<IXmlResultType>
         val exports: MutableList<IXmlDefineType>
 
-        fun startNodeBuilder(): StartNode.Builder
-        fun splitBuilder(): Split.Builder
-        fun joinBuilder(): Join.Builder
-        fun activityBuilder(): Activity.Builder
-        fun compositeActivityBuilder(): Activity.CompositeActivityBuilder
-        fun endNodeBuilder(): EndNode.Builder
+        @JvmDefault
+        fun startNodeBuilder(): StartNode.Builder = StartNodeBase.Builder()
+        @JvmDefault
+        fun splitBuilder(): Split.Builder = SplitBase.Builder()
+        @JvmDefault
+        fun joinBuilder(): Join.Builder = JoinBase.Builder()
+        @JvmDefault
+        fun activityBuilder(): Activity.Builder = ActivityBase.Builder()
+        @JvmDefault
+        fun compositeActivityBuilder(): Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
+        @JvmDefault
+        fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 
-        fun startNodeBuilder(startNode: StartNode): StartNode.Builder
-        fun splitBuilder(split: Split): Split.Builder
-        fun joinBuilder(join: Join): Join.Builder
-        fun activityBuilder(activity: Activity): Activity.Builder
-        fun endNodeBuilder(endNode: EndNode): EndNode.Builder
+        @JvmDefault
+        fun startNodeBuilder(startNode: StartNode): StartNode.Builder = StartNodeBase.Builder(startNode)
+        @JvmDefault
+        fun splitBuilder(split: Split): Split.Builder = SplitBase.Builder(split)
+        @JvmDefault
+        fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
+        @JvmDefault
+        fun activityBuilder(activity: Activity): Activity.Builder = ActivityBase.Builder(activity)
+        @JvmDefault
+        fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
 
         fun startNode(body: StartNode.Builder.() -> Unit): Identifiable {
             return nodeHelper(startNodeBuilder(), body)

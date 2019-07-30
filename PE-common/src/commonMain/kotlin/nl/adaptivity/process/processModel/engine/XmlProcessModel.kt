@@ -52,7 +52,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = false) :
+    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = builder.defaultPedantic) :
         super(builder,
               XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
               pedantic)
@@ -68,7 +68,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         return XmlProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
                                        uuid).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })
-        }.build(false)
+        }.let{ XmlProcessModel(it, false) }
     }
 
     override fun builder(): Builder {
@@ -93,7 +93,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*>>
 
         override fun deserialize(decoder: Decoder): XmlProcessModel {
-            return Builder.serializer().deserialize(decoder).build()
+            return XmlProcessModel(Builder.serializer().deserialize(decoder), true)
         }
 
         @Suppress("RedundantOverride")
@@ -104,7 +104,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         @kotlin.jvm.JvmOverloads
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader, pedantic: Boolean = true): XmlProcessModel {
-            return Builder.deserialize(reader).build(pedantic)
+            return XmlProcessModel(Builder.deserialize(reader), pedantic)
         }
 
     }
@@ -135,10 +135,6 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
         constructor(base: XmlProcessModel) : super(base)
 
-        override fun build(pedantic: Boolean): XmlProcessModel {
-            return XmlProcessModel(this, pedantic)
-        }
-
         override fun childModelBuilder(): XmlChildModel.Builder {
             return XmlChildModel.Builder(rootBuilder)
         }
@@ -167,7 +163,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             }
 
             override fun serialize(encoder: Encoder, obj: Builder) {
-                XmlProcessModel.serializer().serialize(encoder, obj.build())
+                XmlProcessModel.serializer().serialize(encoder, XmlProcessModel(obj))
             }
 
             fun deserialize(reader: XmlReader): XmlProcessModel.Builder {

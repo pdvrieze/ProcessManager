@@ -44,8 +44,6 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode> {
 
         fun hasUnpositioned() = nodes.any { !(it as Positioned).hasPos() }
 
-        fun build(): DrawableProcessModel
-
         fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder<*>> = AbstractLayoutStepper())
 
 

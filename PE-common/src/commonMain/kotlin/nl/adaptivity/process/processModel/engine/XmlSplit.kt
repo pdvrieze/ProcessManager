@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.IXmlDefineType
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
@@ -24,8 +25,10 @@ import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.SplitBase
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlSplit.Companion::class)
+@XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlSplit : SplitBase, XmlProcessNode {
 
     @Deprecated("No need to use the buildHelper")

@@ -20,16 +20,19 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
  * Created by pdvrieze on 26/11/15.
  */
 @Serializable
+@XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 abstract class SplitBase : JoinSplitBase, Split {
 
     @Transient
@@ -79,6 +82,7 @@ abstract class SplitBase : JoinSplitBase, Split {
     }
 
     @Serializable
+    @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder :
         JoinSplitBase.Builder,
         Split.Builder {

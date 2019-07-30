@@ -154,7 +154,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     override fun serialize(out: XmlWriter) {
 
         if (modelNodes.any { it.id == null }) {
-            builder().build().serialize(out)
+            XmlProcessModel(builder()).serialize(out)
         } else {
             out.smartStartTag(ELEMENTNAME) {
                 writeAttribute("name", name)
@@ -251,7 +251,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         override fun serialize(encoder: Encoder, obj: T) {
             // For serialization node ids are required. If they are somehow missing, rebuild the model with ids.
             if (obj.modelNodes.any { it.id == null }) {
-                val rebuilt = obj.builder().build()
+                val rebuilt = XmlProcessModel(obj.builder())
                 @Suppress("UNCHECKED_CAST")
                 super.serialize(encoder, rebuilt as T)
             } else {
@@ -284,7 +284,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         @kotlin.jvm.JvmStatic
         @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(builder, reader).build().asM()"))
         fun deserialize(builder: Builder, reader: XmlReader): RootProcessModelBase<out ProcessNode> {
-            return builder.deserialize(reader).build()
+            return XmlProcessModel(builder.deserialize(reader))
         }
     }
 
@@ -353,8 +353,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 })
             }
         }
-
-        abstract override fun build(pedantic: Boolean): RootProcessModelBase<out ProcessNode>
 
         @Transient
         override val elementName: QName

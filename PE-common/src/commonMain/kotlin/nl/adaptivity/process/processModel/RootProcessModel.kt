@@ -84,8 +84,6 @@ interface RootProcessModel<out NodeT: ProcessNode> : ProcessModel<NodeT> {
             }
         }
 
-        fun build(pedantic: Boolean = defaultPedantic): RootProcessModel<out ProcessNode>
-
         override fun normalize(pedantic: Boolean) {
             super.normalize(pedantic)
             childModels.filter { it.childId == null }.forEach {

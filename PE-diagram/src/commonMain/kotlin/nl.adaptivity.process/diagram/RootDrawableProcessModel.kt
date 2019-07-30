@@ -84,7 +84,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
         return Builder(nodes.map { it.builder() }, emptyList(), name, handle, owner, roles, uuid, imports, exports,
                        isFavourite, layoutAlgorithm).also { builder ->
             builder.childModels.replaceBy(childModels.map { child -> child.builder(builder) })
-        }.build()
+        }.let { RootDrawableProcessModel(it) }
     }
 
     override fun builder() = Builder(this)
@@ -107,7 +107,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
      * @return The model (this).
      */
     fun normalize(): DrawableProcessModel? {
-        return builder().apply { normalize(false) }.build()
+        return builder().apply { normalize(false) }.let { RootDrawableProcessModel(it) }
     }
 
     companion object {
@@ -132,7 +132,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): RootDrawableProcessModel {
-            return RootProcessModelBase.Builder.deserialize(Builder(), reader).build(false)
+            return RootDrawableProcessModel(RootProcessModelBase.Builder.deserialize(Builder(), reader))
         }
 
         @kotlin.jvm.JvmStatic
@@ -262,10 +262,6 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
         override fun endNodeBuilder() = DrawableEndNode.Builder()
 
         override fun endNodeBuilder(endNode: EndNode) = DrawableEndNode.Builder(endNode)
-
-        override fun build(pedantic: Boolean) = RootDrawableProcessModel(this)
-
-        override fun build() = build(true)
 
         override val childElements: List<DrawableProcessNode.Builder<*>> get() = nodes as List<DrawableProcessNode.Builder<*>> // We know they are drawable
 

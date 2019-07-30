@@ -77,7 +77,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     override fun builder(): Builder = Builder(this)
 
     override fun update(body: RootProcessModelBase.Builder.() -> Unit): ExecutableProcessModel {
-        return Builder(this).apply(body).build()
+        return ExecutableProcessModel(Builder(this).apply(body))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -108,7 +108,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
         @Throws(XmlException::class)
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
-            return Builder.deserialize(reader).build()
+            return ExecutableProcessModel(Builder.deserialize(reader))
         }
 
         @JvmStatic
@@ -116,7 +116,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
             if (it.uuid == null) {
                 it.uuid = java.util.UUID.randomUUID()
             }
-        }.build()
+        }.let { ExecutableProcessModel(it) }
 
         /**
          * A class handle purely used for caching and special casing the DarwinPrincipal class.
@@ -175,8 +175,6 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
         constructor(base: RootProcessModel<*>) : super(base)
 
         override val rootBuilder get() = this
-
-        override fun build(pedantic: Boolean) = ExecutableProcessModel(this, pedantic)
 
         override fun childModelBuilder() = ExecutableChildModel.Builder(rootBuilder)
 

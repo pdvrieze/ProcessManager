@@ -57,7 +57,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   }
 
   override fun postCreate(transaction: ProcessDBTransaction, builder: ExecutableProcessModel.Builder): ExecutableProcessModel {
-    return builder.build()
+    return ExecutableProcessModel(builder)
   }
 
   override fun getHandleCondition(where: Database._Where, handle: Handle<SecureObject<ExecutableProcessModel>>): Database.WhereClause? {

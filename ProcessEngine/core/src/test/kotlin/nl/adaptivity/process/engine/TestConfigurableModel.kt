@@ -65,7 +65,7 @@ internal abstract class TestConfigurableModel(
             uuid
                                              ).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })
-        }.build(false)
+        }.let { ExecutableProcessModel(it, false) }
     }
 
 }

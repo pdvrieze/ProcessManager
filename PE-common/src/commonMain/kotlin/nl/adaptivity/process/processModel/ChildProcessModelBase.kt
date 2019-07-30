@@ -48,7 +48,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     @Suppress("UNCHECKED_CAST", "LeakingThis")
     protected constructor() : super(emptyList(), emptyList()) {
         modelNodes = IdentifyableSet.processNodeSet()
-        rootModel = XmlProcessModel.Builder().build() as RootProcessModel<NodeT>
+        rootModel = XmlProcessModel(XmlProcessModel.Builder()) as RootProcessModel<NodeT>
         id = null
         if (id == null) {// stupid if to make the compiler not complain about uninitialised values
             throw UnsupportedOperationException("Actually invoking this constructor is invalid")
