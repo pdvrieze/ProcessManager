@@ -31,7 +31,7 @@ interface StartNode : ProcessNode {
     val successor: Identifiable?
 
     //    @Serializable
-    interface Builder : ProcessNode.IBuilder {
+    interface Builder : ProcessNode.Builder {
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitStartNode(this)
 
         @Transient

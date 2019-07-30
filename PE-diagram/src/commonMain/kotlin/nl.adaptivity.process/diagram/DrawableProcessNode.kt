@@ -17,7 +17,6 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.Drawable
-import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 
 typealias DrawableState = Int
@@ -25,14 +24,14 @@ typealias DrawableState = Int
 
 interface DrawableProcessNode : ProcessNode {
 
-    open class Delegate(builder: ProcessNode.IBuilder) {
+    open class Delegate(builder: ProcessNode.Builder) {
 
         var state: Int = (builder as? DrawableProcessNode.Builder<*>)?.state ?: Drawable.STATE_DEFAULT
         var isCompat: Boolean = (builder as? DrawableProcessNode.Builder<*>)?.isCompat ?: false
 
     }
 
-    interface Builder<out R : DrawableProcessNode> : ProcessNode.IBuilder, IDrawableProcessNode {
+    interface Builder<out R : DrawableProcessNode> : ProcessNode.Builder, IDrawableProcessNode {
 
         class Delegate(var state: Int, var isCompat: Boolean) {
             constructor(node: ProcessNode) :

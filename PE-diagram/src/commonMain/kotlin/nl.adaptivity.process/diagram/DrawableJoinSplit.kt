@@ -24,9 +24,7 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINHEIG
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.JoinSplit
-import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.util.multiplatform.JvmDefault
 import kotlin.math.PI
 import kotlin.math.abs
@@ -133,7 +131,7 @@ interface IDrawableJoinSplit : IDrawableProcessNode {
 
 interface DrawableJoinSplit : JoinSplit, DrawableProcessNode {
 
-    class Delegate(builder: ProcessNode.IBuilder) : DrawableProcessNode.Delegate(builder) {
+    class Delegate(builder: ProcessNode.Builder) : DrawableProcessNode.Delegate(builder) {
 
         val itemCache = ItemCache()
 

@@ -31,7 +31,7 @@ interface EndNode : ProcessNode {
 
     override fun builder(): Builder
 
-    interface Builder : ProcessNode.IBuilder {
+    interface Builder : ProcessNode.Builder {
 
         var predecessor: Identifiable?
 

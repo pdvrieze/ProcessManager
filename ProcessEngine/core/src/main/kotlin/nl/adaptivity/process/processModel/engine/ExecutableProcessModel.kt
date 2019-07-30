@@ -161,7 +161,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
 
     class Builder : RootProcessModelBase.Builder {
-        constructor(nodes: Collection<ProcessNode.IBuilder> = emptySet(),
+        constructor(nodes: Collection<ProcessNode.Builder> = emptySet(),
                     childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
                     name: String? = null,
                     handle: Long = -1L,
@@ -232,7 +232,7 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
         override fun visitEndNode(endNode: EndNode.Builder) = ExecutableEndNode(endNode, buildHelper)
     }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
+    override fun invoke(baseNodeBuilder: ProcessNode.Builder,
                         buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>): ExecutableProcessNode =
         baseNodeBuilder.visit(visitor(buildHelper))
 

@@ -307,7 +307,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         constructor(rootBuilder: RootProcessModel.Builder,
                     id: String? = null,
                     childId: String? = null,
-                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
+                    nodes: Collection<ProcessNode.Builder> = emptyList(),
                     predecessor: Identifiable? = null,
                     condition: String? = null,
                     successor: Identifiable? = null,

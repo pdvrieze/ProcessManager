@@ -53,7 +53,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
 
     val isMultiInstance: Boolean
 
-    fun builder(): IBuilder
+    fun builder(): Builder
 
     fun asT(): ProcessNode
 
@@ -66,7 +66,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
     fun getDefine(name: String): XmlDefineType?
 
     @ProcessModelDSL
-    interface IBuilder : XmlDeserializable {
+    interface Builder : XmlDeserializable {
         val predecessors: Set<Identified>
         val successors: Set<Identified>
         var id: String?
@@ -149,10 +149,10 @@ inline operator fun EndNode.Builder?.invoke(body: EndNode.Builder.() -> Unit) {
     this?.body()
 }
 
-internal inline fun ProcessNode.IBuilder.removeAllPredecessors(predicate: (Identified) -> Boolean) {
+internal inline fun ProcessNode.Builder.removeAllPredecessors(predicate: (Identified) -> Boolean) {
     predecessors.filter(predicate).forEach { removePredecessor(it.identifier) }
 }
 
-internal inline fun ProcessNode.IBuilder.removeAllSuccessors(predicate: (Identified) -> Boolean) {
+internal inline fun ProcessNode.Builder.removeAllSuccessors(predicate: (Identified) -> Boolean) {
     successors.filter(predicate).forEach { removeSuccessor(it.identifier) }
 }

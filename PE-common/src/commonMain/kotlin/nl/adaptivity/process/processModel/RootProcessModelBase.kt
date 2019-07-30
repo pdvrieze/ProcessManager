@@ -296,7 +296,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : ProcessModelBase.Builder, RootProcessModel.Builder {
 
-        constructor(nodes: Collection<ProcessNode.IBuilder> = emptyList(),
+        constructor(nodes: Collection<ProcessNode.Builder> = emptyList(),
                     childModels: Collection<ChildProcessModel.Builder> = emptyList(),
                     name: String? = null,
                     handle: Long = -1L,
@@ -347,7 +347,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             base.childModels.mapTo(childModels) { childProcessModel -> childModelBuilder(childProcessModel) }
 
             base.modelNodes.mapTo(nodes) {
-                it.visit(object : ProcessNode.Visitor<ProcessNode.IBuilder> {
+                it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
                     override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
                     override fun visitActivity(activity: Activity) = activityBuilder(activity)
                     override fun visitSplit(split: Split) = splitBuilder(split)
@@ -459,7 +459,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                     }
                 }
 
-                val addedSplits = mutableListOf<ProcessNode.IBuilder>()
+                val addedSplits = mutableListOf<ProcessNode.Builder>()
                 for (node in builder.nodes) {
                     node.id?.let { nodeId ->
                         for (pred in node.predecessors) {
@@ -567,7 +567,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             return newNode()
         }
 
-        override fun node(builder: ProcessNode.IBuilder): NodeT = nodeFactory.invoke(builder, this)
+        override fun node(builder: ProcessNode.Builder): NodeT = nodeFactory.invoke(builder, this)
 
         override fun condition(text: String): Condition = nodeFactory.condition(text)
 

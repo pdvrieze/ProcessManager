@@ -115,7 +115,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
     class Builder : RootProcessModelBase.Builder {
 
         constructor(
-            nodes: Collection<ProcessNode.IBuilder> = emptySet(),
+            nodes: Collection<ProcessNode.Builder> = emptySet(),
             childModels: Collection<ChildProcessModel.Builder> = emptySet(),
             name: String? = null,
             handle: Long = -1L,
@@ -166,7 +166,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
 }
 
-val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.IBuilder> {
+val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode) = StartNodeBase.Builder(startNode)
 
     override fun visitActivity(activity: Activity) = ActivityBase.Builder(activity)
@@ -196,7 +196,7 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
         override fun visitEndNode(endNode: EndNode.Builder) = XmlEndNode(endNode, buildHelper.newOwner)
     }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
+    override fun invoke(baseNodeBuilder: ProcessNode.Builder,
                         buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlProcessNode {
         return baseNodeBuilder.visit(Visitor(buildHelper))
     }

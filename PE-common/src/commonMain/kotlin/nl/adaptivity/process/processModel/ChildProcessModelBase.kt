@@ -111,7 +111,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
 
         constructor(rootBuilder: RootProcessModel.Builder,
                     childId: String? = null,
-                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
+                    nodes: Collection<ProcessNode.Builder> = emptyList(),
                     imports: Collection<IXmlResultType> = emptyList(),
                     exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, imports, exports) {
             this._rootBuilder = rootBuilder

@@ -36,11 +36,17 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder,
     open class Builder(
         override val rootBuilder: RootProcessModel.Builder,
         childId: String? = null,
-        nodes: Collection<ProcessNode.IBuilder> = emptyList(),
+        nodes: Collection<ProcessNode.Builder> = emptyList(),
         imports: Collection<IXmlResultType> = emptyList(),
-        exports: Collection<IXmlDefineType> = emptyList()) : ChildProcessModelBase.Builder(rootBuilder, childId, nodes,
-                                                                                           imports,
-                                                                                           exports) {
+        exports: Collection<IXmlDefineType> = emptyList()
+                      ) :
+        ChildProcessModelBase.Builder(
+            rootBuilder,
+            childId,
+            nodes,
+            imports,
+            exports
+                                     ) {
 
         constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>)
             : this(rootBuilder,

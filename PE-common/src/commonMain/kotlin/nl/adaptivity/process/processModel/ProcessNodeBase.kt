@@ -130,14 +130,14 @@ abstract class ProcessNodeBase : ProcessNode {
     }
 
     @Deprecated("BuildHelper is not needed here")
-    internal constructor(builder: ProcessNode.IBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+    internal constructor(builder: ProcessNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
         this(builder, buildHelper.newOwner)
 
-    internal constructor(builder: ProcessNode.IBuilder, newOwner: ProcessModel<*>) :
+    internal constructor(builder: ProcessNode.Builder, newOwner: ProcessModel<*>) :
         this(newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
              builder.y, builder.defines, builder.results, builder.isMultiInstance)
 
-    abstract override fun builder(): ProcessNode.IBuilder
+    abstract override fun builder(): ProcessNode.Builder
 
     @Throws(XmlException::class)
     protected open fun serializeAttributes(out: XmlWriter) {
@@ -281,7 +281,7 @@ abstract class ProcessNodeBase : ProcessNode {
     }
 
     @Serializable
-    abstract class Builder : ProcessNode.IBuilder, XmlDeserializable {
+    abstract class Builder : ProcessNode.Builder, XmlDeserializable {
 
         override var id: String?
         override var label: String?

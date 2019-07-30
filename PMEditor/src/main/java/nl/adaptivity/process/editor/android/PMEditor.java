@@ -49,7 +49,7 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Builder;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
-import nl.adaptivity.process.processModel.ProcessNode.IBuilder;
+import nl.adaptivity.process.processModel.ProcessNode.Builder;
 import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xmlutil.XmlException;

@@ -28,7 +28,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode> {
     interface Builder : ProcessModel.Builder, IDrawableProcessModel {
         var layoutAlgorithm: LayoutAlgorithm
 
-        override val nodes: MutableList<ProcessNode.IBuilder>
+        override val nodes: MutableList<ProcessNode.Builder>
 
         override val childElements: List<DrawableProcessNode.Builder<*>>
 

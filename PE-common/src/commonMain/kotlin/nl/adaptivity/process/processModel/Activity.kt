@@ -71,7 +71,7 @@ interface Activity : ProcessNode {
     override fun builder(): Builder
 
     //    @Serializable
-    interface IBuilder : ProcessNode.IBuilder {
+    interface IBuilder : ProcessNode.Builder {
         var condition: String?
 
         var predecessor: Identifiable?
@@ -116,7 +116,7 @@ interface Activity : ProcessNode {
         }
     }
 
-    interface Builder : IBuilder, ProcessNode.IBuilder {
+    interface Builder : IBuilder, ProcessNode.Builder {
         var message: IXmlMessage?
         @Deprecated("Names are not used anymore")
         var name: String?

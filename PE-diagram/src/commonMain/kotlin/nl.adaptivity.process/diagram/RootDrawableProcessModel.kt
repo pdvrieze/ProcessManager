@@ -206,7 +206,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         constructor() : this(name = null)
 
-        constructor(nodes: Collection<ProcessNode.IBuilder> = mutableSetOf(),
+        constructor(nodes: Collection<ProcessNode.Builder> = mutableSetOf(),
                     childModels: Collection<ChildProcessModel.Builder> = emptyList(),
                     name: String? = null,
                     handle: Long = -1L,
@@ -357,7 +357,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             fun deserialize(reader: XmlReader) = RootProcessModelBase.Builder.deserialize(Builder(), reader)
 
 
-            private fun toDiagramNodes(modelNodes: Collection<ProcessNode.IBuilder>): List<DiagramNode<DrawableProcessNode.Builder<*>>> {
+            private fun toDiagramNodes(modelNodes: Collection<ProcessNode.Builder>): List<DiagramNode<DrawableProcessNode.Builder<*>>> {
                 val nodeMap = HashMap<String, DiagramNode<DrawableProcessNode.Builder<*>>>()
                 val result = modelNodes.map { node ->
                     DiagramNode(node as DrawableProcessNode.Builder<*>).apply {
@@ -422,7 +422,7 @@ object STUB_DRAWABLE_BUILD_HELPER : ProcessModel.BuildHelper<DrawableProcessNode
         TODO("Drawables don't support child models yet")
     }
 
-    override fun node(builder: ProcessNode.IBuilder): DrawableProcessNode {
+    override fun node(builder: ProcessNode.Builder): DrawableProcessNode {
         return DRAWABLE_NODE_FACTORY.invoke(builder, this)
     }
 
@@ -452,7 +452,7 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 
     }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.IBuilder,
+    override fun invoke(baseNodeBuilder: ProcessNode.Builder,
                         buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *>): DrawableProcessNode {
         return baseNodeBuilder.visit(Visitor(buildHelper))
     }

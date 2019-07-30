@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.JvmDefault
@@ -49,7 +48,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
     @ProcessModelDSL
     interface Builder {
         val rootBuilder: RootProcessModel.Builder
-        val nodes: MutableList<ProcessNode.IBuilder>
+        val nodes: MutableList<ProcessNode.Builder>
         val imports: MutableList<IXmlResultType>
         val exports: MutableList<IXmlDefineType>
 
@@ -128,7 +127,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
             }
         }
 
-        fun <B : ProcessNode.IBuilder> B.ensureId(): B = apply {
+        fun <B : ProcessNode.Builder> B.ensureId(): B = apply {
             if (id == null) {
                 id = this@Builder.newId(this.idBase)
             }
@@ -189,7 +188,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
         }
 
         fun normalize(pedantic: Boolean) {
-            val nodeMap: MutableMap<String, ProcessNode.IBuilder> = mutableMapOf()
+            val nodeMap: MutableMap<String, ProcessNode.Builder> = mutableMapOf()
             nodes.asSequence()
                 .filter { it.id != null }
                 .associateByTo(nodeMap) { it.id!! }
@@ -321,13 +320,13 @@ interface ProcessModel<out NodeT: ProcessNode> {
         val pedantic: Boolean get() = false
         fun childModel(childId: String): ChildT
         fun childModel(builder: ChildProcessModel.Builder): ChildT
-        fun node(builder: ProcessNode.IBuilder): NodeT
+        fun node(builder: ProcessNode.Builder): NodeT
         fun <M:ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
         fun condition(text: String): Condition
     }
 
     companion object {
-        private fun <B : ProcessNode.IBuilder> ProcessModel.Builder.nodeHelper(
+        private fun <B : ProcessNode.Builder> ProcessModel.Builder.nodeHelper(
             builder: B,
             body: B.() -> Unit): Identifiable {
 

@@ -19,7 +19,7 @@ package nl.adaptivity.process.processModel
 
 interface JoinSplit : ProcessNode {
 
-    interface Builder : ProcessNode.IBuilder {
+    interface Builder : ProcessNode.Builder {
 
         var min: Int
         var max: Int

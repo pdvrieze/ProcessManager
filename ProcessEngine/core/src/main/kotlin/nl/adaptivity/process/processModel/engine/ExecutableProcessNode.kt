@@ -37,7 +37,7 @@ import java.sql.SQLException
  */
 interface ExecutableProcessNode : ProcessNode, Identified {
 
-    interface Builder : ProcessNode.IBuilder {
+    interface Builder : ProcessNode.Builder {
 
         override fun result(builder: XmlResultType.Builder.() -> Unit) {
             results.add(XmlResultType.Builder().apply(builder).build())

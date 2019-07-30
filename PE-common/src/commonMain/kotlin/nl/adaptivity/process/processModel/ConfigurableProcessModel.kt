@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
@@ -112,10 +111,10 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     }
 
 
-    operator fun ProcessNode.IBuilder.provideDelegate(
+    operator fun ProcessNode.Builder.provideDelegate(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
-                                                     ): Identifier {
+                                                    ): Identifier {
         val modelBuilder = builder
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
@@ -255,10 +254,10 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             }
         }
 
-        operator fun ProcessNode.IBuilder.provideDelegate(
+        operator fun ProcessNode.Builder.provideDelegate(
             thisRef: CompositeActivity,
             property: KProperty<*>
-                                                         ): Identifier {
+                                                        ): Identifier {
             val modelBuilder = builder
             val nodeBuilder = this
             if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
