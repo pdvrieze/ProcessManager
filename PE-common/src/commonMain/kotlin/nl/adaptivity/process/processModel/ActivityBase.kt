@@ -16,15 +16,19 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.util.SerialClassDescImpl
+import nl.adaptivity.util.addField
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -253,37 +257,97 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     }
 
-    open class CompositeActivityBuilder(
-        override final val rootBuilder: RootProcessModel.Builder,
-        id: String? = null,
-        override var childId: String? = null,
-        nodes: Collection<ProcessNode.IBuilder> = emptyList(),
-        @Serializable(with = Identifiable.Companion::class)
-        override var predecessor: Identifiable? = null,
-        @Transient override var successor: Identifiable? = null,
-        label: String? = null,
-        imports: Collection<IXmlResultType> = emptyList(),
-        defines: Collection<IXmlDefineType> = emptyList(),
-        exports: Collection<IXmlDefineType> = emptyList(),
-        results: Collection<IXmlResultType> = emptyList(),
-        x: Double = Double.NaN,
-        y: Double = Double.NaN,
-        multiInstance: Boolean) : ProcessNodeBase.Builder(id, label, defines, results, x, y,
-                                                          multiInstance), Activity.CompositeActivityBuilder {
+    @Serializable
+    open class CompositeActivityBuilder : ChildProcessModelBase.Builder,
+                                     Activity.CompositeActivityBuilder {
 
-        override val nodes: MutableList<ProcessNode.IBuilder> = nodes.toMutableList()
-        override val imports: MutableList<IXmlResultType> = imports.toMutableList()
-        override val exports: MutableList<IXmlDefineType> = exports.toMutableList()
-        override var condition: String? = null
+        override var id: String?
+        override var condition: String?
+        override var label: String?
+        @XmlDefault("NaN")
+        override var x: Double
+        @XmlDefault("NaN")
+        override var y: Double
+        override var isMultiInstance: Boolean
+        @Serializable(with = Identifiable.Companion::class)
+        override var predecessor: Identifiable? = null
+        @Transient
+        override var successor: Identifiable? = null
+
+        @Serializable(IXmlDefineTypeListSerializer::class)
+        @SerialName("define")
+        override var defines: MutableCollection<IXmlDefineType> = mutableListOf()
+            set(value) {
+                field.replaceBy(value)
+            }
+
+        @Serializable(IXmlResultTypeListSerializer::class)
+        @SerialName("result")
+        override var results: MutableCollection<IXmlResultType> = mutableListOf()
+            set(value) {
+                field.replaceBy(value)
+            }
 
         override val idBase: String get() = "child"
 
         override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String) = false
+        private constructor(): super() {
+            id = null
+            condition = null
+            label = null
+            x = Double.NaN
+            y = Double.NaN
+            isMultiInstance = false
 
+            defines = mutableListOf()
+            results = mutableListOf()
+        }
+
+        constructor(rootBuilder: RootProcessModel.Builder,
+                    id: String? = null,
+                    childId: String? = null,
+                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
+                    predecessor: Identifiable? = null,
+                    condition: String? = null,
+                    successor: Identifiable? = null,
+                    label: String? = null,
+                    imports: Collection<IXmlResultType> = emptyList(),
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    exports: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    isMultiInstance: Boolean = false) : super(rootBuilder, childId, nodes, imports,
+                                                              exports) {
+            this.id = id
+            this.condition = condition
+            this.label = label
+            this.x = x
+            this.y = y
+            this.isMultiInstance = isMultiInstance
+            this.predecessor = predecessor
+            this.successor = successor
+            this.defines = defines.toMutableList()
+            this.results = results.toMutableList()
+        }
+
+        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T = buildHelper.node(this)
+
+        fun buildActivity(buildHelper: ProcessModel.BuildHelper<*,*,*,*>): XmlActivity {
+            return XmlActivity(this, buildHelper)
+        }
+
+        @Serializer(forClass = CompositeActivityBuilder::class)
+        companion object: ChildProcessModelBase.Builder.BaseSerializer<CompositeActivityBuilder>() {
+            override val descriptor: SerialDescriptor = SerialClassDescImpl(Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
+                addField(CompositeActivityBuilder::childId)
+            }
+
+            override fun builder(): CompositeActivityBuilder {
+                return CompositeActivityBuilder()
+            }
+        }
     }
 
 
