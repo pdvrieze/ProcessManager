@@ -114,10 +114,6 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class Builder : RootProcessModelBase.Builder {
 
-        @Transient
-        val defaultPedantic: Boolean
-            get() = true
-
         constructor(
             nodes: Collection<ProcessNode.IBuilder> = emptySet(),
             childModels: Collection<ChildProcessModel.Builder> = emptySet(),

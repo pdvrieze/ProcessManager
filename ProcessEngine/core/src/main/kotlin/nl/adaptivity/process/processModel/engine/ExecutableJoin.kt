@@ -54,8 +54,6 @@ class ExecutableJoin(builder: Join.Builder, buildHelper: ProcessModel.BuildHelpe
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  override fun builder() = Builder(this)
-
   fun getExistingInstance(data: ProcessEngineDataAccess, processInstanceBuilder: ProcessInstance.Builder, predecessor: IProcessNodeInstance, entryNo:Int): Pair<JoinInstance.Builder?, Int> {
     var candidateNo = entryNo
     for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {

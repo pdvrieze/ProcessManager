@@ -61,7 +61,7 @@ abstract class SplitBase : JoinSplitBase, Split {
     constructor(builder: Split.Builder, newOwner: ProcessModel<*>) :
         super(builder, newOwner)
 
-    override fun builder(): Builder = Builder(this)
+    override fun builder(): Split.Builder = Builder(this)
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(Split.ELEMENTNAME) {

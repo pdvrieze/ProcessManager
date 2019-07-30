@@ -160,7 +160,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     }
 
 
-    class Builder : RootProcessModelBase.Builder, ExecutableModelCommon.Builder {
+    class Builder : RootProcessModelBase.Builder {
         constructor(nodes: Collection<ProcessNode.IBuilder> = emptySet(),
                     childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
                     name: String? = null,

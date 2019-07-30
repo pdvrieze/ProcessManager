@@ -88,7 +88,6 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
                                   ) :
         ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports),
         Activity.CompositeActivityBuilder,
-        ExecutableModelCommon.Builder,
         ExecutableProcessNode.Builder {
 
         override var defines: MutableCollection<IXmlDefineType> = java.util.ArrayList(defines)
@@ -119,9 +118,6 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         set(value) {
             _condition = condition?.let(::ExecutableCondition)
         }
-
-
-    override fun builder() = Builder(node = this)
 
     /**
      * Determine whether the process can start.

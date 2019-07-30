@@ -47,10 +47,4 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode> {
 
     fun getNode(nodeId: String): ExecutableProcessNode?
 
-    interface Builder : ProcessModel.Builder {
-
-        val defaultPedantic get() = true
-
-    }
-
 }

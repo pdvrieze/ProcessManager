@@ -62,7 +62,7 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         this.max = builder.max
     }
 
-    override abstract fun builder(): Builder
+    override abstract fun builder(): JoinSplit.Builder
 
     @Deprecated("Don't use")
     open fun deserializeChildText(elementText: CharSequence): Boolean {

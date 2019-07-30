@@ -79,7 +79,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         conditionStringsForSerialization = conditions.mapValues { (_, value) -> value?.condition }
     }
 
-    override fun builder(): Builder = Builder(this)
+    override fun builder(): Join.Builder = Builder(this)
 
     @Throws(XmlException::class)
     override fun serialize(out: XmlWriter) {

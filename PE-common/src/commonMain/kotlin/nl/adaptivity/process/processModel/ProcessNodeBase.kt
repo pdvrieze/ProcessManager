@@ -137,7 +137,7 @@ abstract class ProcessNodeBase : ProcessNode {
         this(newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
              builder.y, builder.defines, builder.results, builder.isMultiInstance)
 
-    abstract override fun builder(): Builder
+    abstract override fun builder(): ProcessNode.IBuilder
 
     @Throws(XmlException::class)
     protected open fun serializeAttributes(out: XmlWriter) {

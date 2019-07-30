@@ -47,8 +47,6 @@ class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.
 
   override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  override fun builder() = Builder(node=this)
-
   fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int)
       = processInstanceBuilder.getChild(this, entryNo)
         ?: DefaultProcessNodeInstance.BaseBuilder(this, emptyList(),

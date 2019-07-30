@@ -52,7 +52,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         get() = IdentifyableSet.empty<Identified>()
 
 
-    override fun builder(): Builder = Builder(this)
+    override fun builder(): EndNode.Builder = Builder(this)
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(EndNode.ELEMENTNAME) {

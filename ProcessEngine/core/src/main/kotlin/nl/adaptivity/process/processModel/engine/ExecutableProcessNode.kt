@@ -54,8 +54,6 @@ interface ExecutableProcessNode : ProcessNode, Identified {
 
   override val defines: List<XmlDefineType>
 
-  override fun builder(): ExecutableProcessNode.Builder
-
   /**
    * Create an instance of the node or return it if it already exist.
    *

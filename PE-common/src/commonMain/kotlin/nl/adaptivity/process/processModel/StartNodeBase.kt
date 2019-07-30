@@ -62,7 +62,7 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
         super(builder, newOwner)
 
-    override abstract fun builder(): Builder
+    override fun builder(): StartNode.Builder = Builder()
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(StartNode.ELEMENTNAME) {
