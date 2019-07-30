@@ -76,7 +76,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     private var _builder: RootProcessModel.Builder? = null
     protected val builder: RootProcessModel.Builder
         get() {
-            return _builder ?: if (_model==null) XmlProcessModel.Builder().apply {
+            return _builder ?: if (_model==null) RootProcessModelBase.Builder().apply {
                 _builder = this;
                 owner = this@ConfigurableProcessModel.owner
                 name = this@ConfigurableProcessModel.name

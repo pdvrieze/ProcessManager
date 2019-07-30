@@ -65,17 +65,17 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
                       roles: Set<String>,
                       owner: Principal,
                       childModels: Collection<ChildProcessModel<XmlProcessNode>>): XmlProcessModel {
-        return XmlProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
+        return RootProcessModelBase.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
                                        uuid).also { builder ->
             builder.childModels.replaceBy(childModels.map { it.builder(builder) })
         }.let{ XmlProcessModel(it, false) }
     }
 
-    override fun builder(): Builder {
+    override fun builder(): RootProcessModel.Builder {
         return Builder(this)
     }
 
-    override fun update(body: (RootProcessModelBase.Builder) -> Unit): RootProcessModelBase<XmlProcessNode> {
+    override fun update(body: (RootProcessModel.Builder) -> Unit): RootProcessModelBase<XmlProcessNode> {
         return XmlProcessModel(builder().apply(body))
     }
 
@@ -93,7 +93,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*>>
 
         override fun deserialize(decoder: Decoder): XmlProcessModel {
-            return XmlProcessModel(Builder.serializer().deserialize(decoder), true)
+            return XmlProcessModel(RootProcessModelBase.Builder.serializer().deserialize(decoder), true)
         }
 
         @Suppress("RedundantOverride")
@@ -104,7 +104,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         @kotlin.jvm.JvmOverloads
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader, pedantic: Boolean = true): XmlProcessModel {
-            return XmlProcessModel(Builder.deserialize(reader), pedantic)
+            return XmlProcessModel(RootProcessModelBase.Builder.deserialize(reader), pedantic)
         }
 
     }
@@ -113,9 +113,6 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
     @Serializable
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class Builder : RootProcessModelBase.Builder {
-        @Transient
-        override val rootBuilder: Builder
-            get() = this
 
         @Transient
         override val defaultPedantic: Boolean

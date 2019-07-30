@@ -76,7 +76,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
     override fun builder(): Builder = Builder(this)
 
-    override fun update(body: RootProcessModelBase.Builder.() -> Unit): ExecutableProcessModel {
+    override fun update(body: RootProcessModel.Builder.() -> Unit): ExecutableProcessModel {
         return ExecutableProcessModel(Builder(this).apply(body))
     }
 

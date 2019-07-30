@@ -146,9 +146,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                                owner: Principal,
                                childModels: Collection<ChildProcessModel<NodeT>>): RootProcessModelBase<NodeT>
 
-    abstract override fun builder(): Builder
+    abstract override fun builder(): RootProcessModel.Builder
 
-    abstract fun update(body: (Builder) -> Unit): RootProcessModelBase<NodeT>/* {
+    abstract fun update(body: (RootProcessModel.Builder) -> Unit): RootProcessModelBase<NodeT>/* {
         return builder().apply(body).build()
     }*/
 

@@ -52,7 +52,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     @Suppress("UNCHECKED_CAST", "LeakingThis")
     protected constructor() : super(emptyList(), emptyList()) {
         modelNodes = IdentifyableSet.processNodeSet()
-        rootModel = XmlProcessModel(XmlProcessModel.Builder()) as RootProcessModel<NodeT>
+        rootModel = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
         id = null
         if (id == null) {// stupid if to make the compiler not complain about uninitialised values
             throw UnsupportedOperationException("Actually invoking this constructor is invalid")
@@ -182,7 +182,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             }
 
             override fun serialize(encoder: Encoder, obj: Builder) {
-                val rootModel = XmlProcessModel(XmlProcessModel.Builder().apply { childModels.add(obj) })
+                val rootModel = XmlProcessModel(RootProcessModelBase.Builder().apply { childModels.add(obj) })
                 XmlChildModel.serialize(encoder, rootModel.childModels.single())
                 throw UnsupportedOperationException("Cannot be independently saved")
             }
