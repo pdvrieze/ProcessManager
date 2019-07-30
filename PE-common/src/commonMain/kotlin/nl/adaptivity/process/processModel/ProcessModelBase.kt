@@ -475,7 +475,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
         } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
-            return XmlActivity.Builder.serializer()
+            return ActivityBase.Builder.serializer()
         }
         throw IllegalArgumentException("No serializer found for class $klassName")
     }
@@ -484,15 +484,15 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.IBuilder> {
     private fun serializerBySimpleName(simpleName: String,
                                        context: SerialModule = EmptyModule): KSerializer<out ProcessNode.IBuilder>? = when (simpleName) {
         "XmlStartNode",
-        "XmlStartNode\$Builder" -> XmlStartNode.Builder.serializer()
+        "XmlStartNode\$Builder" -> StartNodeBase.Builder.serializer()
         "XmlActivity",
-        "XmlActivity\$Builder"  -> XmlActivity.Builder.serializer()
+        "XmlActivity\$Builder"  -> ActivityBase.Builder.serializer()
         "XmlSplit",
-        "XmlSplit\$Builder"     -> XmlSplit.Builder.serializer()
+        "XmlSplit\$Builder"     -> SplitBase.Builder.serializer()
         "XmlJoin",
-        "XmlJoin\$Builder"      -> XmlJoin.Builder.serializer()
+        "XmlJoin\$Builder"      -> JoinBase.Builder.serializer()
         "XmlEndNode",
-        "XmlEndNode\$Builder"   -> XmlEndNode.Builder.serializer()
+        "XmlEndNode\$Builder"   -> EndNodeBase.Builder.serializer()
         else                    -> null
     }
 

@@ -17,32 +17,22 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.StartNodeBase
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlStartNode.Companion::class)
+@XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlStartNode : StartNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
         super(builder, newOwner)
 
-    override fun builder() = Builder(this)
-
-    @SerialName("start")
-    @Serializable
-    class Builder : StartNodeBase.Builder, XmlProcessNode.Builder {
-
-        constructor()
-
-        constructor(base: StartNode) : super(base)
-
-        fun build(buildHelper: XmlBuildHelper): XmlStartNode {
-            return XmlStartNode(this, buildHelper.newOwner)
-        }
-    }
+    override fun builder() = StartNodeBase.Builder(this)
 
     @Serializer(XmlStartNode::class)
     companion object: KSerializer<XmlStartNode> {

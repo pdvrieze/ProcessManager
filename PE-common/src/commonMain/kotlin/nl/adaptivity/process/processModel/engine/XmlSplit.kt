@@ -36,35 +36,6 @@ class XmlSplit : SplitBase, XmlProcessNode {
     constructor(builder: Split.Builder, newOwner: ProcessModel<*>) :
         super(builder, newOwner)
 
-    override fun builder(): Builder {
-        return Builder(this)
-    }
-
-    @Serializable
-    class Builder : SplitBase.Builder, XmlProcessNode.Builder {
-
-        constructor()
-
-        constructor(node: Split) : super(node)
-
-        constructor(predecessor: Identified? = null,
-                    successors: Collection<Identified> = emptyList(),
-                    id: String? = null,
-                    label: String? = null,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    min: Int = -1,
-                    max: Int = -1,
-                    multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y,
-                                                            min, max, multiInstance)
-
-        fun build(newOwner: ProcessModel<*>): XmlSplit {
-            return XmlSplit(this, newOwner)
-        }
-    }
-
     @Serializer(XmlSplit::class)
     companion object: KSerializer<XmlSplit> {
 

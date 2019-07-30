@@ -26,26 +26,6 @@ import nl.adaptivity.util.multiplatform.name
 /**
  * Fix compilation by converting it properly to Kotlin.
  */
-interface XmlProcessNode : ProcessNode {
-
-    @Deprecated("Use regular ProcessNode.IBuilder", ReplaceWith("ProcessNode.IBuilder", "nl.adaptivity.process.processModel.ProcessNode"))
-    interface Builder : ProcessNode.IBuilder
-
-    @Serializer(forClass = XmlProcessNode::class)
-    companion object: KSerializer<XmlProcessNode> {
-        @UseExperimental(ImplicitReflectionSerializer::class)
-        override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessNode::class.name)
-
-        fun serializer(): KSerializer<XmlProcessNode> = this
-
-        override fun deserialize(decoder: Decoder): XmlProcessNode {
-            throw SerializationException("XmlProcessNodes cannot be actually deserialized, only instances can")
-        }
-
-        override fun serialize(encoder: Encoder, obj: XmlProcessNode) {
-            throw SerializationException("XmlProcessNodes cannot be actually deserialized, only instances can")
-        }
-    }
-}
+interface XmlProcessNode : ProcessNode
 
 internal typealias XmlBuildHelper = BuildHelper<XmlProcessNode, XmlModelCommon, XmlProcessModel, XmlChildModel>

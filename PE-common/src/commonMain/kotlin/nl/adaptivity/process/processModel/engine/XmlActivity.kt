@@ -55,10 +55,6 @@ class XmlActivity : ActivityBase, XmlProcessNode {
     @Transient
     private var xmlCondition: XmlCondition? = null
 
-    override fun builder(): Builder {
-        return Builder(this)
-    }
-
     @Throws(XmlException::class)
     override fun serializeCondition(out: XmlWriter) {
         out.writeChild(xmlCondition)
@@ -70,45 +66,9 @@ class XmlActivity : ActivityBase, XmlProcessNode {
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {
 
-
-
-        @Throws(XmlException::class)
-        fun deserialize(buildHelper: XmlBuildHelper,
-                        reader: XmlReader): XmlActivity {
-            return XmlActivity(XmlActivity.Builder().deserializeHelper(reader),buildHelper)
-        }
-
-        @Throws(XmlException::class)
-        fun deserialize(reader: XmlReader): XmlActivity.Builder {
-            return Builder().deserializeHelper(reader)
-        }
-
         override fun deserialize(decoder: Decoder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")
         }
-    }
-
-    @Deprecated("Use ActivityBase.Builder", ReplaceWith("ActivityBase.Builder", "nl.adaptivity.process.processModel.ActivityBase"))
-    @Serializable
-    class Builder : ActivityBase.Builder, XmlProcessNode.Builder {
-
-        constructor()
-
-        constructor(predecessor: Identified? = null,
-                    successor: Identified? = null,
-                    id: String? = null,
-                    label: String? = null,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    message: XmlMessage? = null,
-                    condition: String? = null,
-                    name: String? = null,
-                    multiInstance: Boolean = false)
-            : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, multiInstance)
-
-        constructor(node: Activity) : super(node)
     }
 
     @Serializable
@@ -195,7 +155,7 @@ class XmlActivity : ActivityBase, XmlProcessNode {
 
         @Serializer(forClass = ChildModelBuilder::class)
         companion object: ChildProcessModelBase.Builder.BaseSerializer<ChildModelBuilder>() {
-            override val descriptor: SerialDescriptor = SerialClassDescImpl(Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
+            override val descriptor: SerialDescriptor = SerialClassDescImpl(ActivityBase.Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
                 addField(ChildModelBuilder::childId)
             }
 

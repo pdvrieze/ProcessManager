@@ -94,7 +94,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
 
-    abstract override fun builder(): Builder
+    override fun builder(): Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitActivity(this)

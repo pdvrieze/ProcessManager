@@ -38,55 +38,24 @@ class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
     constructor(builder: Join.Builder, buildHelper: BuildHelper<*,*,*,*>)
         : super(builder, buildHelper)
 
-    override fun builder() = Builder(this)
-
     @Serializer(XmlJoin::class)
     companion object: KSerializer<XmlJoin> {
 
         @Throws(XmlException::class)
-        fun deserialize(reader: XmlReader,
+        internal fun deserialize(reader: XmlReader,
                         buildHelper: XmlBuildHelper): XmlJoin {
-            return deserialize(reader).build(buildHelper)
+            return XmlJoin(deserialize(reader), buildHelper)
         }
 
         @Throws(XmlException::class)
-        fun deserialize(reader: XmlReader): XmlJoin.Builder {
-            return XmlJoin.Builder().deserializeHelper(reader)
+        fun deserialize(reader: XmlReader): JoinBase.Builder {
+            return JoinBase.Builder().deserializeHelper(reader)
         }
 
         override fun deserialize(decoder: Decoder): XmlJoin {
             throw Exception("Deserializing an end node directly is not possible")
         }
 
-    }
-
-    @Serializable
-    class Builder : JoinBase.Builder, XmlProcessNode.Builder {
-
-        constructor() : this(id = null)
-
-        constructor(node: Join) : super(node)
-
-
-        constructor(predecessors: Collection<Identified> = emptyList(),
-                    successor: Identified? = null,
-                    id: String? = null,
-                    label: String? = null,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    min: Int = -1,
-                    max: Int = -1,
-                    isMultiMerge: Boolean = false,
-                    multiInstance: Boolean = false) : super(id, predecessors, successor, label, defines, results, x, y,
-                                                            min, max, isMultiMerge = isMultiMerge,
-                                                            isMultiInstance = multiInstance)
-
-
-        fun build(buildHelper: XmlBuildHelper): XmlJoin {
-            return XmlJoin(this, buildHelper)
-        }
     }
 
 }

@@ -188,16 +188,16 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
 }
 
-val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<XmlProcessNode.Builder> {
-    override fun visitStartNode(startNode: StartNode) = XmlStartNode.Builder(startNode)
+val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.IBuilder> {
+    override fun visitStartNode(startNode: StartNode) = StartNodeBase.Builder(startNode)
 
-    override fun visitActivity(activity: Activity) = XmlActivity.Builder(activity)
+    override fun visitActivity(activity: Activity) = ActivityBase.Builder(activity)
 
-    override fun visitSplit(split: Split) = XmlSplit.Builder(split)
+    override fun visitSplit(split: Split) = SplitBase.Builder(split)
 
-    override fun visitJoin(join: Join) = XmlJoin.Builder(join)
+    override fun visitJoin(join: Join) = JoinBase.Builder(join)
 
-    override fun visitEndNode(endNode: EndNode) = XmlEndNode.Builder(endNode)
+    override fun visitEndNode(endNode: EndNode) = EndNodeBase.Builder(endNode)
 }
 
 

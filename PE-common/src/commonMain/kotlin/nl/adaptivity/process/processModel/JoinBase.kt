@@ -25,22 +25,7 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import kotlin.collections.AbstractMutableSet
-import kotlin.collections.Collection
-import kotlin.collections.Map
-import kotlin.collections.MutableIterator
-import kotlin.collections.MutableMap
-import kotlin.collections.MutableSet
-import kotlin.collections.all
-import kotlin.collections.associateByTo
-import kotlin.collections.contains
-import kotlin.collections.emptyList
-import kotlin.collections.fold
-import kotlin.collections.forEach
-import kotlin.collections.map
-import kotlin.collections.mutableMapOf
 import kotlin.collections.set
-import kotlin.collections.singleOrNull
 
 
 /**
@@ -94,7 +79,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         conditionStringsForSerialization = conditions.mapValues { (_, value) -> value?.condition }
     }
 
-    abstract override fun builder(): Builder
+    override fun builder(): Builder = Builder(this)
 
     @Throws(XmlException::class)
     override fun serialize(out: XmlWriter) {
@@ -122,7 +107,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
     }
 
     @Serializable
-    abstract class Builder : JoinSplitBase.Builder, Join.Builder {
+    open class Builder : JoinSplitBase.Builder, Join.Builder {
 
         @Transient
         override val idBase: String
@@ -171,24 +156,28 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             this.isMultiMerge = isMultiMerge
         }
 
-        protected constructor(id: String? = null,
-                              predecessors: Collection<Identified>,
-                              successor: Identified? = null, label: String? = null,
-                              defines: Collection<IXmlDefineType> = emptyList(),
-                              results: Collection<IXmlResultType> = emptyList(),
-                              x: Double = Double.NaN,
-                              y: Double = Double.NaN,
-                              min: Int = -1,
-                              max: Int = -1,
-                              isMultiMerge: Boolean = false,
-                              isMultiInstance: Boolean = false,
-                              @Suppress("UNUSED_PARAMETER") dummy: Boolean = false):
-            this(id,
-                 predecessors.map { PredecessorInfo(it.id, null) },
-                 successor,
-                 label,
-                 defines,
-                 results, x, y, min, max, isMultiMerge, isMultiInstance)
+        constructor(
+            id: String? = null,
+            predecessors: Collection<Identified>,
+            successor: Identified? = null, label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = -1,
+            max: Int = -1,
+            isMultiMerge: Boolean = false,
+            isMultiInstance: Boolean = false,
+            @Suppress("UNUSED_PARAMETER") dummy: Boolean = false
+                   ) :
+            this(
+                id,
+                predecessors.map { PredecessorInfo(it.id, null) },
+                successor,
+                label,
+                defines,
+                results, x, y, min, max, isMultiMerge, isMultiInstance
+                )
 
         constructor(node: Join) : super(node) {
             this.isMultiMerge = node.isMultiMerge

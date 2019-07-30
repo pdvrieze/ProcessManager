@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
@@ -25,6 +26,7 @@ import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.smartStartTag
 
 
@@ -74,8 +76,10 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     }
 
 
+    @SerialName("start")
+    @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @Serializable
-    abstract class Builder : ProcessNodeBase.Builder, StartNode.Builder, SimpleXmlDeserializable {
+    open class Builder : ProcessNodeBase.Builder, StartNode.Builder, SimpleXmlDeserializable {
 
         @Transient
         override val idBase: String
