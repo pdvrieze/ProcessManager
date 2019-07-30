@@ -56,7 +56,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
         fun splitBuilder(): Split.Builder
         fun joinBuilder(): Join.Builder
         fun activityBuilder(): Activity.Builder
-        fun compositeActivityBuilder(): Activity.ChildModelBuilder
+        fun compositeActivityBuilder(): Activity.CompositeActivityBuilder
         fun endNodeBuilder(): EndNode.Builder
 
         fun startNodeBuilder(startNode: StartNode): StartNode.Builder
@@ -89,7 +89,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
 
         fun activity(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Activity.Builder }
 
-        fun compositeActivity(body: Activity.ChildModelBuilder.() -> Unit): Identifiable {
+        fun compositeActivity(body: Activity.CompositeActivityBuilder.() -> Unit): Identifiable {
             val builder = compositeActivityBuilder()
             builder.apply(body)
             builder.ensureChildId().ensureId()

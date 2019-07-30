@@ -43,7 +43,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         this._condition = builder.condition?.let(::ExecutableCondition)
     }
 
-    constructor(builder: Activity.ChildModelBuilder,
+    constructor(builder: Activity.CompositeActivityBuilder,
                 buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : super(builder,
                                                                buildHelper) {
         this._condition = builder.condition?.let(::ExecutableCondition)
@@ -69,23 +69,25 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
     }
 
 
-    class ChildModelBuilder(override val rootBuilder: RootProcessModel.Builder,
-                            override var id: String? = null,
-                            childId: String? = null,
-                            nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
-                            override var predecessor: Identifiable? = null,
-                            override var condition: String? = null,
-                            override var successor: Identifiable? = null,
-                            override var label: String? = null,
-                            imports: Collection<IXmlResultType> = emptyList(),
-                            defines: Collection<IXmlDefineType> = emptyList(),
-                            exports: Collection<IXmlDefineType> = emptyList(),
-                            results: Collection<IXmlResultType> = emptyList(),
-                            override var x: Double = Double.NaN,
-                            override var y: Double = Double.NaN,
-                            override var isMultiInstance: Boolean = false) :
+    class CompositeActivityBuilder(
+        override val rootBuilder: RootProcessModel.Builder,
+        override var id: String? = null,
+        childId: String? = null,
+        nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
+        override var predecessor: Identifiable? = null,
+        override var condition: String? = null,
+        override var successor: Identifiable? = null,
+        override var label: String? = null,
+        imports: Collection<IXmlResultType> = emptyList(),
+        defines: Collection<IXmlDefineType> = emptyList(),
+        exports: Collection<IXmlDefineType> = emptyList(),
+        results: Collection<IXmlResultType> = emptyList(),
+        override var x: Double = Double.NaN,
+        override var y: Double = Double.NaN,
+        override var isMultiInstance: Boolean = false
+                                  ) :
         ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports),
-        Activity.ChildModelBuilder,
+        Activity.CompositeActivityBuilder,
         ExecutableModelCommon.Builder,
         ExecutableProcessNode.Builder {
 

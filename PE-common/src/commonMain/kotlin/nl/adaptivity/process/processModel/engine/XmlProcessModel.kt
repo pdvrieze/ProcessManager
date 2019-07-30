@@ -24,14 +24,11 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.serialization.XmlChildrenName
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
@@ -209,7 +206,7 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
 
         override fun visitActivity(activity: Activity.Builder) = XmlActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.ChildModelBuilder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: Activity.CompositeActivityBuilder) = XmlActivity(activity, buildHelper)
 
         override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner)
 

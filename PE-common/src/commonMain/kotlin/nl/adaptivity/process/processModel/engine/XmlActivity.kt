@@ -22,7 +22,6 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.addField
 import nl.adaptivity.util.multiplatform.Throws
@@ -49,7 +48,7 @@ class XmlActivity : ActivityBase, XmlProcessNode {
     constructor(builder: Activity.Builder,
                 buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
-    constructor(builder: Activity.ChildModelBuilder,
+    constructor(builder: Activity.CompositeActivityBuilder,
                 buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
     @Transient
@@ -72,9 +71,9 @@ class XmlActivity : ActivityBase, XmlProcessNode {
     }
 
     @Serializable
-    class ChildModelBuilder : XmlChildModel.Builder,
-                              Activity.ChildModelBuilder,
-                              XmlModelCommon.Builder {
+    class CompositeActivityBuilder : XmlChildModel.Builder,
+                                     Activity.CompositeActivityBuilder,
+                                     XmlModelCommon.Builder {
 
         override var id: String?
         override var condition: String?
@@ -143,24 +142,20 @@ class XmlActivity : ActivityBase, XmlProcessNode {
             this.results = results.toMutableList()
         }
 
-        override fun <NodeT : ProcessNode, ChildT : ChildProcessModel<NodeT>> buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT {
-            return buildHelper.childModel(this)
-        }
-
         override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T = buildHelper.node(this)
 
         fun buildActivity(buildHelper: ProcessModel.BuildHelper<*,*,*,*>): XmlActivity {
             return XmlActivity(this, buildHelper)
         }
 
-        @Serializer(forClass = ChildModelBuilder::class)
-        companion object: ChildProcessModelBase.Builder.BaseSerializer<ChildModelBuilder>() {
+        @Serializer(forClass = CompositeActivityBuilder::class)
+        companion object: ChildProcessModelBase.Builder.BaseSerializer<CompositeActivityBuilder>() {
             override val descriptor: SerialDescriptor = SerialClassDescImpl(ActivityBase.Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
-                addField(ChildModelBuilder::childId)
+                addField(CompositeActivityBuilder::childId)
             }
 
-            override fun builder(): ChildModelBuilder {
-                return ChildModelBuilder()
+            override fun builder(): CompositeActivityBuilder {
+                return CompositeActivityBuilder()
             }
         }
     }

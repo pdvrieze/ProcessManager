@@ -120,7 +120,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
         with(modelBuilder) {
-            if (nodeBuilder is Activity.ChildModelBuilder) {
+            if (nodeBuilder is Activity.CompositeActivityBuilder) {
                 childModels.add(nodeBuilder.ensureChildId())
             }
 
@@ -151,19 +151,19 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             predecessor = predecessor
                             ).apply(config)
 
-    protected inline fun compositeActivity(predecessor: Identified): Activity.ChildModelBuilder =
-        XmlActivity.ChildModelBuilder(
+    protected inline fun compositeActivity(predecessor: Identified): Activity.CompositeActivityBuilder =
+        XmlActivity.CompositeActivityBuilder(
             builder,
             predecessor = predecessor
-                                     )
+                                            )
 
     protected inline fun compositeActivity(
         predecessor: Identified,
-        config: Activity.ChildModelBuilder.() -> Unit
-                                          ): Activity.ChildModelBuilder =
-        XmlActivity.ChildModelBuilder(
+        config: Activity.CompositeActivityBuilder.() -> Unit
+                                          ): Activity.CompositeActivityBuilder =
+        XmlActivity.CompositeActivityBuilder(
             builder, predecessor = predecessor
-                                     ).apply(config)
+                                            ).apply(config)
 
     protected inline fun split(predecessor: Identified): Split.Builder = SplitBase.Builder(predecessor = predecessor)
     protected inline fun split(
@@ -225,12 +225,12 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.builder
 
-        private val builder: Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(
+        private val builder: Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(
             rootBuilder(),
             childId = childId,
             id = id,
             predecessor = predecessor
-                                                                                       )
+                                                                                                     )
 
         init {
             rootBuilder().childModels.add(builder)
@@ -263,7 +263,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             val nodeBuilder = this
             if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
             with(modelBuilder) {
-                if (nodeBuilder is Activity.ChildModelBuilder) {
+                if (nodeBuilder is Activity.CompositeActivityBuilder) {
                     modelBuilder.rootBuilder.childModels.add(nodeBuilder.ensureChildId())
                 }
 
@@ -292,16 +292,16 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             predecessor = predecessor
                                                                                 ).apply(config)
 
-        protected inline fun compositeActivity(predecessor: Identified) : Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(
+        protected inline fun compositeActivity(predecessor: Identified) : Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(
             this@ConfigurableProcessModel.builder, predecessor = predecessor
-                                                                                                                                    )
+                                                                                                                                                  )
 
         protected inline fun compositeActivity(
             predecessor: Identified,
-            config: Activity.ChildModelBuilder.() -> Unit
-                                              ) : Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(
+            config: Activity.CompositeActivityBuilder.() -> Unit
+                                              ) : Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(
             this@ConfigurableProcessModel.builder, predecessor = predecessor
-                                                                                                            ).apply(config)
+                                                                                                                          ).apply(config)
 
         protected inline fun split(predecessor: Identified) : Split.Builder = SplitBase.Builder(predecessor = predecessor)
         protected inline fun split(

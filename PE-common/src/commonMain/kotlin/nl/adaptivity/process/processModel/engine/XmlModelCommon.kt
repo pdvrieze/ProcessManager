@@ -42,7 +42,7 @@ interface XmlModelCommon: ProcessModel<XmlProcessNode> {
 
     override fun activityBuilder(activity: Activity): Activity.Builder = ActivityBase.Builder(activity)
 
-    override fun compositeActivityBuilder(): Activity.ChildModelBuilder = XmlActivity.ChildModelBuilder(rootBuilder=this.rootBuilder)
+    override fun compositeActivityBuilder(): Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
 
     override fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 

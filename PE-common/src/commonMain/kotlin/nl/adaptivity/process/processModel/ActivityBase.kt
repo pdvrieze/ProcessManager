@@ -84,7 +84,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         childId = childModel?.id
     }
 
-    constructor(builder: Activity.ChildModelBuilder,
+    constructor(builder: Activity.CompositeActivityBuilder,
                 buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder, buildHelper.newOwner) {
         this._message = null
         this._name = null
@@ -253,7 +253,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     }
 
-    abstract class ChildModelBuilder<NodeT : ProcessNode>(
+    abstract class CompositeActivityBuilder(
         id: String? = null,
         override var childId: String? = null,
         nodes: Collection<ProcessNode.IBuilder> = emptyList(),
@@ -268,7 +268,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         x: Double = Double.NaN,
         y: Double = Double.NaN,
         multiInstance: Boolean) : ProcessNodeBase.Builder(id, label, defines, results, x, y,
-                                                          multiInstance), Activity.ChildModelBuilder {
+                                                          multiInstance), Activity.CompositeActivityBuilder {
 
         override val nodes: MutableList<ProcessNode.IBuilder> = nodes.toMutableList()
         override val imports: MutableList<IXmlResultType> = imports.toMutableList()

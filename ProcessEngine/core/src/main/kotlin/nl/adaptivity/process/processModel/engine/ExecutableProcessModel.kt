@@ -224,7 +224,7 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
 
         override fun visitActivity(activity: Activity.Builder) = ExecutableActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.ChildModelBuilder) = ExecutableActivity(activity,
+        override fun visitActivity(activity: Activity.CompositeActivityBuilder) = ExecutableActivity(activity,
                                                                                               buildHelper)
 
         override fun visitSplit(split: Split.Builder) = ExecutableSplit(split, buildHelper)

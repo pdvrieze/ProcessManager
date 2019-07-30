@@ -124,7 +124,7 @@ interface Activity : ProcessNode {
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
     }
 
-    interface ChildModelBuilder : IBuilder, ChildProcessModel.Builder {
+    interface CompositeActivityBuilder : IBuilder, ChildProcessModel.Builder {
 
         override val idBase: String get() = "sub"
 
