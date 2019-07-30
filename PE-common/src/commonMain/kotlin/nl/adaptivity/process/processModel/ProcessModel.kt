@@ -48,7 +48,6 @@ interface ProcessModel<out NodeT: ProcessNode> {
 
     @ProcessModelDSL
     interface Builder {
-        val defaultPedantic get() = false
         val rootBuilder: RootProcessModel.Builder
         val nodes: MutableList<ProcessNode.IBuilder>
         val imports: MutableList<IXmlResultType>

@@ -39,8 +39,11 @@ import nl.adaptivity.xmlutil.XmlReader
 import kotlin.math.max
 
 
-class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder = Builder())
-    : RootClientProcessModel(builder, DRAWABLE_NODE_FACTORY), DrawableProcessModel {
+final class RootDrawableProcessModel @JvmOverloads constructor(
+    builder: RootProcessModelBase.Builder = Builder(),
+    pedantic: Boolean = DEFAULT_PEDANTIC
+                                                        )
+    : RootClientProcessModel(builder, DRAWABLE_NODE_FACTORY, pedantic), DrawableProcessModel {
 
     override val layoutAlgorithm: LayoutAlgorithm = (builder as? Builder)?.layoutAlgorithm ?: LayoutAlgorithm()
 
@@ -89,7 +92,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
 
     override fun builder() = Builder(this)
 
-    override fun update(body: (RootProcessModelBase.Builder) -> Unit): RootProcessModelBase<DrawableProcessNode> {
+    override fun update(body: (RootProcessModel.Builder) -> Unit): RootDrawableProcessModel {
         return RootDrawableProcessModel(Builder(this).apply(body))
     }
 
@@ -111,6 +114,7 @@ class RootDrawableProcessModel @JvmOverloads constructor(builder: RootProcessMod
     }
 
     companion object {
+        private const val DEFAULT_PEDANTIC = false
 
         const val STARTNODERADIUS = 10.0
         const val ENDNODEOUTERRADIUS = 12.0

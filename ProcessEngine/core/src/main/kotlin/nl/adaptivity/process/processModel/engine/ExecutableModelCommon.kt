@@ -49,7 +49,7 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode> {
 
     interface Builder : ProcessModel.Builder {
 
-        override val defaultPedantic get() = true
+        val defaultPedantic get() = true
 
     }
 

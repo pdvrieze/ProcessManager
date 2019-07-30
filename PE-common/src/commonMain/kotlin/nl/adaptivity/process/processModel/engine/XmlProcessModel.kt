@@ -52,7 +52,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = builder.defaultPedantic) :
+    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) :
         super(builder,
               XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
               pedantic)
@@ -115,7 +115,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
     class Builder : RootProcessModelBase.Builder {
 
         @Transient
-        override val defaultPedantic: Boolean
+        val defaultPedantic: Boolean
             get() = true
 
         constructor(

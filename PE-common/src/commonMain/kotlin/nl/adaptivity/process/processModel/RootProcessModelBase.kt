@@ -109,7 +109,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
     constructor(builder: RootProcessModel.Builder,
                 nodeFactory: NodeFactory<NodeT, NodeT, ChildProcessModelBase<NodeT>>,
-                pedantic: Boolean = builder.defaultPedantic) : super(builder, pedantic) {
+                pedantic: Boolean) : super(builder, pedantic) {
         @Suppress("LeakingThis")
         val childModelProvider = ChildModelProvider<NodeT, ProcessModel<NodeT>, RootProcessModel<NodeT>, ChildProcessModelBase<NodeT>>(
             builder.childModels, nodeFactory, pedantic, this)
