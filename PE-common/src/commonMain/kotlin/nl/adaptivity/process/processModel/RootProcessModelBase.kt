@@ -427,7 +427,16 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
         }
 
-        companion object {
+        @Serializer(Builder::class)
+        companion object: BaseSerializer<Builder>(),
+                          GeneratedSerializer<Builder> {
+            init {
+                // Some nasty hack as somehow initialisation is broken.
+                val d = descriptor as SerialClassDescImpl
+                for (childSerializer in childSerializers()) {
+                    d.pushDescriptor(childSerializer.descriptor)
+                }
+            }
 
             @Deprecated("Use kotlinx.serializer")
             @JvmStatic
@@ -485,6 +494,21 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 builder.nodes.addAll(addedSplits)
 
                 return builder
+            }
+
+            override fun builder() = Builder()
+
+            @Suppress("RedundantOverride")
+            override fun deserialize(decoder: Decoder): Builder {
+                return super.deserialize(decoder)
+            }
+
+            override fun serialize(encoder: Encoder, obj: Builder) {
+                XmlProcessModel.serializer().serialize(encoder, XmlProcessModel(obj))
+            }
+
+            fun deserialize(reader: XmlReader): Builder {
+                return RootProcessModelBase.Builder.deserialize(Builder(), reader)
             }
 
         }
