@@ -407,7 +407,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                         @Suppress("UNCHECKED_CAST")
                         val newList = input.updateSerializableElement(descriptor,
                                                                       index,
-                                                                      XmlChildModel.Builder.serializer().list,
+                                                                      ChildProcessModelBase.Builder.serializer().list,
                                                                       result.childModels as List<XmlActivity.CompositeActivityBuilder>)
                         @Suppress("UNCHECKED_CAST")
                         result.childModels.replaceBy(newList)

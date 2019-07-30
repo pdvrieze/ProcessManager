@@ -18,6 +18,8 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.processModel.engine.XML_BUILDER_VISITOR
+import nl.adaptivity.process.processModel.engine.XmlChildModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.IdentifiableSetSerializer
 import nl.adaptivity.process.util.IdentifyableSet
@@ -25,6 +27,8 @@ import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.serialutil.encodeNullableStringElement
+import nl.adaptivity.util.SerialClassDescImpl
+import nl.adaptivity.util.multiplatform.name
 import kotlin.jvm.JvmField
 
 /**
@@ -76,7 +80,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     override val id: String?
 
 
-    override abstract fun builder(rootBuilder: RootProcessModel.Builder): ChildProcessModelBase.Builder
+    override abstract fun builder(rootBuilder: RootProcessModel.Builder): Builder
 
     override fun serialize(out: XmlWriter) {
         out.smartStartTag(ELEMENTNAME) {
@@ -88,8 +92,8 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
         }
     }
 
-    abstract class Builder : ProcessModelBase.Builder, ChildProcessModel.Builder {
-
+    @Serializable(with = Builder.Companion::class)
+    open class Builder : ProcessModelBase.Builder, ChildProcessModel.Builder {
 
         @Transient
         private lateinit var _rootBuilder: RootProcessModel.Builder
@@ -114,6 +118,13 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             this.childId = childId
         }
 
+        constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>) :
+            this(rootBuilder,
+                 base.id,
+                 base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },
+                 base.imports,
+                 base.exports)
+
         @Transient
         override val elementName: QName
             get() = ELEMENTNAME
@@ -122,11 +133,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
          * When this is overridden and it returns a non-`null` value, it will allow childmodels to be nested in eachother.
          * Note that this does not actually introduce a scope. The nesting is not retained.
          */
-        open fun nestedBuilder(): ChildProcessModelBase.Builder? = null
-
-        override fun <NodeT: ProcessNode, ChildT: ChildProcessModel<NodeT>>buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT {
-            return buildHelper.childModel(this)
-        }
+        open fun nestedBuilder(): Builder? = null
 
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
@@ -149,12 +156,35 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             }
         }
 
-        abstract class BaseSerializer<T : ChildProcessModelBase.Builder> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            override fun readElement(result: T, input: KInput, index: Int, name:String) {
+        abstract class BaseSerializer<T : Builder> : ProcessModelBase.Builder.BaseSerializer<T>() {
+            override fun readElement(result: T, input: CompositeDecoder, index: Int, name:String) {
                 when (name) {
                     ATTR_ID -> result.childId = input.readNullableString(descriptor, index)
                     else    -> super.readElement(result, input, index, name)
                 }
+            }
+        }
+
+        @Serializer(forClass = Builder::class)
+        companion object : BaseSerializer<Builder>() {
+            override val descriptor: SerialDescriptor = SerialClassDescImpl(
+                XmlChildModel.descriptor,
+                Builder::class.name)
+
+            override fun builder(): Builder {
+                return Builder()
+            }
+
+
+            @Suppress("RedundantOverride") // Without this serialization will generate the code
+            override fun deserialize(decoder: Decoder): Builder {
+                return super.deserialize(decoder)
+            }
+
+            override fun serialize(encoder: Encoder, obj: Builder) {
+                val rootModel = XmlProcessModel(XmlProcessModel.Builder().apply { childModels.add(obj) })
+                XmlChildModel.serialize(encoder, rootModel.childModels.single())
+                throw UnsupportedOperationException("Cannot be independently saved")
             }
         }
 

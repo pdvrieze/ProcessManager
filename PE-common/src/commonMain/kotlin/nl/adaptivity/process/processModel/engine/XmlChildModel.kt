@@ -29,7 +29,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable(XmlChildModel.Companion::class)
 @SerialName(ChildProcessModel.ELEMENTLOCALNAME)
 @XmlSerialName(ChildProcessModel.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<XmlProcessNode>, XmlModelCommon {
+class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<XmlProcessNode> {
 
     @Transient
     override val rootModel: XmlProcessModel
@@ -39,54 +39,8 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
     constructor(builder: ChildProcessModel.Builder,
                 buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>) : super(builder, buildHelper)
 
-    override fun builder(rootBuilder: RootProcessModel.Builder): XmlChildModel.Builder {
-        return Builder(rootBuilder as XmlProcessModel.Builder, this)
-    }
-
-    @Serializable
-    open class Builder : ChildProcessModelBase.Builder, XmlModelCommon.Builder {
-
-        @Transient
-        override val rootBuilder: XmlProcessModel.Builder
-            get() = super.rootBuilder as XmlProcessModel.Builder
-
-        protected constructor() : super()
-
-        constructor(rootBuilder: RootProcessModel.Builder,
-                    childId: String? = null,
-                    nodes: Collection<ProcessNode.IBuilder> = emptyList(),
-                    imports: Collection<IXmlResultType> = emptyList(),
-                    exports: Collection<IXmlDefineType> = emptyList()) : super(rootBuilder, childId, nodes, imports,
-                                                                               exports)
-
-        constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>) :
-            this(rootBuilder,
-                 base.id,
-                 base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },
-                 base.imports,
-                 base.exports)
-
-        @Serializer(forClass = Builder::class)
-        companion object : ChildProcessModelBase.Builder.BaseSerializer<Builder>() {
-            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlChildModel.descriptor,
-                                                                            Builder::class.name)
-
-            override fun builder(): Builder {
-                return Builder()
-            }
-
-
-            @Suppress("RedundantOverride") // Without this serialization will generate the code
-            override fun deserialize(decoder: Decoder): Builder {
-                return super.deserialize(decoder)
-            }
-
-            override fun serialize(encoder: Encoder, obj: Builder) {
-                val rootModel = XmlProcessModel(XmlProcessModel.Builder().apply { childModels.add(obj) })
-                XmlChildModel.serialize(encoder, rootModel.childModels.single())
-                throw UnsupportedOperationException("Cannot be independently saved")
-            }
-        }
+    override fun builder(rootBuilder: RootProcessModel.Builder): ChildProcessModelBase.Builder {
+        return ChildProcessModelBase.Builder(rootBuilder, this)
     }
 
     @Serializer(forClass = XmlChildModel::class)

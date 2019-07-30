@@ -253,7 +253,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     }
 
-    abstract class CompositeActivityBuilder(
+    open class CompositeActivityBuilder(
+        override final val rootBuilder: RootProcessModel.Builder,
         id: String? = null,
         override var childId: String? = null,
         nodes: Collection<ProcessNode.IBuilder> = emptyList(),

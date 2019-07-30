@@ -71,9 +71,8 @@ class XmlActivity : ActivityBase, XmlProcessNode {
     }
 
     @Serializable
-    class CompositeActivityBuilder : XmlChildModel.Builder,
-                                     Activity.CompositeActivityBuilder,
-                                     XmlModelCommon.Builder {
+    class CompositeActivityBuilder : ChildProcessModelBase.Builder,
+                                     Activity.CompositeActivityBuilder {
 
         override var id: String?
         override var condition: String?

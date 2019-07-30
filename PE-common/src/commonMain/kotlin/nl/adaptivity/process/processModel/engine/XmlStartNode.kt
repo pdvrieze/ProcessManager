@@ -26,7 +26,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlStartNode.Companion::class)
 @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlStartNode : StartNodeBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
+class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :

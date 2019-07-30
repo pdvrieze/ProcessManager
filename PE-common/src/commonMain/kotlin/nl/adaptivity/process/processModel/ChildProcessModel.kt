@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.xmlutil.QName
 
 /**
@@ -38,9 +39,17 @@ interface ChildProcessModel<out NodeT: ProcessNode> : ProcessModel<NodeT>, Ident
   }
 
     interface Builder : ProcessModel.Builder {
-        val childIdBase: String get() = "child"
+        @JvmDefault
+        val childIdBase: String get() = CHILD_ID_BASE
         var childId: String?
-        fun <NodeT: ProcessNode, ChildT: ChildProcessModel<NodeT>>buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT
+
+        @JvmDefault
+        fun <NodeT: ProcessNode, ChildT: ChildProcessModel<NodeT>>buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT =
+            buildHelper.childModel(this)
+
+        companion object {
+            const val CHILD_ID_BASE="child"
+        }
     }
 
 }

@@ -20,10 +20,7 @@ import kotlinx.serialization.Decoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.Join
-import nl.adaptivity.process.processModel.JoinBase
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
@@ -32,7 +29,7 @@ import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.deserializeHelper
 
 @Serializable(XmlJoin.Companion::class)
-class XmlJoin : JoinBase<XmlProcessNode, XmlModelCommon>, XmlProcessNode {
+class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: Join.Builder, buildHelper: BuildHelper<*,*,*,*>)

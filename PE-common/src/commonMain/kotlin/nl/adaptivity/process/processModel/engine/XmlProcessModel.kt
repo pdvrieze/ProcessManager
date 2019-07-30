@@ -39,7 +39,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable(XmlProcessModel.Companion::class)
 @XmlDeserializer(XmlProcessModel.Factory::class)
 @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcessNode>, XmlModelCommon {
+class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcessNode> {
 
     @Transient
     override val rootModel: XmlProcessModel
@@ -112,7 +112,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
     @Serializable
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    class Builder : RootProcessModelBase.Builder, XmlModelCommon.Builder {
+    class Builder : RootProcessModelBase.Builder {
         @Transient
         override val rootBuilder: Builder
             get() = this
@@ -123,7 +123,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
         constructor(
             nodes: Collection<ProcessNode.IBuilder> = emptySet(),
-            childModels: Collection<XmlChildModel.Builder> = emptySet(),
+            childModels: Collection<ChildProcessModel.Builder> = emptySet(),
             name: String? = null,
             handle: Long = -1L,
             owner: Principal = SYSTEMPRINCIPAL,
@@ -135,12 +135,12 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
         constructor(base: XmlProcessModel) : super(base)
 
-        override fun childModelBuilder(): XmlChildModel.Builder {
-            return XmlChildModel.Builder(rootBuilder)
+        override fun childModelBuilder(): ChildProcessModelBase.Builder {
+            return ChildProcessModelBase.Builder(rootBuilder)
         }
 
-        override fun childModelBuilder(base: ChildProcessModel<*>): XmlChildModel.Builder {
-            return XmlChildModel.Builder(rootBuilder, base)
+        override fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModelBase.Builder {
+            return ChildProcessModelBase.Builder(rootBuilder, base)
         }
 
         @Serializer(forClass = Builder::class)
