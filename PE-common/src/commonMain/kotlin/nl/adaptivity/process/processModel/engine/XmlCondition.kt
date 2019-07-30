@@ -16,8 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.*
+import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.Condition
+import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.xmlutil.*
 
 
@@ -26,6 +29,7 @@ import nl.adaptivity.xmlutil.*
  *
  * @author Paul de Vrieze
  */
+@Serializable(XmlCondition.Companion::class)
 class XmlCondition(override val condition: String) : XmlSerializable, Condition {
 
     override fun serialize(out: XmlWriter) {
@@ -33,11 +37,22 @@ class XmlCondition(override val condition: String) : XmlSerializable, Condition 
                                                     Engine.NSPREFIX), condition)
     }
 
-    companion object {
+    @Serializer(XmlCondition::class)
+    companion object: KSerializer<XmlCondition> {
+        override val descriptor: SerialDescriptor
+            get() = SerialClassDescImpl(StringSerializer.descriptor, "condition")
 
         fun deserialize(reader: XmlReader): XmlCondition {
             val condition = reader.readSimpleElement()
             return XmlCondition(condition)
+        }
+
+        override fun serialize(encoder: Encoder, obj: XmlCondition) {
+            encoder.encodeString(obj.condition)
+        }
+
+        override fun deserialize(decoder: Decoder): XmlCondition {
+            return XmlCondition(decoder.decodeString())
         }
     }
 
