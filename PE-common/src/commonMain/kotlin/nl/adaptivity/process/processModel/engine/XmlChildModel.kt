@@ -20,10 +20,11 @@ import kotlinx.serialization.*
 import kotlinx.serialization.internal.GeneratedSerializer
 import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.ChildProcessModel
+import nl.adaptivity.process.processModel.ChildProcessModelBase
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.util.SerialClassDescImpl
-import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlChildModel.Companion::class)
@@ -39,8 +40,8 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
     constructor(builder: ChildProcessModel.Builder,
                 buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>) : super(builder, buildHelper)
 
-    override fun builder(rootBuilder: RootProcessModel.Builder): ChildProcessModelBase.Builder {
-        return ChildProcessModelBase.Builder(rootBuilder, this)
+    override fun builder(rootBuilder: RootProcessModel.Builder): Builder {
+        return Builder(rootBuilder, this)
     }
 
     @Serializer(forClass = XmlChildModel::class)

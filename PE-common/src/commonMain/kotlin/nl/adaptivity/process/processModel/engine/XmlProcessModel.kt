@@ -135,14 +135,6 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
         constructor(base: XmlProcessModel) : super(base)
 
-        override fun childModelBuilder(): ChildProcessModelBase.Builder {
-            return ChildProcessModelBase.Builder(rootBuilder)
-        }
-
-        override fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModelBase.Builder {
-            return ChildProcessModelBase.Builder(rootBuilder, base)
-        }
-
         @Serializer(forClass = Builder::class)
         companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>(), GeneratedSerializer<Builder> {
 //            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)

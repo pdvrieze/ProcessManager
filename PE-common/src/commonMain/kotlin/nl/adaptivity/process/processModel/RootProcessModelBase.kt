@@ -17,6 +17,8 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.GeneratedSerializer
+import kotlinx.serialization.internal.SerialClassDescImpl
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
@@ -291,7 +293,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
     @ProcessModelDSL
     @Serializable
-    abstract class Builder : ProcessModelBase.Builder, RootProcessModel.Builder {
+    @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    open class Builder : ProcessModelBase.Builder, RootProcessModel.Builder {
 
         constructor(nodes: Collection<ProcessNode.IBuilder> = emptyList(),
                     childModels: Collection<ChildProcessModel.Builder> = emptyList(),
@@ -358,9 +361,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         override val elementName: QName
             get() = ELEMENTNAME
 
-        abstract fun childModelBuilder(): ChildProcessModelBase.Builder
+        // These are open to allow drawable builders to be directly drawable
+        open fun childModelBuilder(): ChildProcessModel.Builder =
+            ChildProcessModelBase.Builder(rootBuilder)
 
-        abstract fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModelBase.Builder
+        open fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModel.Builder =
+            ChildProcessModelBase.Builder(rootBuilder, base)
 
         override fun deserializeAttribute(attributeNamespace: String?,
                                           attributeLocalName: String,
@@ -379,7 +385,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             return when {
                 reader.isElement(ProcessConsts.Engine.NAMESPACE,
                                  ChildProcessModel.ELEMENTLOCALNAME) -> {
-                    childModels.add(childModelBuilder().deserializeHelper(reader)); true
+                    childModels.add(ChildProcessModelBase.Builder(rootBuilder).deserializeHelper(reader)); true
                 }
                 else                                                 -> super.deserializeChild(reader)
             }
@@ -391,7 +397,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
         abstract class BaseSerializer<T : RootProcessModelBase.Builder> : ProcessModelBase.Builder.BaseSerializer<T>() {
 
-            override fun readElement(result: T, input: KInput, index: Int, name: String) {
+            override fun readElement(result: T, input: CompositeDecoder, index: Int, name: String) {
                 when (name) {
                     "name"                             -> result.name = input.readNullableString(descriptor, index)
                     "handle"                           -> result.handle = input.decodeLongElement(descriptor, index)
@@ -408,7 +414,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                         val newList = input.updateSerializableElement(descriptor,
                                                                       index,
                                                                       ChildProcessModelBase.Builder.serializer().list,
-                                                                      result.childModels as List<XmlActivity.CompositeActivityBuilder>)
+                                                                      result.childModels as List<ActivityBase.CompositeActivityBuilder>)
                         @Suppress("UNCHECKED_CAST")
                         result.childModels.replaceBy(newList)
                     }

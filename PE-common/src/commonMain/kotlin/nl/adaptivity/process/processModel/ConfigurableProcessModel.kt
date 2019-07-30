@@ -152,7 +152,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
                             ).apply(config)
 
     protected inline fun compositeActivity(predecessor: Identified): Activity.CompositeActivityBuilder =
-        XmlActivity.CompositeActivityBuilder(
+        ActivityBase.CompositeActivityBuilder(
             builder,
             predecessor = predecessor
                                             )
@@ -161,7 +161,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         predecessor: Identified,
         config: Activity.CompositeActivityBuilder.() -> Unit
                                           ): Activity.CompositeActivityBuilder =
-        XmlActivity.CompositeActivityBuilder(
+        ActivityBase.CompositeActivityBuilder(
             builder, predecessor = predecessor
                                             ).apply(config)
 
@@ -225,7 +225,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.builder
 
-        private val builder: Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(
+        private val builder: Activity.CompositeActivityBuilder = ActivityBase.CompositeActivityBuilder(
             rootBuilder(),
             childId = childId,
             id = id,
@@ -292,14 +292,14 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             predecessor = predecessor
                                                                                 ).apply(config)
 
-        protected inline fun compositeActivity(predecessor: Identified) : Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(
+        protected inline fun compositeActivity(predecessor: Identified) : Activity.CompositeActivityBuilder = ActivityBase.CompositeActivityBuilder(
             this@ConfigurableProcessModel.builder, predecessor = predecessor
                                                                                                                                                   )
 
         protected inline fun compositeActivity(
             predecessor: Identified,
             config: Activity.CompositeActivityBuilder.() -> Unit
-                                              ) : Activity.CompositeActivityBuilder = XmlActivity.CompositeActivityBuilder(
+                                              ) : Activity.CompositeActivityBuilder = ActivityBase.CompositeActivityBuilder(
             this@ConfigurableProcessModel.builder, predecessor = predecessor
                                                                                                                           ).apply(config)
 
