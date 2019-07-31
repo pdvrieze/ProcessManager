@@ -38,6 +38,6 @@ private val myPrincipal = SimplePrincipal("testPrincipal")
 private object Model1: ConfigurableProcessModel<XmlProcessNode>("model1", myPrincipal, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")) {
     val start by startNode
     val inputCustomerMasterData by activity(start) {
-        startNode
     }
+    val customerIdentification by activity(inputCustomerMasterData)
 }

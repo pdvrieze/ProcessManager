@@ -22,7 +22,7 @@ import nl.adaptivity.process.util.Identified
 val ConfigurableNodeContainer.startNode
     get():StartNode.Builder = StartNodeBase.Builder()
 
-fun ConfigurableNodeContainer.startNode(@ConfigurationDsl config: StartNode.Builder.() -> Unit): StartNode.Builder =
+fun ConfigurableNodeContainer.startNode(config: @ConfigurationDsl StartNode.Builder.() -> Unit): StartNode.Builder =
     StartNodeBase.Builder().apply(config)
 
 
@@ -31,7 +31,7 @@ fun ConfigurableNodeContainer.activity(predecessor: Identified): Activity.Builde
 
 fun ConfigurableNodeContainer.activity(
     predecessor: Identified,
-    @ConfigurationDsl config: Activity.Builder.() -> Unit
+    config: @ConfigurationDsl Activity.Builder.() -> Unit
                                       ): Activity.Builder =
     ActivityBase.Builder(
         predecessor = predecessor
@@ -45,7 +45,7 @@ fun ConfigurableNodeContainer.compositeActivity(predecessor: Identified): Activi
 
 fun ConfigurableNodeContainer.compositeActivity(
     predecessor: Identified,
-    config: Activity.CompositeActivityBuilder.() -> Unit
+    config: @ConfigurationDsl Activity.CompositeActivityBuilder.() -> Unit
                                                ): Activity.CompositeActivityBuilder =
     ActivityBase.CompositeActivityBuilder(
         configurationBuilder.rootBuilder, predecessor = predecessor
@@ -56,7 +56,10 @@ fun ConfigurableNodeContainer.split(predecessor: Identified): Split.Builder =
     SplitBase.Builder(predecessor = predecessor)
 
 @ConfigurationDsl
-fun ConfigurableNodeContainer.split(predecessor: Identified, config: Split.Builder.() -> Unit): Split.Builder =
+fun ConfigurableNodeContainer.split(
+    predecessor: Identified,
+    config: @ConfigurationDsl Split.Builder.() -> Unit
+                                   ): Split.Builder =
     SplitBase.Builder(predecessor = predecessor).apply(config)
 
 @ConfigurationDsl
@@ -70,18 +73,21 @@ fun ConfigurableNodeContainer.join(predecessors: Collection<Identified>): Join.B
                                                                                                          )
 
 @ConfigurationDsl
-fun ConfigurableNodeContainer.join(vararg predecessors: Identified, config: Join.Builder.() -> Unit): Join.Builder =
+fun ConfigurableNodeContainer.join(
+    vararg predecessors: Identified,
+    config: @ConfigurationDsl Join.Builder.() -> Unit
+                                  ): Join.Builder =
     JoinBase.Builder(predecessors = predecessors.toList()).apply(config)
 
 @ConfigurationDsl
 fun ConfigurableNodeContainer.join(
     predecessors: Collection<Identified>,
-    config: Join.Builder.() -> Unit
+    config: @ConfigurationDsl Join.Builder.() -> Unit
                                   ): Join.Builder =
     JoinBase.Builder(predecessors = predecessors).apply(config)
 
 fun ConfigurableNodeContainer.endNode(predecessor: Identified): EndNode.Builder =
     EndNodeBase.Builder(predecessor = predecessor)
 
-fun ConfigurableNodeContainer.endNode(predecessor: Identified, config: EndNode.Builder.() -> Unit): EndNode.Builder =
+fun ConfigurableNodeContainer.endNode(predecessor: Identified, config: @ConfigurationDsl EndNode.Builder.() -> Unit): EndNode.Builder =
     EndNodeBase.Builder(predecessor = predecessor).apply(config)
