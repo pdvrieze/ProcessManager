@@ -41,15 +41,6 @@ interface RootProcessModel<out NodeT: ProcessNode> : ProcessModel<NodeT> {
     val name: String?
     val roles: Set<String>
 
-    fun copy(imports: Collection<IXmlResultType> = this.imports,
-             exports: Collection<IXmlDefineType> = this.exports,
-             nodes: Collection<ProcessNode> = modelNodes,
-             name: kotlin.String? = this.name,
-             uuid: UUID? = this.uuid,
-             roles: Set<String> = this.roles,
-             owner: Principal = this.owner,
-             childModels: Collection<ChildProcessModel<@UnsafeVariance NodeT>> = this.childModels): RootProcessModel<NodeT>
-
     fun builder(): RootProcessModel.Builder
 
     /**

@@ -57,24 +57,9 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     override val ref: ExecutableProcessModelRef
         get() = ProcessModelRef(name, this.getHandle(), uuid)
 
-    override fun copy(imports: Collection<IXmlResultType>,
-                      exports: Collection<IXmlDefineType>,
-                      nodes: Collection<ProcessNode>,
-                      name: String?,
-                      uuid: UUID?,
-                      roles: Set<String>,
-                      owner: Principal,
-                      childModels: Collection<ChildProcessModel<ExecutableProcessNode>>): ExecutableProcessModel {
-        return ExecutableProcessModel(
-            ExecutableProcessModel.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
-                                           uuid).also { builder ->
-                builder.childModels.replaceBy(childModels.map { it.builder(builder) })
-            }, false)
-    }
-
     override fun withPermission() = this
 
-    override fun builder(): Builder = Builder(this)
+    override fun builder(): RootProcessModel.Builder = Builder(this)
 
     override fun update(body: RootProcessModel.Builder.() -> Unit): ExecutableProcessModel {
         return ExecutableProcessModel(Builder(this).apply(body))

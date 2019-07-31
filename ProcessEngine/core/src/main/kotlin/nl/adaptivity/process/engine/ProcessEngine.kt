@@ -400,7 +400,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
 
         if (processModel.owner == SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
-            processModel.copy(owner = oldModel.owner)
+            ExecutableProcessModel(processModel.builder().apply { owner = oldModel.owner })
         } else if (oldModel.owner.name != processModel.owner.name) {
             mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
         }

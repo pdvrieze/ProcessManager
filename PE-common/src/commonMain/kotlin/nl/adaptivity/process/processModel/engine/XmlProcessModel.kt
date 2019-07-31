@@ -57,20 +57,6 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
               XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
               pedantic)
 
-    override fun copy(imports: Collection<IXmlResultType>,
-                      exports: Collection<IXmlDefineType>,
-                      nodes: Collection<ProcessNode>,
-                      name: String?,
-                      uuid: UUID?,
-                      roles: Set<String>,
-                      owner: Principal,
-                      childModels: Collection<ChildProcessModel<XmlProcessNode>>): XmlProcessModel {
-        return RootProcessModelBase.Builder(nodes.map { it.builder() }, emptySet(), name, handleValue, owner, roles,
-                                       uuid).also { builder ->
-            builder.childModels.replaceBy(childModels.map { it.builder(builder) })
-        }.let{ XmlProcessModel(it, false) }
-    }
-
     override fun builder(): RootProcessModel.Builder {
         return Builder(this)
     }

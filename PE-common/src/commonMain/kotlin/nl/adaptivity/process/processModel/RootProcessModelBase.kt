@@ -137,15 +137,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         this.uuid = null
     }
 
-    abstract override fun copy(imports: Collection<IXmlResultType>,
-                               exports: Collection<IXmlDefineType>,
-                               nodes: Collection<ProcessNode>,
-                               name: String?,
-                               uuid: UUID?,
-                               roles: Set<String>,
-                               owner: Principal,
-                               childModels: Collection<ChildProcessModel<NodeT>>): RootProcessModelBase<NodeT>
-
     abstract override fun builder(): RootProcessModel.Builder
 
     abstract fun update(body: (RootProcessModel.Builder) -> Unit): RootProcessModelBase<NodeT>/* {

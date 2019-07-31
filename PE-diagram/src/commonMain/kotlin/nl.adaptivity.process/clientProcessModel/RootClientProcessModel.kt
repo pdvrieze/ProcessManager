@@ -50,18 +50,6 @@ abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootPro
     val startNodes: Collection<DrawableStartNode>
         get() = modelNodes.filterIsInstance<DrawableStartNode>()
 
-    @Deprecated("Use full version", level = DeprecationLevel.HIDDEN)
-    final     override fun copy(imports: Collection<IXmlResultType>,
-                                exports: Collection<IXmlDefineType>,
-                                nodes: Collection<ProcessNode>,
-                                name: String?,
-                                uuid: UUID?,
-                                roles: Set<String>,
-                                owner: Principal,
-                                childModels: Collection<ChildProcessModel<DrawableProcessNode>>): RootDrawableProcessModel {
-        return copy(imports, exports, nodes, name, uuid, roles, owner, childModels, this.handleValue, this.layoutAlgorithm)
-    }
-
     abstract fun copy(imports: Collection<IXmlResultType> = this.imports,
                       exports: Collection<IXmlDefineType> = this.exports,
                       nodes: Collection<ProcessNode> = modelNodes,
