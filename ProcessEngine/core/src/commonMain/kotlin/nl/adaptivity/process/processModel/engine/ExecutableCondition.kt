@@ -20,6 +20,7 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.*
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xmlutil.XmlSerializable
 
 
@@ -28,7 +29,7 @@ import nl.adaptivity.xmlutil.XmlSerializable
  *
  * @author Paul de Vrieze
  */
-abstract class ExecutableCondition : Condition {
+abstract class ExecutableCondition : Condition, Function2<ProcessEngineDataAccess, IProcessNodeInstance, ConditionResult> {
     open val isAlternate: Boolean get()= false
 
     /**
@@ -39,6 +40,11 @@ abstract class ExecutableCondition : Condition {
      * @return `true` if the condition holds, `false` if not
      */
     abstract fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult
+
+    final override operator fun invoke(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult =
+        eval(engineData, instance)
+
+    override val condition: String get() = "class:${this::class.name}"
 
     object TRUE: ExecutableCondition() {
         override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
