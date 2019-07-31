@@ -23,8 +23,8 @@ class WCP7(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
   val model = object: TestConfigurableModel("WCP7") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
-    val ac1 by activity(split) { condition = ac1Condition.toXPath() }
-    val ac2 by activity(split) { condition = ac2Condition.toXPath() }
+    val ac1 by activity(split) { condition = ac1Condition.toCondition() }
+    val ac2 by activity(split) { condition = ac2Condition.toCondition() }
     val join by join(ac1, ac2) {  min = 1; max=2 }
     val end by endNode(join)
   }

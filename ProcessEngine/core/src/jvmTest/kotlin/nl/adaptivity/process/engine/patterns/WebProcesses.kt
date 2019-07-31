@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 import nl.adaptivity.process.processModel.configurableModel.*
+import nl.adaptivity.process.processModel.engine.ExecutableXSLTCondition
 
 /**
  * Test based on
@@ -54,14 +55,14 @@ class WebProcess1 : ModelSpek(run {
         }
 
         val join1 by join(split2, split3) {
-            conditions[split2] = "coverage_exists"
-            conditions[split3] = "accepted"
+            conditions[split2] = ExecutableXSLTCondition("coverage_exists")
+            conditions[split3] = ExecutableXSLTCondition("accepted")
             min = 2
             max = 2
         }
 
         val ac3 by activity(split2) {
-            condition = "no_coverage"
+            condition = ExecutableXSLTCondition("no_coverage")
             label = "Send out offer for emergency help"
         }
 
@@ -71,7 +72,7 @@ class WebProcess1 : ModelSpek(run {
 
         val ac5 by activity(split3) {
             label = "Ask for rejection notification"
-            condition = "rejected"
+            condition = ExecutableXSLTCondition("rejected")
         }
 
         val join2 by join(ac4, ac5) {

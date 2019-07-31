@@ -158,7 +158,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         @Suppress("OverridingDeprecatedMember")
         final override var name: String?
 
-        final override var condition: String? = null
+        @Serializable(XmlCondition.Companion::class)
+        final override var condition: Condition? = null
 
         @Transient
         override val idBase: String
@@ -188,7 +189,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
                     defines: Collection<IXmlDefineType> = emptyList(),
                     results: Collection<IXmlResultType> = emptyList(),
                     message: XmlMessage? = null,
-                    condition: String? = null,
+                    condition: Condition? = null,
                     name: String? = null,
                     x: Double = Double.NaN,
                     y: Double = Double.NaN,
@@ -220,7 +221,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
                     XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
 
-                    Condition.ELEMENTLOCALNAME     -> condition = XmlCondition.deserialize(reader).condition
+                    Condition.ELEMENTLOCALNAME     -> condition = XmlCondition.deserialize(reader)
 
                     XmlMessage.ELEMENTLOCALNAME    -> message = XmlMessage.deserialize(reader)
 
@@ -262,7 +263,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
                                      Activity.CompositeActivityBuilder {
 
         override var id: String?
-        override var condition: String?
+        @Serializable(XmlCondition.Companion::class)
+        override var condition: Condition?
         override var label: String?
         @XmlDefault("NaN")
         override var x: Double
@@ -309,7 +311,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
                     childId: String? = null,
                     nodes: Collection<ProcessNode.Builder> = emptyList(),
                     predecessor: Identifiable? = null,
-                    condition: String? = null,
+                    condition: Condition? = null,
                     successor: Identifiable? = null,
                     label: String? = null,
                     imports: Collection<IXmlResultType> = emptyList(),

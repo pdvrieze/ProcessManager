@@ -38,33 +38,45 @@ import nl.adaptivity.xmlutil.writeChild
  */
 class ExecutableActivity : ActivityBase, ExecutableProcessNode {
 
-    constructor(builder: Activity.Builder,
-                buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : super(builder,
-                                                               buildHelper) {
-        this._condition = builder.condition?.let(::ExecutableCondition)
+    constructor(
+        builder: Activity.Builder,
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
+               ) : super(
+        builder,
+        buildHelper
+                        ) {
+        this._condition = builder.condition?.toExecutableCondition()
     }
 
-    constructor(builder: Activity.CompositeActivityBuilder,
-                buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : super(builder,
-                                                               buildHelper) {
-        this._condition = builder.condition?.let(::ExecutableCondition)
+    constructor(
+        builder: Activity.CompositeActivityBuilder,
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
+               ) : super(
+        builder,
+        buildHelper
+                        ) {
+        this._condition = builder.condition?.toExecutableCondition()
     }
 
     class Builder : ActivityBase.Builder, ExecutableProcessNode.Builder {
 
-        constructor(id: String? = null,
-                    predecessor: Identified? = null,
-                    successor: Identified? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    message: XmlMessage? = null,
-                    condition: String? = null,
-                    name: String? = null,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    multiInstance: Boolean = false) : super(id, predecessor, successor, label, defines, results,
-                                                            message, condition, name, x, y, multiInstance)
+        constructor(
+            id: String? = null,
+            predecessor: Identified? = null,
+            successor: Identified? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            message: XmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            multiInstance: Boolean = false
+                   ) : super(
+            id, predecessor, successor, label, defines, results,
+            message, condition, name, x, y, multiInstance
+                            )
 
         constructor(node: Activity) : super(node)
     }
@@ -76,7 +88,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         childId: String? = null,
         nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
         override var predecessor: Identifiable? = null,
-        override var condition: String? = null,
+        override var condition: Condition? = null,
         override var successor: Identifiable? = null,
         override var label: String? = null,
         imports: Collection<IXmlResultType> = emptyList(),
@@ -114,35 +126,45 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override var condition: String?
-        get() = _condition?.condition
+    override var condition: Condition?
+        get() = _condition
         set(value) {
-            _condition = condition?.let(::ExecutableCondition)
+            _condition = condition?.toExecutableCondition()
         }
 
     /**
      * Determine whether the process can start.
      */
-    override fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance): ConditionResult {
+    override fun condition(
+        engineData: ProcessEngineDataAccess,
+        predecessor: IProcessNodeInstance,
+        instance: IProcessNodeInstance
+                          ): ConditionResult {
         return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
     }
 
-    override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
-                                       processInstanceBuilder: ProcessInstance.Builder,
-                                       predecessor: IProcessNodeInstance,
-                                       entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess,
+        processInstanceBuilder: ProcessInstance.Builder,
+        predecessor: IProcessNodeInstance,
+        entryNo: Int
+                                      ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         return if (childModel == null)
             super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
         else // TODO handle invalidating multiple instances
-            processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(this, predecessor.handle(),
-                                                                                            processInstanceBuilder,
-                                                                                            getInvalidHandle(),
-                                                                                            processInstanceBuilder.owner,
-                                                                                            entryNo)
+            processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(
+                this, predecessor.handle(),
+                processInstanceBuilder,
+                getInvalidHandle(),
+                processInstanceBuilder.owner,
+                entryNo
+                                                                                           )
     }
 
-    override fun provideTask(engineData: ProcessEngineDataAccess,
-                             instanceBuilder: ProcessNodeInstance.Builder<*, *>) = childModel != null
+    override fun provideTask(
+        engineData: ProcessEngineDataAccess,
+        instanceBuilder: ProcessNodeInstance.Builder<*, *>
+                            ) = childModel != null
 
     /**
      * Take the task. Tasks are either process aware or finished when a reply is
@@ -162,7 +184,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
 
     @Throws(XmlException::class)
     override fun serializeCondition(out: XmlWriter) {
-        out.writeChild(_condition)
+        out.writeChild(_condition?.let { XmlCondition(it.condition) })
     }
 
 }

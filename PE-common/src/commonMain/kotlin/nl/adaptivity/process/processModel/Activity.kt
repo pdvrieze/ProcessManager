@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
@@ -39,7 +40,7 @@ interface Activity : ProcessNode {
     /**
      * The condition that needs to be true to start this activity. A null value means that the activity can run.
      */
-    val condition: String?
+    val condition: Condition?
 
     /**
      * Get the list of imports. The imports are provided to the message for use as
@@ -72,7 +73,7 @@ interface Activity : ProcessNode {
 
     //    @Serializable
     interface IBuilder : ProcessNode.Builder {
-        var condition: String?
+        var condition: Condition?
 
         var predecessor: Identifiable?
 
@@ -138,4 +139,8 @@ interface Activity : ProcessNode {
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
     }
 
+}
+
+fun Activity.IBuilder.condition(condition: String) {
+    this.condition = XmlCondition(condition)
 }

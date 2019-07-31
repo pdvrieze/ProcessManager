@@ -18,13 +18,15 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
 class PredecessorInfo(@SerialName("predecessor")
                       @XmlValue(true) val id: String,
-                      @XmlElement(false) val condition: String? = null) {
+                      @Serializable(XmlCondition.Companion::class)
+                      @XmlElement(false) val condition: Condition? = null) {
     init {
         if(id.isEmpty()) throw IllegalArgumentException("Empty id's are not valid")
     }

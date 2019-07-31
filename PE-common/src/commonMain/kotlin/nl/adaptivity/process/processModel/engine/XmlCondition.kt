@@ -38,7 +38,7 @@ class XmlCondition(override val condition: String) : XmlSerializable, Condition 
     }
 
     @Serializer(XmlCondition::class)
-    companion object: KSerializer<XmlCondition> {
+    companion object: KSerializer<Condition> {
         override val descriptor: SerialDescriptor
             get() = SerialClassDescImpl(StringSerializer.descriptor, "condition")
 
@@ -47,7 +47,7 @@ class XmlCondition(override val condition: String) : XmlSerializable, Condition 
             return XmlCondition(condition)
         }
 
-        override fun serialize(encoder: Encoder, obj: XmlCondition) {
+        override fun serialize(encoder: Encoder, obj: Condition) {
             encoder.encodeString(obj.condition)
         }
 

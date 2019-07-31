@@ -227,7 +227,7 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
         return ExecutableChildModel(baseChildBuilder, buildHelper)
     }
 
-    override fun condition(text: String) = ExecutableCondition(text)
+    override fun condition(condition: Condition) = condition.toExecutableCondition()
 }
 
 typealias ExecutableProcessModelRef = IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>

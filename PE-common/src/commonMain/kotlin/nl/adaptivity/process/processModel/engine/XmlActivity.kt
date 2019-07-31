@@ -17,18 +17,16 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
-import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.ActivityBase
+import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.SerialClassDescImpl
-import nl.adaptivity.util.addField
 import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.writeChild
 
 
 /**
@@ -59,8 +57,8 @@ class XmlActivity : ActivityBase, XmlProcessNode {
         out.writeChild(xmlCondition)
     }
 
-    override val condition: String?
-        get() = xmlCondition?.toString()
+    override val condition: Condition?
+        get() = xmlCondition
 
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {

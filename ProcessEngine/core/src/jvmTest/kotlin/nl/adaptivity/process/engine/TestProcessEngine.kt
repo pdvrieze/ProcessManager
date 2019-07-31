@@ -27,6 +27,8 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.XmlMessage
+import nl.adaptivity.process.processModel.condition
+import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.util.activation.Sources
@@ -342,7 +344,7 @@ class TestProcessEngine {
         val model = ExecutableProcessModel.build {
             owner = principal
             val start = startNode { id="start" }
-            val ac = activity { id="ac"; predecessor=start.identifier; condition="false()" }
+            val ac = activity { id="ac"; predecessor=start.identifier; condition=ExecutableCondition.FALSE }
             val end = endNode { id="end"; predecessor=ac }
         }
         testProcess(model) { transaction, model, instanceHandle ->
@@ -361,7 +363,7 @@ class TestProcessEngine {
         val model = ExecutableProcessModel.build {
             owner = principal
             val start = startNode { id="start" }
-            val ac = activity { id="ac"; predecessor=start.identifier; condition="true()" }
+            val ac = activity { id="ac"; predecessor=start.identifier; condition("true()") }
             val end = endNode { id="end"; predecessor=ac }
         }
         testProcess(model) { transaction, model, instanceHandle ->

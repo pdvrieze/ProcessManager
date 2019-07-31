@@ -322,7 +322,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
         fun childModel(builder: ChildProcessModel.Builder): ChildT
         fun node(builder: ProcessNode.Builder): NodeT
         fun <M:ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
-        fun condition(text: String): Condition
+        fun condition(condition: Condition): Condition = condition
     }
 
     companion object {

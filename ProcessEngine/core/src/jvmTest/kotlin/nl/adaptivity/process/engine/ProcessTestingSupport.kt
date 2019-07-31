@@ -29,6 +29,7 @@ import nl.adaptivity.process.engine.spek.ProcessNodeActions
 import nl.adaptivity.process.engine.spek.SafeNodeActions
 import nl.adaptivity.process.engine.spek.toDebugString
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
@@ -395,6 +396,7 @@ fun kfail(message:String):Nothing {
 }
 
 internal fun Boolean.toXPath() = if (this) "true()" else "false()"
+internal fun Boolean.toCondition() = if (this) ExecutableCondition.TRUE else ExecutableCondition.FALSE
 
 operator fun ProcessTransaction.get(handle: Handle<SecureObject<ProcessInstance>>): ProcessInstance {
   return this.readableEngineData.instance(handle).withPermission()

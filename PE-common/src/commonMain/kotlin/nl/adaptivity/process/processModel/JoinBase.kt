@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.processModel.serialization.ConditionStringSerializer
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
@@ -127,7 +128,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         @Serializable(ConditionStringSerializer::class)
         @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
         @SerialName("predecessors")
-        override var conditions: MutableMap<Identifier, String?> = mutableMapOf()
+        override var conditions: MutableMap<Identifier, Condition?> = mutableMapOf()
 
         @Transient
         final override var successor: Identifiable? = null
@@ -182,7 +183,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         constructor(node: Join) : super(node) {
             this.isMultiMerge = node.isMultiMerge
             node.predecessors.associateByTo(this.conditions, Identified::identifier) {
-                node.conditions[it.identifier]?.condition
+                node.conditions[it.identifier]
             }
             this.successor = node.successor
         }
@@ -193,7 +194,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
                 val id = reader.readSimpleElement()
                 val identifier = Identifier(id)
                 if (condition!=null) {
-                    conditions[identifier] = condition
+                    conditions[identifier] = XmlCondition(condition)
                 }
                 predecessors.add(identifier)
                 return true

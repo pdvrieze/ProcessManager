@@ -174,7 +174,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
         operator fun invoke(baseChildBuilder: ChildProcessModel.Builder,
                             buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): ChildT
 
-        fun condition(text: String): Condition
+        fun condition(condition: Condition): Condition = condition
     }
 
     @Serializable

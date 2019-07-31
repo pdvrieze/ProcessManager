@@ -44,7 +44,7 @@ interface Join : ProcessNode, JoinSplit {
 
         override var predecessors: MutableSet<Identified>
 
-        var conditions: MutableMap<Identifier, String?>
+        var conditions: MutableMap<Identifier, Condition?>
 
         var successor: Identifiable?
 

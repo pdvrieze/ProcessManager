@@ -560,7 +560,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
         override fun node(builder: ProcessNode.Builder): NodeT = nodeFactory.invoke(builder, this)
 
-        override fun condition(text: String): Condition = nodeFactory.condition(text)
+        override fun condition(condition:Condition): Condition = nodeFactory.condition(condition)
 
         override fun iterator() = data.values.asSequence().map { it.invoke() }.iterator()
 

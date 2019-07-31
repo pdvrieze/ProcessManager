@@ -192,5 +192,5 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
         return XmlChildModel(baseChildBuilder, buildHelper)
     }
 
-    override fun condition(text: String) = XmlCondition(text)
+    override fun condition(condition: Condition) = condition as? XmlCondition ?: XmlCondition(condition.condition)
 }

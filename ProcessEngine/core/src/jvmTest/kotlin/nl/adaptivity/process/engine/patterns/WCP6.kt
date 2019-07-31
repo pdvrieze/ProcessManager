@@ -18,13 +18,14 @@ package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.*
+import nl.adaptivity.process.processModel.engine.ExecutableXSLTCondition
 
 class WCP6(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
   val model = object : TestConfigurableModel("WCP6") {
     val start by startNode
     val split by split(start) { min = 1; max = 2 }
-    val ac1 by activity(split) { condition = ac1Condition.toXPath() }
-    val ac2 by activity(split) { condition = ac2Condition.toXPath() }
+    val ac1 by activity(split) { condition = ExecutableXSLTCondition(ac1Condition.toXPath()) }
+    val ac2 by activity(split) { condition = ExecutableXSLTCondition(ac2Condition.toXPath()) }
     val end1 by endNode(ac1 )
     val end2 by endNode(ac2 )
   }
