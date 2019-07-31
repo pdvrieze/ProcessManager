@@ -438,9 +438,9 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
     private class Visitor(val buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *,*,*>) : ProcessNode.BuilderVisitor<DrawableProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = DrawableStartNode(startNode, buildHelper)
 
-        override fun visitActivity(activity: Activity.Builder) = DrawableActivity(activity, buildHelper)
+        override fun visitActivity(activity: MessageActivity.Builder) = DrawableActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.CompositeActivityBuilder) = TODO(
+        override fun visitActivity(activity: CompositeActivity.Builder) = TODO(
             "Child models are not implemented yet for drawables")
 //        DrawableActivity(activity, childModel!!)
 

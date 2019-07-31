@@ -17,7 +17,7 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.Positioned
-import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.CompositeActivity
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.util.multiplatform.JvmDefault
@@ -36,7 +36,7 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode> {
         override val rootBuilder: RootDrawableProcessModel.Builder
 
         @JvmDefault
-        override fun compositeActivityBuilder(): Activity.CompositeActivityBuilder {
+        override fun compositeActivityBuilder(): CompositeActivity.Builder {
             TODO("DrawableChildModels still need to be implemented")
         }
 

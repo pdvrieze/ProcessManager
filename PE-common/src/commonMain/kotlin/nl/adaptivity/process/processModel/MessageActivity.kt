@@ -17,4 +17,11 @@
 package nl.adaptivity.process.processModel
 
 interface MessageActivity: Activity {
+    interface Builder : Activity.Builder, ProcessNode.Builder {
+        var message: IXmlMessage?
+        @Deprecated("Names are not used anymore")
+        var name: String?
+
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
+    }
 }

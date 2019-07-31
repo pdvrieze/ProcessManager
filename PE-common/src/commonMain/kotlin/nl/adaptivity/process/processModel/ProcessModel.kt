@@ -59,9 +59,9 @@ interface ProcessModel<out NodeT: ProcessNode> {
         @JvmDefault
         fun joinBuilder(): Join.Builder = JoinBase.Builder()
         @JvmDefault
-        fun activityBuilder(): Activity.Builder = ActivityBase.Builder()
+        fun activityBuilder(): MessageActivity.Builder = ActivityBase.Builder()
         @JvmDefault
-        fun compositeActivityBuilder(): Activity.CompositeActivityBuilder = ActivityBase.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
+        fun compositeActivityBuilder(): CompositeActivity.Builder = ActivityBase.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
         @JvmDefault
         fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 
@@ -72,7 +72,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
         @JvmDefault
         fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
         @JvmDefault
-        fun activityBuilder(activity: Activity): Activity.Builder = ActivityBase.Builder(activity)
+        fun activityBuilder(activity: Activity): MessageActivity.Builder = ActivityBase.Builder(activity)
         @JvmDefault
         fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
 
@@ -94,13 +94,13 @@ interface ProcessModel<out NodeT: ProcessNode> {
 
         fun join(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Join.Builder }
 
-        fun activity(body: Activity.Builder.() -> Unit): Identifiable {
+        fun activity(body: MessageActivity.Builder.() -> Unit): Identifiable {
             return nodeHelper(activityBuilder(), body)
         }
 
-        fun activity(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Activity.Builder }
+        fun activity(id: String) = nodes.firstOrNull { it.id == id }?.let { it as MessageActivity.Builder }
 
-        fun compositeActivity(body: Activity.CompositeActivityBuilder.() -> Unit): Identifiable {
+        fun compositeActivity(body: CompositeActivity.Builder.() -> Unit): Identifiable {
             val builder = compositeActivityBuilder()
             builder.apply(body)
             builder.ensureChildId().ensureId()

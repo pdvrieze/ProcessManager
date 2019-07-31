@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Transient
 import net.devrieze.util.Handle
-import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
@@ -205,10 +204,10 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
     private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = ExecutableStartNode(startNode, buildHelper)
 
-        override fun visitActivity(activity: Activity.Builder) = ExecutableActivity(activity, buildHelper)
+        override fun visitActivity(activity: MessageActivity.Builder) = ExecutableActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.CompositeActivityBuilder) = ExecutableActivity(activity,
-                                                                                              buildHelper)
+        override fun visitActivity(activity: CompositeActivity.Builder) = ExecutableActivity(activity,
+                                                                                             buildHelper)
 
         override fun visitSplit(split: Split.Builder) = ExecutableSplit(split, buildHelper)
 

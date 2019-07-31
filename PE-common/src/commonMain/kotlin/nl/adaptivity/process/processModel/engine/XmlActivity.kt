@@ -18,9 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.Activity
-import nl.adaptivity.process.processModel.ActivityBase
-import nl.adaptivity.process.processModel.Condition
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
@@ -43,10 +41,10 @@ import nl.adaptivity.xmlutil.writeChild
 @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlActivity : ActivityBase, XmlProcessNode {
 
-    constructor(builder: Activity.Builder,
+    constructor(builder: MessageActivity.Builder,
                 buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
-    constructor(builder: Activity.CompositeActivityBuilder,
+    constructor(builder: CompositeActivity.Builder,
                 buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
     @Transient

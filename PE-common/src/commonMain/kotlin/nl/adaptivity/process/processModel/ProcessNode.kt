@@ -112,8 +112,8 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
 
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder): R
-        fun visitActivity(activity: Activity.Builder): R
-        fun visitActivity(activity: Activity.CompositeActivityBuilder): R
+        fun visitActivity(activity: MessageActivity.Builder): R
+        fun visitActivity(activity: CompositeActivity.Builder): R
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R
         fun visitEndNode(endNode: EndNode.Builder): R
@@ -133,7 +133,7 @@ inline operator fun StartNode.Builder?.invoke(body: StartNode.Builder.() -> Unit
     this?.body()
 }
 
-inline operator fun Activity.Builder?.invoke(body: Activity.Builder.() -> Unit) {
+inline operator fun MessageActivity.Builder?.invoke(body: MessageActivity.Builder.() -> Unit) {
     this?.body()
 }
 

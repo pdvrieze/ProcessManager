@@ -76,8 +76,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         _message = message
     }
 
-    constructor(builder: Activity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder,
-                                                                                          buildHelper.newOwner) {
+    constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder,
+                                                                                                                                                buildHelper.newOwner) {
         if (builder.message != null && builder.childId != null) throw IllegalProcessModelException(
             "Activities can not have child models as well as messages")
         this._message = XmlMessage.from(builder.message)
@@ -88,7 +88,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         childId = childModel?.id
     }
 
-    constructor(builder: Activity.CompositeActivityBuilder,
+    constructor(builder: CompositeActivity.Builder,
                 buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder, buildHelper.newOwner) {
         this._message = null
         this._name = null
@@ -98,7 +98,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
 
-    override fun builder(): Activity.Builder = Builder(this)
+    override fun builder(): MessageActivity.Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitActivity(this)
@@ -150,7 +150,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
 
     @Serializable
-    open class Builder : ProcessNodeBase.Builder, Activity.Builder, SimpleXmlDeserializable {
+    open class Builder : ProcessNodeBase.Builder, MessageActivity.Builder, SimpleXmlDeserializable {
 
         @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
@@ -260,7 +260,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     @Serializable
     open class CompositeActivityBuilder : ChildProcessModelBase.Builder,
-                                     Activity.CompositeActivityBuilder {
+                                          CompositeActivity.Builder {
 
         override var id: String?
         @Serializable(XmlCondition.Companion::class)

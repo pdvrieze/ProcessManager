@@ -69,10 +69,10 @@ interface Activity : ProcessNode {
 
     val childModel: ChildProcessModel<ProcessNode>?
 
-    override fun builder(): Builder
+    override fun builder(): MessageActivity.Builder
 
     //    @Serializable
-    interface IBuilder : ProcessNode.Builder {
+    interface Builder : ProcessNode.Builder {
         var condition: Condition?
 
         var predecessor: Identifiable?
@@ -117,21 +117,6 @@ interface Activity : ProcessNode {
         }
     }
 
-    interface Builder : IBuilder, ProcessNode.Builder {
-        var message: IXmlMessage?
-        @Deprecated("Names are not used anymore")
-        var name: String?
-
-        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
-    }
-
-    interface CompositeActivityBuilder : IBuilder, ChildProcessModel.Builder {
-
-        override val idBase: String get() = "sub"
-
-        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
-    }
-
     companion object {
 
         /** The name of the XML element.  */
@@ -141,6 +126,6 @@ interface Activity : ProcessNode {
 
 }
 
-fun Activity.IBuilder.condition(condition: String) {
+fun Activity.Builder.condition(condition: String) {
     this.condition = XmlCondition(condition)
 }

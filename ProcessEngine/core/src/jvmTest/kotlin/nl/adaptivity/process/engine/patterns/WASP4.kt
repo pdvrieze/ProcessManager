@@ -27,7 +27,7 @@ class WASP4: ModelSpek(run {
     val start1 by startNode
     val ac1    by activity(start1)
 
-    val comp1 by object : CompositeActivity(ac1) {
+    val comp1 by object : ConfigurableCompositeActivity(ac1) {
       val start2 by startNode
       val ac2    by activity(start2)
       val end2   by endNode(ac2)

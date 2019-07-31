@@ -97,7 +97,7 @@ interface IDrawableActivity : IDrawableProcessNode {
 
 }
 
-open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder,
+open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.Builder,
                                                       buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *> = STUB_DRAWABLE_BUILD_HELPER) :
     ActivityBase(builder,
                                                              buildHelper), DrawableProcessNode {

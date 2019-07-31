@@ -39,7 +39,7 @@ import nl.adaptivity.xmlutil.writeChild
 class ExecutableActivity : ActivityBase, ExecutableProcessNode {
 
     constructor(
-        builder: Activity.Builder,
+        builder: MessageActivity.Builder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>
                ) : super(
         builder,
@@ -49,7 +49,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
     }
 
     constructor(
-        builder: Activity.CompositeActivityBuilder,
+        builder: CompositeActivity.Builder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>
                ) : super(
         builder,
@@ -100,7 +100,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         override var isMultiInstance: Boolean = false
                                   ) :
         ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports),
-        Activity.CompositeActivityBuilder,
+        CompositeActivity.Builder,
         ExecutableProcessNode.Builder {
 
         override var defines: MutableCollection<IXmlDefineType> = ArrayList(defines)

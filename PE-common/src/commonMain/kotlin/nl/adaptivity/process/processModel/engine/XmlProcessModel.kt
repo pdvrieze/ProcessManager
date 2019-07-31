@@ -19,7 +19,6 @@ package nl.adaptivity.process.processModel.engine
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.GeneratedSerializer
 import kotlinx.serialization.internal.SerialClassDescImpl
-import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
@@ -171,9 +170,9 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
     private class Visitor(private val buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
 
-        override fun visitActivity(activity: Activity.Builder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: MessageActivity.Builder) = XmlActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: Activity.CompositeActivityBuilder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: CompositeActivity.Builder) = XmlActivity(activity, buildHelper)
 
         override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner)
 

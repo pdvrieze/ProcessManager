@@ -125,7 +125,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
         with(modelBuilder) {
-            if (nodeBuilder is Activity.CompositeActivityBuilder) {
+            if (nodeBuilder is CompositeActivity.Builder) {
                 childModels.add(nodeBuilder.ensureChildId())
             }
 
@@ -140,34 +140,34 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
                                                      ): Identifier = this
 
 
-    inline operator fun <T : CompositeActivity> T.provideDelegate(
+    inline operator fun <T : ConfigurableCompositeActivity> T.provideDelegate(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
-                                                                 ): T {
+                                                                             ): T {
         setIdIfEmpty(property.name)
         return this
     }
 
-    inline operator fun <T : CompositeActivity> T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T =
+    inline operator fun <T : ConfigurableCompositeActivity> T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T =
         this
 
     @ConfigurationDsl
-    protected abstract inner class CompositeActivity(
+    protected abstract inner class ConfigurableCompositeActivity(
         predecessor: Identified,
         childId: String? = null,
         id: String? = null
-                                                    ) :
+                                                                ) :
         Identified,
         ConfigurableNodeContainer /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder
 
-        override val configurationBuilder: Activity.CompositeActivityBuilder = ActivityBase.CompositeActivityBuilder(
+        override val configurationBuilder: CompositeActivity.Builder = ActivityBase.CompositeActivityBuilder(
             rootBuilder(),
             childId = childId,
             id = id,
             predecessor = predecessor
-                                                                                                                    )
+                                                                                                            )
 
         init {
             rootBuilder().childModels.add(configurationBuilder)
@@ -193,14 +193,14 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
 
         operator fun ProcessNode.Builder.provideDelegate(
-            thisRef: CompositeActivity,
+            thisRef: ConfigurableCompositeActivity,
             property: KProperty<*>
                                                         ): Identifier {
             val modelBuilder = configurationBuilder
             val nodeBuilder = this
             if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
             with(modelBuilder) {
-                if (nodeBuilder is Activity.CompositeActivityBuilder) {
+                if (nodeBuilder is CompositeActivity.Builder) {
                     modelBuilder.rootBuilder.childModels.add(nodeBuilder.ensureChildId())
                 }
 
@@ -210,7 +210,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
 
         protected inline operator fun Identifier.getValue(
-            thisRef: CompositeActivity,
+            thisRef: ConfigurableCompositeActivity,
             property: KProperty<*>
                                                          ): Identifier = this
 

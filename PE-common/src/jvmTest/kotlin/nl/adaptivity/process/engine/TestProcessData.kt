@@ -385,7 +385,7 @@ class TestProcessData {
     @Test
     fun testPredecessorInfo() {
         testRoundTrip("<PredecessorInfo condition=\"foo\">bar</PredecessorInfo>", PredecessorInfo::class, PredecessorInfo.serializer()) {
-            assertEquals("foo", it.condition)
+            assertEquals("foo", it.condition?.condition)
             assertEquals("bar", it.id)
         }
     }
