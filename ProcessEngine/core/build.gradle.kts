@@ -15,12 +15,13 @@
  */
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import versions.*
 
 plugins {
+    kotlin("multiplatform")
     id("java-library")
-    kotlin("jvm")
     id("idea")
     id("mpconsumer")
 }
@@ -28,6 +29,85 @@ plugins {
 version = "1.0.0"
 description = "The core process engine, independent of deployment location."
 //group = ['server', 'service' ]
+
+kotlin {
+    targets {
+        jvm {
+            compilations.all {
+                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                    jvmTarget = "1.8"
+                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
+                }
+                tasks.withType<Test> {
+                    useJUnitPlatform()
+                }
+            }
+            attributes.attribute(androidAttribute, false)
+        }
+/*
+        jvm("android") {
+            attributes.attribute(androidAttribute, true)
+            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+            compilations.all {
+                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                    jvmTarget = "1.6"
+                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
+                }
+            }
+        }
+*/
+        sourceSets {
+            val commonMain by getting {
+                dependencies {
+                    api(project(":java-common"))
+                    api(project(":PE-common"))
+
+                    implementation(project(":multiplatform"))
+                    implementation(kotlin("stdlib"))
+                    compileOnly(project(":JavaCommonApi"))
+                    compileOnly(project(":DarwinJavaApi"))
+                }
+            }
+            val jvmMain by getting {
+                dependencies {
+                    api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+                    api("javax.activation:javax.activation-api:$activationVersion")
+                    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
+
+                    compileOnly("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+                }
+
+            }
+            val jvmTest by getting {
+                dependencies {
+                    implementation(project(":PE-common"))
+
+                    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}") {
+                        exclude(group = "org.jetbrains.kotlin")
+                    }
+                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
+                    implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+
+                    implementation("org.xmlunit:xmlunit-core:2.6.0")
+//    implementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+
+                    implementation(project(":DarwinJavaApi"))
+                    implementation(project(":TestSupport"))
+                    implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
+
+                    runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+                    runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+
+                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
+                        exclude(group = "org.junit.platform")
+                        exclude(group = "org.jetbrains.kotlin")
+                    }
+                }
+            }
+        }
+    }
+}
 
 val testJar = tasks.create<Jar>("testJar") {
     baseName = "${project.name}-test"
@@ -38,18 +118,11 @@ tasks.named<Jar>("jar") {
     baseName = "${project.parent?.name}-${project.name}"
 }
 
-configurations {
-    named<Configuration>("implementation") {
-        attributes {
-            attribute(androidAttribute, false)
-        }
-    }
-}
+//artifacts {
+//    add("testRuntime", testJar)
+//}
 
-artifacts {
-    add("testRuntime", testJar)
-}
-
+/*
 dependencies {
     api(project(":java-common"))
     api(project(":PE-common"))
@@ -88,6 +161,7 @@ dependencies {
         exclude(group="org.jetbrains.kotlin")
     }
 }
+*/
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -101,7 +175,7 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.named<Test>("test") {
+tasks.named<Test>("jvmTest") {
     useJUnitPlatform {
         includeEngines("spek2", "junit-jupiter")
         include("**/TestWorkflowPatterns**")
@@ -120,7 +194,4 @@ idea {
         name = "${parent?.name}-${project.name}"
     }
 }
-repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
-    mavenCentral()
-}
+

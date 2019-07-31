@@ -20,7 +20,6 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
-import java.sql.SQLException
 
 
 /**
@@ -52,7 +51,6 @@ interface IMessageService<MSG_T> {
    *
    * @return `true` or lack of failure, `false` on failure.
    *
-   * @throws SQLException
    */
   fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
 

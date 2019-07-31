@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -13,7 +13,8 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
-
+@file:JvmName("ExecutableConditionKt")
+@file:JvmMultifileClass
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.ProcessConsts.Engine
@@ -22,6 +23,10 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.NEVER
 import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
+import nl.adaptivity.util.multiplatform.Locale
+import nl.adaptivity.util.multiplatform.Locales
+import nl.adaptivity.util.multiplatform.Throws
+import nl.adaptivity.util.multiplatform.toLowercase
 import nl.adaptivity.xmlutil.*
 import java.util.*
 import javax.xml.parsers.DocumentBuilderFactory
@@ -33,12 +38,12 @@ import javax.xml.xpath.*
  *
  * @author Paul de Vrieze
  */
-class ExecutableCondition(condition: String) : XmlSerializable, Condition {
-  val isAlternate: Boolean = condition.trim().toLowerCase(Locale.ENGLISH)=="otherwise"
-  override val condition: String = if(isAlternate) "" else condition
+actual class ExecutableCondition actual constructor(condition: String) : XmlSerializable, Condition {
+  actual val isAlternate: Boolean = condition.trim().toLowercase(Locales.ENGLISH)=="otherwise"
+  actual override val condition: String = if(isAlternate) "" else condition
 
   @Throws(XmlException::class)
-  override fun serialize(out: XmlWriter) {
+  override actual fun serialize(out: XmlWriter) {
     out.writeSimpleElement(QName(Engine.NAMESPACE, Condition.ELEMENTLOCALNAME, Engine.NSPREFIX), condition)
   }
 
@@ -51,7 +56,7 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
    *
    * @return `true` if the condition holds, `false` if not
    */
-  fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult {
+  actual fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult {
     if (condition.isBlank()) return TRUE
     // TODO process the condition as xpath, expose the node's defines as variables
     val factory = XPathFactory.newInstance()
@@ -68,22 +73,9 @@ class ExecutableCondition(condition: String) : XmlSerializable, Condition {
 
 }
 
-enum class ConditionResult {
-  /** The result is true now */
-  TRUE,
-  /** The result may be true in the future but is not now */
-  MAYBE,
-  /** The result is not going to be true. No timers. */
-  NEVER
-}
-
-fun ConditionResult(boolean: Boolean): ConditionResult {
-  return if(boolean) TRUE else NEVER
-}
-
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: IProcessNodeInstance) : XPathFunctionResolver, XPathVariableResolver {
+private class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: IProcessNodeInstance) : XPathFunctionResolver, XPathVariableResolver {
   override fun resolveVariable(variableName: QName): Any? {
     // Actually resolve variables
     return null

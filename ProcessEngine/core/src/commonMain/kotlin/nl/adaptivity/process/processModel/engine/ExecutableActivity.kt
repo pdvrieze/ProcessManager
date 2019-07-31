@@ -27,6 +27,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.writeChild
@@ -90,12 +91,12 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         Activity.CompositeActivityBuilder,
         ExecutableProcessNode.Builder {
 
-        override var defines: MutableCollection<IXmlDefineType> = java.util.ArrayList(defines)
+        override var defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
             set(value) {
                 field.replaceBy(value)
             }
 
-        override var results: MutableCollection<IXmlResultType> = java.util.ArrayList(results)
+        override var results: MutableCollection<IXmlResultType> = ArrayList(results)
             set(value) {
                 field.replaceBy(value)
             }
