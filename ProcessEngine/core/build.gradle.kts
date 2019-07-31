@@ -70,6 +70,8 @@ kotlin {
             }
             val jvmMain by getting {
                 dependencies {
+                    api(project(":java-common"))
+                    api(project(":PE-common"))
                     api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
                     api("javax.activation:javax.activation-api:$activationVersion")
                     runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
