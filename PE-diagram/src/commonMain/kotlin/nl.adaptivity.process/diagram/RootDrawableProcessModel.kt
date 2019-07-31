@@ -430,7 +430,7 @@ object STUB_DRAWABLE_BUILD_HELPER : ProcessModel.BuildHelper<DrawableProcessNode
         return this as ProcessModel.BuildHelper<DrawableProcessNode, M, RootDrawableProcessModel, ChildProcessModelBase<DrawableProcessNode>>
     }
 
-    override fun condition(text: String) = XmlCondition(text)
+    override fun condition(condition: Condition) = condition as? XmlCondition ?: XmlCondition(condition.condition)
 }
 
 object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode, DrawableProcessNode, ChildProcessModelBase<DrawableProcessNode>> {
@@ -463,7 +463,7 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 //    return DrawableChildModel(baseChildBuilder, ownerModel, pedantic)
     }
 
-    override fun condition(text: String) = XmlCondition(text)
+    override fun condition(condition: Condition) = condition as? XmlCondition ?: XmlCondition(condition.condition)
 }
 
 

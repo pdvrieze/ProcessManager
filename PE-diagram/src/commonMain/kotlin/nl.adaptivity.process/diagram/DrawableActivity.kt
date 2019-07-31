@@ -117,7 +117,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder,
                     defines: Collection<IXmlDefineType> = emptyList(),
                     results: Collection<IXmlResultType> = emptyList(),
                     message: XmlMessage? = null,
-                    condition: String? = null,
+                    condition: Condition? = null,
                     name: String? = null,
                     state: DrawableState = Drawable.STATE_DEFAULT,
                     multiInstance: Boolean = false,
@@ -155,7 +155,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder,
 
     val isComposite get() = this.childModel != null
 
-    override val condition: String? = builder.condition
+    override val condition: Condition? = builder.condition
 
     override val maxSuccessorCount: Int
         get() = if (isCompat) Int.MAX_VALUE else 1
@@ -170,6 +170,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: Activity.Builder,
         get() = IDBASE
 
     override fun serializeCondition(out: XmlWriter) {
+        val condition = condition?.condition
         if (!condition.isNullOrEmpty()) {
             out.writeSimpleElement(Condition.ELEMENTNAME, condition)
         }
