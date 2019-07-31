@@ -23,6 +23,7 @@ import nl.adaptivity.spek.lenientFactory
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Tag
 import org.spekframework.spek2.CreateWith
+import nl.adaptivity.process.processModel.configurableModel.*
 
 @CreateWith(lenientFactory::class)
 @Tag("slow")

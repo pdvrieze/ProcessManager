@@ -20,6 +20,7 @@ import nl.adaptivity.process.engine.TestConfigurableModel
 import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
+import nl.adaptivity.process.processModel.configurableModel.*
 
 private const val WCP3_expectedJson = "{\"name\":\"WCP3\",\"owner\":\"pdvrieze\",\"roles\":null,\"uuid\":null,\"childModel\":[],\"import\":[],\"export\":[],\"nodes\":[" +
                                       "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"start\",\"label\":null}]," +

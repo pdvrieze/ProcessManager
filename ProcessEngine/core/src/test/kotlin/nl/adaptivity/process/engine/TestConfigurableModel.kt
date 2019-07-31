@@ -28,6 +28,7 @@ import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 import java.util.*
 import kotlin.reflect.KProperty
+import nl.adaptivity.process.processModel.configurableModel.*
 
 @Suppress("NOTHING_TO_INLINE")
 internal abstract class TestConfigurableModel(

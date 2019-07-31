@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.process.processModel.configurableModel.*
 
 class WCP10: ModelSpek(run {
   val model = object : TestConfigurableModel("WCP10") {

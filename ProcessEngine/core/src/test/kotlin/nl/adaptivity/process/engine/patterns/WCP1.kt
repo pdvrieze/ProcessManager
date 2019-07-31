@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.ModelData
 import nl.adaptivity.process.engine.ModelSpek
 import nl.adaptivity.process.engine.trace
 import org.junit.jupiter.api.Assertions.assertEquals
+import nl.adaptivity.process.processModel.configurableModel.*
 
 private const val expectedWCP1Json = "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",\"roles\":null,\"uuid\":null,\"childModel\":[],\"import\":[],\"export\":[],\"nodes\":[" +
                                      "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\"," +

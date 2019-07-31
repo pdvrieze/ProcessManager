@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.configurableModel.*
 
 class WCP6(ac1Condition:Boolean, ac2Condition:Boolean): ModelSpek(run{
   val model = object : TestConfigurableModel("WCP6") {
