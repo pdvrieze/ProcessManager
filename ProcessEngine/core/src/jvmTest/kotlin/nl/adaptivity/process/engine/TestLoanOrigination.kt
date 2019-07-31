@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
 
-class TestConfigurableModel {
+class TestLoanOrigination {
 
     @Test
     fun testCreateModel() {
@@ -35,7 +35,8 @@ class TestConfigurableModel {
 
 private val myPrincipal = SimplePrincipal("testPrincipal")
 
-private object Model1: ConfigurableProcessModel<XmlProcessNode>("model1", myPrincipal, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")) {
+private object Model1: ConfigurableProcessModel<XmlProcessNode>("testLoanOrigination",
+                                                                myPrincipal, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")) {
     val start by startNode
     val inputCustomerMasterData by activity(start) {
     }
