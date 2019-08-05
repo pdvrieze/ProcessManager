@@ -22,8 +22,11 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.multiplatform.Class
 import java.util.*
 import kotlin.NoSuchElementException
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 
 /**
@@ -421,11 +424,11 @@ private class CombiningListIterator<T> : MutableListIterator<T> {
         return itemIdx - 1
     }
 
-    override fun set(e: T) {
+    override fun set(element: T) {
         throw UnsupportedOperationException()
     }
 
-    override fun add(e: T) {
+    override fun add(element: T) {
         throw UnsupportedOperationException()
     }
 
@@ -549,8 +552,12 @@ fun isNullOrEmpty(content: DoubleArray?): Boolean {
     return content == null || content.size == 0
 }
 
+@UseExperimental(ExperimentalContracts::class)
 fun isNullOrEmpty(content: Array<Any>?): Boolean {
-    return content == null || content!!.size == 0
+    contract {
+        returns(false) implies(content!=null)
+    }
+    return content == null || content.isEmpty()
 }
 
 fun <T> toArrayList(values: Iterable<T>): ArrayList<T> {
@@ -680,12 +687,14 @@ fun <T, U> createMap(key: T, value: U): HashMap<T, U> {
 /**
  * Create a hashmap from a set of key-value pairs.
  *
- * @param <T> The type of the keys to the hashmap
- * @param <U> The type of the values.
+ * @param T The type of the keys to the hashmap
+ * @param U The type of the values.
  * @param tupples The elements to put into the map.
  * @return The resulting hashmap.
-</U></T> */
+ */
 @SafeVarargs
+@Deprecated("Use hashmapOf")
+@Suppress("DEPRECATION")
 fun <T, U> hashMap(vararg tupples: Tupple<out T, out U>): HashMap<T, U> {
     // Make the new hashmap have a capacity 125% of the amount of tuples.
     val result = HashMap<T, U>(tupples.size + (tupples.size shr 2))
@@ -696,15 +705,32 @@ fun <T, U> hashMap(vararg tupples: Tupple<out T, out U>): HashMap<T, U> {
 }
 
 @SafeVarargs
+@Deprecated("Use the version enumMapOf taking pairs")
+@Suppress("DEPRECATION")
 fun <T : Enum<T>, U> enumMap(vararg tupples: Tupple<out T, out U>): EnumMap<T, U> {
+    if (tupples.isEmpty()) {
+        throw IllegalArgumentException(
+            "For an enumeration map simple creator, at least one element must be present")
+    }
+    @Suppress("UNCHECKED_CAST")
+    val type = Enum::class.java.asSubclass(tupples[0].first.javaClass) as java.lang.Class<T>
+    val result = EnumMap<T, U>(type)
+    for (t in tupples) {
+        result[t.first] = t.second
+    }
+    return result
+}
+
+fun <T : Enum<T>, U> enumMapOf(vararg tupples: Pair<T,U>): EnumMap<T, U> {
     if (tupples.size < 1) {
         throw IllegalArgumentException(
             "For an enumeration map simple creator, at least one element must be present")
     }
-    val type = Enum::class.java.asSubclass(tupples[0].elem1.javaClass) as Class<T>
+    @Suppress("UNCHECKED_CAST")
+    val type: Class<T> = Enum::class.java.asSubclass(tupples[0].first.javaClass) as java.lang.Class<T>
     val result = EnumMap<T, U>(type)
     for (t in tupples) {
-        result[t.elem1] = t.elem2
+        result[t.first] = t.second
     }
     return result
 }

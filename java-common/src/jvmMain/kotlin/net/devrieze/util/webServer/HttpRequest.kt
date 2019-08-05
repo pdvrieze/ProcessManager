@@ -24,16 +24,12 @@ package net.devrieze.util.webServer
 
 import net.devrieze.lang.Const
 import net.devrieze.util.DebugTool
-
+import java.io.*
+import java.net.URLDecoder
+import java.util.*
 import javax.activation.DataSource
 import javax.activation.MimeType
 import javax.activation.MimeTypeParseException
-
-import java.io.*
-import java.net.URLDecoder
-import java.util.Collections
-import java.util.HashMap
-import java.util.TreeMap
 
 
 /**
@@ -87,9 +83,9 @@ class HttpRequest(input: BufferedReader, var uri: String) {
 
             /* now process the other parts of the request */
             s = input.readLine()
-            while (!s.trim { it <= ' ' }.isEmpty()) {
+            while (s.trim { it <= ' ' }.isNotEmpty()) {
                 /* add headers */
-                var i = s.indexOf(':')
+                val i = s.indexOf(':')
 
                 if (i >= 0) {
                     val t = s.substring(0, i).trim { it <= ' ' }.toLowerCase()
@@ -97,7 +93,6 @@ class HttpRequest(input: BufferedReader, var uri: String) {
                     headers[t] = s
                 }
                 s = input.readLine()
-                i = s.indexOf(':')
             }
 
             val o = headers["content-length"]
@@ -201,9 +196,11 @@ class HttpRequest(input: BufferedReader, var uri: String) {
          * @throws IOException When a read error occurs.
          */
         @Throws(IOException::class)
-        fun parseMultipartFormdata(input: InputStream,
-                                   contentType: MimeType,
-                                   encoding: String?): Map<String, DataSource> {
+        fun parseMultipartFormdata(
+            input: InputStream,
+            contentType: MimeType,
+            encoding: String?
+                                  ): Map<String, DataSource> {
 
             return input.parseMultipartFormDataTo(HashMap(), contentType, encoding)
         }
@@ -215,8 +212,10 @@ class HttpRequest(input: BufferedReader, var uri: String) {
 
         }
 
-        private fun parseUrlEncodedHelper(result: MutableMap<String, String>,
-                                          source: CharSequence?): Map<String, String> {
+        private fun parseUrlEncodedHelper(
+            result: MutableMap<String, String>,
+            source: CharSequence?
+                                         ): Map<String, String> {
             if (source == null) {
                 return result
             }
@@ -299,9 +298,11 @@ class HttpRequest(input: BufferedReader, var uri: String) {
 }
 
 
-private class BytesDatasource(private val content: ByteArray,
-                              private val name: String,
-                              private val contentType: MimeType) : DataSource {
+private class BytesDatasource(
+    private val content: ByteArray,
+    private val name: String,
+    private val contentType: MimeType
+                             ) : DataSource {
 
     @Throws(IOException::class)
     override fun getOutputStream(): OutputStream {
@@ -328,10 +329,15 @@ private fun toDataSource(content: ByteArrayOutputStream, name: String, contentTy
 }
 
 
-fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(receiver: M,contentType: MimeType, encoding: String?=null):M {
+fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
+    receiver: M,
+    contentType: MimeType,
+    @Suppress("UNUSED_PARAMETER") encoding: String? = null
+                                                                             ): M {
 
     val boundary = contentType.getParameter("boundary") ?: throw IllegalArgumentException(
-        "Content type does not specify a boundary")
+        "Content type does not specify a boundary"
+                                                                                         )
 
     BufferedInputStream(this).use { input ->
 
@@ -348,7 +354,7 @@ fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(recei
         var content: ByteArrayOutputStream? = null
         var wsBuffer: ByteArrayOutputStream? = null
         var headerLine: StringBuilder? = null
-        var contentType = HttpRequest.TEXT_PLAIN
+        var elementContentType = HttpRequest.TEXT_PLAIN
         while (b >= 0) {
 
 
@@ -379,14 +385,16 @@ fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(recei
                 // We found an end of all data.
                 if (content != null) { // First time don't do this
                     val contentName = contentDisposition?.getParameter(
-                        "name")
+                        "name"
+                                                                      )
                     if (contentName == null) {
-                        receiver[Integer.toString(receiver.size)] = toDataSource(content,
-                                                                                             Integer.toString(
-                                                                                                 receiver.size),
-                                                                                             contentType)
+                        receiver[Integer.toString(receiver.size)] = toDataSource(
+                            content,
+                            Integer.toString(receiver.size),
+                            elementContentType
+                                                                                )
                     } else {
-                        receiver[contentName] = toDataSource(content, contentName, contentType)
+                        receiver[contentName] = toDataSource(content, contentName, elementContentType)
                     }
                 }
                 break // Go out of the loop.
@@ -397,14 +405,16 @@ fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(recei
                 wsBuffer = null
                 if (content != null) { // First time don't do this
                     val contentName = contentDisposition?.getParameter(
-                        "name")
+                        "name"
+                                                                      )
                     if (contentName == null) {
-                        receiver[Integer.toString(receiver.size)] = toDataSource(content,
-                                                                                             Integer.toString(
-                                                                                                 receiver.size),
-                                                                                             contentType)
+                        receiver[Integer.toString(receiver.size)] = toDataSource(
+                            content,
+                            Integer.toString(receiver.size),
+                            elementContentType
+                                                                                )
                     } else {
-                        receiver[contentName] = toDataSource(content, contentName, contentType)
+                        receiver[contentName] = toDataSource(content, contentName, elementContentType)
                     }
                 }
                 contentDisposition = null
@@ -430,14 +440,14 @@ fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(recei
                         val colonPos = s.indexOf(':')
                         if (colonPos >= 1) {
                             val name = s.substring(0, colonPos).trim { it <= ' ' }
-                            val `val` = s.substring(colonPos + 1).trim { it <= ' ' }
+                            val value = s.substring(colonPos + 1).trim { it <= ' ' }
                             val nmLC = name.toLowerCase()
                             if ("content-disposition" == nmLC) {
                                 try {
-                                    if (`val`.startsWith("form-data")) {
-                                        contentDisposition = MimeType("multipart/$`val`")
+                                    if (value.startsWith("form-data")) {
+                                        contentDisposition = MimeType("multipart/$value")
                                     } else {
-                                        contentDisposition = MimeType(`val`)
+                                        contentDisposition = MimeType(value)
                                     }
                                 } catch (ex: MimeTypeParseException) {
                                     // Just ignore invalid content dispositions
@@ -445,7 +455,7 @@ fun <M:MutableMap<String, DataSource>>InputStream.parseMultipartFormDataTo(recei
 
                             } else if ("content-type" == nmLC) {
                                 try {
-                                    contentType = MimeType(`val`)
+                                    elementContentType = MimeType(value)
                                 } catch (ex: MimeTypeParseException) {
                                     // Just ignore invalid content dispositions
                                 }

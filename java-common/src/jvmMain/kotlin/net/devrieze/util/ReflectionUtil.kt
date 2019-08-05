@@ -80,7 +80,7 @@ object ReflectionUtil {
         return Array<Type>(source.size) { i->
             val s = source[i]
             val v = (reference.rawType as Class<*>).typeParameters
-            (s as? TypeVariable<*>)?.let { tv ->
+            (s as? TypeVariable<*>)?.let { _ ->
                 var r: Type? = null
                 for (j in v.indices) {
                     if (source[i] === v[j]) {

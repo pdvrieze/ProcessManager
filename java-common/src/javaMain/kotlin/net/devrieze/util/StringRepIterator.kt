@@ -27,6 +27,8 @@ package net.devrieze.util
  * @author Paul de Vrieze
  * @version 0.1 $Revision$
  */
+@Deprecated("Stale class that shouldn't be used")
+@Suppress("DEPRECATION")
 interface StringRepIterator {
 
     /**

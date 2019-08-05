@@ -34,7 +34,7 @@ import kotlin.jvm.JvmStatic
  * @author Paul de Vrieze
  * @version 1.0 $Revision$
  */
-@Deprecated("Use pair", ReplaceWith("Pair", "kotlin.Pair"))
+@Deprecated("Use pair", ReplaceWith("Pair", "kotlin.Pair<S,T>"))
 data class Tupple<S, T>(var first: S, var second: T) {
 
     @Deprecated("Match Pair", ReplaceWith("first"))
