@@ -203,7 +203,7 @@ class AccountController : HttpServlet() {
             }
 
             if (req.htmlAccepted) {
-                val displayName = if (info.alias.isNullOrBlank()) (info.fullname ?: user) else info.alias!!
+                val displayName = if (info.alias.isNullOrBlank()) (info.fullname ?: user) else info.alias
                 resp.darwinResponse(req, "My Account", "My Account - $displayName") {
                     section {
                         h1 { +"Account" }
