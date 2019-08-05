@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.servlet.ServletProcessEngine;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.logging.Logger;
 
 
 /**
@@ -53,7 +54,7 @@ public class TestServletProcessEngine extends ServletProcessEngine {
         MessageService messageService = new MessageService(localURL);
         ProcessEngine<StubProcessTransaction> engine =
             ProcessEngine.newTestInstance(messageService, mTransactionFactory, mProcessModels, mProcessInstances,
-                                          mProcessNodeInstances, false);
+                                          mProcessNodeInstances, false, Logger.getAnonymousLogger());
         init(engine);
     }
 

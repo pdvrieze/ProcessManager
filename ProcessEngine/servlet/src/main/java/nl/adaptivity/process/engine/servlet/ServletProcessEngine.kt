@@ -451,7 +451,9 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         }
         messageService = MessageService(asEndpoint(localURL))
 
-        processEngine = ProcessEngine.newInstance(messageService) as ProcessEngine<TR>
+        val logger = Logger.getLogger(ServletProcessEngine::class.java.name)
+
+        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR>
 
         MessagingRegistry.getMessenger().registerEndpoint(this)
     }
