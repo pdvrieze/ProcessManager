@@ -16,8 +16,6 @@
 
 package net.devrieze.util
 
-import java.sql.SQLException
-
 /**
  * Interface for handlemaps that support transactions. [DBHandleMap] does support this, but
  * the interface is needed for testing without hitting the database.
@@ -25,24 +23,18 @@ import java.sql.SQLException
  */
 interface TransactionedHandleMap<V: Any, T : Transaction> {
 
-  @Throws(SQLException::class)
   fun <W : V> put(transaction: T, value: W): ComparableHandle<W>
 
-  @Throws(SQLException::class)
   fun castOrGet(transaction: T, handle: Handle<V>): V?
 
-  @Throws(SQLException::class)
   operator fun get(transaction: T, handle: Handle<V>): V?
 
   fun iterable(transaction: T): Iterable<V>
 
-  @Throws(SQLException::class)
   fun containsElement(transaction: T, element: Any): Boolean
 
-  @Throws(SQLException::class)
   fun contains(transaction: T, handle: Handle<V>): Boolean
 
-  @Throws(SQLException::class)
   fun containsAll(transaction: T, c: Collection<*>): Boolean
 
   fun invalidateCache(handle: Handle<V>)
@@ -68,7 +60,6 @@ interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHa
 
   override fun iterator(transaction: T, readOnly: Boolean): MutableAutoCloseableIterator<V>
 
-  @Throws(SQLException::class)
   fun remove(transaction: T, handle: Handle<V>): Boolean
 
   override fun iterable(transaction: T): MutableIterable<V>
@@ -78,10 +69,8 @@ interface MutableTransactionedHandleMap<V: Any, T:Transaction> : TransactionedHa
    * Set the value for the handle
    * @return The previous value, or null if none.
    */
-  @Throws(SQLException::class)
   operator fun set(transaction: T, handle: Handle<V>, value: V): V?
 
-  @Throws(SQLException::class)
   fun clear(transaction: T)
 
   override fun withTransaction(transaction: T): MutableHandleMap<V> = MutableHandleMapForwarder(transaction, this)
