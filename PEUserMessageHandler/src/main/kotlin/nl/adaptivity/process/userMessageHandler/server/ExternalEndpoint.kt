@@ -258,7 +258,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     }
 
     @Throws(SQLException::class)
-    private fun <T : Transaction> updateTask(service: UserMessageService<T>,
+    private fun <T : Transaction> GenericEndpoint.updateTask(service: UserMessageService<T>,
                                              handle: String,
                                              partialNewTask: XmlTask?,
                                              user: Principal): XmlTask = translateExceptions {
@@ -279,13 +279,13 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         throw e
       }
 
-    }
+                                                                                      }
   }
 
 }
 
 @UseExperimental(ExperimentalContracts::class)
-internal inline fun <E:GenericEndpoint, R> E.translateExceptions(body: E.() -> R):R {
+internal inline fun <E:GenericEndpoint, R> E.translateExceptions(body: () -> R):R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
