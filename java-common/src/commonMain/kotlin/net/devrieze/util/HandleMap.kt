@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -15,6 +15,8 @@
  */
 
 package net.devrieze.util
+
+import nl.adaptivity.util.multiplatform.JvmDefault
 
 interface HandleMap<V:Any> : Iterable<V> {
 
@@ -99,4 +101,11 @@ fun <T> HANDLE_AWARE_ASSIGNER(value:T, handle: Handle<T>):T? {
     (value as? ReadableHandleAware<*>)?.let { if (it.getHandle()==handle) return value } // no change needed
     (value as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} // The handle has been set
   return null
+}
+
+class HandleNotFoundException: Exception {
+    constructor() : super()
+    constructor(message: String?) : super(message)
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
+    constructor(cause: Throwable?) : super(cause)
 }
