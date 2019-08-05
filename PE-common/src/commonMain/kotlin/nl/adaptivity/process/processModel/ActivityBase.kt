@@ -367,7 +367,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             multiInstance
                             )
 
-        override final var childId: String? = null
+        final override var childId: String? = null
 
         constructor(node: CompositeActivity) : super(node) {
             childId = node.childModel.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
