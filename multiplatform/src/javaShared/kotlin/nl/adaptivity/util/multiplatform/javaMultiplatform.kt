@@ -58,4 +58,6 @@ actual fun arraycopy(src: Any, srcPos:Int, dest:Any, destPos:Int, length:Int) =
 
 actual inline fun <reified T:Any> isTypeOf(value: Any):Boolean = value::class.java == T::class.java
 
-actual fun Exception.addSuppressedCompat(suppressed: Throwable): Unit = addSuppressed(suppressed)
+actual fun Throwable.addSuppressedCompat(suppressed: Throwable): Unit = addSuppressed(suppressed)
+
+actual fun Throwable.initCauseCompat(cause: Throwable): Throwable = initCause(cause)

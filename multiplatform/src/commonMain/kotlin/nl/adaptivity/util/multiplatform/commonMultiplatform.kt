@@ -113,4 +113,5 @@ expect interface Runnable {
 @Suppress("unused")
 expect inline fun <reified T:Any> isTypeOf(value: Any):Boolean
 
-expect fun Exception.addSuppressedCompat(suppressed: Throwable): Unit
+expect fun Throwable.addSuppressedCompat(suppressed: Throwable): Unit
+expect fun Throwable.initCauseCompat(cause: Throwable): Throwable

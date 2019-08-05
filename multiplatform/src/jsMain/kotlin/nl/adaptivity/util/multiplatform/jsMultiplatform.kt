@@ -74,6 +74,13 @@ actual interface Runnable {
 
 actual inline fun <reified T:Any> isTypeOf(value: Any):Boolean = jsTypeOf(value) == T::class.js.name
 
-actual fun Exception.addSuppressedCompat(suppressed: Throwable):Unit {
-    asDynamic().suppressed = suppressed
+actual fun Throwable.addSuppressedCompat(suppressed: Throwable):Unit {
+    if(js("suppressed == undefined") as Boolean) {
+        js("suppressed = []")
+    }
+    asDynamic().suppressed.push(suppressed)
+}
+
+actual fun Throwable.initCauseCompat(cause: Throwable):Throwable = apply {
+    asDynamic().cause = cause
 }
