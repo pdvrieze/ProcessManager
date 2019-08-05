@@ -16,10 +16,12 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.HandleNotFoundException
 import net.devrieze.util.Transaction
 import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.messaging.EndpointDescriptor
+import nl.adaptivity.messaging.HttpResponseException
 import nl.adaptivity.messaging.MessagingRegistry
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.messaging.GenericEndpoint
@@ -29,16 +31,19 @@ import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.multiplatform.URI
-import java.io.FileNotFoundException
 import java.net.URISyntaxException
 import java.security.Principal
 import java.sql.SQLException
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.servlet.ServletConfig
+import javax.servlet.http.HttpServletResponse
 import javax.xml.bind.annotation.XmlElementWrapper
 import javax.xml.bind.annotation.XmlSeeAlso
 import javax.xml.namespace.QName
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 
 /**
@@ -130,12 +135,12 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
    * @throws FileNotFoundException When the task handle is not valid. This will be translated into a 404 error.
    */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}")
-  @Throws(SQLException::class, FileNotFoundException::class)
+  @Throws(SQLException::class)
   fun updateTask(
         @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
         @RestParam(type = RestParamType.BODY) partialNewTask: XmlTask,
-        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask {
-    return updateTask(mService, handle, partialNewTask, user)
+        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask = translateExceptions {
+      return updateTask(mService, handle, partialNewTask, user)
   }
 
   /**
@@ -149,10 +154,10 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/\${handle}")
   @Throws(SQLException::class)
   fun getPendingTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
-                     @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask {
+                     @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlTask = translateExceptions {
     mService.inTransaction {
       return commit { getPendingTask(handle(handle= java.lang.Long.parseLong(handle)),
-                                     user) } ?: throw FileNotFoundException("The task with handle $handle does not exist")
+                                     user) } ?: throw HandleNotFoundException("The task with handle $handle does not exist")
     }
   }
 
@@ -167,7 +172,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Started"))
   @Throws(SQLException::class)
   fun startTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
-                @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+                @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState = translateExceptions {
     mService.inTransaction {
       return startTask(handle(handle= handle), user)
     }
@@ -184,7 +189,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Taken"))
   @Throws(SQLException::class)
   fun takeTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
-               @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+               @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState = translateExceptions  {
     mService.inTransaction {
       return commit { takeTask(handle(handle= handle), user) }
     }
@@ -203,7 +208,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post = arrayOf("state=Finished"))
   @Throws(SQLException::class)
   fun finishTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
-                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState = translateExceptions {
     mService.inTransaction {
       return commit { finishTask(handle(handle= java.lang.Long.parseLong(handle)),
                                  user)}
@@ -212,7 +217,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/\${handle}", post= arrayOf("state=Cancelled"))
   fun cancelTask(@RestParam(name = "handle", type = RestParamType.VAR) handle: String,
-                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+                 @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState = translateExceptions {
     mService.inTransaction {
       return commit {
         cancelTask(
@@ -252,11 +257,11 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
 
     }
 
-    @Throws(SQLException::class, FileNotFoundException::class)
+    @Throws(SQLException::class)
     private fun <T : Transaction> updateTask(service: UserMessageService<T>,
                                              handle: String,
                                              partialNewTask: XmlTask?,
-                                             user: Principal): XmlTask {
+                                             user: Principal): XmlTask = translateExceptions {
       if (partialNewTask == null) {
         throw IllegalArgumentException("No task information provided")
       }
@@ -265,7 +270,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
           val result = service.updateTask(transaction,
                                           handle(handle= handle),
                                           partialNewTask,
-                                          user) ?: throw FileNotFoundException()
+                                          user) ?: throw HandleNotFoundException()
           transaction.commit()
           return result
         }
@@ -277,4 +282,16 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     }
   }
 
+}
+
+@UseExperimental(ExperimentalContracts::class)
+internal inline fun <E:GenericEndpoint, R> E.translateExceptions(body: E.() -> R):R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    try {
+        return body()
+    } catch (e: HandleNotFoundException) {
+        throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, e)
+    }
 }

@@ -31,8 +31,8 @@ import java.io.Writer
 /**
  * Created by pdvrieze on 27/11/15.
  */
-class WritableCompactFragment private constructor(private val data: ICompactFragment,
-                                                  dummy: Boolean) : ICompactFragment, Writable {
+actual class WritableCompactFragment private actual constructor(private val data: ICompactFragment,
+                                                                dummy: Boolean) : ICompactFragment, Writable {
 
     override val isEmpty: Boolean
         get() = data.isEmpty
@@ -46,11 +46,11 @@ class WritableCompactFragment private constructor(private val data: ICompactFrag
     override val contentString: String
         get() = data.contentString
 
-    constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(CompactFragment(namespaces, content), false)
+    actual constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(CompactFragment(namespaces, content), false)
 
-    constructor(string: String) : this(CompactFragment(string), false) {}
+    actual constructor(string: String) : this(CompactFragment(string), false) {}
 
-    constructor(orig: ICompactFragment) : this(CompactFragment(orig.namespaces, orig.contentString), false) {}
+    actual constructor(orig: ICompactFragment) : this(CompactFragment(orig.namespaces, orig.contentString), false) {}
 
     override fun getXmlReader() = XMLFragmentStreamReader.from(this)
 

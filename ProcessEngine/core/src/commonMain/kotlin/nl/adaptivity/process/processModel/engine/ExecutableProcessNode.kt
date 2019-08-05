@@ -23,13 +23,11 @@ import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
-import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import java.sql.SQLException
 
 
 /**
@@ -100,7 +98,6 @@ interface ExecutableProcessNode : ProcessNode, Identified {
    *
    * @return `true` if the task can/must be automatically taken
    */
-  @Throws(SQLException::class)
   fun provideTask(engineData: ProcessEngineDataAccess, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
     = true
 

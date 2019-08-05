@@ -74,6 +74,9 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 
 /**
@@ -149,12 +152,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                                                     private val owner: Principal) : CompletionListener<DataSource> {
 
         override fun onMessageCompletion(future: Future<out DataSource>) {
-            try {
-                this@ServletProcessEngine.onMessageCompletion(future, handle, owner)
-            } catch (e: FileNotFoundException) {
-                throw RuntimeException(e)
-            }
-
+            this@ServletProcessEngine.onMessageCompletion(future, handle, owner)
         }
 
     }
@@ -466,20 +464,15 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @RestMethod(method = HttpMethod.GET, path = "/processModels")
     fun getProcesModelRefs(@RestParam(
-        type = RestParamType.PRINCIPAL) user: Principal): SerializableList<IProcessModelRef<*, *>> {
-        try {
-            processEngine.startTransaction().use { transaction ->
-                val processModels = processEngine.getProcessModels(transaction.readableEngineData, user)
+        type = RestParamType.PRINCIPAL) user: Principal): SerializableList<IProcessModelRef<*, *>> = translateExceptions {
+        processEngine.startTransaction().use { transaction ->
+            val processModels = processEngine.getProcessModels(transaction.readableEngineData, user)
 
-                val list = ArrayList<IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>>()
-                for (pm in processModels) {
-                    list.add(pm.withPermission().ref)
-                }
-                return transaction.commit(SerializableList<IProcessModelRef<*, *>>(REFS_TAG, list))
+            val list = ArrayList<IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>>()
+            for (pm in processModels) {
+                list.add(pm.withPermission().ref)
             }
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error getting process model references", e)
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+            return transaction.commit(SerializableList<IProcessModelRef<*, *>>(REFS_TAG, list))
         }
 
     }
@@ -492,9 +485,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * @throws FileNotFoundException When the model does not exist. This is translated to a 404 error in http.
      */
     @RestMethod(method = HttpMethod.GET, path = "/processModels/\${handle}")
-    @Throws(FileNotFoundException::class)
     fun getProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
-                        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ExecutableProcessModel {
+                        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ExecutableProcessModel = translateExceptions {
         try {
             processEngine.startTransaction().use { transaction ->
                 val handle1 = handle<ExecutableProcessModel>(handle)
@@ -503,10 +495,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                     processEngine.getProcessModel(transaction.readableEngineData, handle1, user) ?: throw FileNotFoundException())
             }
         } catch (e: NullPointerException) {
-            throw FileNotFoundException("Process handle invalid").initCause(e) as FileNotFoundException
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error getting process model", e)
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+            throw HandleNotFoundException("Process handle invalid", e)
         }
 
     }
@@ -523,7 +512,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @Throws(IOException::class)
     fun updateProcessModel(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
                            @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) attachment: DataHandler,
-                           @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ProcessModelRef<*, *> {
+                           @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ProcessModelRef<*, *> = translateExceptions {
         val builder = XmlStreaming.deSerialize(attachment.inputStream, XmlProcessModel.Builder::class.java)
         return updateProcessModel(handle, builder, user)
     }
@@ -536,13 +525,12 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * @return A reference to the model. This may include a newly generated uuid if not was provided.
      */
     @WebMethod(operationName = "updateProcessModel")
-    @Throws(FileNotFoundException::class)
     fun updateProcessModel(@WebParam(name = "handle") handle: Long,
                            @WebParam(name = "processModel",
                                      mode = Mode.IN) processModelBuilder: RootProcessModel.Builder?,
                            @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(
                                type = RestParamType.PRINCIPAL) user: Principal?)
-        : ProcessModelRef<*, *> {
+        : ProcessModelRef<*, *>  = translateExceptions {
 
         if (user == null) throw AuthenticationNeededException("There is no user associated with this request")
 
@@ -575,7 +563,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @RestMethod(method = HttpMethod.POST, path = "/processModels")
     @Throws(IOException::class)
     fun postProcessModel(@RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) attachment: DataHandler,
-                         @RestParam(type = RestParamType.PRINCIPAL) owner: Principal): ProcessModelRef<*, *>? {
+                         @RestParam(type = RestParamType.PRINCIPAL) owner: Principal): ProcessModelRef<*, *>? = translateExceptions {
         val processModel = XmlStreaming.deSerialize(attachment.inputStream, XmlProcessModel.Builder::class.java)
         return postProcessModel(processModel, owner)
     }
@@ -590,21 +578,16 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     fun postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) processModel: XmlProcessModel.Builder?,
                          @RestParam(type = RestParamType.PRINCIPAL)
                          @WebParam(name = "principal", mode = Mode.IN, header = true) owner: Principal?)
-        : ProcessModelRef<*, *>? {
+        : ProcessModelRef<*, *>? = translateExceptions {
 
         if (owner == null) throw AuthenticationNeededException("There is no user associated with this request")
 
         if (processModel != null) {
             processModel.handle = -1 // The handle cannot be set
-            try {
-                processEngine.startTransaction().use { transaction ->
-                    val newModelRef = processEngine.addProcessModel(transaction, processModel, owner)
+            processEngine.startTransaction().use { transaction ->
+                val newModelRef = processEngine.addProcessModel(transaction, processModel, owner)
 
-                    return transaction.commit(ProcessModelRef.get(newModelRef))
-                }
-            } catch (e: SQLException) {
-                logger.log(Level.WARNING, "Error adding process model", e)
-                throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+                return transaction.commit(ProcessModelRef.get(newModelRef))
             }
 
         }
@@ -633,19 +616,13 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @RestMethod(method = HttpMethod.DELETE, path = "/processModels/\${handle}")
     fun deleteProcess(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
-                      @RestParam(type = RestParamType.PRINCIPAL) user: Principal) {
-        try {
-            processEngine.startTransaction().use { transaction ->
-                if (!processEngine.removeProcessModel(transaction, handle(handle), user)) {
-                    throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist")
-                }
-                transaction.commit()
+                      @RestParam(type = RestParamType.PRINCIPAL) user: Principal) = translateExceptions {
+        processEngine.startTransaction().use { transaction ->
+            if (!processEngine.removeProcessModel(transaction, handle(handle), user)) {
+                throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist")
             }
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error renaming process model", e)
-            throw HttpResponseException(500, e)
+            transaction.commit()
         }
-
     }
 
     /**
@@ -660,26 +637,18 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @WebMethod
     @RestMethod(method = HttpMethod.POST, path = "/processModels/\${handle}", query = ["op=newInstance"])
-    @Throws(FileNotFoundException::class)
     fun startProcess(
         @WebParam(name = "handle") @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @WebParam(name = "name") @RestParam(name = "name", type = RestParamType.QUERY) name: String?,
         @WebParam(name = "uuid") @RestParam(name = "uuid", type = RestParamType.QUERY) uuid: String?,
         @WebParam(name = "owner", header = true) @RestParam(type = RestParamType.PRINCIPAL) owner: Principal)
-        : XmlHandle<*> {
-
-        try {
-            processEngine.startTransaction().use { transaction ->
-                val uuid: UUID = uuid?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-                return transaction.commit(
-                    processEngine.startProcess(transaction, owner, handle<ExecutableProcessModel>(handle),
-                                               name ?: "<unnamed>", uuid, null))
-            }
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error starting process", e)
-            throw HttpResponseException(500, e)
+        : XmlHandle<*> = translateExceptions {
+        processEngine.startTransaction().use { transaction ->
+            val uuid: UUID = uuid?.let { UUID.fromString(it) } ?: UUID.randomUUID()
+            return transaction.commit(
+                processEngine.startProcess(transaction, owner, handle<ExecutableProcessModel>(handle),
+                                           name ?: "<unnamed>", uuid, null))
         }
-
     }
 
     /**
@@ -691,22 +660,16 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @RestMethod(method = HttpMethod.GET, path = "/processInstances")
     @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
     fun getProcesInstanceRefs(@RestParam(type = RestParamType.PRINCIPAL) owner: Principal?)
-        : Collection<ProcessInstanceRef> {
+        : Collection<ProcessInstanceRef> = translateExceptions {
 
         if (owner == null) throw AuthenticationNeededException()
-        try {
-            processEngine.startTransaction().use { transaction ->
-                val list = ArrayList<ProcessInstanceRef>()
-                for (pi in processEngine.getOwnedProcessInstances(transaction, owner)) {
-                    list.add(pi.ref)
-                }
-                return transaction.commit(SerializableList(INSTANCEREFS_TAG, list))
+        processEngine.startTransaction().use { transaction ->
+            val list = ArrayList<ProcessInstanceRef>()
+            for (pi in processEngine.getOwnedProcessInstances(transaction, owner)) {
+                list.add(pi.ref)
             }
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error getting process instances", e)
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+            transaction.commit(SerializableList(INSTANCEREFS_TAG, list))
         }
-
     }
 
     /**
@@ -717,18 +680,12 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @RestMethod(method = HttpMethod.GET, path = "/processInstances/\${handle}")
     fun getProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
-                           @RestParam(type = RestParamType.PRINCIPAL) user: Principal?): XmlSerializable {
-        try {
-            processEngine.startTransaction().use { transaction ->
-                return transaction.commit(
-                    processEngine.getProcessInstance(transaction, handle<ProcessInstance>(handle),
-                                                     user!!).serializable(transaction))
-            }
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error getting process instance", e)
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+                           @RestParam(type = RestParamType.PRINCIPAL) user: Principal?): XmlSerializable = translateExceptions {
+        processEngine.startTransaction().use { transaction ->
+            return transaction.commit(
+                processEngine.getProcessInstance(transaction, handle<ProcessInstance>(handle),
+                                                 user!!).serializable(transaction))
         }
-
     }
 
     /**
@@ -741,16 +698,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @RestMethod(method = HttpMethod.GET, path = "/processInstances/\${handle}", query = ["op=tickle"])
     @Throws(FileNotFoundException::class)
     fun tickleProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
-                              @RestParam(type = RestParamType.PRINCIPAL) user: Principal): String {
-        try {
-            processEngine.startTransaction().use { transaction ->
-                transaction.commit(processEngine.tickleInstance(transaction, handle, user))
-                return "success"
-            }
-        } catch (e: SQLException) {
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failure", e)
+                              @RestParam(type = RestParamType.PRINCIPAL) user: Principal): String = translateExceptions {
+        processEngine.startTransaction().use { transaction ->
+            transaction.commit(processEngine.tickleInstance(transaction, handle, user))
+            return "success"
         }
-
     }
 
     /**
@@ -762,17 +714,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @RestMethod(method = HttpMethod.DELETE, path = "/processInstances/\${handle}")
     fun cancelProcessInstance(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
-                              @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ProcessInstance {
-        try {
-            processEngine.startTransaction().use { transaction ->
-                return transaction.commit(
-                    processEngine.cancelInstance(transaction, handle<ProcessInstance>(handle), user))
-            }
-        } catch (e: SQLException) {
-            logger.log(Level.WARNING, "Error cancelling process intance", e)
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+                              @RestParam(type = RestParamType.PRINCIPAL) user: Principal): ProcessInstance = translateExceptions {
+        processEngine.startTransaction().use { transaction ->
+            return transaction.commit(
+                processEngine.cancelInstance(transaction, handle<ProcessInstance>(handle), user))
         }
-
     }
 
     /**
@@ -785,9 +731,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * @throws XmlException
      */
     @WebMethod(operationName = "getProcessNodeInstance")
-    @Throws(FileNotFoundException::class, SQLException::class, XmlException::class)
     fun getProcessNodeInstanceSoap(@WebParam(name = "handle", mode = Mode.IN) handle: Long,
-                                   @WebParam(name = "user", mode = Mode.IN) user: Principal): XmlProcessNodeInstance? {
+                                   @WebParam(name = "user", mode = Mode.IN) user: Principal): XmlProcessNodeInstance? = translateExceptions {
         return getProcessNodeInstance(handle, user)
     }
 
@@ -801,9 +746,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * @throws XmlException
      */
     @RestMethod(method = HttpMethod.GET, path = "/tasks/\${handle}")
-    @Throws(FileNotFoundException::class, SQLException::class, XmlException::class)
     fun getProcessNodeInstance(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
-                               @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlProcessNodeInstance? {
+                               @RestParam(type = RestParamType.PRINCIPAL) user: Principal): XmlProcessNodeInstance? = translateExceptions {
 
         processEngine.startTransaction().use { transaction ->
             val result = processEngine.getNodeInstance(transaction, handle<ProcessNodeInstance<*>>(handle), user)
@@ -824,7 +768,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @Throws(FileNotFoundException::class)
     fun updateTaskStateSoap(@WebParam(name = "handle", mode = Mode.IN) handle: Long,
                             @WebParam(name = "state", mode = Mode.IN) newState: NodeInstanceState,
-                            @WebParam(name = "user", mode = Mode.IN) user: Principal): NodeInstanceState {
+                            @WebParam(name = "user", mode = Mode.IN) user: Principal): NodeInstanceState = translateExceptions {
         return updateTaskState(handle, newState, user)
     }
 
@@ -836,10 +780,9 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * @return the new state of the task. This may be different than requested, for example due to engine semantics. (either further, or no change at all)
      */
     @RestMethod(method = HttpMethod.POST, path = "/tasks/\${handle}", query = ["state"])
-    @Throws(FileNotFoundException::class)
     fun updateTaskState(@RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
                         @RestParam(name = "state", type = RestParamType.QUERY) newState: NodeInstanceState,
-                        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState {
+                        @RestParam(type = RestParamType.PRINCIPAL) user: Principal): NodeInstanceState = translateExceptions {
         try {
             processEngine.startTransaction().use { transaction ->
                 return transaction.commit(
@@ -872,18 +815,13 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                    @RestParam(type = RestParamType.PRINCIPAL)
                    @WebParam(name = "principal", mode = Mode.IN, header = true)
                    user: Principal)
-        : NodeInstanceState {
+        : NodeInstanceState = translateExceptions {
 
-        try {
-            processEngine.startTransaction().use { transaction ->
-                return transaction.commit(
-                    processEngine.finishTask(transaction, handle<ProcessNodeInstance<*>>(handle), payload,
-                                             user).state)
-            }
-        } catch (e: SQLException) {
-            throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+        processEngine.startTransaction().use { transaction ->
+            return transaction.commit(
+                processEngine.finishTask(transaction, handle<ProcessNodeInstance<*>>(handle), payload,
+                                         user).state)
         }
-
     }
 
 
@@ -896,99 +834,95 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @Throws(FileNotFoundException::class)
     fun onMessageCompletion(future: Future<out DataSource>,
                             handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
-                            owner: Principal) {
+                            owner: Principal) = translateExceptions {
         // XXX do this better
-        try {
-            if (future.isCancelled) {
+        if (future.isCancelled) {
+            processEngine.startTransaction().use { transaction ->
+                processEngine.cancelledTask(transaction, handle, owner)
+                transaction.commit()
+            }
+        } else {
+            try {
+                val result = future.get()
+                processEngine.startTransaction().use { transaction ->
+                    val inst = processEngine.getNodeInstance(transaction, handle, SYSTEMPRINCIPAL)
+                               ?: throw HttpResponseException(404, "The process node with handle $handle does not exist or is not visible")
+                    assert(inst.state === NodeInstanceState.Pending)
+                    if (inst.state === NodeInstanceState.Pending) {
+                        val processInstance = transaction.readableEngineData.instance(
+                            inst.hProcessInstance).withPermission()
+
+                        processInstance.update(transaction.writableEngineData) {
+                            updateChild(inst) {
+                                state = NodeInstanceState.Sent
+                            }
+                        }
+                    }
+                    transaction.commit()
+                }
+                try {
+                    val domResult = DomUtil.tryParseXml(result.inputStream) ?: throw HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Content is not an XML document")
+                    var rootNode: Element? = domResult.documentElement
+                    // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
+                    if (Envelope.NAMESPACE == rootNode!!.namespaceURI && Envelope.ELEMENTLOCALNAME == rootNode.localName) {
+
+                        val header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE,
+                                                           org.w3.soapEnvelope.Header.ELEMENTLOCALNAME)
+                        if (header != null) {
+                            rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS,
+                                                             ActivityResponse.ELEMENTLOCALNAME)
+                        }
+                    }
+                    if (rootNode != null) {
+                        // If we receive an ActivityResponse, treat that specially.
+                        if (Constants.PROCESS_ENGINE_NS == rootNode.namespaceURI && ActivityResponse.ELEMENTLOCALNAME == rootNode.localName) {
+                            val taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE)
+                            try {
+                                processEngine.startTransaction().use { transaction ->
+                                    val nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr)
+                                    processEngine.updateTaskState(transaction, handle, nodeInstanceState, owner)
+                                    transaction.commit()
+                                    return
+                                }
+                            } catch (e: NullPointerException) {
+                                e.printStackTrace()
+                                // ignore
+                            } catch (e: IllegalArgumentException) {
+                                processEngine.startTransaction().use { transaction ->
+                                    processEngine.errorTask(transaction, handle, e, owner)
+                                    transaction.commit()
+                                }
+                            }
+
+                        }
+                    } else {
+                        processEngine.startTransaction().use { transaction ->
+                            // XXX By default assume that we have finished the task
+                            processEngine.finishedTask(transaction, handle, result, owner)
+                            transaction.commit()
+                        }
+                    }
+
+                } catch (e: NullPointerException) {
+                    // ignore
+                } catch (e: IOException) {
+                    // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
+                }
+
+            } catch (e: ExecutionException) {
+                logger.log(Level.INFO, "Task $handle: Error in messaging", e.cause)
+                processEngine.startTransaction().use { transaction ->
+                    processEngine.errorTask(transaction, handle, e.cause ?: e, owner)
+                    transaction.commit()
+                }
+            } catch (e: InterruptedException) {
+                logger.log(Level.INFO, "Task $handle: Interrupted", e)
                 processEngine.startTransaction().use { transaction ->
                     processEngine.cancelledTask(transaction, handle, owner)
                     transaction.commit()
                 }
-            } else {
-                try {
-                    val result = future.get()
-                    processEngine.startTransaction().use { transaction ->
-                        val inst = processEngine.getNodeInstance(transaction, handle, SYSTEMPRINCIPAL)
-                                   ?: throw HttpResponseException(404, "The process node with handle $handle does not exist or is not visible")
-                        assert(inst.state === NodeInstanceState.Pending)
-                        if (inst.state === NodeInstanceState.Pending) {
-                            val processInstance = transaction.readableEngineData.instance(
-                                inst.hProcessInstance).withPermission()
-
-                            processInstance.update(transaction.writableEngineData) {
-                                updateChild(inst) {
-                                    state = NodeInstanceState.Sent
-                                }
-                            }
-                        }
-                        transaction.commit()
-                    }
-                    try {
-                        val domResult = DomUtil.tryParseXml(result.inputStream) ?: throw HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Content is not an XML document")
-                        var rootNode: Element? = domResult.documentElement
-                        // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
-                        if (Envelope.NAMESPACE == rootNode!!.namespaceURI && Envelope.ELEMENTLOCALNAME == rootNode.localName) {
-
-                            val header = DomUtil.getFirstChild(rootNode, Envelope.NAMESPACE,
-                                                               org.w3.soapEnvelope.Header.ELEMENTLOCALNAME)
-                            if (header != null) {
-                                rootNode = DomUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS,
-                                                                 ActivityResponse.ELEMENTLOCALNAME)
-                            }
-                        }
-                        if (rootNode != null) {
-                            // If we receive an ActivityResponse, treat that specially.
-                            if (Constants.PROCESS_ENGINE_NS == rootNode.namespaceURI && ActivityResponse.ELEMENTLOCALNAME == rootNode.localName) {
-                                val taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE)
-                                try {
-                                    processEngine.startTransaction().use { transaction ->
-                                        val nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr)
-                                        processEngine.updateTaskState(transaction, handle, nodeInstanceState, owner)
-                                        transaction.commit()
-                                        return
-                                    }
-                                } catch (e: NullPointerException) {
-                                    e.printStackTrace()
-                                    // ignore
-                                } catch (e: IllegalArgumentException) {
-                                    processEngine.startTransaction().use { transaction ->
-                                        processEngine.errorTask(transaction, handle, e, owner)
-                                        transaction.commit()
-                                    }
-                                }
-
-                            }
-                        } else {
-                            processEngine.startTransaction().use { transaction ->
-                                // XXX By default assume that we have finished the task
-                                processEngine.finishedTask(transaction, handle, result, owner)
-                                transaction.commit()
-                            }
-                        }
-
-                    } catch (e: NullPointerException) {
-                        // ignore
-                    } catch (e: IOException) {
-                        // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
-                    }
-
-                } catch (e: ExecutionException) {
-                    logger.log(Level.INFO, "Task $handle: Error in messaging", e.cause)
-                    processEngine.startTransaction().use { transaction ->
-                        processEngine.errorTask(transaction, handle, e.cause ?: e, owner)
-                        transaction.commit()
-                    }
-                } catch (e: InterruptedException) {
-                    logger.log(Level.INFO, "Task $handle: Interrupted", e)
-                    processEngine.startTransaction().use { transaction ->
-                        processEngine.cancelledTask(transaction, handle, owner)
-                        transaction.commit()
-                    }
-                }
-
             }
-        } catch (e: SQLException) {
-            throw RuntimeException(e)
+
         }
 
     }
@@ -1041,4 +975,20 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     }
 
 
+}
+
+
+@UseExperimental(ExperimentalContracts::class)
+internal inline fun <E:GenericEndpoint, R> E.translateExceptions(body: E.() -> R):R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    try {
+        return body()
+    } catch (e: HandleNotFoundException) {
+        throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, e)
+    } catch (e: SQLException) {
+        ServletProcessEngine.logger.log(Level.WARNING, "Error getting process model references", e)
+        throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
+    }
 }

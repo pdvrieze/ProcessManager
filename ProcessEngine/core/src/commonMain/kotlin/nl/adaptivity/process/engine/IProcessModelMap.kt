@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -19,8 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import java.util.*
-
+import nl.adaptivity.util.multiplatform.UUID
 
 /**
  * Map interface that has some additional features/optimizations for process models.
@@ -43,14 +42,6 @@ interface IMutableProcessModelMap<T : ProcessTransaction> : MutableTransactioned
 fun <T:ProcessTransaction> defaultWithTransaction(map: IMutableProcessModelMap<T>, transaction: T):IMutableProcessModelMapAccess {
   return MutableProcessModelMapForwarder(transaction, map)
 }
-
-interface IProcessModelMapAccess : HandleMap<SecureObject<ExecutableProcessModel>> {
-  fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
-
-  operator fun get(uuid:UUID) = getModelWithUuid(uuid)
-}
-
-interface IMutableProcessModelMapAccess : MutableHandleMap<SecureObject<ExecutableProcessModel>>, IProcessModelMapAccess
 
 inline fun <T:ProcessTransaction, R> IProcessModelMap<T>.inReadonlyTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
   return withTransaction(transaction).body()

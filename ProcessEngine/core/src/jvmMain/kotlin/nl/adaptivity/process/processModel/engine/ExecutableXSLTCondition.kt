@@ -19,7 +19,6 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
-import nl.adaptivity.process.processModel.engine.ConditionResult.TRUE
 import nl.adaptivity.util.multiplatform.Locales
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.toLowercase

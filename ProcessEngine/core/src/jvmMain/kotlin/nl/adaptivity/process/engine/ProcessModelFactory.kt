@@ -24,6 +24,7 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.xmlutil.XmlStreaming
 import uk.ac.bournemouth.kotlinsql.*
 import java.io.StringReader
@@ -32,7 +33,7 @@ import java.io.StringReader
 /**
  * A factory to create process models from the database.
  */
-internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<ExecutableProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>() {
+internal class ProcessModelFactory(val stringCache: StringCache) : AbstractElementFactory<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>() {
 
   override val table: Table
     get() = pm
@@ -40,23 +41,23 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   override val createColumns: List<Column<*, *, *>>
     get() = listOf(pm.pmhandle, pm.owner, pm.model)
 
-  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): ExecutableProcessModel.Builder {
+  override fun create(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): XmlProcessModel.Builder {
     val owner = pm.owner.nullableValue(columns, values)?.let(::SimplePrincipal)
     val handle = pm.pmhandle.value(columns, values)
     return pm.model.nullableValue(columns, values)
           ?.let {
-            ExecutableProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it))).also {
+            XmlProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it))).also {
               it.handle = handle.handleValue
             }
           }
-       ?: ExecutableProcessModel.Builder().apply {
+       ?: XmlProcessModel.Builder().apply {
             owner?.let { this.owner = it }
             this.owner = owner ?: SYSTEMPRINCIPAL
             this.handle = handle.handleValue
           }
   }
 
-  override fun postCreate(transaction: ProcessDBTransaction, builder: ExecutableProcessModel.Builder): ExecutableProcessModel {
+  override fun postCreate(transaction: ProcessDBTransaction, builder: XmlProcessModel.Builder): ExecutableProcessModel {
     return ExecutableProcessModel(builder)
   }
 

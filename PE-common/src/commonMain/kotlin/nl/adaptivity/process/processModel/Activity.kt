@@ -69,7 +69,7 @@ interface Activity : ProcessNode {
 
     val childModel: ChildProcessModel<ProcessNode>?
 
-    override fun builder(): MessageActivity.Builder
+    override fun builder(): Builder
 
     //    @Serializable
     interface Builder : ProcessNode.Builder {
@@ -87,8 +87,6 @@ interface Activity : ProcessNode {
         @Transient
         override val successors: Set<Identified>
             get() = setOfNotNull(successor?.identifier)
-
-        var childId: String?
 
         override fun addSuccessor(identifier: Identifier) {
             val s = successor

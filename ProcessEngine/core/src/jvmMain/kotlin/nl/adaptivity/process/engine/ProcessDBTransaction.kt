@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -16,27 +16,18 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.messaging.HttpResponseException
-
-import javax.servlet.http.HttpServletResponse
-
+import net.devrieze.util.db.DBTransaction
+import uk.ac.bournemouth.kotlinsql.Database
+import javax.sql.DataSource
 
 /**
- * Exception signalling an error in the kind of message body.
- *
- * @author Paul de Vrieze
+ * A process transaction that uses the database to store the data.
  */
-class MessagingFormatException : HttpResponseException {
-
-    constructor(message: String) : super(HttpServletResponse.SC_BAD_REQUEST, message)
-
-    constructor(cause: Throwable) : super(HttpServletResponse.SC_BAD_REQUEST, cause)
-
-    constructor(message: String, cause: Throwable) : super(HttpServletResponse.SC_BAD_REQUEST, message, cause)
-
-    companion object {
-
-        private const val serialVersionUID = 7931145565871734159L
-    }
-
+class ProcessDBTransaction(dataSource: DataSource,
+                           db: Database, private val engineData: IProcessEngineData<ProcessDBTransaction>)
+  : DBTransaction(dataSource, db), ProcessTransaction {
+  override val readableEngineData: ProcessEngineDataAccess
+    get() = engineData.createReadDelegate(this)
+  override val writableEngineData: MutableProcessEngineDataAccess
+    get() = engineData.createWriteDelegate(this)
 }

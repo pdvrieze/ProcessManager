@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -22,11 +22,9 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.impl.dom.*
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
-import org.w3c.dom.DocumentFragment
-import org.w3c.dom.Node
-import java.security.Principal
-import javax.xml.parsers.DocumentBuilderFactory
+import nl.adaptivity.util.security.Principal
 
 /**
  * Class representing a node instance that wraps a composite activity.
@@ -119,12 +117,11 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
   override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
-  fun getPayload(engineData: ProcessEngineDataAccess):DocumentFragment? {
+  fun getPayload(engineData: ProcessEngineDataAccess): DocumentFragment? {
     val defines = getDefines(engineData)
     if (defines.isEmpty()) return null
 
-    val doc = DocumentBuilderFactory
-      .newInstance()
+    val doc = newDocumentBuilderFactory()
       .apply { isNamespaceAware=true }
       .newDocumentBuilder()
       .newDocument()
@@ -132,7 +129,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
     val frag = doc.createDocumentFragment()
 
     for (data in defines) {
-      val owner = doc.createElement(data.name)
+      val owner = doc.createElement(data.name!!)
       owner.appendChild(doc.adoptNode(data.contentFragment))
     }
 

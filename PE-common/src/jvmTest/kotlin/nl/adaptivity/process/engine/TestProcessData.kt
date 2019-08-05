@@ -23,6 +23,7 @@ import com.nhaarman.mockitokotlin2.mock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import net.devrieze.util.readString
+import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
@@ -309,7 +310,6 @@ class TestProcessData {
     }
 
     @Test
-    @Throws(XmlException::class, FileNotFoundException::class)
     fun testParseProcessModel1() {
         val inputStream = getDocument("processmodel1.xml")
         val parser = XmlStreaming.newReader(inputStream, "UTF-8")
@@ -318,7 +318,6 @@ class TestProcessData {
     }
 
     @Test
-    @Throws(XmlException::class, FileNotFoundException::class)
     fun testParseProcessModel1NewDeserializer() {
         val inputStream = getDocument("processmodel1.xml")
 
@@ -391,7 +390,6 @@ class TestProcessData {
     }
 
     @Test
-    @Throws(XmlException::class, FileNotFoundException::class)
     fun testParseProcessModel2NewDeserializer() {
         val inputStream = getDocument("processmodel2.xml")
         val parser = XmlStreaming.newReader(inputStream, "UTF-8")

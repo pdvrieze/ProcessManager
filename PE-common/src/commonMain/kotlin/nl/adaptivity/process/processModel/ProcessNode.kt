@@ -114,6 +114,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
         fun visitStartNode(startNode: StartNode.Builder): R
         fun visitActivity(activity: MessageActivity.Builder): R
         fun visitActivity(activity: CompositeActivity.Builder): R
+        fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R
         fun visitEndNode(endNode: EndNode.Builder): R

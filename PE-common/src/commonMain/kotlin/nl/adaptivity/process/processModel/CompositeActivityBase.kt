@@ -17,12 +17,27 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
 
+    @Transient
+    override final val childModel: ChildProcessModel<ProcessNode>
+
     constructor(builder: CompositeActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper)
+        super(builder, buildHelper) {
+        childModel = buildHelper.childModel(builder)
+    }
+
+    constructor(builder: CompositeActivity.ReferenceBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+        super(builder, buildHelper) {
+        childModel = buildHelper.childModel(builder.childId ?: throw IllegalProcessModelException("Missing childId for reference"))
+    }
+
+    override fun builder(): CompositeActivity.ReferenceBuilder {
+        return ActivityBase.Builder(this)
+    }
 
     companion object {
         const val ATTR_CHILDID = "childId"

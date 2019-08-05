@@ -117,6 +117,7 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
+                implementation(project(":ProcessEngine:core"))
                 implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 

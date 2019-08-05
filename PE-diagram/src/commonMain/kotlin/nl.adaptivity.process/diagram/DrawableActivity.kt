@@ -81,7 +81,7 @@ interface IDrawableActivity : IDrawableProcessNode {
 
     val message: IXmlMessage?
 
-    val childId: String?
+    val childId: String? get() = null
 
     val isBodySpecified get() = message != null
 
@@ -99,7 +99,7 @@ interface IDrawableActivity : IDrawableProcessNode {
 
 open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.Builder,
                                                       buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *> = STUB_DRAWABLE_BUILD_HELPER) :
-    ActivityBase(builder,
+    MessageActivityBase(builder,
                                                              buildHelper), DrawableProcessNode {
 
     class Builder : ActivityBase.Builder,

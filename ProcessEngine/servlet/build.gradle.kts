@@ -58,6 +58,10 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains:annotations:13.0")
 
+    testImplementation(project(":java-common"))
+    testImplementation(project(":PE-common"))
+    testImplementation(project(":ProcessEngine:core"))
+    testImplementation(project(":JavaCommonApi"))
     testImplementation(project(":DarwinJavaApi"))
     testImplementation(project(":TestSupport"))
     testImplementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")

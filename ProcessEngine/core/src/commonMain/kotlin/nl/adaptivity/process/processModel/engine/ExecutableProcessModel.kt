@@ -21,13 +21,19 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
+import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.util.multiplatform.Class
 import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.util.multiplatform.randomUUID
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XML
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
 
 
 typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode>
@@ -37,7 +43,7 @@ typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode>
 
  * @author Paul de Vrieze
  */
-@XmlDeserializer(ExecutableProcessModel.Factory::class)
+//@XmlDeserializer(ExecutableProcessModel.Factory::class)
 class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel.Builder,
                                                        pedantic: Boolean = true) :
     RootProcessModelBase<ExecutableProcessNode>(builder, EXEC_NODEFACTORY, pedantic),
@@ -73,7 +79,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (getClass() != other?.getClass()) return false
         if (!super.equals(other)) return false
         return true
     }
@@ -89,7 +95,6 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
             return basepm as? ExecutableProcessModel ?: ExecutableProcessModel(Builder(basepm))
         }
 
-        @Throws(XmlException::class)
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
             return ExecutableProcessModel(Builder.deserialize(reader))
@@ -98,24 +103,9 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
         @JvmStatic
         inline fun build(body: Builder.() -> Unit) = Builder().apply(body).also {
             if (it.uuid == null) {
-                it.uuid = java.util.UUID.randomUUID()
+                it.uuid = randomUUID()
             }
         }.let { ExecutableProcessModel(it) }
-
-        /**
-         * A class handle purely used for caching and special casing the DarwinPrincipal class.
-         */
-        private var _cls_darwin_principal: Class<*>? = null
-
-        init {
-            try {
-                _cls_darwin_principal = ClassLoader.getSystemClassLoader().loadClass(
-                    "uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal")
-            } catch (e: ClassNotFoundException) {
-                _cls_darwin_principal = null
-            }
-
-        }
 
         /**
          * Helper method that helps enumerating all elements in the model
@@ -144,41 +134,12 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
     }
 
 
-    class Builder : RootProcessModelBase.Builder {
-        constructor(nodes: Collection<ProcessNode.Builder> = emptySet(),
-                    childModels: Collection<ExecutableChildModel.Builder> = emptySet(),
-                    name: String? = null,
-                    handle: Long = -1L,
-                    owner: Principal = SYSTEMPRINCIPAL,
-                    roles: Collection<String> = emptyList(),
-                    uuid: UUID? = null,
-                    imports: Collection<IXmlResultType> = emptyList(),
-                    exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner,
-                                                                               roles, uuid, imports, exports)
-
-        constructor(base: RootProcessModel<*>) : super(base)
-
-        override val rootBuilder get() = this
-
-        override fun childModelBuilder() = ExecutableChildModel.Builder(rootBuilder)
-
-        override fun childModelBuilder(base: ChildProcessModel<*>) = ExecutableChildModel.Builder(rootBuilder, base)
-
-        companion object {
-            @JvmStatic
-            fun deserialize(reader: XmlReader): Builder {
-                return RootProcessModelBase.Builder.deserialize(ExecutableProcessModel.Builder(), reader)
-            }
-        }
-    }
-
     enum class Permissions : SecurityProvider.Permission {
         INSTANTIATE
     }
 
     class Factory : XmlDeserializerFactory<ExecutableProcessModel> {
 
-        @Throws(XmlException::class)
         override fun deserialize(reader: XmlReader): ExecutableProcessModel {
             return ExecutableProcessModel.deserialize(reader)
         }
@@ -201,20 +162,32 @@ val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ExecutableProcessNode.Bu
 
 object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableProcessNode, ExecutableChildModel> {
 
-    private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) = object : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
-        override fun visitStartNode(startNode: StartNode.Builder) = ExecutableStartNode(startNode, buildHelper)
+    private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) =
+        ExecutableProcessNodeBuilderVisitor(buildHelper)
 
-        override fun visitActivity(activity: MessageActivity.Builder) = ExecutableActivity(activity, buildHelper)
+    private class ExecutableProcessNodeBuilderVisitor(private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) :
+        ProcessNode.BuilderVisitor<ExecutableProcessNode> {
+            override fun visitStartNode(startNode: StartNode.Builder) =
+                ExecutableStartNode(startNode, buildHelper)
 
-        override fun visitActivity(activity: CompositeActivity.Builder) = ExecutableActivity(activity,
-                                                                                             buildHelper)
+            override fun visitActivity(activity: MessageActivity.Builder) =
+                ExecutableActivity(activity, buildHelper)
 
-        override fun visitSplit(split: Split.Builder) = ExecutableSplit(split, buildHelper)
+            override fun visitActivity(activity: CompositeActivity.Builder) =
+                ExecutableActivity(activity, buildHelper)
 
-        override fun visitJoin(join: Join.Builder) = ExecutableJoin(join, buildHelper)
+            override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) =
+                ExecutableActivity(activity, buildHelper)
 
-        override fun visitEndNode(endNode: EndNode.Builder) = ExecutableEndNode(endNode, buildHelper)
-    }
+            override fun visitSplit(split: Split.Builder) =
+                ExecutableSplit(split, buildHelper)
+
+            override fun visitJoin(join: Join.Builder) =
+                ExecutableJoin(join, buildHelper)
+
+            override fun visitEndNode(endNode: EndNode.Builder) =
+                ExecutableEndNode(endNode, buildHelper)
+        }
 
     override fun invoke(baseNodeBuilder: ProcessNode.Builder,
                         buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>): ExecutableProcessNode =

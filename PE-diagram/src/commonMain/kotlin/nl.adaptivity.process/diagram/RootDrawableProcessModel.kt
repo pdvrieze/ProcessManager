@@ -442,6 +442,9 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 
         override fun visitActivity(activity: CompositeActivity.Builder) = TODO(
             "Child models are not implemented yet for drawables")
+
+        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = TODO(
+            "Child models are not implemented yet for drawables")
 //        DrawableActivity(activity, childModel!!)
 
         override fun visitSplit(split: Split.Builder) = DrawableSplit(split, buildHelper)

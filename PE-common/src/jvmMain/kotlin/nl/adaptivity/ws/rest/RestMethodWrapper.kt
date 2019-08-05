@@ -310,7 +310,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
   @Throws(TransformerException::class, IOException::class, FactoryConfigurationError::class)
   private fun serializeValue(pResponse: HttpServletResponse, value: Any?) {
     when (value) {
-      null                                 -> throw FileNotFoundException()
+      null                                 -> throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "no value")
       is Source                            -> {
         setContentType(pResponse, "application/binary")// Unknown content type
         Sources.writeToStream(value, pResponse.outputStream)

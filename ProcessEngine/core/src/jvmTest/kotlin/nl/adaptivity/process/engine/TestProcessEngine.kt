@@ -45,6 +45,7 @@ import org.xmlunit.diff.DefaultComparisonFormatter
 import java.io.*
 import java.net.URI
 import java.util.UUID
+import java.util.logging.Logger
 import javax.xml.bind.JAXB
 import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilder
@@ -241,7 +242,7 @@ class TestProcessEngine {
             stubTransactionFactory,
             cacheModels<Any>(MemProcessModelMap(), 3),
             cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-            cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true)
+            cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true, Logger.getAnonymousLogger())
     }
 
     fun assertEqualsXml(expected: ByteArray, actual: CharArray?) {

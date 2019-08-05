@@ -23,6 +23,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import java.net.URI
+import java.util.logging.Logger
 import javax.xml.namespace.QName
 
 open class EngineTestData(val messageService: StubMessageService, val engine: ProcessEngine<StubProcessTransaction>) {
@@ -44,7 +45,7 @@ open class EngineTestData(val messageService: StubMessageService, val engine: Pr
                       processModels: IMutableProcessModelMap<StubProcessTransaction>,
                       processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>,
                       processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>)
-    : this(messageService, ProcessEngine.newTestInstance(messageService, transactionFactory, processModels, processInstances, processNodeInstances, true))
+    : this(messageService, ProcessEngine.newTestInstance(messageService, transactionFactory, processModels, processInstances, processNodeInstances, true, Logger.getAnonymousLogger()))
 
   constructor(): this(
     StubMessageService(localEndpoint))

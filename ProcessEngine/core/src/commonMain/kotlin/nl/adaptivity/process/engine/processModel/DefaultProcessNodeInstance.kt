@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -20,20 +20,21 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
-import java.security.Principal
-import java.util.logging.Logger
 
 /**
  * Class to represent the instanciation of a node. Subclasses may add behaviour.
@@ -82,7 +83,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other?.javaClass != javaClass) return false
+    if (other?.getClass() != getClass()) return false
 
     other as DefaultProcessNodeInstance
 
@@ -126,7 +127,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         if (node is ExecutableActivity) {
           val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
           if (! tryTask { messageService.sendMessage(engineData, preparedMessage, this) }) {
-            failTaskCreation(MessagingException("Failure to send message"))
+            failTaskCreation(ProcessException("Failure to send message"))
           }
         }
 
@@ -165,16 +166,12 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
   class Factory : XmlDeserializerFactory<XmlProcessNodeInstance> {
 
-    @Throws(XmlException::class)
     override fun deserialize(reader: XmlReader): XmlProcessNodeInstance {
       return XmlProcessNodeInstance.deserialize(reader)
     }
   }
 
   companion object {
-
-
-    internal val logger by lazy { Logger.getLogger(DefaultProcessNodeInstance::class.java.name) }
 
     fun build(node: ExecutableProcessNode,
               predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,

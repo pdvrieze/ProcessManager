@@ -76,10 +76,13 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         _message = message
     }
 
-    constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder,
-                                                                                                                                                buildHelper.newOwner) {
+    constructor(builder: ActivityBase.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(
+        builder,
+        buildHelper.newOwner
+                                                                                                         ) {
         if (builder.message != null && builder.childId != null) throw IllegalProcessModelException(
-            "Activities can not have child models as well as messages")
+            "Activities can not have child models as well as messages"
+                                                                                                  )
         this._message = XmlMessage.from(builder.message)
         @Suppress("DEPRECATION")
         _name = builder.name
@@ -88,17 +91,41 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         childId = childModel?.id
     }
 
-    constructor(builder: CompositeActivity.Builder,
-                buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(builder, buildHelper.newOwner) {
+    constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+        super(builder, buildHelper.newOwner) {
+        this._message = XmlMessage.from(builder.message)
+        @Suppress("DEPRECATION")
+        _name = builder.name
+
+        childModel = null
+        childId = null
+    }
+
+    constructor(builder: CompositeActivity.ReferenceBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+        super(builder, buildHelper.newOwner) {
+        this._message = null
+        @Suppress("DEPRECATION")
+        _name = null
+
+        val childModel = buildHelper.childModel(builder.childId!!)
+        @Suppress("LeakingThis")
+        this.childModel = childModel
+        childId = childModel.id
+    }
+
+    constructor(builder: CompositeActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+        super(builder, buildHelper.newOwner) {
+
         this._message = null
         this._name = null
+        val childModel = buildHelper.childModel(builder.childId!!)
         @Suppress("LeakingThis")
-        this.childModel = buildHelper.childModel(builder.childId!!)
-        childId = childModel?.id
+        this.childModel = childModel
+        childId = childModel.id
     }
 
 
-    override fun builder(): MessageActivity.Builder = Builder(this)
+    override fun builder(): Activity.Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitActivity(this)
@@ -150,13 +177,13 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
 
     @Serializable
-    open class Builder : ProcessNodeBase.Builder, MessageActivity.Builder, SimpleXmlDeserializable {
+    abstract class BaseBuilder : ProcessNodeBase.Builder, Activity.Builder, SimpleXmlDeserializable {
 
         @Serializable(with = IXmlMessage.Companion::class)
-        final override var message: IXmlMessage?
+        final var message: IXmlMessage?
 
         @Suppress("OverridingDeprecatedMember")
-        final override var name: String?
+        final var name: String?
 
         @Serializable(XmlCondition.Companion::class)
         final override var condition: Condition? = null
@@ -164,8 +191,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         @Transient
         override val idBase: String
             get() = "ac"
-
-        final override var childId: String? = null
 
         @Transient
         override val elementName: QName
@@ -182,18 +207,20 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
         constructor() : this(id = null)
 
-        constructor(id: String? = null,
-                    predecessor: Identifiable? = null,
-                    successor: Identifiable? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    message: XmlMessage? = null,
-                    condition: Condition? = null,
-                    name: String? = null,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    multiInstance: Boolean = false) : super(id, label, defines, results, x, y, multiInstance) {
+        constructor(
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            message: XmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            multiInstance: Boolean = false
+                   ) : super(id, label, defines, results, x, y, multiInstance) {
             this.predecessor = predecessor
             this.successor = successor
             this.message = message
@@ -209,7 +236,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             @Suppress("DEPRECATION")
             name = node.name
             condition = node.condition
-            childId = node.childModel?.id
             predecessor = node.predecessor
             successor = node.successor
         }
@@ -232,16 +258,19 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             return false
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             @Suppress("DEPRECATION")
             when (attributeLocalName) {
                 ProcessNodeBase.ATTR_PREDECESSOR -> predecessor = Identifier(attributeValue)
-                "name"                           -> name = attributeValue
-                ATTR_CHILDID                     -> childId = attributeValue
-                else                             -> return super<ProcessNodeBase.Builder>.deserializeAttribute(
-                    attributeNamespace, attributeLocalName, attributeValue)
+                "name" -> name = attributeValue
+                CompositeActivityBase.ATTR_CHILDID -> throw IllegalProcessModelException("child ID in message activity")
+                else -> return super<ProcessNodeBase.Builder>.deserializeAttribute(
+                    attributeNamespace, attributeLocalName, attributeValue
+                                                                                  )
             }
             return true
         }
@@ -256,6 +285,97 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         }
 
 
+    }
+
+    @Serializable
+    open class Builder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
+                         SimpleXmlDeserializable {
+        final override var childId: String? = null
+
+        constructor() : super()
+        constructor(
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            message: XmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            multiInstance: Boolean = false
+                   ) : super(
+            id,
+            predecessor,
+            successor,
+            label,
+            defines,
+            results,
+            message,
+            condition,
+            name,
+            x,
+            y,
+            multiInstance
+                            )
+
+        constructor(node: Activity) : super(node) {
+            childId = node.childModel?.id
+        }
+
+
+        constructor(node: CompositeActivity) : super(node) {
+            childId = node.childModel.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
+        }
+
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {
+            null -> visitor.visitActivity(this as MessageActivity.Builder)
+            else -> visitor.visitActivity(this as CompositeActivity.ReferenceBuilder)
+        }
+    }
+
+    @Serializable
+    open class ReferenceActivityBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
+        constructor() : super()
+        constructor(
+            id: String?,
+            predecessor: Identifiable?,
+            successor: Identifiable?,
+            label: String?,
+            defines: Collection<IXmlDefineType>,
+            results: Collection<IXmlResultType>,
+            message: XmlMessage?,
+            condition: Condition?,
+            name: String?,
+            x: Double,
+            y: Double,
+            multiInstance: Boolean
+                   ) : super(
+            id,
+            predecessor,
+            successor,
+            label,
+            defines,
+            results,
+            message,
+            condition,
+            name,
+            x,
+            y,
+            multiInstance
+                            )
+
+        override final var childId: String? = null
+
+        constructor(node: CompositeActivity) : super(node) {
+            childId = node.childModel.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
+        }
+
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R {
+            return visitor.visitActivity(this)
+        }
     }
 
     @Serializable
@@ -294,7 +414,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
         override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
 
-        private constructor(): super() {
+        private constructor() : super() {
             id = null
             condition = null
             label = null
@@ -306,22 +426,26 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             results = mutableListOf()
         }
 
-        constructor(rootBuilder: RootProcessModel.Builder,
-                    id: String? = null,
-                    childId: String? = null,
-                    nodes: Collection<ProcessNode.Builder> = emptyList(),
-                    predecessor: Identifiable? = null,
-                    condition: Condition? = null,
-                    successor: Identifiable? = null,
-                    label: String? = null,
-                    imports: Collection<IXmlResultType> = emptyList(),
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    exports: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    isMultiInstance: Boolean = false) : super(rootBuilder, childId, nodes, imports,
-                                                              exports) {
+        constructor(
+            rootBuilder: RootProcessModel.Builder,
+            id: String? = null,
+            childId: String? = null,
+            nodes: Collection<ProcessNode.Builder> = emptyList(),
+            predecessor: Identifiable? = null,
+            condition: Condition? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            imports: Collection<IXmlResultType> = emptyList(),
+            defines: Collection<IXmlDefineType> = emptyList(),
+            exports: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false
+                   ) : super(
+            rootBuilder, childId, nodes, imports,
+            exports
+                            ) {
             this.id = id
             this.condition = condition
             this.label = label
@@ -334,27 +458,24 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             this.results = results.toMutableList()
         }
 
-        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T = buildHelper.node(this)
+        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T =
+            buildHelper.node(this)
 
-        fun buildActivity(buildHelper: ProcessModel.BuildHelper<*,*,*,*>): XmlActivity {
+        fun buildActivity(buildHelper: ProcessModel.BuildHelper<*, *, *, *>): XmlActivity {
             return XmlActivity(this, buildHelper)
         }
 
         @Serializer(forClass = CompositeActivityBuilder::class)
-        companion object: ChildProcessModelBase.Builder.BaseSerializer<CompositeActivityBuilder>() {
-            override val descriptor: SerialDescriptor = SerialClassDescImpl(Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
-                addField(CompositeActivityBuilder::childId)
-            }
+        companion object : ChildProcessModelBase.Builder.BaseSerializer<CompositeActivityBuilder>() {
+            override val descriptor: SerialDescriptor =
+                SerialClassDescImpl(Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
+                    addField(CompositeActivityBuilder::childId)
+                }
 
             override fun builder(): CompositeActivityBuilder {
                 return CompositeActivityBuilder()
             }
         }
-    }
-
-
-    companion object {
-        const val ATTR_CHILDID = "childId"
     }
 
 }

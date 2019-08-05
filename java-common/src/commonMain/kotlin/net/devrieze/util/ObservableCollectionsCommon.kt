@@ -24,12 +24,21 @@ expect abstract class ObservableCollectionBase<C : MutableCollection<T>, T, S : 
 
 expect class ObservableCollection<T>
     constructor(delegate: MutableCollection<T>, observers: Iterable<(ObservableCollection<T>)->Unit> = emptyList())
-    : ObservableCollectionBase<MutableCollection<T>, T, ObservableCollection<T>>
+    : ObservableCollectionBase<MutableCollection<T>, T, ObservableCollection<T>> {
+    constructor(delegate: MutableCollection<T>, vararg observers: (ObservableCollection<T>) -> Unit)
+}
 
 expect class ObservableSet<T>
     constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T>)->Unit> = emptyList())
-    : ObservableCollectionBase<MutableSet<T>, T, ObservableSet<T>>, MutableSet<T>
+    : ObservableCollectionBase<MutableSet<T>, T, ObservableSet<T>>, MutableSet<T> {
+
+    constructor(delegate: MutableSet<T>, vararg observers: (ObservableSet<T>) -> Unit)
+
+}
 
 expect class ObservableList<T>
     constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList<T>) -> Unit> = emptyList()) :
-    ObservableCollectionBase<MutableList<T>, T, ObservableList<T>>, List<T>, MutableList<T>
+    ObservableCollectionBase<MutableList<T>, T, ObservableList<T>>, List<T>, MutableList<T> {
+
+    constructor(delegate: MutableList<T>, vararg observers: (ObservableList<T>) -> Unit)
+}

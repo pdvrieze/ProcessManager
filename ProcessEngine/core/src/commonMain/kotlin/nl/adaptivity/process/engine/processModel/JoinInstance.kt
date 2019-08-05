@@ -21,10 +21,11 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import org.w3c.dom.Node
-import java.security.Principal
-
+import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.security.Principal
+import kotlin.jvm.JvmStatic
 
 class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
@@ -93,7 +94,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
       for(instanceToCancel in cancelablePredecessors) {
         processInstanceBuilder.updateChild(instanceToCancel) {
-          if(this is JoinInstance.Builder && this.updateTaskState(engineData)) {
+          if(this is Builder && this.updateTaskState(engineData)) {
             this.state = NodeInstanceState.Complete
           } else if (! state.isFinal) this.cancelAndSkip(engineData)
         }
@@ -111,11 +112,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
   class BaseBuilder(
       node: ExecutableJoin,
-      predecessors: Iterable<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+      predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
       processInstanceBuilder: ProcessInstance.Builder,
       owner: Principal,
       entryNo: Int,
-      handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+      handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
       state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
     override fun build() = JoinInstance(this)
@@ -133,12 +134,12 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
   fun canFinish() = predecessors.size>=node.min
 
   constructor(node: ExecutableJoin,
-              predecessors: Collection<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstanceBuilder: ProcessInstance.Builder,
               hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
-              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+              handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
@@ -151,20 +152,20 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
   companion object {
     fun build(joinImpl: ExecutableJoin,
-              predecessors: Set<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstanceBuilder: ProcessInstance.Builder,
               entryNo: Int,
-              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+              handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               body: Builder.() -> Unit):JoinInstance {
       return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo, handle, state).apply(body))
     }
 
     fun build(joinImpl: ExecutableJoin,
-              predecessors: Set<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+              predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstance: ProcessInstance,
               entryNo: Int,
-              handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+              handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
               state: NodeInstanceState = NodeInstanceState.Pending,
               body: Builder.() -> Unit):JoinInstance {
       return build(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)

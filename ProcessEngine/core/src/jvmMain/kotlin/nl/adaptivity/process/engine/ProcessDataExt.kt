@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -21,7 +21,7 @@ import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 
-val ProcessData.contentFragment: DocumentFragment
+actual val ProcessData.contentFragment: DocumentFragment
     get() = DomUtil.childrenToDocumentFragment(contentStream)
 
 @Suppress("DEPRECATION", "FunctionName")

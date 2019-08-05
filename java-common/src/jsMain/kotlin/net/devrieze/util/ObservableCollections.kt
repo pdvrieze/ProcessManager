@@ -61,10 +61,8 @@ actual class ObservableCollection<T>
 actual constructor(delegate: MutableCollection<T>, observers: Iterable<(ObservableCollection<T>) -> Unit>) :
     ObservableCollectionBase<MutableCollection<T>, T, ObservableCollection<T>>(delegate, observers) {
 
-    constructor(delegate: MutableCollection<T>, vararg observers: (ObservableCollection<T>) -> Unit) : this(
-        delegate,
-        observers.toList()
-                                                                                                           )
+    actual constructor(delegate: MutableCollection<T>, vararg observers: (ObservableCollection<T>) -> Unit) :
+        this(delegate, observers.toList())
 
     override fun triggerObservers() {
         observers.forEach { it(this) }
@@ -75,7 +73,7 @@ actual class ObservableSet<T>
 actual constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T>) -> Unit>) :
     ObservableCollectionBase<MutableSet<T>, T, ObservableSet<T>>(delegate, observers), MutableSet<T> {
 
-    constructor(delegate: MutableSet<T>, vararg observers: (ObservableSet<T>) -> Unit) : this(
+    actual constructor(delegate: MutableSet<T>, vararg observers: (ObservableSet<T>) -> Unit) : this(
         delegate,
         observers.toList()
                                                                                              )
@@ -110,7 +108,7 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
         override fun next() = super.next()
     }
 
-    constructor(delegate: MutableList<T>, vararg observers: (ObservableList<T>) -> Unit) : this(
+    actual constructor(delegate: MutableList<T>, vararg observers: (ObservableList<T>) -> Unit) : this(
         delegate,
         observers.toList()
                                                                                                )

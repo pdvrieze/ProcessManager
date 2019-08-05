@@ -23,4 +23,6 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
 
     constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
         super(builder, buildHelper)
+
+    override fun builder(): MessageActivity.Builder = ActivityBase.Builder(this)
 }

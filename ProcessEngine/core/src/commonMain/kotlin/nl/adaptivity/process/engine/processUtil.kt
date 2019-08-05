@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
+import net.devrieze.util.HandleNotFoundException
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessModel
@@ -25,7 +26,6 @@ import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import java.io.FileNotFoundException
 
 /**
  * Utilities for handling process things
@@ -51,9 +51,9 @@ fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.mustExist(handle: Comp
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
- * @throws FileNotFoundException If it doesn't.
+ * @throws HandleNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.shouldExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.shouldExist(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw HandleNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the object instance exists. If it doesn't exist this is an internal error
@@ -67,7 +67,7 @@ fun <N:SecureObject<V>, V:Any> N?.mustExist(handle: Handle<SecureObject<V>>): N 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<SecureObject<V>>): N = this ?: throw FileNotFoundException("Process engine element missing: $handle")
+fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<SecureObject<V>>): N = this ?: throw HandleNotFoundException("Process engine element missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
@@ -79,9 +79,9 @@ fun <T: ProcessTransaction> ProcessInstance?.mustExist(handle: ComparableHandle<
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
- * @throws FileNotFoundException If it doesn't.
+ * @throws HandleNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction> ProcessInstance?.shouldExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <T: ProcessTransaction> ProcessInstance?.shouldExist(handle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance = this ?: throw HandleNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error
@@ -93,6 +93,6 @@ fun <N: ProcessNode, M: RootProcessModel<N>> M?.mustExist(handle: Handle<RootPro
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
- * @throws FileNotFoundException If it doesn't.
+ * @throws HandleNotFoundException If it doesn't.
  */
-fun <N: ProcessNode, M: RootProcessModel<N>> M?.shouldExist(handle: Handle<RootProcessModel<N>>): M = this ?: throw FileNotFoundException("Node instance missing: $handle")
+fun <N: ProcessNode, M: RootProcessModel<N>> M?.shouldExist(handle: Handle<RootProcessModel<N>>): M = this ?: throw HandleNotFoundException("Node instance missing: $handle")

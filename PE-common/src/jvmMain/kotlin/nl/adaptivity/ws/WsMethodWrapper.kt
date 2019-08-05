@@ -16,9 +16,12 @@
 
 package nl.adaptivity.ws
 
+import nl.adaptivity.messaging.HttpResponseException
 import nl.adaptivity.messaging.MessagingException
+import nl.adaptivity.process.engine.MessagingFormatException
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import javax.servlet.http.HttpServletResponse
 
 /**
  * Created by pdvrieze on 28/11/15.
@@ -38,6 +41,8 @@ abstract class WsMethodWrapper(protected val owner: Any, protected val method: M
         } catch (e: InvocationTargetException) {
             val cause = e.cause
             throw MessagingException(cause ?: e)
+        } catch (e: MessagingFormatException) {
+            throw HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, e)
         } catch (e: MessagingException) {
             throw e
         } catch (e: Exception) {

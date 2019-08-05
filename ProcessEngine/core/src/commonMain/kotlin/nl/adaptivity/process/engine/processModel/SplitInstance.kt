@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -22,12 +22,12 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.impl.LogLevel
+import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
-import org.w3c.dom.Node
-import java.security.Principal
-import java.util.logging.Level
+import nl.adaptivity.util.security.Principal
 
 /**
  * Specialisation of process node instance for splits
@@ -204,7 +204,9 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     for(successor in processInstanceBuilder.allChildren { handle in it.predecessors && ! it.state.isFinal }) {
       try {
         successor.builder(processInstanceBuilder).cancel(engineData)
-      } catch (e: IllegalArgumentException) { DefaultProcessNodeInstance.logger.log(Level.WARNING, "Task could not be cancelled", e) } // mainly ignore
+      } catch (e: IllegalArgumentException) {
+          engineData.logger.log(LogLevel.WARNING, "Task could not be cancelled", e)
+      } // mainly ignore
     }
     state = NodeInstanceState.Failed
     return true // complete, but invalid

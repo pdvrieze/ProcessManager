@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -16,18 +16,17 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.db.DBTransaction
-import uk.ac.bournemouth.kotlinsql.Database
-import javax.sql.DataSource
+import net.devrieze.util.Handle
+import net.devrieze.util.HandleMap
+import net.devrieze.util.MutableHandleMap
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.util.multiplatform.UUID
 
-/**
- * A process transaction that uses the database to store the data.
- */
-class ProcessDBTransaction(dataSource: DataSource,
-                           db: Database, private val engineData: IProcessEngineData<ProcessDBTransaction>)
-  : DBTransaction(dataSource, db), ProcessTransaction {
-  override val readableEngineData: ProcessEngineDataAccess
-    get() = engineData.createReadDelegate(this)
-  override val writableEngineData: MutableProcessEngineDataAccess
-    get() = engineData.createWriteDelegate(this)
+interface IProcessModelMapAccess : HandleMap<SecureObject<ExecutableProcessModel>> {
+  fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
+
+  operator fun get(uuid:UUID) = getModelWithUuid(uuid)
 }
+
+interface IMutableProcessModelMapAccess : MutableHandleMap<SecureObject<ExecutableProcessModel>>, IProcessModelMapAccess

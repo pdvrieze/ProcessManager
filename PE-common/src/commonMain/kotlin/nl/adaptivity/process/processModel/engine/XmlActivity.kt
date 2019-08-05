@@ -47,6 +47,9 @@ class XmlActivity : ActivityBase, XmlProcessNode {
     constructor(builder: CompositeActivity.Builder,
                 buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
 
+    constructor(builder: CompositeActivity.ReferenceBuilder,
+                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
+
     @Transient
     private var xmlCondition: XmlCondition? = null
 

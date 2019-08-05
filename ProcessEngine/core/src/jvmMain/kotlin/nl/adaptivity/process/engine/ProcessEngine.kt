@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -26,6 +26,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
+import nl.adaptivity.process.engine.impl.Logger
 import nl.adaptivity.process.engine.processModel.AbstractProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
@@ -36,14 +37,12 @@ import nl.adaptivity.process.processModel.engine.*
 import org.w3c.dom.Node
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.security.Principal
 import java.sql.SQLException
 import java.util.*
 import java.util.logging.Level
-import java.util.logging.Logger
 import javax.activation.DataSource
 import javax.naming.Context
 import javax.naming.InitialContext
@@ -109,7 +108,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         override val processModels: IMutableProcessModelMap<T>,
         override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
         override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
-        private val messageService: IMessageService<*>) : IProcessEngineData<T>(), TransactionFactory<T> {
+        private val messageService: IMessageService<*>,
+        override val logger: nl.adaptivity.process.engine.impl.Logger) : IProcessEngineData<T>(), TransactionFactory<T> {
 
         private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
             override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
@@ -118,6 +118,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 get() = this@DelegateProcessEngineData.processNodeInstances.withTransaction(transaction)
             override val processModels: IMutableProcessModelMapAccess
                 get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
+
+            override val logger: nl.adaptivity.process.engine.impl.Logger
+                get() = this@DelegateProcessEngineData.logger
 
             override fun messageService(): IMessageService<*> {
                 return messageService
@@ -150,7 +153,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         }
     }
 
-    class DBProcessEngineData(private val messageService: IMessageService<*>) : IProcessEngineData<ProcessDBTransaction>() {
+    class DBProcessEngineData(
+        private val messageService: IMessageService<*>,
+        override val logger: nl.adaptivity.process.engine.impl.Logger
+                              ) : IProcessEngineData<ProcessDBTransaction>() {
 
 
         private inner class DBEngineDataAccess(transaction: ProcessDBTransaction) : AbstractProcessEngineDataAccess<ProcessDBTransaction>(
@@ -161,6 +167,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
             override val processModels: IMutableProcessModelMapAccess
                 get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
+
+            override val logger: nl.adaptivity.process.engine.impl.Logger
+                get() = this@DBProcessEngineData.logger
 
             override fun messageService(): IMessageService<*> {
                 return this@DBProcessEngineData.messageService
@@ -365,7 +374,6 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      *
      * @param newName The new name
      */
-    @Throws(FileNotFoundException::class)
     fun renameProcessModel(user: Principal, handle: Handle<ExecutableProcessModel>, newName: String) {
         engineData.inWriteTransaction(user, mSecurityProvider.ensurePermission(Permissions.FIND_MODEL, user)) {
             processModels[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.RENAME,
@@ -377,7 +385,6 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         }
     }
 
-    @Throws(FileNotFoundException::class, SQLException::class)
     fun updateProcessModel(transaction: TRXXX,
                            handle: Handle<SecureObject<ExecutableProcessModel>>,
                            processModel: RootProcessModel<*>,
@@ -391,7 +398,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                            handle: Handle<SecureObject<ExecutableProcessModel>>,
                            processModel: RootProcessModel<*>,
                            user: Principal): ExecutableProcessModelRef {
-        val oldModel = engineData.processModels[handle] ?: throw FileNotFoundException(
+        val oldModel = engineData.processModels[handle] ?: throw HandleNotFoundException(
             "The model did not exist, instead post a new model.")
 
         if (oldModel.owner == SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
@@ -405,7 +412,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
         }
         if (!engineData.processModels.contains(handle)) {
-            throw FileNotFoundException("The process model with handle $handle could not be found")
+            throw HandleNotFoundException("The process model with handle $handle could not be found")
         }
 
         return (processModel as? ExecutableProcessModel ?: ExecutableProcessModel.from(processModel)).apply {
@@ -477,12 +484,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         }
     }
 
-    @Throws(SQLException::class, FileNotFoundException::class)
     fun tickleInstance(transaction: TRXXX, handle: Long, user: Principal): Boolean {
         return tickleInstance(transaction, handle(handle = handle), user)
     }
 
-    @Throws(SQLException::class, FileNotFoundException::class)
     fun tickleInstance(transaction: TRXXX,
                        handle: ComparableHandle<SecureObject<ProcessInstance>>,
                        user: Principal): Boolean {
@@ -518,7 +523,6 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      *
      * @throws SQLException When database operations fail.
      */
-    @Throws(SQLException::class, FileNotFoundException::class)
     private fun startProcess(transaction: TRXXX,
                              user: Principal?,
                              model: SecureObject<ExecutableProcessModel>,
@@ -551,8 +555,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 try {
                     instance.start(transaction.writableEngineData, payload)
                 } catch (e: Exception) {
-                    Logger.getLogger(javaClass.name).log(Level.WARNING,
-                                                         "Error starting instance (it is already stored)", e)
+                    logger.log(Level.WARNING, "Error starting instance (it is already stored)", e)
                     throw e
                 }
             }
@@ -569,14 +572,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      * @param name The name of the new instance.
      *
      * @param uuid The UUID for the instances. Helps with synchronization errors not exploding into mass instantiation.
-     *
      * @param payload The payload representing the parameters for the process.
-     *
      * @return A Handle to the [ProcessInstance].
-     *
-     * @throws SQLException
      */
-    @Throws(SQLException::class, FileNotFoundException::class)
     fun startProcess(transaction: TRXXX,
                      user: Principal,
                      handle: Handle<SecureObject<ExecutableProcessModel>>,
@@ -672,7 +670,6 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      *
      * @throws SQLException
      */
-    @Throws(SQLException::class, FileNotFoundException::class)
     fun updateTaskState(transaction: TRXXX,
                         handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                         newState: NodeInstanceState,
@@ -780,19 +777,15 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      * Handle the fact that this task has been cancelled.
      *
      * @param transaction
-     *
      * @param handle
-     *
      * @throws SQLException
      */
-    @Throws(SQLException::class, FileNotFoundException::class)
     fun cancelledTask(transaction: TRXXX,
                       handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                       user: Principal) {
         updateTaskState(transaction, handle, Cancelled, user)
     }
 
-    @Throws(SQLException::class, FileNotFoundException::class)
     fun errorTask(transaction: TRXXX,
                   handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                   cause: Throwable,
@@ -838,9 +831,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
         @JvmStatic
-        fun newInstance(messageService: IMessageService<*>): ProcessEngine<ProcessDBTransaction> {
+        fun newInstance(
+            messageService: IMessageService<*>,
+            logger: Logger
+                       ): ProcessEngine<ProcessDBTransaction> {
             // TODO enable optional caching
-            val engineData = DBProcessEngineData(messageService)
+            val engineData = DBProcessEngineData(messageService, logger)
             val pe = ProcessEngine(messageService, engineData)
             engineData.engine = pe // STILL NEEDED to initialize the engine as the factories require the engine
             return pe
@@ -854,11 +850,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                                                               processModels: IMutableProcessModelMap<T>,
                                                               processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
                                                               processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
-                                                              autoTransition: Boolean): ProcessEngine<T> {
+                                                              autoTransition: Boolean,
+                                                              logger: Logger): ProcessEngine<T> {
 
             val engineData = ProcessEngine.DelegateProcessEngineData(transactionFactory, processModels,
                                                                      processInstances, processNodeInstances,
-                                                                     messageService)
+                                                                     messageService, logger)
 
             return ProcessEngine(messageService, engineData)
         }

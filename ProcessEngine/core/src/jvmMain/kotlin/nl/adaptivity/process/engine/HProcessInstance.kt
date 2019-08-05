@@ -20,8 +20,9 @@ import net.devrieze.util.ComparableHandle
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.*
-import javax.xml.namespace.QName
+import kotlin.jvm.JvmStatic
 
 @XmlDeserializer(HProcessInstance.Factory::class)
 class HProcessInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) : XmlHandle<SecureObject<ProcessInstance>>(handle) {

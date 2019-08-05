@@ -173,6 +173,7 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
         override fun visitActivity(activity: MessageActivity.Builder) = XmlActivity(activity, buildHelper)
 
         override fun visitActivity(activity: CompositeActivity.Builder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = XmlActivity(activity, buildHelper)
 
         override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner)
 

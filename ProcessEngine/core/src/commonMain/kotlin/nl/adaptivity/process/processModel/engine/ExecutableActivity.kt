@@ -58,6 +58,16 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
+    constructor(
+        builder: CompositeActivity.ReferenceBuilder,
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
+               ) : super(
+        builder,
+        buildHelper
+                        ) {
+        this._condition = builder.condition?.toExecutableCondition()
+    }
+
     class Builder : ActivityBase.Builder, ExecutableProcessNode.Builder {
 
         constructor(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -16,45 +16,30 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.*
+import net.devrieze.util.toString
+import nl.adaptivity.process.engine.impl.dom.*
+import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
-import nl.adaptivity.util.DomUtil
+import nl.adaptivity.util.multiplatform.JvmOverloads
+import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.XmlEvent.EndElementEvent
-import nl.adaptivity.xmlutil.XmlEvent.StartElementEvent
-import nl.adaptivity.xmlutil.XmlEvent.TextEvent
-import nl.adaptivity.xmlutil.EventType
-import org.w3c.dom.Document
-import org.w3c.dom.DocumentFragment
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
-
-import javax.xml.XMLConstants
-import javax.xml.bind.JAXB
-import javax.xml.bind.JAXBElement
-import javax.xml.namespace.NamespaceContext
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.parsers.ParserConfigurationException
-import javax.xml.stream.XMLOutputFactory
-import javax.xml.transform.Result
-import javax.xml.transform.Source
-import javax.xml.transform.dom.DOMResult
-import javax.xml.transform.dom.DOMSource
-import javax.xml.xpath.*
-
-import java.util.*
+import nl.adaptivity.xmlutil.XmlEvent.*
+import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 
 
-class PETransformer private constructor(private val context: PETransformerContext,
-                                        private val namespaceContext: NamespaceContext?,
-                                        private val isRemoveWhitespace: Boolean) {
+class PETransformer private constructor(
+    private val context: PETransformerContext,
+    private val namespaceContext: NamespaceContext?,
+    private val isRemoveWhitespace: Boolean
+                                       ) {
 
 
-    class MyFilter(private val context: PETransformerContext,
-                   private val filterNamespaceContext: NamespaceContext?,
-                   delegate: XmlReader,
-                   private val isRemoveWhitespace: Boolean) : XmlBufferedReader(delegate) {
+    private class TransformingFilter(
+        private val context: PETransformerContext,
+        private val filterNamespaceContext: NamespaceContext?,
+        delegate: XmlReader,
+        private val isRemoveWhitespace: Boolean
+                                    ) : XmlBufferedReader(delegate) {
 
 
         public override fun doPeek(): List<XmlEvent> {
@@ -67,7 +52,7 @@ class PETransformer private constructor(private val context: PETransformerContex
         private fun doPeek(results: MutableList<XmlEvent>) {
             val events = super.doPeek()
 
-            loop@for (event in events) {
+            loop@ for (event in events) {
                 when (event.eventType) {
                     EventType.START_ELEMENT        -> peekStartElement(results, event as StartElementEvent)
                     EventType.TEXT                 -> {
@@ -145,10 +130,14 @@ class PETransformer private constructor(private val context: PETransformerContex
                     }
                 }
                 if (filterAttributes) {
-                    results.add(StartElementEvent(element.locationInfo, element.namespaceUri, element.localName,
-                                                  element.prefix,
-                                                  newAttrs.toTypedArray(),
-                                                  newNamespaces.toTypedArray()))
+                    results.add(
+                        StartElementEvent(
+                            element.locationInfo, element.namespaceUri, element.localName,
+                            element.prefix,
+                            newAttrs.toTypedArray(),
+                            newNamespaces.toTypedArray()
+                                         )
+                               )
                 } else {
                     results.add(element)
                 }
@@ -158,7 +147,7 @@ class PETransformer private constructor(private val context: PETransformerContex
         private fun readEndTag(name: StartElementEvent) {
             while (true) {
                 val elems = super.doPeek()
-                loop@for (elem in elems) {
+                loop@ for (elem in elems) {
                     when (elem.eventType) {
                         EventType.IGNORABLE_WHITESPACE, EventType.COMMENT -> {
                         }
@@ -167,17 +156,23 @@ class PETransformer private constructor(private val context: PETransformerContex
                                 continue@loop
                             }
                             if (!(elem.eventType === EventType.END_ELEMENT && name.isEqualNames(
-                                            elem as EndElementEvent))) {
+                                    elem as EndElementEvent
+                                                                                               ))
+                            ) {
                                 throw XmlException(
-                                        "Unexpected tag found ($elem) when expecting an end tag for $name")
+                                    "Unexpected tag found ($elem) when expecting an end tag for $name"
+                                                  )
                             }
                             return
                         }
                         else                                              -> {
                             if (!(elem.eventType === EventType.END_ELEMENT && name.isEqualNames(
-                                            elem as EndElementEvent))) {
+                                    elem as EndElementEvent
+                                                                                               ))
+                            ) {
                                 throw XmlException(
-                                        "Unexpected tag found ($elem) when expecting an end tag for $name")
+                                    "Unexpected tag found ($elem) when expecting an end tag for $name"
+                                                  )
                             }
                             return
                         }
@@ -186,30 +181,29 @@ class PETransformer private constructor(private val context: PETransformerContex
             }
         }
 
-        private fun processElement(results: MutableList<XmlEvent>,
-                                   event: StartElementEvent,
-                                   attributes: Map<String, CharSequence>,
-                                   hasDefault: Boolean) {
+        private fun processElement(
+            results: MutableList<XmlEvent>,
+            event: StartElementEvent,
+            attributes: Map<String, CharSequence>,
+            hasDefault: Boolean
+                                  ) {
             val valueName = attributes["value"]
             val xpath = attributes["xpath"]
-            try {
-                if (valueName == null) {
-                    if (hasDefault) {
-                        addAllRegular(results,
-                                      applyXpath(event.namespaceContext, context.resolveDefaultValue(), xpath))
-                    } else {
-                        throw XmlException("This context does not allow for a missing value parameter")
-                    }
+            if (valueName == null) {
+                if (hasDefault) {
+                    addAllRegular(
+                        results,
+                        applyXpath(event.namespaceContext, context.resolveDefaultValue(), xpath)
+                                 )
                 } else {
-                    addAllRegular(results,
-                                  applyXpath(event.namespaceContext, context.resolveElementValue(valueName), xpath))
+                    throw XmlException("This context does not allow for a missing value parameter")
                 }
-            } catch (e: XPathExpressionException) {
-                throw RuntimeException(e)
-            } catch (e: ParserConfigurationException) {
-                throw RuntimeException(e)
+            } else {
+                addAllRegular(
+                    results,
+                    applyXpath(event.namespaceContext, context.resolveElementValue(valueName), xpath)
+                             )
             }
-
         }
 
         private fun addAllRegular(target: MutableList<XmlEvent>, source: Iterable<XmlEvent>) {
@@ -220,45 +214,45 @@ class PETransformer private constructor(private val context: PETransformerContex
             }
         }
 
-        @Throws(XPathExpressionException::class, ParserConfigurationException::class)
-        private fun applyXpath(namespaceContext: NamespaceContext,
-                               pendingEvents: List<XmlEvent>,
-                               xpath: CharSequence?): Collection<XmlEvent> {
+        private fun applyXpath(
+            namespaceContext: NamespaceContext,
+            pendingEvents: List<XmlEvent>,
+            xpath: CharSequence?
+                              ): Collection<XmlEvent> {
             val xpathstr = toString(xpath)
             if (xpathstr == null || "." == xpathstr) {
                 return pendingEvents
             }
             // TODO add a function resolver
-            val rawPath = XPathFactory.newInstance().newXPath()
+            val rawPath = newXPath()
             // Do this better
             if (filterNamespaceContext == null) {
-                rawPath.namespaceContext = namespaceContext
+                rawPath.setNamespaceContext(namespaceContext)
             } else {
-                rawPath.namespaceContext = CombiningNamespaceContext(namespaceContext, filterNamespaceContext)
+                rawPath.setNamespaceContext(CombiningNamespaceContext(namespaceContext, filterNamespaceContext))
             }
             val xpathexpr = rawPath.compile(xpathstr)
             val result = ArrayList<XmlEvent>()
-            val xof = XMLOutputFactory.newFactory()
-            val dbf = DocumentBuilderFactory.newInstance()
+            val dbf = newDocumentBuilderFactory()
             dbf.isNamespaceAware = true
             val db = dbf.newDocumentBuilder()
             val eventFragment = db.newDocument().createDocumentFragment()
             val domResult = DOMResult(eventFragment)
 
-            val writer = XmlStreaming.newWriter(domResult)
+            val writer = domResult.newWriter()
             for (event in pendingEvents) {
                 event.writeTo(writer)
             }
             writer.close()
             val applicationResult = xpathexpr.evaluate(eventFragment, XPathConstants.NODESET) as NodeList
-            if (applicationResult.length > 0) {
-                result.addAll(toEvents(ProcessData("--xpath result--", DomUtil.nodeListToFragment(applicationResult))))
+            if (applicationResult.getLength() > 0) {
+                result.addAll(toEvents(ProcessData("--xpath result--", applicationResult.toFragment())))
             }
             return result
         }
 
         private fun parseAttributes(startElement: StartElementEvent): Map<String, CharSequence> {
-            val result = TreeMap<String, CharSequence>()
+            val result = mutableMapOf<String, CharSequence>()
 
             for (attribute in startElement.attributes) {
                 result[attribute.localName] = attribute.value
@@ -276,8 +270,10 @@ class PETransformer private constructor(private val context: PETransformerContex
                     paramName = context.resolveAttributeName(valueName)
                 }
                 val value = context.resolveAttributeValue(valueName, toString(xpath))
-                return XmlEvent.Attribute(null, XMLConstants.NULL_NS_URI, paramName, XMLConstants.DEFAULT_NS_PREFIX,
-                                          value)
+                return XmlEvent.Attribute(
+                    null, XMLConstants.NULL_NS_URI, paramName, XMLConstants.DEFAULT_NS_PREFIX,
+                    value
+                                         )
             } else {
                 throw MessagingFormatException("Missing parameter name")
             }
@@ -299,7 +295,8 @@ class PETransformer private constructor(private val context: PETransformerContex
 
         override fun resolveElementValue(valueName: CharSequence): List<XmlEvent> {
             val data = getData(valueName.toString()) ?: throw IllegalArgumentException(
-                    "No value with name $valueName found")
+                "No value with name $valueName found"
+                                                                                      )
             return toEvents(data)
         }
 
@@ -312,7 +309,8 @@ class PETransformer private constructor(private val context: PETransformerContex
                     val event = dataReader.next()
                     when (event) {
                         EventType.ATTRIBUTE, EventType.DOCDECL, EventType.START_ELEMENT                                       -> throw XmlException(
-                                "Unexpected node found while resolving attribute. Only CDATA allowed: (" + event.javaClass.simpleName + ") " + event)
+                            "Unexpected node found while resolving attribute. Only CDATA allowed: (${event.getClass()}) " + event
+                                                                                                                                                   )
                         EventType.CDSECT, EventType.TEXT                                                                      -> {
                             if (!isIgnorableWhiteSpace(dataReader)) {
                                 result.append(dataReader.text)
@@ -323,7 +321,8 @@ class PETransformer private constructor(private val context: PETransformerContex
                         EventType.END_ELEMENT // finished the element
                                                                                                                               -> return result.toString()
                         else                                                                                                  -> throw XmlException(
-                                "Unexpected node type: $event")
+                            "Unexpected node type: $event"
+                                                                                                                                                   )
                     }// ignore
                 }
             } catch (e: XmlException) {
@@ -374,75 +373,6 @@ class PETransformer private constructor(private val context: PETransformerContex
 
     }
 
-    fun transform(content: List<*>): List<Node> {
-        try {
-            var document: Document? = null
-            val result = ArrayList<Node>(content.size)
-            for (obj in content) {
-                if (obj is CharSequence) {
-                    if (document == null) {
-                        val dbf = DocumentBuilderFactory.newInstance()
-                        dbf.isNamespaceAware = true
-                        document = dbf.newDocumentBuilder().newDocument()
-                    }
-                    result.add(document!!.createTextNode(obj.toString()))
-                } else if (obj is Node) {
-                    if (document == null) {
-                        document = obj.ownerDocument
-                    }
-                    val v = transform(obj)
-                    if (v != null) {
-                        result.add(v)
-                    }
-                } else if (obj is JAXBElement<*>) {
-                    if (document == null) {
-                        val dbf = DocumentBuilderFactory.newInstance()
-                        dbf.isNamespaceAware = true
-                        document = dbf.newDocumentBuilder().newDocument()
-                    }
-                    val jbe = obj as JAXBElement<*>?
-                    val df = document!!.createDocumentFragment()
-                    val domResult = DOMResult(df)
-                    JAXB.marshal(jbe!!, domResult)
-                    var n: Node? = df.firstChild
-                    while (n != null) {
-                        val v = transform(n)
-                        if (v != null) {
-                            result.add(v)
-                        }
-                        n = n.nextSibling
-                    }
-                } else if (obj != null) {
-                    throw IllegalArgumentException(
-                            "The node " + obj.toString() + " of type " + obj.javaClass + " is not understood")
-                }
-            }
-            return result
-        } catch (e: ParserConfigurationException) {
-            throw XmlException(e)
-        }
-
-    }
-
-    fun transform(node: Node): DocumentFragment? {
-        val dbf = DocumentBuilderFactory.newInstance()
-        val document: Document
-        try {
-            document = dbf.newDocumentBuilder().newDocument()
-            val fragment = document.createDocumentFragment()
-            val result = DOMResult(fragment)
-            transform(DOMSource(node), result)
-            return fragment
-        } catch (e: ParserConfigurationException) {
-            throw XmlException(e)
-        }
-
-    }
-
-    fun transform(source: Source, result: Result) {
-        transform(XmlStreaming.newReader(source), XmlStreaming.newWriter(result, true))
-    }
-
     fun transform(`in`: XmlReader, out: XmlWriter) {
         val filteredIn = createFilter(`in`)
         while (filteredIn.hasNext()) {
@@ -452,14 +382,16 @@ class PETransformer private constructor(private val context: PETransformerContex
     }
 
     fun createFilter(input: XmlReader): XmlReader {
-        return MyFilter(context, namespaceContext, input, isRemoveWhitespace)
+        return TransformingFilter(context, namespaceContext, input, isRemoveWhitespace)
     }
 
     companion object {
 
-        fun create(namespaceContext: NamespaceContext?,
-                   removeWhitespace: Boolean,
-                   vararg processData: ProcessData): PETransformer {
+        fun create(
+            namespaceContext: NamespaceContext?,
+            removeWhitespace: Boolean,
+            vararg processData: ProcessData
+                  ): PETransformer {
             return PETransformer(ProcessDataContext(*processData), namespaceContext, removeWhitespace)
         }
 
@@ -487,9 +419,11 @@ class PETransformer private constructor(private val context: PETransformerContex
         }
 
         @JvmOverloads
-        fun create(namespaceContext: NamespaceContext?,
-                   context: PETransformerContext,
-                   removeWhitespace: Boolean = true): PETransformer {
+        fun create(
+            namespaceContext: NamespaceContext?,
+            context: PETransformerContext,
+            removeWhitespace: Boolean = true
+                  ): PETransformer {
             return PETransformer(context, namespaceContext, removeWhitespace)
         }
 

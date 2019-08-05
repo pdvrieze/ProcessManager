@@ -22,10 +22,11 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.db.ProcessEngineDB.processModels
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import java.util.*
 
 
-internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<ExecutableProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>(
+internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>(
       transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<ProcessDBTransaction> {
 
   override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
