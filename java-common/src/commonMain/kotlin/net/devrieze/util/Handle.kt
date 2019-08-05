@@ -31,6 +31,9 @@ interface Handle<out T : Any?> {
     val isValid get() = handleValue >= 0
 }
 
+@Suppress("NOTHING_TO_INLINE")
+inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = handle(handle= handleValue)
+
 interface ComparableHandle<out T: Any?> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
     @JvmDefault
     override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>):Int {

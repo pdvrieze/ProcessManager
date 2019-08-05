@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -16,9 +16,9 @@
 
 package net.devrieze.util
 
-import java.io.Closeable
-import java.sql.SQLException
-
+import nl.adaptivity.util.multiplatform.AutoCloseable
+import nl.adaptivity.util.multiplatform.Closeable
+import nl.adaptivity.util.multiplatform.Runnable
 
 /**
  * Created by pdvrieze on 18/08/15.
@@ -28,13 +28,10 @@ interface Transaction : AutoCloseable, Closeable {
     // Don't let transaction close throw exception, only runtime exceptions allowed
     override fun close()
 
-    @Throws(SQLException::class)
     fun commit()
 
-    @Throws(SQLException::class)
     fun rollback()
 
-    @Throws(SQLException::class)
     fun <T> commit(value: T): T
 
     fun addRollbackHandler(runnable: Runnable)
