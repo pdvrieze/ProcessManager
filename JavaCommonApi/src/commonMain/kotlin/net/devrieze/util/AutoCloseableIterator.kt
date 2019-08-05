@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -16,7 +16,8 @@
 
 package net.devrieze.util
 
-import java.io.Closeable
+import nl.adaptivity.util.multiplatform.AutoCloseable
+import nl.adaptivity.util.multiplatform.Closeable
 
 
 interface AutoCloseableIterator<T> : AutoCloseable, Closeable, Iterator<T>// Interface for joint functionality
