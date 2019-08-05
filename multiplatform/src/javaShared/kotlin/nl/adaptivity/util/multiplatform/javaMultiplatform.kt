@@ -26,6 +26,7 @@ actual val KClass<*>.name get() = java.name
 actual typealias Throws = kotlin.jvm.Throws
 
 actual typealias UUID = java.util.UUID
+actual fun randomUUID(): UUID = UUID.randomUUID()
 
 actual typealias JvmStatic = kotlin.jvm.JvmStatic
 
@@ -56,3 +57,5 @@ actual fun arraycopy(src: Any, srcPos:Int, dest:Any, destPos:Int, length:Int) =
     java.lang.System.arraycopy(src, srcPos, dest, destPos, length)
 
 actual inline fun <reified T:Any> isTypeOf(value: Any):Boolean = value::class.java == T::class.java
+
+actual fun Exception.addSuppressedCompat(suppressed: Throwable): Unit = addSuppressed(suppressed)

@@ -32,6 +32,10 @@ actual class UUID(val text:String) {
     override fun toString() = text
 }
 
+actual fun randomUUID(): UUID {
+    throw UnsupportedOperationException("Javascript cannot generate random uuids yet")
+}
+
 actual fun String.toUUID(): UUID = UUID(this)
 
 
@@ -64,4 +68,12 @@ actual interface AutoCloseable {
 
 actual interface Closeable: AutoCloseable
 
+actual interface Runnable {
+    actual fun run()
+}
+
 actual inline fun <reified T:Any> isTypeOf(value: Any):Boolean = jsTypeOf(value) == T::class.js.name
+
+actual fun Exception.addSuppressedCompat(suppressed: Throwable):Unit {
+    asDynamic().suppressed = suppressed
+}

@@ -73,6 +73,7 @@ expect class URI {
 }
 
 expect class UUID
+expect fun randomUUID(): UUID
 
 expect fun String.toUUID(): UUID
 
@@ -105,5 +106,11 @@ expect interface AutoCloseable {
 
 expect interface Closeable: AutoCloseable
 
+expect interface Runnable {
+    fun run()
+}
+
 @Suppress("unused")
 expect inline fun <reified T:Any> isTypeOf(value: Any):Boolean
+
+expect fun Exception.addSuppressedCompat(suppressed: Throwable): Unit
