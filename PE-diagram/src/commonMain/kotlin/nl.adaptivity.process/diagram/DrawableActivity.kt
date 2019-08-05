@@ -81,7 +81,7 @@ interface IDrawableActivity : IDrawableProcessNode {
 
     val message: IXmlMessage?
 
-    val childId: String? get() = null
+    val childId: String?
 
     val isBodySpecified get() = message != null
 
