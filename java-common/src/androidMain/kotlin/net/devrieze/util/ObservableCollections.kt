@@ -89,7 +89,7 @@ actual constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T
         observers.forEach { it(this) }
     }
 
-    override fun spliterator(): Spliterator<T> = delegate.spliterator()
+    override fun spliterator() = delegate.spliterator()
 }
 
 actual class ObservableList<T>
@@ -126,7 +126,7 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
         observers.forEach { it(this) }
     }
 
-    override fun spliterator(): Spliterator<T> = delegate.spliterator()
+    override fun spliterator() = delegate.spliterator()
     override fun iterator() = super.iterator()
 
     override fun listIterator(): MutableListIterator<T> = ObservableListIterator(delegate.listIterator())

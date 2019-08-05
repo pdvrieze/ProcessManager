@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2019.
  *
  * This file is part of ProcessManager.
  *
@@ -14,8 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-@file:JvmName("HandleJvmKt")
-package net.devrieze.util
+package nl.adaptivity.process.engine
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = handle(handle= handleValue)
+class MessagingFormatException: Exception {
+    constructor() : super()
+    constructor(message: String?) : super(message)
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
+    constructor(cause: Throwable?) : super(cause)
+}

@@ -17,9 +17,6 @@
 package net.devrieze.util
 
 import net.devrieze.util.collection.replaceBy
-import java.util.*
-import java.util.function.Predicate
-
 
 actual abstract class ObservableCollectionBase<C : MutableCollection<T>, T, S : ObservableCollectionBase<C, T, S>>
 constructor(protected val delegate: C, observers: Iterable<(S) -> Unit> = emptyList()) : Collection<T> by delegate,
@@ -40,8 +37,6 @@ constructor(protected val delegate: C, observers: Iterable<(S) -> Unit> = emptyL
     abstract fun triggerObservers()
 
     override fun addAll(elements: Collection<T>) = delegate.addAll(elements).apply { if (this) triggerObservers() }
-
-    override fun removeIf(filter: Predicate<in T>) = delegate.removeIf(filter).apply { if (this) triggerObservers() }
 
     override fun add(element: T) = delegate.add(element).apply { if (this) triggerObservers() }
 
@@ -88,8 +83,6 @@ actual constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T
     override fun triggerObservers() {
         observers.forEach { it(this) }
     }
-
-    override fun spliterator(): Spliterator<T> = delegate.spliterator()
 }
 
 actual class ObservableList<T>
@@ -126,7 +119,6 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
         observers.forEach { it(this) }
     }
 
-    override fun spliterator(): Spliterator<T> = delegate.spliterator()
     override fun iterator() = super.iterator()
 
     override fun listIterator(): MutableListIterator<T> = ObservableListIterator(delegate.listIterator())
