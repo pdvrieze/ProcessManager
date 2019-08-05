@@ -42,7 +42,7 @@ actual inline fun <T:Any> T.getClass(): Class<T> = this.javaClass
 actual inline fun generateXmlString(generator: (XmlWriter) -> Unit): CharArray {
     val caw = CharArrayWriter()
     caw.use {
-        XmlStreaming.newWriter(caw).use { writer ->
+        XmlStreaming.newWriter(caw, repairNamespaces = true).use { writer ->
             generator(writer)
         }
     }

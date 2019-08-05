@@ -97,7 +97,7 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
-            return ExecutableProcessModel(Builder.deserialize(reader))
+            return ExecutableProcessModel(XML.parse(reader, RootProcessModelBase.Builder.serializer()))
         }
 
         @JvmStatic
