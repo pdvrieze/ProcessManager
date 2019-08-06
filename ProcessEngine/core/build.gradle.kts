@@ -36,7 +36,8 @@ kotlin {
             compilations.all {
                 tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
                     jvmTarget = "1.8"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
+                    freeCompilerArgs = listOf(argJvmDefault)
+//                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
@@ -111,59 +112,9 @@ kotlin {
     }
 }
 
-val testJar = tasks.create<Jar>("testJar") {
-    baseName = "${project.name}-test"
-    from(sourceSets["test"].output)
+tasks.withType<Jar> {
+    archiveBaseName.set("${project.parent?.name}-${project.name}")
 }
-
-tasks.named<Jar>("jar") {
-    baseName = "${project.parent?.name}-${project.name}"
-}
-
-//artifacts {
-//    add("testRuntime", testJar)
-//}
-
-/*
-dependencies {
-    api(project(":java-common"))
-    api(project(":PE-common"))
-
-    implementation(kotlin("stdlib-jdk8"))
-    api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
-    api("javax.activation:javax.activation-api:$activationVersion")
-    compileOnly("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-
-    compileOnly(project(":JavaCommonApi"))
-    compileOnly(project(":DarwinJavaApi"))
-
-    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
-
-    testImplementation(project(":PE-common"))
-
-    testImplementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}") {
-        exclude(group="org.jetbrains.kotlin")
-    }
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-
-    testImplementation("org.xmlunit:xmlunit-core:2.6.0")
-//    testImplementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-
-    testImplementation(project(":DarwinJavaApi"))
-    testImplementation(project(":TestSupport"))
-    testImplementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
-
-    testRuntime("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-
-    testRuntime("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
-        exclude(group="org.junit.platform")
-        exclude(group="org.jetbrains.kotlin")
-    }
-}
-*/
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -172,8 +123,8 @@ java {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs=listOf(argJvmDefault)
+        val newArgs = freeCompilerArgs.toMutableSet().apply { add("-Xuse-experimental=kotlin.Experimental")}.toList()
+        freeCompilerArgs=newArgs
     }
 }
 
@@ -183,12 +134,6 @@ tasks.named<Test>("jvmTest") {
         include("**/TestWorkflowPatterns**")
         include("**/TestProcessEngine**")
     }
-//    include "**/FooUnitTest*"
-//    include "nl/adaptivity/process/engine/FooSpek.class"
-//    include "nl.adaptivity.process.engine.TestWorkflowPatterns2.class"
-//    selectors {
-//        classes { 'nl.adaptivity.process.engine.TestWorkflowPatterns2' }
-//    }
 }
 
 idea {
