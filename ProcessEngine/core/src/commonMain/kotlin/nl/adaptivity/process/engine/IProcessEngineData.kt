@@ -66,6 +66,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
     abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess
 
 
+    @Suppress("UNUSED_PARAMETER")
     inline fun <R> inReadonlyTransaction(
         principal: Principal,
         permissionResult: SecurityProvider.PermissionResult,
@@ -79,6 +80,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     inline fun <R> inWriteTransaction(
         principal: Principal,
         permissionResult: SecurityProvider.PermissionResult,

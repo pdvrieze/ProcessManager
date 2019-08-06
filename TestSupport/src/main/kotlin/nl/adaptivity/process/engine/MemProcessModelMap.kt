@@ -29,7 +29,7 @@ import java.util.*
 class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ExecutableProcessModel>, StubProcessTransaction>(), IMutableProcessModelMap<StubProcessTransaction> {
 
   override fun getModelWithUuid(transaction: StubProcessTransaction,
-                                uuid: UUID): Handle<out SecureObject<ExecutableProcessModel>>? {
+                                uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     for (c in this) {
       val candidate = c.withPermission()
       if (uuid == candidate.uuid) {

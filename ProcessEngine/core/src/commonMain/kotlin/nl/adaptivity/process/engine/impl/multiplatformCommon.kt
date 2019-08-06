@@ -48,4 +48,7 @@ expect interface Result
 expect fun JAXBmarshal(jaxbObject: Any, xml: Result)
 expect inline fun <T:Any> T.getClass(): Class<T>
 
-expect inline fun generateXmlString(generator: (XmlWriter) -> Unit): CharArray
+expect inline fun generateXmlString(
+    repairNamespaces: Boolean,
+    generator: (XmlWriter) -> Unit
+                                   ): CharArray

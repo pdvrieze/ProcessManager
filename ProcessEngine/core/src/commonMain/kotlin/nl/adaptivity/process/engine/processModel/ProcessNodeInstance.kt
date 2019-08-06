@@ -25,17 +25,18 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.*
 import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.engine.impl.dom.newReader
+import nl.adaptivity.process.engine.impl.dom.newWriter
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.util.multiplatform.JvmStatic
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.WritableCompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import kotlin.jvm.JvmStatic
 
 /**
  * Base interface for process instance.
@@ -71,8 +72,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     init {
         @Suppress("LeakingThis")
-        if (state != SkippedInvalidated && !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge
-                ?: false))
+        if (state != SkippedInvalidated &&
+            !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge == true))
         ) {
             if (processInstanceBuilder.allChildren { it.node == node && it.entryNo != entryNo && it.state != SkippedInvalidated }.any()) {
                 throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
@@ -80,7 +81,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
     }
 
-    constructor(builder: ProcessNodeInstance.Builder<*, T>) : this(
+    constructor(builder: Builder<*, T>) : this(
         builder.node, builder.predecessors,
         builder.processInstanceBuilder,
         builder.hProcessInstance, builder.owner,
@@ -94,7 +95,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
 
-    fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance<*>>> {
+    private fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance<*>>> {
         return predecessors.asSequence().flatMap { predHandle ->
             val pred = processData.nodeInstance(predHandle).withPermission()
             pred.precedingClosure(processData) + sequenceOf(pred)
@@ -108,7 +109,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         val builder = builder(processInstanceBuilder).apply(body)
 
         return processInstanceBuilder.storeChild(builder)
-            .let { if (builder !is ExtBuilder<*, *> || builder.changed) it else null }
+            .let { if (builder.changed) it else null }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -117,6 +118,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     override fun withPermission(): ProcessNodeInstance<T> = this
 
+    @Suppress("UNUSED_PARAMETER")
     fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
         return results.firstOrNull { name == it.name }
     }
@@ -137,10 +139,10 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }.toList()
     }
 
-    fun getPredecessor(
+    private fun getPredecessor(
         engineData: ProcessEngineDataAccess,
         nodeName: String
-                      ): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>? {
+                              ): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>? {
         // TODO Use process structure knowledge to do this better/faster without as many database lookups.
         predecessors
             .asSequence()
@@ -178,7 +180,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         result: Result,
         localEndpoint: EndpointDescriptor
                                   ) {
-        instantiateXmlPlaceholders(engineData, source, true, localEndpoint)
+        instantiateXmlPlaceholders(engineData, source.newReader(), result.newWriter(), true, localEndpoint)
     }
 
     fun instantiateXmlPlaceholders(
@@ -187,7 +189,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         out: XmlWriter,
         removeWhitespace: Boolean,
         localEndpoint: EndpointDescriptor
-                                  ) {
+                                          ) {
         val defines = getDefines(engineData)
         val transformer = PETransformer.create(
             ProcessNodeInstanceContext(
@@ -215,12 +217,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         xmlReader: XmlReader,
         removeWhitespace: Boolean,
         localEndpoint: EndpointDescriptor
-                                  ): WritableCompactFragment {
-        val charArray = generateXmlString { writer ->
+                                          ): WritableCompactFragment {
+        val charArray = generateXmlString(true) { writer ->
             instantiateXmlPlaceholders(engineData, xmlReader, writer, removeWhitespace, localEndpoint)
         }
 
-        return WritableCompactFragment(emptyList<Namespace>(), charArray)
+        return WritableCompactFragment(emptyList(), charArray)
     }
 
     fun serialize(engineData: ProcessEngineDataAccess, out: XmlWriter, localEndpoint: EndpointDescriptor) {
@@ -284,7 +286,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         fun failTaskCreation(cause: Throwable) {
             failureCause = cause
-            state = NodeInstanceState.FailRetry
+            state = FailRetry
         }
 
         /**
@@ -335,7 +337,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
                 Pending,
-                NodeInstanceState.FailRetry -> state = NodeInstanceState.Skipped
+                FailRetry -> state = Skipped
                 Sent,
                 Taken,
                 Acknowledged                -> cancel(engineData).also { state = Skipped }
@@ -354,8 +356,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
 
         fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
+            @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
-                NodeInstanceState.FailRetry,
+                FailRetry,
                 Pending -> provideTask(engineData)
             }// ignore
         }
@@ -467,7 +470,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override fun failTask(engineData: MutableProcessEngineDataAccess, cause: Throwable) {
             failureCause = cause
-            state = if (state == Pending) NodeInstanceState.FailRetry else Failed
+            state = if (state == Pending) FailRetry else Failed
             processInstanceBuilder.skipSuccessors(engineData, this, SkippedFail)
         }
 
@@ -515,7 +518,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override var predecessors: MutableSet<net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
+        final override var predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
             predecessors.toMutableArraySet()
         final override val results = mutableListOf<ProcessData>()
     }
@@ -526,7 +529,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                                                                                     ) : AbstractBuilder<N, T>() {
         protected val observer = { changed = true }
 
-        final override var predecessors = ObservableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>(base.predecessors.toMutableArraySet(), { changed = true })
+        final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
         final override var owner by overlay(observer) { base.owner }
         final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer) { base.getHandle() }
         final override var state = base.state
@@ -554,11 +557,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     companion object {
 
         @JvmStatic
-        protected inline fun <R> ProcessNodeInstance.Builder<*, *>.tryTask(body: () -> R): R =
+        protected inline fun <R> Builder<*, *>.tryTask(body: () -> R): R =
             _tryHelper(body) { e ->
                 failTaskCreation(e)
             }
 
+        @Suppress("unused", "FunctionName")
         @PublishedApi
         internal inline fun <R> _tryHelper(
             engineData: MutableProcessEngineDataAccess,

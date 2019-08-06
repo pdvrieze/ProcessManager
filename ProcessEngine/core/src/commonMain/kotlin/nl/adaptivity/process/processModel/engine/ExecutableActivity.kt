@@ -139,7 +139,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
     override var condition: Condition?
         get() = _condition
         set(value) {
-            _condition = condition?.toExecutableCondition()
+            _condition = value?.toExecutableCondition()
         }
 
     /**

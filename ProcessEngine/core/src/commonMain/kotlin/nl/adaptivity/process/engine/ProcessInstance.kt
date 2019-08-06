@@ -318,30 +318,29 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         fun finish(engineData: MutableProcessEngineDataAccess) {
             // This needs to update first as at this point the node state may not be valid.
             // TODO reduce the need to do a double update.
-            this.let { newInstance ->
-                // TODO("Make the state dependent on the kind of child state")
-                val endNodes = allChildren { it.state.isFinal && it.node is EndNode }.toList()
-                if (endNodes.count() >= processModel.endNodeCount) {
-                    state = when {
-                        endNodes.any { it.state == NodeInstanceState.Failed || it.state == NodeInstanceState.SkippedFail }      -> State.FAILED
-                        endNodes.any { it.state == NodeInstanceState.Cancelled || it.state == NodeInstanceState.SkippedCancel } -> State.CANCELLED
-                        else                                                                                                    -> State.FINISHED
-                    }
-                    if (parentActivity.isValid) {
-                        val parentNode = engineData.nodeInstance(parentActivity).withPermission()
-                        val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
-                        parentInstance.update(engineData) {
-                            updateChild(parentNode) {
-                                finishTask(engineData, getOutputPayload())
-                            }
+
+            // TODO("Make the state dependent on the kind of child state")
+            val endNodes = allChildren { it.state.isFinal && it.node is EndNode }.toList()
+            if (endNodes.count() >= processModel.endNodeCount) {
+                state = when {
+                    endNodes.any { it.state == NodeInstanceState.Failed || it.state == NodeInstanceState.SkippedFail }      -> State.FAILED
+                    endNodes.any { it.state == NodeInstanceState.Cancelled || it.state == NodeInstanceState.SkippedCancel } -> State.CANCELLED
+                    else                                                                                                    -> State.FINISHED
+                }
+                if (parentActivity.isValid) {
+                    val parentNode = engineData.nodeInstance(parentActivity).withPermission()
+                    val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
+                    parentInstance.update(engineData) {
+                        updateChild(parentNode) {
+                            finishTask(engineData, getOutputPayload())
                         }
                     }
-
-                    store(engineData)
-                    engineData.commit()
-                    // TODO don't remove old transactions
-                    engineData.handleFinishedInstance(handle)
                 }
+
+                store(engineData)
+                engineData.commit()
+                // TODO don't remove old transactions
+                engineData.handleFinishedInstance(handle)
             }
         }
 
@@ -407,7 +406,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             return InstanceFuture<T, ExecutableProcessNode>(child).apply {
                 if (!handle.isValid) throw IllegalArgumentException("Storing a non-existing child")
                 _pendingChildren.firstOrNull { child.handle.isValid && it.origBuilder.handle == child.handle && it.origBuilder != child }
-                    ?.let { oldChild ->
+                    ?.let { _ ->
                         throw ProcessException("Attempting to store a new child with an already existing handle")
                     }
                 if (!_pendingChildren.any { it.origBuilder == child }) _pendingChildren.add(this)
@@ -492,7 +491,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                     _pendingChildren[existingIdx] = this
                 } else {
                     _pendingChildren.firstOrNull { child.handle.isValid && it.origBuilder.handle == child.handle && it.origBuilder != child }
-                        ?.let { oldChild ->
+                        ?.let { _ ->
                             throw ProcessException("Attempting to store a new child with an already existing handle")
                         }
                     _pendingChildren.add(this)
@@ -598,7 +597,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                     if (processInstance.processModel !is ExecutableProcessModel) append(" child") else append(' ')
                     append("instance ").append(handleValue)
                 }
-            } else it!!
+            } else it
         }
 
         val parentActivity = processInstance.parentActivity

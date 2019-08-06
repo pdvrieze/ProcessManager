@@ -301,7 +301,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
                 val pm = ExecutableProcessModel(basepm, false)
 
-                ProcessModelRef(pm.name, processModels.put(pm), uuid)
+                ProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>(pm.name, processModels.put(pm), uuid)
             }
 
         }
@@ -318,7 +318,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 processModels[uuid]
             }
 
-            if (pastHandle != null && pastHandle.valid) {
+            if (pastHandle != null && pastHandle.isValid) {
                 updateProcessModel(transaction, pastHandle, pm, user)
             } else {
                 val uuid = pm.uuid ?: throw ProcessException("Missing UUID for process model")
@@ -327,7 +327,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                     mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
                 }
 
-                ProcessModelRef(pm.name, processModels.put(pm), uuid)
+                ProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>(pm.name, processModels.put(pm), uuid)
             }
 
         }
@@ -389,8 +389,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                            handle: Handle<SecureObject<ExecutableProcessModel>>,
                            processModel: RootProcessModel<*>,
                            user: Principal): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
-        engineData.inWriteTransaction(transaction) {
-            return updateProcessModel(this, handle, processModel, user)
+        return engineData.inWriteTransaction(transaction) {
+            updateProcessModel(this, handle, processModel, user)
         }
     }
 

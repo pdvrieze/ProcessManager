@@ -21,8 +21,8 @@ import nl.adaptivity.process.util.Identified
 
 
 class ExecutableEndNode(builder: EndNode.Builder,
-                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) : EndNodeBase(
-  builder, buildHelper), ExecutableProcessNode {
+                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) :
+    EndNodeBase(builder, buildHelper.newOwner), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon

@@ -16,50 +16,60 @@
 
 package nl.adaptivity.process.engine
 
+import kotlinx.serialization.*
 import net.devrieze.util.ComparableHandle
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.*
-import kotlin.jvm.JvmStatic
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.XmlValue
 
+@Serializable
+@XmlSerialName(HProcessInstance.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 @XmlDeserializer(HProcessInstance.Factory::class)
-class HProcessInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) : XmlHandle<SecureObject<ProcessInstance>>(handle) {
+class HProcessInstance : XmlHandle<@ContextualSerialization SecureObject<@ContextualSerialization ProcessInstance>> {
 
-  class Factory : XmlDeserializerFactory<HProcessInstance> {
+    constructor(handle: ComparableHandle<SecureObject<ProcessInstance>>) : super(handle)
 
-    @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): HProcessInstance {
-      return HProcessInstance.deserialize(reader)
+    class Factory : XmlDeserializerFactory<HProcessInstance> {
+
+        @Throws(XmlException::class)
+        override fun deserialize(reader: XmlReader): HProcessInstance {
+            return HProcessInstance.deserialize(reader)
+        }
     }
-  }
 
-  constructor() : this(getInvalidHandle<SecureObject<ProcessInstance>>())
+    constructor() : this(getInvalidHandle<SecureObject<ProcessInstance>>())
 
-  override val elementName: QName
-    get() = ELEMENTNAME
+    override val elementName: QName
+        get() = ELEMENTNAME
 
-  override fun equals(other: Any?): Boolean {
-    return other === this || other is HProcessInstance && handleValue == other.handleValue
-  }
-
-  override fun hashCode(): Int {
-    return handleValue.toInt()
-  }
-
-  companion object {
-
-    const val ELEMENTLOCALNAME = "instanceHandle"
-    
-    @JvmStatic
-    val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
-
-    @Throws(XmlException::class)
-    private fun deserialize(xmlReader: XmlReader): HProcessInstance {
-      // For some reason a transactiontype is needed here even though it is dropped
-      return HProcessInstance().deserializeHelper(xmlReader)
+    override fun equals(other: Any?): Boolean {
+        return other === this || other is HProcessInstance && handleValue == other.handleValue
     }
-  }
+
+    override fun hashCode(): Int {
+        return handleValue.toInt()
+    }
+
+    companion object {
+
+        const val ELEMENTLOCALNAME = "instanceHandle"
+
+        @JvmStatic
+        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+
+        @Throws(XmlException::class)
+        private fun deserialize(xmlReader: XmlReader): HProcessInstance {
+            return XML.parse(xmlReader, serializer())
+        }
+    }
 
 }
+
+@Serializable
+@XmlSerialName(HProcessInstance.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
+internal class HProcessInstanceSerialHelper(@XmlValue(true) val handle: Long)

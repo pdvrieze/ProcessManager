@@ -22,6 +22,7 @@ import versions.*
 plugins {
     kotlin("multiplatform")
     id("java-library")
+    id("kotlinx-serialization")
     id("idea")
     id("mpconsumer")
 }

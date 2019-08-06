@@ -24,111 +24,114 @@ import java.sql.SQLException
 /**
  * Created by pdvrieze on 09/12/15.
  */
-open class MemTransactionedHandleMap<T: Any, TR : StubTransaction>(private val assigner: Assigner<T, TR>)
-  : MemHandleMap<T>(handleAssigner={ t: T, h: Handle<T> -> assigner(t,h) }), net.devrieze.util.MutableTransactionedHandleMap<T, TR> {
+open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val assigner: Assigner<T, TR>) :
+    MemHandleMap<T>(handleAssigner = { t: T, h: Handle<T> -> assigner(t, h) }), MutableTransactionedHandleMap<T, TR> {
 
-  @JvmOverloads
-  constructor(handleAssigner: (TR, T, Handle<T>)->T? = { transaction, value, handle ->
-    HANDLE_AWARE_ASSIGNER(transaction, value, handle)
-  }): this(Assigner(handleAssigner))
+    @JvmOverloads
+    constructor(
+        handleAssigner: (TR, T, Handle<T>) -> T? = { transaction, value, handle ->
+            HANDLE_AWARE_ASSIGNER(transaction, value, handle)
+        }
+               ) : this(Assigner(handleAssigner))
 
-  class Assigner<T, TR: StubTransaction>(private val base: (TR, T, Handle<T>)->T?) {
-    lateinit var transaction: TR
-    operator fun invoke(t: T, h:Handle<T>): T? {
-      return base(transaction, t, h)
-    }
-  }
-
-  interface TestTransactionFactory<TR : StubTransaction> {
-    fun newTransaction(): TR
-  }
-
-  private class IteratorWrapper<T>(private val delegate: Iterator<T>, private val readOnly: Boolean) : MutableAutoCloseableIterator<T> {
-
-    override fun remove() {
-      if (readOnly) throw UnsupportedOperationException("The iterator is read-only")
+    class Assigner<T, TR : StubTransaction>(private val base: (TR, T, Handle<T>) -> T?) {
+        lateinit var transaction: TR
+        operator fun invoke(t: T, h: Handle<T>): T? {
+            return base(transaction, t, h)
+        }
     }
 
-    override fun next(): T {
-      return delegate.next()
+    interface TestTransactionFactory<TR : StubTransaction> {
+        fun newTransaction(): TR
     }
 
-    override fun hasNext(): Boolean {
-      return delegate.hasNext()
+    private class IteratorWrapper<T>(private val delegate: Iterator<T>, private val readOnly: Boolean) :
+        MutableAutoCloseableIterator<T> {
+
+        override fun remove() {
+            if (readOnly) throw UnsupportedOperationException("The iterator is read-only")
+        }
+
+        override fun next(): T {
+            return delegate.next()
+        }
+
+        override fun hasNext(): Boolean {
+            return delegate.hasNext()
+        }
+
+        override fun close() {
+            // Do nothing
+        }
     }
 
-    override fun close() {
-      // Do nothing
+    @Throws(SQLException::class)
+    override fun <W : T> put(transaction: TR, value: W): ComparableHandle<W> {
+        assigner.transaction = transaction
+        val put = put(value)
+        return handle(put)
     }
-  }
 
-  @Throws(SQLException::class)
-  override fun <W : T> put(transaction: TR, value: W): ComparableHandle<W> {
-    assigner.transaction = transaction
-    val put = put(value)
-    return handle(put)
-  }
+    @Throws(SQLException::class)
+    override fun get(transaction: TR, handle: Handle<T>): T? {
+        return get(handle)
+    }
 
-  @Throws(SQLException::class)
-  override fun get(transaction: TR, handle: Handle<out T>): T? {
-    return get(handle)
-  }
+    @Throws(SQLException::class)
+    override fun castOrGet(transaction: TR, handle: Handle<T>): T? {
+        return get(handle)
+    }
 
-  @Throws(SQLException::class)
-  override fun castOrGet(transaction: TR, handle: Handle<out T>): T? {
-    return get(handle)
-  }
+    @Throws(SQLException::class)
+    override fun set(transaction: TR, handle: Handle<T>, value: T): T? {
+        assigner.transaction = transaction
+        return set(handle, value)
+    }
 
-  @Throws(SQLException::class)
-  override fun set(transaction: TR, handle: Handle<out T>, value: T): T? {
-    assigner.transaction = transaction
-    return set(handle, value)
-  }
+    override fun iterable(transaction: TR): MutableIterable<T> {
+        assigner.transaction = transaction
+        return this
+    }
 
-  override fun iterable(transaction: TR): MutableIterable<T> {
-    assigner.transaction = transaction
-    return this
-  }
+    override fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<T> {
+        assigner.transaction = transaction
+        return IteratorWrapper(iterator(), readOnly)
+    }
 
-  override fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<T> {
-    assigner.transaction = transaction
-    return IteratorWrapper(iterator(), readOnly)
-  }
+    @Throws(SQLException::class)
+    override fun containsAll(transaction: TR, c: Collection<*>) =
+        c.all { it != null && contains(it) }
 
-  @Throws(SQLException::class)
-  override fun containsAll(transaction: TR, c: Collection<*>) =
-        c.all { it !=null && contains(it) }
+    @Throws(SQLException::class)
+    override fun containsElement(transaction: TR, element: Any): Boolean {
+        return contains(element)
+    }
 
-  @Throws(SQLException::class)
-  override fun containsElement(transaction: TR, element: Any): Boolean {
-    return contains(element)
-  }
+    @Throws(SQLException::class)
+    override fun contains(transaction: TR, handle: Handle<T>): Boolean {
+        return contains(handle)
+    }
 
-  @Throws(SQLException::class)
-  override fun contains(transaction: TR, handle: Handle<out T>): Boolean {
-    return contains(handle)
-  }
+    @Throws(SQLException::class)
+    override fun remove(transaction: TR, handle: Handle<T>): Boolean {
+        assigner.transaction = transaction
+        return remove(handle)
+    }
 
-  @Throws(SQLException::class)
-  override fun remove(transaction: TR, handle: Handle<out T>): Boolean {
-    assigner.transaction = transaction
-    return remove(handle)
-  }
+    override fun invalidateCache(handle: Handle<T>) { /* No-op */
+    }
 
-  override fun invalidateCache(handle: Handle<out T>) { /* No-op */
-  }
+    override fun invalidateCache() { /* No-op */
+    }
 
-  override fun invalidateCache() { /* No-op */
-  }
+    @Throws(SQLException::class)
+    override fun clear(transaction: TR) {
+        assigner.transaction = transaction
+        clear()
+    }
 
-  @Throws(SQLException::class)
-  override fun clear(transaction: TR) {
-    assigner.transaction = transaction
-    clear()
-  }
-
-  override fun withTransaction(transaction: TR): MutableHandleMap<T> {
-    assigner.transaction = transaction
-    return MutableHandleMapForwarder(transaction, this)
-  }
+    override fun withTransaction(transaction: TR): MutableHandleMap<T> {
+        assigner.transaction = transaction
+        return MutableHandleMapForwarder(transaction, this)
+    }
 }

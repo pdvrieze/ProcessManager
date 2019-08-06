@@ -39,10 +39,13 @@ actual typealias Result = javax.xml.transform.Result
 actual fun JAXBmarshal(jaxbObject: Any, xml: Result) = JAXB.marshal(jaxbObject, xml)
 actual inline fun <T:Any> T.getClass(): Class<T> = this.javaClass
 
-actual inline fun generateXmlString(generator: (XmlWriter) -> Unit): CharArray {
+actual inline fun generateXmlString(
+    repairNamespaces: Boolean,
+    generator: (XmlWriter) -> Unit
+                                   ): CharArray {
     val caw = CharArrayWriter()
     caw.use {
-        XmlStreaming.newWriter(caw, repairNamespaces = true).use { writer ->
+        XmlStreaming.newWriter(caw, repairNamespaces = repairNamespaces).use { writer ->
             generator(writer)
         }
     }

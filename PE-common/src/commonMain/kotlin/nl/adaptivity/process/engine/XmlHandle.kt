@@ -16,20 +16,28 @@
 
 package nl.adaptivity.process.engine
 
+import kotlinx.serialization.Serializable
 import net.devrieze.util.Handle
 import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlSerializable
 import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.serialization.XmlValue
 import nl.adaptivity.xmlutil.writeSimpleElement
 
 
 /**
  * Created by pdvrieze on 10/12/15.
  */
-abstract class XmlHandle<T>(handleValue: Long) : Handle<T>, XmlSerializable, SimpleXmlDeserializable {
+@Serializable
+abstract class XmlHandle<T> : Handle<T>, XmlSerializable, SimpleXmlDeserializable {
 
-    override final var handleValue = handleValue
+    constructor(handleValue: Long) {
+        this.handleValue = handleValue
+    }
+
+    @XmlValue(true)
+    final override var handleValue: Long
         private set
 
     constructor(handle: Handle<T>): this(handle.handleValue)

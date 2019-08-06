@@ -16,15 +16,14 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.toString
 import nl.adaptivity.process.engine.impl.dom.*
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.XmlEvent.*
 import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
+import kotlin.jvm.JvmOverloads
 
 
 class PETransformer private constructor(
@@ -113,7 +112,7 @@ class PETransformer private constructor(
                 }
             } else {
                 var filterAttributes = false
-                val newAttrs = ArrayList<XmlEvent.Attribute>()
+                val newAttrs = ArrayList<Attribute>()
                 for (attr in element.attributes) {
                     if (attr.hasNamespaceUri() && Constants.MODIFY_NS_STR == attr.value) {
                         filterAttributes = true
@@ -219,7 +218,7 @@ class PETransformer private constructor(
             pendingEvents: List<XmlEvent>,
             xpath: CharSequence?
                               ): Collection<XmlEvent> {
-            val xpathstr = toString(xpath)
+            val xpathstr = xpath?.toString()
             if (xpathstr == null || "." == xpathstr) {
                 return pendingEvents
             }
@@ -261,7 +260,7 @@ class PETransformer private constructor(
         }
 
         private fun getAttribute(attributes: Map<String, CharSequence>): XmlEvent {
-            val valueName = toString(attributes["value"])
+            val valueName = attributes["value"]?.toString()
             val xpath = attributes["xpath"]
             var paramName: CharSequence? = attributes["name"]
 
@@ -269,8 +268,8 @@ class PETransformer private constructor(
                 if (paramName == null) {
                     paramName = context.resolveAttributeName(valueName)
                 }
-                val value = context.resolveAttributeValue(valueName, toString(xpath))
-                return XmlEvent.Attribute(
+                val value = context.resolveAttributeValue(valueName, xpath?.toString())
+                return Attribute(
                     null, XMLConstants.NULL_NS_URI, paramName, XMLConstants.DEFAULT_NS_PREFIX,
                     value
                                          )

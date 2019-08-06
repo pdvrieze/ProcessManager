@@ -165,7 +165,7 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
     private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) =
         ExecutableProcessNodeBuilderVisitor(buildHelper)
 
-    private class ExecutableProcessNodeBuilderVisitor(private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) :
+    private class ExecutableProcessNodeBuilderVisitor(private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>) :
         ProcessNode.BuilderVisitor<ExecutableProcessNode> {
             override fun visitStartNode(startNode: StartNode.Builder) =
                 ExecutableStartNode(startNode, buildHelper)
@@ -180,7 +180,7 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
                 ExecutableActivity(activity, buildHelper)
 
             override fun visitSplit(split: Split.Builder) =
-                ExecutableSplit(split, buildHelper)
+                ExecutableSplit(split, buildHelper.newOwner)
 
             override fun visitJoin(join: Join.Builder) =
                 ExecutableJoin(join, buildHelper)

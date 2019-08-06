@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -75,7 +76,7 @@ private var subjectCreated = false
 fun <T> List<T>.selectN(max: Int): List<T> {
     val origSize = size
     if (max >= origSize) return this
-    return filterIndexed { idx, t ->
+    return filterIndexed { idx, _ ->
         idx == 0 || (((idx - 1) * max) / origSize < (idx * max) / origSize)
     }
 }
@@ -141,6 +142,7 @@ open class EngineSuite(val delegate: Suite) : LifecycleAware by delegate {
 
 }
 
+@UseExperimental(UnstableDefault::class)
 abstract class ModelSpek(val modelData: ModelData,
                          custom: (CustomDsl.() -> Unit)? = null,
                          val maxValid: Int = Int.MAX_VALUE,
@@ -175,7 +177,7 @@ abstract class ModelSpek(val modelData: ModelData,
                     lateinit var xmlSerialization: String
                     it("Should be able to be serialized to XML") {
                         Assertions.assertDoesNotThrow {
-                            xmlSerialization = XML(indent = 4).stringify(XmlProcessModel.serializer(),
+                            xmlSerialization = XML{ indent = 4 }.stringify(XmlProcessModel.serializer(),
                                                                          XmlProcessModel(model.builder()))
                         }
                     }
@@ -224,7 +226,6 @@ abstract class ModelSpek(val modelData: ModelData,
                 }
 
                 for (validTrace in valid) {
-                    val x = this
                     testValidTrace(model, principal, validTrace) // valid group
 
                 } // for valid traces
@@ -376,30 +377,30 @@ private fun EngineSuite.testTraceStarting(processInstanceF: Getter<ProcessInstan
 
 private fun EngineSuite.testTraceCompletion(model: ExecutableProcessModel,
                                             queue: StateQueue.SolidQueue,
-                                            transaction: Getter<StubProcessTransaction>,
+                                            transactionF: Getter<StubProcessTransaction>,
                                             processInstanceF: Getter<ProcessInstance>,
                                             validTrace: Trace) {
     context("The trace should be finished correctly") {
         beforeGroup { queue.invoke() }
         it("The trace should be valid") {
-            processInstanceF().assertTracePossible(transaction(), validTrace)
+            processInstanceF().assertTracePossible(transactionF(), validTrace)
         }
         it("All non-endnodes are finished") {
             val expectedFinishedNodes = validTrace.asSequence()
                 .map { model.findNode(it)!! }
                 .filterNot { it is EndNode }.map { it.id }.toList().toTypedArray()
-            processInstanceF().assertFinished(transaction(), *expectedFinishedNodes)
+            processInstanceF().assertFinished(transactionF(), *expectedFinishedNodes)
         }
         it("No nodes are active") {
-            processInstanceF().assertActive(transaction())
+            processInstanceF().assertActive(transactionF())
         }
         it("The process itself is marked finished") {
             assertEquals(ProcessInstance.State.FINISHED, processInstanceF().state,
                          "Instance state should be finished, but is not. ${processInstanceF().toDebugString(
-                             transaction())}")
+                             transactionF())}")
         }
         it("All endNodes in the trace are complete, skipped, cancelled or failed") {
-            val transaction = transaction()
+            val transaction = transactionF()
             val processInstance = processInstanceF()
             val expectedCompletedNodes = validTrace.asSequence()
                 .map { model.findNode(it)!! }
@@ -415,7 +416,7 @@ private fun EngineSuite.testTraceCompletion(model: ExecutableProcessModel,
                 }
                 .map { it.id!! }
                 .toList().toTypedArray()
-            processInstanceF().assertComplete(transaction(), *expectedCompletedNodes)
+            processInstanceF().assertComplete(transactionF(), *expectedCompletedNodes)
         }
     }
 }
@@ -478,7 +479,7 @@ private fun EngineSuite.testActivity(transaction: Getter<StubProcessTransaction>
     }
     it("the node instance ${traceElement} should be final after finishing") {
         val tr = transaction()
-        val processInstance = tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission().update(
+        tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission().update(
             tr.writableEngineData) {
             updateChild(nodeInstanceF()) {
                 finishTask(tr.writableEngineData, traceElement.resultPayload)
