@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.getInvalidHandle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -24,9 +23,10 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.processModel.CompositeActivity
+import nl.adaptivity.process.processModel.CompositeActivityBase
+import nl.adaptivity.process.processModel.Condition
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -36,20 +36,10 @@ import nl.adaptivity.xmlutil.writeChild
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableActivity : ActivityBase, ExecutableProcessNode {
+class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode {
 
     constructor(
-        builder: MessageActivity.Builder,
-        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
-               ) : super(
-        builder,
-        buildHelper
-                        ) {
-        this._condition = builder.condition?.toExecutableCondition()
-    }
-
-    constructor(
-        builder: CompositeActivity.Builder,
+        builder: CompositeActivity.ModelBuilder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>
                ) : super(
         builder,
@@ -68,67 +58,8 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
-    class Builder : ActivityBase.Builder, ExecutableProcessNode.Builder {
+    override val childModel: ExecutableChildModel get() = super.childModel as ExecutableChildModel
 
-        constructor(
-            id: String? = null,
-            predecessor: Identified? = null,
-            successor: Identified? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
-            message: XmlMessage? = null,
-            condition: Condition? = null,
-            name: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            multiInstance: Boolean = false
-                   ) : super(
-            id, predecessor, successor, label, defines, results,
-            message, condition, name, x, y, multiInstance
-                            )
-
-        constructor(node: Activity) : super(node)
-    }
-
-
-    class CompositeActivityBuilder(
-        override val rootBuilder: RootProcessModel.Builder,
-        override var id: String? = null,
-        childId: String? = null,
-        nodes: Collection<ExecutableProcessNode.Builder> = emptyList(),
-        override var predecessor: Identifiable? = null,
-        override var condition: Condition? = null,
-        override var successor: Identifiable? = null,
-        override var label: String? = null,
-        imports: Collection<IXmlResultType> = emptyList(),
-        defines: Collection<IXmlDefineType> = emptyList(),
-        exports: Collection<IXmlDefineType> = emptyList(),
-        results: Collection<IXmlResultType> = emptyList(),
-        override var x: Double = Double.NaN,
-        override var y: Double = Double.NaN,
-        override var isMultiInstance: Boolean = false
-                                  ) :
-        ExecutableChildModel.Builder(rootBuilder, childId, nodes, imports, exports),
-        CompositeActivity.Builder,
-        ExecutableProcessNode.Builder {
-
-        override var defines: MutableCollection<IXmlDefineType> = ArrayList(defines)
-            set(value) {
-                field.replaceBy(value)
-            }
-
-        override var results: MutableCollection<IXmlResultType> = ArrayList(results)
-            set(value) {
-                field.replaceBy(value)
-            }
-
-        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T {
-            return buildHelper.node(this)
-        }
-    }
-
-    override val childModel: ExecutableChildModel? get() = super.childModel?.let { it as ExecutableChildModel }
     private var _condition: ExecutableCondition?
 
     override val ownerModel: ExecutableModelCommon
@@ -159,22 +90,19 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
         predecessor: IProcessNodeInstance,
         entryNo: Int
                                       ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-        return if (childModel == null)
-            super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
-        else // TODO handle invalidating multiple instances
-            processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(
-                this, predecessor.handle(),
-                processInstanceBuilder,
-                getInvalidHandle(),
-                processInstanceBuilder.owner,
-                entryNo
-                                                                                           )
+        return processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(
+            this, predecessor.handle(),
+            processInstanceBuilder,
+            getInvalidHandle(),
+            processInstanceBuilder.owner,
+            entryNo
+                                                                                          )
     }
 
     override fun provideTask(
         engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
-                            ) = childModel != null
+                            ) = true
 
     /**
      * Take the task. Tasks are either process aware or finished when a reply is
@@ -182,7 +110,7 @@ class ExecutableActivity : ActivityBase, ExecutableProcessNode {
      *
      * @return `false`
      */
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = childModel != null
+    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
     /**
      * Start the task. Tasks are either process aware or finished when a reply is

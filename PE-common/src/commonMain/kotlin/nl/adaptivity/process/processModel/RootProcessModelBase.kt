@@ -340,7 +340,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             base.modelNodes.mapTo(nodes) {
                 it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
                     override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
-                    override fun visitActivity(activity: Activity) = activityBuilder(activity)
+                    override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
+                    override fun visitActivity(comopositeActivity: CompositeActivity) = activityBuilder(comopositeActivity)
                     override fun visitSplit(split: Split) = splitBuilder(split)
                     override fun visitJoin(join: Join) = joinBuilder(join)
                     override fun visitEndNode(endNode: EndNode) = endNodeBuilder(endNode)
@@ -354,10 +355,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
         // These are open to allow drawable builders to be directly drawable
         open fun childModelBuilder(): ChildProcessModel.Builder =
-            ChildProcessModelBase.Builder(rootBuilder)
+            ChildProcessModelBase.ModelBuilder(rootBuilder)
 
         open fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModel.Builder =
-            ChildProcessModelBase.Builder(rootBuilder, base)
+            ChildProcessModelBase.ModelBuilder(rootBuilder, base)
 
         override fun deserializeAttribute(attributeNamespace: String?,
                                           attributeLocalName: String,
@@ -376,7 +377,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             return when {
                 reader.isElement(ProcessConsts.Engine.NAMESPACE,
                                  ChildProcessModel.ELEMENTLOCALNAME) -> {
-                    childModels.add(ChildProcessModelBase.Builder(rootBuilder).deserializeHelper(reader)); true
+                    childModels.add(ChildProcessModelBase.ModelBuilder(rootBuilder).deserializeHelper(reader)); true
                 }
                 else                                                 -> super.deserializeChild(reader)
             }
@@ -404,7 +405,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                         @Suppress("UNCHECKED_CAST")
                         val newList = input.updateSerializableElement(descriptor,
                                                                       index,
-                                                                      ChildProcessModelBase.Builder.serializer().list,
+                                                                      ChildProcessModelBase.ModelBuilder.serializer().list,
                                                                       result.childModels as List<ActivityBase.CompositeActivityBuilder>)
                         @Suppress("UNCHECKED_CAST")
                         result.childModels.replaceBy(newList)

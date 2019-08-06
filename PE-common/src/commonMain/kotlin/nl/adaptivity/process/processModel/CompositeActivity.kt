@@ -17,16 +17,17 @@
 package nl.adaptivity.process.processModel
 
 interface CompositeActivity : Activity {
-    override val childModel: ChildProcessModel<ProcessNode>
+    override val childModel: ChildProcessModel<ProcessNode>?
 
     interface ReferenceBuilder: Activity.Builder {
         var childId: String?
 
     }
 
-    interface Builder : Activity.Builder, ChildProcessModel.Builder {
+    interface ModelBuilder : Activity.Builder, ChildProcessModel.Builder {
         override val idBase: String get() = "sub"
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
     }
+
 }

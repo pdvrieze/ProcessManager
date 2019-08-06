@@ -26,14 +26,14 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.getClass
+import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
-import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 
 /**
@@ -124,7 +124,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
         val shouldProgress = tryTask { node.provideTask(engineData, this) }
 
-        if (node is ExecutableActivity) {
+        if (node is MessageActivity) {
           val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
           if (! tryTask { messageService.sendMessage(engineData, preparedMessage, this) }) {
             failTaskCreation(ProcessException("Failure to send message"))

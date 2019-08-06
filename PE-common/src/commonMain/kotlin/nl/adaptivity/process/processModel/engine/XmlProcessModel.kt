@@ -154,7 +154,9 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode) = StartNodeBase.Builder(startNode)
 
-    override fun visitActivity(activity: Activity) = ActivityBase.Builder(activity)
+    override fun visitActivity(compositeActivity: CompositeActivity) = CompositeActivityBase.ReferenceBuilder(compositeActivity)
+
+    override fun visitActivity(messageActivity: MessageActivity) = MessageActivityBase.Builder(messageActivity)
 
     override fun visitSplit(split: Split) = SplitBase.Builder(split)
 
@@ -172,7 +174,7 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
 
         override fun visitActivity(activity: MessageActivity.Builder) = XmlActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: CompositeActivity.Builder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: CompositeActivity.ModelBuilder) = XmlActivity(activity, buildHelper)
         override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = XmlActivity(activity, buildHelper)
 
         override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner)

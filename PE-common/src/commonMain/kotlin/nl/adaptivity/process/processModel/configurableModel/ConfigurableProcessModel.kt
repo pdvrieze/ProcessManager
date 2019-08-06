@@ -125,7 +125,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
         with(modelBuilder) {
-            if (nodeBuilder is CompositeActivity.Builder) {
+            if (nodeBuilder is CompositeActivity.ModelBuilder) {
                 childModels.add(nodeBuilder.ensureChildId())
             }
 
@@ -162,12 +162,12 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder
 
-        override val configurationBuilder: CompositeActivity.Builder = ActivityBase.CompositeActivityBuilder(
+        override val configurationBuilder: CompositeActivity.ModelBuilder = ActivityBase.CompositeActivityBuilder(
             rootBuilder(),
             childId = childId,
             id = id,
             predecessor = predecessor
-                                                                                                            )
+                                                                                                                 )
 
         init {
             rootBuilder().childModels.add(configurationBuilder)
@@ -200,7 +200,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             val nodeBuilder = this
             if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
             with(modelBuilder) {
-                if (nodeBuilder is CompositeActivity.Builder) {
+                if (nodeBuilder is CompositeActivity.ModelBuilder) {
                     modelBuilder.rootBuilder.childModels.add(nodeBuilder.ensureChildId())
                 }
 

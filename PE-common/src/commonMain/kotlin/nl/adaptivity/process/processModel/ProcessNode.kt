@@ -113,7 +113,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder): R
         fun visitActivity(activity: MessageActivity.Builder): R
-        fun visitActivity(activity: CompositeActivity.Builder): R
+        fun visitActivity(activity: CompositeActivity.ModelBuilder): R
         fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R
@@ -122,7 +122,8 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
 
     interface Visitor<R> {
         fun visitStartNode(startNode: StartNode): R
-        fun visitActivity(activity: Activity): R
+        fun visitActivity(messageActivity: MessageActivity): R
+        fun visitActivity(compositeActivity: CompositeActivity): R
         fun visitSplit(split: Split): R
         fun visitJoin(join: Join): R
         fun visitEndNode(endNode: EndNode): R

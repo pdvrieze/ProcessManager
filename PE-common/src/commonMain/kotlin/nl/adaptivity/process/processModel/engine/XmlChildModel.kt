@@ -40,8 +40,8 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
     constructor(builder: ChildProcessModel.Builder,
                 buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>) : super(builder, buildHelper)
 
-    override fun builder(rootBuilder: RootProcessModel.Builder): Builder {
-        return Builder(rootBuilder, this)
+    override fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder {
+        return ModelBuilder(rootBuilder, this)
     }
 
     @Serializer(forClass = XmlChildModel::class)

@@ -39,19 +39,27 @@ import nl.adaptivity.xmlutil.writeChild
  */
 @Serializable(XmlActivity.Companion::class)
 @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlActivity : ActivityBase, XmlProcessNode {
+class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActivity {
 
     constructor(builder: MessageActivity.Builder,
-                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
+                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper) {
+        childModel = null
+    }
 
-    constructor(builder: CompositeActivity.Builder,
-                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
+    constructor(builder: CompositeActivity.ModelBuilder,
+                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper) {
+        childModel = buildHelper.childModel(builder)
+    }
 
     constructor(builder: CompositeActivity.ReferenceBuilder,
-                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper)
+                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper) {
+        childModel = childId?.let { buildHelper.childModel(it) }
+    }
 
     @Transient
     private var xmlCondition: XmlCondition? = null
+
+    override val childModel: ChildProcessModel<ProcessNode>?
 
     @Throws(XmlException::class)
     override fun serializeCondition(out: XmlWriter) {
@@ -60,6 +68,16 @@ class XmlActivity : ActivityBase, XmlProcessNode {
 
     override val condition: Condition?
         get() = xmlCondition
+
+    override fun builder(): Activity.Builder = when {
+         childId==null -> MessageActivityBase.Builder(this)
+         else -> ActivityBase.ReferenceActivityBuilder(this)
+    }
+
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = when {
+        childModel == null -> visitor.visitActivity(messageActivity = this)
+        else -> visitor.visitActivity(compositeActivity = this)
+    }
 
     @Serializer(forClass = XmlActivity::class)
     companion object:KSerializer<XmlActivity> {

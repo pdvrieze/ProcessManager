@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
+import nl.adaptivity.process.util.Identifiable
 
 @Serializable
 abstract class MessageActivityBase : ActivityBase, MessageActivity {
@@ -24,5 +25,44 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
     constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
         super(builder, buildHelper)
 
-    override fun builder(): MessageActivity.Builder = ActivityBase.Builder(this)
+    override fun builder(): MessageActivity.Builder = Builder(this)
+
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
+
+    open class Builder : ActivityBase.BaseBuilder, MessageActivity.Builder {
+//        var message = activity.message
+        constructor(activity: MessageActivity) : super(activity)
+
+
+        @Deprecated("Don't use when possible")
+        internal constructor(activity: Activity) : super(activity)
+
+        constructor(
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            message: XmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            multiInstance: Boolean = false
+                   ) : super(
+            id,
+            predecessor,
+            successor,
+            label,
+            defines,
+            results,
+            message,
+            condition,
+            name,
+            x,
+            y,
+            multiInstance
+                            )
+    }
 }

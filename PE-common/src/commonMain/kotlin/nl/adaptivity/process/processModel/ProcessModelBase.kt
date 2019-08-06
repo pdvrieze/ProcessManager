@@ -232,7 +232,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
             base.modelNodes.mapTo(nodes) {
                 it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
                     override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
-                    override fun visitActivity(activity: Activity) = activityBuilder(activity)
+                    override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
+                    override fun visitActivity(compositeActivity: CompositeActivity) = activityBuilder(compositeActivity)
                     override fun visitSplit(split: Split) = splitBuilder(split)
                     override fun visitJoin(join: Join) = joinBuilder(join)
                     override fun visitEndNode(endNode: EndNode) = endNodeBuilder(endNode)

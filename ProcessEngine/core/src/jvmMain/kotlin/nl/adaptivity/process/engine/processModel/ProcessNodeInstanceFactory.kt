@@ -25,7 +25,7 @@ import net.devrieze.util.handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.db.ProcessEngineDB
-import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
@@ -86,15 +86,15 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<Proces
           .requireNoNulls()
 
     return when {
-      node is ExecutableJoin                              -> {
+      node is ExecutableJoin              -> {
         JoinInstance.BaseBuilder(node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
                                  handle<SecureObject<ProcessNodeInstance<*>>>(handle= pnihandle.handleValue), state)
       }
-      node is ExecutableSplit                             -> {
+      node is ExecutableSplit             -> {
         SplitInstance.BaseBuilder(node, predecessors.single(), processInstanceBuilder, processInstanceBuilder.owner,
                                   entryNo, handle<SecureObject<ProcessNodeInstance<*>>>(handle= pnihandle.handleValue), state)
       }
-      node is ExecutableActivity && node.childModel!=null -> {
+      node is ExecutableCompositeActivity -> {
         val childInstance = ProcessEngineDB
                               .SELECT(tbl_pi.pihandle)
                               .WHERE { tbl_pi.parentActivity eq pnihandle }

@@ -76,6 +76,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         _message = message
     }
 
+    @Deprecated("Use one of the specialised types")
     constructor(builder: ActivityBase.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : super(
         builder,
         buildHelper.newOwner
@@ -113,7 +114,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         childId = childModel.id
     }
 
-    constructor(builder: CompositeActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+    constructor(builder: CompositeActivity.ModelBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
         super(builder, buildHelper.newOwner) {
 
         this._message = null
@@ -125,10 +126,9 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
 
-    override fun builder(): Activity.Builder = Builder(this)
-
-    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
-        return visitor.visitActivity(this)
+    override fun builder(): Activity.Builder = when(childId) {
+        null -> MessageActivityBase.Builder(this)
+        else -> CompositeActivityBase.ReferenceBuilder(this)
     }
 
     override fun serialize(out: XmlWriter) {
@@ -327,7 +327,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
 
         constructor(node: CompositeActivity) : super(node) {
-            childId = node.childModel.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
+            childId = node.childModel?.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
         }
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {
@@ -370,7 +370,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         final override var childId: String? = null
 
         constructor(node: CompositeActivity) : super(node) {
-            childId = node.childModel.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
+            childId = node.childModel?.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
         }
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R {
@@ -379,8 +379,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
     @Serializable
-    open class CompositeActivityBuilder : ChildProcessModelBase.Builder,
-                                          CompositeActivity.Builder {
+    open class CompositeActivityBuilder : ChildProcessModelBase.ModelBuilder,
+                                          CompositeActivity.ModelBuilder {
 
         override var id: String?
         @Serializable(XmlCondition.Companion::class)
@@ -466,9 +466,9 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         }
 
         @Serializer(forClass = CompositeActivityBuilder::class)
-        companion object : ChildProcessModelBase.Builder.BaseSerializer<CompositeActivityBuilder>() {
+        companion object : ChildProcessModelBase.ModelBuilder.BaseSerializer<CompositeActivityBuilder>() {
             override val descriptor: SerialDescriptor =
-                SerialClassDescImpl(Builder.serializer().descriptor, ChildProcessModelBase.Builder::class.name).apply {
+                SerialClassDescImpl(Builder.serializer().descriptor, ChildProcessModelBase.ModelBuilder::class.name).apply {
                     addField(CompositeActivityBuilder::childId)
                 }
 

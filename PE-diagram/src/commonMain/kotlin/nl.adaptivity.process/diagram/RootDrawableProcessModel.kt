@@ -239,11 +239,11 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             return nodes.firstOrNull { it.id == nodeId }?.let { it as DrawableProcessNode.Builder<*> }
         }
 
-        override fun childModelBuilder(): ChildProcessModelBase.Builder {
+        override fun childModelBuilder(): ChildProcessModelBase.ModelBuilder {
             TODO("DrawableChildModels still need to be implemented")
         }
 
-        override fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModelBase.Builder {
+        override fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModelBase.ModelBuilder {
             TODO("DrawableChildModels still need to be implemented")
         }
 
@@ -440,7 +440,7 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 
         override fun visitActivity(activity: MessageActivity.Builder) = DrawableActivity(activity, buildHelper)
 
-        override fun visitActivity(activity: CompositeActivity.Builder) = TODO(
+        override fun visitActivity(activity: CompositeActivity.ModelBuilder) = TODO(
             "Child models are not implemented yet for drawables")
 
         override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = TODO(

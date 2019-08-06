@@ -59,9 +59,9 @@ interface ProcessModel<out NodeT: ProcessNode> {
         @JvmDefault
         fun joinBuilder(): Join.Builder = JoinBase.Builder()
         @JvmDefault
-        fun activityBuilder(): MessageActivity.Builder = ActivityBase.Builder()
+        fun activityBuilder(): MessageActivity.Builder = MessageActivityBase.Builder()
         @JvmDefault
-        fun compositeActivityBuilder(): CompositeActivity.Builder = ActivityBase.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
+        fun compositeActivityBuilder(): CompositeActivity.ModelBuilder = ActivityBase.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
         @JvmDefault
         fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 
@@ -72,7 +72,9 @@ interface ProcessModel<out NodeT: ProcessNode> {
         @JvmDefault
         fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
         @JvmDefault
-        fun activityBuilder(activity: Activity): MessageActivity.Builder = ActivityBase.Builder(activity)
+        fun activityBuilder(activity: MessageActivity): MessageActivity.Builder = MessageActivityBase.Builder(activity)
+        @JvmDefault
+        fun activityBuilder(activity: CompositeActivity): MessageActivity.Builder = CompositeActivityBase.ReferenceBuilder(activity)
         @JvmDefault
         fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
 
@@ -100,7 +102,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
 
         fun activity(id: String) = nodes.firstOrNull { it.id == id }?.let { it as MessageActivity.Builder }
 
-        fun compositeActivity(body: CompositeActivity.Builder.() -> Unit): Identifiable {
+        fun compositeActivity(body: CompositeActivity.ModelBuilder.() -> Unit): Identifiable {
             val builder = compositeActivityBuilder()
             builder.apply(body)
             builder.ensureChildId().ensureId()

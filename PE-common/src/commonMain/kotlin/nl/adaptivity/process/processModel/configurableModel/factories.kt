@@ -27,17 +27,17 @@ fun ConfigurableNodeContainer.startNode(config: @ConfigurationDsl StartNode.Buil
 
 
 fun ConfigurableNodeContainer.activity(predecessor: Identified): MessageActivity.Builder =
-    ActivityBase.Builder(predecessor = predecessor)
+    MessageActivityBase.Builder(predecessor = predecessor)
 
 fun ConfigurableNodeContainer.activity(
     predecessor: Identified,
     config: @ConfigurationDsl MessageActivity.Builder.() -> Unit
                                       ): MessageActivity.Builder =
-    ActivityBase.Builder(
+    MessageActivityBase.Builder(
         predecessor = predecessor
                         ).apply(config)
 
-fun ConfigurableNodeContainer.compositeActivity(predecessor: Identified): CompositeActivity.Builder =
+fun ConfigurableNodeContainer.compositeActivity(predecessor: Identified): CompositeActivity.ModelBuilder =
     ActivityBase.CompositeActivityBuilder(
         configurationBuilder.rootBuilder,
         predecessor = predecessor
@@ -45,8 +45,8 @@ fun ConfigurableNodeContainer.compositeActivity(predecessor: Identified): Compos
 
 fun ConfigurableNodeContainer.compositeActivity(
     predecessor: Identified,
-    config: @ConfigurationDsl CompositeActivity.Builder.() -> Unit
-                                               ): CompositeActivity.Builder =
+    config: @ConfigurationDsl CompositeActivity.ModelBuilder.() -> Unit
+                                               ): CompositeActivity.ModelBuilder =
     ActivityBase.CompositeActivityBuilder(
         configurationBuilder.rootBuilder, predecessor = predecessor
                                          ).apply(config)

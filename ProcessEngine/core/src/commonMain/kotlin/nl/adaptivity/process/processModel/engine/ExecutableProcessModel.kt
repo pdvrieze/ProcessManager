@@ -18,25 +18,16 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Transient
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.util.multiplatform.Class
-import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.multiplatform.randomUUID
-import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
-import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
-
-
-typealias ExecutableModelCommonAlias = ProcessModel<ExecutableProcessNode>
 
 /**
  * A class representing a process model.
@@ -148,10 +139,12 @@ class ExecutableProcessModel @JvmOverloads constructor(builder: RootProcessModel
 }
 
 
-val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ExecutableProcessNode.Builder> {
+val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode) = ExecutableStartNode.Builder(startNode)
 
-    override fun visitActivity(activity: Activity) = ExecutableActivity.Builder(activity)
+    override fun visitActivity(messageActivity: MessageActivity) = MessageActivityBase.Builder(messageActivity)
+
+    override fun visitActivity(compositeActivity: CompositeActivity) = CompositeActivityBase.ReferenceBuilder(compositeActivity)
 
     override fun visitSplit(split: Split) = ExecutableSplit.Builder(split)
 
@@ -171,13 +164,13 @@ object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, Ex
                 ExecutableStartNode(startNode, buildHelper)
 
             override fun visitActivity(activity: MessageActivity.Builder) =
-                ExecutableActivity(activity, buildHelper)
+                ExecutableMessageActivity(activity, buildHelper)
 
-            override fun visitActivity(activity: CompositeActivity.Builder) =
-                ExecutableActivity(activity, buildHelper)
+            override fun visitActivity(activity: CompositeActivity.ModelBuilder) =
+                ExecutableCompositeActivity(activity, buildHelper)
 
             override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) =
-                ExecutableActivity(activity, buildHelper)
+                ExecutableCompositeActivity(activity, buildHelper)
 
             override fun visitSplit(split: Split.Builder) =
                 ExecutableSplit(split, buildHelper.newOwner)

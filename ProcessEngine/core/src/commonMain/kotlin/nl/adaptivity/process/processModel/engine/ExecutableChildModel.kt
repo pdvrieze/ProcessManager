@@ -40,13 +40,13 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder,
         imports: Collection<IXmlResultType> = emptyList(),
         exports: Collection<IXmlDefineType> = emptyList()
                       ) :
-        ChildProcessModelBase.Builder(
+        ChildProcessModelBase.ModelBuilder(
             rootBuilder,
             childId,
             nodes,
             imports,
             exports
-                                     ) {
+                                          ) {
 
         constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>)
             : this(rootBuilder,
