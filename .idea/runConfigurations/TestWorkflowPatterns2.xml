@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="TestWorkflowPatterns2" type="org.spekframework.spek2-jvm" factoryName="Spek 2 - JVM" nameIsGenerated="true">
-    <module name="ProcessEngine-core_test" />
+    <module name="ProcessManager.ProcessEngine.core.jvmTest" />
     <option name="passParentEnvs" value="true" />
     <option name="workingDirectory" value="" />
     <option name="programParameters" value="" />
