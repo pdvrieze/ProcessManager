@@ -41,7 +41,7 @@ expect abstract class XPathHolder : XMLContainer {
     @Deprecated("This should be immutable")
     fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-    override fun deserializeAttribute(attributeNamespace: String?,
+    open fun deserializeAttribute(attributeNamespace: String?,
                                       attributeLocalName: String,
                                       attributeValue: String): Boolean
 
@@ -55,13 +55,6 @@ expect abstract class XPathHolder : XMLContainer {
                                             owner: QName,
                                             attributeName: QName,
                                             attributeValue: CharSequence)
-
-    companion object {
-
-        @kotlin.jvm.JvmStatic
-        fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T
-
-    }
 }
 
 

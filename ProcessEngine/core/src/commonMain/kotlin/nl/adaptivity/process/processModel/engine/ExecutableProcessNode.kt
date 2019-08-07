@@ -50,7 +50,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
 
   override val results: List<XmlResultType>
 
-  override val defines: List<XmlDefineType>
+//  override val defines: List<XmlDefineType>
 
   /**
    * Create an instance of the node or return it if it already exist.
@@ -72,7 +72,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
     return DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.handle()),
                                                   processInstanceBuilder,
                                                   processInstanceBuilder.owner, entryNo)
-                            }
+  }
 
 
   /**

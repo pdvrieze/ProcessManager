@@ -112,18 +112,29 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
 
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder): R
-        fun visitActivity(activity: MessageActivity.Builder): R
-        fun visitActivity(activity: CompositeActivity.ModelBuilder): R
-        fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R
+        @JvmDefault
+        fun visitActivity(activity: MessageActivity.Builder): R = visitGenericActivity(activity)
+        @JvmDefault
+        fun visitActivity(activity: CompositeActivity.ModelBuilder): R = visitGenericActivity(activity)
+        @JvmDefault
+        fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R = visitGenericActivity(activity)
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R
         fun visitEndNode(endNode: EndNode.Builder): R
+        @JvmDefault
+        fun visitGenericActivity(builder: Activity.Builder): R {
+            throw UnsupportedOperationException("This visitor does not support handling generic activities")
+        }
     }
 
     interface Visitor<R> {
         fun visitStartNode(startNode: StartNode): R
-        fun visitActivity(messageActivity: MessageActivity): R
-        fun visitActivity(compositeActivity: CompositeActivity): R
+        fun visitActivity(messageActivity: MessageActivity): R = visitGenericActivity(messageActivity)
+        fun visitActivity(compositeActivity: CompositeActivity): R = visitGenericActivity(compositeActivity)
+        @JvmDefault
+        fun visitGenericActivity(activity: Activity): R {
+            throw UnsupportedOperationException("This visitor does not support handling generic activities")
+        }
         fun visitSplit(split: Split): R
         fun visitJoin(join: Join): R
         fun visitEndNode(endNode: EndNode): R

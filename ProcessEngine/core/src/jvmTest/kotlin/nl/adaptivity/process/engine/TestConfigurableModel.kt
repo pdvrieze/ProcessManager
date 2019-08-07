@@ -16,19 +16,11 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
-import java.util.*
-import kotlin.reflect.KProperty
-import nl.adaptivity.process.processModel.configurableModel.*
 
 @Suppress("NOTHING_TO_INLINE")
 internal abstract class TestConfigurableModel(

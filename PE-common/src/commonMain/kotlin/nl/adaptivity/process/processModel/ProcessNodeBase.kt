@@ -73,7 +73,7 @@ abstract class ProcessNodeBase : ProcessNode {
     @SerialName("define")
     internal val _defines: MutableList<XmlDefineType>
     @Transient
-    override val defines: List<XmlDefineType>
+    override val defines: List<IXmlDefineType>
         get() = _defines
 
     @SerialName("result")

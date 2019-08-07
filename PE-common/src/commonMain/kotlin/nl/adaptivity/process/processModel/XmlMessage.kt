@@ -169,6 +169,10 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         out.writeAttribute("method", method)
     }
 
+    override fun onBeforeDeserializeChildren(reader: XmlReader) {
+        super<XMLContainer>.onBeforeDeserializeChildren(reader)
+    }
+
     override fun deserializeAttribute(attributeNamespace: String?,
                                       attributeLocalName: String,
                                       attributeValue: String): Boolean {

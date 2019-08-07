@@ -29,6 +29,7 @@ import nl.adaptivity.process.engine.impl.dom.newWriter
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.MessageActivity
+import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
@@ -126,7 +127,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     fun getDefines(engineData: ProcessEngineDataAccess): List<ProcessData> {
         return node.defines.map {
-            it.applyData(engineData, this)
+            (it as XmlDefineType).applyData(engineData, this)
         }
     }
 

@@ -57,28 +57,9 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    @Deprecated("Use one of the specialised types")
-    internal constructor(builder: Activity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+    constructor(builder: Activity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
         super(builder, buildHelper.newOwner) {
         _name = builder.name
-    }
-
-    private constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper.newOwner) {
-
-        _name = builder.name
-    }
-
-    private constructor(builder: CompositeActivity.ReferenceBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper.newOwner) {
-        @Suppress("DEPRECATION")
-        _name = null
-    }
-
-    private constructor(builder: CompositeActivity.ModelBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper.newOwner) {
-
-        this._name = null
     }
 
 

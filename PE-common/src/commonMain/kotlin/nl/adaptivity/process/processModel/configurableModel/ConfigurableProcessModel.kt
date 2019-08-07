@@ -34,7 +34,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     override val name: String? = null,
     override val owner: Principal,
     override val uuid: UUID
-                                                            ) : RootProcessModel<NodeT>, ConfigurableNodeContainer {
+                                                            ) : RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
 
 
     class NodeDelegate<T : Identifiable>(override val id: String) : ReadOnlyProperty<ConfigurableProcessModel<*>, T>,
@@ -158,7 +158,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         id: String? = null
                                                                 ) :
         Identified,
-        ConfigurableNodeContainer /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
+        ConfigurableNodeContainer<NodeT> /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder
 
@@ -219,7 +219,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 }
 
 @ConfigurationDsl
-interface ConfigurableNodeContainer {
+interface ConfigurableNodeContainer<out NodeT: ProcessNode> {
     /**
      * Property to access the builder that allows for configuration. This is only valid for as long as
      * the model has not been initialised. After initialisation accessing this property should throw

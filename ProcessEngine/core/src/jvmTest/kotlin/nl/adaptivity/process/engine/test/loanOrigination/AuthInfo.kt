@@ -14,14 +14,19 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.processModel
+package nl.adaptivity.process.engine.test.loanOrigination
 
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.impl.dom.Node
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.XmlDefineType
+import java.util.*
 
-expect fun IXmlResultType.applyData(payload: Node?): ProcessData
-expect fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData
+class AuthScope(val description: String)
+
+class AuthToken(
+    val id: String,
+    val service: UUID,
+    val scope: AuthScope
+               ) {
+    val value: UUID = UUID.randomUUID()
+}
+
+class AuthInfo {
+}

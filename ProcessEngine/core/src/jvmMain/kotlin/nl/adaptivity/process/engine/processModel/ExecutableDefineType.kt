@@ -28,22 +28,23 @@ import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.contentFragment
-import nl.adaptivity.process.processModel.XmlDefineType
-import nl.adaptivity.process.processModel.name
-import nl.adaptivity.process.processModel.refName
-import nl.adaptivity.process.processModel.refNode
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.siblingsToFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 import org.w3c.dom.NodeList
+import java.io.CharArrayReader
+import java.io.StringReader
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 
 @Throws(SQLException::class)
-actual fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData {
+actual fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData {
     val processData: ProcessData
     val refNode = refNode
     val refName = refName
@@ -55,7 +56,10 @@ actual fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: Pr
             processData = ProcessData.missingData(name)
         } else {
             try {
-                val xPath = this.xPath
+                val xPath = when (this) {
+                    is XPathHolder -> xPath
+                    else -> null
+                }
                 if (xPath == null) {
                     processData = ProcessData(name, origpair.content)
                 } else {
@@ -78,8 +82,13 @@ actual fun XmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: Pr
     if (content != null && content.isNotEmpty()) {
         try {
             val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
+            val fragmentReader =
+                when (this) {
+                    is ICompactFragment -> XMLFragmentStreamReader.from(this)
+                    else                -> XMLFragmentStreamReader.from(CharArrayReader(content), originalNSContext)
+                }
 
-            val reader = transformer.createFilter(bodyStreamReader)
+            val reader = transformer.createFilter(fragmentReader)
             if (reader.hasNext()) reader.next() // Initialise the reader
             val transformed = reader.siblingsToFragment()
             return ProcessData(name, transformed)

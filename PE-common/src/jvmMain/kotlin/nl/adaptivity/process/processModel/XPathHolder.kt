@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -88,7 +89,7 @@ actual abstract class XPathHolder : XMLContainer {
         assert(value == null || xPath != null)
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: String?,
+    actual open fun deserializeAttribute(attributeNamespace: String?,
                                              attributeLocalName: String,
                                              attributeValue: String): Boolean {
         when (attributeLocalName) {
@@ -158,7 +159,7 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
-    actual companion object {
+    companion object {
 
         private val SELF_PATH: XPathExpression
 
@@ -169,12 +170,6 @@ actual abstract class XPathHolder : XMLContainer {
                 throw RuntimeException(e)
             }
 
-        }
-
-        @JvmStatic
-        @Throws(XmlException::class)
-        actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
-            return result.deserializeHelper(reader)
         }
     }
 }

@@ -14,14 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.processModel
+package nl.adaptivity.process.engine.test.loanOrigination
 
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.impl.dom.Node
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.XmlDefineType
-
-expect fun IXmlResultType.applyData(payload: Node?): ProcessData
-expect fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData
+data class CustomerData(
+    val customerId: String,
+    val taxId: String,
+    val passportNo: String,
+    val name: String,
+    val address: String
+                       )

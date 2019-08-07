@@ -14,14 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.processModel
+package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.impl.dom.Node
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.XmlDefineType
+import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
+import nl.adaptivity.process.util.Identified
+import kotlinx.serialization.serializer
 
-expect fun IXmlResultType.applyData(payload: Node?): ProcessData
-expect fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData
+@kotlinx.serialization.ImplicitReflectionSerializer
+inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(predecessor: Identified, noinline action: (I) -> O): RunnableActivity.Builder<I,O> {
+    return runnableActivity(predecessor, predecessor.identifier, "result", I::class.serializer(), O::class.serializer(), action)
+}

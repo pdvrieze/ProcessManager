@@ -30,6 +30,7 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.serialutil.simpleSerialClassDesc
+import nl.adaptivity.xmlutil.serialization.XML
 
 @XmlDeserializer(XmlResultType.Factory::class)
 @Serializable
@@ -87,7 +88,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
     }
 
     @Transient
-    override val elementName: QName
+    val elementName: QName
         get() = ELEMENTNAME
 
     @Serializer(forClass = XmlResultType::class)
@@ -100,7 +101,7 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {
-            return deserialize(reader, XmlResultType())
+            return XML.Companion.parse(reader, serializer())
         }
 
         const val ELEMENTLOCALNAME = "result"

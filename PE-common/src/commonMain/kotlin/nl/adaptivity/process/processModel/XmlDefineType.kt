@@ -95,7 +95,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     }
 
     @Transient
-    override val elementName: QName
+    open val elementName: QName
         get() = ELEMENTNAME
 
     override fun deserializeAttribute(attributeNamespace: String?,
@@ -172,7 +172,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlDefineType {
-            return XPathHolder.deserialize(reader, XmlDefineType())
+            return XML.parse(reader, serializer())
         }
 
         @Deprecated("Use normal factory method",

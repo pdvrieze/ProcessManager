@@ -33,7 +33,7 @@ import nl.adaptivity.serialutil.CharArrayAsStringSerializer
  */
 abstract class XMLContainer private constructor(override var namespaces: SimpleNamespaceContext,
                                                 @Serializable(with = CharArrayAsStringSerializer::class)
-                                                override var content: CharArray) : ExtXmlDeserializable, XmlSerializable, ICompactFragment {
+                                                override var content: CharArray) : XmlSerializable, ICompactFragment {
 
     constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(SimpleNamespaceContext.from(namespaces),
                                                                             content)
@@ -58,7 +58,7 @@ abstract class XMLContainer private constructor(override var namespaces: SimpleN
 
     constructor(fragment: ICompactFragment) : this(fragment.namespaces, fragment.content)
 
-    override fun deserializeChildren(reader: XmlReader) {
+    open fun deserializeChildren(reader: XmlReader) {
         if (reader.hasNext()) {
             if (reader.next() !== EventType.END_ELEMENT) {
                 val content = reader.siblingsToFragment()
@@ -67,7 +67,7 @@ abstract class XMLContainer private constructor(override var namespaces: SimpleN
         }
     }
 
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
+    open fun onBeforeDeserializeChildren(reader: XmlReader) {
         val nsEnd = reader.namespaceEnd
         for (i in reader.namespaceStart until nsEnd) {
             visitNamespace(reader, reader.getNamespacePrefix(i))

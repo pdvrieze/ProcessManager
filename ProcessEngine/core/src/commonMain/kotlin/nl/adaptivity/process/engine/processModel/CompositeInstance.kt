@@ -111,7 +111,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
     }
   }
 
-  val hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
+  val hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = builder.hChildInstance
 
   override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
 
@@ -134,9 +134,5 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
     }
 
     return frag
-  }
-
-  init {
-    hChildInstance = builder.hChildInstance
   }
 }

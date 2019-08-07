@@ -76,6 +76,8 @@ kotlin {
                     api(project(":PE-common"))
                     api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
                     api("javax.activation:javax.activation-api:$activationVersion")
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
+
                     runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
 
                     compileOnly("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
@@ -133,6 +135,7 @@ tasks.named<Test>("jvmTest") {
         includeEngines("spek2", "junit-jupiter")
         include("**/TestWorkflowPatterns**")
         include("**/TestProcessEngine**")
+        include("**/TestLoanOrigination**")
     }
 }
 
