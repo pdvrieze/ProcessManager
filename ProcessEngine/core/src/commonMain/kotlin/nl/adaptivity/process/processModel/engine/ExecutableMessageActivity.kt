@@ -48,9 +48,6 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
-    @Deprecated("Allways null", ReplaceWith("null"))
-    override val childModel: Nothing? = null
-
     private var _condition: ExecutableCondition?
 
     override val ownerModel: ExecutableModelCommon

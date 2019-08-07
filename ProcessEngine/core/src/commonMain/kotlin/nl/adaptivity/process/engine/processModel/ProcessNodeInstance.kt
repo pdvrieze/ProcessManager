@@ -28,6 +28,7 @@ import nl.adaptivity.process.engine.impl.dom.newReader
 import nl.adaptivity.process.engine.impl.dom.newWriter
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.Activity
+import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
@@ -243,7 +244,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
             serializeAll(results)
 
-            (node as? Activity)?.message?.messageBody?.let { body ->
+            (node as? MessageActivity)?.message?.messageBody?.let { body ->
                 instantiateXmlPlaceholders(engineData, body.getXmlReader(), out, true, localEndpoint)
             }
         }
@@ -252,7 +253,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
         val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
 
-        val body: ICompactFragment? = (node as? Activity)?.message?.let { message ->
+        val body: ICompactFragment? = (node as? MessageActivity)?.message?.let { message ->
             try {
                 val xmlReader = message.messageBody.getXmlReader()
                 instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)

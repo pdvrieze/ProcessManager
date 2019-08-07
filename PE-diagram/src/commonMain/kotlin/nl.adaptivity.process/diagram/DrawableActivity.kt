@@ -102,9 +102,9 @@ open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.B
     MessageActivityBase(builder,
                                                              buildHelper), DrawableProcessNode {
 
-    class Builder : ActivityBase.Builder,
-                          DrawableProcessNode.Builder<DrawableActivity>,
-                          IDrawableActivity {
+    class Builder : ActivityBase.DeserializationBuilder,
+                    DrawableProcessNode.Builder<DrawableActivity>,
+                    IDrawableActivity {
 
         constructor() : this(id = null)
 
@@ -121,8 +121,10 @@ open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.B
                     name: String? = null,
                     state: DrawableState = Drawable.STATE_DEFAULT,
                     multiInstance: Boolean = false,
-                    isCompat: Boolean = false) : super(id, predecessor, successor, label, defines, results, message,
-                                                       condition, name, x, y, multiInstance) {
+                    isCompat: Boolean = false) : super(
+            id, predecessor, successor, label, defines, results, message,
+            , condition, name, x, y, multiInstance
+                                                      ) {
             _delegate = DrawableProcessNode.Builder.Delegate(state = state, isCompat = isCompat)
         }
 

@@ -85,12 +85,11 @@ kotlin {
             val jvmTest by getting {
                 dependencies {
                     implementation(project(":PE-common"))
+                    implementation(kotlin("stdlib-jdk8"))
 
                     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}") {
-                        exclude(group = "org.jetbrains.kotlin")
-                    }
                     implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
+                    runtimeOnly("org.spekframework.spek2:spek-runtime-jvm:${spek2Version}")
                     implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
                     implementation("org.xmlunit:xmlunit-core:2.6.0")

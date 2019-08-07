@@ -35,6 +35,10 @@ class InclusionRoot(val group: GroupBody): Root {
     override val defaultCachingMode: CachingMode
         get() = group.defaultCachingMode
 
+    override var defaultTimeout: Long
+        get() = group.defaultTimeout
+        set(value) { group.defaultTimeout = value }
+
     override fun afterEachTest(callback: () -> Unit) {
         group.afterEachTest(callback)
     }
@@ -51,12 +55,15 @@ class InclusionRoot(val group: GroupBody): Root {
         group.beforeGroup(callback)
     }
 
-    override fun group(description: String,
-                       skip: Skip,
-                       defaultCachingMode: CachingMode,
-                       preserveExecutionOrder: Boolean,
-                       body: GroupBody.() -> Unit) {
-        group.group(description, skip, defaultCachingMode, preserveExecutionOrder, body)
+    override fun group(
+        description: String,
+        skip: Skip,
+        defaultCachingMode: CachingMode,
+        preserveExecutionOrder: Boolean,
+        failFast: Boolean,
+        body: GroupBody.() -> Unit
+                      ) {
+        group.group(description, skip, defaultCachingMode, preserveExecutionOrder, failFast, body)
     }
 
     override fun <T> memoized(mode: CachingMode, factory: () -> T): MemoizedValue<T> {
@@ -75,7 +82,7 @@ class InclusionRoot(val group: GroupBody): Root {
         throw UnsupportedOperationException("Included tests cannot register listeners")
     }
 
-    override fun test(description: String, skip: Skip, body: TestBody.() -> Unit) {
-        return group.test(description, skip, body)
+    override fun test(description: String, skip: Skip, timeout: Long, body: TestBody.() -> Unit) {
+        return group.test(description, skip, timeout, body)
     }
 }

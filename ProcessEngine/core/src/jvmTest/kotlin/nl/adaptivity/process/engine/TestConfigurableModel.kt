@@ -44,10 +44,9 @@ internal abstract class TestConfigurableModel(
 
     override val rootModel: ExecutableProcessModel by lazy {
         buildModel {
-            it.uuid = null;ExecutableProcessModel(
-            it,
-            false
-                                                 )
+            it.uuid = null
+
+            ExecutableProcessModel(it, false)
         }
     }
 

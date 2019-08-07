@@ -32,8 +32,8 @@ abstract class DelegateTestContainer<D: TestContainer, TESTBODY>(val delegate:D)
 //  }
 
 //  @JvmName("extTest")
-  fun test(description: String, skip: Skip = Skip.No, extbody: TESTBODY.() -> Unit) {
-    delegate.test(description, skip, { testBody(this).extbody() })
+  fun test(description: String, skip: Skip = Skip.No, timeout:Long  = delegate.defaultTimeout, extbody: TESTBODY.() -> Unit) {
+    delegate.test(description, skip, timeout, { testBody(this).extbody() })
   }
 
 }

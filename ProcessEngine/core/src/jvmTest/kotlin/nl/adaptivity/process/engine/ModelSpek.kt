@@ -114,8 +114,8 @@ open class EngineSuite(val delegate: Suite) : LifecycleAware by delegate {
 
     @Synonym(SynonymType.TEST)
     @Descriptions(Description(DescriptionLocation.VALUE_PARAMETER, 0))
-    fun it(description: String, skip: Skip = Skip.No, body: EngineTestBody.() -> Unit) {
-        delegate.it(description, skip) { EngineTestBody(this).body() }
+    fun it(description: String, skip: Skip = Skip.No, timeout: Long = delegate.defaultTimeout, body: EngineTestBody.() -> Unit) {
+        delegate.it(description, skip, timeout) { EngineTestBody(this).body() }
     }
 
     @Synonym(SynonymType.TEST, excluded = true)
@@ -168,26 +168,27 @@ abstract class ModelSpek(val modelData: ModelData,
 
         describe("model ${model.name}") {
             with(EngineSuite(this)) {
-                it("should be valid") {
+                it("${model.name} should be valid") {
                     model.builder().validate()
                 }
 
                 context("XML") {
 
                     lateinit var xmlSerialization: String
-                    it("Should be able to be serialized to XML") {
+                    it("${model.name} should be able to be serialized to XML") {
                         Assertions.assertDoesNotThrow {
                             xmlSerialization = XML{ indent = 4 }.stringify(XmlProcessModel.serializer(),
                                                                          XmlProcessModel(model.builder()))
                         }
                     }
-                    it("Should also be able to be deserialized") {
+                    it("${model.name} should also be able to be deserialized from XML") {
                         lateinit var deserializedModel: XmlProcessModel.Builder
                         try {
                             Assertions.assertDoesNotThrow {
                                 deserializedModel = XML.parse(XmlProcessModel.Builder.serializer(), xmlSerialization)
                             }
-                            assertEquals(model, ExecutableProcessModel(deserializedModel))
+                            val executableProcessModel = ExecutableProcessModel(deserializedModel)
+                            assertEquals(model, executableProcessModel)
                         } catch (e: Throwable) {
                             fail("Failure to deserialize the model:\n$xmlSerialization", e)
                         }
@@ -197,30 +198,30 @@ abstract class ModelSpek(val modelData: ModelData,
                 context("JSON") {
                     lateinit var jsonSerialization: String
 
-                    it("Should be able to be serialized to JSON") {
+                    it("${model.name} should be able to be serialized to JSON") {
                         Assertions.assertDoesNotThrow {
                             jsonSerialization = Json(myJsonConfiguration).stringify(XmlProcessModel.serializer(),
                                                                                    XmlProcessModel(model.builder()))
                         }
                     }
                     if (modelJson != null) {
-                        it("should match the expected json") {
+                        it("${model.name} should match the expected JSON") {
                             assertEquals(modelJson, jsonSerialization)
                         }
                     }
-                    it("Should also be able to be deserialized") {
+                    it("${model.name} should also be able to be deserialized from JSON") {
                         lateinit var deserializedModel: XmlProcessModel.Builder
                         Assertions.assertDoesNotThrow {
                             deserializedModel = Json(myJsonConfiguration).parse(XmlProcessModel.Builder.serializer(),
                                                                                jsonSerialization)
                         }
-                        assertEquals(model, ExecutableProcessModel(deserializedModel))
+                        assertEquals(model, ExecutableProcessModel(deserializedModel), "The result of deserializing the json should be equal to the original\n$jsonSerialization\n")
                     }
 
                 }
 
                 if (custom != null) {
-                    context("Custom checks") {
+                    context("${model.name} -- Custom checks") {
                         CustomDsl(delegate, model, valid, invalid).custom()
                     }
                 }
@@ -263,7 +264,7 @@ internal fun EngineSuite.testValidTrace(
             val traceElement = validTrace[pos]
             val previous = queue.solidify()
             // TODO we want to properly support the trace
-            val nodeInstanceF = getter {
+            val nodeInstanceF: Getter<ProcessNodeInstance<*>> = getter {
                 processInstanceF().let { processInstance: ProcessInstance ->
                     traceElement.getNodeInstance(transaction(), processInstance)
                     ?: throw NoSuchElementException(
@@ -282,14 +283,12 @@ internal fun EngineSuite.testValidTrace(
                     is EndNode   -> testEndNode(transaction, nodeInstanceF, traceElement)
                     is Join      -> testJoin(transaction, nodeInstanceF, traceElement)
                     is Split     -> testSplit(transaction, nodeInstanceF, traceElement)
-                    is Activity  -> when {
-                        node.childModel == null -> testActivity(transaction, nodeInstanceF, traceElement)
-                        else                    -> testComposite(transaction, nodeInstanceF, traceElement)
-                    }
+                    is MessageActivity -> testActivity(transaction, nodeInstanceF, traceElement)
+                    is CompositeActivity  -> testComposite(transaction, nodeInstanceF, traceElement)
+//                    is Activity -> { fail("Unsupported activity subtype") }
                     else             -> it("$traceElement should not be in a final state") {
                         val nodeInstance = nodeInstanceF()
-                        Assertions.assertFalse(
-                            nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
+                        assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id}[${nodeInstance.entryNo}] of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
                     }
                 } // when
 
