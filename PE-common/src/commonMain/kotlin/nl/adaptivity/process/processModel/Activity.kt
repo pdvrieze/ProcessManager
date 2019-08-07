@@ -61,18 +61,21 @@ interface Activity : ProcessNode {
 
     val successor: Identifiable?
 
-    /**
-     * The message of this activity. This provides all the information to be
-     * able to actually invoke the service.
-     */
-    val message: IXmlMessage?
-
-    val childModel: ChildProcessModel<ProcessNode>?
-
     override fun builder(): Builder
 
     //    @Serializable
     interface Builder : ProcessNode.Builder {
+
+
+        /**
+         * The name of this activity. Note that for serialization to XML to work
+         * this needs to be unique for the process model at time of serialization, and
+         * can not be null or an empty string. While in Java mode other nodes are
+         * referred to by reference, not name.
+         */
+        @Deprecated("Not needed, use id.", ReplaceWith("id"))
+        var name: String?
+
         var condition: Condition?
 
         var predecessor: Identifiable?

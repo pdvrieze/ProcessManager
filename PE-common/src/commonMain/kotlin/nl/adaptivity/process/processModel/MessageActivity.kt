@@ -17,10 +17,17 @@
 package nl.adaptivity.process.processModel
 
 interface MessageActivity: Activity {
+
+    /**
+     * The message of this activity. This provides all the information to be
+     * able to actually invoke the service.
+     */
+    val message: IXmlMessage?
+
     interface Builder : Activity.Builder, ProcessNode.Builder {
         var message: IXmlMessage?
         @Deprecated("Names are not used anymore")
-        var name: String?
+        override var name: String?
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
     }

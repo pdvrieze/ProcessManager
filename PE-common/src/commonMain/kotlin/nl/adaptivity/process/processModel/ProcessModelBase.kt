@@ -45,7 +45,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
 
     /*
         @SerialName("nodes")
-        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.ActivityBase\$DeserializationBuilder=pe:activity",
                                  "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
                                  "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
                                  "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
@@ -195,7 +195,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
         constructor() : this(nodes = emptyList())
 
         @SerialName("nodes")
-        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+        @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.ActivityBase\$DeserializationBuilder=pe:activity",
                                  "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
                                  "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
                                  "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
@@ -247,7 +247,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
             if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
                 val newNode = when (reader.localName) {
                     EndNode.ELEMENTLOCALNAME   -> endNodeBuilder().deserializeHelper(reader)
-                    Activity.ELEMENTLOCALNAME  -> activityBuilder().deserializeHelper(reader)
+                    Activity.ELEMENTLOCALNAME  -> ActivityBase.DeserializationBuilder().deserializeHelper(reader)
                     StartNode.ELEMENTLOCALNAME -> startNodeBuilder().deserializeHelper(reader)
                     Join.ELEMENTLOCALNAME      -> joinBuilder().deserializeHelper(reader)
                     Split.ELEMENTLOCALNAME     -> splitBuilder().deserializeHelper(reader)
@@ -475,7 +475,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.Builder> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
         } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
-            return ActivityBase.Builder.serializer()
+            return ActivityBase.DeserializationBuilder.serializer()
         }
         throw IllegalArgumentException("No serializer found for class $klassName")
     }
@@ -486,7 +486,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.Builder> {
         "XmlStartNode",
         "XmlStartNode\$Builder" -> StartNodeBase.Builder.serializer()
         "XmlActivity",
-        "XmlActivity\$Builder"  -> ActivityBase.Builder.serializer()
+        "XmlActivity\$Builder"  -> ActivityBase.DeserializationBuilder.serializer()
         "XmlSplit",
         "XmlSplit\$Builder"     -> SplitBase.Builder.serializer()
         "XmlJoin",

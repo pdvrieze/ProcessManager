@@ -19,7 +19,9 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.writeAttribute
 
 @Serializable
 abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
@@ -42,6 +44,29 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
     }
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
+    override fun serializeAttributes(out: XmlWriter) {
+        super.serializeAttributes(out)
+        out.writeAttribute("childId", childModel.id)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        if (!super.equals(other)) return false
+
+        other as CompositeActivityBase
+
+        if (childModel != other.childModel) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + childModel.hashCode()
+        return result
+    }
+
 
     companion object {
         const val ATTR_CHILDID = "childId"
@@ -49,7 +74,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
 
 
     @Serializable
-    open class ReferenceBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
+    open class ReferenceBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder,
                                   SimpleXmlDeserializable {
         final override var childId: String? = null
 
@@ -73,7 +98,6 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
             label,
             defines,
             results,
-            null,
             condition,
             name,
             x,
@@ -82,12 +106,6 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
                             ) {
             this.childId = childId
         }
-
-        @Deprecated("Don't use when possible")
-        internal constructor(node: Activity) : super(node) {
-            childId = node.childModel?.id
-        }
-
 
         constructor(node: CompositeActivity) : super(node) {
             childId = node.childModel?.id ?: throw IllegalProcessModelException("Missing child id in composite activity")

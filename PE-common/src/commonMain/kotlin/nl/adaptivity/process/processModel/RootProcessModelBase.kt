@@ -341,7 +341,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
                     override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
                     override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
-                    override fun visitActivity(comopositeActivity: CompositeActivity) = activityBuilder(comopositeActivity)
+                    override fun visitActivity(compositeActivity: CompositeActivity) = activityBuilder(compositeActivity)
                     override fun visitSplit(split: Split) = splitBuilder(split)
                     override fun visitJoin(join: Join) = joinBuilder(join)
                     override fun visitEndNode(endNode: EndNode) = endNodeBuilder(endNode)

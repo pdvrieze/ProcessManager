@@ -170,12 +170,10 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
       is Split    -> test("Split $traceElement should already be finished") {
         assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "Node $traceElement should be finished. The current nodes are: ${instance.toDebugString()}"}
       }
-      is Activity -> {
-        if (node.childModel==null) {
+      is MessageActivity -> {
           test("$traceElement should not be in a final state") {
             assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
           }
-        }
       }
       else        -> {
         test("$traceElement should not be in a final state") {
@@ -183,7 +181,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
         }
       }
     }
-    if (node is Activity && node.childModel != null) {
+    if (node is CompositeActivity) {
       test("A child instance should have been created for $traceElement") {
         assertTrue((nodeInstance as CompositeInstance).hChildInstance.isValid) {"No child instance was recorded"}
       }

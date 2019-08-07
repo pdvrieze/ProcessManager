@@ -23,7 +23,9 @@ import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.writeAttribute
 import nl.adaptivity.xmlutil.writeChild
 
 
@@ -37,50 +39,96 @@ import nl.adaptivity.xmlutil.writeChild
  *
  * @author Paul de Vrieze
  */
-@Serializable(XmlActivity.Companion::class)
+@Serializable
 @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActivity {
 
-    constructor(builder: MessageActivity.Builder,
-                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper) {
-        childModel = null
-    }
+    @SerialName("message")
+    @Serializable(with = IXmlMessage.Companion::class)
+    override var message: IXmlMessage?
+        get() = field
+        private set(value) {
+            field = XmlMessage.from(value)
+        }
 
-    constructor(builder: CompositeActivity.ModelBuilder,
-                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper) {
-        childModel = buildHelper.childModel(builder)
-    }
+    @Transient
+    override val childModel: ChildProcessModel<ProcessNode>?
 
-    constructor(builder: CompositeActivity.ReferenceBuilder,
-                buildHelper: BuildHelper<*, *, *, *>) : super(builder, buildHelper) {
-        childModel = childId?.let { buildHelper.childModel(it) }
-    }
+    @Serializable
+    @XmlDefault("null")
+    val childId: String?
 
     @Transient
     private var xmlCondition: XmlCondition? = null
 
-    override val childModel: ChildProcessModel<ProcessNode>?
+    override val condition: Condition?
+        get() = xmlCondition
+
+    constructor(
+        builder: MessageActivity.Builder,
+        buildHelper: BuildHelper<*, *, *, *>
+               ) : super(builder, buildHelper) {
+        childModel = null
+        childId = null
+        message = builder.message
+    }
+
+    internal constructor(
+        builder: DeserializationBuilder,
+        buildHelper: BuildHelper<*, *, *, *>
+                        ) : super(builder, buildHelper) {
+        val id = builder.childId
+        childModel = id?.let { buildHelper.childModel(it) }
+        childId = id
+        message = XmlMessage.from(builder.message)
+    }
+
+    constructor(
+        builder: CompositeActivity.ModelBuilder,
+        buildHelper: BuildHelper<*, *, *, *>
+               ) : super(builder, buildHelper) {
+        childModel = buildHelper.childModel(builder)
+        childId = builder.childId
+        message = null
+    }
+
+    constructor(
+        builder: CompositeActivity.ReferenceBuilder,
+        buildHelper: BuildHelper<*, *, *, *>
+               ) : super(builder, buildHelper) {
+        val id = builder.childId
+        childModel = id?.let { buildHelper.childModel(it) }
+        childId = id
+        message = null
+    }
 
     @Throws(XmlException::class)
     override fun serializeCondition(out: XmlWriter) {
         out.writeChild(xmlCondition)
     }
 
-    override val condition: Condition?
-        get() = xmlCondition
+    override fun serializeAttributes(out: XmlWriter) {
+        super.serializeAttributes(out)
+        out.writeAttribute("childId", childModel?.id)
+    }
+
+    override fun serializeChildren(out: XmlWriter) {
+        super.serializeChildren(out)
+        message?.let { (it as XmlMessage).serialize(out) }
+    }
 
     override fun builder(): Activity.Builder = when {
-         childId==null -> MessageActivityBase.Builder(this)
-         else -> ActivityBase.ReferenceActivityBuilder(this)
+        childId == null -> MessageActivityBase.Builder(this)
+        else            -> ActivityBase.ReferenceActivityBuilder(this)
     }
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = when {
         childModel == null -> visitor.visitActivity(messageActivity = this)
-        else -> visitor.visitActivity(compositeActivity = this)
+        else               -> visitor.visitActivity(compositeActivity = this)
     }
 
     @Serializer(forClass = XmlActivity::class)
-    companion object:KSerializer<XmlActivity> {
+    companion object : KSerializer<XmlActivity> {
 
         override fun deserialize(decoder: Decoder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")

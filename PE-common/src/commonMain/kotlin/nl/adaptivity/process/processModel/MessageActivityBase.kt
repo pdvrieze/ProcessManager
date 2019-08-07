@@ -16,26 +16,68 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.xmlutil.XmlWriter
 
 @Serializable
 abstract class MessageActivityBase : ActivityBase, MessageActivity {
 
+    @SerialName("message")
+    @Serializable(with = IXmlMessage.Companion::class)
+    private var _message: XmlMessage?
+
+    @Transient
+    override final var message: IXmlMessage?
+        get() = _message
+        private set(value) {
+            _message = XmlMessage.from(value)
+        }
+
     constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper)
+        super(builder, buildHelper) {
+        _message = XmlMessage.from(builder.message)
+    }
+
 
     override fun builder(): MessageActivity.Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
 
+    override fun serializeChildren(out: XmlWriter) {
+        super.serializeChildren(out)
+
+        _message?.serialize(out)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        if (!super.equals(other)) return false
+
+        other as MessageActivityBase
+
+        if (_message != other._message) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (_message?.hashCode() ?: 0)
+        return result
+    }
+
     open class Builder : ActivityBase.BaseBuilder, MessageActivity.Builder {
-//        var message = activity.message
-        constructor(activity: MessageActivity) : super(activity)
 
+        @Serializable(with = IXmlMessage.Companion::class)
+        final override var message: IXmlMessage?
 
-        @Deprecated("Don't use when possible")
-        internal constructor(activity: Activity) : super(activity)
+        constructor(activity: MessageActivity) : super(activity) {
+            message = activity.message
+        }
 
         constructor(
             id: String? = null,
@@ -57,12 +99,13 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
             label,
             defines,
             results,
-            message,
             condition,
             name,
             x,
             y,
             multiInstance
-                            )
+                            ) {
+            this.message = message
+        }
     }
 }

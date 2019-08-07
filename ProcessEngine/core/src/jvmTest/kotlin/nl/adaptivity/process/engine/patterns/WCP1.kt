@@ -27,9 +27,9 @@ private const val expectedWCP1Json = "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",
                                      "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\"," +
                                      "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"start\",\"label\":null}]," +
                                      "[\"nl.adaptivity.process.processModel.engine.XmlActivity\"," +
-                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac1\",\"label\":null,\"message\":null,\"name\":null,\"childId\":null,\"predecessor\":\"start\"}]," +
+                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"start\",\"message\":null,\"childId\":null}]," +
                                      "[\"nl.adaptivity.process.processModel.engine.XmlActivity\"," +
-                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac2\",\"label\":null,\"message\":null,\"name\":null,\"childId\":null,\"predecessor\":\"ac1\"}]," +
+                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"ac1\",\"message\":null,\"childId\":null}]," +
                                      "[\"nl.adaptivity.process.processModel.engine.XmlEndNode\"," +
                                      "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"ac2\"}]" +
                                      "]}"

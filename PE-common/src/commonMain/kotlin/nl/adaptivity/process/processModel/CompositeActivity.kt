@@ -17,7 +17,8 @@
 package nl.adaptivity.process.processModel
 
 interface CompositeActivity : Activity {
-    override val childModel: ChildProcessModel<ProcessNode>?
+
+    val childModel: ChildProcessModel<ProcessNode>?
 
     interface ReferenceBuilder: Activity.Builder {
         var childId: String?

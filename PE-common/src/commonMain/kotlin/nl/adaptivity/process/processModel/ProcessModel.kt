@@ -74,7 +74,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
         @JvmDefault
         fun activityBuilder(activity: MessageActivity): MessageActivity.Builder = MessageActivityBase.Builder(activity)
         @JvmDefault
-        fun activityBuilder(activity: CompositeActivity): MessageActivity.Builder = CompositeActivityBase.ReferenceBuilder(activity)
+        fun activityBuilder(activity: CompositeActivity): CompositeActivity.ReferenceBuilder = CompositeActivityBase.ReferenceBuilder(activity)
         @JvmDefault
         fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
 
