@@ -18,7 +18,7 @@ package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.StubTransaction
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import org.w3c.dom.Node
+import nl.adaptivity.xmlutil.util.CompactFragment
 import java.security.Principal
 import java.util.*
 import kotlin.reflect.KProperty
@@ -43,7 +43,7 @@ class StubProcessTransaction(private val engineData: IProcessEngineData<StubProc
 
   }
 
-  fun ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: Node? = null): InstanceWrapper {
+  fun ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: CompactFragment? = null): InstanceWrapper {
     val modelHandle = addProcessModel(this@StubProcessTransaction, model, owner)
     val instanceHandle = startProcess(this@StubProcessTransaction, owner, modelHandle, "TestInstance", UUID.randomUUID(), payload)
     return InstanceWrapper(instanceHandle)

@@ -18,32 +18,35 @@ package nl.adaptivity.process.engine.processModel
 
 import nl.adaptivity.process.engine.PETransformer
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.engine.impl.dom.NodeList
 import nl.adaptivity.process.engine.impl.dom.XPathConstants
+import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
-actual fun IXmlResultType.applyData(payload: Node?): ProcessData {
+actual fun IXmlResultType.applyData(payload: ICompactFragment?): ProcessData {
     // shortcircuit missing path
     if (payload == null) {
         return ProcessData(getName(), CompactFragment(""))
     }
     val processData = if (getPath() == null || "." == getPath()) {
-        ProcessData(getName(), DomUtil.nodeToFragment(payload))
+        ProcessData(getName(), payload)
     } else {
         ProcessData(
             getName(),
             DomUtil.nodeListToFragment(
                 xPath!!.evaluate(
-                    DomUtil.ensureAttached(payload),
+                    payload.toDocumentFragment(),
                     XPathConstants.NODESET
                                 ) as NodeList
                                       )
                    )
+
+        // TODO check whether this can use work by CompactFragment implementing InputSource instead
     }
     val content = content
     if (content?.isNotEmpty() ?: false) {

@@ -34,8 +34,10 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.*
-import org.w3c.dom.Node
-import org.xml.sax.InputSource
+import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.siblingsToFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import org.xml.sax.SAXException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -46,7 +48,6 @@ import java.util.logging.Level
 import javax.activation.DataSource
 import javax.naming.Context
 import javax.naming.InitialContext
-import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
 
 
@@ -183,7 +184,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 this@DBProcessEngineData.invalidateCachePI(handle)
             }
 
-            override fun invalidateCachePNI(handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
+            override fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
                 this@DBProcessEngineData.invalidateCachePNI(handle)
             }
 
@@ -523,13 +524,15 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      *
      * @throws SQLException When database operations fail.
      */
-    private fun startProcess(transaction: TRXXX,
-                             user: Principal?,
-                             model: SecureObject<ExecutableProcessModel>,
-                             name: String,
-                             uuid: UUID,
-                             parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
-                             payload: Node?): HProcessInstance {
+    private fun startProcess(
+        transaction: TRXXX,
+        user: Principal?,
+        model: SecureObject<ExecutableProcessModel>,
+        name: String,
+        uuid: UUID,
+        parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        payload: CompactFragment?
+                            ): HProcessInstance {
 
         if (user == null) {
             throw HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN,
@@ -575,12 +578,14 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      * @param payload The payload representing the parameters for the process.
      * @return A Handle to the [ProcessInstance].
      */
-    fun startProcess(transaction: TRXXX,
-                     user: Principal,
-                     handle: Handle<SecureObject<ExecutableProcessModel>>,
-                     name: String,
-                     uuid: UUID,
-                     payload: Node?): HProcessInstance {
+    fun startProcess(
+        transaction: TRXXX,
+        user: Principal,
+        handle: Handle<SecureObject<ExecutableProcessModel>>,
+        name: String,
+        uuid: UUID,
+        payload: CompactFragment?
+                    ): HProcessInstance {
         engineData.inWriteTransaction(transaction) {
             processModels[handle].shouldExist(handle)
         }.let { processModel ->
@@ -604,7 +609,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      */
     @Throws(SQLException::class)
     fun getNodeInstance(transaction: TRXXX,
-                        handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                         user: Principal): ProcessNodeInstance<*>? {
         engineData.inReadonlyTransaction(transaction) {
             return nodeInstances[handle]?.withPermission(mSecurityProvider, SecureObject.Permissions.READ, user) {
@@ -711,10 +716,11 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     }
 
     @Throws(SQLException::class)
-    fun finishTask(transaction: TRXXX,
-                   handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
-                   payload: Node?,
-                   user: Principal): ProcessNodeInstance<*> {
+    fun finishTask(
+        transaction: TRXXX,
+        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        payload: ICompactFragment?,
+        user: Principal): ProcessNodeInstance<*> {
         engineData.inWriteTransaction(transaction) {
             val dataAccess = this
             nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE,
@@ -743,22 +749,22 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
     /**
      * This method is primarilly a convenience method for
      * [.finishTask].
-
-
+     *
+     * TODO make this work properly and not depend on InputStreams
+     *
      * @param handle The handle to finish.
      *
      * @param resultSource The source that is parsed into DOM nodes and then passed on
-     * *          to [.finishTask]
+     *            to [.finishTask]
+     *
      */
     fun finishedTask(transaction: TRXXX,
-                     handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                     handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                      resultSource: DataSource?,
                      user: Principal) {
         try {
-            val result = resultSource?.let { InputSource(it.inputStream) }
-
-            val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            val xml = result?.let { db.parse(it) }
+            val reader = resultSource?.let { XmlStreaming.newReader(it.inputStream, "UTF8") }
+            val xml = reader?.siblingsToFragment()
             finishTask(transaction, handle, xml, user)
 
         } catch (e: ParserConfigurationException) {
@@ -781,7 +787,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
      * @throws SQLException
      */
     fun cancelledTask(transaction: TRXXX,
-                      handle: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                      handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                       user: Principal) {
         updateTaskState(transaction, handle, Cancelled, user)
     }

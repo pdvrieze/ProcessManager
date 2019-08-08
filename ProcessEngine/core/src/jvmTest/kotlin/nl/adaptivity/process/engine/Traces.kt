@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.allChildren
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.w3c.dom.Node
 
 /**
@@ -87,7 +88,7 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<Pr
     /**
      * The data that will be used as the return of the service behind the node.
      */
-    val resultPayload: Node? get() = null
+    val resultPayload: CompactFragment? get() = null
 
     fun getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance<*>? {
         return when (instanceNo) {

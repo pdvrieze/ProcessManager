@@ -35,6 +35,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.spek.*
 import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
 import org.spekframework.spek2.dsl.GroupBody
 import org.spekframework.spek2.dsl.TestBody
@@ -62,7 +63,7 @@ class EngineTesting {
     override fun otherBody() = Any()
 
 
-    fun givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = EngineTestData.principal, payload: Node? = null, body: InstanceSpecBody.() -> Unit) {
+    fun givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = EngineTestData.principal, payload: CompactFragment? = null, body: InstanceSpecBody.() -> Unit) {
       val transaction = processEngine.startTransaction()
       val instance = with(transaction) {
         processEngine.testProcess(processModel, principal, payload)

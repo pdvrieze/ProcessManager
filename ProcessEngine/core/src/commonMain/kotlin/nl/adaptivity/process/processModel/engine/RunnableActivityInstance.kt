@@ -22,16 +22,14 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.dom.Node
-import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
-import nl.adaptivity.process.engine.impl.generateXmlString
+import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.engine.processModel.tryRunTask
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
     ProcessNodeInstance<RunnableActivityInstance<I, O>>(builder) {
@@ -59,30 +57,28 @@ class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
             if (shouldProgress) {
                 val n: RunnableActivity<I, O> = node
 
-                val result: O
-                tryRunTask {
+                val resultFragment = tryRunTask {
                     val build = build()
                     val input: I = build.getInputData(engineData)
                     val action: RunnableAction<I, O> = n.action
-                    result = action(input)
+                    val result: O = action(input)
 
 //                engineData.instance(hChildInstance)
 //                    .withPermission()
 //                    .start(engineData, build().getPayload(engineData))
-                }
-                val xmlString = n.outputSerializer?.let { os ->
-                    generateXmlString(true) {writer ->
-                        XML.defaultInstance.toXml(writer, os, result)
+                    n.outputSerializer?.let { os ->
+                        CompactFragment { writer ->
+                            XML.defaultInstance.toXml(writer, os, result)
+                        }
                     }
                 }
 
-                finishTask(engineData, CompactFragment(emptyList(), xmlString).toDocumentFragment())
-
+                finishTask(engineData, resultFragment)
             }
-            return false
+            return false // we call finish ourselves, so don't call it afterwards.
         }
 
-        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
             TODO()
 /*
             val childInstance = engineData.instance(hChildInstance).withPermission()

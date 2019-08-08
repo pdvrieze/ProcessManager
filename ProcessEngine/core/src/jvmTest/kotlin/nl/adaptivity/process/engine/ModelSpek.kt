@@ -32,6 +32,7 @@ import nl.adaptivity.spek.DelegateTestBody
 import nl.adaptivity.util.Getter
 import nl.adaptivity.util.getter
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -43,7 +44,6 @@ import org.spekframework.spek2.dsl.TestBody
 import org.spekframework.spek2.lifecycle.CachingMode
 import org.spekframework.spek2.meta.*
 import org.spekframework.spek2.style.specification.*
-import org.w3c.dom.Node
 import java.security.Principal
 import java.util.*
 
@@ -339,11 +339,12 @@ internal fun EngineSuite.testInvalidTrace(
     }
 }
 
-private fun EngineSuite.startProcess(transactionGetter: Getter<StubProcessTransaction>,
-                                     model: ExecutableProcessModel,
-                                     owner: Principal,
-                                     name: String,
-                                     payload: Node? = null): Lazy<HProcessInstance> {
+private fun EngineSuite.startProcess(
+    transactionGetter: Getter<StubProcessTransaction>,
+    model: ExecutableProcessModel,
+    owner: Principal,
+    name: String,
+    payload: CompactFragment? = null): Lazy<HProcessInstance> {
     return lazy {
         val transaction = transactionGetter()
         val hmodel = if (model.getHandle().isValid &&

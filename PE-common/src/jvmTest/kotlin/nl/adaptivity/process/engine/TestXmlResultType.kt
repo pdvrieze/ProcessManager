@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType

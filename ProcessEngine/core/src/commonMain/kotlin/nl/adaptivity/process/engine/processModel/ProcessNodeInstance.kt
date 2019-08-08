@@ -23,11 +23,9 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.*
-import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.engine.impl.dom.newReader
 import nl.adaptivity.process.engine.impl.dom.newWriter
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
-import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
@@ -41,7 +39,6 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.jvm.JvmStatic
 
 /**
  * Base interface for process instance.
@@ -354,9 +351,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node? = null)
+        fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment? = null)
 
-        fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node? = null) {
+        fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment? = null) {
             if (state.isFinal) {
                 throw ProcessException("instance ${node.id}:$handle($state) cannot be finished as it is already in a final state.")
             }
@@ -442,7 +439,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+        final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
             if (state.isFinal) {
                 throw ProcessException("instance ${node.id}:${handle()}($state) cannot be finished as it is already in a final state.")
             }

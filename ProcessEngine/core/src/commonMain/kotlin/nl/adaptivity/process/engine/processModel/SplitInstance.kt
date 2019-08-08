@@ -23,11 +23,11 @@ import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.LogLevel
-import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
 import nl.adaptivity.util.security.Principal
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /**
  * Specialisation of process node instance for splits
@@ -53,7 +53,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
             return updateState(engineData)
         }
 
-        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
             val committedSuccessors = processInstanceBuilder.allChildren { it.state.isCommitted }
             if (committedSuccessors.count() < node.min) {
                 throw ProcessException("A split can only be finished once the minimum amount of children is committed")

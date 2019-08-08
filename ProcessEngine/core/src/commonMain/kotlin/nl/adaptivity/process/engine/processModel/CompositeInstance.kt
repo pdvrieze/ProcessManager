@@ -22,117 +22,123 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.dom.*
+import nl.adaptivity.process.engine.impl.CompactFragment
+import nl.adaptivity.process.engine.impl.dom.isNamespaceAware
+import nl.adaptivity.process.engine.impl.dom.newDocumentBuilderFactory
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.util.security.Principal
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.serialize
+import nl.adaptivity.xmlutil.smartStartTag
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /**
  * Class representing a node instance that wraps a composite activity.
  */
 class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstance>(builder) {
 
-  interface Builder: ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance> {
-    var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
+    interface Builder : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance> {
+        var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
 
-    override fun doProvideTask(engineData: MutableProcessEngineDataAccess):Boolean {
-      val shouldProgress = node.provideTask(engineData, this)
+        override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
+            val shouldProgress = node.provideTask(engineData, this)
 
-      val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
-      hChildInstance = childHandle
+            val childHandle = engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
+            hChildInstance = childHandle
 
-      store(engineData)
-      engineData.commit()
-      return shouldProgress
+            store(engineData)
+            engineData.commit()
+            return shouldProgress
+        }
+
+
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+            val shouldProgress = tryCreateTask { node.startTask(this) }
+
+            tryCreateTask {
+                engineData.instance(hChildInstance)
+                    .withPermission()
+                    .start(engineData, build().getPayload(engineData))
+            }
+
+            return shouldProgress
+        }
+
+        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
+            val childInstance = engineData.instance(hChildInstance).withPermission()
+            if (childInstance.state != ProcessInstance.State.FINISHED) {
+                throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")
+            }
+            return super.doFinishTask(engineData, childInstance.getOutputPayload())
+        }
+
+        override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+            return true
+        }
     }
 
+    class BaseBuilder(
+        node: ExecutableCompositeActivity,
+        predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
+        processInstanceBuilder: ProcessInstance.Builder,
+        childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+        owner: Principal,
+        entryNo: Int,
+        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        state: NodeInstanceState = NodeInstanceState.Pending
+                     ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance>(
+        node, listOfNotNull(predecessor), processInstanceBuilder, owner,
+        entryNo, handle, state
+                                                                                                        ), Builder {
 
-    override fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
-      val shouldProgress = tryCreateTask { node.startTask(this) }
+        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance
 
-      tryCreateTask {
-        engineData.instance(hChildInstance)
-          .withPermission()
-          .start(engineData, build().getPayload(engineData))
-      }
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+            engineData.nodeInstances[handle]?.withPermission()?.let { n ->
+                val newBase = n as CompositeInstance
+                node = newBase.node
+                predecessors.replaceBy(newBase.predecessors)
+                owner = newBase.owner
+                state = newBase.state
+                hChildInstance = newBase.hChildInstance
+            }
+        }
 
-      return shouldProgress
+        override fun build(): CompositeInstance {
+            return CompositeInstance(this)
+        }
     }
 
-    override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
-      val childInstance = engineData.instance(hChildInstance).withPermission()
-      if (childInstance.state!=ProcessInstance.State.FINISHED) {
-        throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")
-      }
-      return super.doFinishTask(engineData, childInstance.getOutputPayload())
+    class ExtBuilder(base: CompositeInstance, processInstanceBuilder: ProcessInstance.Builder) :
+        ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance>(base, processInstanceBuilder),
+        Builder {
+
+        override var node: ExecutableCompositeActivity by overlay { base.node }
+
+        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer) { base.hChildInstance }
+
+        override fun build(): CompositeInstance {
+            return if (changed) CompositeInstance(this) else base
+        }
     }
 
-    override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
-      return true
+    val hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = builder.hChildInstance
+
+    override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
+
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
+
+    fun getPayload(engineData: ProcessEngineDataAccess): CompactFragment? {
+        val defines = getDefines(engineData)
+        if (defines.isEmpty()) return null
+
+        return CompactFragment { writer ->
+            for(data in defines) {
+                writer.smartStartTag(QName( data.name!!)) {
+                    writer.serialize(data.contentStream)
+                }
+            }
+        }
     }
-  }
-
-  class BaseBuilder(node: ExecutableCompositeActivity,
-                    predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
-                    processInstanceBuilder: ProcessInstance.Builder,
-                    childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
-                    owner: Principal,
-                    entryNo: Int,
-                    handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-                    state: NodeInstanceState = NodeInstanceState.Pending) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance>(
-    node, listOfNotNull(predecessor), processInstanceBuilder, owner,
-    entryNo, handle, state), Builder {
-
-    override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance
-
-    override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
-      engineData.nodeInstances[handle]?.withPermission()?.let { n ->
-        val newBase = n as CompositeInstance
-        node = newBase.node
-        predecessors.replaceBy(newBase.predecessors)
-        owner = newBase.owner
-        state = newBase.state
-        hChildInstance = newBase.hChildInstance
-      }
-    }
-
-    override fun build(): CompositeInstance {
-      return CompositeInstance(this)
-    }
-  }
-
-  class ExtBuilder(base: CompositeInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance>(base, processInstanceBuilder), Builder {
-
-    override var node: ExecutableCompositeActivity by overlay { base.node }
-
-    override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer) { base.hChildInstance }
-
-    override fun build(): CompositeInstance {
-      return if(changed) CompositeInstance(this) else base
-    }
-  }
-
-  val hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = builder.hChildInstance
-
-  override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
-
-  override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
-
-  fun getPayload(engineData: ProcessEngineDataAccess): DocumentFragment? {
-    val defines = getDefines(engineData)
-    if (defines.isEmpty()) return null
-
-    val doc = newDocumentBuilderFactory()
-      .apply { isNamespaceAware=true }
-      .newDocumentBuilder()
-      .newDocument()
-
-    val frag = doc.createDocumentFragment()
-
-    for (data in defines) {
-      val owner = doc.createElement(data.name!!)
-      owner.appendChild(doc.adoptNode(data.contentFragment))
-    }
-
-    return frag
-  }
 }

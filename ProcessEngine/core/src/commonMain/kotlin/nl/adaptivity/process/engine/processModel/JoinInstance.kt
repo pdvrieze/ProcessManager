@@ -21,10 +21,10 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.jvm.JvmStatic
 
 class JoinInstance : ProcessNodeInstance<JoinInstance> {
@@ -66,7 +66,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
       }
     }
 
-    override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {
+    override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
       var committedPredecessorCount = 0
       var completedPredecessorCount = 0
       predecessors

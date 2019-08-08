@@ -20,6 +20,7 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.engine.processModel.applyData
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 /**
  * Shared interface for both root and child models that are executable.
@@ -37,7 +38,7 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode> {
 
     val endNodeCount: Int
 
-    fun toInputs(payload: Node?): List<ProcessData> {
+    fun toInputs(payload: CompactFragment?): List<ProcessData> {
         // TODO make this work properly
 
         return imports.map { XmlResultType(it).applyData(payload) }

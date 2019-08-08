@@ -14,15 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.processModel
+package nl.adaptivity.process.engine.impl
 
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.impl.dom.Node
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.XmlDefineType
-import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.util.CompactFragment
 
-expect fun IXmlResultType.applyData(payload: ICompactFragment?): ProcessData
-expect fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData
+inline fun CompactFragment(generator: (XmlWriter) -> Unit): CompactFragment {
+    // TODO make this actually collect namespaces "outside"
+    return CompactFragment(emptyList(), generateXmlString(true, generator))
+}

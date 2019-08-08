@@ -36,6 +36,8 @@ import nl.adaptivity.util.multiplatform.initCauseCompat
 import nl.adaptivity.util.multiplatform.randomUUID
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.jvm.JvmStatic
 import kotlin.jvm.Synchronized
 
@@ -347,18 +349,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         /**
          * Get the output of this instance as an xml node or `null` if there is no output
          */
-        fun getOutputPayload(): Node? {
+        fun getOutputPayload(): ICompactFragment? {
             if (outputs.isEmpty()) return null
             val document = newDocumentBuilderFactory().apply { isNamespaceAware = true }.newDocumentBuilder()
                 .newDocument()
-            return document.createDocumentFragment().apply {
-                val writer = DOMResult(this).newWriter()
-                try {
-                    outputs.forEach { output ->
-                        output.serialize(writer)
-                    }
-                } finally {
-                    writer.close()
+            return CompactFragment { writer ->
+                outputs.forEach { output ->
+                    output.serialize(writer)
                 }
             }
         }
@@ -849,23 +846,18 @@ fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*
     /**
      * Get the output of this instance as an xml node or `null` if there is no output
      */
-    fun getOutputPayload(): Node? {
+    fun getOutputPayload(): CompactFragment? {
         if (outputs.isEmpty()) return null
         val document =
             newDocumentBuilderFactory().apply { isNamespaceAware = true }.newDocumentBuilder().newDocument()
-        return document.createDocumentFragment().apply {
-            val writer = DOMResult(this).newWriter()
-            try {
-                outputs.forEach { output ->
-                    output.serialize(writer)
-                }
-            } finally {
-                writer.close()
+        return CompactFragment { writer ->
+            outputs.forEach { output ->
+                output.serialize(writer)
             }
         }
     }
 
-    fun start(engineData: MutableProcessEngineDataAccess, payload: Node? = null): ProcessInstance {
+    fun start(engineData: MutableProcessEngineDataAccess, payload: CompactFragment? = null): ProcessInstance {
         return (if (state == State.NEW) initialize(engineData) else this)
             .update(engineData) {
                 state = State.STARTED

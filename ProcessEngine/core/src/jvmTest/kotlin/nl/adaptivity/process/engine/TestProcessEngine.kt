@@ -23,6 +23,7 @@ import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
+import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -33,6 +34,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.util.activation.Sources
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -121,7 +123,7 @@ class TestProcessEngine {
         }.toCharArray()
     }
 
-    private inline fun <R> testProcess(model: ExecutableProcessModel, payload: Node? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
+    private inline fun <R> testProcess(model: ExecutableProcessModel, payload: CompactFragment? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
         mProcessEngine.startTransaction().use { transaction ->
 
             val modelHandle = mProcessEngine.addProcessModel(transaction, model, principal)
@@ -518,7 +520,7 @@ class TestProcessEngine {
 
         stubMessageService.clear() // (Process the message)
         assertEquals(0, ac1.results.size)
-        ac1 = mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml"), principal)
+        ac1 = mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml").toFragment(), principal)
         assertEquals(NodeInstanceState.Complete, ac1.state)
         ac1 = mProcessEngine.getNodeInstance(transaction, ac1.getHandle(), principal) ?: throw AssertionError("Node ${ac1.getHandle()} not found")
         assertEquals(2, ac1.results.size)

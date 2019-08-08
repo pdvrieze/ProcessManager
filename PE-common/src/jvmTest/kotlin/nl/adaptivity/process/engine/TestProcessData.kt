@@ -55,7 +55,6 @@ import javax.xml.parsers.ParserConfigurationException
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 import kotlin.reflect.KClass
-import org.mockito.Mockito.`when` as mockWhen
 
 
 /**

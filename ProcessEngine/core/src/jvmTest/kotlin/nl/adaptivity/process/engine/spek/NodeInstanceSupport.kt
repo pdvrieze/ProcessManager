@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.w3c.dom.Node
 import kotlin.reflect.KProperty
 
@@ -62,7 +63,7 @@ interface SafeNodeActions {
 
 interface ProcessNodeActions: SafeNodeActions {
 
-  fun ProcessNodeInstance<*>.finish(payload: Node? = null): ProcessNodeInstance<*> {
+  fun ProcessNodeInstance<*>.finish(payload: CompactFragment? = null): ProcessNodeInstance<*> {
     val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
     instance.update(transaction.writableEngineData) {
       updateChild(this@finish) {
