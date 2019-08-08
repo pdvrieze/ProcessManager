@@ -16,17 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.getInvalidHandle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -40,11 +35,9 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
 
     constructor(
         builder: MessageActivity.Builder,
-        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
-               ) : super(
-        builder,
-        buildHelper
-                        ) {
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, newOwner, otherNodes) {
         this._condition = builder.condition?.toExecutableCondition()
     }
 

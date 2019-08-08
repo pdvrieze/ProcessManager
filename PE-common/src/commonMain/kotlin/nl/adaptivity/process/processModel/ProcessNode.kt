@@ -83,7 +83,10 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
             results.add(XmlResultType.Builder().apply(builder).build())
         }
 
-        fun <T:ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T
+        fun <T:ProcessNode> build(
+            buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
+            otherNodes: Iterable<Builder>
+                                 ): T
 
         fun <R> visit(visitor: BuilderVisitor<R>): R
 

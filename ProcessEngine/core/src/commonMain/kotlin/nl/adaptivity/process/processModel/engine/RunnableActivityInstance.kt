@@ -22,14 +22,16 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.dom.DocumentFragment
 import nl.adaptivity.process.engine.impl.dom.Node
-import nl.adaptivity.process.engine.impl.dom.isNamespaceAware
-import nl.adaptivity.process.engine.impl.dom.newDocumentBuilderFactory
-import nl.adaptivity.process.engine.processModel.CompositeInstance
+import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
+import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.tryCreateTask
+import nl.adaptivity.process.engine.processModel.tryRunTask
 import nl.adaptivity.util.security.Principal
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
     ProcessNodeInstance<RunnableActivityInstance<I, O>>(builder) {
@@ -52,20 +54,32 @@ class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
 
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
-            val shouldProgress = tryTask { node.startTask(this) }
+            val shouldProgress = tryCreateTask { node.startTask(this) }
 
+            if (shouldProgress) {
+                val n: RunnableActivity<I, O> = node
 
-
-            tryTask {
-                val input: I = build().getInputData(engineData)
-
+                val result: O
+                tryRunTask {
+                    val build = build()
+                    val input: I = build.getInputData(engineData)
+                    val action: RunnableAction<I, O> = n.action
+                    result = action(input)
 
 //                engineData.instance(hChildInstance)
 //                    .withPermission()
 //                    .start(engineData, build().getPayload(engineData))
-            }
+                }
+                val xmlString = n.outputSerializer?.let { os ->
+                    generateXmlString(true) {writer ->
+                        XML.defaultInstance.toXml(writer, os, result)
+                    }
+                }
 
-            return shouldProgress
+                finishTask(engineData, CompactFragment(emptyList(), xmlString).toDocumentFragment())
+
+            }
+            return false
         }
 
         override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: Node?) {

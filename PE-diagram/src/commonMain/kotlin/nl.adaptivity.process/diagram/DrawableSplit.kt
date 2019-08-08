@@ -95,9 +95,12 @@ interface IDrawableSplit : IDrawableJoinSplit {
 
 }
 
-class DrawableSplit(builder: Split.Builder,
-                    buildHelper: ProcessModel.BuildHelper<*,*,*,*>) :
-    SplitBase(builder, buildHelper.newOwner),
+class DrawableSplit(
+    builder: Split.Builder,
+    buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+    otherNodes: Iterable<ProcessNode.Builder>
+                   ) :
+    SplitBase(builder, buildHelper.newOwner, otherNodes),
     Split, DrawableJoinSplit {
 
 

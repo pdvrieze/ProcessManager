@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
@@ -35,7 +37,7 @@ abstract class ProcessNodeBase : ProcessNode {
     @Transient
     private val _ownerModel: ProcessModel<out ProcessNode>?
 
-//    @Optional
+    //    @Optional
     @XmlDefault("false")
     override val isMultiInstance: Boolean
 
@@ -54,21 +56,23 @@ abstract class ProcessNodeBase : ProcessNode {
     override val successors: IdentifyableSet<Identified>
         get() = _successors
 
-//    @Optional
+    //    @Optional
     @SerialName("x")
     @XmlDefault("NaN")
     internal val _x: Double
 
     @Transient
-    override val x: Double get() = _x
+    override val x: Double
+        get() = _x
 
-//    @Optional
+    //    @Optional
     @SerialName("y")
     @XmlDefault("NaN")
     internal val _y: Double
 
     @Transient
-    override val y: Double get() = _y
+    override val y: Double
+        get() = _y
 
     @SerialName("define")
     internal val _defines: MutableList<XmlDefineType>
@@ -107,16 +111,18 @@ abstract class ProcessNodeBase : ProcessNode {
     override val maxPredecessorCount: Int
         get() = 1
 
-    constructor(_ownerModel: ProcessModel<ProcessNode>?,
-                predecessors: Collection<Identified> = emptyList(),
-                successors: Collection<Identified> = emptyList(),
-                id: String?,
-                label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
-                results: Collection<IXmlResultType> = ArrayList<IXmlResultType>(),
-                isMultiInstance: Boolean = false) {
+    constructor(
+        _ownerModel: ProcessModel<ProcessNode>?,
+        predecessors: Collection<Identified> = emptyList(),
+        successors: Collection<Identified> = emptyList(),
+        id: String?,
+        label: String? = null,
+        x: Double = Double.NaN,
+        y: Double = Double.NaN,
+        defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
+        results: Collection<IXmlResultType> = ArrayList<IXmlResultType>(),
+        isMultiInstance: Boolean = false
+               ) {
         this._ownerModel = _ownerModel
         this.isMultiInstance = isMultiInstance
         this._predecessors = toIdentifiers(Int.MAX_VALUE, predecessors)
@@ -131,11 +137,16 @@ abstract class ProcessNodeBase : ProcessNode {
 
     @Deprecated("BuildHelper is not needed here")
     internal constructor(builder: ProcessNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        this(builder, buildHelper.newOwner)
+        this(
+            buildHelper.newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
+            builder.y, builder.defines, builder.results, builder.isMultiInstance
+            )
 
-    internal constructor(builder: ProcessNode.Builder, newOwner: ProcessModel<*>) :
-        this(newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
-             builder.y, builder.defines, builder.results, builder.isMultiInstance)
+    internal constructor(builder: ProcessNode.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+        this(
+            newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
+            builder.y, builder.defines.resolveNodes(otherNodes), builder.results, builder.isMultiInstance
+            )
 
     abstract override fun builder(): ProcessNode.Builder
 
@@ -169,9 +180,9 @@ abstract class ProcessNodeBase : ProcessNode {
     override fun isPredecessorOf(node: ProcessNode): Boolean {
         return node.predecessors.any { pred ->
             this === pred ||
-            id == pred.id ||
-            (pred is ProcessNode && isPredecessorOf(pred)) ||
-            _ownerModel?.getNode(pred)?.let { node -> isPredecessorOf(node) } ?: false
+                id == pred.id ||
+                (pred is ProcessNode && isPredecessorOf(pred)) ||
+                _ownerModel?.getNode(pred)?.let { node -> isPredecessorOf(node) } ?: false
         }
     }
 
@@ -225,10 +236,12 @@ abstract class ProcessNodeBase : ProcessNode {
         if (isMultiInstance != other.isMultiInstance) return false
         if (_predecessors != other._predecessors) return false
         if (_successors != other._successors) return false
-        if (_x.isNaN()) { if(!other._x.isNaN()) return false }
-        else if (_x != other._x) return false
-        if (_y.isNaN()) { if(!other._y.isNaN()) return false }
-        else if (_y != other._y) return false
+        if (_x.isNaN()) {
+            if (!other._x.isNaN()) return false
+        } else if (_x != other._x) return false
+        if (_y.isNaN()) {
+            if (!other._y.isNaN()) return false
+        } else if (_y != other._y) return false
         if (_defines != other._defines) return false
         if (_results != other._results) return false
         if (_hashCode != other._hashCode) return false
@@ -257,8 +270,10 @@ abstract class ProcessNodeBase : ProcessNode {
 
         const val ATTR_PREDECESSOR = "predecessor"
 
-        private fun toIdentifiers(maxSize: Int,
-                                  identifiables: Iterable<Identified>): MutableIdentifyableSet<Identified> =
+        private fun toIdentifiers(
+            maxSize: Int,
+            identifiables: Iterable<Identified>
+                                 ): MutableIdentifyableSet<Identified> =
             IdentifyableSet.processNodeSet(maxSize, identifiables.map { it as? Identifier ?: Identifier(it.id) })
 
         fun toExportableDefines(exports: Collection<IXmlDefineType>) = exports.asSequence().map {
@@ -286,28 +301,30 @@ abstract class ProcessNodeBase : ProcessNode {
         override var id: String?
         override var label: String?
 
-//        @Optional
+        //        @Optional
         @XmlDefault("NaN")
         override var x: Double = Double.NaN
 
-//        @Optional
+        //        @Optional
         @XmlDefault("NaN")
         override var y: Double = Double.NaN
 
-//        @Optional
+        //        @Optional
         @XmlDefault("false")
         override var isMultiInstance: Boolean = false
 
-        constructor(): this(id=null)
+        constructor() : this(id = null)
 
         @Suppress("LeakingThis")
-        constructor(id: String? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    isMultiInstance: Boolean = false) {
+        constructor(
+            id: String? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false
+                   ) {
             this.id = id
             this.label = label
             this.x = x
@@ -325,20 +342,27 @@ abstract class ProcessNodeBase : ProcessNode {
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
 
-        constructor(node: ProcessNode) : this(node.id, node.label,
-                                              node.defines, node.results, node.x, node.y, node.isMultiInstance)
+        constructor(node: ProcessNode) : this(
+            node.id, node.label,
+            node.defines, node.results, node.x, node.y, node.isMultiInstance
+                                             )
 
-        override final fun <T: ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T {
-            return buildHelper.node(this)
+        override final fun <T : ProcessNode> build(
+            buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+                                                  ): T {
+            return buildHelper.node(this, otherNodes)
         }
 
         override fun onBeforeDeserializeChildren(reader: XmlReader) {
             // By default do nothing
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             if (XMLConstants.NULL_NS_URI == attributeNamespace) {
                 val value = attributeValue
                 when (attributeLocalName) {
@@ -355,11 +379,25 @@ abstract class ProcessNodeBase : ProcessNode {
 
         override fun toString(): String {
             val className = this::class.name
-            val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.')-1)
-            return "${className.substring(pkgPos+1)}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
+            val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.') - 1)
+            return "${className.substring(pkgPos + 1)}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
         }
     }
 
 }
+
+private fun <E : IXmlDefineType> Collection<E>.resolveNodes(nodeBuilders: Iterable<ProcessNode.Builder>): Collection<IXmlDefineType> =
+    map { define ->
+        val refNode = define.getRefNode()
+        val d: IXmlDefineType = when {
+            refNode != null && define.getRefName().isNullOrBlank() -> {
+                val pred = nodeBuilders.first { it.id == refNode }
+                val result = pred.results.singleOrNull() ?: throw IllegalArgumentException("Cannot resolve missing result name when there is no single result")
+                define.copy(refName = result.getName())
+            }
+            else                                                   -> define
+        }
+        d// as E
+    }
 
 private fun Char.isUpperCase() = toUpperCase() == this

@@ -322,7 +322,10 @@ interface ProcessModel<out NodeT: ProcessNode> {
         val pedantic: Boolean get() = false
         fun childModel(childId: String): ChildT
         fun childModel(builder: ChildProcessModel.Builder): ChildT
-        fun node(builder: ProcessNode.Builder): NodeT
+        fun node(
+            builder: ProcessNode.Builder,
+            otherNodes: Iterable<ProcessNode.Builder>
+                ): NodeT
         fun <M:ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
         fun condition(condition: Condition): Condition = condition
     }

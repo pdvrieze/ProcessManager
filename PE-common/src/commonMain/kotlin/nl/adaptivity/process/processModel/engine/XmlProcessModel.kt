@@ -169,24 +169,30 @@ val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
 @Suppress("ClassName")
 object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, XmlChildModel> {
 
-    private class Visitor(private val buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : ProcessNode.BuilderVisitor<XmlProcessNode> {
+    private class Visitor(
+        private val buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+        private val otherNodes: Iterable<ProcessNode.Builder>
+                         ) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
 
-        override fun visitActivity(activity: MessageActivity.Builder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: MessageActivity.Builder) = XmlActivity(activity, buildHelper.newOwner, otherNodes)
 
-        override fun visitActivity(activity: CompositeActivity.ModelBuilder) = XmlActivity(activity, buildHelper)
-        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = XmlActivity(activity, buildHelper)
+        override fun visitActivity(activity: CompositeActivity.ModelBuilder) = XmlActivity(activity, buildHelper, otherNodes)
+        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = XmlActivity(activity, buildHelper, otherNodes)
 
-        override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner)
+        override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner, otherNodes)
 
-        override fun visitJoin(join: Join.Builder) = XmlJoin(join, buildHelper)
+        override fun visitJoin(join: Join.Builder) = XmlJoin(join, buildHelper, otherNodes)
 
-        override fun visitEndNode(endNode: EndNode.Builder) = XmlEndNode(endNode, buildHelper.newOwner)
+        override fun visitEndNode(endNode: EndNode.Builder) = XmlEndNode(endNode, buildHelper.newOwner, otherNodes)
     }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.Builder,
-                        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlProcessNode {
-        return baseNodeBuilder.visit(Visitor(buildHelper))
+    override fun invoke(
+        baseNodeBuilder: ProcessNode.Builder,
+        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+                       ): XmlProcessNode {
+        return baseNodeBuilder.visit(Visitor(buildHelper, otherNodes))
     }
 
     override fun invoke(baseChildBuilder: ChildProcessModel.Builder,

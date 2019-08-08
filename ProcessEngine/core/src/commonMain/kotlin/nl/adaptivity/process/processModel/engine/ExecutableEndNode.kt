@@ -20,9 +20,12 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableEndNode(builder: EndNode.Builder,
-                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) :
-    EndNodeBase(builder, buildHelper.newOwner), ExecutableProcessNode {
+class ExecutableEndNode(
+    builder: EndNode.Builder,
+    buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>,
+    otherNodes: Iterable<ProcessNode.Builder>
+                       ) :
+    EndNodeBase(builder, buildHelper.newOwner, otherNodes), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon

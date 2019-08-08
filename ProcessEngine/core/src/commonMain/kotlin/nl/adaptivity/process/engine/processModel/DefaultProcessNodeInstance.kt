@@ -28,7 +28,6 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.XmlMessage
-import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
@@ -122,11 +121,11 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
       fun <MSG_T> impl(messageService: IMessageService<MSG_T>): Boolean {
 
-        val shouldProgress = tryTask { node.provideTask(engineData, this) }
+        val shouldProgress = tryCreateTask { node.provideTask(engineData, this) }
 
         if (node is MessageActivity) {
           val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
-          if (! tryTask { messageService.sendMessage(engineData, preparedMessage, this) }) {
+          if (! tryCreateTask { messageService.sendMessage(engineData, preparedMessage, this) }) {
             failTaskCreation(ProcessException("Failure to send message"))
           }
         }

@@ -55,11 +55,8 @@ abstract class SplitBase : JoinSplitBase, Split {
                 max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
                                        label, x, y, defines, results, min, max)
 
-    @Deprecated("Don't use")
-    constructor(builder: Split.Builder, buildHelper: ProcessModel.BuildHelper<*,*,*,*>): this(builder, buildHelper.newOwner)
-
-    constructor(builder: Split.Builder, newOwner: ProcessModel<*>) :
-        super(builder, newOwner)
+    constructor(builder: Split.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+        super(builder, newOwner, otherNodes)
 
     override fun builder(): Split.Builder = Builder(this)
 

@@ -47,9 +47,9 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
 
     override fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
-      val shouldProgress = tryTask { node.startTask(this) }
+      val shouldProgress = tryCreateTask { node.startTask(this) }
 
-      tryTask {
+      tryCreateTask {
         engineData.instance(hChildInstance)
           .withPermission()
           .start(engineData, build().getPayload(engineData))

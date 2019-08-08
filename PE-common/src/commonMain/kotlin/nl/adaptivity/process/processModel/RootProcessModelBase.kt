@@ -559,7 +559,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             return newNode()
         }
 
-        override fun node(builder: ProcessNode.Builder): NodeT = nodeFactory.invoke(builder, this)
+        override fun node(
+            builder: ProcessNode.Builder,
+            otherNodes: Iterable<ProcessNode.Builder>
+                         ): NodeT = nodeFactory.invoke(builder, this, otherNodes)
 
         override fun condition(condition:Condition): Condition = nodeFactory.condition(condition)
 

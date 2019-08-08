@@ -38,6 +38,9 @@ import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xml.WritableCompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.jvm.JvmStatic
 
 /**
@@ -289,6 +292,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         fun failTaskCreation(cause: Throwable) {
             failureCause = cause
             state = FailRetry
+        }
+
+        fun failTaskExecution(cause: Throwable) {
+            failureCause = cause
+            state = Failed
         }
 
         /**
@@ -558,44 +566,69 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     companion object {
 
-        @JvmStatic
-        protected inline fun <R> Builder<*, *>.tryTask(body: () -> R): R =
-            _tryHelper(body) { e ->
-                failTaskCreation(e)
-            }
-
-        @Suppress("unused", "FunctionName")
-        @PublishedApi
-        internal inline fun <R> _tryHelper(
-            engineData: MutableProcessEngineDataAccess,
-            processInstance: ProcessInstance,
-            body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception) -> Unit
-                                          ): R {
-            return try {
-                body()
-            } catch (e: Exception) {
-                try {
-                    failHandler(engineData, processInstance, e)
-                } catch (f: Exception) {
-                    e.addSuppressedCompat(f)
-                }
-                throw e
-            }
-        }
-
-        @PublishedApi
-        internal inline fun <R> _tryHelper(body: () -> R, failHandler: (Exception) -> Unit): R {
-            return try {
-                body()
-            } catch (e: Exception) {
-                try {
-                    failHandler(e)
-                } catch (f: Exception) {
-                    e.addSuppressedCompat(f)
-                }
-                throw e
-            }
-        }
     }
 
+}
+
+@UseExperimental(ExperimentalContracts::class)
+internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    return _tryHelper(body) { e ->
+        failTaskCreation(e)
+    }
+}
+
+@UseExperimental(ExperimentalContracts::class)
+internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    return _tryHelper(body) { e ->
+        failTaskExecution(e)
+    }
+}
+
+
+@UseExperimental(ExperimentalContracts::class)
+@Suppress("unused", "FunctionName")
+@PublishedApi
+internal inline fun <R> _tryHelper(
+    engineData: MutableProcessEngineDataAccess,
+    processInstance: ProcessInstance,
+    body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception) -> Unit
+                                  ): R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    return try {
+        body()
+    } catch (e: Exception) {
+        try {
+            failHandler(engineData, processInstance, e)
+        } catch (f: Exception) {
+            e.addSuppressedCompat(f)
+        }
+        throw e
+    }
+}
+
+
+@UseExperimental(ExperimentalContracts::class)
+@PublishedApi
+internal inline fun <R> _tryHelper(body: () -> R, failHandler: (Exception) -> Unit): R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    return try {
+        body()
+    } catch (e: Exception) {
+        try {
+            failHandler(e)
+        } catch (f: Exception) {
+            e.addSuppressedCompat(f)
+        }
+        throw e
+    }
 }

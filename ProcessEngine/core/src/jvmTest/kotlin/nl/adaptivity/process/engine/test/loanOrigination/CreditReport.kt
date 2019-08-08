@@ -16,13 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-class CustomerInformationFile {
-    private val customerData = mutableMapOf<String, CustomerData>()
-    fun enterCustomerData(authInfo: AuthInfo, data: CustomerData) {
-        customerData[data.customerId] = data
-    }
+import kotlinx.serialization.Serializable
 
-    fun getCustomerData(authInfo: AuthInfo, customerId: String): CustomerData? {
-        return customerData[customerId]
-    }
+@Serializable
+data class CreditReport(val reportData: String, val maxLoan: Int) {
+
 }

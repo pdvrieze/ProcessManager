@@ -168,8 +168,11 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
     }
 
     interface NodeFactory<NodeT : ChildNodeT, out ChildNodeT: ProcessNode, out ChildT : ChildProcessModel<ChildNodeT>> {
-        operator fun invoke(baseNodeBuilder: ProcessNode.Builder,
-                            buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): NodeT
+        operator fun invoke(
+            baseNodeBuilder: ProcessNode.Builder,
+            buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+                           ): NodeT
 
         operator fun invoke(baseChildBuilder: ChildProcessModel.Builder,
                             buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): ChildT
@@ -356,7 +359,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
         protected fun <NodeT : ProcessNode> buildNodes(builder: ProcessModel.Builder,
                                                        buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>): MutableIdentifyableSet<NodeT> {
             val newNodes = builder.nodes.map {
-                buildHelper.node(it)
+                buildHelper.node(it, builder.nodes)
             }.let { IdentifyableSet.processNodeSet(Int.MAX_VALUE, it) }
             return newNodes
         }

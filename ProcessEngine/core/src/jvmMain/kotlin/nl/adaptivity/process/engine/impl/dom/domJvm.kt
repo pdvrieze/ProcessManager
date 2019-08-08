@@ -55,3 +55,5 @@ actual object XPathConstants {
 }
 
 actual fun NodeList.toFragment(): ICompactFragment = DomUtil.nodeListToFragment(this)
+actual fun Node.toFragment(): ICompactFragment = DomUtil.nodeToFragment(this)
+actual fun ICompactFragment.toDocumentFragment(): DocumentFragment = DomUtil.childrenToDocumentFragment(getXmlReader())

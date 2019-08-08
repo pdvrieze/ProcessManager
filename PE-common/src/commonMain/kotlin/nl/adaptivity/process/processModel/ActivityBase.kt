@@ -57,8 +57,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    constructor(builder: Activity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper.newOwner) {
+    constructor(builder: Activity.Builder, newOwner:ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+        super(builder, newOwner, otherNodes) {
         _name = builder.name
     }
 
@@ -166,8 +166,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
     @Serializable
-    internal class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
-                                            SimpleXmlDeserializable {
+    open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
+                                                 SimpleXmlDeserializable {
         override var childId: String? = null
 
         @Serializable(with = IXmlMessage.Companion::class)
@@ -380,11 +380,17 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             this.results = results.toMutableList()
         }
 
-        override fun <T : ProcessNode> build(buildHelper: ProcessModel.BuildHelper<T, *, *, *>): T =
-            buildHelper.node(this)
+        override fun <T : ProcessNode> build(
+            buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+                                            ): T =
+            buildHelper.node(this, otherNodes)
 
-        fun buildActivity(buildHelper: ProcessModel.BuildHelper<*, *, *, *>): XmlActivity {
-            return XmlActivity(this, buildHelper)
+        fun buildActivity(
+            buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+                         ): XmlActivity {
+            return XmlActivity(this, buildHelper, otherNodes)
         }
 
         @Serializer(forClass = CompositeActivityBuilder::class)

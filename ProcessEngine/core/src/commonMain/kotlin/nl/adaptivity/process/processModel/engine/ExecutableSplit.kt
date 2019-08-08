@@ -25,8 +25,12 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableSplit(builder: Split.Builder, newOwner: ProcessModel<ExecutableProcessNode>) :
-    SplitBase(builder, newOwner), ExecutableProcessNode {
+class ExecutableSplit(
+    builder: Split.Builder,
+    newOwner: ProcessModel<ExecutableProcessNode>,
+    otherNodes: Iterable<ProcessNode.Builder>
+                     ) :
+    SplitBase(builder, newOwner, otherNodes), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon

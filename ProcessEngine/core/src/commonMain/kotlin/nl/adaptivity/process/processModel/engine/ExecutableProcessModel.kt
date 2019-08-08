@@ -155,36 +155,45 @@ val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
 
 object EXEC_NODEFACTORY : ProcessModelBase.NodeFactory<ExecutableProcessNode, ExecutableProcessNode, ExecutableChildModel> {
 
-    private fun visitor(buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) =
-        ExecutableProcessNodeBuilderVisitor(buildHelper)
+    private fun visitor(
+        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+                       ) =
+        ExecutableProcessNodeBuilderVisitor(buildHelper, otherNodes)
 
-    private class ExecutableProcessNodeBuilderVisitor(private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>) :
+    private class ExecutableProcessNodeBuilderVisitor(
+        private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
+        val otherNodes: Iterable<ProcessNode.Builder>
+                                                     ) :
         ProcessNode.BuilderVisitor<ExecutableProcessNode> {
             override fun visitStartNode(startNode: StartNode.Builder) =
                 ExecutableStartNode(startNode, buildHelper)
 
             override fun visitActivity(activity: MessageActivity.Builder) =
-                ExecutableMessageActivity(activity, buildHelper)
+                ExecutableMessageActivity(activity, buildHelper.newOwner, otherNodes)
 
             override fun visitActivity(activity: CompositeActivity.ModelBuilder) =
-                ExecutableCompositeActivity(activity, buildHelper)
+                ExecutableCompositeActivity(activity, buildHelper, otherNodes)
 
             override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) =
-                ExecutableCompositeActivity(activity, buildHelper)
+                ExecutableCompositeActivity(activity, buildHelper, otherNodes)
 
             override fun visitSplit(split: Split.Builder) =
-                ExecutableSplit(split, buildHelper.newOwner)
+                ExecutableSplit(split, buildHelper.newOwner, otherNodes)
 
             override fun visitJoin(join: Join.Builder) =
-                ExecutableJoin(join, buildHelper)
+                ExecutableJoin(join, buildHelper, otherNodes)
 
             override fun visitEndNode(endNode: EndNode.Builder) =
-                ExecutableEndNode(endNode, buildHelper)
+                ExecutableEndNode(endNode, buildHelper, otherNodes)
         }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.Builder,
-                        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>): ExecutableProcessNode =
-        baseNodeBuilder.visit(visitor(buildHelper))
+    override fun invoke(
+        baseNodeBuilder: ProcessNode.Builder,
+        buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+                       ): ExecutableProcessNode =
+        baseNodeBuilder.visit(visitor(buildHelper, otherNodes))
 
 
     override fun invoke(baseChildBuilder: ChildProcessModel.Builder,

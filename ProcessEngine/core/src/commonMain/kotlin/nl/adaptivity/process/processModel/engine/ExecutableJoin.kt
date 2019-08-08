@@ -27,8 +27,12 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 
 
-class ExecutableJoin(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>)
-  : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper), ExecutableProcessNode {
+class ExecutableJoin(
+    builder: Join.Builder,
+    buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>,
+    otherNodes: Iterable<ProcessNode.Builder>
+                    )
+  : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper, otherNodes), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon

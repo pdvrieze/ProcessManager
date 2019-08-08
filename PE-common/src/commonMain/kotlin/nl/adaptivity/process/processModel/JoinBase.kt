@@ -67,8 +67,8 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
 
 
-    constructor(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>)
-        : super(builder, buildHelper.newOwner) {
+    constructor(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>, otherNodes: Iterable<ProcessNode.Builder>)
+        : super(builder, buildHelper.newOwner, otherNodes) {
         isMultiMerge = builder.isMultiMerge
         val predecessors = (this.predecessors as MutableIdentifyableSet<Identified>)
         val conditions = mutableMapOf<Identifier, Condition?>()

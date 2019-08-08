@@ -126,11 +126,10 @@ class DrawableEndNode : EndNodeBase, DrawableProcessNode {
     override val maxSuccessorCount get() = super<EndNodeBase>.maxSuccessorCount
 
     @Deprecated("Use the builder", ReplaceWith("this(Builder(orig))"))
-    constructor(orig: EndNode) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER)
+    constructor(orig: EndNode) : this(Builder(orig), STUB_DRAWABLE_BUILD_HELPER.newOwner, emptyList())
 
-    constructor(builder: EndNode.Builder,
-                buildHelper: ProcessModel.BuildHelper<*, *, *, *>)
-        : super(builder, buildHelper) {
+    constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder> )
+        : super(builder, newOwner, otherNodes) {
         _delegate = DrawableProcessNode.Delegate(builder)
     }
 

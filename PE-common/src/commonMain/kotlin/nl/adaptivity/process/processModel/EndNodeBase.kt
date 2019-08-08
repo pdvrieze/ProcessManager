@@ -33,12 +33,9 @@ import nl.adaptivity.xmlutil.*
 @Serializable
 abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
-    @Deprecated("Don't use")
-    constructor(builder: EndNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : this(builder, buildHelper.newOwner)
-
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>) :
-        super(builder, newOwner)
+    constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+        super(builder, newOwner, otherNodes)
 
     @Suppress("DEPRECATION")
     @Serializable(with = Identifiable.Companion::class)

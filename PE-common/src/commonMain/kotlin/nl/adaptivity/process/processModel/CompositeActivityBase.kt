@@ -29,13 +29,20 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
     @Transient
     override val childModel: ChildProcessModel<ProcessNode>
 
-    constructor(builder: CompositeActivity.ModelBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper) {
+    constructor(
+        builder: CompositeActivity.ModelBuilder,
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) :
+        super(builder, buildHelper.newOwner, otherNodes) {
         childModel = buildHelper.childModel(builder)
     }
 
-    constructor(builder: CompositeActivity.ReferenceBuilder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper) {
+    constructor(
+        builder: CompositeActivity.ReferenceBuilder,
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, buildHelper.newOwner, otherNodes) {
         childModel = buildHelper.childModel(builder.childId ?: throw IllegalProcessModelException("Missing childId for reference"))
     }
 
@@ -108,7 +115,8 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         }
 
         constructor(node: CompositeActivity) : super(node) {
-            childId = node.childModel?.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
+            childId =
+                node.childModel?.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
         }
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {

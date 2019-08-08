@@ -22,5 +22,18 @@ import kotlinx.serialization.serializer
 
 @kotlinx.serialization.ImplicitReflectionSerializer
 inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(predecessor: Identified, noinline action: (I) -> O): RunnableActivity.Builder<I,O> {
-    return runnableActivity(predecessor, predecessor.identifier, "result", I::class.serializer(), O::class.serializer(), action)
+    return runnableActivity(
+        predecessor,
+        O::class.serializer(),
+        I::class.serializer(),
+        predecessor.identifier,
+        "",
+        action
+                           )
 }
+
+@kotlinx.serialization.ImplicitReflectionSerializer
+inline fun <reified I:Any> RunnableActivity.Builder<I, *>.defineInput(refNode: Identified) {
+    return defineInput(refNode, I::class.serializer())
+}
+

@@ -19,12 +19,16 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.list
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
-import nl.adaptivity.process.processModel.configurableModel.activity
+import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.processModel.engine.defineInput
 import nl.adaptivity.process.processModel.engine.runnableActivity
+import nl.adaptivity.process.processModel.engine.configureRunnableActivity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -43,16 +47,34 @@ private val clerk1 = SimplePrincipal("preprocessing clerk 1")
 @SerialName("loanCustomer")
 data class LoanCustomer(val customerId: String)
 
+@UseExperimental(ImplicitReflectionSerializer::class)
 private object Model1 : ConfigurableProcessModel<ExecutableProcessNode>(
     "testLoanOrigination",
     clerk1, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")
                                                                        ) {
+
+    val customerFile = CustomerInformationFile()
+    val creditBureau = CreditBureau()
+
     val start by startNode
-    @UseExperimental(ImplicitReflectionSerializer::class)
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
         val newData = CustomerData("cust123456", "taxId234", "passport345", "John Doe", "10 Downing Street")
-
         LoanCustomer(newData.customerId)
     }
-    val customerIdentification by activity(inputCustomerMasterData)
+    val customerIdentification by configureRunnableActivity<LoanCustomer, List<CustomerCollateral>>(
+        inputCustomerMasterData,
+        CustomerCollateral.serializer().list
+                                                                                                   ) {
+        defineInput(inputCustomerMasterData)
+        action = {
+            listOf(CustomerCollateral("house", "100000", "residential"))
+        }
+    }
+    val checkCreditWorthyness by runnableActivity(customerIdentification, CreditReport.serializer(),  LoanCustomer.serializer(), inputCustomerMasterData) { customer ->
+        val customerData: CustomerData = customerFile.getCustomerData(AuthInfo(), customer.customerId)!!
+        creditBureau.getCreditWorthiness(AuthInfo(), customerData)
+    }
+    val end by endNode(checkCreditWorthyness) {
+        defines.add(XmlDefineType("result", checkCreditWorthyness))
+    }
 }

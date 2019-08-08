@@ -23,10 +23,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.CompositeActivity
-import nl.adaptivity.process.processModel.CompositeActivityBase
-import nl.adaptivity.process.processModel.Condition
-import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -40,21 +37,18 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
 
     constructor(
         builder: CompositeActivity.ModelBuilder,
-        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
-               ) : super(
-        builder,
-        buildHelper
-                        ) {
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) :
+        super(builder, buildHelper, otherNodes) {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
     constructor(
         builder: CompositeActivity.ReferenceBuilder,
-        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
-               ) : super(
-        builder,
-        buildHelper
-                        ) {
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, buildHelper, otherNodes) {
         this._condition = builder.condition?.toExecutableCondition()
     }
 

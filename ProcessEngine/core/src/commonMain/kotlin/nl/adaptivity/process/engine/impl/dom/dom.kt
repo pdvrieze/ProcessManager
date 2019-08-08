@@ -98,3 +98,5 @@ expect object XPathConstants {
 }
 
 expect fun NodeList.toFragment(): ICompactFragment
+expect fun Node.toFragment(): ICompactFragment
+expect fun ICompactFragment.toDocumentFragment(): DocumentFragment

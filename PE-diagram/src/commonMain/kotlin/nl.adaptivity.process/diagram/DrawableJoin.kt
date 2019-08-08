@@ -86,9 +86,12 @@ interface IDrawableJoin : IDrawableJoinSplit {
 
 }
 
-class DrawableJoin(builder: Join.Builder,
-                   buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : JoinBase<DrawableProcessNode, DrawableProcessModel?>(
-    builder, buildHelper), Join, DrawableJoinSplit {
+class DrawableJoin(
+    builder: Join.Builder,
+    buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+    otherNodes: Iterable<ProcessNode.Builder>
+                  ) : JoinBase<DrawableProcessNode, DrawableProcessModel?>(
+    builder, buildHelper, otherNodes), Join, DrawableJoinSplit {
 
     class Builder : JoinBase.Builder, DrawableJoinSplit.Builder<DrawableJoin>, IDrawableJoin {
 

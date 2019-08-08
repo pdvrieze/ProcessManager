@@ -83,11 +83,21 @@ interface IXmlDefineType : XmlSerializable {
      */
     fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
+
     /**
      * Get the namespace context that defines the "missing" namespaces in the content.
      * @return
      */
     val originalNSContext: Iterable<Namespace>
+
+    fun copy(
+        name: String = getName(),
+        refNode: String? = getRefNode(),
+        refName: String? = getRefName(),
+        path: String? = getPath(),
+        content: CharArray? = this.content,
+        nsContext: Iterable<Namespace> = originalNSContext
+                ): IXmlDefineType
 
     companion object serializer: KSerializer<IXmlDefineType> {
         override val descriptor: SerialDescriptor

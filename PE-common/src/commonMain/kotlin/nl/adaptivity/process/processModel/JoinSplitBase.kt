@@ -19,10 +19,10 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.writeAttribute
 
 
@@ -32,17 +32,19 @@ import nl.adaptivity.xmlutil.writeAttribute
 @Serializable
 abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
 
-    constructor(ownerModel: ProcessModel<ProcessNode>,
-                predecessors: Collection<Identified> = emptyList(),
-                successors: Collection<Identified> = emptyList(),
-                id: String?,
-                label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                min: Int = -1,
-                max: Int = -1) :
+    constructor(
+        ownerModel: ProcessModel<ProcessNode>,
+        predecessors: Collection<Identified> = emptyList(),
+        successors: Collection<Identified> = emptyList(),
+        id: String?,
+        label: String? = null,
+        x: Double = Double.NaN,
+        y: Double = Double.NaN,
+        defines: Collection<IXmlDefineType> = emptyList(),
+        results: Collection<IXmlResultType> = emptyList(),
+        min: Int = -1,
+        max: Int = -1
+               ) :
         super(ownerModel, predecessors, successors, id, label, x, y, defines, results) {
         this.min = min
         this.max = max
@@ -52,12 +54,8 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
     override var min: Int
     override var max: Int
 
-    @Deprecated("Don't use, not needed")
-    constructor(builder: JoinSplit.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>)
-        : this(builder, buildHelper.newOwner)
-
-    constructor(builder: JoinSplit.Builder,
-                newOwner: ProcessModel<*>) : super(builder, newOwner) {
+    constructor(builder: JoinSplit.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+        super(builder, newOwner, otherNodes) {
         this.min = builder.min
         this.max = builder.max
     }
@@ -89,16 +87,20 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         override var min: Int
         override var max: Int
 
-        constructor(id: String? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = -1,
-                    max: Int = -1,
-                    multiInstance: Boolean = false) : super(id, label, defines, results, x, y,
-                                                            multiInstance) {
+        constructor(
+            id: String? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = -1,
+            max: Int = -1,
+            multiInstance: Boolean = false
+                   ) : super(
+            id, label, defines, results, x, y,
+            multiInstance
+                            ) {
             this.min = min
             this.max = max
         }
@@ -121,14 +123,18 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
             return "${super.toString().dropLast(1)}, min=$min, max=$max)"
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             when (attributeLocalName) {
                 "min" -> min = attributeValue.toInt()
                 "max" -> max = attributeValue.toInt()
-                else  -> return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace,
-                                                                                    attributeLocalName, attributeValue)
+                else  -> return super<ProcessNodeBase.Builder>.deserializeAttribute(
+                    attributeNamespace,
+                    attributeLocalName, attributeValue
+                                                                                   )
             }
             return true
         }

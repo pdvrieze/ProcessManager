@@ -261,7 +261,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         override fun activityBuilder() = DrawableActivity.Builder()
 
-        override fun activityBuilder(activity: Activity) = DrawableActivity.Builder(activity)
+        override fun activityBuilder(activity: MessageActivity) = DrawableActivity.Builder(activity)
 
         override fun endNodeBuilder() = DrawableEndNode.Builder()
 
@@ -391,7 +391,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
 // Casting as we cannot express that it will create the correct child.
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
-inline fun <T : DrawableProcessNode> DrawableProcessNode.Builder<T>.build(): T = build(STUB_DRAWABLE_BUILD_HELPER) as T
+inline fun <T : DrawableProcessNode> DrawableProcessNode.Builder<T>.build(): T = build(STUB_DRAWABLE_BUILD_HELPER, emptyList()) as T
 
 object STUB_OWNER: DrawableProcessModel {
     override fun builder(): DrawableProcessModel.Builder {
@@ -422,8 +422,11 @@ object STUB_DRAWABLE_BUILD_HELPER : ProcessModel.BuildHelper<DrawableProcessNode
         TODO("Drawables don't support child models yet")
     }
 
-    override fun node(builder: ProcessNode.Builder): DrawableProcessNode {
-        return DRAWABLE_NODE_FACTORY.invoke(builder, this)
+    override fun node(
+        builder: ProcessNode.Builder,
+        otherNodes: Iterable<ProcessNode.Builder>
+                     ): DrawableProcessNode {
+        return DRAWABLE_NODE_FACTORY.invoke(builder, this, otherNodes)
     }
 
     override fun <M : ProcessModel<DrawableProcessNode>> withOwner(newOwner: M): ProcessModel.BuildHelper<DrawableProcessNode, M, RootDrawableProcessModel, ChildProcessModelBase<DrawableProcessNode>> {
@@ -435,10 +438,14 @@ object STUB_DRAWABLE_BUILD_HELPER : ProcessModel.BuildHelper<DrawableProcessNode
 
 object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode, DrawableProcessNode, ChildProcessModelBase<DrawableProcessNode>> {
 
-    private class Visitor(val buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *,*,*>) : ProcessNode.BuilderVisitor<DrawableProcessNode> {
+    private class Visitor(
+        val buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *>,
+        val otherNodes: Iterable<ProcessNode.Builder>
+                         ) : ProcessNode.BuilderVisitor<DrawableProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = DrawableStartNode(startNode, buildHelper)
 
-        override fun visitActivity(activity: MessageActivity.Builder) = DrawableActivity(activity, buildHelper)
+        override fun visitActivity(activity: MessageActivity.Builder) =
+            DrawableActivity(activity, buildHelper, otherNodes)
 
         override fun visitActivity(activity: CompositeActivity.ModelBuilder) = TODO(
             "Child models are not implemented yet for drawables")
@@ -447,17 +454,20 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
             "Child models are not implemented yet for drawables")
 //        DrawableActivity(activity, childModel!!)
 
-        override fun visitSplit(split: Split.Builder) = DrawableSplit(split, buildHelper)
+        override fun visitSplit(split: Split.Builder) = DrawableSplit(split, buildHelper, otherNodes)
 
-        override fun visitJoin(join: Join.Builder) = DrawableJoin(join, buildHelper)
+        override fun visitJoin(join: Join.Builder) = DrawableJoin(join, buildHelper, otherNodes)
 
-        override fun visitEndNode(endNode: EndNode.Builder) = DrawableEndNode(endNode, buildHelper)
+        override fun visitEndNode(endNode: EndNode.Builder) = DrawableEndNode(endNode, buildHelper.newOwner, otherNodes)
 
     }
 
-    override fun invoke(baseNodeBuilder: ProcessNode.Builder,
-                        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *>): DrawableProcessNode {
-        return baseNodeBuilder.visit(Visitor(buildHelper))
+    override fun invoke(
+        baseNodeBuilder: ProcessNode.Builder,
+        buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+                       ): DrawableProcessNode {
+        return baseNodeBuilder.visit(Visitor(buildHelper, otherNodes))
     }
 
     override fun invoke(baseChildBuilder: ChildProcessModel.Builder,
@@ -473,7 +483,8 @@ object DRAWABLE_NODE_FACTORY : ProcessModelBase.NodeFactory<DrawableProcessNode,
 val DRAWABLE_BUILDER_VISITOR: ProcessNode.Visitor<DrawableProcessNode.Builder<*>> = object : Visitor<DrawableProcessNode.Builder<*>> {
     override fun visitStartNode(startNode: StartNode) = DrawableStartNode.Builder(startNode)
 
-    override fun visitActivity(activity: Activity) = DrawableActivity.Builder(activity)
+    override fun visitGenericActivity(activity: Activity): DrawableProcessNode.Builder<*> =
+        DrawableActivity.Builder(activity)
 
     override fun visitSplit(split: Split) = DrawableSplit.Builder(split)
 
@@ -484,28 +495,29 @@ val DRAWABLE_BUILDER_VISITOR: ProcessNode.Visitor<DrawableProcessNode.Builder<*>
 
 
 private fun toDrawableNode(elem: ProcessNode,
-                           buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *,*,*>): DrawableProcessNode {
+                           buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *,*,*>,
+                           otherNodes: Iterable<ProcessNode.Builder>): DrawableProcessNode {
 
     return elem.visit(object : Visitor<DrawableProcessNode> {
 
         override fun visitStartNode(startNode: StartNode): DrawableProcessNode {
-            return startNode as? DrawableProcessNode ?: DrawableStartNode.Builder(startNode).build(buildHelper)
+            return startNode as? DrawableProcessNode ?: DrawableStartNode.Builder(startNode).build(buildHelper,otherNodes)
         }
 
-        override fun visitActivity(activity: Activity): DrawableProcessNode {
-            return activity as? DrawableProcessNode ?: DrawableActivity.Builder(activity).build(buildHelper)
+        override fun visitGenericActivity(activity: Activity): DrawableProcessNode {
+            return activity as? DrawableProcessNode ?: DrawableActivity.Builder(activity).build(buildHelper,otherNodes)
         }
 
         override fun visitSplit(split: Split): DrawableProcessNode {
-            return split as? DrawableProcessNode ?: DrawableSplit.Builder(split).build(buildHelper)
+            return split as? DrawableProcessNode ?: DrawableSplit.Builder(split).build(buildHelper,otherNodes)
         }
 
         override fun visitJoin(join: Join): DrawableProcessNode {
-            return join as? DrawableProcessNode ?: DrawableJoin.Builder(join).build(buildHelper)
+            return join as? DrawableProcessNode ?: DrawableJoin.Builder(join).build(buildHelper,otherNodes)
         }
 
         override fun visitEndNode(endNode: EndNode): DrawableProcessNode {
-            return endNode as? DrawableProcessNode ?: DrawableEndNode.Builder(endNode).build(buildHelper)
+            return endNode as? DrawableProcessNode ?: DrawableEndNode.Builder(endNode).build(buildHelper,otherNodes)
         }
 
     })

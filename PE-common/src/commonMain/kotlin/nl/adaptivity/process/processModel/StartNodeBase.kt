@@ -60,7 +60,7 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : this(builder, buildHelper.newOwner)
 
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
-        super(builder, newOwner)
+        super(builder, newOwner, emptyList())
 
     override fun builder(): StartNode.Builder = Builder()
 

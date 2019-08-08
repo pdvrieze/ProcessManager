@@ -16,13 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-class CustomerInformationFile {
-    private val customerData = mutableMapOf<String, CustomerData>()
-    fun enterCustomerData(authInfo: AuthInfo, data: CustomerData) {
-        customerData[data.customerId] = data
+class CreditBureau {
+    fun getCreditWorthiness(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
+        return CreditReport("${customerData.name} is approved for loans up to 20000", 20000)
     }
 
-    fun getCustomerData(authInfo: AuthInfo, customerId: String): CustomerData? {
-        return customerData[customerId]
-    }
 }

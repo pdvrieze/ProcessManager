@@ -20,21 +20,18 @@ import kotlinx.serialization.*
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.EndNodeBase
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xmlutil.XmlException
-import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.deserializeHelper
+import nl.adaptivity.process.processModel.ProcessNode
 
 @Serializable(XmlEndNode.Companion::class)
 class XmlEndNode : EndNodeBase, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>) :
-        super(builder, newOwner)
+    constructor(
+        builder: EndNode.Builder,
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) :
+        super(builder, newOwner, otherNodes)
 
     @Serializer(XmlEndNode::class)
     companion object: KSerializer<XmlEndNode> {

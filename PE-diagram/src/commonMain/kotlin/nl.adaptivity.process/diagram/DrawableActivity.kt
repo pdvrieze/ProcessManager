@@ -97,10 +97,16 @@ interface IDrawableActivity : IDrawableProcessNode {
 
 }
 
-open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.Builder,
-                                                      buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *> = STUB_DRAWABLE_BUILD_HELPER) :
-    MessageActivityBase(builder,
-                                                             buildHelper), DrawableProcessNode {
+open class DrawableActivity @JvmOverloads constructor(
+    builder: MessageActivity.Builder,
+    buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *> = STUB_DRAWABLE_BUILD_HELPER,
+    otherNodes: Iterable<ProcessNode.Builder> = emptyList()
+                                                     ) :
+    MessageActivityBase(
+        builder,
+        buildHelper.newOwner,
+        otherNodes
+                       ), DrawableProcessNode {
 
     class Builder : ActivityBase.DeserializationBuilder,
                     DrawableProcessNode.Builder<DrawableActivity>,
@@ -108,23 +114,26 @@ open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.B
 
         constructor() : this(id = null)
 
-        constructor(id: String? = null,
-                    predecessor: Identifiable? = null,
-                    successor: Identifiable? = null,
-                    label: String? = null,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    message: XmlMessage? = null,
-                    condition: Condition? = null,
-                    name: String? = null,
-                    state: DrawableState = Drawable.STATE_DEFAULT,
-                    multiInstance: Boolean = false,
-                    isCompat: Boolean = false) : super(
+        constructor(
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            childId: String? = null,
+            message: XmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            state: DrawableState = Drawable.STATE_DEFAULT,
+            multiInstance: Boolean = false,
+            isCompat: Boolean = false
+                   ) : super(
             id, predecessor, successor, label, defines, results, message,
-            , condition, name, x, y, multiInstance
-                                                      ) {
+            childId, condition, name, x, y, multiInstance
+                            ) {
             _delegate = DrawableProcessNode.Builder.Delegate(state = state, isCompat = isCompat)
         }
 
@@ -136,8 +145,22 @@ open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.B
         }
 
         override fun copy(): Builder {
-            return Builder(id, predecessor?.identifier, successor, label, x, y, defines, results,
-                           XmlMessage.from(message), condition, name, state, isMultiInstance, isCompat)
+            return Builder(
+                id,
+                predecessor?.identifier,
+                successor,
+                label,
+                x,
+                y,
+                defines,
+                results,
+                message = XmlMessage.from(message),
+                condition = condition,
+                name = name,
+                state = state,
+                multiInstance = isMultiInstance,
+                isCompat = isCompat
+                          )
         }
 
     }
@@ -155,7 +178,7 @@ open class DrawableActivity @JvmOverloads constructor(builder: MessageActivity.B
 
     val isService get() = isBodySpecified && !isUserTask
 
-    val isComposite get() = this.childModel != null
+    val isComposite get() = false//this.childModel != null
 
     override val condition: Condition? = builder.condition
 

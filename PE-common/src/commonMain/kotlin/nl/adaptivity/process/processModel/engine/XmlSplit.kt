@@ -18,26 +18,20 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.IXmlDefineType
-import nl.adaptivity.process.processModel.IXmlResultType
-import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.process.processModel.Split
-import nl.adaptivity.process.processModel.SplitBase
-import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlSplit.Companion::class)
 @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlSplit : SplitBase, XmlProcessNode {
 
-    @Deprecated("No need to use the buildHelper")
-    constructor(builder: Split.Builder, buildHelper: XmlBuildHelper) :
-        this(builder, buildHelper.newOwner)
-
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    constructor(builder: Split.Builder, newOwner: ProcessModel<*>) :
-        super(builder, newOwner)
+    constructor(
+        builder: Split.Builder,
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) :
+        super(builder, newOwner, otherNodes)
 
     @Serializer(XmlSplit::class)
     companion object: KSerializer<XmlSplit> {

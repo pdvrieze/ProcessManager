@@ -27,6 +27,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.StringSerializer
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.serialization.*
@@ -85,13 +86,31 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
     constructor(name: String?,
                 refNode: String?,
-                refName: String?,
-                path: String?,
-                content: CharArray?,
-                originalNSContext: Iterable<Namespace>) : super(name, path, content,
+                refName: String? = null,
+                path: String? = null,
+                content: CharArray? = null,
+                originalNSContext: Iterable<Namespace> = emptyList()) : super(name, path, content,
                                                                 originalNSContext) {
         this._refNode = refNode
         this._refName = refName
+    }
+
+
+    constructor(name: String?,
+                refNode: Identified,
+                refName: String? = null,
+                path: String? = null,
+                content: CharArray? = null,
+                originalNSContext: Iterable<Namespace> = emptyList()): this(name, refNode.id, refName, path, content, originalNSContext)
+    override fun copy(
+        name: String,
+        refNode: String?,
+        refName: String?,
+        path: String?,
+        content: CharArray?,
+        nsContext: Iterable<Namespace>
+                     ): XmlDefineType {
+        return XmlDefineType(name, refNode, refName, path, content, nsContext)
     }
 
     @Transient

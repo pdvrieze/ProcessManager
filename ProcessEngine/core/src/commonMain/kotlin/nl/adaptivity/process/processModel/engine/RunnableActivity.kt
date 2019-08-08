@@ -28,12 +28,15 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlWriter
 import net.devrieze.util.TypecheckingCollection
+import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
+
+typealias RunnableAction<I,O> = (I) -> O
 
 class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
 
-    private val action: (I) -> O
-    private val inputCombiner: InputCombiner<I>
-    private val outputSerializer: SerializationStrategy<O>?
+    internal val action: RunnableAction<I,O>
+    internal val inputCombiner: InputCombiner<I>
+    internal val outputSerializer: SerializationStrategy<O>?
     override val condition: ExecutableCondition?
 
     override val ownerModel: ExecutableModelCommon
@@ -44,21 +47,11 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun builder(): Activity.Builder {
-        return Builder(this)
-    }
-
-    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
-        return visitor.visitGenericActivity(this)
-    }
-
     constructor(
         builder: Builder<I, O>,
-        buildHelper: ProcessModel.BuildHelper<*, *, *, *>
-               ) : super(
-        builder,
-        buildHelper
-                        ) {
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, newOwner, otherNodes) {
         this.inputCombiner = builder.inputCombiner
         this.outputSerializer = builder.outputSerializer
         this.action = builder.action
@@ -66,6 +59,14 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
         if (builder.defines.any { it !is DefineType<*> }) {
             throw IllegalArgumentException("RunnableActivities don't support alternative defines")
         }
+    }
+
+    override fun builder(): Activity.Builder {
+        return Builder(this)
+    }
+
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
+        return visitor.visitGenericActivity(this)
     }
 
     override fun serializeCondition(out: XmlWriter): Nothing {
@@ -112,18 +113,29 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?
-        val action: (I) -> O
+        var action: RunnableAction<I,O>
 
         constructor(
+            predecessor: Identified,
             refNode: Identified,
             refName: String,
             inputSerializer: DeserializationStrategy<I>,
             outputSerializer: SerializationStrategy<O>? = null,
-            action: (I) -> O
-                   ) : super() {
+            action: (I) -> O = { throw UnsupportedOperationException("Action not provided") }
+                   ) : super(predecessor = predecessor) {
             this.outputSerializer = outputSerializer
             this.action = action
             defineInput("input", refNode, refName, inputSerializer)
+        }
+
+        constructor(
+            predecessor: Identified,
+            inputCombiner: InputCombiner<I> = InputCombiner(),
+            outputSerializer: SerializationStrategy<O>? = null,
+            action: (I) -> O = { throw UnsupportedOperationException("Action not provided") }
+                   ) : super(predecessor = predecessor) {
+            this.outputSerializer = outputSerializer
+            this.action = action
         }
 
         constructor(activity: RunnableActivity<I, O>) : super(activity) {
@@ -137,6 +149,16 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
 
         fun <T> defineInput(name: String, refNode: Identified, valueName: String, deserializer: DeserializationStrategy<T>) {
             val defineType = DefineType(name, refNode, valueName, null, deserializer)
+            defines.add(defineType)
+        }
+
+        fun defineInput(refNode: Identified, valueName: String, deserializer: DeserializationStrategy<I>) {
+            val defineType = DefineType("input", refNode, valueName, null, deserializer)
+            defines.add(defineType)
+        }
+
+        fun defineInput(refNode: Identified, deserializer: DeserializationStrategy<I>) {
+            val defineType = DefineType("input", refNode, "", null, deserializer)
             defines.add(defineType)
         }
 
@@ -154,6 +176,8 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
         pathNSContext: Iterable<Namespace> = emptyList()
                     ) : /*XPathHolder(name, path, null, pathNSContext),*/ IXmlDefineType {
         override val content: Nothing? get() = null
+        override val originalNSContext: Iterable<Namespace> get() = emptyList()
+
         override fun getRefNode(): String = refNode.id
 
         override fun setRefNode(value: String?): Nothing = throw UnsupportedOperationException("Immutable type")
@@ -170,7 +194,27 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
 
         override fun setPath(namespaceContext: Iterable<Namespace>, value: String?) : Nothing = throw UnsupportedOperationException("Immutable type")
 
-        override val originalNSContext: Iterable<Namespace> get() = emptyList()
+        override fun copy(
+            name: String,
+            refNode: String?,
+            refName: String?,
+            path: String?,
+            content: CharArray?,
+            nsContext: Iterable<Namespace>
+                         ): DefineType<T> {
+            return DefineType(name, Identifier(refNode!!), refName!!, path, deserializer, nsContext)
+        }
+
+        fun <U> copy(
+            name: String = getName(),
+            refNode: Identified = this.refNode,
+            refName: String = getRefName()!!,
+            path: String? = getPath(),
+            deserializer: DeserializationStrategy<U>,
+            nsContext: Iterable<Namespace> = originalNSContext
+                ): DefineType<U> {
+            return DefineType(name, refNode, refName, path, deserializer, nsContext)
+        }
 
         override fun serialize(out: XmlWriter) : Nothing = throw UnsupportedOperationException("Cannot serialize coded define")
     }
@@ -191,21 +235,27 @@ class InputCombiner<T>(val impl: ((Map<String, Any?>)->T)? = null) {
 
 fun <I, O> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
     predecessor: Identified,
-    inputRefNode: Identified,
-    inputRefName: String,
-    inputSerializer: DeserializationStrategy<I>,
     outputSerializer: SerializationStrategy<O>,
-    action: (I) -> O
+    inputSerializer: DeserializationStrategy<I>,
+    inputRefNode: Identified,
+    inputRefName: String = "",
+    action: RunnableAction<I,O>
                                                                             ): RunnableActivity.Builder<I, O> =
-    RunnableActivity.Builder(inputRefNode, inputRefName, inputSerializer, outputSerializer, action).also {
-        it.predecessor = predecessor
-    }
-/*
+    RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action)
 
-fun ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
+fun <I, O> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
     predecessor: Identified,
-    config: @ConfigurationDsl MessageActivity.Builder.() -> Unit
-                                                                     ): MessageActivity.Builder =
-    MessageActivityBase.Builder(predecessor = predecessor).apply(config)
-*/
+    outputSerializer: SerializationStrategy<O>,
+    inputSerializer: DeserializationStrategy<I>,
+    inputRefNode: Identified,
+    inputRefName: String = "",
+    config: @ConfigurationDsl RunnableActivity.Builder<I, O>.() -> Unit
+                                                                            ): RunnableActivity.Builder<I, O> =
+    RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer).apply(config)
 
+fun <I,O> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
+    predecessor: Identified,
+    outputSerializer: SerializationStrategy<O>?,
+    config: @ConfigurationDsl RunnableActivity.Builder<I, O>.() -> Unit
+                                                                                    ): RunnableActivity.Builder<I,O> =
+    RunnableActivity.Builder<I,O>(predecessor, outputSerializer = outputSerializer).apply(config)

@@ -66,8 +66,9 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     constructor(
         builder: MessageActivity.Builder,
-        buildHelper: BuildHelper<*, *, *, *>
-               ) : super(builder, buildHelper) {
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, newOwner, otherNodes) {
         childModel = null
         childId = null
         message = builder.message
@@ -75,8 +76,9 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     internal constructor(
         builder: DeserializationBuilder,
-        buildHelper: BuildHelper<*, *, *, *>
-                        ) : super(builder, buildHelper) {
+        buildHelper: BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+                        ) : super(builder, buildHelper.newOwner, otherNodes) {
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id
@@ -85,8 +87,9 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     constructor(
         builder: CompositeActivity.ModelBuilder,
-        buildHelper: BuildHelper<*, *, *, *>
-               ) : super(builder, buildHelper) {
+        buildHelper: BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, buildHelper.newOwner, otherNodes) {
         childModel = buildHelper.childModel(builder)
         childId = builder.childId
         message = null
@@ -94,8 +97,9 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     constructor(
         builder: CompositeActivity.ReferenceBuilder,
-        buildHelper: BuildHelper<*, *, *, *>
-               ) : super(builder, buildHelper) {
+        buildHelper: BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) : super(builder, buildHelper.newOwner, otherNodes) {
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id

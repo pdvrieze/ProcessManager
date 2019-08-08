@@ -36,8 +36,12 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
             _message = XmlMessage.from(value)
         }
 
-    constructor(builder: MessageActivity.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
-        super(builder, buildHelper) {
+    constructor(
+        builder: MessageActivity.Builder,
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               ) :
+        super(builder, newOwner, otherNodes) {
         _message = XmlMessage.from(builder.message)
     }
 
@@ -70,7 +74,7 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
         return result
     }
 
-    open class Builder : ActivityBase.BaseBuilder, MessageActivity.Builder {
+    open class Builder : BaseBuilder, MessageActivity.Builder {
 
         @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
