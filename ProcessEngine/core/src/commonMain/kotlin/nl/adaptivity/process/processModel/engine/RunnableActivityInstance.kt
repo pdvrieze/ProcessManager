@@ -135,7 +135,6 @@ class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
 
     fun getInputData(engineData: ProcessEngineDataAccess): I {
         val defines = getDefines(engineData)
-
         return node.getInputData(defines)
     }
 

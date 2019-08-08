@@ -106,7 +106,7 @@ class RunnableActivity<I, O> : ActivityBase, ExecutableProcessNode {
     override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 
     fun getInputData(defines: List<ProcessData>): I {
-        TODO("not implemented")
+        return inputCombiner(defines.associateBy { it.name!! })
     }
 
     class Builder<I, O> : ActivityBase.BaseBuilder {
