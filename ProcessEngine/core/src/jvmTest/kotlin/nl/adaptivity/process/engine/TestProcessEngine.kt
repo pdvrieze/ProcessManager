@@ -17,16 +17,11 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
-import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.dropStack
-import nl.adaptivity.messaging.EndpointDescriptorImpl
-import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.condition
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
@@ -34,9 +29,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.util.activation.Sources
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Node
@@ -45,35 +38,19 @@ import org.xmlunit.XMLUnitException
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.DefaultComparisonFormatter
 import java.io.*
-import java.net.URI
 import java.util.UUID
-import java.util.logging.Logger
 import javax.xml.bind.JAXB
-import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
-import kotlin.collections.ArrayList
 
 
 /**
  * Created by pdvrieze on 18/08/15.
  */
-class TestProcessEngine {
-
-    internal lateinit var mProcessEngine: ProcessEngine<StubProcessTransaction>
-    private val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"),
-                                                       "processEngine",
-                                                       URI.create("http://localhost/"))
-    private val stubMessageService: StubMessageService = StubMessageService(localEndpoint)
-    private val stubTransactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
-        override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-            return StubProcessTransaction(engineData)
-        }
-    }
-    private val principal = SimplePrincipal("pdvrieze")
+class TestProcessEngine: ProcessEngineTestSupport() {
 
     private fun getXml(name: String): ByteArray? {
         javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name).use { reader ->
@@ -123,130 +100,6 @@ class TestProcessEngine {
         }.toCharArray()
     }
 
-    private inline fun <R> testProcess(model: ExecutableProcessModel, payload: CompactFragment? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R):R {
-        mProcessEngine.startTransaction().use { transaction ->
-
-            val modelHandle = mProcessEngine.addProcessModel(transaction, model, principal)
-            val instanceHandle = mProcessEngine.startProcess(transaction, principal, modelHandle, "testInstance", UUID.randomUUID(), payload)
-
-            return body(transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
-        }
-    }
-
-    private fun ProcessTransaction.getInstance(instanceHandle: HProcessInstance):ProcessInstance {
-        return readableEngineData.instance(instanceHandle).withPermission()
-    }
-
-    private fun StubMessageService.messageNode(transaction: ProcessTransaction, index:Int): ProcessNodeInstance<*> {
-        return transaction.readableEngineData.nodeInstance(this._messages[index].source).withPermission()
-    }
-
-    private fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance<*> {
-        return getChild(name, 1)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
-    }
-
-    private val ProcessInstance.sortedFinished
-        get() = finished.sortedBy { it.handleValue }
-
-    private val ProcessInstance.sortedActive
-        get() = active.sortedBy { it.handleValue }
-
-    private val ProcessInstance.sortedCompleted
-        get() = completedEndnodes.sortedBy { it.handleValue }
-
-    private fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
-        assertEquals(handles.sorted(), ArrayList(sortedFinished))
-    }
-
-    private fun ProcessInstance.assertFinished(vararg handles: IProcessNodeInstance) = apply {
-        val actual = ArrayList(sortedFinished)
-        val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
-        try {
-            assertEquals(expected, actual)
-        } catch (e: AssertionError) {
-            throw AssertionError("Expected finished list $expected, but found $actual").initCause(e)
-        }
-    }
-
-    private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
-        assertEquals(handles.sorted(), ArrayList(sortedActive))
-    }
-
-    private fun ProcessInstance.assertActive(vararg handles: IProcessNodeInstance) = apply {
-        val actual = ArrayList(sortedActive)
-        val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
-        try {
-            assertEquals(expected, actual)
-        } catch (e:AssertionError) {
-            throw AssertionError("Expected active list $expected, but found $actual").initCause(e)
-        }
-    }
-
-    private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
-        assertEquals(handles.sorted(), ArrayList(sortedCompleted))
-    }
-
-    private fun ProcessInstance.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance {
-        val actual = ArrayList(sortedCompleted)
-        val expected = nodes.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
-        assertEquals(expected, actual)
-        return this
-    }
-
-    private fun IProcessNodeInstance.assertStarted() = apply {
-        assertEquals(NodeInstanceState.Started, this.state)
-    }
-
-    private fun ProcessInstance.assertIsStarted() = apply {
-        assertEquals(State.STARTED, this.state)
-    }
-
-    private fun ProcessInstance.assertIsFinished() = apply {
-        assertEquals(State.FINISHED, this.state)
-    }
-
-    private fun IProcessNodeInstance.assertSent() = apply {
-        assertState(NodeInstanceState.Sent)
-    }
-
-    private fun IProcessNodeInstance.assertPending() = apply {
-        assertState(NodeInstanceState.Pending)
-    }
-
-    private fun IProcessNodeInstance.assertAcknowledged() = apply {
-        assertState(NodeInstanceState.Acknowledged)
-    }
-
-    private fun IProcessNodeInstance.assertComplete() = apply {
-        assertState(NodeInstanceState.Complete)
-    }
-
-    private fun IProcessNodeInstance.assertState(state: NodeInstanceState) {
-        try {
-            assertEquals(state, this.state,
-                         "Node ${this.node.id}(${this.handle()}) should be in the ${state.name} state")
-        } catch (e: AssertionError) {
-            throw dropStack(e, 2)
-        }
-    }
-
-    @BeforeEach
-    fun beforeTest() {
-        stubMessageService.clear()
-        //    DelegateProcessEngineData<StubProcessTransaction> engineData =
-        //            new DelegateProcessEngineData<>(mStubTransactionFactory,
-        //                                            cache(new MemProcessModelMap(), 1),
-        //                                            cache(new MemTransactionedHandleMap<>(), 1),
-        //                                            cache(new MemTransactionedHandleMap<>(), 2));
-
-        mProcessEngine = ProcessEngine.newTestInstance(
-            stubMessageService,
-            stubTransactionFactory,
-            cacheModels<Any>(MemProcessModelMap(), 3),
-            cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-            cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true, Logger.getAnonymousLogger())
-    }
-
     fun assertEqualsXml(expected: ByteArray, actual: CharArray?) {
         if (actual==null) org.junit.jupiter.api.fail("No actual result")
         val expected = String(expected)
@@ -275,28 +128,15 @@ class TestProcessEngine {
         }
     }
 
-    fun assertEqualsXml(expected: String?, actual: String?) {
-        val diff = DiffBuilder.compare(expected)
-            .withTest(actual)
-            .ignoreWhitespace()
-            .ignoreComments()
-            .checkForSimilar()
-            .build()
-
-        if (diff.hasDifferences()) {
-            assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
-        }
-    }
-
     @Test
     @Throws(Exception::class)
     fun testExecuteSingleActivity() {
         val model = getProcessModel("testModel1.xml")
-        val transaction = mProcessEngine.startTransaction()
+        val transaction = processEngine.startTransaction()
         val engineData = transaction.writableEngineData
-        val modelHandle = mProcessEngine.addProcessModel(transaction, model, principal)
+        val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
 
-        val instanceHandle = mProcessEngine.startProcess(transaction, principal, modelHandle, "testInstance1", UUID.randomUUID(), null)
+        val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
 
         assertEquals(1, stubMessageService._messages.size)
         assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
@@ -345,7 +185,7 @@ class TestProcessEngine {
     @Test
     fun testConditionFalse() {
         val model = ExecutableProcessModel.build {
-            owner = principal
+            owner = modelOwnerPrincipal
             val start = startNode { id="start" }
             val ac = activity { id="ac"; predecessor=start.identifier; condition=ExecutableCondition.FALSE }
             val end = endNode { id="end"; predecessor=ac }
@@ -364,7 +204,7 @@ class TestProcessEngine {
     @Test
     fun testConditionTrue() {
         val model = ExecutableProcessModel.build {
-            owner = principal
+            owner = modelOwnerPrincipal
             val start = startNode { id="start" }
             val ac = activity { id="ac"; predecessor=start.identifier; condition("true()") }
             val end = endNode { id="end"; predecessor=ac }
@@ -475,35 +315,35 @@ class TestProcessEngine {
     @Throws(Exception::class)
     fun testGetDataFromTask() {
         val model = getProcessModel("testModel2.xml")
-        val transaction = mProcessEngine.startTransaction()
+        val transaction = processEngine.startTransaction()
         val engineData = transaction.writableEngineData
-        val modelHandle = mProcessEngine.addProcessModel(transaction, model, principal)
+        val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
 
-        val instanceHandle = mProcessEngine.startProcess(transaction, principal, modelHandle, "testInstance1", UUID.randomUUID(), null)
+        val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
 
         assertEquals(1, stubMessageService._messages.size)
 
         assertEqualsXml(getXml("testModel2_task1.xml")!!, serializeToXmlCharArray(stubMessageService
                                                                                       ._messages[0].base))
 
-        var ac1: ProcessNodeInstance<*> = mProcessEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), principal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
+        var ac1: ProcessNodeInstance<*> = processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
         ac1.node.results.let { r ->
-            assertEquals("", r[0].contentString)
+            assertArrayEquals(CharArray(0), r[0].content)
             assertEquals("name", r[0].getName())
             assertEquals("user", r[1].getName())
             assertEquals("/umh:result/umh:value[@name='user']/text()", r[0].getPath())
             assertEquals(null, r[1].getPath())
 
             assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                         r[0].namespaces.sortedBy { it.prefix })
-            if (r[1].namespaces.size==1) {
+                         r[0].originalNSContext.sortedBy { it.prefix })
+            if (r[1].originalNSContext.count()==1) {
                 assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             r[1].namespaces.toList())
+                             r[1].originalNSContext.toList())
             } else {
                 assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
                                     XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             r[1].namespaces.sortedBy { it.prefix })
+                             r[1].originalNSContext.sortedBy { it.prefix })
 
             }
 
@@ -515,14 +355,14 @@ class TestProcessEngine {
                 |        </fullname>
                 |      </user>
                 |    """.trimMargin("|")
-            assertEquals(result2ExpectedContent, r[1].contentString)
+            assertEquals(result2ExpectedContent, String(r[1].content!!))
         }
 
         stubMessageService.clear() // (Process the message)
         assertEquals(0, ac1.results.size)
-        ac1 = mProcessEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml").toFragment(), principal)
+        ac1 = processEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal)
         assertEquals(NodeInstanceState.Complete, ac1.state)
-        ac1 = mProcessEngine.getNodeInstance(transaction, ac1.getHandle(), principal) ?: throw AssertionError("Node ${ac1.getHandle()} not found")
+        ac1 = processEngine.getNodeInstance(transaction, ac1.getHandle(), modelOwnerPrincipal) ?: throw AssertionError("Node ${ac1.getHandle()} not found")
         assertEquals(2, ac1.results.size)
         val result1 = ac1.results[0]
         val result2 = ac1.results[1]
@@ -536,7 +376,7 @@ class TestProcessEngine {
         }
         assertEquals(1, stubMessageService._messages.size)
         assertEquals(2L, stubMessageService.getMessageNode(0).handleValue) //We should have a new message with the new task (with the data)
-        val ac2 = mProcessEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), principal)
+        val ac2 = processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
 
         val ac2Defines = ac2!!.getDefines(engineData)
         assertEquals(1, ac2Defines.size)
@@ -550,7 +390,7 @@ class TestProcessEngine {
 
     private val simpleSplitModel: ExecutableProcessModel get() {
         return ExecutableProcessModel.build {
-            owner = principal
+            owner = modelOwnerPrincipal
             val start = startNode {
                 id = "start"
             }
@@ -592,26 +432,6 @@ class TestProcessEngine {
     }
 
     companion object {
-
-        internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: Handle<SecureObject<ProcessNodeInstance<*>>>): SecureObject<ProcessNodeInstance<*>>? {
-            if (pni.withPermission().getHandle() == handle) {
-                return pni
-            }
-            val piBuilder = transaction.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()
-            return pni.withPermission().builder(piBuilder).also { it.handle = handle(handle) }.build()
-        }
-
-        internal fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
-            return CachingHandleMap<V, StubProcessTransaction>(base, count)
-        }
-
-        internal fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction> {
-            return CachingHandleMap(base, count, PNI_SET_HANDLE)
-        }
-
-        internal fun <V> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
-            return CachingProcessModelMap(base, count)
-        }
 
         private val documentBuilder: DocumentBuilder by lazy {
             DocumentBuilderFactory.newInstance().apply {

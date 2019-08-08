@@ -37,11 +37,8 @@ import nl.adaptivity.xmlutil.serialization.XML
 @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
 class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
-    constructor(name: String?, path: String?, content: CharArray?, originalNSContext: Iterable<Namespace>?) : super(
-        name, path, content, originalNSContext ?: emptyList())
-
-    @Deprecated("Use one of the parameterized constructors")
-    constructor() : this(null, null, null, null)
+    constructor(name: String?, path: String? = null, content: CharArray? = null, originalNSContext: Iterable<Namespace> = emptyList()) :
+        super(name, path, content, originalNSContext)
 
     class Factory : XmlDeserializerFactory<XmlResultType> {
 

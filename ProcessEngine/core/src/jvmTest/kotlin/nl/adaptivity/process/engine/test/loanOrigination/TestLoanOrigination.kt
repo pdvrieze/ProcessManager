@@ -21,24 +21,36 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.list
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.get
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.processModel.XmlDefineType
+import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.processModel.engine.defineInput
-import nl.adaptivity.process.processModel.engine.runnableActivity
-import nl.adaptivity.process.processModel.engine.configureRunnableActivity
+import nl.adaptivity.process.processModel.engine.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.security.Principal
 import java.util.*
 
-class TestLoanOrigination {
+class TestLoanOrigination: ProcessEngineTestSupport() {
 
     @Test
     fun testCreateModel() {
-        assertEquals("inputCustomerMasterData", Model1.inputCustomerMasterData.id)
+        assertEquals("inputCustomerMasterData", Model1(modelOwnerPrincipal).inputCustomerMasterData.id)
     }
+
+    @Test
+    fun testRunModel() {
+        val model = ExecutableProcessModel(Model1(modelOwnerPrincipal).configurationBuilder)
+        testProcess(model) { tr, model, hinstance ->
+            val instance = tr[hinstance]
+            assertEquals(ProcessInstance.State.FINISHED, instance.state)
+        }
+    }
+
 }
 
 private val clerk1 = SimplePrincipal("preprocessing clerk 1")
@@ -48,10 +60,10 @@ private val clerk1 = SimplePrincipal("preprocessing clerk 1")
 data class LoanCustomer(val customerId: String)
 
 @UseExperimental(ImplicitReflectionSerializer::class)
-private object Model1 : ConfigurableProcessModel<ExecutableProcessNode>(
+private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProcessNode>(
     "testLoanOrigination",
-    clerk1, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")
-                                                                       ) {
+    owner, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")
+                                                                                        ) {
 
     val customerFile = CustomerInformationFile()
     val creditBureau = CreditBureau()
@@ -75,6 +87,7 @@ private object Model1 : ConfigurableProcessModel<ExecutableProcessNode>(
         creditBureau.getCreditWorthiness(AuthInfo(), customerData)
     }
     val end by endNode(checkCreditWorthyness) {
-        defines.add(XmlDefineType("result", checkCreditWorthyness))
+        defines.add(XmlDefineType("input", checkCreditWorthyness))
+        results.add(XmlResultType("result", "input"))
     }
 }

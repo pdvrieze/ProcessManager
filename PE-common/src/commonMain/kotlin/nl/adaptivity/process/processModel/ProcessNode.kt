@@ -61,9 +61,9 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
 
     fun <R> visit(visitor: Visitor<R>): R
 
-    fun getResult(name: String): XmlResultType?
+    fun getResult(name: String): IXmlResultType?
 
-    fun getDefine(name: String): XmlDefineType?
+    fun getDefine(name: String): IXmlDefineType?
 
     @ProcessModelDSL
     interface Builder : XmlDeserializable {

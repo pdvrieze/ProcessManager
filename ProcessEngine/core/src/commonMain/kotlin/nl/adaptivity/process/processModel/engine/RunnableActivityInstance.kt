@@ -21,7 +21,9 @@ import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -29,13 +31,12 @@ import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.engine.processModel.tryRunTask
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.util.ICompactFragment
 
-class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
+class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
     ProcessNodeInstance<RunnableActivityInstance<I, O>>(builder) {
 
 
-    interface Builder<I,O>: ProcessNodeInstance.Builder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>> {
+    interface Builder<I: Any, O: Any>: ProcessNodeInstance.Builder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>> {
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess):Boolean {
             return node.provideTask(engineData, this)
 /*
@@ -78,23 +79,12 @@ class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
             return false // we call finish ourselves, so don't call it afterwards.
         }
 
-        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
-            TODO()
-/*
-            val childInstance = engineData.instance(hChildInstance).withPermission()
-            if (childInstance.state!= ProcessInstance.State.FINISHED) {
-                throw ProcessException("A Composite task cannot be finished until its child process is. The child state is: ${childInstance.state}")
-            }
-            return super.doFinishTask(engineData, childInstance.getOutputPayload())
-*/
-        }
-
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return true
         }
     }
 
-    class BaseBuilder<I,O>(node: RunnableActivity<I,O>,
+    class BaseBuilder<I: Any, O: Any>(node: RunnableActivity<I,O>,
                       predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
                       processInstanceBuilder: ProcessInstance.Builder,
                       owner: Principal,
@@ -119,7 +109,7 @@ class RunnableActivityInstance<I,O>(builder: Builder<I,O>):
         }
     }
 
-    class ExtBuilder<I,O>(base: RunnableActivityInstance<I,O>, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>>(base, processInstanceBuilder), Builder<I,O> {
+    class ExtBuilder<I: Any, O: Any>(base: RunnableActivityInstance<I,O>, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>>(base, processInstanceBuilder), Builder<I,O> {
 
         override var node: RunnableActivity<I,O> by overlay { base.node }
 

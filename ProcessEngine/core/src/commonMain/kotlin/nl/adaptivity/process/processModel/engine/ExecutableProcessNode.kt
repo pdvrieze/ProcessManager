@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
+import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
@@ -47,8 +48,6 @@ interface ExecutableProcessNode : ProcessNode, Identified {
 
   override val identifier: Identifier
     get() = Identifier(id)
-
-  override val results: List<XmlResultType>
 
 //  override val defines: List<XmlDefineType>
 

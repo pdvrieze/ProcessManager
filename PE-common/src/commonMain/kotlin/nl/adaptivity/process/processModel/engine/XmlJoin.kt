@@ -36,7 +36,7 @@ class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProce
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
                )
-        : super(builder, buildHelper, otherNodes)
+        : super(builder.ensureExportable(), buildHelper, otherNodes)
 
     @Serializer(XmlJoin::class)
     companion object: KSerializer<XmlJoin> {

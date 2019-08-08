@@ -22,23 +22,28 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.PNI_SET_HANDLE
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheInstances
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheModels
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheNodes
 import java.net.URI
 import java.util.logging.Logger
 import javax.xml.namespace.QName
 
 open class EngineTestData(val messageService: StubMessageService, val engine: ProcessEngine<StubProcessTransaction>) {
 
-  private constructor(messageService: StubMessageService)
-    : this(messageService, object : ProcessTransactionFactory<StubProcessTransaction> {
-    override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-      return StubProcessTransaction(engineData)
-    }
-  }, TestProcessEngine.cacheModels<Any>(
-    MemProcessModelMap(), 3),
-           TestProcessEngine.cacheInstances(
-               MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 3),
-           TestProcessEngine.cacheNodes<Any>(
-               MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(TestProcessEngine.PNI_SET_HANDLE), 3))
+    private constructor(messageService: StubMessageService)
+        : this(
+        messageService,
+        object : ProcessTransactionFactory<StubProcessTransaction> {
+            override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
+                return StubProcessTransaction(engineData)
+            }
+        },
+        cacheModels<Any>(MemProcessModelMap(), 3),
+        cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 3),
+        cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 3)
+              )
 
   private constructor(messageService: StubMessageService,
                       transactionFactory: ProcessTransactionFactory<StubProcessTransaction>,

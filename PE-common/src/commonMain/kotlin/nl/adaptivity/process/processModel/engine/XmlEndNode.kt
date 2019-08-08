@@ -17,10 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
-import nl.adaptivity.process.processModel.ProcessModel
-import nl.adaptivity.process.processModel.EndNode
-import nl.adaptivity.process.processModel.EndNodeBase
-import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.*
 
 @Serializable(XmlEndNode.Companion::class)
 class XmlEndNode : EndNodeBase, XmlProcessNode {
@@ -31,7 +28,7 @@ class XmlEndNode : EndNodeBase, XmlProcessNode {
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
                ) :
-        super(builder, newOwner, otherNodes)
+        super(builder.ensureExportable(), newOwner, otherNodes)
 
     @Serializer(XmlEndNode::class)
     companion object: KSerializer<XmlEndNode> {

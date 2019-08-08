@@ -127,7 +127,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     fun getDefines(engineData: ProcessEngineDataAccess): List<ProcessData> {
         return node.defines.map {
-            (it as XmlDefineType).applyData(engineData, this)
+            it.applyData(engineData, this)
         }
     }
 

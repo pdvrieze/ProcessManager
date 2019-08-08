@@ -28,6 +28,7 @@ import nl.adaptivity.serialutil.decodeStructure
 import nl.adaptivity.serialutil.writeStructure
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
+
 open class XmlContainerSerializer<T : XMLContainer> {
 
     fun serialize(desc: SerialDescriptor, encoder: Encoder, data: T) {
@@ -62,7 +63,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
     open class ContainerData<T : XMLContainer> {
 
         var content: CharArray? = null
-        var namespaces: Iterable<Namespace>? = null
+        var namespaces: Iterable<Namespace> = emptyList()
 
         @Transient
         val fragment: ICompactFragment?

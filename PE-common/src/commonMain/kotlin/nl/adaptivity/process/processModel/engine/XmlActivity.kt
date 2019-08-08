@@ -68,7 +68,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: MessageActivity.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder, newOwner, otherNodes) {
+               ) : super(builder.ensureExportable(), newOwner, otherNodes) {
         childModel = null
         childId = null
         message = builder.message
@@ -78,7 +78,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: DeserializationBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-                        ) : super(builder, buildHelper.newOwner, otherNodes) {
+                        ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id
@@ -89,7 +89,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: CompositeActivity.ModelBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder, buildHelper.newOwner, otherNodes) {
+               ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         childModel = buildHelper.childModel(builder)
         childId = builder.childId
         message = null
@@ -99,7 +99,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: CompositeActivity.ReferenceBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder, buildHelper.newOwner, otherNodes) {
+               ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id

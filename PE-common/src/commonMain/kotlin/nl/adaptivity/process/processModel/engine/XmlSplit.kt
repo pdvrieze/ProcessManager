@@ -31,7 +31,7 @@ class XmlSplit : SplitBase, XmlProcessNode {
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
                ) :
-        super(builder, newOwner, otherNodes)
+        super(builder.ensureExportable(), newOwner, otherNodes)
 
     @Serializer(XmlSplit::class)
     companion object: KSerializer<XmlSplit> {

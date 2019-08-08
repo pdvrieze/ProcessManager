@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
@@ -35,11 +36,11 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
 abstract class ProcessNodeBase : ProcessNode {
 
     @Transient
-    private val _ownerModel: ProcessModel<out ProcessNode>?
+    private val _ownerModel: ProcessModel<ProcessNode>?
 
     //    @Optional
     @XmlDefault("false")
-    override val isMultiInstance: Boolean
+    final override val isMultiInstance: Boolean
 
     @Transient
     private val _predecessors: MutableIdentifyableSet<Identified>
@@ -75,23 +76,16 @@ abstract class ProcessNodeBase : ProcessNode {
         get() = _y
 
     @SerialName("define")
-    internal val _defines: MutableList<XmlDefineType>
-    @Transient
     override val defines: List<IXmlDefineType>
-        get() = _defines
 
     @SerialName("result")
-    internal val _results: MutableList<XmlResultType>
-
-    @Transient
-    override val results: List<XmlResultType>
-        get() = _results
+    final override val results: List<IXmlResultType>
 
     @Transient
     private var _hashCode = 0
 
     @Transient
-    override val ownerModel: ProcessModel<out ProcessNode>?
+    override val ownerModel: ProcessModel<ProcessNode>?
         get() = _ownerModel
 
     @Transient
@@ -100,7 +94,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
     override val id: String?
 
-    override val label: String?
+    final override val label: String?
 
 
     @Transient
@@ -119,8 +113,8 @@ abstract class ProcessNodeBase : ProcessNode {
         label: String? = null,
         x: Double = Double.NaN,
         y: Double = Double.NaN,
-        defines: Collection<IXmlDefineType> = ArrayList<IXmlDefineType>(),
-        results: Collection<IXmlResultType> = ArrayList<IXmlResultType>(),
+        defines: Collection<IXmlDefineType> = emptyList(),
+        results: Collection<IXmlResultType> = emptyList(),
         isMultiInstance: Boolean = false
                ) {
         this._ownerModel = _ownerModel
@@ -129,8 +123,8 @@ abstract class ProcessNodeBase : ProcessNode {
         this._successors = toIdentifiers(Int.MAX_VALUE, successors)
         this._x = x
         this._y = y
-        this._defines = toExportableDefines(defines)
-        this._results = toExportableResults(results)
+        this.defines = defines.toList()
+        this.results = results.toList()
         this.label = label
         this.id = id
     }
@@ -186,10 +180,10 @@ abstract class ProcessNodeBase : ProcessNode {
         }
     }
 
-    override fun getDefine(name: String) = _defines.firstOrNull { it.name == name }
+    override fun getDefine(name: String): IXmlDefineType? = defines.firstOrNull { it.name == name }
 
-    override fun getResult(name: String): XmlResultType? {
-        return _results.firstOrNull { it.getName() == name }
+    override fun getResult(name: String): IXmlResultType? {
+        return results.firstOrNull { it.getName() == name }
     }
 
     @Deprecated("Don't use")
@@ -242,8 +236,8 @@ abstract class ProcessNodeBase : ProcessNode {
         if (_y.isNaN()) {
             if (!other._y.isNaN()) return false
         } else if (_y != other._y) return false
-        if (_defines != other._defines) return false
-        if (_results != other._results) return false
+        if (defines != other.defines) return false
+        if (results != other.results) return false
         if (_hashCode != other._hashCode) return false
         if (label != other.label) return false
         if (id != other.id) return false
@@ -257,8 +251,8 @@ abstract class ProcessNodeBase : ProcessNode {
         result = 31 * result + _successors.hashCode()
         result = 31 * result + _x.hashCode()
         result = 31 * result + _y.hashCode()
-        result = 31 * result + _defines.hashCode()
-        result = 31 * result + _results.hashCode()
+        result = 31 * result + defines.hashCode()
+        result = 31 * result + results.hashCode()
         result = 31 * result + _hashCode
         result = 31 * result + (label?.hashCode() ?: 0)
         result = 31 * result + (id?.hashCode() ?: 0)
@@ -276,23 +270,6 @@ abstract class ProcessNodeBase : ProcessNode {
                                  ): MutableIdentifyableSet<Identified> =
             IdentifyableSet.processNodeSet(maxSize, identifiables.map { it as? Identifier ?: Identifier(it.id) })
 
-        fun toExportableDefines(exports: Collection<IXmlDefineType>) = exports.asSequence().map {
-            XmlDefineType(it)
-        }.toMutableList()
-
-        fun toExportableResults(imports: Collection<IXmlResultType>) = imports.asSequence().map {
-            XmlResultType(it)
-        }.toMutableList()
-
-        /**
-         * Method to only use the specific ids of predecessors / successors for the hash code. Otherwise there may be an infinite loop.
-         * @param c The collection of ids
-         *
-         * @return The hashcode.
-         */
-        private fun getHashCode(c: Collection<Identifiable>): Int {
-            return c.fold(1) { result, elem -> result * 31 + (elem.id?.hashCode() ?: 1) }
-        }
     }
 
     @Serializable
@@ -401,3 +378,8 @@ private fun <E : IXmlDefineType> Collection<E>.resolveNodes(nodeBuilders: Iterab
     }
 
 private fun Char.isUpperCase() = toUpperCase() == this
+
+fun <R: ProcessNode.Builder> R.ensureExportable(): R = apply {
+    defines.replaceBy(defines.map { XmlDefineType(it) })
+    results.replaceBy(results.map { XmlResultType(it) })
+}
