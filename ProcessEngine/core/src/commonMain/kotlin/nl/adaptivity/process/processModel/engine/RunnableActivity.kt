@@ -113,6 +113,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
         for (define in this.defines) {
             val valueReader = data.single { it.name == define.name }.contentStream
             val value = XML.parse(valueReader, define.deserializer)
+            mappedData[define.getName()] = value
         }
 
         return inputCombiner(mappedData)

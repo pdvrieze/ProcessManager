@@ -17,8 +17,9 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
-data class CreditReport(val reportData: String, val maxLoan: Int) {
+data class CreditReport(@XmlValue(true) val reportData: String, val maxLoan: Int) {
 
 }

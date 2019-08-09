@@ -95,6 +95,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override fun getHandle() = handle
     final override fun handle() = handle
 
+    override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
+
     override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
 
     private fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance<*>>> {

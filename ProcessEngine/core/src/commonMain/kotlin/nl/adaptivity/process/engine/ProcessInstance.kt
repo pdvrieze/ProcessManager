@@ -27,6 +27,7 @@ import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.refNode
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.writeHandleAttr
@@ -169,6 +170,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                         else        -> state = State.CANCELLED
                     }
                     store(engineData)
+                    if (state == State.FINISHED) {
+                        for (output in processModel.exports) {
+                            val x = output.applyFromProcessInstance(engineData, this)
+                            outputs.add(x)
+                        }
+                    }
                     if (parentActivity.isValid) {
                         val parentNodeInstance =
                             engineData.nodeInstance(parentActivity).withPermission() as CompositeInstance
@@ -848,8 +855,6 @@ fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*
      */
     fun getOutputPayload(): CompactFragment? {
         if (outputs.isEmpty()) return null
-        val document =
-            newDocumentBuilderFactory().apply { isNamespaceAware = true }.newDocumentBuilder().newDocument()
         return CompactFragment { writer ->
             outputs.forEach { output ->
                 output.serialize(writer)

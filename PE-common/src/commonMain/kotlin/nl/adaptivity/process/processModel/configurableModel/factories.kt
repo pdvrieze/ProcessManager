@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.configurableModel
 
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.xmlutil.Namespace
 
 val ConfigurableNodeContainer<*>.startNode
     get():StartNode.Builder = StartNodeBase.Builder()
@@ -89,3 +90,14 @@ fun ConfigurableNodeContainer<*>.endNode(predecessor: Identified): EndNode.Build
 
 fun ConfigurableNodeContainer<*>.endNode(predecessor: Identified, config: @ConfigurationDsl EndNode.Builder.() -> Unit): EndNode.Builder =
     EndNodeBase.Builder(predecessor = predecessor).apply(config)
+
+fun ConfigurableNodeContainer<*>.output(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: CharArray? = null,
+    nsContext: Iterable<Namespace> = emptyList()
+                                       ) {
+    configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+}

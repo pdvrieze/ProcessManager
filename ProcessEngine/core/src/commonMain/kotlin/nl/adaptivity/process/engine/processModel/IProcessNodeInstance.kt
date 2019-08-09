@@ -26,14 +26,17 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
  * Simple base interface for process node instances that can also be implemented by builders
  */
 interface IProcessNodeInstance {
-  val node: ExecutableProcessNode
-  val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    val node: ExecutableProcessNode
+    val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
 
-  fun handle(): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
-  val entryNo:Int
-  val  state: NodeInstanceState
-  fun  builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*,*>
+    fun handle(): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+    val entryNo: Int
+    val state: NodeInstanceState
+    fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *>
 
-  fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance) = node.condition(engineData, predecessor, this)
+    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = builder(processInstanceBuilder).build()
+
+    fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance) =
+        node.condition(engineData, predecessor, this)
 
 }

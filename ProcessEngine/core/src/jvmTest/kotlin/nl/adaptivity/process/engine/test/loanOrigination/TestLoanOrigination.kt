@@ -28,6 +28,7 @@ import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.configurableModel.endNode
+import nl.adaptivity.process.processModel.configurableModel.output
 import nl.adaptivity.process.processModel.configurableModel.startNode
 import nl.adaptivity.process.processModel.engine.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -48,6 +49,8 @@ class TestLoanOrigination: ProcessEngineTestSupport() {
         testProcess(model) { tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
+            val modelResult = instance.outputs.single()
+            assertEquals("<CreditReport maxLoan=\"20000\">John Doe is approved for loans up to 20000</CreditReport>", modelResult.content.contentString)
         }
     }
 
@@ -71,6 +74,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
         val newData = CustomerData("cust123456", "taxId234", "passport345", "John Doe", "10 Downing Street")
+        customerFile.enterCustomerData(AuthInfo(), newData)
         LoanCustomer(newData.customerId)
     }
     val customerIdentification by configureRunnableActivity<LoanCustomer, List<CustomerCollateral>>(
@@ -83,11 +87,14 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         }
     }
     val checkCreditWorthyness by runnableActivity(customerIdentification, CreditReport.serializer(),  LoanCustomer.serializer(), inputCustomerMasterData) { customer ->
-        val customerData: CustomerData = customerFile.getCustomerData(AuthInfo(), customer.customerId)!!
+        val customerData: CustomerData = customerFile.getCustomerData(AuthInfo(), customer.customerId) ?: throw NullPointerException("Missing customer data")
         creditBureau.getCreditWorthiness(AuthInfo(), customerData)
     }
     val end by endNode(checkCreditWorthyness) {
         defines.add(XmlDefineType("input", checkCreditWorthyness))
         results.add(XmlResultType("result", "input"))
+    }
+    init {
+        output("result", checkCreditWorthyness)
     }
 }
