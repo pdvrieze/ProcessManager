@@ -16,10 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-class CreditBureau {
-    fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
-        val creditRating = 400
-        return CreditReport("${customerData.name} (rating $creditRating) is approved for loans up to 20000", creditRating, 20000)
-    }
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-}
+@Serializable
+@SerialName("loanCustomer")
+data class LoanCustomer(val customerId: String)

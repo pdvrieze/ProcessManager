@@ -17,8 +17,10 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
+@XmlSerialName("collateral", "", "")
 data class CustomerCollateral(
     val type: String,
     val value: String,

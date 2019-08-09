@@ -21,18 +21,25 @@ import kotlinx.serialization.internal.NullableSerializer
 import kotlinx.serialization.internal.StringSerializer
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.serialutil.decodeElements
+import nl.adaptivity.serialutil.decodeStructure
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.serialutil.*
-import nl.adaptivity.xmlutil.serialization.*
+import nl.adaptivity.xmlutil.serialization.ICompactFragmentSerializer
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlElement
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /** Class to represent data attached to process instances.  */
 @Serializable
 @XmlSerialName(ProcessData.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class ProcessData constructor(@XmlElement(false) override val name: String?,
-                              @Serializable(with = ICompactFragmentSerializer::class)
-                              val content: ICompactFragment) : Named, XmlSerializable {
+class ProcessData
+constructor(
+    @XmlElement(false) override val name: String?,
+    @Serializable(with = ICompactFragmentSerializer::class)
+    val content: ICompactFragment
+           ) : Named, XmlSerializable {
 
     @Transient
     val contentStream: XmlReader
@@ -67,6 +74,10 @@ class ProcessData constructor(@XmlElement(false) override val name: String?,
         return result
     }
 
+    override fun toString(): String {
+        return "ProcessData($name=$content)"
+    }
+
     @Serializer(forClass = ProcessData::class)
     companion object {
 
@@ -86,10 +97,11 @@ class ProcessData constructor(@XmlElement(false) override val name: String?,
             var name: String? = null
             lateinit var content: ICompactFragment
             decoder.decodeStructure(descriptor) {
-                decodeElements(this) {i ->
+                decodeElements(this) { i ->
                     when (i) {
                         KInput.READ_ALL -> throw UnsupportedOperationException()
-                        0               -> name = decodeNullableSerializableElement(descriptor, 0, NullableSerializer(StringSerializer))
+                        0               -> name =
+                            decodeNullableSerializableElement(descriptor, 0, NullableSerializer(StringSerializer))
                         1               -> content = when (this) {
                             is XML.XmlInput -> this.input.siblingsToFragment()
                             else            -> decodeSerializableElement(descriptor, 1, ICompactFragmentSerializer)

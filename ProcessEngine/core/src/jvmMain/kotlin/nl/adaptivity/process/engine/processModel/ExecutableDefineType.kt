@@ -17,6 +17,8 @@
 
 package nl.adaptivity.process.engine.processModel
 
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.DomUtil
@@ -33,7 +35,7 @@ import javax.xml.xpath.XPathConstants
 
 @Throws(SQLException::class)
 actual fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData {
-    return applyDataImpl(engineData, refNode?.let { node.resolvePredecessor(engineData, it)})
+    return applyDataImpl(engineData, refNode?.let { node.resolvePredecessor(engineData, it)}, node.hProcessInstance)
 }
 
 
@@ -44,7 +46,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
         .filter { it.node.id == refNode }
         .lastOrNull()
     }
-    return applyDataImpl(engineData, predecessor)
+    return applyDataImpl(engineData, predecessor, processInstance.getHandle())
 }
 
 @Throws(SQLException::class)
@@ -53,16 +55,16 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
         .allChildren { it.node.id == refNode }
         .lastOrNull()
     }
-    return applyDataImpl(engineData, predecessor?.build(processInstance))
+    return applyDataImpl(engineData, predecessor?.build(processInstance), processInstance.handle)
 }
 
 
-private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance<*>?): ProcessData {
+private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance<*>?, hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 
-    val refName = predecessor?.node?.effectiveRefName(refName)
-    if (predecessor != null && refName != null) {
-        val origpair = predecessor.getResult(engineData, refName)
+    val predRefName = predecessor?.node?.effectiveRefName(refName)
+    if (predecessor != null && predRefName != null) {
+        val origpair = predecessor.getResult(engineData, predRefName)
         if (origpair == null) {
             // TODO on missing data do something else than an empty value
             processData = ProcessData.missingData(name)
@@ -84,6 +86,9 @@ private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, pr
                                    )
             }
         }
+    } else if (predecessor==null && !refName.isNullOrEmpty()) { // Reference to container
+        val instance = engineData.instance(hProcessInstance).withPermission()
+        return instance.inputs.single { it.name == refName }.let { ProcessData(name, it.content) }
     } else {
         processData = ProcessData(name, CompactFragment(""))
     }

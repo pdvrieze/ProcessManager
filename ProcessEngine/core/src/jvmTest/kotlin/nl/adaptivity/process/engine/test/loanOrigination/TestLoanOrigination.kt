@@ -17,9 +17,6 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.list
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
@@ -36,7 +33,7 @@ import org.junit.jupiter.api.Test
 import java.security.Principal
 import java.util.*
 
-class TestLoanOrigination: ProcessEngineTestSupport() {
+class TestLoanOrigination : ProcessEngineTestSupport() {
 
     @Test
     fun testCreateModel() {
@@ -49,18 +46,17 @@ class TestLoanOrigination: ProcessEngineTestSupport() {
         testProcess(model) { tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
-            val modelResult = instance.outputs.single()
-            assertEquals("<CreditReport maxLoan=\"20000\">John Doe is approved for loans up to 20000</CreditReport>", modelResult.content.contentString)
+            val modelResult = instance.outputs.single { it.name == "creditReport" }
+            assertEquals(
+                "<CreditReport maxLoan=\"20000\">John Doe is approved for loans up to 20000</CreditReport>",
+                modelResult.content.contentString
+                        )
         }
     }
 
 }
 
 private val clerk1 = SimplePrincipal("preprocessing clerk 1")
-
-@Serializable
-@SerialName("loanCustomer")
-data class LoanCustomer(val customerId: String)
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProcessNode>(
@@ -69,7 +65,6 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                                                                                         ) {
 
     val customerFile = CustomerInformationFile()
-    val creditBureau = CreditBureau()
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
@@ -77,24 +72,72 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         customerFile.enterCustomerData(AuthInfo(), newData)
         LoanCustomer(newData.customerId)
     }
-    val customerIdentification by configureRunnableActivity<LoanCustomer, List<CustomerCollateral>>(
+    val createLoanRequest by configureRunnableActivity<LoanCustomer, LoanApplication>(
         inputCustomerMasterData,
-        CustomerCollateral.serializer().list
-                                                                                                   ) {
+        LoanApplication.serializer()
+                                                                                     ) {
         defineInput(inputCustomerMasterData)
         action = {
-            listOf(CustomerCollateral("house", "100000", "residential"))
+            LoanApplication(
+                it.customerId,
+                10000,
+                listOf(CustomerCollateral("house", "100000", "residential"))
+                           )
         }
     }
-    val checkCreditWorthyness by runnableActivity(customerIdentification, CreditReport.serializer(),  LoanCustomer.serializer(), inputCustomerMasterData) { customer ->
-        val customerData: CustomerData = customerFile.getCustomerData(AuthInfo(), customer.customerId) ?: throw NullPointerException("Missing customer data")
-        creditBureau.getCreditWorthiness(AuthInfo(), customerData)
+    val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest) {
+        val creditBureau = CreditBureau()
+        val customerFile get() = this@Model1.customerFile
+        val creditApplication = CreditApplication(customerFile)
+
+        val startCreditEvaluate by startNode
+        val getCustomerApproval by runnableActivity(
+            startCreditEvaluate,
+            Approval.serializer(),
+            LoanCustomer.serializer(),
+            null,
+            "customerId"
+                                                   ) { customer ->
+            Approval(true) // full approval for now
+        }
+        val getCreditReport by runnableActivity(
+            getCustomerApproval,
+            CreditReport.serializer(),
+            LoanCustomer.serializer(),
+            null, "customerId"
+                                               ) { customer ->
+            val customerData: CustomerData = customerFile.getCustomerData(AuthInfo(), customer.customerId)
+                ?: throw NullPointerException("Missing customer data")
+            creditBureau.getCreditReport(AuthInfo(), customerData)
+        }
+        val getLoanEvaluation by configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
+            getCreditReport,
+            LoanEvaluation.serializer()
+                                                                                                               ) {
+            inputCombiner = InputCombiner {
+                Pair(it["application"] as LoanApplication, it["creditReport"] as CreditReport)
+            }
+            defineInput("application", null, "loanApplication", LoanApplication.serializer())
+            defineInput("creditReport", getCreditReport, CreditReport.serializer())
+
+            action = { (application, creditReport) ->
+                creditApplication.evaluateLoan(AuthInfo(), application, creditReport)
+            }
+        }
+        val end by endNode(getLoanEvaluation)
+
+        init {
+            input("customerId", this@Model1.inputCustomerMasterData)
+            input("loanApplication", this@Model1.createLoanRequest)
+            output("loanEvaluation", getLoanEvaluation)
+        }
     }
-    val end by endNode(checkCreditWorthyness) {
-        defines.add(XmlDefineType("input", checkCreditWorthyness))
+    val end by endNode(evaluateCredit) {
+        defines.add(XmlDefineType("input", evaluateCredit))
         results.add(XmlResultType("result", "input"))
     }
+
     init {
-        output("result", checkCreditWorthyness)
+        output("loanEvaluation", evaluateCredit)
     }
 }

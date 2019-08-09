@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.impl.dom.isNamespaceAware
 import nl.adaptivity.process.engine.impl.dom.newDocumentBuilderFactory
+import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.QName
@@ -133,12 +134,16 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         val defines = getDefines(engineData)
         if (defines.isEmpty()) return null
 
-        return CompactFragment { writer ->
+        val content = buildString {
             for(data in defines) {
-                writer.smartStartTag(QName( data.name!!)) {
-                    writer.serialize(data.contentStream)
-                }
+                append(generateXmlString(true) { writer ->
+                    writer.smartStartTag(QName(data.name!!)) {
+                        writer.serialize(data.contentStream)
+                    }
+                })
+                append("\n")
             }
         }
+        return CompactFragment(content)
     }
 }

@@ -111,7 +111,8 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
     fun getInputData(data: List<ProcessData>): I {
         val mappedData = mutableMapOf<String, Any?>()
         for (define in this.defines) {
-            val valueReader = data.single { it.name == define.name }.contentStream
+            val valueReader = data.singleOrNull() { it.name == define.name }?.contentStream
+                ?: throw NoSuchElementException("Could not find single define with name ${define.refName}")
             val value = XML.parse(valueReader, define.deserializer)
             mappedData[define.getName()] = value
         }
@@ -130,7 +131,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
 
         constructor(
             predecessor: Identified,
-            refNode: Identified,
+            refNode: Identified?,
             refName: String,
             inputSerializer: DeserializationStrategy<I>,
             outputSerializer: SerializationStrategy<O>? = null,
@@ -142,7 +143,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
                 @Suppress("UNCHECKED_CAST")
                 inputCombiner = InputCombiner.UNIT as InputCombiner<I>
             } else {
-                defineInput("input", refNode, refName, inputSerializer)
+                defineInput<I>("input", refNode, refName, inputSerializer)
             }
 
             when (outputSerializer) {
@@ -170,23 +171,23 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             this.action = activity.action
         }
 
-        fun <T: Any> defineInput(
-            name: String,
-            refNode: Identified,
-            valueName: String,
-            deserializer: DeserializationStrategy<T>
-                           ) {
+        fun <T: Any> defineInput(name: String, refNode: Identified?, valueName: String, deserializer: DeserializationStrategy<T>) {
             val defineType = DefineType(name, refNode, valueName, null, deserializer)
             defines.add(defineType)
         }
 
-        fun defineInput(refNode: Identified, valueName: String, deserializer: DeserializationStrategy<I>) {
+        fun defineInput(refNode: Identified?, valueName: String, deserializer: DeserializationStrategy<I>) {
             val defineType = DefineType("input", refNode, valueName, null, deserializer)
             defines.add(defineType)
         }
 
-        fun defineInput(refNode: Identified, deserializer: DeserializationStrategy<I>) {
+        fun defineInput(refNode: Identified?, deserializer: DeserializationStrategy<I>) {
             val defineType = DefineType("input", refNode, "", null, deserializer)
+            defines.add(defineType)
+        }
+
+        fun <T: Any> defineInput(name: String, refNode: Identified?, deserializer: DeserializationStrategy<T>) {
+            val defineType = DefineType(name, refNode, "", null, deserializer)
             defines.add(defineType)
         }
 
@@ -197,7 +198,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
 
     class DefineType<T: Any>(
         private val name: String,
-        private val refNode: Identified,
+        private val refNode: Identified?,
         private val refName: String,
         private val path: String?,
         val deserializer: DeserializationStrategy<T>,
@@ -206,7 +207,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
         override val content: Nothing? get() = null
         override val originalNSContext: Iterable<Namespace> get() = emptyList()
 
-        override fun getRefNode(): String = refNode.id
+        override fun getRefNode(): String? = refNode?.id
 
         override fun setRefNode(value: String?): Nothing = throw UnsupportedOperationException("Immutable type")
 
@@ -236,7 +237,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
 
         fun <U: Any> copy(
             name: String = getName(),
-            refNode: Identified = this.refNode,
+            refNode: Identified? = this.refNode,
             refName: String = getRefName()!!,
             path: String? = getPath(),
             deserializer: DeserializationStrategy<U>,
@@ -278,7 +279,7 @@ fun <I: Any, O: Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableAc
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
-    inputRefNode: Identified,
+    inputRefNode: Identified?,
     inputRefName: String = "",
     action: RunnableAction<I, O>
                                                                             ): RunnableActivity.Builder<I, O> =

@@ -22,6 +22,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
+import nl.adaptivity.xmlutil.Namespace
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -190,6 +191,9 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             if (configurationBuilder.id == null) {
                 configurationBuilder.id = value
             }
+            if (configurationBuilder.childId == null) {
+                configurationBuilder.childId = value
+            }
         }
 
         operator fun ProcessNode.Builder.provideDelegate(
@@ -213,6 +217,33 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             thisRef: ConfigurableCompositeActivity,
             property: KProperty<*>
                                                          ): Identifier = this
+
+
+        fun input(
+            name: String,
+            refNode: Identified,
+            refName: String? = null,
+            path: String? = null,
+            content: CharArray? = null,
+            nsContext: Iterable<Namespace> = emptyList()
+                 ) {
+            configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+            configurationBuilder.imports.add(XmlResultType(name, "/$name/*"))
+        }
+
+
+        fun output(
+            name: String,
+            refNode: Identified,
+            refName: String? = null,
+            path: String? = null,
+            content: CharArray? = null,
+            nsContext: Iterable<Namespace> = emptyList()
+                                               ) {
+            configurationBuilder.results.add(XmlResultType(name, "/$name"))
+            configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+        }
+
 
     }
 

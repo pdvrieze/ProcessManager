@@ -41,7 +41,9 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode> {
     fun toInputs(payload: CompactFragment?): List<ProcessData> {
         // TODO make this work properly
 
-        return imports.map { XmlResultType(it).applyData(payload) }
+        return imports.map {
+            it.applyData(payload)
+        }
     }
 
     fun getNode(nodeId: String): ExecutableProcessNode?

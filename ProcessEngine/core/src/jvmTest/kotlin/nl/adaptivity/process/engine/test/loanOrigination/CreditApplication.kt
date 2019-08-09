@@ -16,10 +16,13 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-class CreditBureau {
-    fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
-        val creditRating = 400
-        return CreditReport("${customerData.name} (rating $creditRating) is approved for loans up to 20000", creditRating, 20000)
+class CreditApplication(val customerInformationFile: CustomerInformationFile) {
+    fun evaluateLoan(authInfo: AuthInfo, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
+        val customer = customerInformationFile.getCustomerData(AuthInfo(), application.customerId)!!
+        if (application.amount<creditReport.maxLoan) {
+            return LoanEvaluation(application.customerId, application, true, "Loan for customer ${customer.name} in the amoount of ${application.amount} approved")
+        } else {
+            return LoanEvaluation(application.customerId, application, false, "Loan for customer ${customer.name} for ${application.amount} could not be automatically approved")
+        }
     }
-
 }

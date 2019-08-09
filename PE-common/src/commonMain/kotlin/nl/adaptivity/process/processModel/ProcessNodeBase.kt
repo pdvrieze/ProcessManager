@@ -136,7 +136,11 @@ abstract class ProcessNodeBase : ProcessNode {
             builder.y, builder.defines, builder.results, builder.isMultiInstance
             )
 
-    internal constructor(builder: ProcessNode.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+    internal constructor(
+        builder: ProcessNode.Builder,
+        newOwner: ProcessModel<*>,
+        otherNodes: Iterable<ProcessNode.Builder>
+                        ) :
         this(
             newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
             builder.y, builder.defines.resolveNodes(otherNodes), builder.results, builder.isMultiInstance
@@ -343,11 +347,11 @@ abstract class ProcessNodeBase : ProcessNode {
             if (XMLConstants.NULL_NS_URI == attributeNamespace) {
                 val value = attributeValue
                 when (attributeLocalName) {
-                    "id"    -> id = value
+                    "id" -> id = value
                     "label" -> label = value
-                    "x"     -> x = value.toDouble()
-                    "y"     -> y = value.toDouble()
-                    else    -> return false
+                    "x" -> x = value.toDouble()
+                    "y" -> y = value.toDouble()
+                    else -> return false
                 }
                 return true
             }
@@ -369,7 +373,8 @@ private fun <E : IXmlDefineType> Collection<E>.resolveNodes(nodeBuilders: Iterab
         val d: IXmlDefineType = when {
             refNode != null && define.getRefName().isNullOrBlank() -> {
                 val pred = nodeBuilders.first { it.id == refNode }
-                val result = pred.results.singleOrNull() ?: throw IllegalArgumentException("Cannot resolve missing result name when there is no single result")
+                val result = pred.results.singleOrNull()
+                    ?: throw IllegalArgumentException("Cannot resolve missing result in ${refNode} when there is no single result (${pred.results.count()})")
                 define.copy(refName = result.getName())
             }
             else                                                   -> define
@@ -379,7 +384,7 @@ private fun <E : IXmlDefineType> Collection<E>.resolveNodes(nodeBuilders: Iterab
 
 private fun Char.isUpperCase() = toUpperCase() == this
 
-fun <R: ProcessNode.Builder> R.ensureExportable(): R = apply {
+fun <R : ProcessNode.Builder> R.ensureExportable(): R = apply {
     defines.replaceBy(defines.map { XmlDefineType(it) })
     results.replaceBy(results.map { XmlResultType(it) })
 }

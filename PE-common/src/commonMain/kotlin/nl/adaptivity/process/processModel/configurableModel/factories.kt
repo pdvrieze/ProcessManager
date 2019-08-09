@@ -91,7 +91,19 @@ fun ConfigurableNodeContainer<*>.endNode(predecessor: Identified): EndNode.Build
 fun ConfigurableNodeContainer<*>.endNode(predecessor: Identified, config: @ConfigurationDsl EndNode.Builder.() -> Unit): EndNode.Builder =
     EndNodeBase.Builder(predecessor = predecessor).apply(config)
 
-fun ConfigurableNodeContainer<*>.output(
+
+fun ConfigurableProcessModel<*>.input(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: CharArray? = null,
+    nsContext: Iterable<Namespace> = emptyList()
+         ) {
+    configurationBuilder.imports.add(XmlResultType(name, "/$name"))
+}
+
+fun ConfigurableProcessModel<*>.output(
     name: String,
     refNode: Identified,
     refName: String? = null,
