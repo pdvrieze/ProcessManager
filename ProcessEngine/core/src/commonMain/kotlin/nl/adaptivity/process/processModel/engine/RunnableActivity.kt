@@ -171,29 +171,36 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             this.action = activity.action
         }
 
-        fun <T: Any> defineInput(name: String, refNode: Identified?, valueName: String, deserializer: DeserializationStrategy<T>) {
-            val defineType = DefineType(name, refNode, valueName, null, deserializer)
-            defines.add(defineType)
-        }
-
-        fun defineInput(refNode: Identified?, valueName: String, deserializer: DeserializationStrategy<I>) {
+        fun defineInput(refNode: Identified?, valueName: String, deserializer: DeserializationStrategy<I>): InputCombiner.InputValue<I> {
             val defineType = DefineType("input", refNode, valueName, null, deserializer)
             defines.add(defineType)
+            return InputValueImpl("input")
         }
 
-        fun defineInput(refNode: Identified?, deserializer: DeserializationStrategy<I>) {
+        fun <T: Any> defineInput(name: String, refNode: Identified?, valueName: String, deserializer: DeserializationStrategy<T>): InputCombiner.InputValue<T> {
+            val defineType = DefineType(name, refNode, valueName, null, deserializer)
+            defines.add(defineType)
+            return InputValueImpl(name)
+        }
+
+        fun defineInput(refNode: Identified?, deserializer: DeserializationStrategy<I>): InputCombiner.InputValue<I> {
             val defineType = DefineType("input", refNode, "", null, deserializer)
             defines.add(defineType)
+            return InputValueImpl("input")
         }
 
-        fun <T: Any> defineInput(name: String, refNode: Identified?, deserializer: DeserializationStrategy<T>) {
+        fun <T: Any> defineInput(name: String, refNode: Identified?, deserializer: DeserializationStrategy<T>): InputCombiner.InputValue<T> {
             val defineType = DefineType(name, refNode, "", null, deserializer)
             defines.add(defineType)
+            return InputValueImpl(name)
         }
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R {
             return visitor.visitGenericActivity(this)
         }
+
+
+        class InputValueImpl<V>(override val name: String): InputCombiner.InputValue<V>
     }
 
     class DefineType<T: Any>(
@@ -258,16 +265,40 @@ private fun <R:RunnableActivity.Builder<*, *>> R.checkDefines(): R = apply {
     }
 }
 
-class InputCombiner<T>(val impl: ((Map<String, Any?>) -> T)? = null) {
+class InputCombiner<T>(val impl: (InputContext.(Map<String, Any?>) -> T)? = null) {
+    @Suppress("UNCHECKED_CAST")
     operator fun invoke(input: Map<String, Any?>): T {
-        val impl = impl
+        val implLocal = impl
         return when {
-            impl != null -> impl(input)
-            input.isEmpty() -> Unit as T
-            input.size == 1 -> input.values.single() as T
-            else -> throw UnsupportedOperationException("Cannot combine multiple inputs automatically")
+            implLocal != null -> InputContextImpl(input).implLocal(input)
+            input.isEmpty()   -> Unit as T
+            input.size == 1   -> input.values.single() as T
+            else              -> throw UnsupportedOperationException("Cannot combine multiple inputs automatically")
         }
 
+    }
+
+    interface InputValue<V> {
+        val name: String
+    }
+
+    interface InputContext {
+        fun <T> valueOf(name:String): T
+        fun <T> valueOf(inputValue: InputValue<T>): T
+
+        operator fun <T> InputValue<T>.invoke() = valueOf(this)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private class InputContextImpl(private val input: Map<String, Any?>): InputContext {
+
+        override fun <T> valueOf(name:String):T {
+            return input.get(name) as T
+        }
+
+        override fun <T> valueOf(inputValue: InputValue<T>): T {
+            return input.get(inputValue.name) as T
+        }
     }
 
     companion object {

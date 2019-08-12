@@ -33,7 +33,7 @@ inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableP
 }
 
 @kotlinx.serialization.ImplicitReflectionSerializer
-inline fun <reified I:Any> RunnableActivity.Builder<I, *>.defineInput(refNode: Identified) {
+inline fun <reified I:Any> RunnableActivity.Builder<I, *>.defineInput(refNode: Identified): InputCombiner.InputValue<I> {
     return defineInput(refNode, I::class.serializer())
 }
 

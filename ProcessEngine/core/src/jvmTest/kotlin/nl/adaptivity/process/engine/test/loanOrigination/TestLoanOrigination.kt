@@ -21,8 +21,6 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
-import nl.adaptivity.process.processModel.XmlDefineType
-import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.output
@@ -46,11 +44,13 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
         testProcess(model) { tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
-            val creditReport = instance.outputs.single { it.name == "creditReport" }
+            val creditReport = instance.outputs.singleOrNull { it.name == "creditReport" }
             assertEquals(
                 "<CreditReport creditRating=\"400\" maxLoan=\"20000\">John Doe (rating 400) is approved for loans up to 20000</CreditReport>",
-                creditReport.content.contentString
+                creditReport?.content?.contentString
                         )
+            val accountNumber = instance.outputs.singleOrNull { it.name == "accountNumber" }
+            assertEquals("<BankAccountNumber>123456</BankAccountNumber>", accountNumber?.content?.contentString)
         }
     }
 
@@ -65,6 +65,8 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                                                                                         ) {
 
     val customerFile = CustomerInformationFile()
+    val outputManagementSystem = OutputManagementSystem()
+    val accountManagementSystem = AccountManagementSystem()
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
@@ -114,11 +116,11 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             getCreditReport,
             LoanEvaluation.serializer()
                                                                                                                ) {
+            val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
+            val credIn = defineInput("creditReport", getCreditReport, CreditReport.serializer())
             inputCombiner = InputCombiner {
-                Pair(it["application"] as LoanApplication, it["creditReport"] as CreditReport)
+                Pair(apIn(), credIn())
             }
-            defineInput("application", null, "loanApplication", LoanApplication.serializer())
-            defineInput("creditReport", getCreditReport, CreditReport.serializer())
 
             action = { (application, creditReport) ->
                 creditApplication.evaluateLoan(AuthInfo(), application, creditReport)
@@ -133,13 +135,61 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             output("creditReport", getCreditReport)
         }
     }
-    val end by endNode(evaluateCredit) {
-        defines.add(XmlDefineType("input", evaluateCredit, "loanEvaluation"))
-        results.add(XmlResultType("result", "input"))
+    val chooseBundledProduct by runnableActivity(
+        evaluateCredit,
+        LoanProductBundle.serializer(),
+        LoanEvaluation.serializer(), evaluateCredit, "loanEvaluation"
+                                                ) { loanEvaluation ->
+        LoanProductBundle("simpleLoan", "simpleLoan2019.a")
     }
+    val offerPricedLoan by object: ConfigurableCompositeActivity(chooseBundledProduct) {
+        val pricingEngine = PricingEngine()
+
+        init {
+            input("loanEval", this@Model1.evaluateCredit, "loanEvaluation")
+            input("chosenProduct", this@Model1.chooseBundledProduct)
+        }
+        val start by startNode
+        val priceBundledProduct by configureRunnableActivity<PricingInput, PricedLoanProductBundle>(start, PricedLoanProductBundle.serializer()) {
+
+            val loanEval = defineInput("loanEval", null, "loanEval", LoanEvaluation.serializer())
+            val productInput = defineInput("prod", null, "chosenProduct", LoanProductBundle.serializer())
+
+            inputCombiner = InputCombiner {
+                PricingInput(loanEval(), productInput())
+            }
+
+            action = { (loanEval, chosenProduct) ->
+                pricingEngine.priceLoan(chosenProduct, loanEval)
+            }
+        }
+        val approveOffer by runnableActivity(priceBundledProduct, PricedLoanProductBundle.serializer(), PricedLoanProductBundle.serializer(), priceBundledProduct) { draftOffer ->
+            draftOffer.approve()
+        }
+        val end by endNode(approveOffer)
+
+        init {
+            output("approvedOffer", approveOffer)
+        }
+    }
+    val printOffer by runnableActivity(offerPricedLoan, Offer.serializer(), PricedLoanProductBundle.serializer(), offerPricedLoan) { approvedOffer ->
+        outputManagementSystem.registerAndPrintOffer(approvedOffer)
+    }
+    val customerSignsContract by runnableActivity(printOffer, Offer.serializer(), Offer.serializer(), printOffer) { offer ->
+        offer.signCustomer("Signed by 'John Doe'")
+    }
+    val bankSignsContract by runnableActivity(customerSignsContract, Contract.serializer(), Offer.serializer(), customerSignsContract) {
+        outputManagementSystem.signAndRegisterContract(it, "Signed by 'the bank manager'")
+    }
+    val openAccount by runnableActivity(bankSignsContract, BankAccountNumber.serializer(), Contract.serializer(), bankSignsContract) { contract ->
+        accountManagementSystem.openAccountFor(AuthInfo(), contract)
+    }
+    val end by endNode(openAccount)
 
     init {
         output("loanEvaluation", evaluateCredit, "loanEvaluation")
         output("creditReport", evaluateCredit, "creditReport")
+        output("accountNumber", openAccount)
     }
 }
+private data class PricingInput(val loanEvaluation: LoanEvaluation, val chosenProduct: LoanProductBundle)
