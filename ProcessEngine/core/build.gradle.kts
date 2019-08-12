@@ -15,7 +15,10 @@
  */
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilationToRunnableFiles
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import versions.*
 
@@ -45,6 +48,26 @@ kotlin {
                 }
             }
             attributes.attribute(androidAttribute, false)
+
+
+            tasks.create<Test>("testWCP1") {
+                useJUnitPlatform {
+                    includeEngines("spek2"/*, "junit-jupiter"*/)
+                }
+                filter {
+                    includeTestsMatching("nl.adaptivity.process.engine.patterns.WCP1.*")
+                }
+                val testCompilation = compilations.findByName(KotlinCompilation.TEST_COMPILATION_NAME) as KotlinJvmCompilation
+
+                description = "Run WCP1"
+                group = JavaBasePlugin.VERIFICATION_GROUP
+                project.afterEvaluate {
+                    // use afterEvaluate to override the JavaPlugin defaults for Test tasks
+                    conventionMapping("testClassesDirs") { testCompilation.output.classesDirs }
+                    conventionMapping("classpath") { testCompilation.runtimeDependencyFiles }
+                }
+            }
+
         }
 /*
         jvm("android") {
@@ -133,10 +156,10 @@ tasks.withType<KotlinCompile> {
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform {
         includeEngines("spek2", "junit-jupiter")
-        include("**/TestWorkflowPatterns**")
-        include("**/TestProcessEngine**")
-        include("**/TestLoanOrigination**")
     }
+    include("**/TestWorkflowPatterns**")
+    include("**/TestProcessEngine**")
+    include("**/TestLoanOrigination**")
 }
 
 idea {
