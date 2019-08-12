@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
+import nl.adaptivity.process.StubTransaction
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -147,7 +148,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
 
         assertEqualsXml(expected, receivedChars)
 
-        run {
+        if(true) {
             val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
 
             assertEquals(1, processInstance.active.size)
@@ -168,9 +169,11 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                     assertComplete()
                 }
             }
+            // process the queue as the we are going around the engine.
+            processEngine.processTickleQueue(transaction)
         }
 
-        run {
+        if(true) {
             val processInstance = transaction.getInstance(instanceHandle).assertIsFinished()
             val start = processInstance.child(transaction, "start")
             val ac = processInstance.child(transaction, "ac2")
@@ -222,7 +225,8 @@ class TestProcessEngine: ProcessEngineTestSupport() {
 
     @Test
     fun testSplitJoin1() {
-        testProcess(simpleSplitModel) { transaction, model, instanceHandle ->
+        testProcess(simpleSplitModel) { protoTransaction, model, instanceHandle ->
+            val transaction = protoTransaction as StubProcessTransaction
             val engineData = transaction.writableEngineData
             run {
                 run {
@@ -253,6 +257,8 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                     }
 
                 }
+                // process the queue as the we are going around the engine.
+                processEngine.processTickleQueue(transaction)
                 run {
                     val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
                     val start = instance.child(transaction, "start")
@@ -270,6 +276,8 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                         }
                     }
                 }
+                // process the queue as the we are going around the engine.
+                processEngine.processTickleQueue(transaction)
                 run {
                     val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
                     val start = instance.child(transaction, "start")
@@ -287,6 +295,8 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                         }
                     }
                 }
+                // process the queue as the we are going around the engine.
+                processEngine.processTickleQueue(transaction)
 
                 run {
                     val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
@@ -303,6 +313,8 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                 }
 
             }
+            // process the queue as the we are going around the engine.
+            processEngine.processTickleQueue(transaction)
             run {
                 val instance = transaction.readableEngineData.instance(instanceHandle).withPermission()
                 assertEquals(State.FINISHED, instance.state)

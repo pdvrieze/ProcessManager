@@ -93,8 +93,10 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubPr
   @ProcessTestingDslMarker
   inner class InstanceSpecBody(delegate:EngineSpecBody): DelegateSpecBody<InstanceSpecBody, InstanceActionBody, InstanceTestBody, InstanceFixtureBody>(delegate.delegate), InstanceSupport {
     override val transaction get() = this@ProcessTestingDsl.transaction
+      override val engine: ProcessEngine<StubProcessTransaction>
+          get() = engineTesting.testData.engine
 
-    val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
+      val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
 
     override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: EngineTestBody(base))
 
@@ -115,6 +117,7 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubPr
   inner class InstanceTestBody(delegate: EngineTestBody): DelegateTestBody(delegate), InstanceSupport, SafeNodeActions {
     override val transaction get() = this@ProcessTestingDsl.transaction
     val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
+    override val engine: ProcessEngine<StubProcessTransaction> get() = engineTesting.testData.engine
   }
 
   inner class InstanceFixtureBody: ProcessNodeActions {
@@ -328,6 +331,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                       finishTask(transaction.writableEngineData, null)
                     }
                   }
+                  engine.processTickleQueue(transaction)
               } catch (e: ProcessException) {
                 if (e.message?.startsWith(
                   "A Composite task cannot be finished until its child process is. The child state is:") ?: false) {
@@ -344,6 +348,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                     finishTask(transaction.writableEngineData, null)
                   }
                 }
+                engine.processTickleQueue(transaction)
             } catch (e: ProcessException) {
               assertNotNull(e.message)
               assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
@@ -358,6 +363,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                 finishTask(transaction.writableEngineData, null)
               }
             }
+            engine.processTickleQueue(transaction)
           } catch (e:ProcessException) {
             throw ProcessTestingException(e)
           }

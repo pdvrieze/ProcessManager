@@ -26,6 +26,9 @@ import nl.adaptivity.process.engine.impl.Logger
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.util.security.Principal
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T> {
     protected abstract val processModels: IMutableProcessModelMap<T>
@@ -59,12 +62,9 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 
     open fun createReadDelegate(transaction: T): ProcessEngineDataAccess = createWriteDelegate(transaction)
 
-    inline fun <R> inWriteTransaction(transaction: T, body: MutableProcessEngineDataAccess.() -> R): R {
-        return body(createWriteDelegate(transaction))
-    }
-
     abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess
 
+    abstract fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>)
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inReadonlyTransaction(
@@ -96,3 +96,11 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 
 }
 
+
+@UseExperimental(ExperimentalContracts::class)
+inline fun <T : ProcessTransaction, R> IProcessEngineData<T>.inWriteTransaction(transaction: T, body: MutableProcessEngineDataAccess.() -> R): R {
+    contract {
+        callsInPlace(body, InvocationKind.EXACTLY_ONCE)
+    }
+    return body(createWriteDelegate(transaction))
+}

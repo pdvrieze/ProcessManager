@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
-import net.devrieze.util.Transaction
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptor
@@ -35,8 +34,8 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.xmlutil.XmlStreaming
-import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.siblingsToFragment
+import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import org.xml.sax.SAXException
 import java.io.IOException
@@ -101,8 +100,35 @@ private fun <T : ProcessTransaction> wrapModelCache(base: IMutableProcessModelMa
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMessageService<*>,
-                                                private val engineData: IProcessEngineData<TRXXX>) {
+class ProcessEngine<TRXXX : ProcessTransaction> {
+
+    private val messageService: IMessageService<*>
+    private val engineData: IProcessEngineData<TRXXX>
+    private val tickleQueue = ArrayDeque<ComparableHandle<SecureObject<ProcessInstance>>>()
+    private var mSecurityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
+
+    constructor(messageService: IMessageService<*>, engineData: IProcessEngineData<TRXXX>) {
+        this.messageService = messageService
+        this.engineData = engineData
+    }
+
+    constructor(
+        messageService: IMessageService<*>,
+        transactionFactory: ProcessTransactionFactory<TRXXX>,
+        processModels: IMutableProcessModelMap<TRXXX>,
+        processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, TRXXX>,
+        processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, TRXXX>,
+        autoTransition: Boolean,
+        logger: Logger
+               ) {
+        this.messageService = messageService
+        this.engineData = DelegateProcessEngineData(
+            transactionFactory, processModels,
+            processInstances, processNodeInstances,
+            messageService, logger,
+            this
+                                 )
+    }
 
     class DelegateProcessEngineData<T : ProcessTransaction>(
         private val transactionFactory: ProcessTransactionFactory<T>,
@@ -110,7 +136,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
         override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
         private val messageService: IMessageService<*>,
-        override val logger: nl.adaptivity.process.engine.impl.Logger) : IProcessEngineData<T>(), TransactionFactory<T> {
+        override val logger: nl.adaptivity.process.engine.impl.Logger,
+        private val engine: ProcessEngine<T>
+                                                           ) : IProcessEngineData<T>(), TransactionFactory<T> {
 
         private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
             override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
@@ -142,6 +170,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             override fun handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
                 // Ignore the completion for now. Just keep it in the engine.
             }
+
+            override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+                this@DelegateProcessEngineData.queueTickle(instanceHandle)
+            }
         }
 
         override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess = DelegateEngineDataAccess(
@@ -151,6 +183,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
 
         override fun isValidTransaction(transaction: Transaction): Boolean {
             return transaction is ProcessTransaction && transaction.readableEngineData == this
+        }
+
+        override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+            engine.queueTickle(instanceHandle)
         }
     }
 
@@ -191,6 +227,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             override fun handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
                 // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
             }
+
+            override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+                this@DBProcessEngineData.queueTickle(instanceHandle)
+            }
         }
 
         private val context = InitialContext().lookup("java:/comp/env") as Context
@@ -227,6 +267,10 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         override fun isValidTransaction(transaction: Transaction): Boolean {
             return transaction is ProcessDBTransaction
         }
+
+        override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+            engine.queueTickle(instanceHandle)
+        }
     }
 
 
@@ -247,8 +291,6 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         TICKLE_NODE,
         START_PROCESS;
     }
-
-    private var mSecurityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
 
     fun invalidateModelCache(handle: Handle<SecureObject<ExecutableProcessModel>>) {
         engineData.invalidateCachePM(handle)
@@ -489,24 +531,49 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         return tickleInstance(transaction, handle(handle = handle), user)
     }
 
+    fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+        if (instanceHandle !in tickleQueue) {
+            tickleQueue.add(instanceHandle)
+        }
+    }
+
     fun tickleInstance(transaction: TRXXX,
                        handle: ComparableHandle<SecureObject<ProcessInstance>>,
-                       user: Principal): Boolean {
-        transaction.writableEngineData.run {
-            invalidateCachePM(getInvalidHandle())
-            invalidateCachePI(getInvalidHandle())
-            invalidateCachePNI(getInvalidHandle())
+                       user: Principal, processingTickles: Boolean = false): Boolean {
+        try {
+            transaction.writableEngineData.run {
+                invalidateCachePM(getInvalidHandle())
+                invalidateCachePI(getInvalidHandle())
+                invalidateCachePNI(getInvalidHandle())
 
-            (instances[handle] ?: return false).withPermission(mSecurityProvider, Permissions.TICKLE_INSTANCE, user) {
-                it.update(transaction.writableEngineData) {
-                    tickle(transaction.writableEngineData, messageService)
+                (instances[handle] ?: return false).withPermission(
+                    mSecurityProvider,
+                    Permissions.TICKLE_INSTANCE,
+                    user
+                                                                  ) {
+//                    if (it.state.isFinal) return false
+
+                    it.update(transaction.writableEngineData) {
+                        tickle(transaction.writableEngineData, messageService)
+                    }
+
+                    return true
                 }
 
-                return true
             }
-
+        } finally {
+            processTickleQueue(transaction, processingTickles)
         }
+    }
 
+    fun processTickleQueue(transaction: TRXXX, processingTickles: Boolean = false) {
+        if (processingTickles) return
+        while (tickleQueue.isNotEmpty()) {
+            val instanceHandle = tickleQueue.removeFirst()
+            engineData.inWriteTransaction(transaction) {
+                tickleInstance(transaction, instanceHandle, SYSTEMPRINCIPAL, true)
+            }
+        }
     }
 
     /**
@@ -547,8 +614,9 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             }
         }
 
+        val resultHandle: ComparableHandle<ProcessInstance>
         engineData.inWriteTransaction(transaction) {
-            val resultHandle = instances.put(instance)
+            resultHandle = instances.put(instance)
             instance(resultHandle).withPermission().let { instance ->
                 assert(instance.getHandle().handleValue == resultHandle.handleValue)
                 instance.initialize(transaction.writableEngineData)
@@ -562,14 +630,14 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                     throw e
                 }
             }
-
-            return HProcessInstance(resultHandle)
         }
+        processTickleQueue(transaction)
+        return HProcessInstance(resultHandle)
     }
 
     /**
      * Convenience method to start a process based upon a process model handle.
-
+     *
      * @param handle The process model to start a new instance for.
      *
      * @param name The name of the new instance.
@@ -679,12 +747,13 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                         handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                         newState: NodeInstanceState,
                         user: Principal): NodeInstanceState {
-        val engineData = transaction.writableEngineData
-        run {
-
-            engineData.nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider,
-                                                                                SecureObject.Permissions.UPDATE,
-                                                                                user) { task ->
+        try {
+            val engineData = transaction.writableEngineData
+            engineData.nodeInstances[handle].shouldExist(handle).withPermission(
+                mSecurityProvider,
+                SecureObject.Permissions.UPDATE,
+                user
+                                                                               ) { task ->
 
                 val pi = engineData.instance(task.hProcessInstance).withPermission()
 
@@ -694,25 +763,29 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                     pi.update(engineData) {
                         finalState = updateChild(handle) {
                             when (newState) {
-                                Sent -> throw IllegalArgumentException(
-                                    "Updating task state to initial state not possible")
+                                Sent         -> throw IllegalArgumentException(
+                                    "Updating task state to initial state not possible"
+                                                                              )
                                 Acknowledged -> state = newState
-                                Taken -> takeTask(engineData)
-                                Started -> startTask(engineData)
-                                Complete -> throw IllegalArgumentException(
-                                    "Finishing a task must be done by a separate method")
-                            // TODO don't just make up a failure cause
-                                Failed -> failTask(engineData, IllegalArgumentException("Missing failure cause"))
-                                Cancelled -> cancel(engineData)
-                                else -> throw IllegalArgumentException("Unsupported state :" + newState)
+                                Taken        -> takeTask(engineData)
+                                Started      -> startTask(engineData)
+                                Complete     -> throw IllegalArgumentException(
+                                    "Finishing a task must be done by a separate method"
+                                                                              )
+                                // TODO don't just make up a failure cause
+                                Failed       -> failTask(engineData, IllegalArgumentException("Missing failure cause"))
+                                Cancelled    -> cancel(engineData)
+                                else         -> throw IllegalArgumentException("Unsupported state :" + newState)
                             }
                         }.state
                     }
                 }
                 return finalState
             }
-
+        } finally {
+            processTickleQueue(transaction)
         }
+
     }
 
     @Throws(SQLException::class)
@@ -721,29 +794,34 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
         handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
         payload: ICompactFragment?,
         user: Principal): ProcessNodeInstance<*> {
-        engineData.inWriteTransaction(transaction) {
-            val dataAccess = this
-            nodeInstances[handle].shouldExist(handle).withPermission(mSecurityProvider, SecureObject.Permissions.UPDATE,
-                                                                     user) { task ->
-                val pi = instance(task.hProcessInstance).withPermission()
-                try {
-                    synchronized(pi) {
-                        pi.update(dataAccess) {
-                            updateChild(handle) {
-                                finishTask(dataAccess, payload)
+        try {
+            engineData.inWriteTransaction(transaction) {
+                val dataAccess = this
+                nodeInstances[handle].shouldExist(handle).withPermission(
+                    mSecurityProvider, SecureObject.Permissions.UPDATE,
+                    user
+                                                                        ) { task ->
+                    val pi = instance(task.hProcessInstance).withPermission()
+                    try {
+                        synchronized(pi) {
+                            pi.update(dataAccess) {
+                                updateChild(handle) {
+                                    finishTask(dataAccess, payload)
+                                }
                             }
+                            return dataAccess.nodeInstance(handle).withPermission()
                         }
-                        return dataAccess.nodeInstance(handle).withPermission()
+                    } catch (e: Exception) {
+                        engineData.invalidateCachePNI(handle)
+                        engineData.invalidateCachePI(pi.getHandle())
+                        throw e
                     }
-                } catch (e: Exception) {
-                    engineData.invalidateCachePNI(handle)
-                    engineData.invalidateCachePI(pi.getHandle())
-                    throw e
                 }
+
             }
-
+        } finally {
+            processTickleQueue(transaction)
         }
-
     }
 
     /**
@@ -775,6 +853,8 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
             throw MessagingException(e)
         } catch (e: IOException) {
             throw MessagingException(e)
+        } finally {
+            processTickleQueue(transaction)
         }
 
     }
@@ -790,6 +870,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                       handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
                       user: Principal) {
         updateTaskState(transaction, handle, Cancelled, user)
+        processTickleQueue(transaction)
     }
 
     fun errorTask(transaction: TRXXX,
@@ -806,6 +887,7 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                 }
             }
         }
+        processTickleQueue(transaction)
     }
 
     @Throws(SQLException::class)
@@ -859,11 +941,12 @@ class ProcessEngine<TRXXX : ProcessTransaction>(private val messageService: IMes
                                                               autoTransition: Boolean,
                                                               logger: Logger): ProcessEngine<T> {
 
-            val engineData = ProcessEngine.DelegateProcessEngineData(transactionFactory, processModels,
-                                                                     processInstances, processNodeInstances,
-                                                                     messageService, logger)
 
-            return ProcessEngine(messageService, engineData)
+            return ProcessEngine(
+                messageService, transactionFactory, processModels,
+                processInstances, processNodeInstances,
+                autoTransition, logger
+                                )
         }
     }
 

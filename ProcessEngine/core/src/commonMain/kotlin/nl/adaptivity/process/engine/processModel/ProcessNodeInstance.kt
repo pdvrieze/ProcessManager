@@ -27,7 +27,6 @@ import nl.adaptivity.process.engine.impl.dom.newReader
 import nl.adaptivity.process.engine.impl.dom.newWriter
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.MessageActivity
-import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
@@ -349,7 +348,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 FailRetry -> state = Skipped
                 Sent,
                 Taken,
-                Acknowledged                -> cancel(engineData).also { state = Skipped }
+                Acknowledged                -> {
+                    // The full cancel will trigger successors. We only want to do the actual cancellation
+                    // action without triggering successors. This is still marked as cancelled, but successors
+                    // may be marked as skipped.
+                    doCancel(engineData)
+                    state = AutoCancelled
+                }
             }
         }
 
@@ -454,6 +459,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             // Joins should trigger updates before cancellations anyway though as a safeguard.
             processInstanceBuilder.updateSplits(engineData)
             processInstanceBuilder.startSuccessors(engineData, this)
+            //TODO may not do anything
             processInstanceBuilder.updateSplits(engineData)
             processInstanceBuilder.updateState(engineData)
         }
@@ -489,9 +495,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
         }
 
-        final override fun cancelAndSkip(engineData: MutableProcessEngineDataAccess) {
+        final override fun cancelAndSkip(
+            engineData: MutableProcessEngineDataAccess
+                                        ) {
             doCancelAndSkip(engineData)
-            processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
+            processInstanceBuilder.skipSuccessors(engineData, this, Skipped)
         }
 
         override fun toString(): String {
@@ -536,11 +544,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         protected var base: T,
         override val processInstanceBuilder: ProcessInstance.Builder
                                                                                     ) : AbstractBuilder<N, T>() {
-        protected val observer = { changed = true }
+        private val observer: Observer<Any?> = { newValue -> changed = true; newValue }
+        @Suppress("UNCHECKED_CAST")
+        protected fun <T> observer() :Observer<T> = observer as Observer<T>
 
         final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
-        final override var owner by overlay(observer) { base.owner }
-        final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer) { base.getHandle() }
+        final override var owner by overlay(observer()) { base.owner }
+        final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.getHandle() }
         final override var state = base.state
             set(value) {
                 if (field != value) {
@@ -568,6 +578,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
 }
+
+private typealias Observer<T> = (T)->T
 
 @UseExperimental(ExperimentalContracts::class)
 internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {

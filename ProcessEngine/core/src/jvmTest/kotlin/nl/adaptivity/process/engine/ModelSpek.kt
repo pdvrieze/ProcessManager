@@ -34,8 +34,7 @@ import nl.adaptivity.util.getter
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.fail
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.dsl.LifecycleAware
@@ -272,7 +271,10 @@ internal fun EngineSuite.testValidTrace(
                 }
             }
 
-            queue.add { transaction().finishNodeInstance(hinstance(), traceElement) }
+            queue.add {
+                transaction().finishNodeInstance(hinstance(), traceElement)
+                engineData.engine.processTickleQueue(transaction())
+            }
 
             context("trace element #$pos -> ${traceElement}") {
                 beforeGroup { previous(); }
@@ -320,6 +322,9 @@ internal fun EngineSuite.testInvalidTrace(
             try {
                 val instanceSupport = object : InstanceSupport {
                     override val transaction: StubProcessTransaction get() = transaction()
+                    override val engine: ProcessEngine<StubProcessTransaction>
+                        get() = engineData.engine
+
                 }
                 instanceSupport.testTraceExceptionThrowing(processInstanceF(), invalidTrace)
             } catch (e: ProcessTestingException) {
@@ -450,15 +455,23 @@ private fun EngineSuite.testActivity(transaction: Getter<StubProcessTransaction>
                                      traceElement: TraceElement) {
     it("$traceElement should not be in a final state") {
         val nodeInstance = nodeInstanceF()
-        Assertions.assertFalse(
-            nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
+        Assertions.assertFalse(nodeInstance.state.isFinal) {
+            "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}"
+        }
     }
+/*
+    it("$traceElement should be pending before processing pending tickles") {
+        val nodeInstance = nodeInstanceF()
+        assertEquals(NodeInstanceState.Pending, nodeInstance.state)
+        engineData.engine.processTickleQueue(transaction())
+    }
+*/
     it("$traceElement should not be in pending or sent state") {
         val nodeInstance = nodeInstanceF()
-        assertFalse(
-            nodeInstance.state == Pending) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in pending state" }
-        assertFalse(
-            nodeInstance.state == Sent) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in sent (not acknowledged) state" }
+        assertNotEquals(Pending,
+            nodeInstance.state) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in pending state" }
+        assertNotEquals(Sent,
+            nodeInstance.state) { "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in sent (not acknowledged) state" }
     }
     it("node instance ${traceElement} should be committed after starting") {
         var nodeInstance = nodeInstanceF()
@@ -545,7 +558,10 @@ private fun EngineSuite.testEndNode(transaction: Getter<StubProcessTransaction>,
 private fun EngineSuite.testAssertNodeFinished(nodeInstanceF: Getter<ProcessNodeInstance<*>>,
                                                traceElement: TraceElement) {
     it("$traceElement should be finished") {
-        Assertions.assertEquals(Complete, nodeInstanceF().state)
+        val nodeInstance = nodeInstanceF()
+        assertEquals(Complete, nodeInstance.state) {
+            "Node ${nodeInstance} is not finished in process instance"
+        }
     }
 }
 

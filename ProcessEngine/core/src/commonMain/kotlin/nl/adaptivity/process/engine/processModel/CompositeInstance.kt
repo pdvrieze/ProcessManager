@@ -57,12 +57,12 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = tryCreateTask { node.startTask(this) }
 
-            tryCreateTask {
+            val inst = tryCreateTask {
                 engineData.instance(hChildInstance)
                     .withPermission()
                     .start(engineData, build().getPayload(engineData))
             }
-
+            engineData.queueTickle(inst.getHandle())
             return shouldProgress
         }
 
@@ -117,7 +117,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
         override var node: ExecutableCompositeActivity by overlay { base.node }
 
-        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer) { base.hChildInstance }
+        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer()) { base.hChildInstance }
 
         override fun build(): CompositeInstance {
             return if (changed) CompositeInstance(this) else base

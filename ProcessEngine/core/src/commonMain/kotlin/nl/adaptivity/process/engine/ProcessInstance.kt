@@ -22,12 +22,12 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.impl.*
-import nl.adaptivity.process.engine.impl.dom.*
+import nl.adaptivity.process.engine.impl.dom.isNamespaceAware
+import nl.adaptivity.process.engine.impl.dom.newDocumentBuilderFactory
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.*
-import nl.adaptivity.process.processModel.refNode
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.writeHandleAttr
@@ -141,9 +141,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
         fun updateSplits(engineData: MutableProcessEngineDataAccess) {
             for (split in allChildren { !it.state.isFinal && it.node is Split }) {
-                updateChild(split) {
-                    if ((this as SplitInstance.Builder).updateState(engineData) && state != NodeInstanceState.Complete) {
-                        state = NodeInstanceState.Complete
+                if (split.state != NodeInstanceState.Pending) {
+                    updateChild(split) {
+                        if ((this as SplitInstance.Builder).updateState(engineData) && state != NodeInstanceState.Complete) {
+                            state = NodeInstanceState.Complete
+                            engineData.queueTickle(this@Builder.handle)
+                        }
                     }
                 }
             }
@@ -151,40 +154,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
         fun updateState(engineData: MutableProcessEngineDataAccess) {
             if (state == State.STARTED) {
-                if (active().none()) {
-                    var success = 0
-                    var fail = 0
-                    var skipped = 0
-                    allChildren { it.state.isFinal && it.node is EndNode }.forEach {
-                        when {
-                            it.state == NodeInstanceState.Complete -> success++
-                            it.state.isSkipped                     -> skipped++
-                            it.state == NodeInstanceState.Failed   -> fail++
-                            else                                   -> throw AssertionError("Unexpected state for end node: $it")
-                        }
-                    }
-                    when {
-                        fail > 0    -> state = State.FAILED
-                        success > 0 -> state = State.FINISHED
-                        skipped > 0 -> state = State.SKIPPED
-                        else        -> state = State.CANCELLED
-                    }
-                    store(engineData)
-                    if (state == State.FINISHED) {
-                        for (output in processModel.exports) {
-                            val x = output.applyFromProcessInstance(engineData, this)
-                            outputs.add(x)
-                        }
-                    }
-                    if (parentActivity.isValid) {
-                        val parentNodeInstance =
-                            engineData.nodeInstance(parentActivity).withPermission() as CompositeInstance
-                        engineData.instance(parentNodeInstance.hProcessInstance).withPermission().update(engineData) {
-                            updateChild(parentNodeInstance) {
-                                finishTask(engineData)
-                            }
-                        }
-                    }
+                if (active().none()) { // do finish
+                    finish(engineData)
                 }
             }
         }
@@ -228,7 +199,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
             for (startedTask in startedTasks) {
                 when (predecessor.state) {
-                    NodeInstanceState.Complete  -> startedTask.provideTask(engineData)
+                    NodeInstanceState.Complete  -> engineData.queueTickle(handle)//startedTask.provideTask(engineData)
                     NodeInstanceState.SkippedCancel,
                     NodeInstanceState.SkippedFail,
                     NodeInstanceState.Skipped   -> startedTask.skipTask(engineData, predecessor.state)
@@ -295,7 +266,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 }
 
             }
-            if (active().none()) {
+            updateSplits(engineData)
+            updateState(engineData)
+            if (!state.isFinal && active().none()) {
                 self.finish(engineData)
             }
         }
@@ -331,17 +304,58 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             // TODO("Make the state dependent on the kind of child state")
             val endNodes = allChildren { it.state.isFinal && it.node is EndNode }.toList()
             if (endNodes.count() >= processModel.endNodeCount) {
-                state = when {
-                    endNodes.any { it.state == NodeInstanceState.Failed || it.state == NodeInstanceState.SkippedFail }      -> State.FAILED
-                    endNodes.any { it.state == NodeInstanceState.Cancelled || it.state == NodeInstanceState.SkippedCancel } -> State.CANCELLED
-                    else                                                                                                    -> State.FINISHED
+                var multiInstanceEndNode = false
+                var success = 0
+                var cancelled = 0
+                var fail = 0
+                var skipped = 0
+                for (endNode in endNodes) {
+                    if(endNode.node.isMultiInstance) { multiInstanceEndNode = true }
+                    when (endNode.state) {
+                        NodeInstanceState.Complete           -> success++
+                        NodeInstanceState.Cancelled          -> cancelled++
+                        NodeInstanceState.SkippedCancel      -> {
+                            skipped++; cancelled++
+                        }
+                        NodeInstanceState.SkippedFail        -> {
+                            skipped++; fail++
+                        }
+                        NodeInstanceState.SkippedInvalidated -> {
+                            skipped++
+                        }
+                        NodeInstanceState.Failed             -> fail++
+                        NodeInstanceState.Skipped            -> skipped++
+                        else                                 -> throw AssertionError("Unexpected state for end node: $endNode")
+                    }
+                }
+                val active = active()
+                if (!multiInstanceEndNode || active.none()) {
+                    active.forEach {
+                        updateChild(it) {
+                            cancelAndSkip(engineData)
+                        }
+                    }
+                    when {
+                        fail > 0      -> state = State.FAILED
+                        cancelled > 0 -> state = State.CANCELLED
+                        success > 0   -> state = State.FINISHED
+                        skipped > 0   -> state = State.SKIPPED
+                        else          -> state = State.CANCELLED
+                    }
+                }
+                store(engineData)
+                if (state == State.FINISHED) {
+                    for (output in processModel.exports) {
+                        val x = output.applyFromProcessInstance(engineData, this)
+                        outputs.add(x)
+                    }
                 }
                 if (parentActivity.isValid) {
-                    val parentNode = engineData.nodeInstance(parentActivity).withPermission()
-                    val parentInstance = engineData.instance(parentNode.hProcessInstance).withPermission()
-                    parentInstance.update(engineData) {
-                        updateChild(parentNode) {
-                            finishTask(engineData, getOutputPayload())
+                    val parentNodeInstance =
+                        engineData.nodeInstance(parentActivity).withPermission() as CompositeInstance
+                    engineData.instance(parentNodeInstance.hProcessInstance).withPermission().update(engineData) {
+                        updateChild(parentNodeInstance) {
+                            finishTask(engineData)
                         }
                     }
                 }
@@ -457,8 +471,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         override var owner by overlay { base.owner }
         override var processModel by overlay { base.processModel }
         override var instancename by overlay { base.name }
-        override var uuid by overlay({ generation = 0; handle = getInvalidHandle() }) { base.uuid }
-        override var state by overlay { base.state }
+        override var uuid by overlay({ newVal -> generation = 0; handle = getInvalidHandle(); newVal }) { base.uuid }
+        override var state by overlay(base = { base.state }, update = { newValue ->
+            if (base.state.isFinal) {
+                throw IllegalStateException("Cannot change from final instance state ${base.state} to ${newValue}")
+            }
+            newValue
+        })
         override val children get() = base.childNodes.map { it.withPermission().getHandle() }
         override val inputs by lazy { base.inputs.toMutableList() }
         override val outputs by lazy { base.outputs.toMutableList() }
@@ -581,10 +600,20 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         NEW,
         INITIALIZED,
         STARTED,
-        FINISHED,
-        SKIPPED,
-        FAILED,
-        CANCELLED
+        FINISHED {
+            override val isFinal: Boolean get() = true
+        },
+        SKIPPED {
+            override val isFinal: Boolean get() = true
+        },
+        FAILED {
+            override val isFinal: Boolean get() = true
+        },
+        CANCELLED {
+            override val isFinal: Boolean get() = true
+        };
+
+        open val isFinal: Boolean get() = false
     }
 
     class ProcessInstanceRef(processInstance: ProcessInstance) : ComparableHandle<SecureObject<ProcessInstance>>,
@@ -825,12 +854,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     @Synchronized
-fun getNodeInstances(identified: Identified): Sequence<ProcessNodeInstance<*>> {
+    fun getNodeInstances(identified: Identified): Sequence<ProcessNodeInstance<*>> {
         return childNodes.asSequence().map { it.withPermission() }.filter { it.node.id == identified.id }
     }
 
     @Synchronized
-fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*>? {
+    fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*>? {
         return childNodes.asSequence().map { it.withPermission() }
             .firstOrNull { it.node.id == identified.id && it.entryNo == entryNo }
     }
@@ -889,7 +918,7 @@ fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*
     }
 
     @Synchronized
-fun getActivePredecessorsFor(
+    fun getActivePredecessorsFor(
         engineData: ProcessEngineDataAccess,
         join: JoinInstance
                                 ): Collection<ProcessNodeInstance<*>> {
@@ -900,7 +929,7 @@ fun getActivePredecessorsFor(
     }
 
     @Synchronized
-fun getDirectSuccessors(
+    fun getDirectSuccessors(
         engineData: ProcessEngineDataAccess,
         predecessor: ProcessNodeInstance<*>
                            ): Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {

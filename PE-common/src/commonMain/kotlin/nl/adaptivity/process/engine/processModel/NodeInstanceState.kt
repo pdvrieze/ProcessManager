@@ -90,6 +90,14 @@ enum class NodeInstanceState {
     override val isCommitted: Boolean get() = true
   },
   /**
+   * Signifies that the task has been automatically cancelled due to becoming part
+   * of an inactive branch
+   */
+  AutoCancelled {
+      override val isFinal: Boolean get() = true
+      override val isSkipped: Boolean get() = true
+  },
+  /**
    * Signifies that the task has been cancelled directly (but not through a failure).
    */
   Cancelled {
