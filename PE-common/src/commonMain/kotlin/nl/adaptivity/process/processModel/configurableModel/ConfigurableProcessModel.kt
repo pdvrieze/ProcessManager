@@ -240,7 +240,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             content: CharArray? = null,
             nsContext: Iterable<Namespace> = emptyList()
                                                ) {
-            configurationBuilder.results.add(XmlResultType(name, "/$name"))
+            configurationBuilder.results.add(XmlResultType(name, "/$name/*"))
             configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
         }
 

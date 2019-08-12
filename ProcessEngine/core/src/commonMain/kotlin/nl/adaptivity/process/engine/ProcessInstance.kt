@@ -281,9 +281,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             // XXX todo, handle failed or cancelled tasks
             try {
                 if (nodeInstance.node is EndNode) {
-                    finish(engineData).apply {
-                        val h = nodeInstance.handle()
-                        assert(getChild(h).let { it.state.isFinal && it.node is ExecutableEndNode })
+                    if (! state.isFinal) {
+                        engineData.logger.log(LogLevel.WARNING, "Calling finish on a process instance that should already be finished.")
+                        finish(engineData).apply {
+                            val h = nodeInstance.handle()
+                            assert(getChild(h).let { it.state.isFinal && it.node is ExecutableEndNode })
+                        }
                     }
                 } else {
                     startSuccessors(engineData, nodeInstance)
@@ -349,6 +352,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                         val x = output.applyFromProcessInstance(engineData, this)
                         outputs.add(x)
                     }
+                    // Storing here is essential as the updating of the node goes of the database, not the local
+                    // state.
+                    store(engineData)
                 }
                 if (parentActivity.isValid) {
                     val parentNodeInstance =
@@ -884,11 +890,16 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
      */
     fun getOutputPayload(): CompactFragment? {
         if (outputs.isEmpty()) return null
-        return CompactFragment { writer ->
-            outputs.forEach { output ->
-                output.serialize(writer)
+        val str =  buildString {
+            for(output in outputs) {
+                append(generateXmlString(true){ writer ->
+                    writer.smartStartTag(output.name!!.toQname()) {
+                        output.content.serialize(this)
+                    }
+                })
             }
         }
+        return CompactFragment(str)
     }
 
     fun start(engineData: MutableProcessEngineDataAccess, payload: CompactFragment? = null): ProcessInstance {

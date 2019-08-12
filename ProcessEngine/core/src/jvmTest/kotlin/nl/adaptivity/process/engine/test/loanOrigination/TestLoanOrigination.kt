@@ -46,10 +46,10 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
         testProcess(model) { tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
-            val modelResult = instance.outputs.single { it.name == "creditReport" }
+            val creditReport = instance.outputs.single { it.name == "creditReport" }
             assertEquals(
-                "<CreditReport maxLoan=\"20000\">John Doe is approved for loans up to 20000</CreditReport>",
-                modelResult.content.contentString
+                "<CreditReport creditRating=\"400\" maxLoan=\"20000\">John Doe (rating 400) is approved for loans up to 20000</CreditReport>",
+                creditReport.content.contentString
                         )
         }
     }
@@ -130,14 +130,16 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             input("customerId", this@Model1.inputCustomerMasterData)
             input("loanApplication", this@Model1.createLoanRequest)
             output("loanEvaluation", getLoanEvaluation)
+            output("creditReport", getCreditReport)
         }
     }
     val end by endNode(evaluateCredit) {
-        defines.add(XmlDefineType("input", evaluateCredit))
+        defines.add(XmlDefineType("input", evaluateCredit, "loanEvaluation"))
         results.add(XmlResultType("result", "input"))
     }
 
     init {
-        output("loanEvaluation", evaluateCredit)
+        output("loanEvaluation", evaluateCredit, "loanEvaluation")
+        output("creditReport", evaluateCredit, "creditReport")
     }
 }
