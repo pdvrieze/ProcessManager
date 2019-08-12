@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
@@ -101,8 +102,8 @@ class TestXmlResultType {
     @Test
     @Throws(ParserConfigurationException::class, IOException::class, SAXException::class)
     fun testApplySimple() {
-        val testData = db.parse(InputSource(StringReader("<result><value name='user'>Paul</value></result>")))
-        val xrt = XmlResultType("user", "/result/value[@name='user']/text()", null as CharArray?, null)
+        val testData = CompactFragment("<result><value name='user'>Paul</value></result>")
+        val xrt = XmlResultType("user", "/result/value[@name='user']/text()")
 
         val actual = xrt.applyData(testData)
 
@@ -128,10 +129,10 @@ class TestXmlResultType {
             DomUtil.toString(testData))
 
 
-        val xrt = XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", null as CharArray?, null)
+        val xrt = XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()")
 
         val expected = ProcessData("user", CompactFragment("Paul"))
-        val actual = xrt.applyData(testData)
+        val actual = xrt.applyData(testData.toFragment())
         assertEquals(expected.name, actual.name)
         assertEquals(expected.content, actual.content)
         //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));

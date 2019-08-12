@@ -23,6 +23,7 @@ import com.nhaarman.mockitokotlin2.mock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import net.devrieze.util.readString
+import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
@@ -150,8 +151,8 @@ class TestProcessData {
         assertEquals(1, snc2.size)
         assertEquals("umh", snc2.getPrefix(0))
 
-        val testData = documentBuilder.parse(InputSource(StringReader(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
+        val testData = CompactFragment(
+            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")
 
 
         val result1Apply = result1.applyData(testData).content
@@ -169,12 +170,12 @@ class TestProcessData {
         val result = XmlResultType("foo", expression, null as CharArray?, nsContext)
         assertEquals(1, SimpleNamespaceContext.from(result.originalNSContext).size)
 
-        val testData = documentBuilder.parse(InputSource(StringReader(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")))
+        val testData = CompactFragment(
+            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")
         val xPath = XPathFactory.newInstance().newXPath()
         xPath.namespaceContext = SimpleNamespaceContext.from(result.originalNSContext)
         val pathExpression = xPath.compile(expression)
-        val apply2 = pathExpression.evaluate(testData, XPathConstants.NODESET) as NodeList
+        val apply2 = pathExpression.evaluate(testData.toDocumentFragment(), XPathConstants.NODESET) as NodeList
         assertNotNull(apply2)
         assertTrue(apply2.item(0) is Text)
         assertEquals("Paul", apply2.item(0).textContent)
