@@ -572,7 +572,7 @@ private fun EngineTestBody.testAssertNodeFinished(nodeInstanceF: Getter<ProcessN
 
 fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance, traceElement: TraceElement) {
     val instance = readableEngineData.instance(hProcessInstance).withPermission()
-    val nodeInstance = traceElement.getNodeInstance(this, instance) ?: throw ProcessTestingException(
+    val nodeInstance: ProcessNodeInstance<*> = traceElement.getNodeInstance(this, instance) ?: throw ProcessTestingException(
         "No node instance for the trace elemnt $traceElement could be found in instance: ${instance.toDebugString(
             this)}")
     if (nodeInstance.state != Complete) {
