@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
  */
 interface InstanceSupport {
     val transaction: StubProcessTransaction
-    val engine: ProcessEngine<StubProcessTransaction>
+    val engine: ProcessEngine<StubProcessTransaction, *>
 
     fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*>> {
         return allChildren(this@InstanceSupport.transaction)

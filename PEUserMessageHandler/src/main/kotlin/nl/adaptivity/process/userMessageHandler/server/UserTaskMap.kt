@@ -155,7 +155,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
         @Throws(SQLException::class)
         override fun postCreate(transaction: DBTransaction, element: XmlTask): XmlTask {
-            UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.getHandle() }
+            UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handle }
                 .execute(transaction.connection) { name, data ->
                     if (name != null) {
                         element[name]?.let { it.value = data }
@@ -165,7 +165,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         }
 
         override fun getPrimaryKeyCondition(where: Database._Where, instance: XmlTask) =
-            getHandleCondition(where, instance.getHandle())
+            getHandleCondition(where, instance.handle)
 
         override fun getHandleCondition(where: Database._Where, handle: Handle<out XmlTask>) = where.run {
             u.taskhandle eq handle
@@ -212,7 +212,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
         @Throws(SQLException::class)
         override fun preRemove(transaction: DBTransaction, element: XmlTask) {
-            preRemove(transaction, element.getHandle())
+            preRemove(transaction, element.handle)
         }
 
         override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {

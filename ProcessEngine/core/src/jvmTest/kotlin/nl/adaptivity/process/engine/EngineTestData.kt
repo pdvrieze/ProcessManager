@@ -30,7 +30,7 @@ import java.net.URI
 import java.util.logging.Logger
 import javax.xml.namespace.QName
 
-open class EngineTestData(val messageService: StubMessageService, val engine: ProcessEngine<StubProcessTransaction>) {
+open class EngineTestData(val messageService: StubMessageService, val engine: ProcessEngine<StubProcessTransaction, *>) {
 
     private constructor(messageService: StubMessageService)
         : this(

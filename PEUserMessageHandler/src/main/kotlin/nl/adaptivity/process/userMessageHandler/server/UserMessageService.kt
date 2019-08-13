@@ -96,7 +96,7 @@ class UserMessageService<T : Transaction> private constructor(private val transa
         for (task in this) {
           val taskState = task.state
           if (taskState == null || !task.remoteHandle.isValid || taskState.isFinal) {
-            remove(task.getHandle())
+            remove(task.handle)
           } else {
             result.add(task)
           }
@@ -173,7 +173,7 @@ class UserMessageService<T : Transaction> private constructor(private val transa
     partialNewTask.state?.let {
       currentTask.setState(it, user)
       if (currentTask.state!!.isFinal) { // Remove it if no longer needed
-        tasks.remove(transaction, currentTask.getHandle())
+        tasks.remove(transaction, currentTask.handle)
       }
     }
 

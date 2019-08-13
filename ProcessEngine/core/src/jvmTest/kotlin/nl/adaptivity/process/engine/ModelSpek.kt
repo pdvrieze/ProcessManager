@@ -322,7 +322,7 @@ internal fun EngineSuite.testInvalidTrace(
             try {
                 val instanceSupport = object : InstanceSupport {
                     override val transaction: StubProcessTransaction get() = transaction()
-                    override val engine: ProcessEngine<StubProcessTransaction>
+                    override val engine: ProcessEngine<StubProcessTransaction, *>
                         get() = engineData.engine
 
                 }

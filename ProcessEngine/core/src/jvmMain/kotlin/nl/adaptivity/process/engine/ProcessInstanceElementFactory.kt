@@ -34,7 +34,7 @@ import uk.ac.bournemouth.kotlinsql.Table
 /**
  * Factory that helps in storing and retrieving process instances from the database.
  */
-internal class ProcessInstanceElementFactory(private val processEngine: ProcessEngine<*>) : AbstractElementFactory<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>() {
+internal class ProcessInstanceElementFactory(private val processEngine: ProcessEngine<*, *>) : AbstractElementFactory<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>() {
 
   override fun getHandleCondition(where: Database._Where,
                                   handle: Handle<SecureObject<ProcessInstance>>): Database.WhereClause? {

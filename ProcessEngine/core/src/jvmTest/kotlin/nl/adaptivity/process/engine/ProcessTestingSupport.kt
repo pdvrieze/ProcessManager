@@ -91,7 +91,7 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubPr
   @ProcessTestingDslMarker
   inner class InstanceSpecBody(delegate:EngineSpecBody): DelegateSpecBody<InstanceSpecBody, InstanceActionBody, InstanceTestBody, InstanceFixtureBody>(delegate.delegate), InstanceSupport {
     override val transaction get() = this@ProcessTestingDsl.transaction
-      override val engine: ProcessEngine<StubProcessTransaction>
+      override val engine: ProcessEngine<StubProcessTransaction, *>
           get() = engineTesting.testData.engine
 
       val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
@@ -115,7 +115,7 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubPr
   inner class InstanceTestBody(delegate: EngineTestBody): DelegateTestBody(delegate), InstanceSupport, SafeNodeActions {
     override val transaction get() = this@ProcessTestingDsl.transaction
     val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
-    override val engine: ProcessEngine<StubProcessTransaction> get() = engineTesting.testData.engine
+    override val engine: ProcessEngine<StubProcessTransaction, *> get() = engineTesting.testData.engine
   }
 
   inner class InstanceFixtureBody: ProcessNodeActions {

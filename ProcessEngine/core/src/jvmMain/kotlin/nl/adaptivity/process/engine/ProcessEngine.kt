@@ -100,16 +100,18 @@ private fun <T : ProcessTransaction> wrapModelCache(base: IMutableProcessModelMa
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<TR : ProcessTransaction> {
+class ProcessEngine<TR : ProcessTransaction, PIC: ActivityInstanceContext> {
 
     private val messageService: IMessageService<*>
     private val engineData: IProcessEngineData<TR>
     private val tickleQueue = ArrayDeque<Handle<SecureObject<ProcessInstance>>>()
     private var securityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
+    private val processContextFactory: ProcessContextFactory<PIC>
 
-    constructor(messageService: IMessageService<*>, engineData: IProcessEngineData<TR>) {
+    constructor(messageService: IMessageService<*>, engineData: IProcessEngineData<TR>, processContextFactory: ProcessContextFactory<PIC>) {
         this.messageService = messageService
         this.engineData = engineData
+        this.processContextFactory = processContextFactory
     }
 
     constructor(
@@ -119,7 +121,8 @@ class ProcessEngine<TR : ProcessTransaction> {
         processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, TR>,
         processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, TR>,
         autoTransition: Boolean,
-        logger: Logger
+        logger: Logger,
+        processContextFactory: ProcessContextFactory<PIC>
                ) {
         this.messageService = messageService
         this.engineData = DelegateProcessEngineData(
@@ -128,6 +131,7 @@ class ProcessEngine<TR : ProcessTransaction> {
             messageService, logger,
             this
                                  )
+        this.processContextFactory = processContextFactory
     }
 
     class DelegateProcessEngineData<T : ProcessTransaction>(
@@ -137,7 +141,7 @@ class ProcessEngine<TR : ProcessTransaction> {
         override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
         private val messageService: IMessageService<*>,
         override val logger: nl.adaptivity.process.engine.impl.Logger,
-        private val engine: ProcessEngine<T>
+        private val engine: ProcessEngine<T,*>
                                                            ) : IProcessEngineData<T>(), TransactionFactory<T> {
 
         private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
@@ -244,7 +248,7 @@ class ProcessEngine<TR : ProcessTransaction> {
             }
         }
 
-        lateinit var engine: ProcessEngine<ProcessDBTransaction>
+        lateinit var engine: ProcessEngine<*, *>
 
         override val processInstances by lazy {
             wrapDBInstanceCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE)
@@ -518,7 +522,7 @@ class ProcessEngine<TR : ProcessTransaction> {
 
     @Throws(SQLException::class)
     fun getProcessInstance(transaction: TR,
-                           handle: ComparableHandle<SecureObject<ProcessInstance>>,
+                           handle: Handle<SecureObject<ProcessInstance>>,
                            user: Principal): ProcessInstance {
         return engineData.inReadonlyTransaction(transaction) {
             instances[handle].shouldExist(handle).withPermission(securityProvider, Permissions.VIEW_INSTANCE, user) {
@@ -597,7 +601,7 @@ class ProcessEngine<TR : ProcessTransaction> {
         model: SecureObject<ExecutableProcessModel>,
         name: String,
         uuid: UUID,
-        parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>>,
         payload: CompactFragment?
                             ): HProcessInstance {
 
@@ -744,7 +748,7 @@ class ProcessEngine<TR : ProcessTransaction> {
      * @throws SQLException
      */
     fun updateTaskState(transaction: TR,
-                        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                        handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                         newState: NodeInstanceState,
                         user: Principal): NodeInstanceState {
         try {
@@ -837,7 +841,7 @@ class ProcessEngine<TR : ProcessTransaction> {
      *
      */
     fun finishedTask(transaction: TR,
-                     handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                     handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                      resultSource: DataSource?,
                      user: Principal) {
         try {
@@ -867,14 +871,14 @@ class ProcessEngine<TR : ProcessTransaction> {
      * @throws SQLException
      */
     fun cancelledTask(transaction: TR,
-                      handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                      handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                       user: Principal) {
         updateTaskState(transaction, handle, Cancelled, user)
         processTickleQueue(transaction)
     }
 
     fun errorTask(transaction: TR,
-                  handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                  handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                   cause: Throwable,
                   user: Principal) {
         engineData.inWriteTransaction(transaction) {
@@ -919,10 +923,16 @@ class ProcessEngine<TR : ProcessTransaction> {
         val DBRESOURCENAME = CONTEXT_PATH + '/' + DB_RESOURCE
 
         @JvmStatic
+        @JvmName("newInstance")
+        operator fun <T: ProcessTransaction> invoke(messageService: IMessageService<*>, engineData: IProcessEngineData<T>): ProcessEngine<T, ActivityInstanceContext> {
+            return ProcessEngine(messageService, engineData, ProcessContextFactory.DEFAULT)
+        }
+
+        @JvmStatic
         fun newInstance(
             messageService: IMessageService<*>,
             logger: Logger
-                       ): ProcessEngine<ProcessDBTransaction> {
+                       ): ProcessEngine<ProcessDBTransaction, ActivityInstanceContext> {
             // TODO enable optional caching
             val engineData = DBProcessEngineData(messageService, logger)
             val pe = ProcessEngine(messageService, engineData)
@@ -939,13 +949,14 @@ class ProcessEngine<TR : ProcessTransaction> {
                                                               processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
                                                               processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
                                                               autoTransition: Boolean,
-                                                              logger: Logger): ProcessEngine<T> {
+                                                              logger: Logger): ProcessEngine<T, *> {
 
 
             return ProcessEngine(
                 messageService, transactionFactory, processModels,
                 processInstances, processNodeInstances,
-                autoTransition, logger
+                autoTransition, logger,
+                ProcessContextFactory.DEFAULT
                                 )
         }
     }

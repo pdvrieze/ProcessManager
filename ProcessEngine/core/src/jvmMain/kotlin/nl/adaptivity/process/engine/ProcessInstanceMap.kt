@@ -22,7 +22,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 
 
-internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<*>) :
+internal class ProcessInstanceMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, processEngine: ProcessEngine<*,*>) :
       DBHandleMap<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessInstanceElementFactory(processEngine)) {
 
   class Cache<T: ProcessTransaction>(delegate: ProcessInstanceMap,

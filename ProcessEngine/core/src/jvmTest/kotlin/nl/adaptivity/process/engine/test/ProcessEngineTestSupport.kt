@@ -43,7 +43,7 @@ import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
 open class ProcessEngineTestSupport() {
-    protected lateinit var processEngine: ProcessEngine<StubProcessTransaction>
+    protected lateinit var processEngine: ProcessEngine<StubProcessTransaction, *>
     private val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"),
                                                        "processEngine",
                                                        URI.create("http://localhost/"))

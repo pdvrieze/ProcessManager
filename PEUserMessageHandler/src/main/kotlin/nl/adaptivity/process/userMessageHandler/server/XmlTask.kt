@@ -53,9 +53,8 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     }
   }
 
-  private var handle = getInvalidHandle<XmlTask>()
-
-  override fun getHandle() = handle
+  override var handle = getInvalidHandle<XmlTask>()
+    private set
 
   override val handleValue: Long
     get() = handle.handleValue
