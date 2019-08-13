@@ -63,10 +63,14 @@ fun <T> handle(handle: Long): ComparableHandle<T> {
     return if (handle < 0) getInvalidHandle() else SimpleHandle(handle)
 }
 
+@Deprecated("Use extension function", ReplaceWith("handle.toComparableHandle()"))
 fun <T> handle(handle: Handle<T>): ComparableHandle<T> {
-    return if (handle is ComparableHandle<*>) {
-        handle as ComparableHandle<T>
-    } else SimpleHandle(handle.handleValue)
+    return handle.toComparableHandle()
+}
+
+fun <T> Handle<T>.toComparableHandle(): ComparableHandle<T> = when(this) {
+    is ComparableHandle<*> -> this as ComparableHandle<T>
+    else -> SimpleHandle(handleValue)
 }
 
 /**

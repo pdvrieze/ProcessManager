@@ -100,7 +100,9 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
         get() = ProcessModelRef(
             name, this.getHandle(), uuid)
 
-    override fun getHandle(): Handle<RootDrawableProcessModel> = handle(handle = handleValue)
+    override val handleXXX: Handle<RootDrawableProcessModel> get() = handle(handle = handleValue)
+
+    override fun getHandle(): Handle<RootDrawableProcessModel> = handleXXX
 
     override fun getNode(nodeId: String): DrawableProcessNode? = super<RootClientProcessModel>.getNode(
         Identifier(nodeId))

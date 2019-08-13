@@ -19,9 +19,10 @@ package net.devrieze.util
 /**
  * Created by pdvrieze on 27/11/16.
  */
-interface ReadableHandleAware<out T: Any> {
-  fun getHandle(): Handle<T>
-}
+interface ReadableHandleAware<out T : Any> {
 
-@Deprecated("Use getHandle()", ReplaceWith("this.getHandle()"))
-val <T:Any> ReadableHandleAware<T>.handle: Handle<T> get() = getHandle()
+    @Deprecated("Use getHandle()", ReplaceWith("this.handleXXX"))
+    fun getHandle(): Handle<T> = handleXXX
+
+    val handleXXX: Handle<T> get() = getHandle()
+}

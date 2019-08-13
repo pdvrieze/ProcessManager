@@ -63,8 +63,11 @@ class ExecutableProcessModel @JvmOverloads constructor(
         return ExecutableProcessModel(Builder(this).apply(body))
     }
 
+    override val handleXXX: Handle<ExecutableProcessModel>
+        get() = super.getHandle() as Handle<ExecutableProcessModel>
+
     @Suppress("UNCHECKED_CAST")
-    override fun getHandle() = super.getHandle() as Handle<ExecutableProcessModel>
+    override fun getHandle() = handleXXX
 
     /* (non-Javadoc)
        * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
