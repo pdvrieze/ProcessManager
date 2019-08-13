@@ -35,7 +35,8 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     override val name: String? = null,
     override val owner: Principal,
     override val uuid: UUID
-                                                            ) : RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
+                                                            ) :
+    RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
 
 
     class NodeDelegate<T : Identifiable>(override val id: String) : ReadOnlyProperty<ConfigurableProcessModel<*>, T>,
@@ -82,7 +83,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     private var _configurationBuilder: RootProcessModel.Builder? = null
     override val configurationBuilder: RootProcessModel.Builder
         get() {
-            return _configurationBuilder ?: if (_model==null) RootProcessModelBase.Builder().apply {
+            return _configurationBuilder ?: if (_model == null) RootProcessModelBase.Builder().apply {
                 _configurationBuilder = this;
                 owner = this@ConfigurableProcessModel.owner
                 name = this@ConfigurableProcessModel.name
@@ -111,7 +112,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 
     override val exports get() = model.exports
 
-    fun <R: RootProcessModel<NodeT>>buildModel(factory: (RootProcessModel.Builder)->R):R {
+    fun <R : RootProcessModel<NodeT>> buildModel(factory: (RootProcessModel.Builder) -> R): R {
         return (_model as R?) ?: run {
             factory(configurationBuilder).also { _model = it }
         }
@@ -149,8 +150,8 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         return this
     }
 
-    inline operator fun <T : ConfigurableCompositeActivity> T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T =
-        this
+    inline operator fun <T : ConfigurableCompositeActivity>
+        T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
     @ConfigurationDsl
     protected abstract inner class ConfigurableCompositeActivity(
@@ -239,7 +240,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             path: String? = null,
             content: CharArray? = null,
             nsContext: Iterable<Namespace> = emptyList()
-                                               ) {
+                  ) {
             configurationBuilder.results.add(XmlResultType(name, "/$name/*"))
             configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
         }
@@ -250,7 +251,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 }
 
 @ConfigurationDsl
-interface ConfigurableNodeContainer<out NodeT: ProcessNode> {
+interface ConfigurableNodeContainer<out NodeT : ProcessNode> {
     /**
      * Property to access the builder that allows for configuration. This is only valid for as long as
      * the model has not been initialised. After initialisation accessing this property should throw

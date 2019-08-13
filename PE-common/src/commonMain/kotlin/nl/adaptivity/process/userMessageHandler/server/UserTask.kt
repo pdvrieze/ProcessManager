@@ -26,38 +26,38 @@ import nl.adaptivity.util.security.Principal
 interface UserTask<T : UserTask<T>> : MutableHandleAware<T> {
 
 
-  interface TaskItem {
+    interface TaskItem {
 
-    val options: List<String>
+        val options: List<String>
 
-    val value: String?
+        val value: String?
 
-    val type: String?
+        val type: String?
 
-    val name: String?
+        val name: String?
 
-    val params: String?
+        val params: String?
 
-    val label: String?
+        val label: String?
 
-  }
+    }
 
-  val state: NodeInstanceState?
+    val state: NodeInstanceState?
 
-  fun setState(newState: NodeInstanceState, user: Principal)
+    fun setState(newState: NodeInstanceState, user: Principal)
 
-  fun setEndpoint(endPoint: EndpointDescriptorImpl)
+    fun setEndpoint(endPoint: EndpointDescriptorImpl)
 
-  val owner: Principal?
+    val owner: Principal?
 
-  val items: List<TaskItem>
+    val items: List<TaskItem>
 
-  val remoteHandle: Handle<*>
+    val remoteHandle: Handle<*>
 
-  val instanceHandle: Handle<*>
+    val instanceHandle: Handle<*>
 
-  val handleValue: Long
+    val handleValue: Long
 
-  val summary: String?
+    val summary: String?
 
 }

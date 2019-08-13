@@ -84,24 +84,31 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
     constructor() {}
 
-    constructor(name: String?,
-                refNode: String?,
-                refName: String? = null,
-                path: String? = null,
-                content: CharArray? = null,
-                originalNSContext: Iterable<Namespace> = emptyList()) : super(name, path, content,
-                                                                originalNSContext) {
+    constructor(
+        name: String?,
+        refNode: String?,
+        refName: String? = null,
+        path: String? = null,
+        content: CharArray? = null,
+        originalNSContext: Iterable<Namespace> = emptyList()
+               ) : super(
+        name, path, content,
+        originalNSContext
+                        ) {
         this._refNode = refNode
         this._refName = refName
     }
 
 
-    constructor(name: String?,
-                refNode: Identified,
-                refName: String? = null,
-                path: String? = null,
-                content: CharArray? = null,
-                originalNSContext: Iterable<Namespace> = emptyList()): this(name, refNode.id, refName, path, content, originalNSContext)
+    constructor(
+        name: String?,
+        refNode: Identified,
+        refName: String? = null,
+        path: String? = null,
+        content: CharArray? = null,
+        originalNSContext: Iterable<Namespace> = emptyList()
+               ) : this(name, refNode.id, refName, path, content, originalNSContext)
+
     override fun copy(
         name: String,
         refNode: String?,
@@ -117,9 +124,11 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     open val elementName: QName
         get() = ELEMENTNAME
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         when (attributeLocalName) {
             "refnode" -> {
                 setRefNode(attributeValue)
@@ -179,12 +188,14 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     companion object : XPathHolderSerializer<XmlDefineType>() {
 
         override val descriptor =
-            simpleSerialClassDesc<XmlDefineType>("name" to StringSerializer,
-                                                 "refnode" to StringSerializer,
-                                                 "refname" to StringSerializer,
-                                                 "xpath" to StringSerializer,
-                                                 "namespaces" to Namespace.list,
-                                                 "content" to StringSerializer)
+            simpleSerialClassDesc<XmlDefineType>(
+                "name" to StringSerializer,
+                "refnode" to StringSerializer,
+                "refname" to StringSerializer,
+                "xpath" to StringSerializer,
+                "namespaces" to Namespace.list,
+                "content" to StringSerializer
+                                                )
 
         const val ELEMENTLOCALNAME = "define"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
@@ -194,16 +205,20 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             return XML.parse(reader, serializer())
         }
 
-        @Deprecated("Use normal factory method",
-                    ReplaceWith("XmlDefineType(export)", "nl.adaptivity.process.processModel.XmlDefineType"))
+        @Deprecated(
+            "Use normal factory method",
+            ReplaceWith("XmlDefineType(export)", "nl.adaptivity.process.processModel.XmlDefineType")
+                   )
         @kotlin.jvm.JvmStatic
         operator fun get(export: IXmlDefineType) = XmlDefineType(export)
 
         override fun deserialize(decoder: Decoder): XmlDefineType {
             val data = DefineTypeData()
             data.deserialize(descriptor, decoder, XmlDefineType.Companion)
-            return XmlDefineType(data.name, data.refNode, data.refName, data.path, data.content,
-                                 data.namespaces ?: emptyList())
+            return XmlDefineType(
+                data.name, data.refNode, data.refName, data.path, data.content,
+                data.namespaces ?: emptyList()
+                                )
         }
 
         override fun writeAdditionalAttributes(writer: XmlWriter, data: XmlDefineType) {
@@ -222,8 +237,10 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             serialize(descriptor, encoder, obj)
         }
 
-        private class DefineTypeData(var refNode: String? = null,
-                                     var refName: String? = null) : PathHolderData<XmlDefineType>(this) {
+        private class DefineTypeData(
+            var refNode: String? = null,
+            var refName: String? = null
+                                    ) : PathHolderData<XmlDefineType>(this) {
 
             override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
                 val name = desc.getElementName(index)
@@ -250,6 +267,8 @@ fun XmlDefineType(export: IXmlDefineType): XmlDefineType {
     if (export is XmlDefineType) {
         return export
     }
-    return XmlDefineType(export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.content,
-                         export.originalNSContext ?: emptyList<Namespace>())
+    return XmlDefineType(
+        export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.content,
+        export.originalNSContext ?: emptyList<Namespace>()
+                        )
 }

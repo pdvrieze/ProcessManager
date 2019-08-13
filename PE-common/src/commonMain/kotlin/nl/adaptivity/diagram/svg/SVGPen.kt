@@ -76,9 +76,7 @@ class SVGPen<M : MeasureInfo>(private val textMeasurer: TextMeasurer<M>) : Pen<S
         get() = textMeasurer.getTextMaxAscent(textMeasureInfo)
 
     override val textAscent: Double
-        get() {
-            return textMeasurer.getTextAscent(textMeasureInfo)
-    }
+        get() = textMeasurer.getTextAscent(textMeasureInfo)
 
     override val textDescent: Double
         get() = textMeasurer.getTextDescent(textMeasureInfo)

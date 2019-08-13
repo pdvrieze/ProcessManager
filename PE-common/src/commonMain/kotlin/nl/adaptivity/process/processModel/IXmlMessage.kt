@@ -48,7 +48,7 @@ interface IXmlMessage {
     override fun toString(): String
 
     @Serializer(forClass = IXmlMessage::class)
-    companion object: KSerializer<IXmlMessage> {
+    companion object : KSerializer<IXmlMessage> {
         override val descriptor: SerialDescriptor
             get() = XmlMessage.descriptor
 

@@ -24,12 +24,12 @@
 @XmlSchema(
     namespace = Engine.NAMESPACE,
     elementFormDefault = XmlNsForm.QUALIFIED,
-    xmlns={
-           @XmlNs(prefix= Soap.SOAP_ENCODING_PREFIX, namespaceURI= Soap.SOAP_ENCODING_NS),
-           @XmlNs(prefix=XMLConstants.DEFAULT_NS_PREFIX, namespaceURI= Engine.NAMESPACE)})
+    xmlns = {
+        @XmlNs(prefix = Soap.SOAP_ENCODING_PREFIX, namespaceURI = Soap.SOAP_ENCODING_NS),
+        @XmlNs(prefix = XMLConstants.DEFAULT_NS_PREFIX, namespaceURI = Engine.NAMESPACE)})
 
 @XmlJavaTypeAdapter(
-    type=java.util.UUID.class, value=nl.adaptivity.xml.UUIDAdapter.class)
+    type = java.util.UUID.class, value = nl.adaptivity.xml.UUIDAdapter.class)
 package nl.adaptivity.process.processModel.engine;
 
 import nl.adaptivity.process.ProcessConsts.Engine;

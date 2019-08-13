@@ -28,7 +28,7 @@ annotation class ProcessModelDSL
 /**
  * Created by pdvrieze on 02/01/17.
  */
-interface ProcessModel<out NodeT: ProcessNode> {
+interface ProcessModel<out NodeT : ProcessNode> {
 
     @Transient
     val rootModel: RootProcessModel<NodeT>
@@ -54,27 +54,39 @@ interface ProcessModel<out NodeT: ProcessNode> {
 
         @JvmDefault
         fun startNodeBuilder(): StartNode.Builder = StartNodeBase.Builder()
+
         @JvmDefault
         fun splitBuilder(): Split.Builder = SplitBase.Builder()
+
         @JvmDefault
         fun joinBuilder(): Join.Builder = JoinBase.Builder()
+
         @JvmDefault
         fun activityBuilder(): MessageActivity.Builder = MessageActivityBase.Builder()
+
         @JvmDefault
-        fun compositeActivityBuilder(): CompositeActivity.ModelBuilder = ActivityBase.CompositeActivityBuilder(rootBuilder=this.rootBuilder)
+        fun compositeActivityBuilder(): CompositeActivity.ModelBuilder =
+            ActivityBase.CompositeActivityBuilder(rootBuilder = this.rootBuilder)
+
         @JvmDefault
         fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 
         @JvmDefault
         fun startNodeBuilder(startNode: StartNode): StartNode.Builder = StartNodeBase.Builder(startNode)
+
         @JvmDefault
         fun splitBuilder(split: Split): Split.Builder = SplitBase.Builder(split)
+
         @JvmDefault
         fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
+
         @JvmDefault
         fun activityBuilder(activity: MessageActivity): MessageActivity.Builder = MessageActivityBase.Builder(activity)
+
         @JvmDefault
-        fun activityBuilder(activity: CompositeActivity): CompositeActivity.ReferenceBuilder = CompositeActivityBase.ReferenceBuilder(activity)
+        fun activityBuilder(activity: CompositeActivity): CompositeActivity.ReferenceBuilder =
+            CompositeActivityBase.ReferenceBuilder(activity)
+
         @JvmDefault
         fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
 
@@ -165,7 +177,8 @@ interface ProcessModel<out NodeT: ProcessNode> {
                     val node = nodeList[nodeIdx]
                     for (successor in node.successors) {
                         visitSuccessors(
-                            nodeMap[successor.id] ?: throw ProcessException("Missing node for id $successor.id"))
+                            nodeMap[successor.id] ?: throw ProcessException("Missing node for id $successor.id")
+                                       )
                     }
                     resetCurrent(nodeIdx)
                 }
@@ -178,7 +191,8 @@ interface ProcessModel<out NodeT: ProcessNode> {
                 val node = nodeList[nodeIdx]
                 node.predecessors.isEmpty().also { empty ->
                     if (empty && node !is StartNode.Builder) throw ProcessException(
-                        "Non-start node without predecessors found (${node.id})")
+                        "Non-start node without predecessors found (${node.id})"
+                                                                                   )
                 }
             }.forEach(::visitSuccessors)
 
@@ -208,7 +222,8 @@ interface ProcessModel<out NodeT: ProcessNode> {
 
                     nodeBuilder.predecessors.firstOrNull { it.id !in nodeMap }?.let { missingPred ->
                         throw ProcessException(
-                            "The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})")
+                            "The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})"
+                                              )
                     }
 
                     nodeBuilder.successors.firstOrNull { it.id !in nodeMap }?.let { missingSuc ->
@@ -253,7 +268,8 @@ interface ProcessModel<out NodeT: ProcessNode> {
                     .forEach { pred ->
                         if (pred !is Split.Builder && // It is not a split
                             pred.successors.isNotEmpty() && // It has a successor set
-                            pred.successors.single().id!=curIdentifier.id) { // which is not just the current one
+                            pred.successors.single().id != curIdentifier.id
+                        ) { // which is not just the current one
 
                             splitsToInject.getOrPut(pred.id!!) {
                                 splitBuilder().apply {
@@ -281,7 +297,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
              * The predecessor/successor mapping has created valid split nodes. These nodes need embedding though as
              * their predecessors/successors will not be aware of them
              */
-            splitsToInject.mapTo(nodes) {(leftStr, middle) ->
+            splitsToInject.mapTo(nodes) { (leftStr, middle) ->
 
                 val leftId = Identifier(leftStr)
                 val leftBuilder = nodeMap[leftStr]!!
@@ -317,7 +333,7 @@ interface ProcessModel<out NodeT: ProcessNode> {
     }
 
     /** Interface that helps collating all the elements needed to build child nodes and child models*/
-    interface BuildHelper<NodeT: ProcessNode, out ModelT: ProcessModel<NodeT>, out RootT: RootProcessModel<*>, out ChildT: ChildProcessModel<*>> {
+    interface BuildHelper<NodeT : ProcessNode, out ModelT : ProcessModel<NodeT>, out RootT : RootProcessModel<*>, out ChildT : ChildProcessModel<*>> {
         val newOwner: ModelT// TODO must this be nullable ?
         val pedantic: Boolean get() = false
         fun childModel(childId: String): ChildT
@@ -326,14 +342,16 @@ interface ProcessModel<out NodeT: ProcessNode> {
             builder: ProcessNode.Builder,
             otherNodes: Iterable<ProcessNode.Builder>
                 ): NodeT
-        fun <M:ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
+
+        fun <M : ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
         fun condition(condition: Condition): Condition = condition
     }
 
     companion object {
         private fun <B : ProcessNode.Builder> ProcessModel.Builder.nodeHelper(
             builder: B,
-            body: B.() -> Unit): Identifiable {
+            body: B.() -> Unit
+                                                                             ): Identifiable {
 
             return builder.apply(body).ensureId().apply { this@nodeHelper.nodes.add(this) }.let { Identifier(it.id!!) }
         }

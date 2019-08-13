@@ -39,7 +39,7 @@ class JAXBUnmarshallingAdapter<T : XmlSerializable>(targetType: Class<T>) : JAXB
 
     init {
         val factoryTypeAnn = targetType.getAnnotation(XmlDeserializer::class.java)
-                             ?: throw IllegalArgumentException("For unmarshalling with this adapter to work, the type ${targetType.name} must have the ${XmlDeserializer::class.java.name} annotation")
+            ?: throw IllegalArgumentException("For unmarshalling with this adapter to work, the type ${targetType.name} must have the ${XmlDeserializer::class.java.name} annotation")
         try {
             @Suppress("UNCHECKED_CAST")
             this.factory = factoryTypeAnn.value.java.newInstance() as XmlDeserializerFactory<T>
@@ -70,10 +70,11 @@ class JAXBUnmarshallingAdapter<T : XmlSerializable>(targetType: Class<T>) : JAXB
                 val prefix = sourceNamespaceContext.getPrefix(i)
                 val namespace = sourceNamespaceContext.getNamespaceURI(i)
                 if (!// Not null namespace
-                        // or xml mPrefix
-                        (XMLConstants.NULL_NS_URI == namespace ||
-                         XMLConstants.XML_NS_PREFIX == prefix ||
-                         XMLConstants.XMLNS_ATTRIBUTE == prefix)) { // or xmlns mPrefix
+                    // or xml mPrefix
+                    (XMLConstants.NULL_NS_URI == namespace ||
+                        XMLConstants.XML_NS_PREFIX == prefix ||
+                        XMLConstants.XMLNS_ATTRIBUTE == prefix)
+                ) { // or xmlns mPrefix
 
                 }
 

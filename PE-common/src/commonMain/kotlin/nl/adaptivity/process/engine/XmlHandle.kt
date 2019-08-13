@@ -40,7 +40,7 @@ abstract class XmlHandle<T> : Handle<T>, XmlSerializable, SimpleXmlDeserializabl
     final override var handleValue: Long
         private set
 
-    constructor(handle: Handle<T>): this(handle.handleValue)
+    constructor(handle: Handle<T>) : this(handle.handleValue)
 
     override fun deserializeChild(reader: XmlReader): Boolean {
         return false
@@ -51,9 +51,11 @@ abstract class XmlHandle<T> : Handle<T>, XmlSerializable, SimpleXmlDeserializabl
         return true
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         return false
     }
 

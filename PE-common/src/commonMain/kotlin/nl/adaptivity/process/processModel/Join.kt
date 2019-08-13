@@ -57,7 +57,8 @@ interface Join : ProcessNode, JoinSplit {
         fun predecessors(vararg values: Identifiable) {
             values.forEach {
                 predecessors.add(
-                    it.identifier ?: throw NullPointerException("Missing identifier for predecessor $it"))
+                    it.identifier ?: throw NullPointerException("Missing identifier for predecessor $it")
+                                )
             }
         }
 
@@ -65,7 +66,7 @@ interface Join : ProcessNode, JoinSplit {
 
         override fun addSuccessor(identifier: Identifier) {
             val s = successor
-            if (s !=null) {
+            if (s != null) {
                 if (s.identifier == identifier) return
                 throw IllegalStateException("Successor already set")
             }

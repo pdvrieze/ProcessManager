@@ -19,5 +19,5 @@ package nl.adaptivity.diagram
 
 interface GroupDrawable : Drawable {
 
-  val childElements: Collection<Drawable>
+    val childElements: Collection<Drawable>
 }

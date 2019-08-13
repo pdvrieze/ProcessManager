@@ -44,8 +44,10 @@ open class XmlContainerSerializer<T : XMLContainer> {
                 writeAdditionalValues(childOut, desc, data)
                 writer.serialize(data.getXmlReader())
             } else {
-                childOut.encodeSerializableElement(desc, desc.getElementIndex("namespaces"), Namespace.list,
-                                                   data.namespaces.toList())
+                childOut.encodeSerializableElement(
+                    desc, desc.getElementIndex("namespaces"), Namespace.list,
+                    data.namespaces.toList()
+                                                  )
                 childOut.encodeStringElement(desc, desc.getElementIndex("content"), data.contentString)
                 writeAdditionalValues(childOut, desc, data)
             }
@@ -75,7 +77,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
             throw SerializationException("Unknown attribute: $attributeLocalName")
         }
 
-        fun deserialize(desc: SerialDescriptor, decoder: Decoder,  owner: XmlContainerSerializer<in T>) {
+        fun deserialize(desc: SerialDescriptor, decoder: Decoder, owner: XmlContainerSerializer<in T>) {
             @Suppress("NAME_SHADOWING")
             decoder.decodeStructure(desc) {
                 val input = this
@@ -114,8 +116,10 @@ open class XmlContainerSerializer<T : XMLContainer> {
                             KInput.READ_ALL  -> TODO("Not yet supported")
                             else             -> when (desc.getElementName(next)) {
                                 "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, Namespace.list)
-                                "content"    -> content = input.decodeSerializableElement(desc, 0,
-                                                                                          CharArrayAsStringSerializer)
+                                "content"    -> content = input.decodeSerializableElement(
+                                    desc, 0,
+                                    CharArrayAsStringSerializer
+                                                                                         )
                                 else         -> readAdditionalChild(desc, input, next)
                             }
                         }
@@ -131,14 +135,18 @@ open class XmlContainerSerializer<T : XMLContainer> {
         }
 
 
-        open fun handleLastRootAttributeReadEvent(reader: XmlReader,
-                                                  gatheringNamespaceContext: GatheringNamespaceContext) {
+        open fun handleLastRootAttributeReadEvent(
+            reader: XmlReader,
+            gatheringNamespaceContext: GatheringNamespaceContext
+                                                 ) {
         }
 
     }
 
-    protected class FilteringReader(val delegate: XmlReader,
-                                    val filter: NamespaceGatherer) : XmlReader by delegate {
+    protected class FilteringReader(
+        val delegate: XmlReader,
+        val filter: NamespaceGatherer
+                                   ) : XmlReader by delegate {
 
         private val localPrefixes = mutableListOf<List<String>>(emptyList())
 
@@ -190,17 +198,21 @@ open class XmlContainerSerializer<T : XMLContainer> {
 
             for (i in source.attributeCount - 1 downTo 0) {
                 val attrName = source.getAttributeName(i)
-                visitNamesInAttributeValue(source.namespaceContext, source.name, attrName,
-                                           source.getAttributeValue(i),
-                                           localPrefixes)
+                visitNamesInAttributeValue(
+                    source.namespaceContext, source.name, attrName,
+                    source.getAttributeValue(i),
+                    localPrefixes
+                                          )
             }
         }
 
-        open fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                            owner: QName,
-                                            attributeName: QName,
-                                            attributeValue: CharSequence,
-                                            localPrefixes: List<List<String>>) {
+        open fun visitNamesInAttributeValue(
+            referenceContext: NamespaceContext,
+            owner: QName,
+            attributeName: QName,
+            attributeValue: CharSequence,
+            localPrefixes: List<List<String>>
+                                           ) {
             // By default there are no special attributes
         }
 

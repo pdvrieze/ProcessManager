@@ -37,7 +37,12 @@ import nl.adaptivity.xmlutil.serialization.XML
 @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
 class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
-    constructor(name: String?, path: String? = null, content: CharArray? = null, originalNSContext: Iterable<Namespace> = emptyList()) :
+    constructor(
+        name: String?,
+        path: String? = null,
+        content: CharArray? = null,
+        originalNSContext: Iterable<Namespace> = emptyList()
+               ) :
         super(name, path, content, originalNSContext)
 
     class Factory : XmlDeserializerFactory<XmlResultType> {
@@ -90,11 +95,13 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
     @Serializer(forClass = XmlResultType::class)
     companion object : XPathHolderSerializer<XmlResultType>(), KSerializer<XmlResultType> {
-        override val descriptor = simpleSerialClassDesc<XmlResultType>(XmlResultTypeAnnotationHelper.descriptor.getEntityAnnotations(),
-                                                                       "name" to StringSerializer,
-                                                                       "xpath" to StringSerializer,
-                                                                       "namespaces" to Namespace.list,
-                                                                       "content" to StringSerializer)
+        override val descriptor = simpleSerialClassDesc<XmlResultType>(
+            XmlResultTypeAnnotationHelper.descriptor.getEntityAnnotations(),
+            "name" to StringSerializer,
+            "xpath" to StringSerializer,
+            "namespaces" to Namespace.list,
+            "content" to StringSerializer
+                                                                      )
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {
@@ -102,11 +109,15 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
         }
 
         const val ELEMENTLOCALNAME = "result"
-        private val ELEMENTNAME = QName(Engine.NAMESPACE,
-                                        ELEMENTLOCALNAME, Engine.NSPREFIX)
+        private val ELEMENTNAME = QName(
+            Engine.NAMESPACE,
+            ELEMENTLOCALNAME, Engine.NSPREFIX
+                                       )
 
-        @Deprecated("Use normal factory method",
-                    ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType"))
+        @Deprecated(
+            "Use normal factory method",
+            ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType")
+                   )
         operator fun get(import: IXmlResultType) = XmlResultType(import)
 
         override fun deserialize(decoder: Decoder): XmlResultType {
@@ -139,8 +150,10 @@ fun XmlResultType(import: IXmlResultType): XmlResultType {
         return import
     }
     val originalNSContext: Iterable<Namespace> = import.originalNSContext
-    return XmlResultType(import.getName(), import.getPath(), content = null,
-                         originalNSContext = originalNSContext)
+    return XmlResultType(
+        import.getName(), import.getPath(), content = null,
+        originalNSContext = originalNSContext
+                        )
 }
 
 /** Dummy serializer that is just used to get the annotations on the type. */

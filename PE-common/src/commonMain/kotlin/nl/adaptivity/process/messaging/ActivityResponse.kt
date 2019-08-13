@@ -88,9 +88,11 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @XmlSerialName(ActivityResponse.ELEMENTLOCALNAME, ActivityResponse.NAMESPACE, Engine.NSPREFIX)
 class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
 
-    private constructor(nodeInstanceState: NodeInstanceState,
-                        returnType: Class<T>,
-                        returnValue: T) {
+    private constructor(
+        nodeInstanceState: NodeInstanceState,
+        returnType: Class<T>,
+        returnValue: T
+                       ) {
         this.nodeInstanceState = nodeInstanceState
         this.returnType = returnType
         this._returnValue = returnValue
@@ -155,9 +157,11 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         when (attributeLocalName) {
             "taskState" -> {
                 taskStateString = attributeValue
@@ -194,9 +198,11 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
          * @param returnValue The value to return.
          * @return
          */
-        fun <V : Any> create(nodeInstanceState: NodeInstanceState,
-                             returnType: Class<V>,
-                             returnValue: V): ActivityResponse<V> {
+        fun <V : Any> create(
+            nodeInstanceState: NodeInstanceState,
+            returnType: Class<V>,
+            returnValue: V
+                            ): ActivityResponse<V> {
             return ActivityResponse(nodeInstanceState, returnType, returnValue)
         }
 

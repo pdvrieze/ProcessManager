@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-interface MessageActivity: Activity {
+interface MessageActivity : Activity {
 
     /**
      * The message of this activity. This provides all the information to be

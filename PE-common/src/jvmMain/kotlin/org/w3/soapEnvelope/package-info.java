@@ -21,6 +21,10 @@
 // Generated on: 2009.09.24 at 08:12:58 PM CEST
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.w3.org/2003/05/soap-envelope", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED, xmlns = { @javax.xml.bind.annotation.XmlNs(namespaceURI = "http://www.w3.org/2003/05/soap-envelope", prefix = "") })
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.w3.org/2003/05/soap-envelope",
+                                     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+                                     xmlns = {
+                                         @javax.xml.bind.annotation.XmlNs(namespaceURI = "http://www.w3.org/2003/05/soap-envelope",
+                                                                          prefix = "")})
 package org.w3.soapEnvelope;
 

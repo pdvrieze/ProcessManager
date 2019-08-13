@@ -66,15 +66,18 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
     internal val conditionStringsForSerialization: Map<Identifier, String?>
 
 
-
-    constructor(builder: Join.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>, otherNodes: Iterable<ProcessNode.Builder>)
+    constructor(
+        builder: Join.Builder,
+        buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+               )
         : super(builder, buildHelper.newOwner, otherNodes) {
         isMultiMerge = builder.isMultiMerge
         val predecessors = (this.predecessors as MutableIdentifyableSet<Identified>)
         val conditions = mutableMapOf<Identifier, Condition?>()
         builder.conditions.forEach { entry ->
             predecessors.add(entry.key)
-            conditions[entry.key] = entry.value?.let { buildHelper.condition(it)}
+            conditions[entry.key] = entry.value?.let { buildHelper.condition(it) }
         }
         this.conditions = conditions
         conditionStringsForSerialization = conditions.mapValues { (_, value) -> value?.condition }
@@ -139,19 +142,23 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
         constructor() : this(predecessors = emptyList<PredecessorInfo>(), isMultiMerge = false, isMultiInstance = false)
 
-        constructor(id: String? = null,
-                    predecessors: Collection<PredecessorInfo> = emptyList(),
-                    successor: Identified? = null, label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = -1,
-                    max: Int = -1,
-                    isMultiMerge: Boolean = false,
-                    isMultiInstance: Boolean = false) : super(id, label,
-                                                              defines, results, x,
-                                                              y, min, max, isMultiInstance) {
+        constructor(
+            id: String? = null,
+            predecessors: Collection<PredecessorInfo> = emptyList(),
+            successor: Identified? = null, label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = -1,
+            max: Int = -1,
+            isMultiMerge: Boolean = false,
+            isMultiInstance: Boolean = false
+                   ) : super(
+            id, label,
+            defines, results, x,
+            y, min, max, isMultiInstance
+                            ) {
             predecessors.forEach { conditions[Identifier(it.id)] = it.condition }
             this.successor = successor
             this.isMultiMerge = isMultiMerge
@@ -193,7 +200,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
                 val condition = reader.getAttributeValue(null, "condition")
                 val id = reader.readSimpleElement()
                 val identifier = Identifier(id)
-                if (condition!=null) {
+                if (condition != null) {
                     conditions[identifier] = XmlCondition(condition)
                 }
                 predecessors.add(identifier)
@@ -202,7 +209,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             return super.deserializeChild(reader)
         }
 
-        private inner class PredecessorSet: AbstractMutableSet<Identified>() {
+        private inner class PredecessorSet : AbstractMutableSet<Identified>() {
             override val size: Int get() = conditions.size
 
             override fun add(element: Identified): Boolean {
@@ -253,7 +260,6 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
 
     }
-
 
 
     companion object {

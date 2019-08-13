@@ -19,27 +19,27 @@ package nl.adaptivity.diagram
 
 interface Positioned {
 
-  /**
-   * Determine whether the element actually has a real position.
-   * @return `true` if it has, `false` if not.
-   */
-  fun hasPos() = x.isFinite() && y.isFinite()
+    /**
+     * Determine whether the element actually has a real position.
+     * @return `true` if it has, `false` if not.
+     */
+    fun hasPos() = x.isFinite() && y.isFinite()
 
-  /**
-   * Get the X coordinate of the gravity point of the element. The point is
-   * generally the center, but it is element dependent.
+    /**
+     * Get the X coordinate of the gravity point of the element. The point is
+     * generally the center, but it is element dependent.
 
-   * @return The X coordinate
-   */
-  val x: Double
+     * @return The X coordinate
+     */
+    val x: Double
 
-  /**
-   * Get the Y coordinate of the gravity point of the element. The point is
-   * generally the center, but it is element dependent.
+    /**
+     * Get the Y coordinate of the gravity point of the element. The point is
+     * generally the center, but it is element dependent.
 
-   * @return The Y coordinate
-   */
-  val y: Double
+     * @return The Y coordinate
+     */
+    val y: Double
 
 }
 

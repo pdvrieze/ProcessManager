@@ -23,11 +23,13 @@ import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
-class PredecessorInfo(@SerialName("predecessor")
-                      @XmlValue(true) val id: String,
-                      @Serializable(XmlCondition.Companion::class)
-                      @XmlElement(false) val condition: Condition? = null) {
+class PredecessorInfo(
+    @SerialName("predecessor")
+    @XmlValue(true) val id: String,
+    @Serializable(XmlCondition.Companion::class)
+    @XmlElement(false) val condition: Condition? = null
+                     ) {
     init {
-        if(id.isEmpty()) throw IllegalArgumentException("Empty id's are not valid")
+        if (id.isEmpty()) throw IllegalArgumentException("Empty id's are not valid")
     }
 }

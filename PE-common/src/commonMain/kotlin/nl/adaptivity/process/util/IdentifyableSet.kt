@@ -28,7 +28,7 @@ interface MutableIdentifyableSet<T : Identifiable> : IdentifyableSet<T>, Mutable
 
     operator fun set(index: Int, value: T): T
 
-    fun addAll(sequence: Sequence<T>) = sequence.fold(false){ r, elem -> add(elem) or r }
+    fun addAll(sequence: Sequence<T>) = sequence.fold(false) { r, elem -> add(elem) or r }
 
     fun removeAt(index: Int): T
 
@@ -68,7 +68,8 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
     }
 
 
-    private class ReadOnlyIdentifyableSet<T : Identifiable> private constructor(private val data: Array<T>) : IdentifyableSet<T> {
+    private class ReadOnlyIdentifyableSet<T : Identifiable> private constructor(private val data: Array<T>) :
+        IdentifyableSet<T> {
 
         @Suppress("UNCHECKED_CAST")
         constructor(delegate: IdentifyableSet<T>) : this(delegate.toTypedArray<Identifiable>() as Array<T>)
@@ -79,7 +80,8 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
         }
 
         override fun subList(fromIndex: Int, toIndex: Int) = ReadOnlyIdentifyableSet(
-            data.copyOfRange(fromIndex, toIndex))
+            data.copyOfRange(fromIndex, toIndex)
+                                                                                    )
 
         override fun get(index: Int): T {
             return data[index]
@@ -109,7 +111,8 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
     }
 
-    private class BaseIdentifyableSet<V : Identifiable>(private val data: ArraySet<V> = ArraySet()) : MutableIdentifyableSet<V>, MutableSet<V> by data {
+    private class BaseIdentifyableSet<V : Identifiable>(private val data: ArraySet<V> = ArraySet()) :
+        MutableIdentifyableSet<V>, MutableSet<V> by data {
 
         constructor(initialcapacity: Int) : this(ArraySet(initialcapacity))
 
@@ -246,8 +249,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         override fun add(element: Identifiable) = throw IllegalStateException("No elements can be added to this list")
 
-        override fun addAll(elements: Collection<Identifiable>) = if (elements.isEmpty()) false else throw IllegalStateException(
-            "No elements can be added to this list")
+        override fun addAll(elements: Collection<Identifiable>) =
+            if (elements.isEmpty()) false else throw IllegalStateException(
+                "No elements can be added to this list"
+                                                                          )
 
         override fun clear() = Unit // No meaning
 
@@ -297,7 +302,8 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         override fun addAll(elements: Collection<V>): Boolean {
             if (size + elements.size > 1) throw IllegalStateException(
-                "Attempting to increase singleton set to more than one element")
+                "Attempting to increase singleton set to more than one element"
+                                                                     )
             return elements.fold(false) { acc, elem -> acc or add(elem) }
         }
 
@@ -419,7 +425,8 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         override fun remove() {
             (mParent as? MutableIterator<Identifiable>)?.remove() ?: throw UnsupportedOperationException(
-                "The key set is not mutable")
+                "The key set is not mutable"
+                                                                                                        )
         }
     }
 

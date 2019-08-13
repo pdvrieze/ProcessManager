@@ -27,9 +27,11 @@ import javax.activation.DataSource
 import javax.xml.transform.Source
 
 
-class SendableSoapSource @JvmOverloads constructor(private val destination: EndpointDescriptor,
-                                                   private val message: Source,
-                                                   private val attachments: Map<String, DataSource> = emptyMap()) : ISendableMessage, Writable {
+class SendableSoapSource @JvmOverloads constructor(
+    private val destination: EndpointDescriptor,
+    private val message: Source,
+    private val attachments: Map<String, DataSource> = emptyMap()
+                                                  ) : ISendableMessage, Writable {
 
     override fun getDestination(): EndpointDescriptor {
         return destination

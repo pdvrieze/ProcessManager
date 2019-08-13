@@ -93,7 +93,7 @@ interface Activity : ProcessNode {
 
         override fun addSuccessor(identifier: Identifier) {
             val s = successor
-            if (s !=null) {
+            if (s != null) {
                 if (s.identifier == identifier) return
                 throw IllegalStateException("Successor already set")
             }
@@ -102,7 +102,7 @@ interface Activity : ProcessNode {
 
         override fun addPredecessor(identifier: Identifier) {
             val p = predecessor
-            if (p !=null) {
+            if (p != null) {
                 if (p.identifier == identifier) return
                 throw IllegalStateException("Predecessor already set")
             }

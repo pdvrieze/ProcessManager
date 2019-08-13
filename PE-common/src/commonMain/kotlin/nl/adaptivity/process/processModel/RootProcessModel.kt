@@ -24,7 +24,7 @@ import nl.adaptivity.util.security.Principal
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
-interface RootProcessModel<out NodeT: ProcessNode> : ProcessModel<NodeT> {
+interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
 
     override val rootModel: RootProcessModel<NodeT> get() = this
 

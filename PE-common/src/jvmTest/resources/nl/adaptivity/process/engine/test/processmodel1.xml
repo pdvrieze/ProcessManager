@@ -16,115 +16,136 @@
   -->
 
 <pe:processModel
-        xmlns:pe="http://adaptivity.nl/ProcessEngine/"
-        xmlns:umh="http://adaptivity.nl/userMessageHandler"
-        xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
-        xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
-        name="testProcessModel">
-      <pe:start id="start"/>
-      <pe:activity id="ac1" predecessor="start" name="ac1">
-        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
-          <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-            <Body>
-              <postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <repliesParam>
-                  <jbi:element value="endpoint"/>
-                </repliesParam>
-                <taskParam>
-                  <task summary="Task Foo">
-                    <jbi:attribute name="remotehandle" value="handle"/>
-                    <jbi:attribute name="owner" value="owner"/>
-                    <jbi:attribute name="instancehandle" value="instancehandle" />
-                  </task>
-                </taskParam>
-              </postTask>
-            </Body>
-          </Envelope>
+    xmlns:pe="http://adaptivity.nl/ProcessEngine/"
+    xmlns:umh="http://adaptivity.nl/userMessageHandler"
+    xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+    xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+    name="testProcessModel">
+    <pe:start id="start" />
+    <pe:activity id="ac1" predecessor="start" name="ac1">
+        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask"
+                    url="/PEUserMessageHandler/internal">
+            <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope"
+                      encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <Body>
+                    <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                        <repliesParam>
+                            <jbi:element value="endpoint" />
+                        </repliesParam>
+                        <taskParam>
+                            <task summary="Task Foo">
+                                <jbi:attribute name="remotehandle" value="handle" />
+                                <jbi:attribute name="owner" value="owner" />
+                                <jbi:attribute name="instancehandle" value="instancehandle" />
+                            </task>
+                        </taskParam>
+                    </postTask>
+                </Body>
+            </Envelope>
         </pe:message>
-      </pe:activity>
-      <pe:activity id="ac2" predecessor="ac1" name="ac2">
-        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
-          <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-            <soap:Body>
-              <umh:postTask>
-                <umh:repliesParam>
-                  <jbi:element value="endpoint"/>
-                </umh:repliesParam>
-                <umh:taskParam>
-                  <umh:task summary="Task Bar">
-                    <jbi:attribute name="remotehandle" value="handle"/>
-                    <jbi:attribute name="owner" value="owner"/>
-                    <jbi:attribute name="instancehandle" value="instancehandle" />
-                  </umh:task>
-                </umh:taskParam>
-              </umh:postTask>
-            </soap:Body>
-          </soap:Envelope>
+    </pe:activity>
+    <pe:activity id="ac2" predecessor="ac1" name="ac2">
+        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask"
+                    url="/PEUserMessageHandler/internal">
+            <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <soap:Body>
+                    <umh:postTask>
+                        <umh:repliesParam>
+                            <jbi:element value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task summary="Task Bar">
+                                <jbi:attribute name="remotehandle" value="handle" />
+                                <jbi:attribute name="owner" value="owner" />
+                                <jbi:attribute name="instancehandle" value="instancehandle" />
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </soap:Body>
+            </soap:Envelope>
         </pe:message>
-      </pe:activity>
-      <pe:activity id="ac3" predecessor="ac1" name="ac3">
-        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
-          <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-            <soap:Body>
-              <umh:postTask>
-                <umh:repliesParam>
-                  <jbi:element value="endpoint"/>
-                </umh:repliesParam>
-                <umh:taskParam>
-                  <umh:task summary="Task Baz1">
-                    <jbi:attribute name="remotehandle" value="handle"/>
-                    <jbi:attribute name="owner" value="owner"/>
-                    <jbi:attribute name="instancehandle" value="instancehandle" />
-                  </umh:task>
-                </umh:taskParam>
-              </umh:postTask>
-            </soap:Body>
-          </soap:Envelope>
+    </pe:activity>
+    <pe:activity id="ac3" predecessor="ac1" name="ac3">
+        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask"
+                    url="/PEUserMessageHandler/internal">
+            <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <soap:Body>
+                    <umh:postTask>
+                        <umh:repliesParam>
+                            <jbi:element value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task summary="Task Baz1">
+                                <jbi:attribute name="remotehandle" value="handle" />
+                                <jbi:attribute name="owner" value="owner" />
+                                <jbi:attribute name="instancehandle" value="instancehandle" />
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </soap:Body>
+            </soap:Envelope>
         </pe:message>
-      </pe:activity>
-      <pe:activity id="ac5" predecessor="ac3" name="ac5">
-        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
-          <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-            <soap:Body>
-              <umh:postTask>
-                <umh:repliesParam>
-                  <jbi:element value="endpoint"/>
-                </umh:repliesParam>
-                <umh:taskParam>
-                  <umh:task summary="Task Baz2">
-                    <jbi:attribute name="remotehandle" value="handle"/>
-                    <jbi:attribute name="instancehandle" value="instancehandle" />
-                    <jbi:attribute name="owner" value="owner"/>
-                  </umh:task>
-                </umh:taskParam>
-              </umh:postTask>
-            </soap:Body>
-          </soap:Envelope>
+    </pe:activity>
+    <pe:activity id="ac5" predecessor="ac3" name="ac5">
+        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask"
+                    url="/PEUserMessageHandler/internal">
+            <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <soap:Body>
+                    <umh:postTask>
+                        <umh:repliesParam>
+                            <jbi:element value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task summary="Task Baz2">
+                                <jbi:attribute name="remotehandle" value="handle" />
+                                <jbi:attribute name="instancehandle" value="instancehandle" />
+                                <jbi:attribute name="owner" value="owner" />
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </soap:Body>
+            </soap:Envelope>
         </pe:message>
-      </pe:activity>
-      <pe:join id="j1" min="2" max="2">
+    </pe:activity>
+    <pe:join id="j1" min="2" max="2">
         <pe:predecessor>ac2</pe:predecessor>
         <pe:predecessor>ac5</pe:predecessor>
-      </pe:join>
-      <pe:activity id="ac4" predecessor="j1" name="ac4">
-        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
-          <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-            <soap:Body>
-              <umh:postTask>
-                <umh:repliesParam>
-                  <jbi:element value="endpoint"/>
-                </umh:repliesParam>
-                <umh:taskParam>
-                  <umh:task summary="Task Last">
-                    <jbi:attribute name="remotehandle" value="handle"/>
-                    <jbi:attribute name="instancehandle" value="instancehandle" />
-                    <jbi:attribute name="owner" value="owner"/>
-                  </umh:task>
-                </umh:taskParam>
-              </umh:postTask>
-            </soap:Body>
-          </soap:Envelope>
+    </pe:join>
+    <pe:activity id="ac4" predecessor="j1" name="ac4">
+        <pe:message serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask"
+                    url="/PEUserMessageHandler/internal">
+            <soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <soap:Body>
+                    <umh:postTask>
+                        <umh:repliesParam>
+                            <jbi:element value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task summary="Task Last">
+                                <jbi:attribute name="remotehandle" value="handle" />
+                                <jbi:attribute name="instancehandle" value="instancehandle" />
+                                <jbi:attribute name="owner" value="owner" />
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </soap:Body>
+            </soap:Envelope>
         </pe:message>
-      </pe:activity>
-      <pe:end predecessor="ac4" id="end"/>
+    </pe:activity>
+    <pe:end predecessor="ac4" id="end" />
 </pe:processModel>

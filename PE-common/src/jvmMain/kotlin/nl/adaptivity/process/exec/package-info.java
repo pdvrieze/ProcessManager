@@ -21,5 +21,6 @@
 // Generated on: 2014.08.06 at 08:14:28 PM BST 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://adaptivity.nl/ProcessEngine/", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://adaptivity.nl/ProcessEngine/",
+                                     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package nl.adaptivity.process.exec;

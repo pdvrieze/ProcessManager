@@ -93,9 +93,11 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
         return true
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         val qname = QName(attributeNamespace.toString(), attributeLocalName)
         otherAttributes[qname] = attributeValue
         return true
@@ -123,8 +125,10 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
         const val ELEMENTLOCALNAME = "Header"
         val ELEMENTNAME = QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX)
         const val PRINCIPALLOCALNAME = "principal"
-        val PRINCIPALQNAME = QName(Engine.NAMESPACE, "principal",
-                                   Engine.NSPREFIX)
+        val PRINCIPALQNAME = QName(
+            Engine.NAMESPACE, "principal",
+            Engine.NSPREFIX
+                                  )
 
         fun deserialize(reader: XmlReader): Header {
             return Header().deserializeHelper(reader)

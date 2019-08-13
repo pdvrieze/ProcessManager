@@ -27,10 +27,12 @@ expect abstract class XPathHolder : XMLContainer {
 
     constructor()
 
-    constructor(name: String?,
-                path: String?,
-                content: CharArray?,
-                originalNSContext: Iterable<Namespace>)
+    constructor(
+        name: String?,
+        path: String?,
+        content: CharArray?,
+        originalNSContext: Iterable<Namespace>
+               )
 
     fun getName(): String
 
@@ -41,9 +43,11 @@ expect abstract class XPathHolder : XMLContainer {
     @Deprecated("This should be immutable")
     fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-    open fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean
+    open fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                 ): Boolean
 
     override fun deserializeChildren(reader: XmlReader)
 
@@ -51,10 +55,12 @@ expect abstract class XPathHolder : XMLContainer {
 
     override fun visitNamespaces(baseContext: NamespaceContext)
 
-    override fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                            owner: QName,
-                                            attributeName: QName,
-                                            attributeValue: CharSequence)
+    override fun visitNamesInAttributeValue(
+        referenceContext: NamespaceContext,
+        owner: QName,
+        attributeName: QName,
+        attributeValue: CharSequence
+                                           )
 }
 
 

@@ -65,7 +65,7 @@ interface IXmlDefineType : XmlSerializable {
      *
      * @param value allowed object is [String]
      */
-    fun setName(value:String)
+    fun setName(value: String)
 
     /**
      * Gets the value of the path property.
@@ -97,9 +97,9 @@ interface IXmlDefineType : XmlSerializable {
         path: String? = getPath(),
         content: CharArray? = this.content,
         nsContext: Iterable<Namespace> = originalNSContext
-                ): IXmlDefineType
+            ): IXmlDefineType
 
-    companion object serializer: KSerializer<IXmlDefineType> {
+    companion object serializer : KSerializer<IXmlDefineType> {
         override val descriptor: SerialDescriptor
             get() = XmlResultType.serializer().descriptor
 
@@ -114,20 +114,26 @@ interface IXmlDefineType : XmlSerializable {
 
 }
 
-var IXmlDefineType.refNode:String?
+var IXmlDefineType.refNode: String?
     inline get() = getRefNode()
-    inline set(value) {setRefNode(value)}
+    inline set(value) {
+        setRefNode(value)
+    }
 
-var IXmlDefineType.refName:String?
+var IXmlDefineType.refName: String?
     inline get() = getRefName()
-    inline set(value) {setRefName(value)}
+    inline set(value) {
+        setRefName(value)
+    }
 
-var IXmlDefineType.name:String
+var IXmlDefineType.name: String
     inline get() = getName()
-    inline set(value) { setName(value) }
+    inline set(value) {
+        setName(value)
+    }
 
 
-object IXmlDefineTypeListSerializer: KSerializer<List<IXmlDefineType>> {
+object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {
 
     val delegate = XmlDefineType.list
 

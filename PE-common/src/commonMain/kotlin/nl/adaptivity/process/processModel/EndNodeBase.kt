@@ -42,7 +42,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
     override val predecessor: Identified? = predecessors.singleOrNull()
 
     @Transient
-    override val maxSuccessorCount: Int get() = 0
+    override val maxSuccessorCount: Int
+        get() = 0
 
     @Transient
     override val successors: IdentifyableSet<Identified>
@@ -74,7 +75,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         SimpleXmlDeserializable {
 
         @Transient
-        override val idBase: String get() = "end"
+        override val idBase: String
+            get() = "end"
 
         @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
@@ -85,14 +87,16 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
         constructor() : this(id = null)
 
-        constructor(id: String? = null,
-                    predecessor: Identified? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    isMultiInstance: Boolean = false) : super(id, label, defines, results, x, y, isMultiInstance) {
+        constructor(
+            id: String? = null,
+            predecessor: Identified? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false
+                   ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.predecessor = predecessor
         }
 
@@ -113,15 +117,19 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             return false
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
                 predecessor = Identifier(attributeValue)
                 return true
             }
-            return super<ProcessNodeBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName,
-                                                                       attributeValue)
+            return super<ProcessNodeBase.Builder>.deserializeAttribute(
+                attributeNamespace, attributeLocalName,
+                attributeValue
+                                                                      )
         }
 
         override fun deserializeChildText(elementText: CharSequence): Boolean {

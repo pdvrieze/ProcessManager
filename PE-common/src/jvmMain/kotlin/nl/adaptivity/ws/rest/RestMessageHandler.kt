@@ -69,7 +69,8 @@ class RestMessageHandler private constructor(private val target: Any) {
 
             if (annotation != null && annotation.method === httpMethod
                 && pathFits(pathParams, annotation.path, httpMessage.requestPath)
-                && conditionsSatisfied(annotation.get, annotation.post, annotation.query, httpMessage)) {
+                && conditionsSatisfied(annotation.get, annotation.post, annotation.query, httpMessage)
+            ) {
                 if (resultAnnotation == null || isMoreSpecificThan(resultAnnotation, annotation)) {
                     result = RestMethodWrapper[target, candidate]
                     result.setPathParams(pathParams)
@@ -108,7 +109,8 @@ class RestMessageHandler private constructor(private val target: Any) {
 
             if (annotation != null && annotation.method === pHttpMethod
                 && pathFits(pathParams, annotation.path, pRequest.requestPath)
-                && conditionsSatisfied(annotation.get, annotation.post, annotation.query, pRequest)) {
+                && conditionsSatisfied(annotation.get, annotation.post, annotation.query, pRequest)
+            ) {
                 return true
             }
 
@@ -147,7 +149,7 @@ class RestMessageHandler private constructor(private val target: Any) {
             val getdiff = pBaseAnnotation.get.size - pAnnotation.get.size
             val querydiff = pBaseAnnotation.query.size - pAnnotation.query.size
             return (postdiff < 0 && getdiff <= 0 && querydiff <= 0 || postdiff <= 0 && getdiff < 0 && querydiff <= 0
-                    || postdiff <= 0 && getdiff <= 0 && querydiff < 0)
+                || postdiff <= 0 && getdiff <= 0 && querydiff < 0)
         }
 
         private fun createCacheElem(pClass: Class<*>): EnumMap<HttpMethod, PrefixMap<Method>> {
@@ -195,10 +197,12 @@ class RestMessageHandler private constructor(private val target: Any) {
             return pPath
         }
 
-        private fun conditionsSatisfied(pGet: Array<String>,
-                                        pPost: Array<String>,
-                                        pQuery: Array<String>,
-                                        pRequest: HttpMessage): Boolean {
+        private fun conditionsSatisfied(
+            pGet: Array<String>,
+            pPost: Array<String>,
+            pQuery: Array<String>,
+            pRequest: HttpMessage
+                                       ): Boolean {
             for (condition in pGet) {
                 if (!conditionGetSatisfied(condition, pRequest)) {
                     return false

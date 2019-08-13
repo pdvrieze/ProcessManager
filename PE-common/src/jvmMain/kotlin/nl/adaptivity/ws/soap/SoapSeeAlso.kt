@@ -22,7 +22,9 @@ import kotlin.reflect.KClass
  * Like @XmlSeeAlso, but allowed on more types.
  * @author pdvrieze
  */
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FILE, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER,
-        AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.VALUE_PARAMETER)
+@Target(
+    AnnotationTarget.CLASS, AnnotationTarget.FILE, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.VALUE_PARAMETER
+       )
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SoapSeeAlso(vararg val value: KClass<*>)

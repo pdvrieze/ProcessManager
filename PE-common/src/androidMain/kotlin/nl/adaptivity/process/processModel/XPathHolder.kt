@@ -59,17 +59,21 @@ actual abstract class XPathHolder : XMLContainer {
 
     actual constructor() : super()
 
-    actual constructor(name: String?,
-                       path: String?,
-                       content: CharArray?,
-                       originalNSContext: Iterable<Namespace>) : super(originalNSContext, content ?: CharArray(0)) {
+    actual constructor(
+        name: String?,
+        path: String?,
+        content: CharArray?,
+        originalNSContext: Iterable<Namespace>
+                      ) : super(originalNSContext, content ?: CharArray(0)) {
         _name = name
         pathString = path
     }
 
     actual fun getName() = _name ?: throw NullPointerException("Name not set")
 
-    actual fun setName(value:String) { _name = value }
+    actual fun setName(value: String) {
+        _name = value
+    }
 
     actual fun getPath(): String? {
         return pathString
@@ -94,7 +98,11 @@ actual abstract class XPathHolder : XMLContainer {
         path = null // invalidate the cached path expression
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: String?, attributeLocalName: String, attributeValue: String): Boolean {
+    actual override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                            ): Boolean {
         when (attributeLocalName) {
             "name"                       -> {
                 _name = attributeValue
@@ -114,9 +122,11 @@ actual abstract class XPathHolder : XMLContainer {
 
         super.deserializeChildren(reader)
         val namespaces = TreeMap<String, String>()
-        val gatheringNamespaceContext = CombiningNamespaceContext(SimpleNamespaceContext.from(originalNSContext),
-                                                                  GatheringNamespaceContext(
-                                                                      reader.namespaceContext, namespaces))
+        val gatheringNamespaceContext = CombiningNamespaceContext(
+            SimpleNamespaceContext.from(originalNSContext),
+            GatheringNamespaceContext(reader.namespaceContext, namespaces)
+                                                                 )
+
         visitNamespaces(gatheringNamespaceContext)
         if (namespaces.size > 0) {
             addNamespaceContext(SimpleNamespaceContext(namespaces))
@@ -132,8 +142,12 @@ actual abstract class XPathHolder : XMLContainer {
             val referenceContext = out.namespaceContext
             // TODO streamline this, the right context should not require the filtering on the output context later.
             val nsc = GatheringNamespaceContext(
-                CombiningNamespaceContext(referenceContext, SimpleNamespaceContext
-                    .from(originalNSContext)), namepaces)
+                CombiningNamespaceContext(
+                    referenceContext,
+                    SimpleNamespaceContext.from(originalNSContext)
+                                         ),
+                namepaces
+                                               )
             visitXpathUsedPrefixes(pathString, nsc)
             for ((key, value) in namepaces) {
                 if (value != referenceContext.getNamespaceURI(key)) {
@@ -155,7 +169,12 @@ actual abstract class XPathHolder : XMLContainer {
         super.visitNamespaces(baseContext)
     }
 
-    actual override fun visitNamesInAttributeValue(referenceContext: NamespaceContext, owner: QName, attributeName: QName, attributeValue: CharSequence) {
+    actual override fun visitNamesInAttributeValue(
+        referenceContext: NamespaceContext,
+        owner: QName,
+        attributeName: QName,
+        attributeValue: CharSequence
+                                                  ) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }
@@ -191,7 +210,8 @@ internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext
             xpath.namespaceContext = namespaceContext
             xpath.compile(path.toString())
         } catch (e: XPathExpressionException) {
-            Logger.getLogger(XPathHolder::class.java.simpleName).log(Level.WARNING, "The path used is not valid (" + path + ") - " + e.message, e)
+            Logger.getLogger(XPathHolder::class.java.simpleName)
+                .log(Level.WARNING, "The path used is not valid (" + path + ") - " + e.message, e)
         }
 
     }

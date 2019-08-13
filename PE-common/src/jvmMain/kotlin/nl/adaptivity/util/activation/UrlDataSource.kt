@@ -39,8 +39,11 @@ constructor(private val url: URL) : DataSource {
         val connection: URLConnection
         connection = url.openConnection()
 
-        this.contentType = connection.contentType.let<String?, String?> { if (it == null || it == "content/unknown") getMimeTypeForFileName(
-            url.file) else it } ?: "application/binary"
+        this.contentType = connection.contentType.let<String?, String?> {
+            if (it == null || it == "content/unknown") getMimeTypeForFileName(
+                url.file
+                                                                             ) else it
+        } ?: "application/binary"
 
         inputStream = connection.getInputStream()
 

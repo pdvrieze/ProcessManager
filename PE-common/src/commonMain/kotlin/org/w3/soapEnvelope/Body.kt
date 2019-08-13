@@ -68,7 +68,7 @@ class Body<T : XmlSerializable>() : XmlSerializable {
      *
      * ```
      * getAny().add(newItem);
- * ```
+     * ```
      *
      *
      * Objects of the following type(s) are allowed in the list [Object]
@@ -97,9 +97,11 @@ class Body<T : XmlSerializable>() : XmlSerializable {
         }
     }
 
-    fun deserializeAttribute(attributeNamespace: CharSequence,
-                             attributeLocalName: CharSequence,
-                             attributeValue: CharSequence): Boolean {
+    fun deserializeAttribute(
+        attributeNamespace: CharSequence,
+        attributeLocalName: CharSequence,
+        attributeValue: CharSequence
+                            ): Boolean {
         val qname = QName(attributeNamespace.toString(), attributeLocalName.toString())
         otherAttributes[qname] = attributeValue.toString()
         return true
@@ -140,8 +142,10 @@ class Body<T : XmlSerializable>() : XmlSerializable {
             reader.skipPreamble()
             assert(reader.isElement(result.elementName)) { "Expected " + result.elementName + " but found " + reader.localName }
             for (i in reader.attributeCount - 1 downTo 0) {
-                result.deserializeAttribute(reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
-                                            reader.getAttributeValue(i))
+                result.deserializeAttribute(
+                    reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
+                    reader.getAttributeValue(i)
+                                           )
             }
             result.deserializeChildren(reader, bodyFactory)
 

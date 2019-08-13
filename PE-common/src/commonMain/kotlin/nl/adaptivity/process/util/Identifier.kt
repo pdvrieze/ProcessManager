@@ -27,7 +27,8 @@ import nl.adaptivity.serialutil.simpleSerialClassDesc
 class Identifier(override var id: String) : Identified {
 
     @Transient
-    override val identifier: Identifier get() = this
+    override val identifier: Identifier
+        get() = this
 
     private class ChangeableIdentifier(private val idBase: String) : Identified {
         private var idNo: Int = 1
@@ -37,7 +38,7 @@ class Identifier(override var id: String) : Identified {
 
         override fun compareTo(other: Identifiable): Int {
             val otherId = other.id
-            if (otherId==null) return 1
+            if (otherId == null) return 1
             return id.compareTo(otherId)
         }
 
@@ -85,8 +86,8 @@ class Identifier(override var id: String) : Identified {
 
         fun findIdentifier(idBase: String, exclusions: Iterable<Identifiable>): String {
             val idFactory = ChangeableIdentifier(idBase)
-            return generateSequence({idFactory.id}, {idFactory.next(); idFactory.id})
-                .filter { candidate -> exclusions.none { candidate==it.id } }
+            return generateSequence({ idFactory.id }, { idFactory.next(); idFactory.id })
+                .filter { candidate -> exclusions.none { candidate == it.id } }
                 .first()
         }
     }

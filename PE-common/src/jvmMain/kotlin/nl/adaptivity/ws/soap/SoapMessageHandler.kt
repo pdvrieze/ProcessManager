@@ -154,8 +154,10 @@ abstract class SoapMessageHandler {
 
         init {
             try {
-                val otherClass = Class.forName(ClassLoadedSoapMessageHandler::class.java.name, true,
-                                               target.javaClass.classLoader)
+                val otherClass = Class.forName(
+                    ClassLoadedSoapMessageHandler::class.java.name, true,
+                    target.javaClass.classLoader
+                                              )
 
                 val constructor = otherClass.getConstructor(Any::class.java)
                 other = constructor.newInstance(target)
@@ -259,7 +261,8 @@ abstract class SoapMessageHandler {
 
 
         fun newInstance(target: Any): SoapMessageHandler {
-            val instances = this.instances ?: (ConcurrentHashMap<Any, SoapMessageHandlerAccessor>().also { this.instances = it })
+            val instances =
+                this.instances ?: (ConcurrentHashMap<Any, SoapMessageHandlerAccessor>().also { this.instances = it })
 
             return if (!instances.containsKey(target)) {
                 synchronized(instances) {

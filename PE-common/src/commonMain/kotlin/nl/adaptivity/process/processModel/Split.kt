@@ -54,7 +54,7 @@ interface Split : ProcessNode, JoinSplit {
 
         override fun addPredecessor(identifier: Identifier) {
             val p = predecessor
-            if (p !=null) {
+            if (p != null) {
                 if (p.identifier == identifier) return
                 throw IllegalStateException("Predecessor already set")
             }

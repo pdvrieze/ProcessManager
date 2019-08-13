@@ -28,7 +28,8 @@ import nl.adaptivity.xmlutil.smartStartTag
 import nl.adaptivity.xmlutil.writeAttribute
 import kotlin.math.abs
 
-open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {
+open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) :
+    Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
     internal var path: MutableList<IPaintedElem> = ArrayList()
 
@@ -48,8 +49,9 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         fun getBounds(dest: Rectangle): Rectangle
     }
 
-    private abstract class PaintedElem<M : MeasureInfo> internal constructor(internal val stroke: SVGPen<M>?,
-                                                                             internal val fill: SVGPen<M>?) : IPaintedElem {
+    private abstract class PaintedElem<M : MeasureInfo>
+    internal constructor(internal val stroke: SVGPen<M>?, internal val fill: SVGPen<M>?) :
+        IPaintedElem {
 
         internal fun serializeFill(out: XmlWriter) {
             serializeStyle(out, null, fill, null)
@@ -64,10 +66,13 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         }
     }
 
-    private abstract class BaseRect<M : MeasureInfo> internal constructor(bounds: Rectangle,
-                                                                          stroke: SVGPen<M>?,
-                                                                          fill: SVGPen<M>?) : PaintedElem<M>(stroke,
-                                                                                                             fill) {
+    private abstract class BaseRect<M : MeasureInfo>
+    internal constructor(
+        bounds: Rectangle,
+        stroke: SVGPen<M>?,
+        fill: SVGPen<M>?
+                        ) : PaintedElem<M>(stroke, fill) {
+
         internal val bounds: Rectangle = bounds.copy()
 
         internal inline fun serializeRect(out: XmlWriter, body: XmlWriter.() -> Unit) {
@@ -113,13 +118,14 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     }
 
-    private abstract class BaseRoundRect<M : MeasureInfo> internal constructor(bounds: Rectangle,
-                                                                               internal val rx: Double,
-                                                                               internal val ry: Double,
-                                                                               stroke: SVGPen<M>?,
-                                                                               fill: SVGPen<M>?) : BaseRect<M>(bounds,
-                                                                                                               stroke,
-                                                                                                               fill) {
+    private abstract class BaseRoundRect<M : MeasureInfo>
+    internal constructor(
+        bounds: Rectangle,
+        internal val rx: Double,
+        internal val ry: Double,
+        stroke: SVGPen<M>?,
+        fill: SVGPen<M>?
+                        ) : BaseRect<M>(bounds, stroke, fill) {
 
         internal inline fun serializeRoundRect(out: XmlWriter, body: XmlWriter.() -> Unit) {
             serializeRect(out) {
@@ -130,11 +136,14 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         }
     }
 
-    private class RoundRect<M : MeasureInfo> internal constructor(bounds: Rectangle,
-                                                                  rx: Double,
-                                                                  ry: Double,
-                                                                  stroke: SVGPen<M>) : BaseRoundRect<M>(bounds, rx, ry,
-                                                                                                        stroke, null) {
+    private class RoundRect<M : MeasureInfo>
+    internal constructor(
+        bounds: Rectangle,
+        rx: Double,
+        ry: Double,
+        stroke: SVGPen<M>
+                        ) :
+        BaseRoundRect<M>(bounds, rx, ry, stroke, null) {
 
         override fun serialize(out: XmlWriter) {
             serializeRoundRect(out) {
@@ -160,11 +169,13 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     }
 
-    private abstract class BaseCircle<M : MeasureInfo>(internal val mX: Double,
-                                                       internal val mY: Double,
-                                                       internal val mRadius: Double,
-                                                       stroke: SVGPen<M>?,
-                                                       fill: SVGPen<M>?) : PaintedElem<M>(stroke, fill) {
+    private abstract class BaseCircle<M : MeasureInfo>(
+        internal val mX: Double,
+        internal val mY: Double,
+        internal val mRadius: Double,
+        stroke: SVGPen<M>?,
+        fill: SVGPen<M>?
+                                                      ) : PaintedElem<M>(stroke, fill) {
 
         fun serializeCircle(out: XmlWriter) {
             out.startTag(SVG_NAMESPACE, "circle", null)
@@ -197,8 +208,8 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
         constructor(x: Double, y: Double, radius: Double, fill: SVGPen<M>) : super(x, y, radius, null, fill)
 
-        constructor(x: Double, y: Double, radius: Double, stroke: SVGPen<M>, fill: SVGPen<M>) : super(x, y, radius,
-                                                                                                      stroke, fill)
+        constructor(x: Double, y: Double, radius: Double, stroke: SVGPen<M>, fill: SVGPen<M>) :
+            super(x, y, radius, stroke, fill)
 
         override fun serialize(out: XmlWriter) {
             serializeCircle(out)
@@ -208,9 +219,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
 
     }
 
-    private class PaintedPath<M : MeasureInfo>(internal val path: SVGPath,
-                                               internal val stroke: SVGPen<M>?,
-                                               internal val fill: SVGPen<M>?) : IPaintedElem {
+    private class PaintedPath<M : MeasureInfo>(
+        internal val path: SVGPath,
+        internal val stroke: SVGPen<M>?,
+        internal val fill: SVGPen<M>?
+                                              ) : IPaintedElem {
 
         override fun serialize(out: XmlWriter) {
             out.startTag(SVG_NAMESPACE, "path", null)
@@ -227,12 +240,14 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
     }
 
 
-    private class DrawText<M : MeasureInfo>(internal val textPos: Canvas.TextPos,
-                                            internal val x: Double,
-                                            internal val y: Double,
-                                            internal val text: String,
-                                            internal val foldWidth: Double,
-                                            color: SVGPen<M>) : PaintedElem<M>(null, color) {
+    private class DrawText<M : MeasureInfo>(
+        internal val textPos: Canvas.TextPos,
+        internal val x: Double,
+        internal val y: Double,
+        internal val text: String,
+        internal val foldWidth: Double,
+        color: SVGPen<M>
+                                           ) : PaintedElem<M>(null, color) {
 
         override fun serialize(out: XmlWriter) {
             out.smartStartTag(SVG_NAMESPACE, "text", null) {
@@ -254,11 +269,13 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         }
     }
 
-    private class SubCanvas<M : MeasureInfo> constructor(strategy: SVGStrategy<M>,
-                                                         internal val x: Double,
-                                                         internal val y: Double,
-                                                         internal val scale: Double) :
-        SVGCanvas<M>(strategy), IPaintedElem {
+    private class SubCanvas<M : MeasureInfo>
+    constructor(
+        strategy: SVGStrategy<M>,
+        internal val x: Double,
+        internal val y: Double,
+        internal val scale: Double
+               ) : SVGCanvas<M>(strategy), IPaintedElem {
 
         override fun serialize(out: XmlWriter) {
             out.smartStartTag(SVG_NAMESPACE, "g", null) {
@@ -269,8 +286,10 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
                 } else if (scale == 1.0) {
                     attribute(null, "transform", null, "translate($x,$y)")
                 } else {
-                    attribute(null, "transform", null,
-                              "matrix(" + scale + ",0,0," + scale + "," + x * scale + "," + y * scale + ")")
+                    attribute(
+                        null, "transform", null,
+                        "matrix(" + scale + ",0,0," + scale + "," + x * scale + "," + y * scale + ")"
+                             )
                 }
                 for (element in path) {
                     element.serialize(this)
@@ -298,7 +317,8 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         if (_bounds.top.isFinite() &&
             _bounds.left.isFinite() &&
             _bounds.height.isFinite() &&
-            _bounds.width.isFinite()) {
+            _bounds.width.isFinite()
+        ) {
             return
         }
         if (path.size > 0) {
@@ -318,9 +338,11 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         return dest
     }
 
-    override fun childCanvas(offsetX: Double,
-                             offsetY: Double,
-                             scale: Double): Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {
+    override fun childCanvas(
+        offsetX: Double,
+        offsetY: Double,
+        scale: Double
+                            ): Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {
         val result = SubCanvas(strategy, offsetX, offsetY, scale)
         _bounds.top = Double.NaN
         path.add(result)
@@ -360,11 +382,13 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         path.add(Circle(x, y, radius, stroke))
     }
 
-    override fun drawCircle(x: Double,
-                            y: Double,
-                            radius: Double,
-                            stroke: SVGPen<M>?,
-                            fill: SVGPen<M>?) {
+    override fun drawCircle(
+        x: Double,
+        y: Double,
+        radius: Double,
+        stroke: SVGPen<M>?,
+        fill: SVGPen<M>?
+                           ) {
         _bounds.top = Double.NaN
         val r = when {
             stroke == null -> when (fill) {
@@ -388,11 +412,13 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         path.add(FilledRoundRect(rect, rx, ry, fill))
     }
 
-    override fun drawRoundRect(rect: Rectangle,
-                               rx: Double,
-                               ry: Double,
-                               stroke: SVGPen<M>?,
-                               fill: SVGPen<M>?) {
+    override fun drawRoundRect(
+        rect: Rectangle,
+        rx: Double,
+        ry: Double,
+        stroke: SVGPen<M>?,
+        fill: SVGPen<M>?
+                              ) {
         _bounds.top = Double.NaN
         val r = when {
             stroke == null -> when (fill) {
@@ -417,8 +443,10 @@ open class SVGCanvas<M : MeasureInfo>(override val strategy: SVGStrategy<M>) : C
         this.path.add(PaintedPath(path, stroke, fill))
     }
 
-    override fun drawText(textPos: Canvas.TextPos, left: Double, baselineY: Double, text: String, foldWidth: Double,
-                          pen: SVGPen<M>) {
+    override fun drawText(
+        textPos: Canvas.TextPos, left: Double, baselineY: Double, text: String, foldWidth: Double,
+        pen: SVGPen<M>
+                         ) {
         val adjustedY = when {
             sUseBaselineAlign -> baselineY
             else              -> adjustToBaseline(textPos, baselineY, pen)

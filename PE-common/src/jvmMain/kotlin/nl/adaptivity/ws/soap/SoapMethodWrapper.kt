@@ -69,15 +69,21 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
             val params: List<Tripple<String, out Class<*>, *>>
             val headers: List<Any>
             if (result == null && method.returnType == Void::class.java) {
-                params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
-                                       Tripple.tripple("result", Void::class.java, null))
+                params = Arrays.asList(
+                    Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
+                    Tripple.tripple("result", Void::class.java, null)
+                                      )
                 headers = emptyList()
 
             } else if (result is ActivityResponse<*>) {
                 val activityResponse = result as ActivityResponse<*>?
-                params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
-                                       Tripple.tripple("result", activityResponse!!.returnType,
-                                                       activityResponse.returnValue))
+                params = Arrays.asList(
+                    Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
+                    Tripple.tripple(
+                        "result", activityResponse!!.returnType,
+                        activityResponse.returnValue
+                                   )
+                                      )
                 headers = listOf<Any>(result)
             } else if (result != null && ActivityResponse::class.java.canonicalName == result.javaClass.canonicalName) {
 
@@ -98,14 +104,18 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                     throw MessagingException(e)
                 }
 
-                params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
-                                       Tripple.tripple("result", returnType, returnValue))
+                params = Arrays.asList(
+                    Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
+                    Tripple.tripple("result", returnType, returnValue)
+                                      )
                 headers = listOf(result)
 
             } else {
 
-                params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
-                                       Tripple.tripple("result", method.returnType, result))
+                params = Arrays.asList(
+                    Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
+                    Tripple.tripple("result", method.returnType, result)
+                                      )
                 headers = emptyList()
             }
             try {
@@ -157,8 +167,10 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
     }
 
     @Throws(XmlException::class)
-    private fun processSoapBody(envelope: Envelope<out ICompactFragment>,
-                                attachments: Map<String, out DataSource>) {
+    private fun processSoapBody(
+        envelope: Envelope<out ICompactFragment>,
+        attachments: Map<String, out DataSource>
+                               ) {
         val body = envelope.body!!
         val reader = body.bodyContent!!.getXmlReader()
         reader.nextTag()
@@ -191,7 +203,8 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                 if (params.isEmpty()) {
                     throw MessagingFormatException(
                         "Missing parameter " + (i + 1) + " of type " + parameterTypes[i] + " for method " +
-                        method)
+                            method
+                                                  )
                 }
                 name = params.keys.iterator().next()
             } else {
@@ -203,7 +216,9 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                     this.params[i] = envelope.header!!.principal
                     continue //Finish the parameter, we don't need to unmarshal
                 } else if (parameterTypes[i].isAssignableFrom(
-                        String::class.java) && envelope.header!!.principal != null) {
+                        String::class.java
+                                                             ) && envelope.header!!.principal != null
+                ) {
                     this.params[i] = envelope.header!!.principal!!.name
                     continue
                 } else {

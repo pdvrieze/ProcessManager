@@ -54,7 +54,9 @@ class Detail {
 
     var any: MutableList<Any?>
         get() = _any ?: mutableListOf<Any?>().also { _any = it }
-        set(value) { _any = value as MutableList<Any?> }
+        set(value) {
+            _any = value as MutableList<Any?>
+        }
 
     /**
      * Gets a map that contains attributes that aren't bound to any typed property

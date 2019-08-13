@@ -177,7 +177,7 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
                         }
                         throw XmlException("Unexpected child tag in Envelope")
                     }
-                    EventType.END_ELEMENT -> break@loop
+                    EventType.END_ELEMENT   -> break@loop
                     EventType.IGNORABLE_WHITESPACE,
                     EventType.COMMENT       -> Unit // just skip
                     else                    -> throw XmlException("Unexpected element content ($event) in Envelope\n  $reader")

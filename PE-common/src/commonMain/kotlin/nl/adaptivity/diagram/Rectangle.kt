@@ -16,14 +16,15 @@
 
 package nl.adaptivity.diagram
 
-import nl.adaptivity.util.multiplatform.JvmField
-import nl.adaptivity.util.multiplatform.JvmName
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmName
 
-
-data class Rectangle(@JvmField var left: Double = Double.NaN,
-                     @JvmField var top: Double = Double.NaN,
-                     @JvmField var width: Double = Double.NaN,
-                     @JvmField var height: Double = Double.NaN) {
+data class Rectangle(
+    @JvmField var left: Double = Double.NaN,
+    @JvmField var top: Double = Double.NaN,
+    @JvmField var width: Double = Double.NaN,
+    @JvmField var height: Double = Double.NaN
+                    ) {
 
     @Deprecated("Use copy instead", ReplaceWith("copy()"))
     fun clone(): Rectangle = copy()
@@ -119,9 +120,9 @@ data class Rectangle(@JvmField var left: Double = Double.NaN,
 
     fun contains(x: Double, y: Double): Boolean {
         return x >= left &&
-               y >= top &&
-               x <= left + width &&
-               y <= top + height
+            y >= top &&
+            x <= left + width &&
+            y <= top + height
     }
 
     fun contains(x: Float, y: Float) = contains(x.toDouble(), y.toDouble())

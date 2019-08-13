@@ -45,16 +45,20 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         get() = this
 
     @Suppress("UNCHECKED_CAST")
-    @XmlSerialName(ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE,
-                   ProcessConsts.Engine.NSPREFIX)
+    @XmlSerialName(
+        ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE,
+        ProcessConsts.Engine.NSPREFIX
+                  )
     override val childModels: Collection<XmlChildModel>
         get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
     constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) :
-        super(builder,
-              XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
-              pedantic)
+        super(
+            builder,
+            XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
+            pedantic
+             )
 
     override fun builder(): RootProcessModel.Builder {
         return Builder(this)
@@ -108,8 +112,11 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             roles: Set<String> = emptySet(),
             uuid: UUID? = null,
             imports: List<IXmlResultType> = emptyList(),
-            exports: List<IXmlDefineType> = emptyList()) : super(nodes, childModels, name, handle, owner, roles, uuid,
-                                                                 imports, exports)
+            exports: List<IXmlDefineType> = emptyList()
+                   ) : super(
+            nodes, childModels, name, handle, owner, roles, uuid,
+            imports, exports
+                            )
 
         constructor(base: XmlProcessModel) : super(base)
 
@@ -120,7 +127,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             init {
                 // Some nasty hack as somehow initialisation is broken.
                 val d = descriptor as SerialClassDescImpl
-                for (childSerializer in  childSerializers()) {
+                for (childSerializer in childSerializers()) {
                     d.pushDescriptor(childSerializer.descriptor)
                 }
             }
@@ -154,7 +161,8 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode) = StartNodeBase.Builder(startNode)
 
-    override fun visitActivity(compositeActivity: CompositeActivity) = CompositeActivityBase.ReferenceBuilder(compositeActivity)
+    override fun visitActivity(compositeActivity: CompositeActivity) =
+        CompositeActivityBase.ReferenceBuilder(compositeActivity)
 
     override fun visitActivity(messageActivity: MessageActivity) = MessageActivityBase.Builder(messageActivity)
 
@@ -175,10 +183,14 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
                          ) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
 
-        override fun visitActivity(activity: MessageActivity.Builder) = XmlActivity(activity, buildHelper.newOwner, otherNodes)
+        override fun visitActivity(activity: MessageActivity.Builder) =
+            XmlActivity(activity, buildHelper.newOwner, otherNodes)
 
-        override fun visitActivity(activity: CompositeActivity.ModelBuilder) = XmlActivity(activity, buildHelper, otherNodes)
-        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = XmlActivity(activity, buildHelper, otherNodes)
+        override fun visitActivity(activity: CompositeActivity.ModelBuilder) =
+            XmlActivity(activity, buildHelper, otherNodes)
+
+        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) =
+            XmlActivity(activity, buildHelper, otherNodes)
 
         override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner, otherNodes)
 
@@ -195,8 +207,10 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
         return baseNodeBuilder.visit(Visitor(buildHelper, otherNodes))
     }
 
-    override fun invoke(baseChildBuilder: ChildProcessModel.Builder,
-                        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>): XmlChildModel {
+    override fun invoke(
+        baseChildBuilder: ChildProcessModel.Builder,
+        buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>
+                       ): XmlChildModel {
         return XmlChildModel(baseChildBuilder, buildHelper)
     }
 

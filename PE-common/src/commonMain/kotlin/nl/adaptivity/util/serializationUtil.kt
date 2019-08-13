@@ -23,7 +23,7 @@ import kotlin.reflect.KProperty
 
 fun SerialClassDescImpl(original: SerialDescriptor, name: String): SerialClassDescImpl {
     return SerialClassDescImpl(name).apply {
-        for(a in original.getEntityAnnotations()) {
+        for (a in original.getEntityAnnotations()) {
             pushClassAnnotation(a)
         }
         addFields(original)

@@ -33,13 +33,15 @@ import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
  * @author Paul de Vrieze
  */
 @XmlDeserializer(EndpointDescriptorImpl.Factory::class)
-class EndpointDescriptorImpl(serviceName: QName?,
-                             override var endpointName: String?,
-                             override var endpointLocation: URI?) : EndpointDescriptor, XmlSerializable, SimpleXmlDeserializable {
+class EndpointDescriptorImpl(
+    serviceName: QName?,
+    override var endpointName: String?,
+    override var endpointLocation: URI?
+                            ) : EndpointDescriptor, XmlSerializable, SimpleXmlDeserializable {
 
-    internal var serviceLocalName: String? = null
+    internal var serviceLocalName: String? = serviceName?.localPart
 
-    internal var serviceNamespace: String? = null
+    internal var serviceNamespace: String? = serviceName?.namespaceURI
 
     override val elementName: XmlQName
         get() = ELEMENTNAME
@@ -60,7 +62,7 @@ class EndpointDescriptorImpl(serviceName: QName?,
         }
     }
 
-    constructor():this(null, null, null)
+    constructor() : this(null, null, null)
 
     override fun deserializeChild(reader: XmlReader): Boolean {
         return false // No children
@@ -70,9 +72,12 @@ class EndpointDescriptorImpl(serviceName: QName?,
         return false // No child text
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
+
         when (attributeLocalName) {
             "endpointLocation" -> {
                 endpointLocation = createUri(attributeValue)
@@ -108,7 +113,10 @@ class EndpointDescriptorImpl(serviceName: QName?,
     }
 
     override fun isSameService(other: EndpointDescriptor?): Boolean {
-        return other!=null && serviceNamespace == other.serviceName?.getNamespaceURI() && serviceLocalName == other.serviceName?.getLocalPart() && endpointName == other.endpointName
+        return other != null &&
+            serviceNamespace == other.serviceName?.getNamespaceURI() &&
+            serviceLocalName == other.serviceName?.getLocalPart() &&
+            endpointName == other.endpointName
     }
 
     override fun equals(other: Any?): Boolean {
@@ -143,11 +151,6 @@ class EndpointDescriptorImpl(serviceName: QName?,
         private fun deserialize(reader: XmlReader): EndpointDescriptorImpl {
             return EndpointDescriptorImpl().deserializeHelper(reader)
         }
-    }
-
-    init {
-        serviceLocalName = serviceName?.localPart
-        serviceNamespace = serviceName?.namespaceURI
     }
 
 }

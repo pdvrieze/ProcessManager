@@ -44,20 +44,27 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    constructor(ownerModel: ModelT,
-                successor: Identified? = null,
-                id: String? = null,
-                label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList())
-        : super(ownerModel,
-                emptyList(),
-                listOfNotNull(successor),
-                id, label, x, y, defines, results)
+    constructor(
+        ownerModel: ModelT,
+        successor: Identified? = null,
+        id: String? = null,
+        label: String? = null,
+        x: Double = Double.NaN,
+        y: Double = Double.NaN,
+        defines: Collection<IXmlDefineType> = emptyList(),
+        results: Collection<IXmlResultType> = emptyList()
+               )
+        : super(
+        ownerModel,
+        emptyList(),
+        listOfNotNull(successor),
+        id, label, x, y, defines, results
+               )
 
-    constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*,*,*,*>) : this(builder, buildHelper.newOwner)
+    constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : this(
+        builder,
+        buildHelper.newOwner
+                                                                                                     )
 
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
         super(builder, newOwner, emptyList())
@@ -98,15 +105,19 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
 
         constructor() : this(successor = null)
 
-        constructor(id: String? = null,
-                    successor: Identifiable? = null,
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    multiInstance: Boolean = false) : super(id, label, defines,
-                                                            results, x, y, multiInstance) {
+        constructor(
+            id: String? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            multiInstance: Boolean = false
+                   ) : super(
+            id, label, defines,
+            results, x, y, multiInstance
+                            ) {
             this.successor = successor
         }
 

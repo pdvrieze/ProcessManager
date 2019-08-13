@@ -174,10 +174,12 @@ private constructor() : IMessenger {
          * @param completionListener The listener to notify. This may be `null`.
          * @param returnType The return type of the message. Needed for unmarshalling.
          */
-        constructor(destURL: URI,
-                    message: ISendableMessage,
-                    completionListener: CompletionListener<T>,
-                    returnType: Class<T>) {
+        constructor(
+            destURL: URI,
+            message: ISendableMessage,
+            completionListener: CompletionListener<T>,
+            returnType: Class<T>
+                   ) {
             this.destURL = destURL
             this.message = message
             this.completionListener = completionListener
@@ -299,16 +301,23 @@ private constructor() : IMessenger {
                     if (responseCode < 200 || responseCode >= 400) {
                         val baos = ByteArrayOutputStream()
                         InputStreamOutputStream.writeToOutputStream(connection.errorStream, baos)
-                        val errorMessage = ("Error in sending message with $method to ($destination) [$responseCode]:\n${String(
-                            baos.toByteArray())}")
+                        val errorMessage =
+                            ("Error in sending message with $method to ($destination) [$responseCode]:\n${String(
+                                baos.toByteArray()
+                                                                                                                )}")
                         Logger.getLogger(DarwinMessenger::class.java.name).info(errorMessage)
                         throw HttpResponseException(connection.responseCode, errorMessage)
                     }
                     if (returnType!!.isAssignableFrom(SourceDataSource::class.java)) {
                         val baos = ByteArrayOutputStream()
                         InputStreamOutputStream.writeToOutputStream(connection.inputStream, baos)
-                        return returnType.cast(SourceDataSource(connection.contentType, StreamSource(
-                                ByteArrayInputStream(baos.toByteArray()))))
+                        return returnType.cast(
+                            SourceDataSource(
+                                connection.contentType, StreamSource(
+                                    ByteArrayInputStream(baos.toByteArray())
+                                                                    )
+                                            )
+                                              )
                     } else {
                         return JAXB.unmarshal(connection.inputStream, returnType)
                     }
@@ -423,8 +432,10 @@ private constructor() : IMessenger {
     }
 
     init {
-        executor = ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS.toLong(),
-                                      TimeUnit.MILLISECONDS, ArrayBlockingQueue(CONCURRENTCAPACITY, true))
+        executor = ThreadPoolExecutor(
+            INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS.toLong(),
+            TimeUnit.MILLISECONDS, ArrayBlockingQueue(CONCURRENTCAPACITY, true)
+                                     )
         notifier = MessageCompletionNotifier<Any?>()
         services = ConcurrentHashMap()
         notifier.start()
@@ -434,13 +445,14 @@ private constructor() : IMessenger {
         if (localUrl == null) {
             val msg = StringBuilder()
             msg.append(
-                    "DarwinMessenger\n" + "------------------------------------------------\n" + "                    WARNING\n"
+                "DarwinMessenger\n" + "------------------------------------------------\n" + "                    WARNING\n"
                     + "------------------------------------------------\n" + "  Please set the nl.adaptivity.messaging.localurl property in\n"
                     + "  catalina.properties (or a method appropriate for a non-tomcat\n"
                     + "  container) to the base url used to contact the messenger by\n"
                     + "  other components of the system. The public base url can be set as:\n"
                     + "  nl.adaptivity.messaging.baseurl, this should be accessible by\n" + "  all clients of the system.\n"
-                    + "================================================")
+                    + "================================================"
+                      )
             Logger.getAnonymousLogger().warning(msg.toString())
         } else {
             try {
@@ -515,10 +527,12 @@ private constructor() : IMessenger {
      * appropriate soap methods on the endpoint.
      *
      */
-    override fun <T> sendMessage(message: ISendableMessage,
-                                 completionListener: CompletionListener<T>,
-                                 returnType: Class<T>,
-                                 returnContext: Array<Class<*>>): Future<T>? {
+    override fun <T> sendMessage(
+        message: ISendableMessage,
+        completionListener: CompletionListener<T>,
+        returnType: Class<T>,
+        returnContext: Array<Class<*>>
+                                ): Future<T>? {
         var registeredEndpoint = getEndpoint(message.destination)
 
         if (registeredEndpoint is DirectEndpoint) {
@@ -535,7 +549,8 @@ private constructor() : IMessenger {
                     val resultfuture: MessageTask<T>
                     if (returnType.isAssignableFrom(SourceDataSource::class.java)) {
                         resultfuture = MessageTask(
-                                returnType.cast(SourceDataSource("application/soap+xml", resultSource)))
+                            returnType.cast(SourceDataSource("application/soap+xml", resultSource))
+                                                  )
                     } else {
                         val resultval = SoapHelper.processResponse(returnType, returnContext, null!!, resultSource)
                         resultfuture = MessageTask(resultval)
@@ -560,7 +575,8 @@ private constructor() : IMessenger {
             destURL = registeredEndpoint!!.endpointLocation!!
         } else {
             val endpointLocation = registeredEndpoint!!.endpointLocation ?: return MessageTask(
-                    NullPointerException("No endpoint location specified, and the service could not be found"))
+                NullPointerException("No endpoint location specified, and the service could not be found")
+                                                                                              )
             destURL = mLocalUrl!!.resolve(endpointLocation)
         }
 

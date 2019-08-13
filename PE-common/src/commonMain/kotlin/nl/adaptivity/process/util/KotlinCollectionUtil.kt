@@ -19,19 +19,19 @@ package nl.adaptivity.process.util
 /**
  * Check property given indices
  */
-inline fun <T> Iterable<T>.allIndexed(predicate: (Int, T) -> Boolean):Boolean {
-  forEachIndexed { i, t -> if (predicate(i, t)) return false }
-  return true
+inline fun <T> Iterable<T>.allIndexed(predicate: (Int, T) -> Boolean): Boolean {
+    forEachIndexed { i, t -> if (predicate(i, t)) return false }
+    return true
 }
 
-inline fun <T> Sequence<T>.allIndexed(predicate: (Int, T) -> Boolean):Boolean {
-  forEachIndexed { i, t -> if (predicate(i, t)) return false }
-  return true
+inline fun <T> Sequence<T>.allIndexed(predicate: (Int, T) -> Boolean): Boolean {
+    forEachIndexed { i, t -> if (predicate(i, t)) return false }
+    return true
 }
 
-inline fun <T> Array<T>.allIndexed(predicate: (Int, T) -> Boolean):Boolean {
-  forEachIndexed { i, t -> if (predicate(i, t)) return false }
-  return true
+inline fun <T> Array<T>.allIndexed(predicate: (Int, T) -> Boolean): Boolean {
+    forEachIndexed { i, t -> if (predicate(i, t)) return false }
+    return true
 }
 
 expect fun <E> List<E>.toUnmodifyableList(): List<E>

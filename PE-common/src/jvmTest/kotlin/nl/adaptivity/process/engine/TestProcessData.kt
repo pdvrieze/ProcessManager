@@ -88,8 +88,10 @@ class TestProcessData {
     @Throws(XmlException::class)
     fun testSerializeSingleNode() {
         val data = ProcessData("foo", CompactFragment("<bar/>"))
-        assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>",
-                     XML().stringify(ProcessData.serializer(), data))
+        assertEquals(
+            "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>",
+            XML().stringify(ProcessData.serializer(), data)
+                    )
     }
 
     @Test
@@ -152,7 +154,8 @@ class TestProcessData {
         assertEquals("umh", snc2.getPrefix(0))
 
         val testData = CompactFragment(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")
+            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"
+                                      )
 
 
         val result1Apply = result1.applyData(testData).content
@@ -171,7 +174,8 @@ class TestProcessData {
         assertEquals(1, SimpleNamespaceContext.from(result.originalNSContext).size)
 
         val testData = CompactFragment(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")
+            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"
+                                      )
         val xPath = XPathFactory.newInstance().newXPath()
         xPath.namespaceContext = SimpleNamespaceContext.from(result.originalNSContext)
         val pathExpression = xPath.compile(expression)
@@ -215,19 +219,24 @@ class TestProcessData {
     @Throws(XmlException::class, IOException::class, SAXException::class)
     fun testTransform() {
         val endpoint = ProcessData("endpoint", createEndpoint())
-        val transformer = PETransformer.create(SimpleNamespaceContext.from(emptyList()),
-                                               endpoint)
+        val transformer = PETransformer.create(
+            SimpleNamespaceContext.from(emptyList()),
+            endpoint
+                                              )
         val input = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                    "  <jbi:element value=\"endpoint\"/>\n" +
-                    "</umh:postTask>"
-        val cf = CompactFragment(SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)),
-                                 input.toCharArray())
+            "  <jbi:element value=\"endpoint\"/>\n" +
+            "</umh:postTask>"
+        val cf = CompactFragment(
+            SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)),
+            input.toCharArray()
+                                )
         val caw = CharArrayWriter()
         val out = XmlStreaming.newWriter(caw, true)
         transformer.transform(cf.getXmlReader(), out)
         out.close()
         run {
-            val control = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>"
+            val control =
+                "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>"
             val test = caw.toString()
             try {
                 assertXMLEqual(control, test)
@@ -261,7 +270,8 @@ class TestProcessData {
             result.serialize(xsw)
             xsw.close()
 
-            val expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
+            val expected =
+                "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
 
 
             assertXMLEqual(expected, caw.toString())
@@ -285,11 +295,11 @@ class TestProcessData {
 
             val actual = caw.toString()
             val expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\"><user xmlns=\"\">" +
-                           "<fullname>" +
-                           "<jbi:value  xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                           "</fullname>" +
-                           "</user>\n" +
-                           "</result>"
+                "<fullname>" +
+                "<jbi:value  xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "</fullname>" +
+                "</user>\n" +
+                "</result>"
 
             assertXMLEqual(expected, actual)
         }
@@ -330,9 +340,11 @@ class TestProcessData {
     private fun checkModel1(model: XmlProcessModel) {
         assertNotNull(model)
 
-        assertEquals(9,
-                     model.modelNodes.size,
-                     "There should be 9 effective elements in the process model (including an introduced split)")
+        assertEquals(
+            9,
+            model.modelNodes.size,
+            "There should be 9 effective elements in the process model (including an introduced split)"
+                    )
         val start = model.getNode("start") as XmlStartNode
         val ac1 = model.getNode("ac1") as XmlActivity
         val ac2 = model.getNode("ac2") as XmlActivity
@@ -383,7 +395,11 @@ class TestProcessData {
 
     @Test
     fun testPredecessorInfo() {
-        testRoundTrip("<PredecessorInfo condition=\"foo\">bar</PredecessorInfo>", PredecessorInfo::class, PredecessorInfo.serializer()) {
+        testRoundTrip(
+            "<PredecessorInfo condition=\"foo\">bar</PredecessorInfo>",
+            PredecessorInfo::class,
+            PredecessorInfo.serializer()
+                     ) {
             assertEquals("foo", it.condition?.condition)
             assertEquals("bar", it.id)
         }
@@ -400,9 +416,11 @@ class TestProcessData {
     private fun checkModel2(model: XmlProcessModel) {
         assertNotNull(model)
 
-        assertEquals(14,
-                     model.modelNodes.size,
-                     "There should be 14 effective elements in the process model (including an introduced split)")
+        assertEquals(
+            14,
+            model.modelNodes.size,
+            "There should be 14 effective elements in the process model (including an introduced split)"
+                    )
         val start = model.getNode("start") as XmlStartNode
         val ac1 = model.getNode("ac1") as XmlActivity
         val split1 = model.getNode("split1") as XmlSplit
@@ -418,8 +436,10 @@ class TestProcessData {
         val end = model.getNode("end") as XmlEndNode
         val split2 = model.getNode("split2") as XmlSplit
         val actualNodes = model.modelNodes
-        val expectedNodes = listOf<XmlProcessNode>(start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2,
-                                                   end, split2)
+        val expectedNodes = listOf<XmlProcessNode>(
+            start, ac1, split1, ac2, ac3, ac5, j1, ac4, ac6, ac7, ac8, j2,
+            end, split2
+                                                  )
 
         assertEquals(actualNodes.size, expectedNodes.size)
         assertTrue(actualNodes.containsAll(expectedNodes))
@@ -484,7 +504,8 @@ class TestProcessData {
 
         result.serialize(xsw)
         xsw.close()
-        val control = "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>"
+        val control =
+            "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>"
         try {
             assertXMLEqual(control, caw.toString())
         } catch (e: AssertionError) {
@@ -503,13 +524,14 @@ class TestProcessData {
             iterator.next() as XmlResultType
         }
 
-        val control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"user\">\n" +
-                      "  <user xmlns=\"\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
-                      "    <fullname>\n" +
-                      "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                      "    </fullname>\n" +
-                      "  </user>\n" +
-                      "</result>"
+        val control =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"user\">\n" +
+                "  <user xmlns=\"\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                "    <fullname>\n" +
+                "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "    </fullname>\n" +
+                "  </user>\n" +
+                "</result>"
         val found = XmlStreaming.toString(result)
         assertXMLEqual(control, found)
 
@@ -557,7 +579,7 @@ class TestProcessData {
         assertEquals(EventType.TEXT, reader.next())
 
         val nsContext = mock<NamespaceContext> {
-            on { getNamespaceURI("") } doReturn("")
+            on { getNamespaceURI("") } doReturn ("")
             on { getPrefix("") } doReturn ""
         }
         val mockedWriter = mock<XmlWriter> {
@@ -612,7 +634,8 @@ class TestProcessData {
     @Test
     @Throws(Exception::class)
     fun testRoundTripResult1() {
-        val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
+        val xml =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
         val result = testRoundTrip(xml, XmlResultType::class, XmlResultType.serializer()) {
             assertEquals("name", it.name)
             assertEquals("/umh:result/umh:value[@name='user']/text()", it.path)
@@ -626,7 +649,8 @@ class TestProcessData {
     @Test
     @Throws(Exception::class)
     fun testRoundTripDefine() {
-        val xml = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>"
+        val xml =
+            "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>"
         testRoundTrip(xml, XmlDefineType::class, XmlDefineType.serializer()) {
             assertEquals("ac1", it.refNode)
             assertEquals("name", it.refName)
@@ -637,21 +661,26 @@ class TestProcessData {
     @Test
     @Throws(Exception::class)
     fun testRoundTripResult2() {
-        val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                  "  <user xmlns=\"\"\n" +
-                  "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
-                  "    <fullname>\n" +
-                  "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                  "    </fullname>\n" +
-                  "  </user>\n" +
-                  "</result>"
+        val xml =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                "  <user xmlns=\"\"\n" +
+                "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                "    <fullname>\n" +
+                "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "    </fullname>\n" +
+                "  </user>\n" +
+                "</result>"
         testRoundTrip(xml, XmlResultType::class, XmlResultType.serializer()) { result ->
             if (result.namespaces.size == 1) {
-                assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             result.namespaces.toList())
+                assertEquals(
+                    listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
+                    result.namespaces.toList()
+                            )
             } else {
-                assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
-                                    XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
+                assertEquals(listOf(
+                    XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
+                    XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")
+                                   ),
                              result.namespaces.sortedBy { it.prefix })
             }
         }
@@ -660,23 +689,27 @@ class TestProcessData {
     @Test
     @Throws(Exception::class)
     fun testDeserializeResult2() {
-        val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                  "  <user xmlns=\"\"\n" +
-                  "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
-                  "    <fullname>\n" +
-                  "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                  "    </fullname>\n" +
-                  "  </user>\n" +
-                  "</result>"
+        val xml =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                "  <user xmlns=\"\"\n" +
+                "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                "    <fullname>\n" +
+                "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "    </fullname>\n" +
+                "  </user>\n" +
+                "</result>"
 
         val expectedContent = "\n  <user xmlns=\"\"" +
-                              " xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
-                              "    <fullname>\n" +
-                              "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                              "    </fullname>\n" +
-                              "  </user>\n"
+            " xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+            "    <fullname>\n" +
+            "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+            "    </fullname>\n" +
+            "  </user>\n"
 
-        val rt: XmlResultType = XML.parse(XmlResultType.serializer(), xml)//pXmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
+        val rt: XmlResultType = XML.parse(
+            XmlResultType.serializer(),
+            xml
+                                         )//pXmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
         assertEquals(expectedContent, rt.contentString)
         val namespaces = rt.originalNSContext
         val it = namespaces.iterator()
@@ -690,37 +723,41 @@ class TestProcessData {
     @Test
     @Throws(Exception::class)
     fun testRoundTripResult3() {
-        val xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
-                  "<jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>" +
-                  "</result>"
+        val xml =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
+                "<jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>" +
+                "</result>"
         val result = testRoundTrip(xml, XmlResultType::class, XmlResultType.serializer())
         assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""))
     }
 
     @Test
-    @Throws(IOException::class, InstantiationException::class, SAXException::class, IllegalAccessException::class,
-            XmlException::class)
+    @Throws(
+        IOException::class, InstantiationException::class, SAXException::class, IllegalAccessException::class,
+        XmlException::class
+           )
     fun testRoundTripMessage() {
-        val xml = "    <pe:message xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
-                  "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
-                  "        <Body>\n" +
-                  "          <postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                  "            <repliesParam>\n" +
-                  "              <jbi:element value=\"endpoint\"/>\n" +
-                  "            </repliesParam>\n" +
-                  "            <taskParam>\n" +
-                  "              <task summary=\"Task Foo\">\n" +
-                  "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
-                  "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
-                  "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
-                  "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
-                  "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
-                  "              </task>\n" +
-                  "            </taskParam>\n" +
-                  "          </postTask>\n" +
-                  "        </Body>\n" +
-                  "      </Envelope>\n" +
-                  "    </pe:message>\n"
+        val xml =
+            "    <pe:message xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+                "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+                "        <Body>\n" +
+                "          <postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                "            <repliesParam>\n" +
+                "              <jbi:element value=\"endpoint\"/>\n" +
+                "            </repliesParam>\n" +
+                "            <taskParam>\n" +
+                "              <task summary=\"Task Foo\">\n" +
+                "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
+                "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
+                "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
+                "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
+                "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
+                "              </task>\n" +
+                "            </taskParam>\n" +
+                "          </postTask>\n" +
+                "        </Body>\n" +
+                "      </Envelope>\n" +
+                "    </pe:message>\n"
         testRoundTrip(xml, XmlMessage::class, XmlMessage.serializer(), false) {
             assertEquals("http://adaptivity.nl/userMessageHandler", it.serviceNS)
             assertEquals("userMessageHandler", it.serviceName)
@@ -730,39 +767,40 @@ class TestProcessData {
     @Test
     @Throws(Exception::class)
     fun testRoundTripActivity() {
-        val xml = "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
-                  "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" id=\"ac1\">\n" +
-                  "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                  "    <pe:result name=\"user\">\n" +
-                  "      <user xmlns=\"\"\n" +
-                  "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
-                  "        <fullname>\n" +
-                  "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                  "        </fullname>\n" +
-                  "      </user>\n" +
-                  "    </pe:result>\n" +
-                  "    <pe:message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
-                  "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
-                  "        <Body>\n" +
-                  "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                  "            <repliesParam>\n" +
-                  "              <jbi:element value=\"endpoint\"/>\n" +
-                  "            </repliesParam>\n" +
-                  "            <taskParam>\n" +
-                  "              <task summary=\"Task Foo\">\n" +
-                  "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
-                  "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
-                  "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
-                  "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
-                  "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
-                  "              </task>\n" +
-                  "            </taskParam>\n" +
-                  "          </umh:postTask>\n" +
-                  "        </Body>\n" +
-                  "      </Envelope>\n" +
-                  "    </pe:message>\n" +
-                  "  </pe:activity>\n" +
-                  "</pe:processModel>\n"
+        val xml =
+            "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
+                "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" id=\"ac1\">\n" +
+                "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "    <pe:result name=\"user\">\n" +
+                "      <user xmlns=\"\"\n" +
+                "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                "        <fullname>\n" +
+                "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "        </fullname>\n" +
+                "      </user>\n" +
+                "    </pe:result>\n" +
+                "    <pe:message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+                "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+                "        <Body>\n" +
+                "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                "            <repliesParam>\n" +
+                "              <jbi:element value=\"endpoint\"/>\n" +
+                "            </repliesParam>\n" +
+                "            <taskParam>\n" +
+                "              <task summary=\"Task Foo\">\n" +
+                "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
+                "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
+                "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
+                "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
+                "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
+                "              </task>\n" +
+                "            </taskParam>\n" +
+                "          </umh:postTask>\n" +
+                "        </Body>\n" +
+                "      </Envelope>\n" +
+                "    </pe:message>\n" +
+                "  </pe:activity>\n" +
+                "</pe:processModel>\n"
 
 
         testRoundTrip(xml, XmlProcessModel::class, XmlProcessModel.serializer(), true)
@@ -771,40 +809,48 @@ class TestProcessData {
     @Test()
     @Throws(Exception::class)
     fun testMissingPredecessor() {
-        val xml = "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
-                  "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
-                  "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                  "    <pe:result name=\"user\">\n" +
-                  "      <user xmlns=\"\"\n" +
-                  "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
-                  "        <fullname>\n" +
-                  "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-                  "        </fullname>\n" +
-                  "      </user>\n" +
-                  "    </pe:result>\n" +
-                  "    <pe:message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
-                  "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
-                  "        <Body>\n" +
-                  "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                  "            <repliesParam>\n" +
-                  "              <jbi:element value=\"endpoint\"/>\n" +
-                  "            </repliesParam>\n" +
-                  "            <taskParam>\n" +
-                  "              <task summary=\"Task Foo\">\n" +
-                  "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
-                  "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
-                  "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
-                  "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
-                  "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
-                  "              </task>\n" +
-                  "            </taskParam>\n" +
-                  "          </umh:postTask>\n" +
-                  "        </Body>\n" +
-                  "      </Envelope>\n" +
-                  "    </pe:message>\n" +
-                  "  </pe:activity>\n" +
-                  "</pe:processModel>\n"
-        assertThrows<ProcessException> { testRoundTrip(xml, XmlProcessModel::class, XmlProcessModel.serializer(), true) }
+        val xml =
+            "<pe:processModel  xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" owner=\"paul\" uuid=\"6cb0561d-ac2d-4b26-9c3e-e8eb7ad16474\" >\n" +
+                "  <pe:activity xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+                "    <pe:result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "    <pe:result name=\"user\">\n" +
+                "      <user xmlns=\"\"\n" +
+                "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                "        <fullname>\n" +
+                "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                "        </fullname>\n" +
+                "      </user>\n" +
+                "    </pe:result>\n" +
+                "    <pe:message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+                "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+                "        <Body>\n" +
+                "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                "            <repliesParam>\n" +
+                "              <jbi:element value=\"endpoint\"/>\n" +
+                "            </repliesParam>\n" +
+                "            <taskParam>\n" +
+                "              <task summary=\"Task Foo\">\n" +
+                "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
+                "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
+                "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
+                "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
+                "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
+                "              </task>\n" +
+                "            </taskParam>\n" +
+                "          </umh:postTask>\n" +
+                "        </Body>\n" +
+                "      </Envelope>\n" +
+                "    </pe:message>\n" +
+                "  </pe:activity>\n" +
+                "</pe:processModel>\n"
+        assertThrows<ProcessException> {
+            testRoundTrip(
+                xml,
+                XmlProcessModel::class,
+                XmlProcessModel.serializer(),
+                true
+                         )
+        }
     }
 
     companion object {
@@ -831,7 +877,7 @@ class TestProcessData {
         @Throws(FileNotFoundException::class)
         private fun getDocument(name: String): InputStream {
             return TestProcessData::class.java.getResourceAsStream("/nl/adaptivity/process/engine/test/$name")
-                   ?: FileInputStream("src/jvmTest/resources/nl/adaptivity/process/engine/test/$name")
+                ?: FileInputStream("src/jvmTest/resources/nl/adaptivity/process/engine/test/$name")
         }
 
         @BeforeAll
@@ -861,10 +907,12 @@ class TestProcessData {
         }
 
         @Throws(IOException::class, IllegalAccessException::class, InstantiationException::class, XmlException::class)
-        fun <T : XmlSerializable> testRoundTrip(reader: InputStream, target: KClass<out T>,
-                                                serializer: KSerializer<T>,
-                                                factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                testObject: (T) -> Unit = {}): String {
+        fun <T : XmlSerializable> testRoundTrip(
+            reader: InputStream, target: KClass<out T>,
+            serializer: KSerializer<T>,
+            factoryOpt: XmlDeserializerFactory<T>? = null,
+            testObject: (T) -> Unit = {}
+                                               ): String {
             val expected: String
             val streamReaderFactory: () -> XmlReader
             if (reader.markSupported()) {
@@ -879,82 +927,112 @@ class TestProcessData {
                 streamReaderFactory = { XmlStreaming.newReader(StringReader(expected)) }
             }
 
-            return testRoundTripCombined(expected, streamReaderFactory, target, serializer = serializer,
-                                         factoryOpt = factoryOpt,
-                                         testObject = testObject)
+            return testRoundTripCombined(
+                expected, streamReaderFactory, target, serializer = serializer,
+                factoryOpt = factoryOpt,
+                testObject = testObject
+                                        )
         }
 
-        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
-                SAXException::class)
-        fun <T : XmlSerializable> testRoundTrip(xml: String, target: KClass<out T>,
-                                                serializer: KSerializer<T>,
-                                                factoryOpt: XmlDeserializerFactory<out T>? = null,
-                                                testObject: (T) -> Unit = {}): String {
-            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
-                                         serializer = serializer,
-                                         factoryOpt = factoryOpt,
-                                         testObject = testObject)
-        }
-
-        @Suppress("unused")
-        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
-                SAXException::class)
-        fun <T : Any> testRoundTrip(xml: String, target: KClass<out T>,
-                                    serializer: KSerializer<T>,
-                                    repairNamespaces: Boolean = false,
-                                    omitXmlDecl: Boolean = true,
-                                    testObject: (T) -> Unit = {}): String {
-            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer = serializer,
-                                         repairNamespaces = repairNamespaces,
-                                         omitXmlDecl = omitXmlDecl,
-                                         testObject = testObject)
-        }
-
-        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
-                SAXException::class)
-        fun <T : XmlSerializable> testRoundTrip(xml: String, target: KClass<out T>,
-                                                serializer: KSerializer<T>,
-                                                @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
-                                                factoryOpt: XmlDeserializerFactory<T>? = null,
-                                                testObject: (T) -> Unit = {}): String {
-            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
-                                         serializer = serializer,
-                                         factoryOpt = factoryOpt,
-                                         testObject = testObject)
+        @Throws(
+            IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+            SAXException::class
+               )
+        fun <T : XmlSerializable> testRoundTrip(
+            xml: String, target: KClass<out T>,
+            serializer: KSerializer<T>,
+            factoryOpt: XmlDeserializerFactory<out T>? = null,
+            testObject: (T) -> Unit = {}
+                                               ): String {
+            return testRoundTripCombined(
+                xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
+                serializer = serializer,
+                factoryOpt = factoryOpt,
+                testObject = testObject
+                                        )
         }
 
         @Suppress("unused")
-        @Throws(IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
-                SAXException::class)
-        fun <T : Any> testRoundTrip(xml: String, target: KClass<out T>,
-                                    serializer: KSerializer<T>,
-                                    @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
-                                    repairNamespaces: Boolean = false,
-                                    omitXmlDecl: Boolean = true,
-                                    testObject: (T) -> Unit = {}): String {
-            return testRoundTripCombined(xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer,
-                                         repairNamespaces = repairNamespaces,
-                                         omitXmlDecl = omitXmlDecl,
-                                         testObject = testObject)
+        @Throws(
+            IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+            SAXException::class
+               )
+        fun <T : Any> testRoundTrip(
+            xml: String, target: KClass<out T>,
+            serializer: KSerializer<T>,
+            repairNamespaces: Boolean = false,
+            omitXmlDecl: Boolean = true,
+            testObject: (T) -> Unit = {}
+                                   ): String {
+            return testRoundTripCombined(
+                xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer = serializer,
+                repairNamespaces = repairNamespaces,
+                omitXmlDecl = omitXmlDecl,
+                testObject = testObject
+                                        )
         }
 
-        private inline fun <T : Any> testRoundTripCombined(expected: String,
-                                                           readerFactory: () -> XmlReader,
-                                                           target: KClass<out T>,
-                                                           serializer: KSerializer<T>,
-                                                           repairNamespaces: Boolean = false,
-                                                           omitXmlDecl: Boolean = true,
-                                                           factoryOpt: XmlDeserializerFactory<out T>? = null,
-                                                           noinline testObject: (T) -> Unit = {}): String {
+        @Throws(
+            IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+            SAXException::class
+               )
+        fun <T : XmlSerializable> testRoundTrip(
+            xml: String, target: KClass<out T>,
+            serializer: KSerializer<T>,
+            @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
+            factoryOpt: XmlDeserializerFactory<T>? = null,
+            testObject: (T) -> Unit = {}
+                                               ): String {
+            return testRoundTripCombined(
+                xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
+                serializer = serializer,
+                factoryOpt = factoryOpt,
+                testObject = testObject
+                                        )
+        }
+
+        @Suppress("unused")
+        @Throws(
+            IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
+            SAXException::class
+               )
+        fun <T : Any> testRoundTrip(
+            xml: String, target: KClass<out T>,
+            serializer: KSerializer<T>,
+            @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
+            repairNamespaces: Boolean = false,
+            omitXmlDecl: Boolean = true,
+            testObject: (T) -> Unit = {}
+                                   ): String {
+            return testRoundTripCombined(
+                xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer,
+                repairNamespaces = repairNamespaces,
+                omitXmlDecl = omitXmlDecl,
+                testObject = testObject
+                                        )
+        }
+
+        private inline fun <T : Any> testRoundTripCombined(
+            expected: String,
+            readerFactory: () -> XmlReader,
+            target: KClass<out T>,
+            serializer: KSerializer<T>,
+            repairNamespaces: Boolean = false,
+            omitXmlDecl: Boolean = true,
+            factoryOpt: XmlDeserializerFactory<out T>? = null,
+            noinline testObject: (T) -> Unit = {}
+                                                          ): String {
             val new = if (target.java.getAnnotation(Serializable::class.java) == null) null else
                 testRoundTripSer(expected, readerFactory(), serializer, repairNamespaces, omitXmlDecl, testObject)
 
             val old = if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
                 val serializableTarget = target.java.asSubclass(XmlSerializable::class.java)
                 @Suppress("UNCHECKED_CAST")
-                testRoundTripOld<XmlSerializable>(expected, readerFactory(), serializableTarget,
-                                                  factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
-                                                  testObject as ((XmlSerializable) -> Unit))
+                testRoundTripOld<XmlSerializable>(
+                    expected, readerFactory(), serializableTarget,
+                    factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
+                    testObject as ((XmlSerializable) -> Unit)
+                                                 )
             } else null
             if (new != null && old != null)
                 assertXMLEqual(new, old)
@@ -962,14 +1040,17 @@ class TestProcessData {
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
-        private fun <T : XmlSerializable> testRoundTripOld(expected: String,
-                                                           reader: XmlReader,
-                                                           target: Class<out T>,
-                                                           factoryOpt: XmlDeserializerFactory<out T>? = null,
-                                                           testObject: (T) -> Unit = {}): String {
+        private fun <T : XmlSerializable> testRoundTripOld(
+            expected: String,
+            reader: XmlReader,
+            target: Class<out T>,
+            factoryOpt: XmlDeserializerFactory<out T>? = null,
+            testObject: (T) -> Unit = {}
+                                                          ): String {
             assertNotNull(reader)
             val factory = factoryOpt ?: target.getAnnotation(
-                XmlDeserializer::class.java).value.java.newInstance() as XmlDeserializerFactory<*>
+                XmlDeserializer::class.java
+                                                            ).value.java.newInstance() as XmlDeserializerFactory<*>
             val obj = target.cast(factory.deserialize(reader))
             testObject(obj)
 
@@ -986,12 +1067,14 @@ class TestProcessData {
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
-        private fun <T : Any> testRoundTripSer(expected: String,
-                                               reader: XmlReader,
-                                               target: KSerializer<T>,
-                                               repairNamespaces: Boolean = false,
-                                               omitXmlDecl: Boolean = true,
-                                               testObject: (T) -> Unit = {}): String {
+        private fun <T : Any> testRoundTripSer(
+            expected: String,
+            reader: XmlReader,
+            target: KSerializer<T>,
+            repairNamespaces: Boolean = false,
+            omitXmlDecl: Boolean = true,
+            testObject: (T) -> Unit = {}
+                                              ): String {
             assertNotNull(reader)
             val xml = XML(repairNamespaces = repairNamespaces, omitXmlDecl = omitXmlDecl, indent = 4)
             val obj = xml.parse(target, reader)
@@ -1020,10 +1103,12 @@ class TestProcessData {
 val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison, outcome ->
     when {
         outcome == ComparisonResult.DIFFERENT &&
-        comparison.type == ComparisonType.NAMESPACE_PREFIX -> ComparisonResult.SIMILAR
+            comparison.type == ComparisonType.NAMESPACE_PREFIX -> ComparisonResult.SIMILAR
 
-        else                                               -> DifferenceEvaluators.Default.evaluate(comparison,
-                                                                                                    outcome)
+        else                                                   -> DifferenceEvaluators.Default.evaluate(
+            comparison,
+            outcome
+                                                                                                       )
     }
 }
 

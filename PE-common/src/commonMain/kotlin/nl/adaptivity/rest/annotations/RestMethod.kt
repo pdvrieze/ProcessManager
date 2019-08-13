@@ -25,12 +25,14 @@ package nl.adaptivity.rest.annotations
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
-annotation class RestMethod(val method: HttpMethod,
-                            val path: String,
-                            val post: Array<String> = arrayOf(),
-                            val get: Array<String> = arrayOf(),
-                            val query: Array<String> = arrayOf(),
-                            val contentType: String = "")
+annotation class RestMethod(
+    val method: HttpMethod,
+    val path: String,
+    val post: Array<String> = arrayOf(),
+    val get: Array<String> = arrayOf(),
+    val query: Array<String> = arrayOf(),
+    val contentType: String = ""
+                           )
 
 enum class HttpMethod {
     GET,

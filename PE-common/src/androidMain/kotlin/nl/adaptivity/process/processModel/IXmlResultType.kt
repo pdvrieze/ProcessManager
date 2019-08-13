@@ -60,7 +60,7 @@ actual interface IXmlResultType : XmlSerializable {
      */
     actual val originalNSContext: Iterable<Namespace>
 
-    actual companion object serializer: KSerializer<IXmlResultType> {
+    actual companion object serializer : KSerializer<IXmlResultType> {
         override val descriptor: SerialDescriptor
             get() = XmlResultType.serializer().descriptor
 

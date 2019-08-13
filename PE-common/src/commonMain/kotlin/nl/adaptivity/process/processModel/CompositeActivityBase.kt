@@ -43,7 +43,9 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
                ) : super(builder, buildHelper.newOwner, otherNodes) {
-        childModel = buildHelper.childModel(builder.childId ?: throw IllegalProcessModelException("Missing childId for reference"))
+        childModel = buildHelper.childModel(
+            builder.childId ?: throw IllegalProcessModelException("Missing childId for reference")
+                                           )
     }
 
     override fun builder(): CompositeActivity.ReferenceBuilder {

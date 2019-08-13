@@ -63,546 +63,557 @@ import javax.xml.xpath.XPathFactory
 import kotlin.jvm.Volatile
 
 abstract class RestMethodWrapper protected constructor(owner: Any, method: Method) : nl.adaptivity.ws.WsMethodWrapper(
-    owner, method) {
+    owner, method
+                                                                                                                     ) {
 
 
-  private class Java6RestMethodWrapper(pOwner: Any, pMethod: Method) : RestMethodWrapper(pOwner, pMethod) {
+    private class Java6RestMethodWrapper(pOwner: Any, pMethod: Method) : RestMethodWrapper(pOwner, pMethod) {
 
-    override val parameterTypes: Array<Class<*>>
-      get() = method.parameterTypes
+        override val parameterTypes: Array<Class<*>>
+            get() = method.parameterTypes
 
-    override val parameterAnnotations: Array<Array<Annotation>>
-      get() = method.parameterAnnotations
+        override val parameterAnnotations: Array<Array<Annotation>>
+            get() = method.parameterAnnotations
 
-    override val elementWrapper: XmlElementWrapper?
-      get() = method.getAnnotation(XmlElementWrapper::class.java)
-
-
-    override val returnType: Class<*>
-      get() = method.returnType
-
-    override val genericReturnType: Type
-      get() = method.genericReturnType
-
-    override val restMethod: RestMethod?
-      get() = method.getAnnotation(RestMethod::class.java)
-
-    override val declaringClass: Class<*>
-      get() = method.declaringClass
-
-    override fun exec() {
-      val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
-
-      try {
-        result = method(owner, *params)
-      } catch (e: IllegalArgumentException) {
-        throw MessagingException(e)
-      } catch (e: IllegalAccessException) {
-        throw MessagingException(e)
-      } catch (e: InvocationTargetException) {
-        val cause = e.cause
-        throw MessagingException(cause ?: e)
-      }
-
-    }
-
-  }
-
-  private class Java8RestMethodWrapper(owner: Any, method: Method) : RestMethodWrapper(owner, method) {
-
-    private val methodHandle: Method = method
-    override val parameterAnnotations: Array<Array<Annotation>>
-    override val elementWrapper: XmlElementWrapper?
-    override val genericReturnType: Type
-    override val returnType: Class<*>
-    override val restMethod: RestMethod?
-    override val declaringClass: Class<*>
-
-    init {
-      try {
-        parameterAnnotations = method.parameterAnnotations
-        elementWrapper = method.getAnnotation(XmlElementWrapper::class.java)
-        genericReturnType = method.genericReturnType
-        returnType = method.returnType
-        restMethod = method.getAnnotation(RestMethod::class.java)
-        declaringClass = method.declaringClass
-      } catch (e: IllegalAccessException) {
-        throw RuntimeException(e)
-      }
-
-    }
-
-    override val parameterTypes: Array<Class<*>>
-      get() = methodHandle.parameterTypes
-
-    override fun exec() {
-      val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
-
-      try {
-        result = methodHandle.invoke(owner, *params)
-      } catch (e: InvocationTargetException) {
-        val cause = e.cause
-        throw MessagingException(cause ?: e)
-      } catch (e: Throwable) {
-        throw MessagingException(e)
-      }
-
-    }
-
-  }
-
-  private var pathParams: Map<String, String> = emptyMap()
-
-  private var contentTypeSet = false
-
-  protected abstract val elementWrapper: XmlElementWrapper?
-
-  protected abstract val restMethod: RestMethod?
-
-  protected abstract val parameterAnnotations: Array<Array<Annotation>>
-
-  protected abstract val parameterTypes: Array<Class<*>>
-
-  protected abstract val returnType: Class<*>
-
-  protected abstract val genericReturnType: Type
-
-  protected abstract val declaringClass: Class<*>
-
-  private object HasMethodHandleHelper {
-    val HASHANDLES: Boolean
-
-    init {
-      var hashandles: Boolean
-      try {
-        hashandles = MethodHandle::class.java.name != null
-      } catch (e: RuntimeException) {
-        hashandles = false
-      }
-
-      HASHANDLES = hashandles
-    }
-  }
-
-  fun setPathParams(pPathParams: Map<String, String>) {
-    pathParams = pPathParams
-  }
-
-  @Throws(XmlException::class)
-  fun unmarshalParams(httpMessage: HttpMessage) {
-    if (params != null) {
-      throw IllegalStateException("Parameters have already been unmarshalled")
-    }
-    val parameterTypes = parameterTypes
-    val parameterAnnotations = parameterAnnotations
-    val argCnt = 0
-    val params = arrayOfNulls<Any?>(parameterTypes.size)
+        override val elementWrapper: XmlElementWrapper?
+            get() = method.getAnnotation(XmlElementWrapper::class.java)
 
 
-    for (i in parameterTypes.indices) {
-      val annotation = Annotations.getAnnotation(parameterAnnotations[i], RestParam::class.java)
-      val name: String
-      val type: RestParamType
-      val xpath: String?
-      if (annotation == null) {
-        name = "arg" + Integer.toString(argCnt)
-        type = RestParamType.QUERY
-        xpath = null
-      } else {
-        name = annotation.name
-        type = annotation.type
-        xpath = annotation.xpath
-      }
+        override val returnType: Class<*>
+            get() = method.returnType
 
-      when (type) {
-        RestParamType.ATTACHMENT -> {
-          if (httpMessage.attachments.isEmpty()) {
-            // No attachments, are we the only one, then take the body
-            val attachmentCount = parameterAnnotations.asSequence()
-              .mapNotNull { Annotations.getAnnotation(it, RestParam::class.java) }
-              .count { it.type == RestParamType.ATTACHMENT }
+        override val genericReturnType: Type
+            get() = method.genericReturnType
 
-            if (attachmentCount == 1) {
-              val messageBody = httpMessage.body
-              if (messageBody != null) {
-                params[i] = coerceBody(parameterTypes[i], name, messageBody)
-              } else if (httpMessage.byteContent.size == 1) {
-                params[i] = coerceSource(parameterTypes[i], httpMessage.byteContent[0])
-              }
+        override val restMethod: RestMethod?
+            get() = method.getAnnotation(RestMethod::class.java)
+
+        override val declaringClass: Class<*>
+            get() = method.declaringClass
+
+        override fun exec() {
+            val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+
+            try {
+                result = method(owner, *params)
+            } catch (e: IllegalArgumentException) {
+                throw MessagingException(e)
+            } catch (e: IllegalAccessException) {
+                throw MessagingException(e)
+            } catch (e: InvocationTargetException) {
+                val cause = e.cause
+                throw MessagingException(cause ?: e)
             }
-          } else {
-            params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
-          }
-        }
-        else                           -> params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
-      }
 
+        }
 
     }
 
-    this.params = params
+    private class Java8RestMethodWrapper(owner: Any, method: Method) : RestMethodWrapper(owner, method) {
 
-  }
+        private val methodHandle: Method = method
+        override val parameterAnnotations: Array<Array<Annotation>>
+        override val elementWrapper: XmlElementWrapper?
+        override val genericReturnType: Type
+        override val returnType: Class<*>
+        override val restMethod: RestMethod?
+        override val declaringClass: Class<*>
 
-  @Throws(XmlException::class)
-  private fun getParam(parameterJavaClass: Class<*>,
-                       paramName: String,
-                       restParamType: RestParamType,
-                       xpath: String?,
-                       httpMessage: HttpMessage): Any? {
-    var result = when (restParamType) {
-      RestParamType.GET        -> getParamGet(paramName, httpMessage)
-      RestParamType.POST       -> getParamPost(paramName, httpMessage)
-      RestParamType.QUERY      -> getParamGet(paramName, httpMessage) ?: getParamPost(paramName, httpMessage)
-      RestParamType.VAR        -> pathParams[paramName]
-      RestParamType.XPATH      -> getParamXPath(parameterJavaClass, xpath ?: ".", httpMessage.body ?: CompactFragment(""))
-      RestParamType.BODY       -> getBody(parameterJavaClass, httpMessage)
-      RestParamType.ATTACHMENT -> getAttachment(parameterJavaClass, paramName, httpMessage)
-      RestParamType.PRINCIPAL  -> if (parameterJavaClass.isAssignableFrom(String::class.java)) {
-        httpMessage.userPrincipal?.name
-      } else {
-        httpMessage.userPrincipal
-      }
-    }
-
-    // TODO support collection/list parameters
-    if (result != null && !parameterJavaClass.isInstance(result)) {
-      if ((Types.isPrimitive(parameterJavaClass) || Types.isPrimitiveWrapper(parameterJavaClass)) && result is String) {
-        try {
-          result = Types.parsePrimitive(parameterJavaClass, result)
-        } catch (e: NumberFormatException) {
-          throw HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "The argument given is invalid", e)
-        }
-
-      } else if (Enum::class.java.isAssignableFrom(parameterJavaClass)) {
-        @Suppress("UNCHECKED_CAST")
-        val clazz = parameterJavaClass as Class<Enum<*>>
-        result = clazz.valueOf(result.toString())
-      } else if (result is Node) {
-        val factory = parameterJavaClass.getAnnotation(XmlDeserializer::class.java)
-        if (factory != null) {
-          try {
-            result = factory.value.java.newInstance().deserialize(XmlStreaming.newReader(DOMSource(result as Node?)))
-          } catch (e: IllegalAccessException) {
-            throw XmlException(e)
-          } catch (e: InstantiationException) {
-            throw XmlException(e)
-          }
-
-        } else {
-          result = JAXB.unmarshal(DOMSource(result as Node?), parameterJavaClass)
-        }
-      } else {
-        val s = result.toString()
-        // Only wrap when we don't start with <
-        if (s.isNotEmpty()) {
-          val requestBody = (if (s.startsWith("<")) s else "<wrapper>$s</wrapper>").toCharArray()
-          result = JAXB.unmarshal(CharArrayReader(requestBody), parameterJavaClass)
-        } else {
-          result = null
-        }
-      }
-    }
-
-    return result
-  }
-
-  @Throws(TransformerException::class, IOException::class, FactoryConfigurationError::class)
-  private fun serializeValue(pResponse: HttpServletResponse, value: Any?) {
-    when (value) {
-      null                                 -> throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "no value")
-      is Source                            -> {
-        setContentType(pResponse, "application/binary")// Unknown content type
-        Sources.writeToStream(value, pResponse.outputStream)
-      }
-      is Node                              -> {
-        pResponse.contentType = "text/xml"
-          DOMSource(value as Node?).writeToStream(pResponse.outputStream)
-      }
-      is XmlSerializable -> {
-        pResponse.contentType = "text/xml"
-        XMLOutputFactory.newInstance().let { factory ->
-          factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, java.lang.Boolean.TRUE)
-          XmlStreaming.newWriter(pResponse.outputStream, pResponse.characterEncoding, true).use { out ->
-            out.startDocument(null, null, null)
-            value.serialize(out)
-            out.endDocument()
-          }
-        }
-      }
-      is Collection<*>                     -> {
-        elementWrapper?.let { annotation ->
-          setContentType(pResponse, "text/xml")
-          pResponse.outputStream.use { outStream ->
-            writeCollection(outStream, genericReturnType, value, getQName(annotation))
-          }
-        }
-      }
-      is CharSequence    -> {
-        setContentType(pResponse, "text/plain")
-        pResponse.writer.append(value as CharSequence?)
-      }
-      else -> {
-          setContentType(pResponse, "text/xml")
-
-          val jaxbSource = JAXBSource(JAXBContext.newInstance(returnType), value)
-          jaxbSource.writeToStream(pResponse.outputStream)
-      }
-    }
-  }
-
-
-  @Deprecated("use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored", ReplaceWith("marshalResult(response)"))
-  @Throws(TransformerException::class, IOException::class, XmlException::class)
-  fun marshalResult(request: HttpMessage, response: HttpServletResponse) = marshalResult(response)
-
-  @Throws(TransformerException::class, IOException::class, XmlException::class)
-  fun marshalResult(pResponse: HttpServletResponse) {
-    val result = result
-    if (result is XmlSerializable) {
-      // By default don't use JAXB
-      setContentType(pResponse, "text/xml")
-      OutputStreamWriter(pResponse.outputStream, pResponse.characterEncoding).use { writer ->
-        XmlStreaming.newWriter(writer).use { xmlWriter ->
-          result.serialize(xmlWriter)
-        }
-      }
-      return
-    }
-    result?.javaClass?.getAnnotation(XmlRootElement::class.java)?.let { xmlRootElement ->
-      val jaxbContext = JAXBContext.newInstance(returnType)
-      val jaxbSource = JAXBSource(jaxbContext, result)
-      setContentType(pResponse, "text/xml")
-        jaxbSource.writeToStream(pResponse.outputStream)
-        Unit
-    } ?: serializeValue(pResponse, result)
-  }
-
-  private fun setContentType(pResponse: HttpServletResponse, pDefault: String) {
-    if (!contentTypeSet) {
-      val methodAnnotation = restMethod
-      if (methodAnnotation == null || methodAnnotation.contentType.length == 0) {
-        pResponse.contentType = pDefault
-      } else {
-        pResponse.contentType = methodAnnotation.contentType
-      }
-      contentTypeSet = true
-    }
-  }
-
-  private fun writeCollection(outputStream: OutputStream,
-                              collectionType: Type,
-                              collection: Collection<*>,
-                              outerTagName: QName) {
-    val rawType: Class<*> = when (collectionType) {
-      is ParameterizedType     -> collectionType.rawType as Class<*>
-      is Class<*>            -> collectionType
-      is WildcardType      -> {
-        val UpperBounds = collectionType.upperBounds
-        if (UpperBounds.isNotEmpty()) {
-          UpperBounds[0] as Class<*>
-        } else {
-          Any::class.java
-        }
-      }
-      is TypeVariable<*> -> {
-        val bounds = collectionType.bounds
-        if (bounds.isNotEmpty()) {
-          bounds[0] as Class<*>
-        } else {
-          Any::class.java
-        }
-      }
-      else             -> throw IllegalArgumentException("Unsupported type variable")
-    }
-
-    var elementType: Class<*>?
-    if (Collection::class.java.isAssignableFrom(rawType)) {
-      val paramTypes = Types.getTypeParametersFor(Collection::class.java, collectionType)
-      elementType = Types.toRawType(paramTypes[0])!!
-      // interfaces not supported by jaxb
-      if (elementType.isInterface) elementType = Types.commonAncestor(collection)
-    } else {
-      elementType = Types.commonAncestor(collection)
-    }
-
-    try {
-      // As long as JAXB is an option, we have to know that this is a StAXWriter as JAXB needs to write to that.
-      XmlStreaming.newWriter(outputStream, "UTF-8").use { xmlWriter ->
-
-        var marshaller: Marshaller? = null
-        xmlWriter.smartStartTag(outerTagName)
-        for (item in collection) {
-          when (item) {
-            is XmlSerializable -> item.serialize(xmlWriter)
-            is Node                              -> xmlWriter.serialize(item)
-            null                                 -> Unit
-            else                                 -> {
-              val m = marshaller ?: run {
-                val jaxbcontext: JAXBContext = when (elementType) {
-                  null -> newJAXBContext(JAXBCollectionWrapper::class.java)
-                  else -> newJAXBContext(JAXBCollectionWrapper::class.java, elementType)
-                }
-                jaxbcontext.createMarshaller().also { marshaller = it }
-              }
-              m.marshal(item, delegateMethod.invoke(xmlWriter) as XMLStreamWriter)
+        init {
+            try {
+                parameterAnnotations = method.parameterAnnotations
+                elementWrapper = method.getAnnotation(XmlElementWrapper::class.java)
+                genericReturnType = method.genericReturnType
+                returnType = method.returnType
+                restMethod = method.getAnnotation(RestMethod::class.java)
+                declaringClass = method.declaringClass
+            } catch (e: IllegalAccessException) {
+                throw RuntimeException(e)
             }
-          }
+
         }
-        xmlWriter.endTag(outerTagName)
-      }
-    } catch (e: Throwable) {
-      throw MessagingException(e)
+
+        override val parameterTypes: Array<Class<*>>
+            get() = methodHandle.parameterTypes
+
+        override fun exec() {
+            val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+
+            try {
+                result = methodHandle.invoke(owner, *params)
+            } catch (e: InvocationTargetException) {
+                val cause = e.cause
+                throw MessagingException(cause ?: e)
+            } catch (e: Throwable) {
+                throw MessagingException(e)
+            }
+
+        }
+
     }
 
-  }
+    private var pathParams: Map<String, String> = emptyMap()
 
-  @Throws(JAXBException::class)
-  private fun newJAXBContext(vararg classes: Class<*>): JAXBContext {
-    val seeAlso = declaringClass.getAnnotation(XmlSeeAlso::class.java)
-    val classList: Array<out Class<*>?> = when {
-      seeAlso != null && seeAlso.value.isNotEmpty() -> {
-        val seeAlsoClasses: Array<Class<*>> = seeAlso.value.let { t -> Array<Class<*>>(t.size) { t[it].java } }
-        seeAlsoClasses + classes
-      }
-      else                                          -> classes
+    private var contentTypeSet = false
+
+    protected abstract val elementWrapper: XmlElementWrapper?
+
+    protected abstract val restMethod: RestMethod?
+
+    protected abstract val parameterAnnotations: Array<Array<Annotation>>
+
+    protected abstract val parameterTypes: Array<Class<*>>
+
+    protected abstract val returnType: Class<*>
+
+    protected abstract val genericReturnType: Type
+
+    protected abstract val declaringClass: Class<*>
+
+    private object HasMethodHandleHelper {
+        val HASHANDLES: Boolean
+
+        init {
+            var hashandles: Boolean
+            try {
+                hashandles = MethodHandle::class.java.name != null
+            } catch (e: RuntimeException) {
+                hashandles = false
+            }
+
+            HASHANDLES = hashandles
+        }
     }
-    return JAXBContext.newInstance(*classList)
-  }
 
-  companion object {
-
-    @Volatile
-    private var _getDelegate: Method? = null
-
-    operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
-      // Make it work with private methods and
-      pMethod.isAccessible = true
-      if (HasMethodHandleHelper.HASHANDLES && "1.7" != "java.specification.version") {
-        return Java8RestMethodWrapper(pOwner, pMethod)
-      } else {
-        return Java6RestMethodWrapper(pOwner, pMethod)
-      }
+    fun setPathParams(pPathParams: Map<String, String>) {
+        pathParams = pPathParams
     }
 
     @Throws(XmlException::class)
-    private fun getBody(pClass: Class<*>, pMessage: HttpMessage): Any? {
-      val body = pMessage.body
-      if (body != null) {
-        return DomUtil.childrenToDocumentFragment(body.getXmlReader())
-      } else {
-        return getAttachment(pClass, null, pMessage)
-      }
-    }
-
-    private fun getAttachment(pClass: Class<*>, name: String?, pMessage: HttpMessage)
-      = coerceSource(pClass, pMessage.getAttachment(name))
-
-    private fun coerceBody(pTargetType: Class<*>, name: String, pBody: ICompactFragment): Any? {
-      val dataSource = object : DataSource {
-        @Throws(IOException::class)
-        override fun getInputStream()
-          = ReaderInputStream(Charset.forName("UTF-8"), CharArrayReader(pBody.content))
-
-        @Throws(IOException::class)
-        override fun getOutputStream() = throw UnsupportedOperationException()
-
-        override fun getContentType() = "application/xml"
-
-        override fun getName() = name
-      }
-      return coerceSource(pTargetType, dataSource)
-    }
-
-    private fun coerceSource(target: Class<*>, source: DataSource?): Any? {
-      return source?.let {
-        when {
-          DataHandler::class.java.isAssignableFrom(target) -> DataHandler(it)
-          DataSource::class.java.isAssignableFrom(target)  -> it
-          InputStream::class.java.isAssignableFrom(target) -> try {
-            it.inputStream
-          } catch (e: IOException) {
-            throw MessagingException(e)
-          }
-          else                                             -> try {
-            // This will try to do magic to handle the data
-            DataHandler(it).content
-          } catch (e: IOException) {
-            throw MessagingException(e)
-          }
+    fun unmarshalParams(httpMessage: HttpMessage) {
+        if (params != null) {
+            throw IllegalStateException("Parameters have already been unmarshalled")
         }
-      }
-    }
+        val parameterTypes = parameterTypes
+        val parameterAnnotations = parameterAnnotations
+        val argCnt = 0
+        val params = arrayOfNulls<Any?>(parameterTypes.size)
 
-    private fun getParamGet(pName: String, pMessage: HttpMessage)
-      = pMessage.getQuery(pName)
 
-    private fun getParamPost(pName: String, pMessage: HttpMessage)
-      = pMessage.getPosts(pName)
-
-    @Throws(XmlException::class)
-    private fun <T> getParamXPath(paramType: Class<T>, xpath: String, body: ICompactFragment): T? {
-      val isCharSeq = CharSequence::class.java.isAssignableFrom(paramType)
-      var match: Node?
-      val fragment = DomUtil.childrenToDocumentFragment(body.getXmlReader())
-      var n: Node? = fragment.firstChild
-      while (n != null) {
-        match = xpathMatch(n, xpath)
-        if (match != null) {
-          if (!isCharSeq) {
-            val deserializer = paramType.getAnnotation(XmlDeserializer::class.java)
-            if (deserializer != null) {
-              val factory: XmlDeserializerFactory<*> = deserializer.value.java.newInstance()
-              return factory.deserialize(XmlStreaming.newReader(DOMSource(n)))?.let{paramType.cast(it)}
+        for (i in parameterTypes.indices) {
+            val annotation = Annotations.getAnnotation(parameterAnnotations[i], RestParam::class.java)
+            val name: String
+            val type: RestParamType
+            val xpath: String?
+            if (annotation == null) {
+                name = "arg" + Integer.toString(argCnt)
+                type = RestParamType.QUERY
+                xpath = null
             } else {
-              return JAXB.unmarshal(DOMSource(match), paramType)
+                name = annotation.name
+                type = annotation.type
+                xpath = annotation.xpath
             }
-          } else {
-            return paramType.cast(nodeToString(match))
-          }
+
+            when (type) {
+                RestParamType.ATTACHMENT -> {
+                    if (httpMessage.attachments.isEmpty()) {
+                        // No attachments, are we the only one, then take the body
+                        val attachmentCount = parameterAnnotations.asSequence()
+                            .mapNotNull { Annotations.getAnnotation(it, RestParam::class.java) }
+                            .count { it.type == RestParamType.ATTACHMENT }
+
+                        if (attachmentCount == 1) {
+                            val messageBody = httpMessage.body
+                            if (messageBody != null) {
+                                params[i] = coerceBody(parameterTypes[i], name, messageBody)
+                            } else if (httpMessage.byteContent.size == 1) {
+                                params[i] = coerceSource(parameterTypes[i], httpMessage.byteContent[0])
+                            }
+                        }
+                    } else {
+                        params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
+                    }
+                }
+                else                     -> params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
+            }
+
+
         }
-        n = n.nextSibling
-      }
-      return null
+
+        this.params = params
+
     }
 
-    private fun nodeToString(pNode: Node): String {
-      return pNode.textContent
-    }
-
-    private fun xpathMatch(pN: Node, pXpath: String): Node? {
-      val factory = XPathFactory.newInstance()
-      val xpath = factory.newXPath()
-      val result: NodeList
-      try {
-        result = xpath.evaluate(pXpath, DOMSource(pN), XPathConstants.NODESET) as NodeList
-      } catch (e: XPathExpressionException) {
-        return null
-      }
-
-      if (result.length == 0) return null
-      return result.item(0)
-    }
-
-    private val delegateMethod: Method
-      get() {
-        return this._getDelegate ?: kotlin.run {
-          Class.forName("nl.adaptivity.xml.StAXWriter").getMethod("getDelegate", XMLStreamWriter::class.java)
-             .also { this._getDelegate = it }
+    @Throws(XmlException::class)
+    private fun getParam(
+        parameterJavaClass: Class<*>,
+        paramName: String,
+        restParamType: RestParamType,
+        xpath: String?,
+        httpMessage: HttpMessage
+                        ): Any? {
+        var result = when (restParamType) {
+            RestParamType.GET        -> getParamGet(paramName, httpMessage)
+            RestParamType.POST       -> getParamPost(paramName, httpMessage)
+            RestParamType.QUERY      -> getParamGet(paramName, httpMessage) ?: getParamPost(paramName, httpMessage)
+            RestParamType.VAR        -> pathParams[paramName]
+            RestParamType.XPATH      -> getParamXPath(
+                parameterJavaClass,
+                xpath ?: ".",
+                httpMessage.body ?: CompactFragment("")
+                                                     )
+            RestParamType.BODY       -> getBody(parameterJavaClass, httpMessage)
+            RestParamType.ATTACHMENT -> getAttachment(parameterJavaClass, paramName, httpMessage)
+            RestParamType.PRINCIPAL  -> if (parameterJavaClass.isAssignableFrom(String::class.java)) {
+                httpMessage.userPrincipal?.name
+            } else {
+                httpMessage.userPrincipal
+            }
         }
-      }
 
-    private fun getQName(pAnnotation: XmlElementWrapper): QName {
-      var nameSpace = pAnnotation.namespace
-      if ("##default" == nameSpace) {
-        nameSpace = XMLConstants.NULL_NS_URI
-      }
-      return QName(nameSpace, pAnnotation.name, XMLConstants.DEFAULT_NS_PREFIX)
+        // TODO support collection/list parameters
+        if (result != null && !parameterJavaClass.isInstance(result)) {
+            if ((Types.isPrimitive(parameterJavaClass) || Types.isPrimitiveWrapper(parameterJavaClass)) && result is String) {
+                try {
+                    result = Types.parsePrimitive(parameterJavaClass, result)
+                } catch (e: NumberFormatException) {
+                    throw HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "The argument given is invalid", e)
+                }
+
+            } else if (Enum::class.java.isAssignableFrom(parameterJavaClass)) {
+                @Suppress("UNCHECKED_CAST")
+                val clazz = parameterJavaClass as Class<Enum<*>>
+                result = clazz.valueOf(result.toString())
+            } else if (result is Node) {
+                val factory = parameterJavaClass.getAnnotation(XmlDeserializer::class.java)
+                if (factory != null) {
+                    try {
+                        result = factory.value.java.newInstance()
+                            .deserialize(XmlStreaming.newReader(DOMSource(result as Node?)))
+                    } catch (e: IllegalAccessException) {
+                        throw XmlException(e)
+                    } catch (e: InstantiationException) {
+                        throw XmlException(e)
+                    }
+
+                } else {
+                    result = JAXB.unmarshal(DOMSource(result as Node?), parameterJavaClass)
+                }
+            } else {
+                val s = result.toString()
+                // Only wrap when we don't start with <
+                if (s.isNotEmpty()) {
+                    val requestBody = (if (s.startsWith("<")) s else "<wrapper>$s</wrapper>").toCharArray()
+                    result = JAXB.unmarshal(CharArrayReader(requestBody), parameterJavaClass)
+                } else {
+                    result = null
+                }
+            }
+        }
+
+        return result
     }
-  }
+
+    @Throws(TransformerException::class, IOException::class, FactoryConfigurationError::class)
+    private fun serializeValue(pResponse: HttpServletResponse, value: Any?) {
+        when (value) {
+            null               -> throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "no value")
+            is Source          -> {
+                setContentType(pResponse, "application/binary")// Unknown content type
+                Sources.writeToStream(value, pResponse.outputStream)
+            }
+            is Node            -> {
+                pResponse.contentType = "text/xml"
+                DOMSource(value as Node?).writeToStream(pResponse.outputStream)
+            }
+            is XmlSerializable -> {
+                pResponse.contentType = "text/xml"
+                XMLOutputFactory.newInstance().let { factory ->
+                    factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, java.lang.Boolean.TRUE)
+                    XmlStreaming.newWriter(pResponse.outputStream, pResponse.characterEncoding, true).use { out ->
+                        out.startDocument(null, null, null)
+                        value.serialize(out)
+                        out.endDocument()
+                    }
+                }
+            }
+            is Collection<*>   -> {
+                elementWrapper?.let { annotation ->
+                    setContentType(pResponse, "text/xml")
+                    pResponse.outputStream.use { outStream ->
+                        writeCollection(outStream, genericReturnType, value, getQName(annotation))
+                    }
+                }
+            }
+            is CharSequence    -> {
+                setContentType(pResponse, "text/plain")
+                pResponse.writer.append(value as CharSequence?)
+            }
+            else               -> {
+                setContentType(pResponse, "text/xml")
+
+                val jaxbSource = JAXBSource(JAXBContext.newInstance(returnType), value)
+                jaxbSource.writeToStream(pResponse.outputStream)
+            }
+        }
+    }
+
+
+    @Deprecated(
+        "use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored",
+        ReplaceWith("marshalResult(response)")
+               )
+    @Throws(TransformerException::class, IOException::class, XmlException::class)
+    fun marshalResult(request: HttpMessage, response: HttpServletResponse) = marshalResult(response)
+
+    @Throws(TransformerException::class, IOException::class, XmlException::class)
+    fun marshalResult(pResponse: HttpServletResponse) {
+        val result = result
+        if (result is XmlSerializable) {
+            // By default don't use JAXB
+            setContentType(pResponse, "text/xml")
+            OutputStreamWriter(pResponse.outputStream, pResponse.characterEncoding).use { writer ->
+                XmlStreaming.newWriter(writer).use { xmlWriter ->
+                    result.serialize(xmlWriter)
+                }
+            }
+            return
+        }
+        result?.javaClass?.getAnnotation(XmlRootElement::class.java)?.let { xmlRootElement ->
+            val jaxbContext = JAXBContext.newInstance(returnType)
+            val jaxbSource = JAXBSource(jaxbContext, result)
+            setContentType(pResponse, "text/xml")
+            jaxbSource.writeToStream(pResponse.outputStream)
+            Unit
+        } ?: serializeValue(pResponse, result)
+    }
+
+    private fun setContentType(pResponse: HttpServletResponse, pDefault: String) {
+        if (!contentTypeSet) {
+            val methodAnnotation = restMethod
+            if (methodAnnotation == null || methodAnnotation.contentType.length == 0) {
+                pResponse.contentType = pDefault
+            } else {
+                pResponse.contentType = methodAnnotation.contentType
+            }
+            contentTypeSet = true
+        }
+    }
+
+    private fun writeCollection(
+        outputStream: OutputStream,
+        collectionType: Type,
+        collection: Collection<*>,
+        outerTagName: QName
+                               ) {
+        val rawType: Class<*> = when (collectionType) {
+            is ParameterizedType -> collectionType.rawType as Class<*>
+            is Class<*>          -> collectionType
+            is WildcardType      -> {
+                val UpperBounds = collectionType.upperBounds
+                if (UpperBounds.isNotEmpty()) {
+                    UpperBounds[0] as Class<*>
+                } else {
+                    Any::class.java
+                }
+            }
+            is TypeVariable<*>   -> {
+                val bounds = collectionType.bounds
+                if (bounds.isNotEmpty()) {
+                    bounds[0] as Class<*>
+                } else {
+                    Any::class.java
+                }
+            }
+            else                 -> throw IllegalArgumentException("Unsupported type variable")
+        }
+
+        var elementType: Class<*>?
+        if (Collection::class.java.isAssignableFrom(rawType)) {
+            val paramTypes = Types.getTypeParametersFor(Collection::class.java, collectionType)
+            elementType = Types.toRawType(paramTypes[0])!!
+            // interfaces not supported by jaxb
+            if (elementType.isInterface) elementType = Types.commonAncestor(collection)
+        } else {
+            elementType = Types.commonAncestor(collection)
+        }
+
+        try {
+            // As long as JAXB is an option, we have to know that this is a StAXWriter as JAXB needs to write to that.
+            XmlStreaming.newWriter(outputStream, "UTF-8").use { xmlWriter ->
+
+                var marshaller: Marshaller? = null
+                xmlWriter.smartStartTag(outerTagName)
+                for (item in collection) {
+                    when (item) {
+                        is XmlSerializable -> item.serialize(xmlWriter)
+                        is Node            -> xmlWriter.serialize(item)
+                        null               -> Unit
+                        else               -> {
+                            val m = marshaller ?: run {
+                                val jaxbcontext: JAXBContext = when (elementType) {
+                                    null -> newJAXBContext(JAXBCollectionWrapper::class.java)
+                                    else -> newJAXBContext(JAXBCollectionWrapper::class.java, elementType)
+                                }
+                                jaxbcontext.createMarshaller().also { marshaller = it }
+                            }
+                            m.marshal(item, delegateMethod.invoke(xmlWriter) as XMLStreamWriter)
+                        }
+                    }
+                }
+                xmlWriter.endTag(outerTagName)
+            }
+        } catch (e: Throwable) {
+            throw MessagingException(e)
+        }
+
+    }
+
+    @Throws(JAXBException::class)
+    private fun newJAXBContext(vararg classes: Class<*>): JAXBContext {
+        val seeAlso = declaringClass.getAnnotation(XmlSeeAlso::class.java)
+        val classList: Array<out Class<*>?> = when {
+            seeAlso != null && seeAlso.value.isNotEmpty() -> {
+                val seeAlsoClasses: Array<Class<*>> = seeAlso.value.let { t -> Array<Class<*>>(t.size) { t[it].java } }
+                seeAlsoClasses + classes
+            }
+            else                                          -> classes
+        }
+        return JAXBContext.newInstance(*classList)
+    }
+
+    companion object {
+
+        @Volatile
+        private var _getDelegate: Method? = null
+
+        operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
+            // Make it work with private methods and
+            pMethod.isAccessible = true
+            if (HasMethodHandleHelper.HASHANDLES && "1.7" != "java.specification.version") {
+                return Java8RestMethodWrapper(pOwner, pMethod)
+            } else {
+                return Java6RestMethodWrapper(pOwner, pMethod)
+            }
+        }
+
+        @Throws(XmlException::class)
+        private fun getBody(pClass: Class<*>, pMessage: HttpMessage): Any? {
+            val body = pMessage.body
+            if (body != null) {
+                return DomUtil.childrenToDocumentFragment(body.getXmlReader())
+            } else {
+                return getAttachment(pClass, null, pMessage)
+            }
+        }
+
+        private fun getAttachment(pClass: Class<*>, name: String?, pMessage: HttpMessage) =
+            coerceSource(pClass, pMessage.getAttachment(name))
+
+        private fun coerceBody(pTargetType: Class<*>, name: String, pBody: ICompactFragment): Any? {
+            val dataSource = object : DataSource {
+                @Throws(IOException::class)
+                override fun getInputStream() =
+                    ReaderInputStream(Charset.forName("UTF-8"), CharArrayReader(pBody.content))
+
+                @Throws(IOException::class)
+                override fun getOutputStream() = throw UnsupportedOperationException()
+
+                override fun getContentType() = "application/xml"
+
+                override fun getName() = name
+            }
+            return coerceSource(pTargetType, dataSource)
+        }
+
+        private fun coerceSource(target: Class<*>, source: DataSource?): Any? {
+            return source?.let {
+                when {
+                    DataHandler::class.java.isAssignableFrom(target) -> DataHandler(it)
+                    DataSource::class.java.isAssignableFrom(target)  -> it
+                    InputStream::class.java.isAssignableFrom(target) -> try {
+                        it.inputStream
+                    } catch (e: IOException) {
+                        throw MessagingException(e)
+                    }
+                    else                                             -> try {
+                        // This will try to do magic to handle the data
+                        DataHandler(it).content
+                    } catch (e: IOException) {
+                        throw MessagingException(e)
+                    }
+                }
+            }
+        }
+
+        private fun getParamGet(pName: String, pMessage: HttpMessage) = pMessage.getQuery(pName)
+
+        private fun getParamPost(pName: String, pMessage: HttpMessage) = pMessage.getPosts(pName)
+
+        @Throws(XmlException::class)
+        private fun <T> getParamXPath(paramType: Class<T>, xpath: String, body: ICompactFragment): T? {
+            val isCharSeq = CharSequence::class.java.isAssignableFrom(paramType)
+            var match: Node?
+            val fragment = DomUtil.childrenToDocumentFragment(body.getXmlReader())
+            var n: Node? = fragment.firstChild
+            while (n != null) {
+                match = xpathMatch(n, xpath)
+                if (match != null) {
+                    if (!isCharSeq) {
+                        val deserializer = paramType.getAnnotation(XmlDeserializer::class.java)
+                        if (deserializer != null) {
+                            val factory: XmlDeserializerFactory<*> = deserializer.value.java.newInstance()
+                            return factory.deserialize(XmlStreaming.newReader(DOMSource(n)))?.let { paramType.cast(it) }
+                        } else {
+                            return JAXB.unmarshal(DOMSource(match), paramType)
+                        }
+                    } else {
+                        return paramType.cast(nodeToString(match))
+                    }
+                }
+                n = n.nextSibling
+            }
+            return null
+        }
+
+        private fun nodeToString(pNode: Node): String {
+            return pNode.textContent
+        }
+
+        private fun xpathMatch(pN: Node, pXpath: String): Node? {
+            val factory = XPathFactory.newInstance()
+            val xpath = factory.newXPath()
+            val result: NodeList
+            try {
+                result = xpath.evaluate(pXpath, DOMSource(pN), XPathConstants.NODESET) as NodeList
+            } catch (e: XPathExpressionException) {
+                return null
+            }
+
+            if (result.length == 0) return null
+            return result.item(0)
+        }
+
+        private val delegateMethod: Method
+            get() {
+                return this._getDelegate ?: kotlin.run {
+                    Class.forName("nl.adaptivity.xml.StAXWriter").getMethod("getDelegate", XMLStreamWriter::class.java)
+                        .also { this._getDelegate = it }
+                }
+            }
+
+        private fun getQName(pAnnotation: XmlElementWrapper): QName {
+            var nameSpace = pAnnotation.namespace
+            if ("##default" == nameSpace) {
+                nameSpace = XMLConstants.NULL_NS_URI
+            }
+            return QName(nameSpace, pAnnotation.name, XMLConstants.DEFAULT_NS_PREFIX)
+        }
+    }
 
 }
 
-private fun Class<Enum<*>>.valueOf(name:String): Enum<*> {
-  return this.enumConstants.first { it.name == name }
+private fun Class<Enum<*>>.valueOf(name: String): Enum<*> {
+    return this.enumConstants.first { it.name == name }
 }

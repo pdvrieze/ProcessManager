@@ -58,10 +58,12 @@ actual abstract class XPathHolder : XMLContainer {
 
     actual constructor() : super()
 
-    actual constructor(name: String?,
-                       path: String?,
-                       content: CharArray?,
-                       originalNSContext: Iterable<Namespace>) : super(originalNSContext, content ?: CharArray(0)) {
+    actual constructor(
+        name: String?,
+        path: String?,
+        content: CharArray?,
+        originalNSContext: Iterable<Namespace>
+                      ) : super(originalNSContext, content ?: CharArray(0)) {
         _name = name
         setPath(originalNSContext, path)
     }
@@ -85,9 +87,11 @@ actual abstract class XPathHolder : XMLContainer {
         assert(value == null)
     }
 
-    actual override fun deserializeAttribute(attributeNamespace: String?,
-                                             attributeLocalName: String,
-                                             attributeValue: String) =
+    actual override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                            ) =
         when (attributeLocalName) {
             "name"                       -> {
                 _name = attributeValue
@@ -108,9 +112,12 @@ actual abstract class XPathHolder : XMLContainer {
     override fun deserializeChildren(reader: XmlReader) {
         super.deserializeChildren(reader)
         val namespaces = mutableMapOf<String, String>()
-        val gatheringNamespaceContext = CombiningNamespaceContext(SimpleNamespaceContext.from(originalNSContext),
-                                                                  GatheringNamespaceContext(
-                                                                      reader.namespaceContext, namespaces))
+        val gatheringNamespaceContext = CombiningNamespaceContext(
+            SimpleNamespaceContext.from(originalNSContext),
+            GatheringNamespaceContext(
+                reader.namespaceContext, namespaces
+                                     )
+                                                                 )
         visitNamespaces(gatheringNamespaceContext)
         if (namespaces.size > 0) {
             addNamespaceContext(SimpleNamespaceContext(namespaces))
@@ -125,8 +132,11 @@ actual abstract class XPathHolder : XMLContainer {
             val referenceContext = out.namespaceContext
             // TODO streamline this, the right context should not require the filtering on the output context later.
             val nsc = GatheringNamespaceContext(
-                CombiningNamespaceContext(referenceContext, SimpleNamespaceContext
-                    .from(originalNSContext)), namepaces)
+                CombiningNamespaceContext(
+                    referenceContext, SimpleNamespaceContext
+                        .from(originalNSContext)
+                                         ), namepaces
+                                               )
             visitXpathUsedPrefixes(pathString, nsc)
             for ((key, value) in namepaces) {
                 if (value != referenceContext.getNamespaceURI(key)) {
@@ -146,10 +156,12 @@ actual abstract class XPathHolder : XMLContainer {
         super.visitNamespaces(baseContext)
     }
 
-    actual override fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                                   owner: QName,
-                                                   attributeName: QName,
-                                                   attributeValue: CharSequence) {
+    actual override fun visitNamesInAttributeValue(
+        referenceContext: NamespaceContext,
+        owner: QName,
+        attributeName: QName,
+        attributeValue: CharSequence
+                                                  ) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }
@@ -167,8 +179,10 @@ actual abstract class XPathHolder : XMLContainer {
                     }
                     else -> payload
                 }
-                val result = realPayload.ownerDocument!!.evaluate(p, realPayload, namespaceResolver,
-                                                                  XPathResult.ORDERED_NODE_ITERATOR_TYPE)
+                val result = realPayload.ownerDocument!!.evaluate(
+                    p, realPayload, namespaceResolver,
+                    XPathResult.ORDERED_NODE_ITERATOR_TYPE
+                                                                 )
                 ProcessData(_name!!, CompactFragment(result.toDocumentFragment()))
             }
         }
@@ -189,8 +203,10 @@ internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext
         try {
             val d = document.implementation.createDocument(null, "bar")
 //                    d.createExpression(path.toString(), { prefix -> namespaceContext.getNamespaceURI(prefix) } )
-            d.evaluate(path.toString(), d, { prefix -> namespaceContext.getNamespaceURI(prefix) },
-                       XPathResult.ANY_TYPE)
+            d.evaluate(
+                path.toString(), d, { prefix -> namespaceContext.getNamespaceURI(prefix) },
+                XPathResult.ANY_TYPE
+                      )
         } catch (e: Exception) {
             console.warn("The path used is not valid ($path) - ${e.message}", e)
         }
@@ -202,23 +218,30 @@ internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext
 typealias NamespaceResolver = (String) -> String?
 
 @Suppress("UnsafeCastFromDynamic")
-inline fun Document.createExpression(xpathText: String,
-                                     noinline namespaceUrlMapper: NamespaceResolver? = null): XPathExpression = asDynamic().createExpression(
-    xpathText, namespaceUrlMapper)
+inline fun Document.createExpression(
+    xpathText: String,
+    noinline namespaceUrlMapper: NamespaceResolver? = null
+                                    ): XPathExpression = asDynamic().createExpression(
+    xpathText, namespaceUrlMapper
+                                                                                     )
 
 @Suppress("UnsafeCastFromDynamic")
-inline fun Document.evaluate(xpathExpression: String,
-                             contextNode: Node,
-                             noinline namespaceResolver: NamespaceResolver?,
-                             resultType: Short): XPathResult =
+inline fun Document.evaluate(
+    xpathExpression: String,
+    contextNode: Node,
+    noinline namespaceResolver: NamespaceResolver?,
+    resultType: Short
+                            ): XPathResult =
     asDynamic().evaluate(xpathExpression, contextNode, namespaceResolver, resultType, null)
 
 @Suppress("UnsafeCastFromDynamic")
-inline fun Document.evaluate(xpathExpression: String,
-                             contextNode: Node,
-                             noinline namespaceResolver: NamespaceResolver?,
-                             resultType: Short,
-                             result: XPathResult): Unit =
+inline fun Document.evaluate(
+    xpathExpression: String,
+    contextNode: Node,
+    noinline namespaceResolver: NamespaceResolver?,
+    resultType: Short,
+    result: XPathResult
+                            ): Unit =
     asDynamic().evaluate(xpathExpression, contextNode, namespaceResolver, resultType, result)
 
 external interface XPathExpression {

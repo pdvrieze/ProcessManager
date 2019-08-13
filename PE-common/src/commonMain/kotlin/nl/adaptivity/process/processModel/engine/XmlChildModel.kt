@@ -37,8 +37,10 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
         get() = super.rootModel as XmlProcessModel
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
-    constructor(builder: ChildProcessModel.Builder,
-                buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>) : super(builder, buildHelper)
+    constructor(
+        builder: ChildProcessModel.Builder,
+        buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>
+               ) : super(builder, buildHelper)
 
     override fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder {
         return ModelBuilder(rootBuilder, this)
@@ -50,7 +52,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
         init {
             // Hack to handle invalid codegen for the generated serializer
             val d = descriptor as SerialClassDescImpl
-            for(childSerializer in childSerializers()) {
+            for (childSerializer in childSerializers()) {
                 d.pushDescriptor(childSerializer.descriptor)
             }
         }

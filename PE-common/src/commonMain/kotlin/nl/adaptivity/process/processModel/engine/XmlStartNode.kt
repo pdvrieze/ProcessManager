@@ -38,15 +38,7 @@ class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>
     override fun builder() = StartNodeBase.Builder(this)
 
     @Serializer(XmlStartNode::class)
-    companion object: KSerializer<XmlStartNode> {
-/*
-        val parentSerializer = StartNodeBase.serializer(this, XmlProcessModel.serializer()) as KSerializer<XmlStartNode>
-
-        override fun serialize(encoder: kotlinx.serialization.Encoder,
-                               obj: XmlStartNode) {
-            parentSerializer.serialize(encoder, obj)
-        }
-*/
+    companion object : KSerializer<XmlStartNode> {
 
         override fun deserialize(decoder: Decoder): XmlStartNode {
             throw Exception("Deserializing a start directly is not possible")

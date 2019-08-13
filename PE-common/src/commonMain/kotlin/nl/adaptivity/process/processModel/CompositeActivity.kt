@@ -20,7 +20,7 @@ interface CompositeActivity : Activity {
 
     val childModel: ChildProcessModel<ProcessNode>?
 
-    interface ReferenceBuilder: Activity.Builder {
+    interface ReferenceBuilder : Activity.Builder {
         var childId: String?
 
     }

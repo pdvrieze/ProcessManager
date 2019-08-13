@@ -139,13 +139,15 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     }
 
 
-    constructor(service: DescQName? = null,
-                endpoint: String? = null,
-                operation: String? = null,
-                url: String? = null,
-                method: String? = null,
-                contentType: String? = null,
-                messageBody: ICompactFragment? = null) {
+    constructor(
+        service: DescQName? = null,
+        endpoint: String? = null,
+        operation: String? = null,
+        url: String? = null,
+        method: String? = null,
+        contentType: String? = null,
+        messageBody: ICompactFragment? = null
+               ) {
         this.service = service
         this.endpoint = endpoint
         this.operation = operation
@@ -173,9 +175,11 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         super<XMLContainer>.onBeforeDeserializeChildren(reader)
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         if (XMLConstants.NULL_NS_URI == attributeNamespace) {
             when (attributeLocalName) {
                 "endpoint"    -> {
@@ -268,13 +272,15 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         }
 
         fun from(message: IXmlMessage): XmlMessage {
-            return message as? XmlMessage ?: XmlMessage(message.service,
-                                                        message.endpoint,
-                                                        message.operation,
-                                                        message.url,
-                                                        message.method,
-                                                        message.contentType,
-                                                        message.messageBody)
+            return message as? XmlMessage ?: XmlMessage(
+                message.service,
+                message.endpoint,
+                message.operation,
+                message.url,
+                message.method,
+                message.contentType,
+                message.messageBody
+                                                       )
         }
 
         fun deserialize(reader: XmlReader): XmlMessage {
@@ -284,8 +290,10 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         override fun deserialize(decoder: Decoder): XmlMessage {
             val data = XmlMessageData(this).apply { deserialize(descriptor, decoder, XmlMessage.Companion) }
 
-            return XmlMessage(data.service, data.endpoint, data.operation, data.url, data.method, data.contentType,
-                              data.fragment)
+            return XmlMessage(
+                data.service, data.endpoint, data.operation, data.url, data.method, data.contentType,
+                data.fragment
+                             )
         }
 
         override val descriptor: SerialDescriptor = XmlMessageData.serializer().descriptor

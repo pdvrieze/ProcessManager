@@ -33,12 +33,16 @@ import nl.adaptivity.xmlutil.*
 class XmlCondition(override val condition: String) : XmlSerializable, Condition {
 
     override fun serialize(out: XmlWriter) {
-        out.writeSimpleElement(QName(Engine.NAMESPACE, Condition.ELEMENTLOCALNAME,
-                                                    Engine.NSPREFIX), condition)
+        out.writeSimpleElement(
+            QName(
+                Engine.NAMESPACE, Condition.ELEMENTLOCALNAME,
+                Engine.NSPREFIX
+                 ), condition
+                              )
     }
 
     @Serializer(XmlCondition::class)
-    companion object: KSerializer<Condition> {
+    companion object : KSerializer<Condition> {
         override val descriptor: SerialDescriptor
             get() = SerialClassDescImpl(StringSerializer.descriptor, "condition")
 

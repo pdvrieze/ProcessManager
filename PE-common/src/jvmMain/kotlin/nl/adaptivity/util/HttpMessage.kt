@@ -128,9 +128,11 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         }
     }
 
-    class ByteContentDataSource(private var name: String?,
-                                private var contentType: String?,
-                                var byteContent: ByteArray?) : DataSource {
+    class ByteContentDataSource(
+        private var name: String?,
+        private var contentType: String?,
+        var byteContent: ByteArray?
+                               ) : DataSource {
 
         val dataHandler: DataHandler
             get() = DataHandler(this)
@@ -164,7 +166,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
         override fun toString(): String {
             return "ByteContentDataSource [name=" + name + ", contentType=" + contentType + ", byteContent=\"" + String(
-                    byteContent!!) + "\"]"
+                byteContent!!
+                                                                                                                       ) + "\"]"
         }
 
     }
@@ -183,7 +186,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         }
     }
 
-    abstract class PairBaseIterator<T : PairBase>(protected val mIterator: MutableIterator<Entry<String, String>>?) : MutableIterator<T> {
+    abstract class PairBaseIterator<T : PairBase>(protected val mIterator: MutableIterator<Entry<String, String>>?) :
+        MutableIterator<T> {
 
         override fun hasNext(): Boolean {
             return mIterator != null && mIterator.hasNext()
@@ -266,13 +270,15 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         }
 
         override fun deserializeChildText(elementText: CharSequence): Boolean {
-            value = if (! ::value.isInitialized) elementText.toString() else value + elementText.toString()
+            value = if (!::value.isInitialized) elementText.toString() else value + elementText.toString()
             return true
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             if ("name" == attributeLocalName) {
                 key = attributeValue
                 return true
@@ -395,7 +401,7 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
         _queries = toQueries(request.queryString)
 
-        var post: MutableMap<String,String>? = null
+        var post: MutableMap<String, String>? = null
         var attachments: MutableMap<String, DataSource> = HashMap()
 
         userPrincipal = request.userPrincipal
@@ -442,14 +448,14 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
             if ("application/x-www-form-urlencoded" == contentType) {
                 post = toQueries(String(getBody(request)))
             } else if (isMultipart) {
-                request.inputStream.parseMultipartFormDataTo(attachments,HttpRequest.mimeType(request.contentType))
+                request.inputStream.parseMultipartFormDataTo(attachments, HttpRequest.mimeType(request.contentType))
             } else {
                 val bytes = getBody(request)
 
                 val xml: Document
 
                 val isXml =
-                        XmlStreaming.newReader(InputStreamReader(ByteArrayInputStream(bytes), characterEncoding!!)).isXml()
+                    XmlStreaming.newReader(InputStreamReader(ByteArrayInputStream(bytes), characterEncoding!!)).isXml()
 
                 if (!isXml) {
                     addByteContent(bytes, request.contentType)
@@ -490,9 +496,11 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         return false
     }
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         return false
     }
 
@@ -658,7 +666,8 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
         private fun getBody(request: HttpServletRequest): ByteArray {
             val contentLength = request.contentLength
-            val baos: ByteArrayOutputStream = if (contentLength > 0) ByteArrayOutputStream(contentLength) else ByteArrayOutputStream()
+            val baos: ByteArrayOutputStream =
+                if (contentLength > 0) ByteArrayOutputStream(contentLength) else ByteArrayOutputStream()
 
             val buffer = ByteArray(0xfffff)
             request.inputStream.use { inStream ->

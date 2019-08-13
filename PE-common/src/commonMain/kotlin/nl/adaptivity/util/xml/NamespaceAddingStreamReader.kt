@@ -29,12 +29,13 @@ import nl.adaptivity.xmlutil.XmlReader
  * Created by pdvrieze on 31/10/15.
  */
 class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, source: XmlReader) : XmlDelegatingReader(
-        source) {
+    source
+                                                                                                                      ) {
 
     override val namespaceURI: String
         get() {
             val namespaceURI = delegate.namespaceURI
-            return if(namespaceURI.isNotEmpty()) namespaceURI else lookupSource.getNamespaceURI(delegate.prefix) ?: ""
+            return if (namespaceURI.isNotEmpty()) namespaceURI else lookupSource.getNamespaceURI(delegate.prefix) ?: ""
         }
 
     override val namespaceContext: NamespaceContext
@@ -43,7 +44,8 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
     override fun require(type: EventType, namespace: String?, name: String?) {
         if (type !== eventType ||
             namespace != null && namespace != this.namespaceURI ||
-            name != null && name != name) {
+            name != null && name != name
+        ) {
             delegate.require(type, namespace, name)
         }
         run { throw XmlException("Require failed") }
@@ -58,7 +60,9 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
 
         for (i in attributeCount - 1 downTo 0) {
             if ((nsUri == null || nsUri == getAttributeNamespace(
-                            i)) && localName == getAttributeLocalName(i)) {
+                    i
+                                                                )) && localName == getAttributeLocalName(i)
+            ) {
                 return getAttributeValue(i)
             }
         }
@@ -67,7 +71,8 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
 
     override fun getAttributeNamespace(index: Int): String {
         val attributeNamespace = delegate.getAttributeNamespace(index)
-        return if(attributeNamespace.isNotEmpty()) attributeNamespace else lookupSource.getNamespaceURI(
-            delegate.getAttributePrefix(index)) ?: ""
+        return if (attributeNamespace.isNotEmpty()) attributeNamespace else lookupSource.getNamespaceURI(
+            delegate.getAttributePrefix(index)
+                                                                                                        ) ?: ""
     }
 }

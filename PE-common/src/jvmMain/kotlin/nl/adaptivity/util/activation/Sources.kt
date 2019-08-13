@@ -51,7 +51,7 @@ fun Source.toInputStream(): InputStream {
         inputStream?.let { return it }
     }
     if (this is SAXSource && this !is JAXBSource) {
-        inputSource.byteStream?.let { return it}
+        inputSource.byteStream?.let { return it }
     }
 
     val byteArray = ByteArrayOutputStream().also { baos ->
@@ -65,7 +65,7 @@ fun Source.toReader(): Reader {
         reader?.let { return it }
     }
     if (this is SAXSource && this !is JAXBSource) {
-        inputSource.byteStream ?.let { return InputStreamReader(it) }
+        inputSource.byteStream?.let { return InputStreamReader(it) }
     }
 
     val charArray = CharArrayWriter().also { caw -> writeToWriter(caw) }.toCharArray()

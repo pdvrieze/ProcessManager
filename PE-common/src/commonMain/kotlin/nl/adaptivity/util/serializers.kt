@@ -25,7 +25,7 @@ import nl.adaptivity.util.multiplatform.toUUID
 import nl.adaptivity.util.security.Principal
 
 @Serializer(forClass = Principal::class)
-class PrincipalSerializer: KSerializer<Principal> {
+class PrincipalSerializer : KSerializer<Principal> {
     override val descriptor: SerialDescriptor = StringSerializer.descriptor
 
     override fun deserialize(decoder: Decoder): Principal {
@@ -38,7 +38,7 @@ class PrincipalSerializer: KSerializer<Principal> {
 }
 
 @Serializer(forClass = UUID::class)
-class UUIDSerializer: KSerializer<UUID> {
+class UUIDSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor = StringSerializer.descriptor
 
     override fun deserialize(decoder: Decoder): UUID {

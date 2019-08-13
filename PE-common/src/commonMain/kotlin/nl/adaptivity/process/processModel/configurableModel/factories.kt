@@ -33,7 +33,7 @@ fun ConfigurableNodeContainer<*>.activity(predecessor: Identified): MessageActiv
 fun ConfigurableNodeContainer<*>.activity(
     predecessor: Identified,
     config: @ConfigurationDsl MessageActivity.Builder.() -> Unit
-                                      ): MessageActivity.Builder =
+                                         ): MessageActivity.Builder =
     MessageActivityBase.Builder(predecessor = predecessor).apply(config)
 
 fun ConfigurableNodeContainer<*>.compositeActivity(predecessor: Identified): CompositeActivity.ModelBuilder =
@@ -45,7 +45,7 @@ fun ConfigurableNodeContainer<*>.compositeActivity(predecessor: Identified): Com
 fun ConfigurableNodeContainer<*>.compositeActivity(
     predecessor: Identified,
     config: @ConfigurationDsl CompositeActivity.ModelBuilder.() -> Unit
-                                               ): CompositeActivity.ModelBuilder =
+                                                  ): CompositeActivity.ModelBuilder =
     ActivityBase.CompositeActivityBuilder(
         configurationBuilder.rootBuilder, predecessor = predecessor
                                          ).apply(config)
@@ -58,37 +58,40 @@ fun ConfigurableNodeContainer<*>.split(predecessor: Identified): Split.Builder =
 fun ConfigurableNodeContainer<*>.split(
     predecessor: Identified,
     config: @ConfigurationDsl Split.Builder.() -> Unit
-                                   ): Split.Builder =
+                                      ): Split.Builder =
     SplitBase.Builder(predecessor = predecessor).apply(config)
 
 @ConfigurationDsl
 fun ConfigurableNodeContainer<*>.join(vararg predecessors: Identified): Join.Builder = JoinBase.Builder(
     predecessors = predecessors.toList()
-                                                                                                    )
+                                                                                                       )
 
 @ConfigurationDsl
 fun ConfigurableNodeContainer<*>.join(predecessors: Collection<Identified>): Join.Builder = JoinBase.Builder(
     predecessors = predecessors
-                                                                                                         )
+                                                                                                            )
 
 @ConfigurationDsl
 fun ConfigurableNodeContainer<*>.join(
     vararg predecessors: Identified,
     config: @ConfigurationDsl Join.Builder.() -> Unit
-                                  ): Join.Builder =
+                                     ): Join.Builder =
     JoinBase.Builder(predecessors = predecessors.toList()).apply(config)
 
 @ConfigurationDsl
 fun ConfigurableNodeContainer<*>.join(
     predecessors: Collection<Identified>,
     config: @ConfigurationDsl Join.Builder.() -> Unit
-                                  ): Join.Builder =
+                                     ): Join.Builder =
     JoinBase.Builder(predecessors = predecessors).apply(config)
 
 fun ConfigurableNodeContainer<*>.endNode(predecessor: Identified): EndNode.Builder =
     EndNodeBase.Builder(predecessor = predecessor)
 
-fun ConfigurableNodeContainer<*>.endNode(predecessor: Identified, config: @ConfigurationDsl EndNode.Builder.() -> Unit): EndNode.Builder =
+fun ConfigurableNodeContainer<*>.endNode(
+    predecessor: Identified,
+    config: @ConfigurationDsl EndNode.Builder.() -> Unit
+                                        ): EndNode.Builder =
     EndNodeBase.Builder(predecessor = predecessor).apply(config)
 
 
@@ -99,7 +102,7 @@ fun ConfigurableProcessModel<*>.input(
     path: String? = null,
     content: CharArray? = null,
     nsContext: Iterable<Namespace> = emptyList()
-         ) {
+                                     ) {
     configurationBuilder.imports.add(XmlResultType(name, "/$name"))
 }
 
@@ -110,6 +113,6 @@ fun ConfigurableProcessModel<*>.output(
     path: String? = null,
     content: CharArray? = null,
     nsContext: Iterable<Namespace> = emptyList()
-                                       ) {
+                                      ) {
     configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
 }

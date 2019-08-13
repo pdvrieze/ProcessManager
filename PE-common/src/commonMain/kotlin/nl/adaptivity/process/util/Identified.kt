@@ -26,7 +26,8 @@ interface Identified : Identifiable {
     override val id: String
 
     @Transient
-    override val identifier: Identifier get() = Identifier(id)
+    override val identifier: Identifier
+        get() = Identifier(id)
 
     @Serializer(forClass = Identified::class)
     companion object {

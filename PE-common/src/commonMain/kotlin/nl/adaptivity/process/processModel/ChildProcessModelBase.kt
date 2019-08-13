@@ -39,12 +39,15 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
     @Suppress("LeakingThis")
-    constructor(builder: ChildProcessModel.Builder, buildHelper: ProcessModel.BuildHelper<NodeT, ProcessModel<NodeT>, *, *>) :
+    constructor(
+        builder: ChildProcessModel.Builder,
+        buildHelper: ProcessModel.BuildHelper<NodeT, ProcessModel<NodeT>, *, *>
+               ) :
         super(builder, buildHelper.pedantic) {
         modelNodes = buildNodes(builder, buildHelper.withOwner(this))
         val newOwner: ProcessModel<NodeT> = buildHelper.newOwner
         rootModel = newOwner?.rootModel
-                    ?: throw IllegalProcessModelException("Childmodels must have roots")
+            ?: throw IllegalProcessModelException("Childmodels must have roots")
         this.id = builder.childId
     }
 
@@ -60,16 +63,20 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     }
 
     @SerialName("nodes")
-    @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
-                             "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
-                             "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
-                             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
-                             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
-                             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
+    @XmlPolyChildren(
+        arrayOf(
+            "nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
+            "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+            "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+            "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+            "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+            "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+            "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+            "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+            "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+            "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
+               )
+                    )
     @Serializable(IdentifiableSetSerializer::class)
     override val modelNodes: IdentifyableSet<NodeT>
 
@@ -109,21 +116,25 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             childId = null
         }
 
-        constructor(rootBuilder: RootProcessModel.Builder,
-                    childId: String? = null,
-                    nodes: Collection<ProcessNode.Builder> = emptyList(),
-                    imports: Collection<IXmlResultType> = emptyList(),
-                    exports: Collection<IXmlDefineType> = emptyList()) : super(nodes, imports, exports) {
+        constructor(
+            rootBuilder: RootProcessModel.Builder,
+            childId: String? = null,
+            nodes: Collection<ProcessNode.Builder> = emptyList(),
+            imports: Collection<IXmlResultType> = emptyList(),
+            exports: Collection<IXmlDefineType> = emptyList()
+                   ) : super(nodes, imports, exports) {
             this._rootBuilder = rootBuilder
             this.childId = childId
         }
 
         constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>) :
-            this(rootBuilder,
-                 base.id,
-                 base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },
-                 base.imports,
-                 base.exports)
+            this(
+                rootBuilder,
+                base.id,
+                base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },
+                base.imports,
+                base.exports
+                )
 
         @Transient
         override val elementName: QName
@@ -138,16 +149,18 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
         override fun deserializeChild(reader: XmlReader): Boolean {
             if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
                 nestedBuilder()?.let { rootBuilder.childModels.add(deserializeHelper(reader)) }
-                ?: throw XmlException("Child models are not currently allowed to be nested")
+                    ?: throw XmlException("Child models are not currently allowed to be nested")
                 return true
             } else {
                 return super.deserializeChild(reader)
             }
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             return when (attributeLocalName) {
                 ATTR_ID -> {
                     childId = attributeValue; true
@@ -157,7 +170,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
         }
 
         abstract class BaseSerializer<T : ModelBuilder> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            override fun readElement(result: T, input: CompositeDecoder, index: Int, name:String) {
+            override fun readElement(result: T, input: CompositeDecoder, index: Int, name: String) {
                 when (name) {
                     ATTR_ID -> result.childId = input.readNullableString(descriptor, index)
                     else    -> super.readElement(result, input, index, name)
@@ -169,7 +182,8 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
         companion object : BaseSerializer<ModelBuilder>() {
             override val descriptor: SerialDescriptor = SerialClassDescImpl(
                 XmlChildModel.descriptor,
-                ModelBuilder::class.name)
+                ModelBuilder::class.name
+                                                                           )
 
             override fun builder(): ModelBuilder {
                 return ModelBuilder()
@@ -204,8 +218,10 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
         const val ATTR_ID = "id"
         const val ELEMENTLOCALNAME = "childModel"
         @JvmField
-        val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME,
-                                ProcessConsts.Engine.NSPREFIX)
+        val ELEMENTNAME = QName(
+            ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME,
+            ProcessConsts.Engine.NSPREFIX
+                               )
 
 
 /*

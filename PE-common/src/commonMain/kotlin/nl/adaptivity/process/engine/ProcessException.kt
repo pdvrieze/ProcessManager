@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 
 class ProcessException : RuntimeException {
 
-  constructor() : super() {}
+    constructor() : super() {}
 
 /*
   constructor(message: String, cause: Throwable, enableSuppression: Boolean, writableStackTrace: Boolean) : super(
@@ -27,10 +27,10 @@ class ProcessException : RuntimeException {
   }
 */
 
-  constructor(message: String, cause: Throwable) : super(message, cause) {}
+    constructor(message: String, cause: Throwable) : super(message, cause) {}
 
-  constructor(message: String) : super(message) {}
+    constructor(message: String) : super(message) {}
 
-  constructor(cause: Throwable) : super(cause) {}
+    constructor(cause: Throwable) : super(cause) {}
 
 }

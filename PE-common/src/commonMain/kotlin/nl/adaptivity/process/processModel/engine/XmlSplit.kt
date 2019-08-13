@@ -34,7 +34,7 @@ class XmlSplit : SplitBase, XmlProcessNode {
         super(builder.ensureExportable(), newOwner, otherNodes)
 
     @Serializer(XmlSplit::class)
-    companion object: KSerializer<XmlSplit> {
+    companion object : KSerializer<XmlSplit> {
 
         override fun deserialize(decoder: Decoder): XmlSplit {
             throw Exception("Deserializing a split directly is not possible")

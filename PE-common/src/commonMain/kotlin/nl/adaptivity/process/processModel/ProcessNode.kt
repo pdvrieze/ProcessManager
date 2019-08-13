@@ -83,10 +83,10 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
             results.add(XmlResultType.Builder().apply(builder).build())
         }
 
-        fun <T:ProcessNode> build(
+        fun <T : ProcessNode> build(
             buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
             otherNodes: Iterable<Builder>
-                                 ): T
+                                   ): T
 
         fun <R> visit(visitor: BuilderVisitor<R>): R
 
@@ -117,10 +117,13 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
         fun visitStartNode(startNode: StartNode.Builder): R
         @JvmDefault
         fun visitActivity(activity: MessageActivity.Builder): R = visitGenericActivity(activity)
+
         @JvmDefault
         fun visitActivity(activity: CompositeActivity.ModelBuilder): R = visitGenericActivity(activity)
+
         @JvmDefault
         fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R = visitGenericActivity(activity)
+
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R
         fun visitEndNode(endNode: EndNode.Builder): R
@@ -138,6 +141,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
         fun visitGenericActivity(activity: Activity): R {
             throw UnsupportedOperationException("This visitor does not support handling generic activities")
         }
+
         fun visitSplit(split: Split): R
         fun visitJoin(join: Join): R
         fun visitEndNode(endNode: EndNode): R

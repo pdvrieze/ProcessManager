@@ -71,7 +71,7 @@ open class EndpointServlet : HttpServlet {
      *
      * @return The rest handler.
      */
-    private val restMessageHandler: RestMessageHandler by lazy { RestMessageHandler.newInstance(endpointProvider!!)}
+    private val restMessageHandler: RestMessageHandler by lazy { RestMessageHandler.newInstance(endpointProvider!!) }
 
     /**
      * Default constructor that allows this servlet to be instantiated directly in
@@ -178,11 +178,15 @@ open class EndpointServlet : HttpServlet {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "No authenticated user.")
                 logger.log(Level.WARNING, "Access attempted without authentication for " + request.requestURI)
             } catch (e: PermissionDeniedException) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN,
-                                   "This user is not allowed to perform the requested action.")
-                logger.log(Level.WARNING,
-                           "Access attempted without authorization by " + request.userPrincipal + " for " + request.requestURI,
-                           e)
+                response.sendError(
+                    HttpServletResponse.SC_FORBIDDEN,
+                    "This user is not allowed to perform the requested action."
+                                  )
+                logger.log(
+                    Level.WARNING,
+                    "Access attempted without authorization by " + request.userPrincipal + " for " + request.requestURI,
+                    e
+                          )
             } catch (e: FileNotFoundException) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "The requested resource is not available.")
                 val logger = logger
@@ -230,8 +234,9 @@ open class EndpointServlet : HttpServlet {
                 throw ServletException(e)
             } catch (e: ClassCastException) {
                 throw ServletException(
-                        "The endpoint for an EndpointServlet needs to implement " + GenericEndpoint::class.java.name
-                        + " the class given is " + className, e)
+                    "The endpoint for an EndpointServlet needs to implement " + GenericEndpoint::class.java.name
+                        + " the class given is " + className, e
+                                      )
             }
 
             try {

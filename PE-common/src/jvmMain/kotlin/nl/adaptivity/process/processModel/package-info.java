@@ -24,9 +24,10 @@
 @javax.xml.bind.annotation.XmlSchema(
     namespace = Engine.NAMESPACE,
     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
-    xmlns={
-           @javax.xml.bind.annotation.XmlNs(prefix= Soap.SOAP_ENCODING_PREFIX, namespaceURI= Soap.SOAP_ENCODING_NS),
-           @javax.xml.bind.annotation.XmlNs(prefix=javax.xml.XMLConstants.DEFAULT_NS_PREFIX, namespaceURI= Engine.NAMESPACE)})
+    xmlns = {
+        @javax.xml.bind.annotation.XmlNs(prefix = Soap.SOAP_ENCODING_PREFIX, namespaceURI = Soap.SOAP_ENCODING_NS),
+        @javax.xml.bind.annotation.XmlNs(prefix = javax.xml.XMLConstants.DEFAULT_NS_PREFIX,
+                                         namespaceURI = Engine.NAMESPACE)})
 
 package nl.adaptivity.process.processModel;
 

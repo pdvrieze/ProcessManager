@@ -56,7 +56,9 @@ abstract class AbstractBufferedEventReader : AbstractEventReader() {
         while (peekBuffer.size > 0 && peekBuffer.peekLast().isCharacters && isXmlWhitespace(
                 peekBuffer.peekLast()
                     .asCharacters()
-                    .data)) {
+                    .data
+                                                                                           )
+        ) {
             peekBuffer.removeLast()
         }
     }

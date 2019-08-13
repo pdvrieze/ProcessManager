@@ -29,10 +29,11 @@ import nl.adaptivity.xmlutil.*
 
 @XmlDeserializer(ProcessModelRef.Factory::class)
 class ProcessModelRef<NodeT : ProcessNode, out ObjectT : RootProcessModel<NodeT>>
-constructor(override var name: String?,
-            var handle: Long,
-            override var uuid: UUID?)
-    : IProcessModelRef<NodeT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
+constructor(
+    override var name: String?,
+    var handle: Long,
+    override var uuid: UUID?
+           ) : IProcessModelRef<NodeT, ObjectT>, XmlSerializable, SimpleXmlDeserializable {
 
     @Transient
     override val elementName: QName
@@ -43,7 +44,11 @@ constructor(override var name: String?,
 
     constructor() : this(null, -1L, null)
 
-    constructor(name: String?, handle: Handle<RootProcessModel<NodeT>>, uuid: UUID?) : this(name, handle.handleValue, uuid)
+    constructor(name: String?, handle: Handle<RootProcessModel<NodeT>>, uuid: UUID?) : this(
+        name,
+        handle.handleValue,
+        uuid
+                                                                                           )
 
     constructor(source: IProcessModelRef<NodeT, ObjectT>) : this(source.name, source.handleValue, source.uuid)
 
@@ -51,14 +56,16 @@ constructor(override var name: String?,
 
     override fun deserializeChildText(elementText: CharSequence) = false
 
-    override fun deserializeAttribute(attributeNamespace: String?,
-                                      attributeLocalName: String,
-                                      attributeValue: String): Boolean {
+    override fun deserializeAttribute(
+        attributeNamespace: String?,
+        attributeLocalName: String,
+        attributeValue: String
+                                     ): Boolean {
         when (attributeLocalName) {
-            "name"   -> name = attributeValue
+            "name" -> name = attributeValue
             "handle" -> handle = attributeValue.toLong()
-            "uuid"   -> uuid = attributeValue.toUUID()
-            else     -> return false
+            "uuid" -> uuid = attributeValue.toUUID()
+            else -> return false
         }
         return true
     }
@@ -76,7 +83,7 @@ constructor(override var name: String?,
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ProcessModelRef<*,*>) return false
+        if (other !is ProcessModelRef<*, *>) return false
 
         if (name != other.name) return false
         if (handle != other.handle) return false
@@ -92,9 +99,9 @@ constructor(override var name: String?,
         return result
     }
 
-    class Factory : XmlDeserializerFactory<ProcessModelRef<*,*>> {
+    class Factory : XmlDeserializerFactory<ProcessModelRef<*, *>> {
 
-        override fun deserialize(reader: XmlReader): ProcessModelRef<XmlProcessNode,XmlProcessModel> {
+        override fun deserialize(reader: XmlReader): ProcessModelRef<XmlProcessNode, XmlProcessModel> {
             // The type parameters here are just dummies as Kotlin insists on having parameters
             return ProcessModelRef.deserialize<XmlProcessNode, XmlProcessModel>(reader)
         }

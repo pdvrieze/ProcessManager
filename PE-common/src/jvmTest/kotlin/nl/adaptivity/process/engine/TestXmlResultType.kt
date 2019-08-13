@@ -61,8 +61,10 @@ class TestXmlResultType {
         }
 
     @Test
-    @Throws(XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
-            SAXException::class)
+    @Throws(
+        XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
+        SAXException::class
+           )
     fun testXPath() {
         val expr = XPathFactory.newInstance().newXPath().compile("/result/value[@name='user']/text()")
         val testData = db.parse(InputSource(StringReader("<result><value name='user'>Paul</value></result>")))
@@ -70,32 +72,46 @@ class TestXmlResultType {
     }
 
     @Test
-    @Throws(XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
-            SAXException::class)
+    @Throws(
+        XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
+        SAXException::class
+           )
     fun testXPathNS() {
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
         prefixMap["ns1"] = Constants.USER_MESSAGE_HANDLER_NS
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()")
-        val testData = db.parse(InputSource(StringReader(
-            "<umh:result xmlns:umh='" + Constants.USER_MESSAGE_HANDLER_NS + "'><umh:value name='user'>Paul</umh:value></umh:result>")))
+        val testData = db.parse(
+            InputSource(
+                StringReader(
+                    "<umh:result xmlns:umh='" + Constants.USER_MESSAGE_HANDLER_NS + "'><umh:value name='user'>Paul</umh:value></umh:result>"
+                            )
+                       )
+                               )
         assertEquals("Paul", expr.evaluate(testData))
     }
 
     @Test
-    @Throws(XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
-            SAXException::class)
+    @Throws(
+        XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
+        SAXException::class
+           )
     fun testXPathNS2() {
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
         prefixMap["ns1"] = Constants.USER_MESSAGE_HANDLER_NS
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()")
-        val testData = db.parse(InputSource(StringReader(
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-            "  <value name=\"user\">Some test value</value>\n" +
-            "</result>")))
+        val testData = db.parse(
+            InputSource(
+                StringReader(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                        "  <value name=\"user\">Some test value</value>\n" +
+                        "</result>"
+                            )
+                       )
+                               )
         assertEquals("Some test value", expr.evaluate(testData))
     }
 
@@ -120,13 +136,15 @@ class TestXmlResultType {
         val result = testData.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "umh:result")
         testData.appendChild(result)
         val value = result.appendChild(
-            testData.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "umh:value")) as Element
+            testData.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "umh:value")
+                                      ) as Element
         value.setAttribute("name", "user")
         value.appendChild(testData.createTextNode("Paul"))
 
         assertEquals(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>",
-            DomUtil.toString(testData))
+            DomUtil.toString(testData)
+                    )
 
 
         val xrt = XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()")
@@ -142,20 +160,24 @@ class TestXmlResultType {
     @Test
     @Throws(JAXBException::class, XmlException::class)
     fun testXDefineHolder() {
-        val testData = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
+        val testData =
+            "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
         val `in` = XmlStreaming.newReader(StringReader(testData))
 
         val testHolder = XmlDefineType.deserialize(`in`)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
-        assertEquals(USER_MESSAGE_HANDLER_NS, Companion.from(testHolder.originalNSContext)
-            .getNamespaceURI("umh"))
+        assertEquals(
+            USER_MESSAGE_HANDLER_NS, Companion.from(testHolder.originalNSContext)
+                .getNamespaceURI("umh")
+                    )
     }
 
 
     @Test
     fun testXMLResultHolder() {
-        val testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
+        val testData =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
 
         val `in` = XmlStreaming.newReader(StringReader(testData))
 
@@ -163,8 +185,10 @@ class TestXmlResultType {
         val testHolder = XmlResultType.deserialize(`in`)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
-        assertEquals(USER_MESSAGE_HANDLER_NS, Companion.from(testHolder.originalNSContext)
-            .getNamespaceURI("umh"))
+        assertEquals(
+            USER_MESSAGE_HANDLER_NS, Companion.from(testHolder.originalNSContext)
+                .getNamespaceURI("umh")
+                    )
         assertEquals("foo" as Any, testHolder.getName())
     }
 
@@ -175,10 +199,15 @@ class TestXmlResultType {
         dbf.isNamespaceAware = true
         val db = dbf.newDocumentBuilder()
         val document = db.newDocument()
-        val expected = db.parse(InputSource(StringReader(
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-            "  <value name=\"user\">Some test value</value>\n" +
-            "</result>")))
+        val expected = db.parse(
+            InputSource(
+                StringReader(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                        "  <value name=\"user\">Some test value</value>\n" +
+                        "</result>"
+                            )
+                       )
+                               )
 
         val outer = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "result")
         outer.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", Constants.USER_MESSAGE_HANDLER_NS)

@@ -31,7 +31,7 @@ class XmlEndNode : EndNodeBase, XmlProcessNode {
         super(builder.ensureExportable(), newOwner, otherNodes)
 
     @Serializer(XmlEndNode::class)
-    companion object: KSerializer<XmlEndNode> {
+    companion object : KSerializer<XmlEndNode> {
 
         override fun deserialize(decoder: Decoder): XmlEndNode {
             throw Exception("Deserializing an end node directly is not possible")

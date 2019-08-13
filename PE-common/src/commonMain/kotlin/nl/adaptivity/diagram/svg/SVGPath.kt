@@ -69,18 +69,20 @@ class SVGPath : DiagramPath<SVGPath> {
                 storage[min(previous.x, x) - extendX, min(previous.y, y) - extendY,
                     abs(previous.x - x) + 2 * extendX] = abs(previous.y - y) + 2 * extendY
             } else {
-                storage[min(previous.x, x), min(previous.y, y), abs(previous.x - x)] = abs(
-                    previous.y - y)
+                storage[min(previous.x, x), min(previous.y, y), abs(previous.x - x)] =
+                    abs(previous.y - y)
             }
         }
     }
 
-    private class CubicTo(private val mCX1: Double,
-                          private val mCY1: Double,
-                          private val mCX2: Double,
-                          private val mCY2: Double,
-                          x: Double,
-                          y: Double) : OperTo(x, y) {
+    private class CubicTo(
+        private val mCX1: Double,
+        private val mCY1: Double,
+        private val mCX2: Double,
+        private val mCY2: Double,
+        x: Double,
+        y: Double
+                         ) : OperTo(x, y) {
 
         override fun appendPathSpecTo(builder: Appendable) {
             builder.append("C").append(mCX1).append(' ').append(mCY1).append(' ')
@@ -142,7 +144,7 @@ class SVGPath : DiagramPath<SVGPath> {
                 }
             }
 
-            storage[left - hsw, top - hsw, right - left + hsw*2] = bottom - top + hsw*2
+            storage[left - hsw, top - hsw, right - left + hsw * 2] = bottom - top + hsw * 2
 
         }
 

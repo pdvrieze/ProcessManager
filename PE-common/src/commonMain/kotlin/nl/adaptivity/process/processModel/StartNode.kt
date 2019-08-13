@@ -46,7 +46,7 @@ interface StartNode : ProcessNode {
 
         override fun addSuccessor(identifier: Identifier) {
             val s = successor
-            if (s !=null) {
+            if (s != null) {
                 if (s.identifier == identifier) return
                 throw IllegalStateException("Successor already set")
             }

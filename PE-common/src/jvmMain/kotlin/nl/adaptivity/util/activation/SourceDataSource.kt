@@ -23,17 +23,20 @@ import javax.activation.DataSource
 import javax.xml.transform.Source
 
 
-class SourceDataSource @JvmOverloads constructor(private val contentType: String, private val content: Source, private val name:String? = null) : DataSource {
+class SourceDataSource @JvmOverloads constructor(
+    private val contentType: String,
+    private val content: Source,
+    private val name: String? = null
+                                                ) : DataSource {
 
-  override fun getContentType() = contentType
+    override fun getContentType() = contentType
 
-  @Throws(IOException::class)
-  override fun getInputStream(): InputStream = content.toInputStream()
+    @Throws(IOException::class)
+    override fun getInputStream(): InputStream = content.toInputStream()
 
-  override fun getName()= name
+    override fun getName() = name
 
-  @Throws(IOException::class)
-  override fun getOutputStream(): OutputStream
-    = throw UnsupportedOperationException("Can not write to sources")
+    @Throws(IOException::class)
+    override fun getOutputStream(): OutputStream = throw UnsupportedOperationException("Can not write to sources")
 
 }

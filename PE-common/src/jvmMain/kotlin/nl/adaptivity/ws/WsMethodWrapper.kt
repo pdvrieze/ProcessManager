@@ -33,7 +33,7 @@ abstract class WsMethodWrapper(protected val owner: Any, protected val method: M
     protected val paramsInitialised: Boolean get() = ::params.isInitialized
 
     open fun exec() {
-        if (! ::params.isInitialized)throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+        if (!::params.isInitialized) throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
         val params = params
 
         try {

@@ -39,7 +39,7 @@ class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProce
         : super(builder.ensureExportable(), buildHelper, otherNodes)
 
     @Serializer(XmlJoin::class)
-    companion object: KSerializer<XmlJoin> {
+    companion object : KSerializer<XmlJoin> {
 
         @Throws(XmlException::class)
         fun deserialize(reader: XmlReader): JoinBase.Builder {

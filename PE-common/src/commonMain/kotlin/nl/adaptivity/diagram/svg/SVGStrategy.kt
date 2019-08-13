@@ -20,7 +20,8 @@ import nl.adaptivity.diagram.DrawingStrategy
 import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo
 
 
-class SVGStrategy<M : MeasureInfo>(private val mTextMeasurer: TextMeasurer<M>) : DrawingStrategy<SVGStrategy<M>, SVGPen<M>, SVGPath> {
+class SVGStrategy<M : MeasureInfo>(private val mTextMeasurer: TextMeasurer<M>) :
+    DrawingStrategy<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
     override fun newPen(): SVGPen<M> {
         return SVGPen(mTextMeasurer)

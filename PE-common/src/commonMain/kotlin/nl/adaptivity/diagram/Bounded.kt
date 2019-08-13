@@ -56,6 +56,6 @@ interface Bounded : Positioned, HasExtent {
     @JvmDefault
     fun isWithinBounds(x: Double, y: Double): Boolean =
         hasPos() && ((x - this.x).isBetween(-leftExtent, rightExtent) &&
-                   (y - this.y).isBetween(-topExtent, bottomExtent))
+            (y - this.y).isBetween(-topExtent, bottomExtent))
 
 }

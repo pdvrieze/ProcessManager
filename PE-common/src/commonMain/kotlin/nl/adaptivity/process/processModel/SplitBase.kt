@@ -42,18 +42,20 @@ abstract class SplitBase : JoinSplitBase, Split {
     @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
-    constructor(ownerModel: ProcessModel<ProcessNode>,
-                predecessor: Identified? = null,
-                successors: Collection<Identified> = emptyList(),
-                id: String?,
-                label: String? = null,
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                defines: Collection<IXmlDefineType> = ArrayList(),
-                results: Collection<IXmlResultType> = ArrayList(),
-                min: Int = -1,
-                max: Int = -1) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
-                                       label, x, y, defines, results, min, max)
+    constructor(
+        ownerModel: ProcessModel<ProcessNode>,
+        predecessor: Identified? = null,
+        successors: Collection<Identified> = emptyList(),
+        id: String?,
+        label: String? = null,
+        x: Double = Double.NaN,
+        y: Double = Double.NaN,
+        defines: Collection<IXmlDefineType> = ArrayList(),
+        results: Collection<IXmlResultType> = ArrayList(),
+        min: Int = -1,
+        max: Int = -1
+               ) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
+                         label, x, y, defines, results, min, max)
 
     constructor(builder: Split.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
         super(builder, newOwner, otherNodes)
@@ -104,34 +106,42 @@ abstract class SplitBase : JoinSplitBase, Split {
         constructor() : this(id = null)
 
         @Deprecated("use the constructor that takes a single predecessor")
-        constructor(id: String? = null,
-                    predecessors: Collection<Identified>,
-                    successors: Collection<Identified> = emptyList(),
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = -1,
-                    max: Int = -1,
-                    multiInstance: Boolean = false) : this(id, predecessors.singleOrNull(), successors, label, defines,
-                                                           results, x, y,
-                                                           min, max, multiInstance)
+        constructor(
+            id: String? = null,
+            predecessors: Collection<Identified>,
+            successors: Collection<Identified> = emptyList(),
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = -1,
+            max: Int = -1,
+            multiInstance: Boolean = false
+                   ) : this(
+            id, predecessors.singleOrNull(), successors, label, defines,
+            results, x, y,
+            min, max, multiInstance
+                           )
 
 
-        constructor(id: String? = null,
-                    predecessor: Identifiable? = null,
-                    successors: Collection<Identified> = emptyList(),
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = -1,
-                    max: Int = -1,
-                    multiInstance: Boolean = false) : super(id, label, defines,
-                                                            results, x,
-                                                            y, min, max, multiInstance) {
+        constructor(
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successors: Collection<Identified> = emptyList(),
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = -1,
+            max: Int = -1,
+            multiInstance: Boolean = false
+                   ) : super(
+            id, label, defines,
+            results, x,
+            y, min, max, multiInstance
+                            ) {
             this.predecessor = predecessor
             this.successors.addAll(successors)
 
@@ -142,15 +152,19 @@ abstract class SplitBase : JoinSplitBase, Split {
             this.successors.addAll(node.successors)
         }
 
-        override fun deserializeAttribute(attributeNamespace: String?,
-                                          attributeLocalName: String,
-                                          attributeValue: String): Boolean {
+        override fun deserializeAttribute(
+            attributeNamespace: String?,
+            attributeLocalName: String,
+            attributeValue: String
+                                         ): Boolean {
             if (attributeNamespace.isNullOrEmpty() && attributeLocalName == "predecessor") {
                 predecessor = Identifier(attributeValue)
                 return true
             } else
-                return super<JoinSplitBase.Builder>.deserializeAttribute(attributeNamespace, attributeLocalName,
-                                                                         attributeValue)
+                return super<JoinSplitBase.Builder>.deserializeAttribute(
+                    attributeNamespace, attributeLocalName,
+                    attributeValue
+                                                                        )
         }
     }
 

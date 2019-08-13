@@ -57,7 +57,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    constructor(builder: Activity.Builder, newOwner:ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
+    constructor(builder: Activity.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
         super(builder, newOwner, otherNodes) {
         _name = builder.name
     }
@@ -167,7 +167,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     @Serializable
     open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
-                                                 SimpleXmlDeserializable {
+                                        SimpleXmlDeserializable {
         override var childId: String? = null
 
         @Serializable(with = IXmlMessage.Companion::class)
@@ -241,12 +241,12 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
                                          ): Boolean {
             @Suppress("DEPRECATION")
             when (attributeLocalName) {
-                ATTR_PREDECESSOR -> predecessor = Identifier(attributeValue)
-                "name" -> name = attributeValue
+                ATTR_PREDECESSOR                   -> predecessor = Identifier(attributeValue)
+                "name"                             -> name = attributeValue
                 CompositeActivityBase.ATTR_CHILDID -> throw IllegalProcessModelException("child ID in message activity")
-                else -> return super<BaseBuilder>.deserializeAttribute(
+                else                               -> return super<BaseBuilder>.deserializeAttribute(
                     attributeNamespace, attributeLocalName, attributeValue
-                                                                                  )
+                                                                                                    )
             }
             return true
         }

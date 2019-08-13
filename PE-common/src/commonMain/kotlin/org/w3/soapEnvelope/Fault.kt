@@ -66,7 +66,7 @@ class Fault {
     var node: URI? = null
 
     @XmlSerialName("Role", Envelope.NAMESPACE, Envelope.PREFIX)
-    var role: URI ? =null
+    var role: URI? = null
 
     @XmlSerialName("Detail", Envelope.NAMESPACE, Envelope.PREFIX)
     var detail: Detail? = null

@@ -24,8 +24,10 @@ import nl.adaptivity.serialutil.decodeStructure
 import nl.adaptivity.serialutil.writeCollection
 import nl.adaptivity.serialutil.writeStructure
 
-internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifier>, val valueSerializer: KSerializer<String>): KSerializer<MutableMap<Identifier, Condition?>> {
-
+internal class ConditionStringSerializer(
+    val keySerializer: KSerializer<Identifier>,
+    val valueSerializer: KSerializer<String>
+                                        ) : KSerializer<MutableMap<Identifier, Condition?>> {
 
 
     private val predecessorSerializer = PredecessorInfo.serializer()
@@ -47,8 +49,8 @@ internal class ConditionStringSerializer(val keySerializer: KSerializer<Identifi
                         }
                         break@loop
                     }
-                    else             -> {
-                        val e = decodeSerializableElement(desc, startIndex+index, predecessorSerializer)
+                    else                       -> {
+                        val e = decodeSerializableElement(desc, startIndex + index, predecessorSerializer)
                         old[Identifier(e.id)] = e.condition
                     }
 

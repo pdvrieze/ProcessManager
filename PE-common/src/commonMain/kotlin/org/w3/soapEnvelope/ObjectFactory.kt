@@ -86,7 +86,7 @@ class ObjectFactory {
     /**
      * Create an instance of [Body]
      */
-    fun <T: XmlSerializable> createBody(): Body<T> {
+    fun <T : XmlSerializable> createBody(): Body<T> {
         return Body()
     }
 
@@ -107,7 +107,7 @@ class ObjectFactory {
     /**
      * Create an instance of [Envelope]
      */
-    fun <T: XmlSerializable> createEnvelope(): Envelope<T> {
+    fun <T : XmlSerializable> createEnvelope(): Envelope<T> {
         return Envelope()
     }
 

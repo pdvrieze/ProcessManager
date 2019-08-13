@@ -75,7 +75,8 @@ class JVMTextMeasurer : TextMeasurer<JvmMeasureInfo> {
             }
             if (leading.isNaN()) {
                 val linemetrics = font.getLineMetrics(
-                    SAMPLE_LETTERS, fontRenderContext)
+                    SAMPLE_LETTERS, fontRenderContext
+                                                     )
                 leading = linemetrics.leading.toDouble()
                 ascent = linemetrics.ascent.toDouble()
                 descent = linemetrics.descent.toDouble()
@@ -111,10 +112,12 @@ class JVMTextMeasurer : TextMeasurer<JvmMeasureInfo> {
     }
 
     @Override
-    override fun measureTextSize(dest: Rectangle,
-                                 textMeasureInfo: JvmMeasureInfo,
-                                 text: String,
-                                 foldWidth: Double): Rectangle {
+    override fun measureTextSize(
+        dest: Rectangle,
+        textMeasureInfo: JvmMeasureInfo,
+        text: String,
+        foldWidth: Double
+                                ): Rectangle {
         val bounds = textMeasureInfo.font.getStringBounds(text, textMeasureInfo.fontRenderContext)
 
         dest.left = 0.0

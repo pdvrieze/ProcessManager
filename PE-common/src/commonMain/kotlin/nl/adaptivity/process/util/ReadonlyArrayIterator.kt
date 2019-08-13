@@ -18,21 +18,23 @@ package nl.adaptivity.process.util
 
 
 class ReadonlyArrayIterator<T> constructor(private val data: Array<T>, initialPos: Int = 0) : ListIterator<T> {
-  var pos = initialPos;
+    var pos = initialPos;
 
-  init {
-    if (initialPos<0 || initialPos>data.size) throw IndexOutOfBoundsException(initialPos.toString())
-  }
+    init {
+        if (initialPos < 0 || initialPos > data.size) throw IndexOutOfBoundsException(initialPos.toString())
+    }
 
-  override fun hasNext() = pos<data.size
+    override fun hasNext() = pos < data.size
 
-  override fun hasPrevious() = pos>0
+    override fun hasPrevious() = pos > 0
 
-  override fun next() = data[pos].apply { pos++ }
+    override fun next() = data[pos].apply { pos++ }
 
-  override fun nextIndex() = pos
+    override fun nextIndex() = pos
 
-  override fun previous():T { pos--; return data[pos] }
+    override fun previous(): T {
+        pos--; return data[pos]
+    }
 
-  override fun previousIndex() = pos - 1
+    override fun previousIndex() = pos - 1
 }

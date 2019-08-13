@@ -347,11 +347,11 @@ abstract class ProcessNodeBase : ProcessNode {
             if (XMLConstants.NULL_NS_URI == attributeNamespace) {
                 val value = attributeValue
                 when (attributeLocalName) {
-                    "id" -> id = value
+                    "id"    -> id = value
                     "label" -> label = value
-                    "x" -> x = value.toDouble()
-                    "y" -> y = value.toDouble()
-                    else -> return false
+                    "x"     -> x = value.toDouble()
+                    "y"     -> y = value.toDouble()
+                    else    -> return false
                 }
                 return true
             }

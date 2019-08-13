@@ -24,57 +24,59 @@ import nl.adaptivity.xmlutil.XmlSerializable
 
 expect interface IXmlResultType : XmlSerializable {
 
-  val content: CharArray?
+    val content: CharArray?
 
-  /**
-   * The value of the name property.
-   */
-  fun getName(): String
+    /**
+     * The value of the name property.
+     */
+    fun getName(): String
 
-  fun setName(value:String)
+    fun setName(value: String)
 
-  /**
-   * Gets the value of the path property.
-   *
-   * @return possible object is [String]
-   */
-  fun getPath(): String?
+    /**
+     * Gets the value of the path property.
+     *
+     * @return possible object is [String]
+     */
+    fun getPath(): String?
 
-  /**
-   * Sets the value of the path property.
-   *
-   * @param namespaceContext
-   *
-   * @param value allowed object is [String]
-   */
-  fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
+    /**
+     * Sets the value of the path property.
+     *
+     * @param namespaceContext
+     *
+     * @param value allowed object is [String]
+     */
+    fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
     /**
      * A reader for the underlying body stream.
      */
-  val bodyStreamReader: XmlReader
+    val bodyStreamReader: XmlReader
 
 //  fun applyData(payload: Node?): ProcessData
 
-  /**
-   * Get the namespace context for evaluating the xpath expression.
-   * @return the context
-   */
-  val originalNSContext: Iterable<Namespace>
+    /**
+     * Get the namespace context for evaluating the xpath expression.
+     * @return the context
+     */
+    val originalNSContext: Iterable<Namespace>
 
-  companion object serializer: KSerializer<IXmlResultType>
+    companion object serializer : KSerializer<IXmlResultType>
 }
 
-val IXmlResultType.path:String?
-  inline get() = getPath()
+val IXmlResultType.path: String?
+    inline get() = getPath()
 
-var IXmlResultType.name:String
-  inline get(): String = getName()
-  inline set(value) { setName(value) }
+var IXmlResultType.name: String
+    inline get(): String = getName()
+    inline set(value) {
+        setName(value)
+    }
 
 fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext
 
-object IXmlResultTypeListSerializer: KSerializer<List<IXmlResultType>> {
+object IXmlResultTypeListSerializer : KSerializer<List<IXmlResultType>> {
     val delegate = XmlResultType.list
 
     override val descriptor: SerialDescriptor = delegate.descriptor

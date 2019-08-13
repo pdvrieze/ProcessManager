@@ -23,13 +23,17 @@ import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.serialutil.readNullableString
 
 open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
-    open class PathHolderData<T : XPathHolder>(val owner: XPathHolderSerializer<in T>,
-                                               var name: String? = null,
-                                               var path: String? = null) :
+    open class PathHolderData<T : XPathHolder>(
+        val owner: XPathHolderSerializer<in T>,
+        var name: String? = null,
+        var path: String? = null
+                                              ) :
         ContainerData<T>() {
 
-        override fun handleLastRootAttributeReadEvent(reader: XmlReader,
-                                                      gatheringNamespaceContext: GatheringNamespaceContext) {
+        override fun handleLastRootAttributeReadEvent(
+            reader: XmlReader,
+            gatheringNamespaceContext: GatheringNamespaceContext
+                                                     ) {
             if (!path.isNullOrEmpty()) {
                 visitXpathUsedPrefixes(path, gatheringNamespaceContext)
             }
@@ -37,10 +41,10 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
 
         override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
             when (desc.getElementName(index)) {
-                "name" -> name = decoder.readNullableString(desc, index)
+                "name"  -> name = decoder.readNullableString(desc, index)
                 "path",
                 "xpath" -> path = decoder.readNullableString(desc, index)
-                else   -> super.readAdditionalChild(desc, decoder, index)
+                else    -> super.readAdditionalChild(desc, decoder, index)
             }
         }
 
@@ -67,11 +71,13 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
     internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: GatheringNamespaceContext) :
         NamespaceGatherer(gatheringNamespaceContext) {
 
-        override fun visitNamesInAttributeValue(elementContext: NamespaceContext,
-                                                owner: QName,
-                                                attributeName: QName,
-                                                attributeValue: CharSequence,
-                                                localPrefixes: List<List<String>>) {
+        override fun visitNamesInAttributeValue(
+            elementContext: NamespaceContext,
+            owner: QName,
+            attributeName: QName,
+            attributeValue: CharSequence,
+            localPrefixes: List<List<String>>
+                                               ) {
             if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
                 val namesInPath = mutableMapOf<String, String>()
                 val newContext = GatheringNamespaceContext(elementContext, namesInPath)

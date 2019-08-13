@@ -31,12 +31,16 @@ import nl.adaptivity.serialutil.CharArrayAsStringSerializer
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-abstract class XMLContainer private constructor(override var namespaces: SimpleNamespaceContext,
-                                                @Serializable(with = CharArrayAsStringSerializer::class)
-                                                override var content: CharArray) : XmlSerializable, ICompactFragment {
+abstract class XMLContainer private constructor(
+    override var namespaces: SimpleNamespaceContext,
+    @Serializable(with = CharArrayAsStringSerializer::class)
+    override var content: CharArray
+                                               ) : XmlSerializable, ICompactFragment {
 
-    constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(SimpleNamespaceContext.from(namespaces),
-                                                                            content)
+    constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(
+        SimpleNamespaceContext.from(namespaces),
+        content
+                                                                           )
 
     @Transient
     override val isEmpty: Boolean
@@ -123,10 +127,12 @@ abstract class XMLContainer private constructor(override var namespaces: SimpleN
         }
     }
 
-    protected open fun visitNamesInAttributeValue(referenceContext: NamespaceContext,
-                                                  owner: QName,
-                                                  attributeName: QName,
-                                                  attributeValue: CharSequence) {
+    protected open fun visitNamesInAttributeValue(
+        referenceContext: NamespaceContext,
+        owner: QName,
+        attributeName: QName,
+        attributeValue: CharSequence
+                                                 ) {
         // By default there are no special attributes
     }
 
@@ -136,8 +142,10 @@ abstract class XMLContainer private constructor(override var namespaces: SimpleN
     }
 
     protected open fun visitNamespaces(baseContext: NamespaceContext) {
-        val xsr = NamespaceAddingStreamReader(baseContext,
-                                              this.getXmlReader())
+        val xsr = NamespaceAddingStreamReader(
+            baseContext,
+            this.getXmlReader()
+                                             )
 
         visitNamespacesInContent(xsr, null)
     }

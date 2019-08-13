@@ -64,6 +64,6 @@ interface Identifiable : Comparable<Identifiable> {
 
 }
 
-object IdentifiableListSerializer: DelegateSerializer<List<Identifiable>>(Identifiable.list)
+object IdentifiableListSerializer : DelegateSerializer<List<Identifiable>>(Identifiable.list)
 
-object IdentifiableSetSerializer: DelegateSerializer<Set<Identifiable>>(Identifiable.set)
+object IdentifiableSetSerializer : DelegateSerializer<Set<Identifiable>>(Identifiable.set)

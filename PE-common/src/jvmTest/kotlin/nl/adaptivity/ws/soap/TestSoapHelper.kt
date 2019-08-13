@@ -49,7 +49,8 @@ class TestSoapHelper {
     @Test
     @Throws(XmlException::class)
     fun testUnmarshalSoapBody() {
-        val input = """<umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns="http://adaptivity.nl/userMessageHandler">
+        val input =
+            """<umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns="http://adaptivity.nl/userMessageHandler">
   <repliesParam>
     <jbi:endpointDescriptor xmlns:jbi="http://adaptivity.nl/jbi" endpointLocation="http://localhost:8080/ProcessEngine" endpointName="soap" serviceLocalName="ProcessEngine" serviceNS="http://adaptivity.nl/ProcessEngine/"/>
   </repliesParam>
@@ -109,7 +110,8 @@ class TestSoapHelper {
     @Test
     @Throws(Exception::class)
     fun testXmlReaderFromDom() {
-        val input = "<foo xmlns=\"urn:bar\"><rpc:result xmlns:rpc=\"http://www.w3.org/2003/05/soap-rpc\">result</rpc:result></foo>"
+        val input =
+            "<foo xmlns=\"urn:bar\"><rpc:result xmlns:rpc=\"http://www.w3.org/2003/05/soap-rpc\">result</rpc:result></foo>"
         val dbf = DocumentBuilderFactory.newInstance()
         dbf.isNamespaceAware = true
         val doc = dbf.newDocumentBuilder().parse(InputSource(StringReader(input)))
@@ -150,39 +152,41 @@ class TestSoapHelper {
       </result>
     </getProcessNodeInstanceSoapResponse>
   """
-        private val SOAP_RESPONSE1 = """<soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding" xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+        private val SOAP_RESPONSE1 =
+            """<soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding" xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
   <soap:Body>$SOAP_RESPONSE1_BODY  </soap:Body>
 </soap:Envelope>
 """
 
-        private val SOAP_RESPONSE2 = "<soap:Envelope encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +
-                                     "  <soap:Body>" + ("<getProcessNodeInstanceSoapResponse>\n" +
-                                                        //                                                                  "      <rpc:result xmlns:rpc=\"http://www.w3.org/2003/05/soap-rpc\">result</rpc:result>\n" +
-                                                        //                                                                  "      <result>\n" +
-                                                        //                                                                  "        <pe:nodeInstance xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" handle=\"18\" nodeid=\"ac2\" processinstance=\"5\" state=\"Acknowledged\">\n" +
-                                                        //                                                                  "          <pe:predecessor>16</pe:predecessor>\n" +
-                                                        //                                                                  "          <pe:body>\n" +
-                                                        //                                                                  "            <Envelope:Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
-                                                        //                                                                  "              <Body>\n" +
-                                                        //                                                                  "                <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                                                        //                                                                  "                  <repliesParam>\n" +
-                                                        //                                                                  "                    <jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost:8080/ProcessEngine\" endpointName=\"soap\" serviceLocalName=\"ProcessEngine\" serviceNS=\"http://adaptivity.nl/ProcessEngine/\"/>\n" +
-                                                        //                                                                  "                  </repliesParam>\n" +
-                                                        //                                                                  "                  <taskParam>\n" +
-                                                        //                                                                  "                    <task instancehandle=\"5\" owner=\"pdvrieze\" remotehandle=\"18\" summary=\"Task Bar\">\n" +
-                                                        //                                                                  "                      <item type=\"label\" value=\"Hi . Welcome!\"/>\n" +
-                                                        //                                                                  "                    </task>\n" +
-                                                        //                                                                  "                  </taskParam>\n" +
-                                                        //                                                                  "                </umh:postTask>\n" +
-                                                        //                                                                  "              </Body>\n" +
-                                                        //                                                                  "            </Envelope:Envelope>\n" +
-                                                        //                                                                  "          </pe:body>\n" +
-                                                        //                                                                  "        </pe:nodeInstance>\n" +
-                                                        //                                                                  "      </result>\n" +
-                                                        "    </getProcessNodeInstanceSoapResponse>\n" +
-                                                        "  ") +
-                                     "  </soap:Body>\n" +
-                                     "</soap:Envelope>\n"
+        private val SOAP_RESPONSE2 =
+            "<soap:Envelope encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +
+                "  <soap:Body>" + ("<getProcessNodeInstanceSoapResponse>\n" +
+                //                                                                  "      <rpc:result xmlns:rpc=\"http://www.w3.org/2003/05/soap-rpc\">result</rpc:result>\n" +
+                //                                                                  "      <result>\n" +
+                //                                                                  "        <pe:nodeInstance xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" handle=\"18\" nodeid=\"ac2\" processinstance=\"5\" state=\"Acknowledged\">\n" +
+                //                                                                  "          <pe:predecessor>16</pe:predecessor>\n" +
+                //                                                                  "          <pe:body>\n" +
+                //                                                                  "            <Envelope:Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+                //                                                                  "              <Body>\n" +
+                //                                                                  "                <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                //                                                                  "                  <repliesParam>\n" +
+                //                                                                  "                    <jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost:8080/ProcessEngine\" endpointName=\"soap\" serviceLocalName=\"ProcessEngine\" serviceNS=\"http://adaptivity.nl/ProcessEngine/\"/>\n" +
+                //                                                                  "                  </repliesParam>\n" +
+                //                                                                  "                  <taskParam>\n" +
+                //                                                                  "                    <task instancehandle=\"5\" owner=\"pdvrieze\" remotehandle=\"18\" summary=\"Task Bar\">\n" +
+                //                                                                  "                      <item type=\"label\" value=\"Hi . Welcome!\"/>\n" +
+                //                                                                  "                    </task>\n" +
+                //                                                                  "                  </taskParam>\n" +
+                //                                                                  "                </umh:postTask>\n" +
+                //                                                                  "              </Body>\n" +
+                //                                                                  "            </Envelope:Envelope>\n" +
+                //                                                                  "          </pe:body>\n" +
+                //                                                                  "        </pe:nodeInstance>\n" +
+                //                                                                  "      </result>\n" +
+                "    </getProcessNodeInstanceSoapResponse>\n" +
+                "  ") +
+                "  </soap:Body>\n" +
+                "</soap:Envelope>\n"
     }
 
 }

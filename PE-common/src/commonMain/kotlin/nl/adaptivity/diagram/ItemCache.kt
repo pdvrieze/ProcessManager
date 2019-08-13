@@ -31,9 +31,8 @@ class ItemCache {
     private var pathLists = arrayOf<Array<List<*>?>?>(arrayOfNulls(1))
 
     @Suppress("unused")
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> setPen(strategy: S,
-                                                                                                         index: Int,
-                                                                                                         pen: PEN_T) {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        setPen(strategy: S, index: Int, pen: PEN_T) {
         setPen(ensureStrategyIndex(strategy), index, pen)
     }
 
@@ -46,9 +45,8 @@ class ItemCache {
         pens[strategyIdx] = strategyPens
     }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> setPath(strategy: S,
-                                                                                                          index: Int,
-                                                                                                          path: PATH_T) {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        setPath(strategy: S, index: Int, path: PATH_T) {
         setPath(ensureStrategyIndex(strategy), index, path)
     }
 
@@ -65,9 +63,8 @@ class ItemCache {
     }
 
     @Suppress("unused")
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> setPathList(strategy: S,
-                                                                                                              index: Int,
-                                                                                                              pathList: List<PATH_T>) {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        setPathList(strategy: S, index: Int, pathList: List<PATH_T>) {
         setPathList(ensureStrategyIndex(strategy), index, pathList)
     }
 
@@ -104,13 +101,15 @@ class ItemCache {
     //    return array;
     //  }
 
-    private fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getStrategyIndex(
-        strategy: S): Int {
+    private fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getStrategyIndex(strategy: S): Int {
+
         return strategies.indexOfFirst { it === strategy }
     }
 
-    private fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> ensureStrategyIndex(
-        strategy: S): Int {
+    private fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        ensureStrategyIndex(strategy: S): Int {
+
         var strategyIdx = getStrategyIndex(strategy)
         if (strategyIdx < 0) {
             strategyIdx = strategies.size
@@ -121,17 +120,18 @@ class ItemCache {
         return strategyIdx
     }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPen(strategy: S,
-                                                                                                         index: Int,
-                                                                                                         alternate: PEN_T.() -> Unit): PEN_T {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getPen(strategy: S, index: Int, alternate: PEN_T.() -> Unit): PEN_T {
+
         val strategyIdx = getStrategyIndex(strategy)
         return getPen(strategyIdx, index) ?: strategy.newPen().apply {
             alternate(); setPen(strategyIdx, index, this)
         }
     }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPen(strategy: S,
-                                                                                                         index: Int): PEN_T? {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getPen(strategy: S, index: Int): PEN_T? {
+
         val strategyIdx = getStrategyIndex(strategy)
 
         return getPen(strategyIdx, index)
@@ -145,17 +145,18 @@ class ItemCache {
         return pens[strategyIdx]!![penIdx] as PEN_T?
     }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPath(strategy: S,
-                                                                                                          index: Int,
-                                                                                                          alternate: PATH_T.() -> Unit): PATH_T {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getPath(strategy: S, index: Int, alternate: PATH_T.() -> Unit): PATH_T {
+
         val strategyIdx = getStrategyIndex(strategy)
         return getPath(strategy, index) ?: strategy.newPath().apply {
             alternate(); setPath(strategyIdx, index, this)
         }
     }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPath(strategy: S,
-                                                                                                          index: Int): PATH_T? {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getPath(strategy: S, index: Int): PATH_T? {
+
         val strategyIdx = getStrategyIndex(strategy)
         return getPath<PATH_T>(strategyIdx, index)
     }
@@ -169,9 +170,9 @@ class ItemCache {
         return paths[strategyIdx]!![pathIdx] as PATH_T?
     }
 
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPathList(strategy: S,
-                                                                                                              index: Int,
-                                                                                                              alternate: (S) -> List<PATH_T>): List<PATH_T> {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getPathList(strategy: S, index: Int, alternate: (S) -> List<PATH_T>): List<PATH_T> {
+
         val strategyIdx = getStrategyIndex(strategy)
         return getPathList(strategyIdx, index) ?: alternate(strategy).apply {
             setPathList(strategyIdx, index, this)
@@ -179,15 +180,15 @@ class ItemCache {
     }
 
     @Suppress("unused")
-    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> getPathList(strategy: S,
-                                                                                                              index: Int): List<PATH_T>? {
+    fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>>
+        getPathList(strategy: S, index: Int): List<PATH_T>? {
+
         val strategyIdx = getStrategyIndex(strategy)
         return getPathList(strategyIdx, index)
     }
 
-    private fun <PATH_T : DiagramPath<PATH_T>> getPathList(
-        strategyIdx: Int,
-        pathListIdx: Int): List<PATH_T>? {
+    private fun <PATH_T : DiagramPath<PATH_T>>
+        getPathList(strategyIdx: Int, pathListIdx: Int): List<PATH_T>? {
 
         if (strategyIdx < 0 || strategyIdx >= pathLists.size || pathListIdx >= pathLists[strategyIdx]!!.size) {
             return null

@@ -27,7 +27,10 @@ actual class WritableCompactFragment private actual constructor(
     private val data: ICompactFragment,
     dummy: Boolean
                                                                ) : ICompactFragment by data {
-    actual constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(CompactFragment(namespaces, content), false)
+    actual constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(
+        CompactFragment(namespaces, content),
+        false
+                                                                                  )
 
     actual constructor(string: String) : this(CompactFragment(string), false) {}
 

@@ -35,6 +35,7 @@ class ProcessConsts {
 
         @Deprecated("", ReplaceWith("this.NAMESPACE"))
         fun getNAMESPACE() = NAMESPACE
+
         @Deprecated("", ReplaceWith("this.NSPREFIX"))
         fun getNSPREFIX() = NSPREFIX
     }
@@ -48,7 +49,7 @@ class ProcessConsts {
 
     object Endpoints {
 
-        open class UserTaskServiceDescriptor: EndpointDescriptor {
+        open class UserTaskServiceDescriptor : EndpointDescriptor {
             override val serviceName: QName get() = SERVICENAME
 
             override val endpointName: String get() = ENDPOINT
@@ -57,8 +58,8 @@ class ProcessConsts {
 
             override fun isSameService(other: EndpointDescriptor?): Boolean {
                 return other != null &&
-                       SERVICENAME == other.serviceName &&
-                       ENDPOINT.equals(other.endpointName)
+                    SERVICENAME == other.serviceName &&
+                    ENDPOINT.equals(other.endpointName)
             }
 
             companion object {

@@ -14,6 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 @file:JvmName("KotlinCollectionUtilAndroid")
+
 package nl.adaptivity.process.util
 
 import java.util.*

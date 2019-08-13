@@ -31,8 +31,10 @@ import java.io.Writer
 /**
  * Created by pdvrieze on 27/11/15.
  */
-actual class WritableCompactFragment private actual constructor(private val data: ICompactFragment,
-                                                                dummy: Boolean) : ICompactFragment, Writable {
+actual class WritableCompactFragment private actual constructor(
+    private val data: ICompactFragment,
+    dummy: Boolean
+                                                               ) : ICompactFragment, Writable {
 
     override val isEmpty: Boolean
         get() = data.isEmpty
@@ -46,7 +48,10 @@ actual class WritableCompactFragment private actual constructor(private val data
     override val contentString: String
         get() = data.contentString
 
-    actual constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(CompactFragment(namespaces, content), false)
+    actual constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(
+        CompactFragment(namespaces, content),
+        false
+                                                                                  )
 
     actual constructor(string: String) : this(CompactFragment(string), false) {}
 
