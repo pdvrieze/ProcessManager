@@ -104,7 +104,7 @@ class ProcessEngine<TR : ProcessTransaction> {
 
     private val messageService: IMessageService<*>
     private val engineData: IProcessEngineData<TR>
-    private val tickleQueue = ArrayDeque<ComparableHandle<SecureObject<ProcessInstance>>>()
+    private val tickleQueue = ArrayDeque<Handle<SecureObject<ProcessInstance>>>()
     private var securityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
 
     constructor(messageService: IMessageService<*>, engineData: IProcessEngineData<TR>) {
@@ -171,7 +171,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 // Ignore the completion for now. Just keep it in the engine.
             }
 
-            override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+            override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>) {
                 this@DelegateProcessEngineData.queueTickle(instanceHandle)
             }
         }
@@ -185,7 +185,7 @@ class ProcessEngine<TR : ProcessTransaction> {
             return transaction is ProcessTransaction && transaction.readableEngineData == this
         }
 
-        override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+        override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>) {
             engine.queueTickle(instanceHandle)
         }
     }
@@ -228,7 +228,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
             }
 
-            override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+            override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>) {
                 this@DBProcessEngineData.queueTickle(instanceHandle)
             }
         }
@@ -268,7 +268,7 @@ class ProcessEngine<TR : ProcessTransaction> {
             return transaction is ProcessDBTransaction
         }
 
-        override fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+        override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>) {
             engine.queueTickle(instanceHandle)
         }
     }
@@ -531,14 +531,14 @@ class ProcessEngine<TR : ProcessTransaction> {
         return tickleInstance(transaction, handle(handle = handle), user)
     }
 
-    fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>) {
+    fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>) {
         if (instanceHandle !in tickleQueue) {
             tickleQueue.add(instanceHandle)
         }
     }
 
     fun tickleInstance(transaction: TR,
-                       handle: ComparableHandle<SecureObject<ProcessInstance>>,
+                       handle: Handle<SecureObject<ProcessInstance>>,
                        user: Principal, processingTickles: Boolean = false): Boolean {
         try {
             transaction.writableEngineData.run {
@@ -618,7 +618,7 @@ class ProcessEngine<TR : ProcessTransaction> {
         engineData.inWriteTransaction(transaction) {
             resultHandle = instances.put(instance)
             instance(resultHandle).withPermission().let { instance ->
-                assert(instance.getHandle().handleValue == resultHandle.handleValue)
+                assert(instance.handleXXX.handleValue == resultHandle.handleValue)
                 instance.initialize(transaction.writableEngineData)
             }.let { instance ->
                 commit()
@@ -707,7 +707,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 try {
                     // Should be removed internally to the map.
                     //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
-                    if (instances.remove(instance.getHandle())) {
+                    if (instances.remove(instance.handleXXX)) {
                         return instance
                     }
                     throw ProcessException("The instance could not be cancelled")
@@ -813,7 +813,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                         }
                     } catch (e: Exception) {
                         engineData.invalidateCachePNI(handle)
-                        engineData.invalidateCachePI(pi.getHandle())
+                        engineData.invalidateCachePI(pi.handleXXX)
                         throw e
                     }
                 }
@@ -892,7 +892,7 @@ class ProcessEngine<TR : ProcessTransaction> {
 
     @Throws(SQLException::class)
     fun updateStorage(transaction: TR, processInstance: ProcessInstance) {
-        val handle = processInstance.getHandle()
+        val handle = processInstance.handleXXX
         if (!handle.isValid) {
             throw IllegalArgumentException("You can't update storage state of an unregistered node")
         }

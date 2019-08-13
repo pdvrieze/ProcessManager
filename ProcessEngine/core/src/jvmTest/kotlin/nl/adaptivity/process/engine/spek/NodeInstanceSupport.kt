@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.spek
 
 import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessTransaction
@@ -29,7 +30,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 import org.w3c.dom.Node
 import kotlin.reflect.KProperty
 
-class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>, val nodeId: Identified) {
+class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: Handle<SecureObject<ProcessInstance>>, val nodeId: Identified) {
   operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance<*> {
     val idString = nodeId.id
     val instance = instanceSupport.transaction.readableEngineData.instance(instanceHandle).withPermission()

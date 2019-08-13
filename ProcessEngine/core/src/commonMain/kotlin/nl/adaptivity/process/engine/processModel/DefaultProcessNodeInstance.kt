@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
@@ -56,7 +57,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
   constructor(node: ExecutableProcessNode,
               predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
               processInstanceBuilder: ProcessInstance.Builder,
-              hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+              hProcessInstance: Handle<SecureObject<ProcessInstance>>,
               owner: Principal,
               entryNo: Int,
               handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
@@ -69,7 +70,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
               predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
               processInstance: ProcessInstance,
               entryNo: Int)
-    : this(node, if (predecessor.isValid) listOf(predecessor) else emptyList(), processInstance.builder(), processInstance.getHandle(),
+    : this(node, if (predecessor.isValid) listOf(predecessor) else emptyList(), processInstance.builder(),
+           processInstance.handleXXX,
            processInstance.owner, entryNo = entryNo)
 
   constructor(builder: Builder) : super(builder)

@@ -315,7 +315,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
   for (traceElement in trace) {
 
     run {
-      val outerInstance = transaction.readableEngineData.instance(_instance.getHandle()).withPermission()
+      val outerInstance = transaction.readableEngineData.instance(_instance.handleXXX).withPermission()
       val nodeInstance = traceElement.getNodeInstance(transaction, outerInstance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
       if (nodeInstance.state != NodeInstanceState.Complete) {
@@ -371,7 +371,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
       }
     }
     run {
-      val instance = transaction.readableEngineData.instance(_instance.getHandle()).withPermission()
+      val instance = transaction.readableEngineData.instance(_instance.handleXXX).withPermission()
       val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
       if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
         "At trace ${traceElement} -  State of node ${nodeInstance} not complete but ${nodeInstance.state} ${instance.toDebugString()}")

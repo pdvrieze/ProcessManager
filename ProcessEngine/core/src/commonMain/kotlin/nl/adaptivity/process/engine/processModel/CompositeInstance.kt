@@ -22,9 +22,6 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.CompactFragment
-import nl.adaptivity.process.engine.impl.dom.isNamespaceAware
-import nl.adaptivity.process.engine.impl.dom.newDocumentBuilderFactory
 import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.util.security.Principal
@@ -62,7 +59,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
                     .withPermission()
                     .start(engineData, build().getPayload(engineData))
             }
-            engineData.queueTickle(inst.getHandle())
+            engineData.queueTickle(inst.handleXXX)
             return shouldProgress
         }
 

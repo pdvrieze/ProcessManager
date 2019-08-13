@@ -17,7 +17,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.*
@@ -46,7 +46,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
         .filter { it.node.id == refNode }
         .lastOrNull()
     }
-    return applyDataImpl(engineData, predecessor, processInstance.getHandle())
+    return applyDataImpl(engineData, predecessor, processInstance.handleXXX)
 }
 
 @Throws(SQLException::class)
@@ -59,7 +59,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
 }
 
 
-private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance<*>?, hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance<*>?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 
     val predRefName = predecessor?.node?.effectiveRefName(refName)

@@ -54,9 +54,9 @@ import kotlin.contracts.contract
  */
 abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override val node: ExecutableProcessNode,
-    predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+    predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
     processInstanceBuilder: ProcessInstance.Builder,
-    val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+    hProcessInstance: Handle<SecureObject<ProcessInstance>>,
     override final val owner: Principal,
     override final val entryNo: Int,
     private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
@@ -67,9 +67,10 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                                                                          ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
                                                                          IProcessNodeInstance {
 
+    val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
     val results: List<ProcessData> = results.toList()
     override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
-        predecessors.asSequence().filter { it.isValid }.toArraySet()
+        predecessors.asSequence().filter { it.isValid }.map { it.toComparableHandle() }.toArraySet()
 
     init {
         @Suppress("LeakingThis")

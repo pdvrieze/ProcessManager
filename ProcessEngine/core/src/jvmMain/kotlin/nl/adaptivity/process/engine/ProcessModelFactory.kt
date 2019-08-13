@@ -66,7 +66,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   }
 
   override fun getPrimaryKeyCondition(where: Database._Where, instance: SecureObject<ExecutableProcessModel>): Database.WhereClause? {
-    return getHandleCondition(where, instance.withPermission().getHandle())
+    return getHandleCondition(where, instance.withPermission().handleXXX)
   }
 
   override fun asInstance(obj: Any) = obj as? ExecutableProcessModel

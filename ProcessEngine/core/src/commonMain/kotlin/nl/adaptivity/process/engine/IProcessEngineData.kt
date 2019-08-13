@@ -64,7 +64,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 
     abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess
 
-    abstract fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>)
+    abstract fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>)
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inReadonlyTransaction(

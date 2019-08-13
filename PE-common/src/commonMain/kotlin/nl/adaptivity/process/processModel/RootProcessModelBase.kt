@@ -99,7 +99,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     @Transient
     override val ref: IProcessModelRef<NodeT, RootProcessModel<NodeT>>
         get() {
-            return ProcessModelRef(name, this.getHandle(), uuid)
+            return ProcessModelRef(name, handleXXX, uuid)
         }
 
     /**
@@ -183,13 +183,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
     override val handleXXX: Handle<RootProcessModelBase<NodeT>>
         get() = handle(handle = _handle)
-
-    /**
-     * Get the handle recorded for this model.
-     */
-    override fun getHandle(): Handle<RootProcessModelBase<NodeT>> {
-        return handleXXX
-    }
 
     /**
      * Set the handle for this model.

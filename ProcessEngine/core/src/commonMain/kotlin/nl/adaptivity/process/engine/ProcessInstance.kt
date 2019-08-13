@@ -627,7 +627,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
         override val handleValue = processInstance.handle.handleValue
 
-        val processModel = processInstance.processModel.rootModel.getHandle()
+        val processModel = processInstance.processModel.rootModel.handleXXX
 
         val name: String = processInstance.name.let {
             if (it.isNullOrBlank()) {
@@ -709,7 +709,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             pendingJoinNodes.associateBy { it.node }
 
     private var handle: ComparableHandle<SecureObject<ProcessInstance>>
+    override val handleXXX: Handle<SecureObject<ProcessInstance>>
+        get() = handle
 
+    @Deprecated("use property", ReplaceWith("handleXXX"))
     override fun getHandle() = handle
 
     /**
@@ -806,7 +809,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             return newInstance.handle.isValid && handle.isValid
         }
 
-        if (getHandle().isValid && handle.isValid) {
+        if (handleXXX.isValid && handle.isValid) {
             assert(dataValid()) { "Instance generations lost in the waves" }
             writableEngineData.instances[handle] = newInstance
             return newInstance
@@ -979,7 +982,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             writeHandleAttr("handle", handle)
             writeAttribute("name", name)
             when (processModel) {
-                is ExecutableProcessModel -> writeHandleAttr("processModel", processModel.getHandle())
+                is ExecutableProcessModel -> writeHandleAttr("processModel", processModel.handleXXX)
                 else                      -> writeHandleAttr("parentActivity", parentActivity)
             }
 

@@ -44,7 +44,7 @@ interface InstanceSupport {
 
     val ProcessInstance.nodeInstances: Gettable<Identified, ProcessNodeInstanceDelegate> get() = object: Gettable<Identified,ProcessNodeInstanceDelegate> {
         operator override fun get(key: Identified): ProcessNodeInstanceDelegate {
-            return ProcessNodeInstanceDelegate(this@InstanceSupport, this@nodeInstances.getHandle(), key)
+            return ProcessNodeInstanceDelegate(this@InstanceSupport, this@nodeInstances.handleXXX, key)
         }
     }
 
@@ -149,7 +149,7 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
             append(", instance: ")
             append(it)
         }
-        append('[').append(getHandle()).append(']')
+        append('[').append(handleXXX).append(']')
         append(", allnodes: [")
         this@toDebugString.allChildren(transaction).joinTo(this) {
             val inst = it.withPermission()
@@ -169,7 +169,7 @@ fun ProcessInstance.trace(transaction: StubProcessTransaction,
     return allChildren(transaction)
         .map { it.withPermission() }
         .filter(filter)
-        .sortedBy { getHandle().handleValue }
+        .sortedBy { handleXXX.handleValue }
         .map { TraceElement(it.node.id, it.entryNo) }
 }
 

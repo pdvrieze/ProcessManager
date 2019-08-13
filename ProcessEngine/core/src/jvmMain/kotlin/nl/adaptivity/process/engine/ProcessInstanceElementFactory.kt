@@ -91,7 +91,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessInstance>) {
-    preRemove(transaction, element.withPermission().getHandle())
+    preRemove(transaction, element.withPermission().handleXXX)
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
@@ -144,7 +144,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
 
   override fun getPrimaryKeyCondition(where: Database._Where,
                                       instance: SecureObject<ProcessInstance>): Database.WhereClause? {
-    return getHandleCondition(where, instance.withPermission().getHandle())
+    return getHandleCondition(where, instance.withPermission().handleXXX)
   }
 
   override fun asInstance(obj: Any): ProcessInstance? {
@@ -155,15 +155,15 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
   override fun insertStatement(value: SecureObject<ProcessInstance>): Database.Insert {
     return value.withPermission().let { value -> ProcessEngineDB
           .INSERT(pi.pmhandle, pi.parentActivity, pi.name, pi.owner, pi.state, pi.uuid)
-          .VALUES(value.processModel.rootModel.getHandle(), value.parentActivity, value.name, value.owner.name,
-                  value.state, value.uuid) }
+          .VALUES(value.processModel.rootModel.handleXXX, value.parentActivity, value.name, value.owner.name,
+              value.state, value.uuid) }
   }
 
   override val keyColumn get() = pi.pihandle
 
   override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessInstance>) {
     update.run { value.withPermission().let { value ->
-        SET(pi.pmhandle, value.processModel.rootModel.getHandle())
+        SET(pi.pmhandle, value.processModel.rootModel.handleXXX)
         SET(pi.parentActivity, value.parentActivity)
         SET(pi.name, value.name)
         SET(pi.owner, value.owner.name)
@@ -182,7 +182,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
 
   fun isEqualForStorage(oldValue: ProcessInstance, newValue: ProcessInstance): Boolean {
     return oldValue.uuid == newValue.uuid &&
-        oldValue.getHandle() == newValue.getHandle() &&
+        oldValue.handleXXX == newValue.handleXXX &&
         oldValue.state == newValue.state &&
         oldValue.name == newValue.name &&
         oldValue.owner == newValue.owner

@@ -39,7 +39,7 @@ interface ProcessEngineDataAccess {
     val processModels: IProcessModelMapAccess
 
     fun processModel(handle: Handle<SecureObject<ExecutableProcessModel>>) = processModels[handle].mustExist(handle)
-    fun queueTickle(instanceHandle: ComparableHandle<SecureObject<ProcessInstance>>)
+    fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>)
 
     val logger: Logger
 }
