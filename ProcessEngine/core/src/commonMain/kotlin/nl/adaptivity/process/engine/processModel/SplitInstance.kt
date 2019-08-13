@@ -87,8 +87,8 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     override val node: ExecutableSplit
         get() = super.node as ExecutableSplit
 
-    override val handleXXX: Handle<SecureObject<SplitInstance>>
-        get() = super.handleXXX as Handle<SecureObject<SplitInstance>>
+    override val handle: Handle<SecureObject<SplitInstance>>
+        get() = super.handle as Handle<SecureObject<SplitInstance>>
 
     constructor(
         node: ExecutableSplit,

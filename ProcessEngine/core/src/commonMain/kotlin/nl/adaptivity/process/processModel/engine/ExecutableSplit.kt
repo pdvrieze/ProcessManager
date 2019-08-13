@@ -59,7 +59,7 @@ class ExecutableSplit(
                                        predecessor: IProcessNodeInstance,
                                        entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         // TODO handle reentry
-        return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.handleXXX,
+        return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.handle,
                                                                                            processInstanceBuilder,
                                                                                            processInstanceBuilder.owner,
                                                                                            entryNo)

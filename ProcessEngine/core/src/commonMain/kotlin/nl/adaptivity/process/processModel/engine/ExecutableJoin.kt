@@ -85,6 +85,6 @@ class ExecutableJoin(
     existingInstance?.let { return it }
 
     if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) { throw ProcessException("Attempting to start a second instance of a single instantiation join") }
-    return JoinInstance.BaseBuilder(this, listOf(predecessor.handleXXX), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
+    return JoinInstance.BaseBuilder(this, listOf(predecessor.handle), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
   }
 }

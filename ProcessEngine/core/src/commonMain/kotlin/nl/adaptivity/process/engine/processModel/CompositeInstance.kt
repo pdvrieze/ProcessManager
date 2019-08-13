@@ -57,7 +57,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
                     .withPermission()
                     .start(engineData, build().getPayload(engineData))
             }
-            engineData.queueTickle(inst.handleXXX)
+            engineData.queueTickle(inst.handle)
             return shouldProgress
         }
 

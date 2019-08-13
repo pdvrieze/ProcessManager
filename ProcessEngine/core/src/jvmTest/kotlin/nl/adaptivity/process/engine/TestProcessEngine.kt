@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.*
-import nl.adaptivity.process.StubTransaction
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -373,10 +372,10 @@ class TestProcessEngine: ProcessEngineTestSupport() {
         stubMessageService.clear() // (Process the message)
         assertEquals(0, ac1.results.size)
         ac1 = processEngine.finishTask(transaction,
-                                       ac1.handleXXX, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal)
+                                       ac1.handle, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal)
         assertEquals(NodeInstanceState.Complete, ac1.state)
         ac1 = processEngine.getNodeInstance(transaction,
-                                            ac1.handleXXX, modelOwnerPrincipal) ?: throw AssertionError("Node ${ac1.handleXXX} not found")
+                                            ac1.handle, modelOwnerPrincipal) ?: throw AssertionError("Node ${ac1.handle} not found")
         assertEquals(2, ac1.results.size)
         val result1 = ac1.results[0]
         val result2 = ac1.results[1]

@@ -45,7 +45,7 @@ interface SafeNodeActions {
   fun ProcessNodeInstance<*>.take(): ProcessNodeInstance<*> {
     val ib = transaction.writableEngineData.instance(hProcessInstance).withPermission().builder()
     this.update(ib) { state= NodeInstanceState.Taken }
-    return transaction.readableEngineData.nodeInstance(handleXXX).withPermission()
+    return transaction.readableEngineData.nodeInstance(handle).withPermission()
   }
 
   fun ProcessNodeInstance<*>.start(): ProcessNodeInstance<*> {
@@ -55,7 +55,7 @@ interface SafeNodeActions {
         startTask(transaction.writableEngineData)
       }
     }
-    return transaction.readableEngineData.nodeInstance(handleXXX).withPermission()
+    return transaction.readableEngineData.nodeInstance(handle).withPermission()
   }
 
 }
@@ -69,7 +69,7 @@ interface ProcessNodeActions: SafeNodeActions {
         finishTask(transaction.writableEngineData, payload)
       }
     }
-    return transaction.readableEngineData.nodeInstance(handleXXX).withPermission()
+    return transaction.readableEngineData.nodeInstance(handle).withPermission()
   }
 
 }

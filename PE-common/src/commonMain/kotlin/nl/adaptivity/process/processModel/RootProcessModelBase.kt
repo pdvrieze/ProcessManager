@@ -99,7 +99,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     @Transient
     override val ref: IProcessModelRef<NodeT, RootProcessModel<NodeT>>
         get() {
-            return ProcessModelRef(name, handleXXX, uuid)
+            return ProcessModelRef(name, handle, uuid)
         }
 
     /**
@@ -181,7 +181,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
     override fun getChildModel(childId: Identifiable) = _childModels[childId]
 
-    override val handleXXX: Handle<RootProcessModelBase<NodeT>>
+    override val handle: Handle<RootProcessModelBase<NodeT>>
         get() = handle(handle = _handle)
 
     /**
@@ -335,7 +335,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 nodes = emptyList(),
                 childModels = emptyList(),
                 name = base.name,
-                handle = (base as? ReadableHandleAware<*>)?.handleXXX?.handleValue ?: -1L,
+                handle = (base as? ReadableHandleAware<*>)?.handle?.handleValue ?: -1L,
                 owner = base.owner,
                 roles = base.roles.toMutableList(),
                 uuid = base.uuid,

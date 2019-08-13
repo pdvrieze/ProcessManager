@@ -132,7 +132,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<*>): A
 
   override fun getPrimaryKeyCondition(where: Database._Where,
                              instance: SecureObject<ProcessNodeInstance<*>>): Database.WhereClause? {
-    return getHandleCondition(where, instance.withPermission().handleXXX)
+    return getHandleCondition(where, instance.withPermission().handle)
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -175,11 +175,11 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<*>): A
       if (results.isNotEmpty() || (isFailure && newValue.failureCause != null)) {
         val insert = ProcessEngineDB.INSERT_OR_UPDATE(tbl_nd.pnihandle, tbl_nd.name, tbl_nd.data)
         for (data in results) {
-          insert.VALUES(newValue.handleXXX, data.name, data.content.contentString)
+          insert.VALUES(newValue.handle, data.name, data.content.contentString)
         }
         if (isFailure) {
           newValue.failureCause?.let { cause ->
-            insert.VALUES(newValue.handleXXX, FAILURE_CAUSE, cause.message)
+            insert.VALUES(newValue.handle, FAILURE_CAUSE, cause.message)
           }
         }
         insert.executeUpdate(connection)
@@ -212,7 +212,7 @@ internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<*>): A
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessNodeInstance<*>>) {
-    preRemove(transaction, element.withPermission().handleXXX)
+    preRemove(transaction, element.withPermission().handle)
   }
 
   override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {

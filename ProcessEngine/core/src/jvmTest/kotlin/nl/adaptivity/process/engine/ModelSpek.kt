@@ -352,10 +352,10 @@ private fun EngineSuite.startProcess(
     payload: CompactFragment? = null): Lazy<HProcessInstance> {
     return lazy {
         val transaction = transactionGetter()
-        val hmodel = if (model.handleXXX.isValid &&
-                         model.handleXXX in transaction.readableEngineData.processModels &&
-                         transaction.readableEngineData.processModels[model.handleXXX]?.withPermission()?.uuid == model.uuid) {
-            model.handleXXX
+        val hmodel = if (model.handle.isValid &&
+                         model.handle in transaction.readableEngineData.processModels &&
+                         transaction.readableEngineData.processModels[model.handle]?.withPermission()?.uuid == model.uuid) {
+            model.handle
         } else {
             model.setHandleValue(-1)
             engineData.engine.addProcessModel(transaction, model.builder(), owner)

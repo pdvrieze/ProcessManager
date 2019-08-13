@@ -71,7 +71,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
               processInstance: ProcessInstance,
               entryNo: Int)
     : this(node, if (predecessor.isValid) listOf(predecessor) else emptyList(), processInstance.builder(),
-           processInstance.handleXXX,
+           processInstance.handle,
            processInstance.owner, entryNo = entryNo)
 
   constructor(builder: Builder) : super(builder)
@@ -92,7 +92,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     if (state != other.state) return false
     if (failureCause != other.failureCause) return false
     if (node != other.node) return false
-    if (handleXXX != other.handleXXX) return false
+    if (handle != other.handle) return false
     if (results != other.results) return false
     if (predecessors != other.predecessors) return false
     if (owner != other.owner) return false
@@ -105,7 +105,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     result = 31 * result + state.hashCode()
     result = 31 * result + (failureCause?.hashCode() ?: 0)
     result = 31 * result + node.hashCode()
-    result = 31 * result + handleXXX.hashCode()
+    result = 31 * result + handle.hashCode()
     result = 31 * result + results.hashCode()
     result = 31 * result + predecessors.hashCode()
     result = 31 * result + owner.hashCode()

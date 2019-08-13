@@ -67,9 +67,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                                                                          ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
                                                                          IProcessNodeInstance {
 
-    private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
+    private var _handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
+
+    override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> get() = _handle
+
     val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
     val results: List<ProcessData> = results.toList()
+
     override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
         predecessors.asSequence().filter { it.isValid }.map { it.toComparableHandle() }.toArraySet()
 
@@ -91,11 +95,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         builder.entryNo, builder.handle, builder.state,
         builder.results, builder.failureCause
                                                                   )
-
-    override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>> get() = handle
-
-    @Deprecated("use property", ReplaceWith("handleXXX"))
-    open fun getHandle() = handle
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
 
@@ -155,7 +154,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             .map { engineData.nodeInstance(it).withPermission() }
             .forEach {
                 if (nodeName == it.node.id) {
-                    return it.handleXXX
+                    return it.handle
                 } else {
                     val result = it.getPredecessor(engineData, nodeName)
                     if (result != null) {
@@ -173,11 +172,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
     fun getHandleValue(): Long {
-        return handle.handleValue
+        return _handle.handleValue
     }
 
     override fun toString(): String {
-        return "nodeInstance  ($handleXXX, ${node.id}[$entryNo] - $state)"
+        return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
     fun instantiateXmlPlaceholders(
@@ -236,7 +235,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             writeAttribute("state", state.name)
             writeAttribute("processinstance", hProcessInstance.handleValue)
 
-            if (handle.isValid) writeAttribute("handle", handle.handleValue)
+            if (_handle.isValid) writeAttribute("handle", _handle.handleValue)
 
             writeAttribute("nodeid", node.id)
 
@@ -277,7 +276,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         val processInstanceBuilder: ProcessInstance.Builder
         val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
         var owner: Principal
-        var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
+        override var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
         override var state: NodeInstanceState
         val results: MutableList<ProcessData>
         fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance
@@ -427,7 +426,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
                 for (predecessor in predecessors) {
                     if (predecessor !is SplitInstance && !predecessor.state.isFinal) {
-                        throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor.handle} - ${predecessor.state}]")
+                        throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor._handle} - ${predecessor.state}]")
                     }
                 }
             }
@@ -449,7 +448,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
             if (state.isFinal) {
-                throw ProcessException("instance ${node.id}:$handleXXX($state) cannot be finished as it is already in a final state.")
+                throw ProcessException("instance ${node.id}:$handle($state) cannot be finished as it is already in a final state.")
             }
             doFinishTask(engineData, resultPayload)
             state = Complete
@@ -504,7 +503,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
         override fun toString(): String {
-            return "${node.getClass()}  ($handleXXX, ${node.id}[$entryNo] - $state)"
+            return "${node.getClass()}  ($handle, ${node.id}[$entryNo] - $state)"
         }
 
     }
@@ -519,9 +518,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         state: NodeInstanceState = Pending
                                                                                      ) : AbstractBuilder<N, T>() {
 
-        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
-        override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
-            get() = handle
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle
 
         final override var state = state
             set(value) {
@@ -531,7 +528,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
-            engineData.nodeInstances[handle]?.withPermission()?.let { newBase ->
+            engineData.nodeInstances[this.handle]?.withPermission()?.let { newBase ->
                 @Suppress("UNCHECKED_CAST")
                 node = newBase.node as N
                 predecessors.replaceBy(newBase.predecessors)
@@ -555,9 +552,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
         final override var owner by overlay(observer()) { base.owner }
-        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handleXXX }
-        override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
-            get() = handle
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handle }
+
         final override var state = base.state
             set(value) {
                 if (field != value) {
@@ -573,7 +569,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         @Suppress("UNCHECKED_CAST")
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             changed = false
-            base = engineData.nodeInstance(handle).withPermission() as T
+            base = engineData.nodeInstance(this.handle).withPermission() as T
         }
 
         override abstract fun build(): T

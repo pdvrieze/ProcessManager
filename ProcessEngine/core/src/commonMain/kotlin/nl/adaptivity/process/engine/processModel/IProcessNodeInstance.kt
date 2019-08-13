@@ -32,7 +32,7 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
     val node: ExecutableProcessNode
     val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
 
-    override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
+    override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>
 
     val entryNo: Int
     val state: NodeInstanceState

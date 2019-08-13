@@ -21,5 +21,5 @@ package net.devrieze.util
  */
 interface ReadableHandleAware<out T : Any> {
 
-    val handleXXX: Handle<T>
+    val handle: Handle<T>
 }

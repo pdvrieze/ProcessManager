@@ -53,7 +53,7 @@ class ExecutableProcessModel @JvmOverloads constructor(
 
     @Transient
     override val ref: ExecutableProcessModelRef
-        get() = ProcessModelRef(name, handleXXX, uuid)
+        get() = ProcessModelRef(name, handle, uuid)
 
     override fun withPermission() = this
 
@@ -63,8 +63,8 @@ class ExecutableProcessModel @JvmOverloads constructor(
         return ExecutableProcessModel(Builder(this).apply(body))
     }
 
-    override val handleXXX: Handle<ExecutableProcessModel>
-        get() = super.handleXXX as Handle<ExecutableProcessModel>
+    override val handle: Handle<ExecutableProcessModel>
+        get() = super.handle as Handle<ExecutableProcessModel>
 
     /* (non-Javadoc)
        * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()

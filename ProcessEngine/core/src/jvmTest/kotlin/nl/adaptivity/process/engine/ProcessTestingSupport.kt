@@ -27,7 +27,6 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.engine.spek.ProcessNodeActions
 import nl.adaptivity.process.engine.spek.SafeNodeActions
-import nl.adaptivity.process.engine.spek.toDebugString
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -39,7 +38,6 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
 import org.spekframework.spek2.dsl.GroupBody
 import org.spekframework.spek2.dsl.TestBody
-import org.w3c.dom.Node
 import java.security.Principal
 
 @Retention(AnnotationRetention.SOURCE)
@@ -315,7 +313,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
   for (traceElement in trace) {
 
     run {
-      val outerInstance = transaction.readableEngineData.instance(_instance.handleXXX).withPermission()
+      val outerInstance = transaction.readableEngineData.instance(_instance.handle).withPermission()
       val nodeInstance = traceElement.getNodeInstance(transaction, outerInstance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
       if (nodeInstance.state != NodeInstanceState.Complete) {
@@ -371,7 +369,7 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
       }
     }
     run {
-      val instance = transaction.readableEngineData.instance(_instance.handleXXX).withPermission()
+      val instance = transaction.readableEngineData.instance(_instance.handle).withPermission()
       val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
       if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
         "At trace ${traceElement} -  State of node ${nodeInstance} not complete but ${nodeInstance.state} ${instance.toDebugString()}")

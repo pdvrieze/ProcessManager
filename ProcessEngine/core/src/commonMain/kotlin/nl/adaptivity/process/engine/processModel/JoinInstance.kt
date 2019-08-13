@@ -126,8 +126,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         get() = super.node as ExecutableJoin
 
     @Suppress("UNCHECKED_CAST")
-    override val handleXXX: Handle<SecureObject<JoinInstance>>
-        get() = super.handleXXX as Handle<SecureObject<JoinInstance>>
+    override val handle: Handle<SecureObject<JoinInstance>>
+        get() = super.handle as Handle<SecureObject<JoinInstance>>
 
     fun canFinish() = predecessors.size>=node.min
 
@@ -186,10 +186,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             // register existing predecessors
             val instantiatedPredecessors = processInstanceBuilder.allChildren { pred ->
                 join in pred.node.successors &&
-                    ( pred.handleXXX in predecessors ||
+                    ( pred.handle in predecessors ||
                         node.getExistingInstance(engineData, processInstanceBuilder, pred, pred.entryNo).first?.let { predecessorsToAdd.add(
-                            pred.handleXXX.toComparableHandle()); it.handleXXX
-                        } == handleXXX )
+                            pred.handle.toComparableHandle()); it.handle
+                        } == handle )
             }.toList()
             predecessors.addAll(predecessorsToAdd)
 

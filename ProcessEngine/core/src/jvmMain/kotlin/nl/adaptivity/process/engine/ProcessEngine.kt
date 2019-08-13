@@ -77,7 +77,7 @@ private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHan
         return base
     }
     return CachingHandleMap(base, cacheSize, { tr, pni, handle ->
-        if (pni.withPermission().handleXXX == handle) {
+        if (pni.withPermission().handle == handle) {
             pni
         } else {
             val piBuilder = tr.readableEngineData.instance(
@@ -618,7 +618,7 @@ class ProcessEngine<TR : ProcessTransaction> {
         engineData.inWriteTransaction(transaction) {
             resultHandle = instances.put(instance)
             instance(resultHandle).withPermission().let { instance ->
-                assert(instance.handleXXX.handleValue == resultHandle.handleValue)
+                assert(instance.handle.handleValue == resultHandle.handleValue)
                 instance.initialize(transaction.writableEngineData)
             }.let { instance ->
                 commit()
@@ -707,7 +707,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 try {
                     // Should be removed internally to the map.
                     //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
-                    if (instances.remove(instance.handleXXX)) {
+                    if (instances.remove(instance.handle)) {
                         return instance
                     }
                     throw ProcessException("The instance could not be cancelled")
@@ -813,7 +813,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                         }
                     } catch (e: Exception) {
                         engineData.invalidateCachePNI(handle)
-                        engineData.invalidateCachePI(pi.handleXXX)
+                        engineData.invalidateCachePI(pi.handle)
                         throw e
                     }
                 }
@@ -892,7 +892,7 @@ class ProcessEngine<TR : ProcessTransaction> {
 
     @Throws(SQLException::class)
     fun updateStorage(transaction: TR, processInstance: ProcessInstance) {
-        val handle = processInstance.handleXXX
+        val handle = processInstance.handle
         if (!handle.isValid) {
             throw IllegalArgumentException("You can't update storage state of an unregistered node")
         }

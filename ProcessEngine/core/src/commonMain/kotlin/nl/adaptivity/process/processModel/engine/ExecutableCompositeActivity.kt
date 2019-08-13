@@ -85,7 +85,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
         entryNo: Int
                                       ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         return processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(
-            this, predecessor.handleXXX,
+            this, predecessor.handle,
             processInstanceBuilder,
             getInvalidHandle(),
             processInstanceBuilder.owner,

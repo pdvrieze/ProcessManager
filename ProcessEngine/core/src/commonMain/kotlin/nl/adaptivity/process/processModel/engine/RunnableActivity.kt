@@ -101,7 +101,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             }
         }
         return RunnableActivityInstance.BaseBuilder(
-            this, predecessor.handleXXX.toComparableHandle(),
+            this, predecessor.handle.toComparableHandle(),
             processInstanceBuilder,
             processInstanceBuilder.owner, entryNo
                                                    )

@@ -46,7 +46,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
         .filter { it.node.id == refNode }
         .lastOrNull()
     }
-    return applyDataImpl(engineData, predecessor, processInstance.handleXXX)
+    return applyDataImpl(engineData, predecessor, processInstance.handle)
 }
 
 @Throws(SQLException::class)

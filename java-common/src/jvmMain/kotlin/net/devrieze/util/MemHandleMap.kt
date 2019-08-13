@@ -166,7 +166,7 @@ open class MemHandleMap<V : Any>
      */
     override fun <W : V> put(value: W): ComparableHandle<W> {
         assert(
-            if (value is ReadableHandleAware<*>) !value.handleXXX.isValid else true) { "Storing a value that already has a handle is invalid" }
+            if (value is ReadableHandleAware<*>) !value.handle.isValid else true) { "Storing a value that already has a handle is invalid" }
 
         var index: Int // The space in the mValues array where to store the value
         var generation: Int // To allow reuse of spaces without reuse of handles
@@ -579,7 +579,7 @@ open class MemHandleMap<V : Any>
 
         override fun remove(element: T): Boolean {
             if (element is ReadableHandleAware<*>) {
-                return handleMap.remove(element.handleXXX)
+                return handleMap.remove(element.handle)
             }
             return handleMap.remove(element)
         }
